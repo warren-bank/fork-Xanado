@@ -4,5 +4,7 @@
     "mailSender": "Scrabble Server <scrabble@netzhansa.com>",
     "mailTransportConfig": {
         "host": "localhost"
-    }
+    },
+    "defaultLanguage": "German",
+    "style": "invite"
 }

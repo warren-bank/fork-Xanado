@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+	<base href=".." />
+    <title>Create new game</title>
+
+    <style type="text/css" media="all">
+      @import "client/css/common.css";
+    </style>
+    <style type="text/css" media="all">
+      @import "client/css/page.css";
+    </style>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+	<script data-main="../rjs_config.js" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script>
+
+  </head>
+  <body id="body">
+	<script type="text/javascript">requirejs(["js/ui/invite-game"]);</script>
+    <form id="create-invitation-game" action="newgame" method="POST">
+      <fieldset>
+        <h1>Create a new game</h1>
+        Enter the names and optional email addresses for up to 6 players
+		<ul>
+		  <li>All players with an email address will receive an invitation with a personal link to the game</li>
+		  <li>Other players can join by clicking on their name in the games interface</li>
+		  <li>The board size will be adjusted for the number of players</li>
+		  <li>Play starts with the first player in the list</li>
+		</ul>
+        <label for="lingo">Language</label>
+		<select id="lingo" name="language">
+          <option>German</option>
+          <option>Czech</option>
+          <option>English</option>
+          <option>Estonian</option>
+          <option>French</option>
+          <option>Hungarian</option>
+          <option>Test</option>
+          <option>Nederlands</option>
+        </select>
+	  </fieldset>
+      <fieldset>
+        <legend>Players</legend>
+		<table>
+		  <tr>
+			<td><label for="name1">Name</label><input class="name" name="name1"/></td>
+			<td><label for="email1">Email</label><input name="email1"/></td>
+		  </tr><tr>
+			<td><label for="name2">Name</label><input class="name" name="name2"/></td>
+			<td><label for="email2">Email</label><input name="email2"/></td>
+		  </tr><tr>
+			<td><label for="name3">Name</label><input class="name" name="name3"/></td>
+			<td><label for="email3">Email</label><input name="email3"/></td>
+		  </tr><tr>
+			<td><label for="name4">Name</label><input class="name" name="name4"/></td>
+			<td><label for="email4">Email</label><input name="email4"/></td>
+		  </tr><tr>
+			<td><label for="name5">Name</label><input class="name" name="name5"/></td>
+			<td><label for="email5">Email</label><input name="email5"/></td>
+		  </tr><tr>
+			<td><label for="name6">Name</label><input class="name" name="name6"/></td>
+			<td><label for="email6">Email</label><input name="email6"/></td>
+		  </tr>
+		</table>
+          <input type="submit" value="Create new game" />
+	  </fieldset>
+	  <div id="problem_dialog" title="Problem" style="display:none">
+	  </div>
+	</form>
+  </body>
+</html>

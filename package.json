@@ -1,42 +1,93 @@
 {
-    "name": "html-scrabble",
-    "description": "Multi user Scrabble game",
-    "version": "0.1.3",
-    "author": {
-        "name": "Hans Hübner",
-        "email": "hans.huebner@gmail.com",
-        "url": "https://github.com/hanshuebner"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/hanshuebner/html-scrabble.git"
-    },
-    "main": "server",
-    "engines": {
-        "node": ">=13.8.0"
-    },
-    "license": "MIT/X11",
-    "dependencies": {
-        "basic-auth-connect": ">=1.0.0",
-        "body-parser": ">=1.3.1",
-        "cookie-parser": ">=1.3.1",
-        "dirty": ">=0.9.6",
-        "errorhandler": ">=1.1.0",
-        "express": ">=3.0.0rc2",
-        "express-negotiate": ">=0.0.5",
-        "method-override": ">=2.0.2",
-        "nodemailer": ">=6.4.11",
-        "nodeunit": ">=0.7.4",
-        "optimist": ">=0.3.4",
-        "redis": "^3.0.2",
-        "socket.io": ">=1.0.5",
-        "underscore": ">=1.3.3"
-    },
-    "devDependencies": {
-        "release-utils": ">= 0.0.1"
-    },
-    "scripts": {
-        "build-release": "node node_modules/release-utils/npm-release.js",
-        "web": "node server.js"
-    }
+				"name": "html-scrabble",
+				"description": "Multi user Scrabble game",
+				"version": "0.1.3",
+				"author": {
+								"name": "Hans Hübner",
+								"email": "hans.huebner@gmail.com",
+								"url": "https://github.com/hanshuebner"
+				},
+				"repository": {
+								"type": "git",
+								"url": "git://github.com/hanshuebner/html-scrabble.git"
+				},
+				"main": "server",
+				"engines": {
+								"node": ">=13.8.0"
+				},
+				"license": "MIT/X11",
+				"dependencies": {
+								"basic-auth-connect": ">=1.0.0",
+								"body-parser": ">=1.3.1",
+								"cookie-parser": ">=1.3.1",
+								"dirty": ">=0.9.6",
+								"errorhandler": ">=1.1.0",
+								"express": ">=3.0.0",
+								"express-negotiate": ">=0.0.5",
+								"method-override": ">=2.0.2",
+								"nodemailer": ">=6.4.11",
+								"nodeunit": ">=0.7.4",
+								"optimist": ">=0.3.4",
+								"redis": "^3.0.2",
+								"requirejs": "^2.3.6",
+								"socket.io": ">=2.3.0",
+								"underscore": ">=1.3.3"
+				},
+				"devDependencies": {
+								"release-utils": ">= 0.0.1"
+				},
+				"scripts": {
+								"build-release": "node node_modules/release-utils/npm-release.js",
+								"web": "node server.js"
+				},
+				"eslintConfig": {
+								"extends": "eslint:recommended",
+								"parserOptions": {
+												"ecmaVersion": 8
+								},
+								"env": {
+												"shared-node-browser": true,
+												"jquery": true
+								},
+								"globals": {
+												"define": false,
+												"ArrayBuffer": false,
+												"Buffer": false,
+												"Uint8Array": false,
+												"Uint8ClampedArray": false,
+												"Int8Array": false,
+												"Int16Array": false,
+												"Uint16Array": false,
+												"Int32Array": false,
+												"Uint32Array": false,
+												"Float32Array": false,
+												"Float64Array": false,
+												"XMLHttpRequest": false,
+												"WeakMap": false,
+												"require": false,
+												"module": false,
+												"Promise": false,
+												"requirejs": true
+								},
+								"rules": {
+												"strict": 0,
+												"no-underscore-dangle": 0,
+												"curly": 0,
+												"camelcase": 0,
+												"no-unused-vars": 1,
+												"no-console": 0,
+												"no-debugger": 0,
+												"no-alert": 1,
+												"no-new": 0,
+												"new-cap": 0,
+												"dot-notation": 1,
+												"no-trailing-spaces": 0,
+												"no-useless-escape": 1,
+												"no-use-before-define": 1,
+												"no-loop-func": 1,
+												"no-eval": 1,
+												"quotes": 0,
+												"no-mixed-spaces-and-tabs": 0
+								}
+				}
 }
