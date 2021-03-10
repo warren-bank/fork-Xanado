@@ -35,11 +35,19 @@ requirejs(["jquery", "jquery-ui"], () => {
 
 	$(document).ready(function() {
 
-		// Set the default language from config.json
+		// Set the editions and dictionaries from config.json
 		$.getJSON('/config', data => {
-			$("#lingo")
-			.val(data.language)
-			.selectmenu();
+			const $eds = $("#edition");
+			data.editions.forEach(e => $eds.append(`<option>${e}</option>`));
+			if (data.edition)
+				$eds.val(data.edition);
+			$eds.selectmenu();
+
+			$dics = $("#dictionary");
+			data.dictionaries.forEach(d => $dics.append(`<option>${d}</option>`));
+			if (data.dictionary)
+				$dics.val(data.dictionary);
+			$dics.selectmenu();
 		});
 		
 		const addressBook = loadAddressBook();

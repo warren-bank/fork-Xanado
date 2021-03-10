@@ -1,8 +1,8 @@
 define("server/Player", ["crypto", "scrabble/Rack"], (Crypto, Rack) => {
 
 	class Player {
-		constructor(name, email) {
-			this.key = Crypto.randomBytes(8).toString('hex');
+		constructor(name, email, key) {
+			this.key = key || Crypto.randomBytes(8).toString('hex');
 			this.name = name;
 			this.email = email;
 			this.score = 0;

@@ -1,5 +1,7 @@
-define("scrabble/letters/French", () => {
-	return [
+define("scrabble/edition/French_Normal", () => {
+	return {
+		dim: 15,
+		bag: [
 		{ score: 0, count: 2},
 		
 		{ letter: "E", score: 1, count: 15},
@@ -33,5 +35,6 @@ define("scrabble/letters/French", () => {
 		{ letter: "X", score: 10, count: 1},
 		{ letter: "Y", score: 10, count: 1},
 		{ letter: "Z", score: 10, count: 1}
-	];
+		]
+	};
 });

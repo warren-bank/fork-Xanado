@@ -1,5 +1,7 @@
-define("scrabble/letters/Czech", () => {
-	return [
+define("scrabble/edition/Czech_Normal", () => {
+	return {
+		di: 15,
+		bag: [
 		{ score: 0, count: 2},
 		{ letter: "A", score: 1, count: 5},
         { letter: "Á", score: 2, count: 2},
@@ -44,5 +46,6 @@ define("scrabble/letters/Czech", () => {
 		{ letter: "Ý", score: 4, count: 2},
 		{ letter: "Z", score: 2, count: 2},
 		{ letter: "Ž", score: 4, count: 1}
-	];
+		]
+	};
 });

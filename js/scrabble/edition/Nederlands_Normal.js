@@ -1,5 +1,7 @@
-define("scrabble/letters/Nederlands", () => {
-	return [
+define("scrabble/edition/Nederlands", () => {
+	return {
+		dim: 15,
+		bag: [
 		{ score: 0, count: 2},
 		{ letter: "A", score: 1, count: 6},
 		{ letter: "B", score: 3, count: 2},
@@ -27,5 +29,6 @@ define("scrabble/letters/Nederlands", () => {
 		{ letter: "X", score: 8, count: 1},
 		{ letter: "Y", score: 4, count: 2},
 		{ letter: "Z", score: 4, count: 2}
-	];
+		]
+	};
 });

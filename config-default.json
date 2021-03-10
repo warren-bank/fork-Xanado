@@ -5,6 +5,7 @@
     "mailTransportConfig": {
         "host": "localhost"
     },
-    "defaultLanguage": "German",
-    "style": "invite"
+    "defaultEdition": "English_Normal",
+	"database": "data.db"
 }
+

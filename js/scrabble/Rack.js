@@ -5,7 +5,7 @@ define("scrabble/Rack", ["underscore", "triggerEvent", "scrabble/Square"], (_, t
 			this.squares = [];
 			
 			for (let x = 0; x < size; x++) {
-				const square = new Square('Normal', this, x, -1);
+				const square = new Square('.', this, x, -1);
 				this.squares[x] = square;
 			}
 			

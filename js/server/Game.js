@@ -6,20 +6,10 @@ const deps = [
 	"scrabble/Board",
 	"scrabble/Bag",
 	"scrabble/LetterBag",
+	"server/Player"
 ];
 
-define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) => {
-
-	// Side length of board for 0-6 players
-	const DIMS = [
-		15,
-		15,
-		15, // 0-2 players standard 15x15 board = 225 spaces
-		19, // 3 players 1.5 * 225 = 337.5, 19x19 = 361
-		21,	// 4 players 2 * 225 = 450, 21x21 = 441
-		23, // 5 players 2.5 * 225 = 562.5, 23x23 = 529
-		25	// 6 players 3 * 225 = 675, 25x25 = 625
-	];
+define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, Player) => {
 
 	class Game extends Events.EventEmitter {
 
@@ -27,9 +17,10 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 			Game.database = db;
 		}
 
-		constructor(language, players) {
+		constructor(edition, dictionary, players) {
 			super();
-			this.language = language;
+			this.edition = edition;
+			this.dictionary = dictionary;
 			this.players = players;
 			this.key = Crypto.randomBytes(8).toString('hex');
 			this.creationTimestamp = (new Date()).toISOString();
@@ -44,22 +35,22 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 		 * Promise to wait until the game is fully set up
 		 */
 		async ready() {
-			const nPlayers = this.players.length;
-			this.board = new Board(DIMS[nPlayers]);
-			// Adjust the multiplier for the number of players. The tile bags are defined
-			// expecting 100 tiles on a 15x15 board (235 spaces). So simply scale this
-			// to the number of tiles on other sizes of board.
-			let mult = DIMS[nPlayers] * DIMS[nPlayers] / 225;
-			this.letterBag = new LetterBag(this.language, mult);
-			return this.letterBag.ready()
-			.then(() => {
-				// Cannot addPlayer until the letterBag is filled, otherwise the
-				// plyer will get an empty rack.
-				for (let i = 0; i < nPlayers; i++) {
-					const player = this.players[i];
-					player.index = i;
-					player.joinGame(this);
-				}
+			let game = this;
+			
+			return new Promise(resolve => {
+				requirejs([`scrabble/edition/${this.edition}`], edition => {
+					console.log("Loaded edition ", edition);
+					game.board = new Board(edition);
+					game.letterBag = new LetterBag(edition);
+					// Cannot joinGame until the letterBag is filled, otherwise the
+					// player will get an empty rack!
+					for (let i = 0; i < game.players.length; i++) {
+						const player = game.players[i];
+						player.index = i;
+						player.joinGame(game);
+					}
+					resolve();
+				});
 			});
 		}
 
@@ -69,7 +60,7 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 			} else if (this.creationTimestamp) {
 				return new Date(this.creationTimestamp);
 			} else {
-				return new Date('2020-08-01T00:00:00.000Z');
+				return new Date(0);
 			}
 		}
 
@@ -104,7 +95,7 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 		 * Check that the given player is in this game, and it's their turn.
 		 * @throw if the player (or the game) is not playable
 		 */
-		checkPlayerAndGame(player) {
+		checkTurn(player) {
 			if (this.ended())
 				throw Error(`Game ${this.key} has ended: ${this.endMessage.reason}`);
 
@@ -113,6 +104,7 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 				throw Error(`not ${player.name}'s turn`);
 		}
 
+		// @return Turn
 		makeMove(player, placementList) {
 			console.log('makeMove', placementList);
 			
@@ -171,28 +163,31 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 			for (let i = 0; i < newTiles.length; i++) {
 				placements[i][0].placeTile(newTiles[i]);
 			}
-
+			console.log("words ", move.words);
+			
 			game.previousMove = {
 				placements: placements,
 				newTiles: newTiles,
 				score: move.score,
-				player: player
+				player: player,
+				words: move.words.map(w => w.word)
 			};
 			game.passes = 0;
 
-			return [
-				newTiles,
-				{ type: 'move',
-				  player: player.index,
-				  score: move.score,
-				  move: move,
-				  placements: placementList }
-			];
+			return {
+				type: 'move',
+				player: player.index,
+				score: move.score,
+				tiles: newTiles,
+				move: move,
+				placements: placementList
+			};
 		}
 
-		challengeOrTakeBackMove(type, player) {
+		// @return Turn
+		undoPreviousMove(type, player) {
 			if (!this.previousMove) {
-				throw Error('cannot challenge move - no previous move in game');
+				throw Error('cannot take back move - no previous move in game');
 			}
 			let previousMove = this.previousMove;
 			delete this.previousMove;
@@ -211,31 +206,50 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 			}
 			previousMove.player.score -= previousMove.score;
 
-			return [
-				[],
-				{ type: type,
-				  challenger: player.index,
-				  player: previousMove.player.index,
-				  score: -previousMove.score,
-				  whosTurn: ((type == 'challenge') ? this.whosTurn : previousMove.player.index),
-				  placements: previousMove.placements.map(function(placement) {
-					  return { x: placement[1].x,
-							   y: placement[1].y }
-				  }),
-				  returnLetters: returnLetters }
-			];
+			return {
+				type: type,
+				player: previousMove.player.index,
+				score: -previousMove.score,
+				
+				challenger: player.index,
+				whosTurn: (type == "challenge" ? this.whosTurn : previousMove.player.index),
+				placements: previousMove.placements.map(function(placement) {
+					return { x: placement[1].x,
+							 y: placement[1].y }
+				}),
+				returnLetters: returnLetters
+			};
 		}
-
-		pass(player) {
+		
+		// @return turn
+		pass(type, player) {
 			delete this.previousMove;
 			this.passes++;
 
-			return [
-				[],
-				{ type: 'pass',
-				  score: 0,
-				  player: player.index }
-			];
+			return {
+				type: type,
+				player: player.index,
+				score: 0
+			};
+		}
+
+		/**
+		 * Check the words created by the previous move are in the dictionary
+		 */
+		challengePreviousMove(player, dict) {
+			let bad = [];
+			for (let word of this.previousMove.words) {
+				if (!dict.checkWord(word))
+					bad.push(word);
+			};
+			if (bad.length > 0) {
+				// Challenge succeeded
+				console.log(`Bad Words: ${bad.join(',')}`);
+				return this.undoPreviousMove("challenge", player);
+			}
+
+			// challenge failed, this player loses their turn
+			return this.pass('failedChallenge', player);
 		}
 
 		returnPlayerLetters(player, letters) {
@@ -257,6 +271,7 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 			}
 		}
 
+		// return Turn
 		swapTiles(player, letters) {
 			if (this.letterBag.remainingTileCount() < 7) {
 				throw Error(`cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
@@ -283,13 +298,14 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 				}
 			}
 
-			return [
-				newTiles,
-				{ type: 'swap',
-				  score: 0,
-				  count: letters.length,
-				  player: player.index }
-			];
+			return {
+				type: 'swap',
+				player: player.index,
+				score: 0,
+				
+				tiles: newTiles,
+				count: letters.length,
+			};
 		}
 
 		remainingTileCounts() {
@@ -305,27 +321,32 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 			};
 		}
 
-		finishTurn(player, newTiles, turn) {
+		/**
+		 * Prepare a result from one of the command handlers, adjusting and saving game state
+		 */
+		prepareResult(player, result) {
+			result.timestamp = Date.now();
+
 			// store turn log
-			this.turns.push(turn);
+			this.turns.push(result);
 
 			// determine whether the game's end has been reached
 			if (this.passes == (this.players.length * 2)) {
 				this.finish('all players passed two times');
 			} else if (_.every(player.rack.squares, function(square) { return !square.tile; })) {
 				this.finish('player ' + this.whosTurn + ' ended the game');
-			} else if (turn.type != 'challenge') {
-				// determine who's turn it is now
+			} else if (result.type != "challenge") {
+				// determine who's turn it is now, for anything except a successful challenge
 				this.whosTurn = (this.whosTurn + 1) % this.players.length;
-				turn.whosTurn = this.whosTurn;
+				result.whosTurn = this.whosTurn;
 			}
 
 			// store new game data
 			this.save();
 
 			// notify listeners
-			turn.remainingTileCounts = this.remainingTileCounts();
-			this.notifyListeners('turn', turn);
+			result.remainingTileCounts = this.remainingTileCounts();
+			this.notifyListeners('turn', result);
 
 			// if the game has ended, send extra notification with final scores
 			if (this.ended()) {
@@ -334,8 +355,6 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 					socket.emit('gameEnded', endMessage);
 				});
 			}
-
-			return { newTiles: newTiles };
 		}
 
 		sendInvitations(config) {
@@ -359,11 +378,10 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag) =
 			// re-order players so last winner starts
 			for (let i = 0; i < playerCount; i++) {
 				let oldPlayer = oldGame.players[(i + startPlayer.index) % playerCount];
-				newPlayers.push({ name: oldPlayer.name,
-								  email: oldPlayer.email,
-								  key: oldPlayer.key });
+				newPlayers.push(new Player(
+					oldPlayer.name, oldPlayer.email, oldPlayer.key));
 			}
-			let newGame = new Game(oldGame.language, newPlayers);
+			let newGame = new Game(oldGame.edition, newPlayers);
 			oldGame.endMessage.nextGameKey = newGame.key;
 			oldGame.save();
 			await newGame.ready();

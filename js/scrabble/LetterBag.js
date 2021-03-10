@@ -3,45 +3,29 @@ define("scrabble/LetterBag", ["scrabble/Tile"], (Tile) => {
 	class LetterBag {
 
 		/**
-		 * Construct a new letter bag using the distribution for the given
-		 * language. These numbers are for a 15x15 board, and correspond to
-		 * a multiplier of 1. Increase the multiplier to produce a letter bag
-		 * that suits bigger boards (and numbers of players)
+		 * Construct a new letter bag using the distribution for the
+		 * bag specified in the config.
 		 */
-		constructor(language, multiplier) {
+		constructor(config) {
 			// Tiles in the bag
 			this.tiles = [];
 			// String of all the letters in the bag, except blank
 			this.legalLetters = '';
-			this.language = language;
-			this.multiplier = multiplier;
-		}
 
-		/**
-		 * Return a promise to fill the letterbag with letters.
-		 */
-		ready() {
-			return new Promise(resolve => {
-				requirejs([`scrabble/letters/${this.language}`], letterDistribution => {
-					for (let i = 0; i < letterDistribution.length; ++i) {
-						const letterDefinition = letterDistribution[i];
-						
-						if (letterDefinition.letter) {
-							// Not blank
-							this.legalLetters += letterDefinition.letter;
-						}
-						
-						const count = Math.floor(letterDefinition.count * this.multiplier);
-						for (let n = 0; n < count; ++n) {
-							const tile = new Tile(
-								letterDefinition.letter || " ", letterDefinition.score);
-							this.tiles.push(tile);
-						}
-					}
-					console.log(`Constructed ${this.language} LetterBag with ${this.tiles.length} tiles`);
-					resolve();
-				});
-			});
+			const bag = config.bag;
+			
+			for (let letterDefinition of config.bag) {
+				if (letterDefinition.letter)
+					// Not blank
+					this.legalLetters += letterDefinition.letter;
+				
+				const count = Math.floor(letterDefinition.count);
+				for (let n = 0; n < count; ++n) {
+					const tile = new Tile(
+						letterDefinition.letter || " ", letterDefinition.score);
+					this.tiles.push(tile);
+				}
+			}
 		}
 		
 		shake() {
@@ -55,30 +39,42 @@ define("scrabble/LetterBag", ["scrabble/Tile"], (Tile) => {
 			}
 		}
 
+		/**
+		 * Get a single random tile from the bag
+		 */
 		getRandomTile() {
 			this.shake();
-
 			return this.tiles.pop();
 		}
 
+		/**
+		 * Remove count random tiles from the bag
+		 */
 		getRandomTiles(count) {
 			this.shake();
-
-			const retval = [];
-			for (let i = 0; this.tiles.length && (i < count); i++) {
-				retval.push(this.tiles.pop());
-			}
-			return retval;
+			const tiles = [];
+			for (let i = 0; this.tiles.length && (i < count); i++)
+				tiles.push(this.tiles.pop());
+			return tiles;
 		}
 
+		/**
+		 * Return a tile to the bag
+		 */
 		returnTile(tile) {
 			this.tiles.push(tile);
 		}
 
+		/**
+		 * Return a set of tiles to the bag
+		 */
 		returnTiles(tiles) {
 			this.tiles = this.tiles.concat(tiles);
 		}
 
+		/**
+		 * How many tiles remain?
+		 */
 		remainingTileCount() {
 			return this.tiles.length;
 		}

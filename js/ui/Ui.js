@@ -6,7 +6,7 @@
 const deps = [
 	"jquery",    // Jquery and components are accessed via $
 	"jquery-ui",
-	"blockUI",
+	"touch-punch", // support for touch devices
 	"cookie",
 
 	"underscore",
@@ -18,11 +18,27 @@ const deps = [
 	"scrabble/Rack",
 	"scrabble/Board" ];
 
-define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, Bag, Rack, Board) => {
+define("ui/Ui", deps, (ignore1, ignore2, ignore3, ignore4, _, io, icebox, Tile, Square, Bag, Rack, Board) => {
 
 	// Class references for icebox
 	const ICE_TYPES = { Board: Board, Tile: Tile, Square: Square, Rack: Rack };
+
+	// Unicode characters
 	const STAR = '\u2605';
+	const RIGHTWARDS_DOUBLE_ARROW = '\u21d2';
+	const DOWNWARDS_DOUBLE_ARROW = '\u21d3';
+	const BLACK_CIRCLE = '\u25cf';
+
+	// Map the characters in the board template to CSS classes
+	const SQUARE_CLASS =  {
+		Q: "QuadWord",
+		q: "QuadLetter",
+		T: "TripleWord",
+		t: "TripleLetter",
+		D: "DoubleWord",
+		d: "DoubleLetter",
+		_: "Normal"
+	};
 
 	class Ui {
 		
@@ -40,13 +56,10 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 			
 			$.get(`/game/${this.gameKey}`, (d, e) => ui.loadGame(d, e));
 
-			let $button = $("<button id='turnButton' action='pass'>Pass</button>");
+			let $button = $("#turnButton");
 			$button.bind('click', () => ui.makeMove());
-			$('#turnButtons')
-			.append($button)
-			.append("<button id='dummyInput' />");
-			
 
+			// Keystrokes - pretty useless, don't you think, Mary?
 			$('#dummyInput')
 			.on('keypress', event => {
 				let letter = String.fromCharCode(event.charCode).toUpperCase();
@@ -60,7 +73,7 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 						ui.moveTile(rackSquare, ui.cursor.square);
 						let newCursorSquare;
 						if (ui.cursor.direction == 'horizontal') {
-							for (let x = ui.cursor.square.x; x < 15; x++) {
+							for (let x = ui.cursor.square.x; x < ui.board.dim; x++) {
 								let boardSquare = ui.board.squares[x][ui.cursor.square.y];
 								if (!boardSquare.tile) {
 									newCursorSquare = boardSquare;
@@ -68,7 +81,7 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 								}
 							}
 						} else {
-							for (let y = ui.cursor.square.y; y < 15; y++) {
+							for (let y = ui.cursor.square.y; y < ui.board.dim; y++) {
 								let boardSquare = ui.board.squares[ui.cursor.square.x][y];
 								if (!boardSquare.tile) {
 									newCursorSquare = boardSquare;
@@ -87,16 +100,16 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 			.on('keydown', event => {
 				switch (event.keyCode) {
 				case $.ui.keyCode.UP:
-					ui.move(0, -1);
+					ui.stepMove(0, -1);
 					break;
 				case $.ui.keyCode.DOWN:
-					ui.move(0, 1);
+					ui.stepMove(0, 1);
 					break;
 				case $.ui.keyCode.LEFT:
-					ui.move(-1, 0);
+					ui.stepMove(-1, 0);
 					break;
 				case $.ui.keyCode.RIGHT:
-					ui.move(1, 0);
+					ui.stepMove(1, 0);
 					break;
 				case $.ui.keyCode.SPACE:
 					ui.turnCursor();
@@ -130,26 +143,26 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 				}
 			}
 		}
-		
-		move(dx, dy) {
+
+		// Just used for cursor-key moves, NOT used in D&D
+		stepMove(dx, dy) {
 			if (!this.cursor)
 				return;
 			let x = this.cursor.square.x;
 			let y = this.cursor.square.y;
 			if (dx > 0) {
-				for (x++; x < 15 && this.board.squares[x][y].tile; x++);
+				for (x++; x < this.board.dim && this.board.squares[x][y].tile; x++);
 			}
 			if (dx < 0) {
 				for (x--; x >= 0 && this.board.squares[x][y].tile; x--);
 			}
 			if (dy > 0) {
-				for (y++; y < 15 && this.board.squares[x][y].tile; y++);
+				for (y++; y < this.board.dim && this.board.squares[x][y].tile; y++);
 			}
 			if (dy < 0) {
 				for (y--; y >= 0 && this.board.squares[x][y].tile; y--);
 			}
-			if (x >= 0 && x < 15
-				&& y >= 0 && y < 15
+			if (x >= 0 && x < this.board.dim && y >= 0 && y < this.board.dim
 				&& (x != this.cursor.square.x || y != this.cursor.square.y)) {
 				let oldCursorSquare = this.cursor.square;
 				this.cursor.square = this.board.squares[x][y];
@@ -172,44 +185,45 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 		
 		appendTurnToLog(turn) {
 			let player = this.players[turn.player];
-			let scorediv = $("<div class='score'></div>");
-			scorediv.append(`<span class='playerName'>${player.name}</span>`);
-			scorediv.append(`<span class='score'>${turn.score}</span>`);
+			let $scorediv = $("<div class='score'></div>");
+			$scorediv.append(`<span class='playerName'>${player.name}'s move</span>`);
+			//$scorediv.append(`<span class='score'>${turn.score}</span>`);
 			
-			let div = $("<div class='moveScore'></div>");
-			div.append(scorediv);
-			
+			let $div = $("<div class='moveScore'></div>");
+			$div.append($scorediv);
+
+			let $detail = $("<div class='moveDetail'></div>");
 			switch (turn.type) {
 			case 'move':
 				for (const word of turn.move.words) {
-					let wordscore = $("<div class='moveDetail'></div>");
-					wordscore.append(`<span class='word'>${word.word}</span<`);
-					wordscore.append(`<span class='score'>${word.score}</span>`);
-					div.append(wordscore);
+					$detail.append(`<span class='word'>${word.word}</span>`);
+					$detail.append(`<span class='score'>(${word.score})</span> `);
 				}
 				if (turn.move.allTilesBonus) {
-					let bonus = $("<div class='moveDetail'></div>");
-					bonus.append(`<span class='word'>All tiles placed bonus</span<`);
-					bonus.append(`<span class='score'>50</span>`);
-					div.append(bonus);
+					$detail.append(`<span class='word'>All tiles placed bonus</span>`);
+					$detail.append(`<span class='score'>50</span>`);
 				}
 				break;
 			case 'pass':
-				div.append("<div class='moveDetail'>Passed</div>");
+				$detail.text("Passed");
 				break;
 			case 'swap':
-				div.append(`<div class='moveDetail'>Swapped ${turn.count} tile ${turn.count > 1 ? "s" : ""}</div>`);
+				$detail.text(`Swapped ${turn.count} tile ${turn.count > 1 ? "s" : ""}`);
 				break;
 			case 'challenge':
-				div.append("<div class='moveDetail'>Challenged previous move</div>");
+				$detail.text("Previous move challenged successfully!");
+				break;
+			case 'failedChallenge':
+				$detail.text("Challenge failed! All words are OK");
 				break;
 			case 'takeBack':
-				div.append("<div class='moveDetail'>Took back previous move</div>");
+				$detail.text("Took back previous move");
 				break;
 			default:
-				div.append(`<div class='moveDetail'>Unknown move ${turn.type}</div>`);
+				$dietail.text("Unknown move type ${turn.type}");
 			}
-			$('#log').append(div);
+			$div.append($detail);
+			$('#log').append($div);
 		}
 		
 		processMoveScore(turn) {
@@ -224,15 +238,11 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 				.append(`<div class='nextGame'><a href='/game/${nextGameKey}/${$.cookie(this.gameKey)}>next game</a></div>`);
 				$('#makeNextGame').remove();
 			} else {
-				let makeNextGameButton = $("<button>Make new game</button>");
 				const ui = this;
-				$(makeNextGameButton)
-				.on('click', function() {
-					ui.sendMoveToServer('newGame', null);
-				});
-				let $ngb = $("<div id='makeNextGame'>Click </div>");
-				$ngb.append(makeNextGameButton);
-				$ngb.append(' if you want to play the same opponents again');
+				let $but = $("<a href='/another'><button>Make new game</button></a>");
+				let $ngb = $("<div id='makeNextGame'></div>");
+				$ngb.append($but);
+				$ngb.append(' if you want another game with the same players');
 				$('#log').append($ngb);
 			}
 		}
@@ -294,15 +304,16 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 		}
 		
 		displayWhosTurn(playerNumber) {
+			let $wt = $('#whosturn');
 			if (playerNumber == this.playerNumber) {
-				$('#whosturn').empty().text("Your turn");
+				$wt.text("Your turn");
 				$('#turnControls').css('display', 'block');
 			} else if (typeof playerNumber == 'number') {
 				let name = this.players[playerNumber].name;
-				$('#whosturn').empty().text(`${name}'${((name.charAt(name.length - 1) == 's') ? '' : 's')} turn`);
+				$wt.text(`${name}'${((name.charAt(name.length - 1) == 's') ? '' : 's')} turn`);
 				$('#turnControls').css('display', 'none');
 			} else {
-				$('#whosturn').empty();
+				$wt.empty();
 				$('#turnControls').css('display', 'none');
 			}
 		}
@@ -345,9 +356,10 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 					}
 					this.refreshRack();
 					if (turn.type == 'challenge') {
+						this.playAudio("oops");
 						this.notify(
 							'Challenged!',
-							`${this.players[turn.challenger].name} has challenged your move. You have lost the ${-turn.score} points you scored and the tiles you had placed are back on your rack`);
+							`${this.players[turn.challenger].name} has successfully challenged your move. You have lost the ${-turn.score} points you scored and the tiles you had placed are back on your rack`);
 					}
 				}
 				if (turn.type == 'takeBack') {
@@ -355,12 +367,25 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 								`${this.players[turn.challenger].name} has taken back their move.`);
 				}
 			}
+			if (turn.type == "failedChallenge") {
+				if (turn.player == this.playerNumber) {
+					this.playAudio("oops");
+					this.notify(
+						'Failed challenge!',
+						`Your challenge failed, you have lost your turn.`);
+				} else {
+					this.playAudio("oops");
+					this.notify(
+						'Failed challenge!',
+						`${this.players[turn.player].name} challenged your move, but the dictionary backed you up.`);
+				}
+			}
 			this.remainingTileCounts = turn.remainingTileCounts;
 			if (turn.whosTurn == this.playerNumber) {
 				this.playAudio("yourturn");
 			}
 			this.boardLocked(turn.whosTurn != this.playerNumber);
-            this.removeMoveEditButtons();
+            this.removeMoveActionButtons();
 			if (typeof turn.whosTurn == 'number' && turn.type != 'challenge') {
 				this.displayWhosTurn(turn.whosTurn);
 				if (turn.type == 'move' && turn.player == this.playerNumber) {
@@ -390,7 +415,7 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 			this.remainingTileCounts  = gameData.remainingTileCounts;
 			
 			let playerNumber = 0;
-			let tab = $("<table></table>");
+			let $tab = $("#playerTable");
 			for (let player of gameData.players) {
 				if (player.rack) {
 					this.rack = player.rack;
@@ -411,20 +436,16 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 				let tr = $(`<tr class='player${playerNumber - 1}'></tr>`);
 				tr.append(`<td class='name'>${player.rack ? "You" : player.name}</td>`);
 				tr.append("<td class='remainingTiles'></td>");
-				tr.append("<td class='status offline'>\u25cf</td>");
+				tr.append(`<td class='status offline'>${BLACK_CIRCLE}</td>`);
 				player.scoreElement = $(`<td class='score'>${player.score}</td>`);
 				tr.append(player.scoreElement);
-				tab.append(tr);
+				$tab.append(tr);
 			}
-			
-			$('#scoreboard')
-			.append(tab)
-			.append("<div id='letterbagStatus'></div>");
 			
 			this.drawBoard();
 			if (this.rack) {
-				this.drawRack();
-				this.drawSwapRack();
+				this.createRack();
+				this.createSwapRack();
 			}			
 			
 			$('#log').append("<div class='gameStart'>Game started</div>");
@@ -444,7 +465,7 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 			
 			let lastTurn = gameData.turns.length && gameData.turns[gameData.turns.length - 1];
 			
-			if (lastTurn && (lastTurn.type == 'move')) {
+			if (lastTurn && lastTurn.type == 'move') {
 				if (yourTurn) {
 					this.addChallengeButton();
 				} else if (lastTurn.player == this.playerNumber) {
@@ -474,8 +495,9 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 				}
 			})
 			.on('disconnect', data => {
-				console.log('socket disconnect');
-				$.blockUI({ message: '<h1>Server unavailable, please wait</h1>' });
+				$('#problem_dialog')
+				.text("Server disconnected, trying to reconnect")
+				.dialog({ modal: true });
 			})
 			.on('turn', turn => ui.processTurn(turn))
 			.on('gameEnded', endMessage => {
@@ -550,18 +572,22 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 				$('#swapRack').show();
 			}
 		}
-		
+
+		/**
+		 * Map from a DOM element id back to a Square. Does not work for the swapRack;
+		 * so how does that function?
+		 */
 		idToSquare(id) {
 			let match = id.match(/(Board|Rack)_(\d+)x?(\d*)/);
 			if (match) {
 				if (match[1] == 'Board') {
 					return this.board.squares[match[2]][match[3]];
 				} else {
+					// TODO: Could be rack or swapRack....
 					return this.rack.squares[match[2]];
 				}
-			} else {
-				throw "cannot parse id " + id;
-			}
+			} else
+				throw Error(`cannot parse #${id}`);
 		}
 		
 		updateSquare(square) {
@@ -600,6 +626,7 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 			
 			if (square.tile) {
 				$div.addClass('Tile');
+				
 				if (square.tileLocked) {
 					$div.addClass('Locked');
 				} else {
@@ -626,7 +653,8 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 						revert: "invalid",
 						opacity: 1,
 						helper: "clone",
-						start: function(event, jui) {
+						
+						start: (event, jui) => {
 							ui.selectSquare(null);
 							$(this).css({ opacity: 0.5 });
 							$(jui.helper)
@@ -634,13 +662,14 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 							.addClass("dragBorder");
 						},
 						
-						drag: function(event, jui) {
+						drag: (event, jui) => {
 							if (!doneOnce) {
 								$(jui.helper).addClass("dragBorder");
 								doneOnce = true;
 							}
 						},
-						stop: function() {
+						
+						stop: () => {
 							$(this).css({ opacity: 1 });
 						}
 					});
@@ -683,33 +712,39 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 						drop: function(event, jui) {
 							ui.deleteCursor();
 							ui.moveTile(ui.idToSquare($(jui.draggable).attr("id")), square);
+							ui.playAudio("tiledown");
 						}
 					});
 				}
 				
 				let text = ' ';
-				const middle = Math.floor(ui.board.Dimension / 2);
+				const middle = ui.board.middle;
 				if (ui.cursor && ui.cursor.square == square) {
-					text = (ui.cursor.direction == 'horizontal') ? '\u21d2' : '\u21d3';
+					text = (ui.cursor.direction == 'horizontal')
+					? RIGHTWARDS_DOUBLE_ARROW : DOWNWARDS_DOUBLE_ARROW;
 					$div.addClass('Cursor');
 					$('#dummyInput').focus();
 				} else {
 					switch (square.type) {
-					case 'DoubleWord':
-						if (square.x == middle && square.y == middle)
-							text = STAR;
-						else
-							text = "DOUBLE WORD SCORE";
-						
+					case 'D':
+						text = (square.x == middle && square.y == middle)
+						? STAR : "DOUBLE WORD SCORE";
 						break;
-					case 'TripleWord':
+					case 'T':
 						text = "TRIPLE WORD SCORE";
 						break;
-					case 'DoubleLetter':
+					case 'Q':
+						text = "QUAD WORD SCORE";
+						break;
+					case 'd':
 						text = "DOUBLE LETTER SCORE";
 						break;
-					case 'TripleLetter':
+					case 't':
 						text = "TRIPLE LETTER SCORE";
+						break;
+					case 'q':
+						text = "QUAD LETTER SCORE";
+						break;
 					}
 				}
 				$div.addClass('Empty')
@@ -724,23 +759,21 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 		
 		drawBoard() {
 			let board = this.board;
-			const middle = Math.floor(board.Dimension / 2);
 
 			let tab = $("<table></table>");
-			for (let y = 0; y < board.Dimension; y++) {
+			for (let y = 0; y < board.dim; y++) {
 				let tr = $("<tr></tr>");
-				for (let x = 0; x < board.Dimension; x++) {
+				for (let x = 0; x < board.dim; x++) {
 					let square = board.squares[x][y];
-					let id = 'Board_' + x + "x" + y;
+					let id = `Board_${x}x${y}`;
 					square.id = id;
 					let td = $(`<td></td>`);
 					tr.append(td);
-					td.addClass(square.type);
-					if (x == middle && y == middle) {
+					td.addClass(SQUARE_CLASS[square.type]);
+					if (x == board.middle && y == board.middle)
 						td.addClass('StartField');
-					} else if (square.type != 'Normal') {
+					else if (square.type != '_')
 						td.addClass('SpecialField');
-					}
 					let $div = $(`<div id='${id}'><a></a></div>`);
 					td.append($div);
 				}
@@ -833,46 +866,25 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 			}
 		}
 		
-		drawRack() {
+		createRack() {
 			let rack = this.rack;
 			
-			let tab = $("<table></table>");
-			let tr =  $("<tr></tr>");
-			for (let x = 0; x < 8; x++) {
-				let id = `Rack_${x}`;
-				rack.squares[x].id = id;
-				let td = $("<td class='Normal'></td>");
-				td.append(`<div id='${id}'><a></a></div>`);
-				tr.append(td);
+			for (let x = 0; x < rack.squares.length; x++) {
+				rack.squares[x].id = `Rack_${x}`;
 			}
-			tab.append(tr);
-			let div = $("<div id='rackButtons'></div>");
-			div.append("<button id='Shuffle'>Shuffle</button>");
-			div.append("<br />");
-			div.append("<button id='TakeBackTiles'>TakeBackTiles</button>");
-			div.append(tab);
-			$('#rack').append(div);
 			
 			let ui = this;
 			$("#Shuffle").on('click', () => ui.shuffle());
 			$("#TakeBackTiles").on('click', () => ui.takeBackTiles());
 
-			for (let x = 0; x < 8; x++)
+			for (let x = 0; x < rack.squares.length; x++)
 				ui.updateRackSquare(rack.squares[x]);
 		}
 		
-		drawSwapRack() {
-			let swapRack = this.swapRack;
-			let tab = $("<table></table>");
-			let tr = $("<tr></tr>");
-			for (let x = 0; x < 7; x++) {
-				let id = `SwapRack_${x}`;
-				swapRack.squares[x].id = id;
-				tr.append(`<td class='Normal'><div id='${id}><a></a></div></td>`);
-			}
-			$('#swapRack').append(tab);
-			for (let x = 0; x < 7; x++) {
-				this.updateRackSquare(swapRack.squares[x]);
+		createSwapRack() {
+			const rack = this.swapRack;
+			for (let x = 0; x < rack.squares.length; x++) {
+				this.updateRackSquare(rack.squares[x]);
 			}
 		}
 		
@@ -885,8 +897,8 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 		
 		refreshBoard() {
 			let board = this.board;
-			for (let y = 0; y < board.Dimension; y++) {
-				for (let x = 0; x < board.Dimension; x++) {
+			for (let y = 0; y < board.dim; y++) {
+				for (let x = 0; x < board.dim; x++) {
 					this.updateBoardSquare(board.squares[x][y]);
 				}
 			}
@@ -928,7 +940,6 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 
 			function setLetter(letter) {
 				tile.letter = letter;
-				$.unblockUI();
 				ui.updateSquare(toSquare);
 				$('#dummyInput').focus();
 				blankLetterRequesterSkip.off('click');
@@ -939,19 +950,31 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 			fromSquare.owner.tileCount--;
 			if (tile.isBlank() && !tile.letter || (tile.letter == ' ')) {
 				if (fromSquare.owner != this.board && toSquare.owner == this.board) {
-					blankLetterRequesterButton.on('keypress', function (event) {
-						let letter = String.fromCharCode(event.charCode);
-						if (letter != '') {
-							letter = letter.toUpperCase();
-							if (ui.legalLetters.indexOf(letter) != -1) {
-								setLetter(letter);
+					let $dlg = $('#blankLetterRequester');
+					
+					$("#blank")
+					.on("change", function (e, target) {
+						let letter = $("#blank").val();
+						letter = letter.toUpperCase();
+						if (ui.legalLetters.indexOf(letter) != -1 && letter != " ") {
+							setLetter(letter);
+							$dlg.dialog("close");
+						}  else
+							$("#badBlank").text(ui.legalLetters + " only");
+						event.stopPropagation();
+						e.preventDefault();
+					});
+					
+					$dlg.dialog({
+						modal: true,
+						buttons: {
+							"Leave empty": function () {
+								setLetter("_");
+								$(this).dialog("close");
 							}
 						}
 					});
-					blankLetterRequesterSkip.on('click', function (){
-						setLetter("_")
-					});
-					$.blockUI({ message: $('#blankLetterRequester') });
+							
 				} else if (toSquare.owner == ui.rack || toSquare.owner == ui.swapRack) {
 					tile.letter = ' ';
 				}
@@ -996,9 +1019,8 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 		playAudio(id) {
 			let audio = document.getElementById(id);
 			
-			if (audio.playing) {
+			if (audio.playing)
 				audio.pause();
-			}
 			
 			audio.defaultPlaybackRate = 1;
 			audio.volume = 1;
@@ -1027,7 +1049,9 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 									   arguments: args }),
 				success: success,
 				error: function(jqXHR, textStatus, errorThrown) {
-					$.blockUI({ message: `Move request returned error: ${textStatus} (${errorThrown})` });
+					$('#problem_dialog')
+					.text(`Move request returned error: ${textStatus} (${errorThrown})`)
+					.dialog();
 				}
 			});
 		}
@@ -1046,7 +1070,7 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 		}
 		
 		endMove() {
-			this.removeMoveEditButtons();
+			this.removeMoveActionButtons();
 			$('#move').empty();
 			this.boardLocked(true);
 		}
@@ -1071,7 +1095,9 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 				this.keyboardPlacements = [];
 				let move = this.board.calculateMove();
 				if (move.error) {
-					$.blockUI({ message: move.error });
+					$('#problem_dialog')
+					.text(move.error)
+					.dialog();
 					return;
 				}
 				this.endMove();
@@ -1092,38 +1118,42 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 				this.enableNotifications();
 			}
 			catch (e) {
-				$.blockUI({ message: `error in commitMove: ${e}`);
+				$('#problem_dialog')
+				.text(`error in commitMove: ${e}`)
+				.dialog({ modal: true });
 			}
 		}
-		
+
+		// Add an action button that affects a previous move.
 		addLastMoveActionButton(action, label) {
 			let ui = this;
-			let $button = $(`<button id='action'>${label}</button>`);
+			let $button = $(`<div><button class='moveAction'>${label}</button></div>`);
 			$button.click(function() {
 				ui[action]();
 			});
-			$('#log div.moveScore div.score').last().append($button);
+			$('#log div.moveScore').last().append($button);
 		}
 		
 		addChallengeButton() {
-			this.addLastMoveActionButton('challenge', 'Challenge');
+			this.addLastMoveActionButton('challenge', 'Challenge last move');
 		}
 		
 		addTakeBackMoveButton() {
 			this.addLastMoveActionButton('takeBackMove', 'Take back move');
 		}
 		
-		removeMoveEditButtons() {
-			$('button#challenge').remove();
-			$('button#takeBackMove').remove();
+		removeMoveActionButtons() {
+			$('button.moveAction').remove();
 		}
-		
+
+		// Action on button clicked
 		challenge() {
 			this.takeBackTiles();
 			this.endMove();
 			this.sendMoveToServer('challenge');
 		}
 		
+		// Action on button clicked
 		takeBackMove() {
 			this.takeBackTiles();
 			this.endMove();
@@ -1200,8 +1230,8 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 				ui.updateRackSquare(square);
 			}
 			
-			for (let y = 0; y < this.board.Dimension; y++) {
-				for (let x = 0; x < this.board.Dimension; x++) {
+			for (let y = 0; y < this.board.dim; y++) {
+				for (let x = 0; x < this.board.dim; x++) {
 					const boardSquare = this.board.squares[x][y];
 					if (boardSquare.tile && !boardSquare.tileLocked) {
 						putBackToRack(boardSquare.tile);
@@ -1229,8 +1259,8 @@ define("ui/Ui", deps, (ijq, ijqui, ibui, icookie, _, io, icebox, Tile, Square, B
 				return Math.floor(Math.random() * i);
 			}
 			for (let i = 0; i < 16; i++) {
-				let from = this.rack.squares[random(8)];
-				let to = this.rack.squares[random(8)];
+				let from = this.rack.squares[random(this.rack.squares.length)];
+				let to = this.rack.squares[random(this.rack.squares.length)];
 				let tmp = from.tile;
 				from.tile = to.tile;
 				to.tile = tmp;

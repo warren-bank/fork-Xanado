@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+	<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -18,38 +18,81 @@
 	<script data-main="rjs_config.js" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script>
   </head>
   <body id="body">
-    <audio id="yourturn" src="/client/audio/yourturn.wav" preload="auto" type="audio/wav"></audio>
-    <audio id="applause" src="/client/audio/applause.wav" preload="auto" type="audio/wav"></audio>
+    <audio id="yourturn" src="/client/audio/yourturn.mp3" preload="auto" type="audio/mp3"></audio>
+    <audio id="applause" src="/client/audio/applause.mp3" preload="auto" type="audio/mp3"></audio>
+	<audio id="tiledown" src="/client/audio/tiledown.mp3" preload="auto" type="audio/mp3"></audio>
+	<audio id="oops" src="/client/audio/oops.mp3" preload="auto" type="audio/mp3"></audio>
+	<audio id="teehee" src="/client/audio/teehee.mp3" preload="auto" type="audio/mp3"></audio>
 	<script type="text/javascript">requirejs(["js/ui/game"]);</script>
     <div id="container">
-      <div id="controls">
-        <div id="log"></div>
-        <div id="scoreboard"></div>
-        <div id="chat">
-          <div id="chatLog">
-            <div>Chat</div>
-          </div>
-          <div id="messageInput">
-            <input name="message"/>
-          </div>
-        </div>
-        <div id="whosturn"></div>
-        <div id="turnControls">
-          <div id="move"></div>
-          <div id="swapRack" class="tableDivWrap bottomShade"></div>
-          <div id="turnButtons"></div>
-        </div>          
-      </div>
       <div id="boardWrap">
         <div id="board" class="tableDivWrap surroundShade"></div>
-        <div id="rack" class="tableDivWrap bottomShade"></div>
+        <div id="rack" class="tableDivWrap bottomShade">
+		  <div id='rackControls'>
+			<table id="rackTable">
+			  <tr>
+				<td class="Normal"><div id="Rack_0"><a></a></div></td>
+				<td class="Normal"><div id="Rack_1"><a></a></div></td>
+				<td class="Normal"><div id="Rack_2"><a></a></div></td>
+				<td class="Normal"><div id="Rack_3"><a></a></div></td>
+				<td class="Normal"><div id="Rack_4"><a></a></div></td>
+				<td class="Normal"><div id="Rack_5"><a></a></div></td>
+				<td class="Normal"><div id="Rack_6"><a></a></div></td>
+				<td class="Normal"><div id="Rack_7"><a></a></div></td>
+			  </tr>
+			</table>
+			<div id="rackButtons">
+			  <button id='Shuffle'>Shuffle</button>
+			  <button id='TakeBackTiles'>Take back</button>
+			</div>
+		  </div>
+		</div>
         <div id="letters" class="tableDivWrap" style="display:none;"></div>
       </div>
-      <div id="blankLetterRequester">
-          <div><button>Type blank's letter</button></div>
-          or
-          <div id="blankLetterRequesterSkip"><button>leave empty</button>
+	  <div id="controls">
+        <div><span id="whosturn"></span></div>
+        <div id="scoreboard">
+		  <table id="playerTable"></table>
+		  <div id='letterbagStatus'></div>
+		</div>
+        <div id="turnControls">
+		  <div id="move"></div>
+		  <div id="swapRack" class="tableDivWrap bottomShade">
+			<table>
+			  <tr>
+				<td class="Normal"><div id="SwapRack_0"><a></a></div></td>
+				<td class="Normal"><div id="SwapRack_1"><a></a></div></td>
+				<td class="Normal"><div id="SwapRack_2"><a></a></div></td>
+				<td class="Normal"><div id="SwapRack_3"><a></a></div></td>
+				<td class="Normal"><div id="SwapRack_4"><a></a></div></td>
+				<td class="Normal"><div id="SwapRack_5"><a></a></div></td>
+				<td class="Normal"><div id="SwapRack_6"><a></a></div></td>
+			  </tr>
+			</table>
+		  </div>
+		  <div id="turnButtons">
+			<button id='turnButton' action='pass'>Pass</button>
+			<button id='dummyInput' />
+		  </div>
+        </div>          
+        <div id="chat">
+		  <div id="chatLog">
+            <div>Chat</div>
+		  </div>
+		  <div id="messageInput">
+            <input name="message"/>
+		  </div>
+        </div>
+        <div id="log"></div>
+	  </div>
+      <div id="blankLetterRequester" class="hidden">
+		Enter a letter for the blank
+		<input type="text" id="blank" name="blank" maxlength="1" pattern="[A-Za-z]" />
+		<div id="badBlank" class="error"></div>
       </div>
+	  <div id="problem_dialog" clas="hidden">
+		Houston, we have a problem
+	  </div>
     </div>
   </body>
 </html>
