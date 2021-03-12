@@ -1,4 +1,4 @@
-define("server/Player", ["crypto", "scrabble/Rack"], (Crypto, Rack) => {
+define("server/Player", ["crypto", "game/Rack"], (Crypto, Rack) => {
 
 	class Player {
 		constructor(name, email, key) {

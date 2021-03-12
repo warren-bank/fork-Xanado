@@ -9,22 +9,20 @@ const deps = [
 	"touch-punch", // support for touch devices
 	"cookie",
 
-	"underscore",
 	"socket.io",
 	"icebox",
-	"scrabble/Tile",
-	"scrabble/Square",
-	"scrabble/Bag",
-	"scrabble/Rack",
-	"scrabble/Board" ];
+	"game/Tile",
+	"game/Square",
+	"game/Bag",
+	"game/Rack",
+	"game/Board" ];
 
-define("ui/Ui", deps, (ignore1, ignore2, ignore3, ignore4, _, io, icebox, Tile, Square, Bag, Rack, Board) => {
+define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Board) => {
 
 	// Class references for icebox
 	const ICE_TYPES = { Board: Board, Tile: Tile, Square: Square, Rack: Rack };
 
 	// Unicode characters
-	const STAR = '\u2605';
 	const RIGHTWARDS_DOUBLE_ARROW = '\u21d2';
 	const DOWNWARDS_DOUBLE_ARROW = '\u21d3';
 	const BLACK_CIRCLE = '\u25cf';
@@ -220,7 +218,7 @@ define("ui/Ui", deps, (ignore1, ignore2, ignore3, ignore4, _, io, icebox, Tile, 
 				$detail.text("Took back previous move");
 				break;
 			default:
-				$dietail.text("Unknown move type ${turn.type}");
+				$detail.text("Unknown move type ${turn.type}");
 			}
 			$div.append($detail);
 			$('#log').append($div);
@@ -238,8 +236,7 @@ define("ui/Ui", deps, (ignore1, ignore2, ignore3, ignore4, _, io, icebox, Tile, 
 				.append(`<div class='nextGame'><a href='/game/${nextGameKey}/${$.cookie(this.gameKey)}>next game</a></div>`);
 				$('#makeNextGame').remove();
 			} else {
-				const ui = this;
-				let $but = $("<a href='/another'><button>Make new game</button></a>");
+				let $but = $(`<a href='/another/${nextGameKey}'><button>Make new game</button></a>`);
 				let $ngb = $("<div id='makeNextGame'></div>");
 				$ngb.append($but);
 				$ngb.append(' if you want another game with the same players');
@@ -275,22 +272,22 @@ define("ui/Ui", deps, (ignore1, ignore2, ignore3, ignore4, _, io, icebox, Tile, 
 			}
 			$('#whosturn').empty();
 			
-			let youHaveWon = (winners.indexOf(this.thisPlayer) >= 0);
 			let names = [];
-			for (const player of winners)
-				names.push(this.thisPlayer ? 'you' : player.name);
+			for (let player of winners)
+				names.push(player == this.thisPlayer ? 'you' : player.name);
 
 			let who;
 			if (names.length == 0)
 				who = "";
 			else if (names.length == 1)
 				who = names[0];
+			else if (names.length == 2)
+				who = `${names[0]} and ${names[1]}`;
 			else
-				who = _.reduce(names.slice(1, length - 1),
-							  (accu, word) => `${accu}, ${word}`,
-							  names[0]) + ` and ${names[length - 1]}`;
+				who = names.slice(0, length - 1).join(", ") + ", and " + names[length - 1];
 
-			let verb = (winners.length == 1 && !youHaveWon) ? 'has' : 'have';
+			let verb = (winners.length == 1 && who != "you") ? 'has' : 'have';
+
 			$('#log')
 			.append(`<div class='gameEnded'>Game has ended, ${who} ${verb} won</div>`);
 			this.displayNextGameMessage(endMessage.nextGameKey);
@@ -421,8 +418,8 @@ define("ui/Ui", deps, (ignore1, ignore2, ignore3, ignore4, _, io, icebox, Tile, 
 					this.rack = player.rack;
 					this.playerNumber = playerNumber;
 					this.thisPlayer = player;
-					this.rack.tileCount = _.reduce(
-						player.rack.squares,
+					this.rack.tileCount =
+					player.rack.squares.reduce(
 						(accu, square) => {
 							if (square.tile) {
 								accu++;
@@ -718,35 +715,13 @@ define("ui/Ui", deps, (ignore1, ignore2, ignore3, ignore4, _, io, icebox, Tile, 
 				}
 				
 				let text = ' ';
-				const middle = ui.board.middle;
 				if (ui.cursor && ui.cursor.square == square) {
 					text = (ui.cursor.direction == 'horizontal')
 					? RIGHTWARDS_DOUBLE_ARROW : DOWNWARDS_DOUBLE_ARROW;
 					$div.addClass('Cursor');
 					$('#dummyInput').focus();
-				} else {
-					switch (square.type) {
-					case 'D':
-						text = (square.x == middle && square.y == middle)
-						? STAR : "DOUBLE WORD SCORE";
-						break;
-					case 'T':
-						text = "TRIPLE WORD SCORE";
-						break;
-					case 'Q':
-						text = "QUAD WORD SCORE";
-						break;
-					case 'd':
-						text = "DOUBLE LETTER SCORE";
-						break;
-					case 't':
-						text = "TRIPLE LETTER SCORE";
-						break;
-					case 'q':
-						text = "QUAD LETTER SCORE";
-						break;
-					}
-				}
+				} else
+					text = square.scoreText(ui.board.middle);
 				$div.addClass('Empty')
 				.append($(`<a>${text}</a>`));
 			}

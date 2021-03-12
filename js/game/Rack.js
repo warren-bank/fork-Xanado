@@ -1,13 +1,11 @@
-define("scrabble/Rack", ["underscore", "triggerEvent", "scrabble/Square"], (_, triggerEvent, Square) => {
+define("game/Rack", ["triggerEvent", "game/Square"], (triggerEvent, Square) => {
 
 	class Rack {
 		constructor(size) {
 			this.squares = [];
 			
-			for (let x = 0; x < size; x++) {
-				const square = new Square('.', this, x, -1);
-				this.squares[x] = square;
-			}
+			for (let x = 0; x < size; x++)
+				this.squares[x] = new Square('_', this, x, -1);
 			
 			triggerEvent('RackReady', [ this ]);
 		}
@@ -25,12 +23,10 @@ define("scrabble/Rack", ["underscore", "triggerEvent", "scrabble/Square"], (_, t
 		}
 		
 		letters() {
-			return _.reduce(
-				this.squares,
+			return this.squares.reduce(
 				(accu, square) => {
-					if (square.tile) {
+					if (square.tile)
 						accu.push(square.tile.letter);
-					}
 					return accu;
 				},
 				[]);
@@ -38,8 +34,7 @@ define("scrabble/Rack", ["underscore", "triggerEvent", "scrabble/Square"], (_, t
 		
 		findLetterSquare(letter, includingBlank) {
 			let blankSquare = null;
-			const square = _.find(
-				this.squares,
+			const square = this.squares.find(
 				square => {
 					if (square.tile) {
 						if (square.tile.isBlank() && !blankSquare) {

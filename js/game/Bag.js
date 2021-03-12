@@ -1,4 +1,4 @@
-define("scrabble/Bag", () => {
+define("game/Bag", () => {
 	class Bag {
 		constructor(contents) {
 			this.contents = contents ? contents.slice() : [];

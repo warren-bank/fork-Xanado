@@ -5,7 +5,7 @@
     "mailTransportConfig": {
         "host": "localhost"
     },
-    "defaultEdition": "English_Normal",
+    "defaultEdition": "German_Scrabble",
 	"database": "data.db"
 }
 

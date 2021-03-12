@@ -43,7 +43,7 @@ requirejs(["jquery", "jquery-ui"], () => {
 				$eds.val(data.edition);
 			$eds.selectmenu();
 
-			$dics = $("#dictionary");
+			let $dics = $("#dictionary");
 			data.dictionaries.forEach(d => $dics.append(`<option>${d}</option>`));
 			if (data.dictionary)
 				$dics.val(data.dictionary);

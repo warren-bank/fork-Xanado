@@ -10,7 +10,7 @@ requirejs.config({
     nodeRequire: require,
 	paths: {
 		server: "js/server",
-		scrabble: "js/scrabble",
+		game: "js/game",
 		icebox: "js/repaired_icebox",
 
 		// Server version of triggerEvent is a NOP (there is no event loop)

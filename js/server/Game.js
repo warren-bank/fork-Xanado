@@ -1,15 +1,15 @@
 const deps = [
-	"underscore",
 	"events",
 	"crypto",
 	"icebox",
-	"scrabble/Board",
-	"scrabble/Bag",
-	"scrabble/LetterBag",
+	"game/Board",
+	"game/Bag",
+	"game/LetterBag",
+	"game/Dictionary",
 	"server/Player"
 ];
 
-define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, Player) => {
+define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dictionary, Player) => {
 
 	class Game extends Events.EventEmitter {
 
@@ -17,10 +17,9 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, P
 			Game.database = db;
 		}
 
-		constructor(edition, dictionary, players) {
+		constructor(edition, players) {
 			super();
 			this.edition = edition;
-			this.dictionary = dictionary;
 			this.players = players;
 			this.key = Crypto.randomBytes(8).toString('hex');
 			this.creationTimestamp = (new Date()).toISOString();
@@ -28,30 +27,13 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, P
 			this.whosTurn = 0;
 			this.passes = 0;
 			this.connections = [];
-			// Not ready for use until ready() is fulfilled
-		}
-
-		/**
-		 * Promise to wait until the game is fully set up
-		 */
-		async ready() {
-			let game = this;
-			
-			return new Promise(resolve => {
-				requirejs([`scrabble/edition/${this.edition}`], edition => {
-					console.log("Loaded edition ", edition);
-					game.board = new Board(edition);
-					game.letterBag = new LetterBag(edition);
-					// Cannot joinGame until the letterBag is filled, otherwise the
-					// player will get an empty rack!
-					for (let i = 0; i < game.players.length; i++) {
-						const player = game.players[i];
-						player.index = i;
-						player.joinGame(game);
-					}
-					resolve();
-				});
-			});
+			this.board = new Board(edition);
+			this.letterBag = new LetterBag(edition.bag);
+			for (let i = 0; i < this.players.length; i++) {
+				const player = this.players[i];
+				player.index = i;
+				player.joinGame(this);
+			}
 		}
 
 		lastActivity() {
@@ -64,6 +46,10 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, P
 			}
 		}
 
+		toString() {
+			return `${this.key} ${this.players.length} ${this.edition}`;
+		}
+		
 		save() {
 			console.log(`Saving game ${this.key}`);
 			Game.database.set(this.key, this);
@@ -236,27 +222,36 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, P
 		/**
 		 * Check the words created by the previous move are in the dictionary
 		 */
-		challengePreviousMove(player, dict) {
-			let bad = [];
-			for (let word of this.previousMove.words) {
-				if (!dict.checkWord(word))
-					bad.push(word);
-			};
-			if (bad.length > 0) {
-				// Challenge succeeded
-				console.log(`Bad Words: ${bad.join(',')}`);
-				return this.undoPreviousMove("challenge", player);
-			}
+		async challengePreviousMove(player) {
+			let promise;
+			if (this.dictionary) {
+				let game = this;
+				promise = Dictionary.load(game.dictionary)
+				.then(dict => {
+					return game.previousMove.words
+					.filter(word => !dict.hasWord(
+						game.edition.getLetterIndices(word)));
+				});
+			} else
+				promise = Promise.resolve([]);
+			
+			return promise.then(bad => {
+				if (bad.length > 0) {
+					// Challenge succeeded
+					console.log(`Bad Words: ${bad.join(',')}`);
+					return this.undoPreviousMove("challenge", player);
+				}
 
-			// challenge failed, this player loses their turn
-			return this.pass('failedChallenge', player);
+				// challenge failed, this player loses their turn
+				return this.pass('failedChallenge', player);
+			});
 		}
 
 		returnPlayerLetters(player, letters) {
-			// return letter squares from the player's rack
+			// return letter squares from the player's rack to the bag
 			let lettersToReturn = new Bag(letters);
-			this.letterBag.returnTiles(_.reduce(
-				player.rack.squares,
+			this.letterBag.returnTiles(
+				player.rack.squares.reduce(
 				(accu, square) => {
 					if (square.tile && lettersToReturn.contains(square.tile.letter)) {
 						lettersToReturn.remove(square.tile.letter);
@@ -265,7 +260,7 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, P
 					}
 					return accu;
 				},
-				[]));
+					[]));
 			if (lettersToReturn.contents.length) {
 				throw Error(`could not find letters ${lettersToReturn.contents} to return on player ${player}'s rack`);
 			}
@@ -333,7 +328,7 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, P
 			// determine whether the game's end has been reached
 			if (this.passes == (this.players.length * 2)) {
 				this.finish('all players passed two times');
-			} else if (_.every(player.rack.squares, function(square) { return !square.tile; })) {
+			} else if (player.rack.squares.every(square => !square.tile)) {
 				this.finish('player ' + this.whosTurn + ' ended the game');
 			} else if (result.type != "challenge") {
 				// determine who's turn it is now, for anything except a successful challenge
@@ -442,18 +437,18 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, P
 		newConnection(socket, playerKey) {
 
 			let player;
-			for (let player_ of this.players) {
-				if (player_.key == playerKey) {
+			for (let knownPlayer of this.players) {
+				if (knownPlayer.key == playerKey) {
 					// Player is known to the game. Is this a reconnection?
-					player = player_;
+					player = knownPlayer;
 				} else {
 					for (let connection of this.connections) {
-						if (connection.player == player_) {
-							// player_ is already connected.
+						if (connection.player == knownPlayer) {
+							// knownPlayer is already connected.
 							// TODO: This emit is a side effect and would appear
 							// spurious; all it does is confirm to the player
 							// that they are online.
-							connection.emit('join', player_.index);
+							connection.emit('join', knownPlayer.index);
 						}
 					}
 				}
@@ -484,7 +479,7 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, P
 			
 			const game = this;
 			socket.on('disconnect', () => {
-				game.connections = _.without(game.connections, this);
+				game.connections = game.connections.filter(c => c != this);
 				if (player) {
 					player.isConnected = false;
 					game.notifyListeners('leave', player.index);
@@ -508,9 +503,8 @@ define("server/Game", deps, (_, Events, Crypto, Icebox, Board, Bag, LetterBag, P
 			case 1:
 				return names[0];
 			default:
-				return _.reduce(names.slice(1, length - 1),
-								(word, accu) => `${word}, ${accu}`,
-								names[0]) + ` and ${names[length - 1]}`;
+				return names.slice(0, length - 1).join(", ")
+				+ ` and ${names[length - 1]}`;
 			}
 		}
 	}

@@ -8,38 +8,44 @@ const requirejs = require('requirejs');
 requirejs.config({
     nodeRequire: require,
 	paths: {
-		scrabble: "js/scrabble",
+		game: "js/game",
 	}
 });
 
-requirejs(["node-getopt", "fs-extra", "scrabble/Dictionary"], (Getopt, Fs, Dictionary) => {
+requirejs(["node-getopt", "fs-extra", "game/Dictionary"], (Getopt, Fs, Dictionary) => {
 	let opt = Getopt.create([
         ["h", "help", "Show this help"],
 		["l", "list", "Dump a complete list of the words in the DAWG"],
 		["d", "dawg=ARG", "Use the DAWG from the given file (default Dawg_For_Lexicon.dat)"],
-		["a", "anagrams", "Find anagrams of the words"]
+		["a", "anagrams", "Find anagrams of the words"],
+		["A", "alphabet=ARG", "Alphabet to use (default is English)"]
 	])
         .bindHelp()
         .setHelp("Check a word is in the dictionary\n[[OPTIONS]]")
 		.parseSystem();
 
+	const alphabet = opt.options.alphabet || "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	
 	let dawgfile = opt.options.dawg || "Dawg_For_Lexicon.dat";
 	console.log(`Loading DAWG from ${dawgfile}`);
 	Fs.readFile(dawgfile)
 	.then(dawg => {
-		let dict = new Dictionary(dawg, 15, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+		let dict = new Dictionary(dawg, 15);
 		if (opt.options.list) {
 			let list = [];
 			dict.walk((word) => list.push(word));
 			console.log(list.join(", "));
 		}
 		for (let word of opt.argv) {
-			let ok = dict.checkWord(word);
+			let wa = word.split("").map(l => alphabet.indexOf(l.toUpperCase()));
+			let ok = dict.hasWord(wa);
 			console.log(`"${word}" is ${ok ? "" : 'not '}in the dictionary`);
 			if (opt.options.anagrams) {
 				console.log(`\nAnagrams of "${word}"`);
-				let anag = dict.findAnagrams(word);
-				console.log(anag.join(", "));
+				let anag = dict.findAnagrams(wa);
+				console.log(anag);
+				let words = anag.map(a => a.map(i => alphabet.charAt(i)).join(""));
+				console.log(words.join(", "));
 			}
 		}
 	});

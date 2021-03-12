@@ -4,7 +4,6 @@
  * Main Program for server.
  */
 const deps = [
-	'underscore',
 	'repl',
 	'fs-extra',
 	'node-getopt',
@@ -22,19 +21,20 @@ const deps = [
 	'server/Game',
 	'server/Player',
 	'server/FileDB',
-	'scrabble/Tile',
-	'scrabble/Square',
-	'scrabble/Board',
-	'scrabble/Rack',
-	'scrabble/LetterBag',
-	'scrabble/Dictionary'];
+	'game/Tile',
+	'game/Square',
+	'game/Board',
+	'game/Rack',
+	'game/LetterBag',
+	'game/Edition',
+	'game/BestMove'];
 
-define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, Game, Player, DB, Tile, Square, Board, Rack, LetterBag, Dictionary) => {
+global.APP_DIR = null;
+
+define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, Game, Player, DB, Tile, Square, Board, Rack, LetterBag, Edition, findBestMove) => {
 
 	// Live games; map from game key to Game
 	const games = {};
-	// Cache of dictionaries
-	const dictionaries = {};
 
 	// Configuration
 	let config;
@@ -60,7 +60,7 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 			// makes connections non-persistent
 			game, 'connections', { enumerable: false });
 		games[key] = game;
-
+		console.log(`Loaded game ${game}`);
 		return game;
 	}
 	
@@ -74,7 +74,7 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 				  const game = await loadGame(gamey.key)
 				  return {
 					  key: game.key,
-					  edition: game.edition,
+					  edition: game.edition.name,
 					  dictionary: game.dictionary,
 					  players: game.players.map(player => {
 						  return {
@@ -89,6 +89,22 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 		.then(gs => res.send(gs));
 	}
 
+	async function getEdition(edition, dictionary) {
+		return new Promise(resolve => {
+			requirejs([`game/edition/${edition}`], proto => {
+				// We want to define the editions as classes, so we can
+				// make use of inheritance, but we can't use the proto
+				// as-is, because it can't be serialised.
+				// Solve this by creating a neutral instance.
+				let instance = new proto();
+				let edo = new Edition(instance.layout, instance.bag);
+				edo.name = edition;
+				console.log(`Loaded edition ${edition}`);
+				resolve(edo);
+			});
+		});
+	}
+	
 	async function sendGameReminders(req, res) {
 		const games = await db.all()
 		games.map(async game => {
@@ -111,19 +127,6 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 		});
 		res.send("Reminder emails sent");
 	}
-
-	// promise to get a dictionary
-	async function getDictionary(dict) {
-		if (dictionaries[dict])
-			return Promise.resolve(dictionaries[dict]);
-		console.log(`Loading dictionary ${dict}`);
-		return Fs.readFile(`${config.dirname}/dictionaries/${dict}.dict`)
-		.then(dawg => {
-			// TODO: alphabet has to come from LetterBag!
-			dictionaries[dict] = new Dictionary(dawg, 15, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-			return dictionaries[dict];
-		});
-	}
 	
 	// Handle construction of a game given up to 6 players. Name is required
 	// for each player. Optional email may be sent.
@@ -144,19 +147,19 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 		if (players.length < 2)
 			throw Error('at least two players must participate in a game');
 
-		let dictionary = req.body.dictionary;
-		if (dictionary && dictionary != "None") {
-			// Trigger asynchronous load, but don't wait
-			getDictionary(dictionary);
-		} else
-			dictionary = null;
-		
-		console.log(`${players.length} players`);
-		const game = new Game(req.body.edition || 'English_Normal', dictionary, players);
+		getEdition(req.body.edition)
+		.then(edition => {
+			console.log(`Game of ${players.length} players`);
 
-		// Save the game when everything has been initialised
-		game.ready()
-		.then(() => {
+			let game = new Game(edition, players);
+
+			if (req.body.dictionary && req.body.dictionary != "None") {
+				console.log(`with dictionary ${req.body.dictionary}`);
+				game.dictionary = req.body.dictionary;
+			}
+			console.log("with no dictionary");
+
+			// Save the game when everything has been initialised
 			game.save();
 
 			game.sendInvitations(config);
@@ -239,7 +242,22 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 					response.endMessage = game.endMessage;
 				res.send(Icebox.freeze(response));
 			},
-			'html': () => res.sendFile(`${config.dirname}/client/game.html`)
+			'html': () => res.sendFile(`${APP_DIR}/client/game.html`)
+		});
+	}
+
+	async function bestMove(req, res) {
+		const gameKey = req.params.gameKey;
+		const game = await loadGame(gameKey);
+		if (!game)
+			throw Error(`Game ${gameKey} does not exist`);
+		const player = game.lookupPlayer(req.params.playerKey);
+		if (!game)
+			throw Error(`Player ${playerKey} does not exist`);
+
+		await findBestMove(game, player)
+		.then(move => {
+			res.send(Icebox.freeze(move));
 		});
 	}
 
@@ -282,16 +300,9 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 			break;
 
 		case 'challenge':
-			if (game.dictionary) {
-				// Check the last move in the dictionary
-				await getDictionary(game.dictionary)
-				.then(dict => {
-					result = game.challengePreviousMove(player, dict);
-				});
-			} else {
-				// No dictionary, challenge always succeeds
-				result = game.undoPreviousMove(req.body.command, player);
-			}
+			// Check the last move in the dictionary
+			await game.challengePreviousMove(player)
+			.then(r => { result = r; });
 			break;
 			
 		case 'takeBack':
@@ -322,6 +333,7 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 		db.registerObject(LetterBag);
 		db.registerObject(Game);
 		db.registerObject(Player);
+		db.registerObject(Edition);
 	}
 	
 	function runServer(config) {
@@ -338,8 +350,8 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 		app.use(CookieParser());
 
 		// Grab all static files relative to the project root
-		console.log(`static files from ${config.dirname}`);
-		app.use(Express.static(config.dirname));
+		console.log(`static files from ${APP_DIR}`);
+		app.use(Express.static(APP_DIR));
 
 		app.use(ErrorHandler({
 			dumpExceptions: true,
@@ -402,6 +414,9 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 		// Request handler for game interface
 		app.get("/game/:gameKey", getGame);
 		
+		// Request handler for best move
+		app.get("/bestMove/:gameKey/:playerKey", bestMove);
+		
 		// Request handler for game command
 		app.post("/game/:gameKey", handleCommand);
 
@@ -442,6 +457,8 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 	}
 
 	function mainProgram(dirname) {
+
+		APP_DIR = dirname;
 		
 		// Command-line arguments
 		let cliopt = Getopt.create([
@@ -457,15 +474,14 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 		.then(json => {
 			config = JSON.parse(json);
 			config.database = config.database || 'data.db';
-			config.dirname = dirname;
 		})
-		.then(() => Fs.readdir(`${config.dirname}/js/scrabble/edition`))
+		.then(() => Fs.readdir(`${APP_DIR}/js/game/edition`))
 		.then(editions => {
-			config.editions = _.filter(editions, e => /\.js$/.test(e)).map(e => e.replace(".js", ""));
+			config.editions = editions.filter(e => /\.js$/.test(e)).map(e => e.replace(".js", ""));
 		})
-		.then(() => Fs.readdir(`${config.dirname}/dictionaries`))
+		.then(() => Fs.readdir(`${APP_DIR}/dictionaries`))
 		.then(dicts => {
-			config.dictionaries = _.filter(dicts, e => /\.dict$/.test(e)).map(e => e.replace(".dict", ""));;
+			config.dictionaries = dicts.filter(e => /\.dict$/.test(e)).map(e => e.replace(".dict", ""));
 		})
 		.then(() => {
 			console.log('config', config);
@@ -474,7 +490,7 @@ define("server/Server", deps, (_, Repl, Fs, Getopt, Events, SocketIO, Http, Node
 			if (config.mailTransportConfig) {
 				config.smtp = NodeMailer.createTransport(config.mailTransportConfig);
 			} else if (process.env.MAILGUN_SMTP_SERVER) {
-				config.mailSender = `scrabble@${process.env.MAILGUN_DOMAIN}`;
+				config.mailSender = `wordgame@${process.env.MAILGUN_DOMAIN}`;
 				config.smtp = NodeMailer.createTransport({
 					host: process.env.MAILGUN_SMTP_SERVER,
 					port: process.env.MAILGUN_SMTP_PORT,

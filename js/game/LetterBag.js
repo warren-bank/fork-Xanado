@@ -1,20 +1,18 @@
-define("scrabble/LetterBag", ["scrabble/Tile"], (Tile) => {
+define("game/LetterBag", ["game/Tile"], (Tile) => {
 
 	class LetterBag {
 
 		/**
 		 * Construct a new letter bag using the distribution for the
-		 * bag specified in the config.
+		 * given bag definition (@see game/Edition)
 		 */
-		constructor(config) {
+		constructor(bagdef) {
 			// Tiles in the bag
 			this.tiles = [];
 			// String of all the letters in the bag, except blank
 			this.legalLetters = '';
 
-			const bag = config.bag;
-			
-			for (let letterDefinition of config.bag) {
+			for (let letterDefinition of bagdef) {
 				if (letterDefinition.letter)
 					// Not blank
 					this.legalLetters += letterDefinition.letter;

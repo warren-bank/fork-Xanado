@@ -6,7 +6,6 @@
 
 requirejs.config({
 	paths: {
-		underscore: "//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.12.0/underscore-min",
 		"socket.io": "//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io",
 		jquery: "//cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min",
 		"touch-punch": "//cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min",
@@ -17,7 +16,7 @@ requirejs.config({
 		
 		server: "js/server",
 		ui: "js/ui",
-		scrabble: "js/scrabble",
+		game: "js/game",
 		// use browser version of triggerEvent ($.trigger)
 		triggerEvent: "js/ui/triggerEvent"
 	}
