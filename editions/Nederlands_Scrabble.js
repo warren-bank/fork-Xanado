@@ -1,6 +1,7 @@
 define("editions/Nederlands_Scrabble", ["editions/_ScrabbleLayout"], (BOARD) => {
 
 	const BAG = [
+		{ score: 0, count: 2 },
 		{ letter: "A", score: 1, count: 6 },
 		{ letter: "B", score: 3, count: 2 },
 		{ letter: "C", score: 5, count: 2 },

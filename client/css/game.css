@@ -563,3 +563,8 @@ div#anagrams td, div#anagrams th {
 div#anagrams th {
     border: none;
 }
+
+#timeout {
+	font-size: 1.5em;
+	color: white;
+}

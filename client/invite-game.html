@@ -20,47 +20,56 @@
   <body id="body">
 	<script type="text/javascript">requirejs(["js/ui/invite-game"]);</script>
     <form id="create-invitation-game" action="newgame" method="POST">
-      <fieldset>
-        <h1>Create a new game</h1>
-        Enter the names and optional email addresses for up to 6 players
-		<ul>
-		  <li>All players with an email address will receive an invitation with a personal link to the game</li>
-		  <li>Other players can join by clicking on their name in the games interface</li>
-		  <li>Choose the Scrabble edition to play. Normal boards are 15x15, Super are 21x21.</li>
-		  <li>Play starts with the first player in the list</li>
-		</ul>
-        <label for="edition">Edition</label>
-		<select id="edition" name="edition"></select><br />
-        <label for="edition">Dictionary</label>
-		<select id="dictionary" name="dictionary">
-		  <option>None</option>
-		</select>
-	  </fieldset>
-      <fieldset>
-        <legend>Players</legend>
-		<table>
-		  <tr>
-			<td><label for="name1">Name</label><input class="name" name="name1"/></td>
-			<td><label for="email1">Email</label><input name="email1"/></td>
-		  </tr><tr>
-			<td><label for="name2">Name</label><input class="name" name="name2"/></td>
-			<td><label for="email2">Email</label><input name="email2"/></td>
-		  </tr><tr>
-			<td><label for="name3">Name</label><input class="name" name="name3"/></td>
-			<td><label for="email3">Email</label><input name="email3"/></td>
-		  </tr><tr>
-			<td><label for="name4">Name</label><input class="name" name="name4"/></td>
-			<td><label for="email4">Email</label><input name="email4"/></td>
-		  </tr><tr>
-			<td><label for="name5">Name</label><input class="name" name="name5"/></td>
-			<td><label for="email5">Email</label><input name="email5"/></td>
-		  </tr><tr>
-			<td><label for="name6">Name</label><input class="name" name="name6"/></td>
-			<td><label for="email6">Email</label><input name="email6"/></td>
+      <h1>Create a new game</h1>
+	  <table>
+		<tr>
+		  <th>Game</th>
+		  <td><select id="edition" name="edition"></select></td>
+		  <td>Choose the game edition to play</td>
+		</tr><tr>
+		  <th>Dictionary</th>
+		  <td><select id="dictionary" name="dictionary">
+			  <option>None</option>
+			</select>
+		  </td>
+		  <td>A dictionary is optional for human player
+			games, but is required for computer players and can be used to
+			automate challenges.</td>
+		</tr>
+		<tr>
+		  <th>Time limit</th>
+		  <td><input type="number" name="time_limit" id="time_limit" step="0.1"/></td>
+		  <td>Maximum time allowed to make a move, in minutes. If a player fails to make a move in this time, they will be forced to pass. Leave blank for no time limit.</td>
 		  </tr>
-		</table>
-          <input type="submit" value="Create new game" />
-	  </fieldset>
+	  </table>
+      <h2>Players</h2>
+      Enter the names and optional email addresses for up to 6 players.
+	  Players with an email address will receive an invitation with a personal link to the game, other players can click on their name in the games list. Computer opponents must be called 'robotN' where N is a number.
+	  Play starts with the first player in the list.
+	  <table>
+		<tr>
+		  <th>Name</th><th>Email</th>
+		<tr>
+		  <td><input class="name" name="name1"/></td>
+		  <td><input name="email1"/></td>
+		</tr><tr>
+		  <td><input class="name" name="name2"/></td>
+		  <td><input name="email2"/></td>
+		</tr><tr>
+		  <td><input class="name" name="name3"/></td>
+		  <td><input name="email3"/></td>
+		</tr><tr>
+		  <td><input class="name" name="name4"/></td>
+		  <td><input name="email4"/></td>
+		</tr><tr>
+		  <td><input class="name" name="name5"/></td>
+		  <td><input name="email5"/></td>
+		</tr><tr>
+		  <td><input class="name" name="name6"/></td>
+		  <td><input name="email6"/></td>
+		</tr>
+	  </table>
+      <input type="submit" value="Create game" />
 	  <div id="problem_dialog" title="Problem" style="display:none">
 	  </div>
 	</form>

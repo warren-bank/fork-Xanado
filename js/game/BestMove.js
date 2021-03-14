@@ -808,7 +808,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 			}
 		}
 
-		if (best_across_word.score > best_down_word.score)
+		if (best_across_word.score >= best_down_word.score)
 			return best_across_word
 		else
 			return best_down_word

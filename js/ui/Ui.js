@@ -17,7 +17,7 @@ const deps = [
 	"game/Rack",
 	"game/Board" ];
 
-define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Board) => {
+define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => {
 
 	// Class references for icebox
 	const ICE_TYPES = { Board: Board, Tile: Tile, Square: Square, Rack: Rack };
@@ -202,6 +202,9 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 					$detail.append(`<span class='score'>50</span>`);
 				}
 				break;
+			case 'timeout':
+				$detail.text("Timed out");
+				break;			
 			case 'pass':
 				$detail.text("Passed");
 				break;
@@ -233,10 +236,11 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 		displayNextGameMessage(nextGameKey) {
 			if (nextGameKey) {
 				$('#log')
-				.append(`<div class='nextGame'><a href='/game/${nextGameKey}/${$.cookie(this.gameKey)}>next game</a></div>`);
+				.append(`<div class='nextGame'><a href='/game/${nextGameKey}/${$.cookie(this.gameKey)}'>next game</a></div>`);
 				$('#makeNextGame').remove();
 			} else {
-				let $but = $(`<a href='/another/${nextGameKey}'><button>Make new game</button></a>`);
+				let $but = $(`<button>Another game</button>`);
+				$but.on('click', this.sendMoveToServer('another', null));
 				let $ngb = $("<div id='makeNextGame'></div>");
 				$ngb.append($but);
 				$ngb.append(' if you want another game with the same players');
@@ -270,8 +274,8 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 					winners.push(player);
 				}
 			}
-			$('#whosturn').empty();
-			
+			$("#whosturn").text("Game over");
+
 			let names = [];
 			for (let player of winners)
 				names.push(player == this.thisPlayer ? 'you' : player.name);
@@ -315,6 +319,22 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 			}
 		}
 
+		startCountdown(abstime) {
+			this.timeOutAt = abstime;
+			if (abstime <= 0)
+				return;
+			console.debug("Starting timer");
+			let ui = this;
+			$("#timeout").show();
+			function tick() {
+				let remainSecs = Math.floor((ui.timeOutAt - Date.now()) / 1000);
+				$("#timeout").text(remainSecs);
+				if (remainSecs > 0)
+					setTimeout(tick, 1000);
+			}
+			setTimeout(tick, 1000);
+		}
+		
 		processTurn(turn) {
 			console.debug('Turn ', turn);
 			this.appendTurnToLog(turn);
@@ -380,6 +400,8 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 			this.remainingTileCounts = turn.remainingTileCounts;
 			if (turn.whosTurn == this.playerNumber) {
 				this.playAudio("yourturn");
+				if (turn.timeout)
+					this.startCountdown(turn.timeout);
 			}
 			this.boardLocked(turn.whosTurn != this.playerNumber);
             this.removeMoveActionButtons();
@@ -399,7 +421,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 		}
 		
 		loadGame(data) {
-			const gameData = icebox.thaw(data, ICE_TYPES);
+			const gameData = Icebox.thaw(data, ICE_TYPES);
 			console.log('gameData', gameData);
 			
 			this.swapRack = new Rack(7);
@@ -450,9 +472,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 				this.appendTurnToLog(turn);
 			
 			if (gameData.endMessage) {
-				// Not clear why we have to freeze-thaw here
-				this.displayEndMessage(
-					Icebox.thaw(gameData.endMessage, ICE_TYPES));
+				this.displayEndMessage(gameData.endMessage, ICE_TYPES);
 			}
 			
 			this.scrollLogToEnd(0);
@@ -483,6 +503,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 			let ui = this;
 			
 			this.socket
+			
 			.on('connect', data => {
 				console.debug('Socket connected');
 				if (ui.wasConnected) {
@@ -494,18 +515,22 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 											 playerKey: ui.playerKey });
 				}
 			})
+			
 			.on('disconnect', data => {
 				console.debug('Socket disconnected');
 				$('#problem_dialog')
 				.text("Server disconnected, trying to reconnect")
 				.dialog({ modal: true });
 			})
+			
 			.on('turn', turn => ui.processTurn(turn))
+			
 			.on('gameEnded', endMessage => {
 				console.debug("Received gameEnded");
 				ui.displayEndMessage(endMessage);
 				ui.notify('Game over!', 'Your game is over...');
 			})
+			
 			.on('nextGame', nextGameKey => ui.displayNextGameMessage(nextGameKey))
 			.on('message', message => {
 				console.debug(`Message ${message.text}`);
@@ -519,13 +544,18 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 					ui.notify(message.name + " says", message.text);
 				}
 			})
-			.on('join', playerNumber => {
-				console.debug(`Player ${playerNumber} joining`);
+			
+			.on('join', info => {
+				console.debug("Player ", info, " joining");
+				if (info.timeout)
+					this.startCountdown(info.timeout);
+
 				// Server has confirmed game has been joined
-				$(`tr.player${playerNumber} td.status`)
+				$(`tr.player${info.playerNumber} td.status`)
 				.removeClass('offline')
 				.addClass('online');
 			})
+			
 			.on('leave', playerNumber => {
 				// Server has indicated game has been left
 				// AFAICT this
@@ -964,7 +994,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 			toSquare.placeTile(tile);
 			toSquare.owner.tileCount++;
 			if (!this.boardLocked()) {
-				setTimeout(function () { ui.updateGameStatus() }, 100);
+				window.setTimeout(() => ui.updateGameStatus(), 100);
 			}
 		}
 		
@@ -1059,7 +1089,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 		
 		processMoveResponse(data) {
 			console.debug('move response:', data);
-			data = icebox.thaw(data, ICE_TYPES);
+			data = Icebox.thaw(data, ICE_TYPES);
 			if (!data.newRack)
 				throw Error('expected new rack, got ' + data);
 

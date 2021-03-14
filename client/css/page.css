@@ -1,10 +1,5 @@
 body {
-    width: 45em;
-	font-size: 1.5em;
 	color: white;
-}
-
-p {
     margin-left: 3em;
     margin-right: 3em;
 }
@@ -19,17 +14,20 @@ legend {
 }
 
 label, input, button {
-    font-size: 1.5em;
+    font-size: 1.2em;
 }
 
-label, input {
-    display: inline-block;
-    width: 20em;
+th, td {
+	vertical-align: top;
+	padding-top: 1em;
 }
 
-label {
-    width: 4em;
+button.player {
+	margin-left: 0.5em;
+	margin-right: 0.5em;
 }
 
-input {
+#game-table {
+	margin-bottom: 1.5em;
 }
+

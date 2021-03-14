@@ -1,6 +1,7 @@
 define("editions/Czech_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 
 	const BAG = [
+		{ score: 0, count: 2 },
 		{ letter: "A", score: 1, count: 5 },
 		{ letter: "Á", score: 2, count: 2 },
 		{ letter: "B", score: 3, count: 2 },

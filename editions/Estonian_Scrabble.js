@@ -1,6 +1,7 @@
 define("editions/Estonian_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 
 	const BAG = [
+		{ score: 0, count: 2 },
 		{ letter: "E", score: 1, count: 9 },
 		{ letter: "A", score: 1, count: 10 },
 		{ letter: "I", score: 1, count: 9 },

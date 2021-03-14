@@ -91,6 +91,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 					  key: game.key,
 					  edition: game.edition,
 					  dictionary: game.dictionary,
+					  time_limit: game.time_limit,
 					  players: game.players.map(player => {
 						  return {
 							  name: player.name,
@@ -157,11 +158,17 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			let game = new Game(edition, players);
 
 			if (req.body.dictionary && req.body.dictionary != "None") {
-				console.log(`with dictionary ${req.body.dictionary}`);
+				console.log(`\twith dictionary ${req.body.dictionary}`);
 				game.dictionary = req.body.dictionary;
 			}
-			console.log("with no dictionary");
+			console.log("\twith no dictionary");
 
+			game.time_limit = req.body.time_limit || 0;
+			if (game.time_limit > 0)
+				console.log(`\t${game.time_limit} minute time limit`);
+			else
+				console.log("\twith no time limit");
+			
 			// Save the game when everything has been initialised
 			game.save();
 
@@ -199,7 +206,6 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		// Redirect back to control panel
 		res.redirect("/client/games.html");
 	}
-
 
 	/**
 	 * Handler for /game/:gameKey/:playerKey, player joining a game.
@@ -324,6 +330,10 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			result = game.undoPreviousMove(player, 'takeBack');
 			break;
 
+		case 'another':
+			game.createFollowonGame(player);
+			return;
+
 		default:
 			throw Error(`unrecognized command: ${body.command}`);
 		}
@@ -399,7 +409,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		// HTML page for main interface
 		app.get("/", (req, res) => res.redirect("/client/games.html"));
 
-		// AJAX request to send reminders about active games
+		// AJAX request to send email reminders about active games
 		app.post("/send-game-reminders", (req, res) =>
 				 sendGameReminders(req, res));
 
@@ -413,7 +423,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		app.post("/newgame", newGame);
 
 		// Create a follow-on game
-		app.post("/another/:gameKey", followOnGame);
+		app.get("/another", followOnGame);
 		
 		app.get("/config", (req, res) =>
 				// To get here, had to know port and baseUrl, so no point in resending.

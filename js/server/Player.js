@@ -9,6 +9,10 @@ define("server/Player", ["crypto", "game/Rack"], (Crypto, Rack) => {
 			this.rack = new Rack(8);
 		}
 
+		copy() {
+			return new Player(this.name, this.key);
+		}
+		
 		joinGame(game, index) {
 			this.index = index;
 			for (let j = 0; j < 7; j++)

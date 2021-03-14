@@ -1,6 +1,7 @@
 define("editions/German_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 
 	const BAG = [
+		{ score: 0, count: 2 },
  		{ letter: "E", score: 1, count: 15 },
 		{ letter: "N", score: 1, count: 9 },
 		{ letter: "S", score: 1, count: 7 },

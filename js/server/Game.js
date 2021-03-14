@@ -5,11 +5,12 @@ const deps = [
 	"game/Board",
 	"game/Bag",
 	"game/LetterBag",
+	"game/Edition",
 	"game/Dictionary",
 	"server/Player"
 ];
 
-define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dictionary, Player) => {
+define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edition, Dictionary, Player) => {
 
 	class Game extends Events.EventEmitter {
 
@@ -30,6 +31,8 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			this.turns = [];
 			this.whosTurn = 0;
 			this.passes = 0;
+			this.time_limit = 0; // never time out
+			this.nextTimeout = 0;
 			this.connections = [];
 			this.board = new Board(edition);
 			this.letterBag = new LetterBag(edition);
@@ -37,6 +40,38 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 				this.players[i].joinGame(this, i);
 		}
 
+		/**
+		 * Cancel current timeout
+		 */
+		stopTimeout() {
+			if (this.timer) {
+				clearTimeout(this.timer);
+				delete this.timer;
+				this.nextTimeout = 0;
+			}
+		}
+
+		/**
+		 * Set a play timeout for the player if the game time limit is set
+		 * @return the clock time when the timeout will expire
+		 */
+		startTimeout(player) {
+			if (this.time_limit === 0)
+				return this.nextTimeout;
+			
+			this.stopTimeout();
+			let timeout = this.time_limit * 60 * 1000;
+			let timeoutAt = Date.now() + timeout;
+			console.log(`${player.name}'s go will time out in ${this.time_limit} minutes at ${timeoutAt}`);
+			let game = this;
+			setTimeout(() => {
+				console.log(`${player.name} has timed out at ${Date.now()}`);
+				game.updateGameState(player, game.pass(player, 'timeout'));
+			}, timeout + 10000);
+			this.nextTimeout = Date.now() + timeout;
+			return this.nextTimeout;
+		}
+		
 		lastActivity() {
 			if (this.turns.length
 				&& this.turns[this.turns.length - 1].timestamp) {
@@ -91,6 +126,8 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 		 * @param player the player making the move
 		 */
 		makeMove(player, placementList) {
+			this.stopTimeout();
+			
 			console.log(`makeMove ${player.key}`, placementList);
 			console.log(`Player's rack is ${player.rack}`);
 			console.log("Placement ", placementList);
@@ -222,6 +259,8 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 		 * @param reason pass reason = 'pass' or 'failedChallenge'
 		 */
 		pass(player, reason) {
+			this.stopTimeout();
+			
 			delete this.previousMove;
 			this.passes++;
 
@@ -364,8 +403,10 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 					.then(result => {
 						console.log(`${p} played, updateGameState`);
 						this.updateGameState(p, result);
+						this.notifyListeners('turn', result);
 					});
-				}
+				} else if (this.isConnected(p))
+					result.timeout = this.startTimeout(p);
 			}
 
 			// store new game data
@@ -400,21 +441,25 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			if (this.nextGameKey) {
 				throw Error(`follow on game already created: old ${this.key} new ${this.nextGameKey}`);
 			}
+			console.log("Create follow-on game");
 			let oldGame = this;
 			let playerCount = oldGame.players.length;
 			let newPlayers = [];
 			// re-order players so last winner starts
 			for (let i = 0; i < playerCount; i++) {
-				let oldPlayer = oldGame.players[(i + startPlayer.index) % playerCount];
-				newPlayers.push(new Player(
-					oldPlayer.name, oldPlayer.email, oldPlayer.key));
+				let oldPlayer = this.players[(i + startPlayer.index) % playerCount];
+				newPlayers.push(oldPlayer.copy());
 			}
-			let newGame = new Game(oldGame.edition, newPlayers);
-			oldGame.endMessage.nextGameKey = newGame.key;
-			oldGame.save();
-			await newGame.ready();
-			newGame.save();
-			oldGame.notifyListeners('nextGame', newGame.key);
+			Edition.load(this.edition)
+			.then(edition => {
+				let newGame = new Game(edition, newPlayers);
+				newGame.dictionary = oldGame.dictionary;
+				newGame.time_limit = oldGame.time_limit;
+				oldGame.endMessage.nextGameKey = newGame.key;
+				oldGame.save();
+				newGame.save();
+				oldGame.notifyListeners('nextGame', newGame.key);
+			});
 		}
 
 		finish(reason) {
@@ -507,15 +552,20 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 
 			this.connections.push(socket);
 
+			let result = { playerNumber: player.index };
 			if (player) {
-				if (this.isConnected(player))
+				if (this.isConnected(player)) {
 					console.log(`WARNING: ${player.name} ${player.key} already connected`);
+					result.timeout = this.nextTimeout;
+				}
+				else if (player.index == this.whosTurn)
+					result.timeout = this.startTimeout(player);
 
 				socket.player = player;
 				
 				console.log(`Player ${player.index} ${player.name} ${player.key} connected`);
 				// Tell players that the player is connected
-				this.notifyListeners('join', player.index);
+				this.notifyListeners('join', result);
 			}
 			
 			const game = this;

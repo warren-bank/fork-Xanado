@@ -2,6 +2,7 @@
 define("editions/English_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 
 	const BAG = [
+		{ score: 0, count: 2 },
 		{ letter: "A", score: 1, count: 9 },
 		{ letter: "B", score: 3, count: 2 },
 		{ letter: "C", score: 3, count: 2 },

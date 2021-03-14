@@ -10,6 +10,7 @@ define("editions/Hungarian_Scrabble", ["editions/_ScrabbleLayout"], (BOARD) => {
 	 * players and no dictionary.
 	 */
 	const BAG = [
+		{ score: 0, count: 2 },
 		{ letter: "A", score: 1, count: 6 },
 		{ letter: "E", score: 1, count: 6 },
 		{ letter: "K", score: 1, count: 6 },
