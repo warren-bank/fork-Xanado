@@ -17,9 +17,13 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			Game.database = db;
 		}
 
+		/**
+		 * @param edition Edition object
+		 * @param players list of Player
+		 */
 		constructor(edition, players) {
 			super();
-			this.edition = edition;
+			this.edition = edition.name;
 			this.players = players;
 			this.key = Crypto.randomBytes(8).toString('hex');
 			this.creationTimestamp = (new Date()).toISOString();
@@ -28,16 +32,14 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			this.passes = 0;
 			this.connections = [];
 			this.board = new Board(edition);
-			this.letterBag = new LetterBag(edition.bag);
-			for (let i = 0; i < this.players.length; i++) {
-				const player = this.players[i];
-				player.index = i;
-				player.joinGame(this);
-			}
+			this.letterBag = new LetterBag(edition);
+			for (let i = 0; i < this.players.length; i++)
+				this.players[i].joinGame(this, i);
 		}
 
 		lastActivity() {
-			if (this.turns.length && this.turns[this.turns.length - 1].timestamp) {
+			if (this.turns.length
+				&& this.turns[this.turns.length - 1].timestamp) {
 				return new Date(this.turns[this.turns.length - 1].timestamp);
 			} else if (this.creationTimestamp) {
 				return new Date(this.creationTimestamp);
@@ -69,12 +71,7 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 		 * @return the player object, or null if the player isn't found
 		 */
 		lookupPlayer(playerKey) {
-			for (let i in this.players) {
-				if (this.players[i].key == playerKey) {
-					return this.players[i];
-				}
-			}
-			return null;
+			return this.players.find(p => (p.key == playerKey));
 		}
 
 		/**
@@ -90,15 +87,20 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 				throw Error(`not ${player.name}'s turn`);
 		}
 
-		// @return Turn
+		/**
+		 * @param player the player making the move
+		 */
 		makeMove(player, placementList) {
-			console.log('makeMove', placementList);
+			console.log(`makeMove ${player.key}`, placementList);
+			console.log(`Player's rack is ${player.rack}`);
+			console.log("Placement ", placementList);
 			
 			let game = this;
 
-			// validate the move (i.e. does the user have the tiles placed, are the tiles free on the board
-			let rackSquares = player.rack.squares.slice();          // need to clone
-			let placements = placementList.map(function (placement) {
+			// validate the move (i.e. does the user have the tiles
+			// placed, are the tiles free on the board?)
+			let rackSquares = player.rack.squares.slice();
+			let placements = placementList.map(placement => {
 				let fromSquare = null;
 				for (let i = 0; i < rackSquares.length; i++) {
 					let square = rackSquares[i];
@@ -122,12 +124,12 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 					throw Error(`target tile (${placement.x},${placement.y}) is already occupied`);
 				return [fromSquare, toSquare];
 			});
-			placements.forEach(function(squares) {
+			placements.forEach(squares => {
 				let tile = squares[0].tile;
 				squares[0].placeTile(null);
 				squares[1].placeTile(tile);
 			});
-			let move = this.board.calculateMove();
+			let move = this.board.analyseMove();
 			if (move.error) {
 				// fixme should be generalized function -- wait, no rollback? :|
 				placements.forEach(squares => {
@@ -145,15 +147,14 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			player.score += move.score;
 
 			// get new tiles
-			let newTiles = this.letterBag.getRandomTiles(placements.length);
-			for (let i = 0; i < newTiles.length; i++) {
-				placements[i][0].placeTile(newTiles[i]);
+			let newRack = this.letterBag.getRandomTiles(placements.length);
+			for (let i = 0; i < newRack.length; i++) {
+				placements[i][0].placeTile(newRack[i]);
 			}
 			console.log("words ", move.words);
 			
 			game.previousMove = {
 				placements: placements,
-				newTiles: newTiles,
 				score: move.score,
 				player: player,
 				words: move.words.map(w => w.word)
@@ -164,17 +165,23 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 				type: 'move',
 				player: player.index,
 				score: move.score,
-				tiles: newTiles,
 				move: move,
-				placements: placementList
+				placements: placementList,
+
+				newRack: newRack
 			};
 		}
 
-		// @return Turn
-		undoPreviousMove(type, player) {
-			if (!this.previousMove) {
+		/**
+		 * Undo the last move
+		 * @param player the current player (NOT the player who's move is
+		 * being undone)
+		 * @param reason for the undo, "challenge" or "takeBack"
+		 */
+		undoPreviousMove(player, reason) {
+			if (!this.previousMove)
 				throw Error('cannot take back move - no previous move in game');
-			}
+
 			let previousMove = this.previousMove;
 			delete this.previousMove;
 
@@ -193,12 +200,13 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			previousMove.player.score -= previousMove.score;
 
 			return {
-				type: type,
+				type: reason,
 				player: previousMove.player.index,
 				score: -previousMove.score,
 				
 				challenger: player.index,
-				whosTurn: (type == "challenge" ? this.whosTurn : previousMove.player.index),
+				whosTurn: (reason == "challenge"
+						   ? this.whosTurn : previousMove.player.index),
 				placements: previousMove.placements.map(function(placement) {
 					return { x: placement[1].x,
 							 y: placement[1].y }
@@ -207,13 +215,18 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			};
 		}
 		
-		// @return turn
-		pass(type, player) {
+		/**
+		 * Player wants to (or has to) miss their move. Either they
+		 * can't play, or challenged and failed.
+		 * @param player player who is passing
+		 * @param reason pass reason = 'pass' or 'failedChallenge'
+		 */
+		pass(player, reason) {
 			delete this.previousMove;
 			this.passes++;
 
 			return {
-				type: type,
+				type: reason,
 				player: player.index,
 				score: 0
 			};
@@ -239,11 +252,11 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 				if (bad.length > 0) {
 					// Challenge succeeded
 					console.log(`Bad Words: ${bad.join(',')}`);
-					return this.undoPreviousMove("challenge", player);
+					return this.undoPreviousMove(player, "challenge");
 				}
 
 				// challenge failed, this player loses their turn
-				return this.pass('failedChallenge', player);
+				return this.pass(player, 'failedChallenge');
 			});
 		}
 
@@ -266,7 +279,10 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			}
 		}
 
-		// return Turn
+		/**
+		 * Player wants to swap their current rack for a different
+		 * letters.
+		 */
 		swapTiles(player, letters) {
 			if (this.letterBag.remainingTileCount() < 7) {
 				throw Error(`cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
@@ -282,11 +298,12 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 				}
 			}
 			
-			// The swap is legal.  First get new tiles, then return the old ones to the letter bag
-			let newTiles = this.letterBag.getRandomTiles(letters.length);
+			// The swap is legal.  First get new tiles, then return
+			// the old ones to the letter bag
+			let newRack = this.letterBag.getRandomTiles(letters.length);
 			this.returnPlayerLetters(player, letters);
 			
-			let tmpNewTiles = newTiles.slice();
+			let tmpNewTiles = newRack.slice();
 			for (const square of player.rack.squares) {
 				if (!square.tile) {
 					square.placeTile(tmpNewTiles.pop());
@@ -298,7 +315,7 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 				player: player.index,
 				score: 0,
 				
-				tiles: newTiles,
+				newRack: newRack,
 				count: letters.length,
 			};
 		}
@@ -317,23 +334,38 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 		}
 
 		/**
-		 * Prepare a result from one of the command handlers, adjusting and saving game state
+		 * Wrap up after a command handler. Log the command, determine
+		 * whether the game has ended, save state and notify game
+		 * listeners.
 		 */
-		prepareResult(player, result) {
+		updateGameState(player, result) {
 			result.timestamp = Date.now();
 
 			// store turn log
+			delete result.newRack; // no point logging this
 			this.turns.push(result);
 
 			// determine whether the game's end has been reached
 			if (this.passes == (this.players.length * 2)) {
-				this.finish('all players passed two times');
+				this.finish('all players passed twice');
 			} else if (player.rack.squares.every(square => !square.tile)) {
-				this.finish('player ' + this.whosTurn + ' ended the game');
+				this.finish(`${this.players[this.whosTurn].name} ended the game`);
 			} else if (result.type != "challenge") {
-				// determine who's turn it is now, for anything except a successful challenge
+				// determine who's turn it is now, for anything except
+				// a successful challenge
 				this.whosTurn = (this.whosTurn + 1) % this.players.length;
 				result.whosTurn = this.whosTurn;
+
+				let p = this.players[this.whosTurn];
+				if (p.play) {
+					// Play computer player(s)
+					p.play(this)
+					// may recurse!
+					.then(result => {
+						console.log(`${p} played, updateGameState`);
+						this.updateGameState(p, result);
+					});
+				}
 			}
 
 			// store new game data
@@ -345,10 +377,11 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 
 			// if the game has ended, send extra notification with final scores
 			if (this.ended()) {
-				const endMessage = Icebox.freeze(this.endMessage);
-				this.connections.forEach(function (socket) {
-					socket.emit('gameEnded', endMessage);
-				});
+				// Unclear why we have to freeze here, but not when
+				// sending the turn. If we don't, we get an infinite
+				// recursion in socket.io, in isBinary
+				let serial = Icebox.freeze(this.endMessage);
+				this.notifyListeners('gameEnded', serial);
 			}
 		}
 
@@ -385,8 +418,8 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 		}
 
 		finish(reason) {
-			delete this.whosTurn;
-
+			console.log(`Finishing because ${reason}`);
+			
 			// Tally scores
 			let playerWithNoTiles;
 			let pointsRemainingOnRacks = 0;
@@ -434,6 +467,17 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			return this.endMessage;
 		}
 
+		/**
+		 * Does player have an active connection to this game?
+		 */
+		isConnected(player) {
+			for (let connection of this.connections) {
+				if (connection.player == player)
+					return true;
+			}
+			return false;
+		}
+		
 		newConnection(socket, playerKey) {
 
 			let player;
@@ -464,12 +508,9 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			this.connections.push(socket);
 
 			if (player) {
-				if (player.isConnected)
+				if (this.isConnected(player))
 					console.log(`WARNING: ${player.name} ${player.key} already connected`);
 
-				player.isConnected = true;
-				
-				// SMELL: only used in newConnection
 				socket.player = player;
 				
 				console.log(`Player ${player.index} ${player.name} ${player.key} connected`);
@@ -480,10 +521,8 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Dict
 			const game = this;
 			socket.on('disconnect', () => {
 				game.connections = game.connections.filter(c => c != this);
-				if (player) {
-					player.isConnected = false;
+				if (player)
 					game.notifyListeners('leave', player.index);
-				}
 			});
 		}
 

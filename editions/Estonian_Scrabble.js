@@ -1,4 +1,4 @@
-define("game/edition/Estonian_Scrabble", ["game/ScrabbleEdition"], (ScrabbleEdition) => {
+define("editions/Estonian_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 
 	const BAG = [
 		{ letter: "E", score: 1, count: 9 },
@@ -30,11 +30,6 @@ define("game/edition/Estonian_Scrabble", ["game/ScrabbleEdition"], (ScrabbleEdit
 		{ letter: "Ü", score: 5, count: 2 }
 	];
 	
-	class Estonian_Scrabble extends ScrabbleEdition {
-		constructor() {
-			super(BAG);
-		}
-	}
-	return Estonian_Scrabble;
+	return { layout: LAYOUT, bag: BAG };
 });
 	   

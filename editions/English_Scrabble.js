@@ -1,5 +1,5 @@
 // Classic Scrabble
-define("game/edition/English_Scrabble", ["game/ScrabbleEdition"], (ScrabbleEdition) => {
+define("editions/English_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 
 	const BAG = [
 		{ letter: "A", score: 1, count: 9 },
@@ -30,10 +30,5 @@ define("game/edition/English_Scrabble", ["game/ScrabbleEdition"], (ScrabbleEditi
 		{ letter: "Z", score: 10, count: 1 }
 	];
 	
-	class English_Scrabble extends ScrabbleEdition {
-		constructor() {
-			super(BAG);
-		}
-	}
-	return English_Scrabble;
+	return { layout: LAYOUT, bag: BAG };
 });

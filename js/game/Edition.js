@@ -1,7 +1,19 @@
-// Base class of word game editions, designed to be subclassed.
+/**
+ * A word game edition.
+ *
+ * Editions define the board layout and letter bag for a specific
+ * Scrabble-like crossword game - Scrabble, Words With Friends,
+ * or a game you've made yourself.
+ * Editions are only loaded once, and are subsequently kept in memory.
+ * They are referred to be name in comms between the server and players,
+* and are not serialised.
+ */
 
-define("game/Edition", ["game/Dictionary"], (Dictionary) => {
+define("game/Edition", () => {
 
+	// Static DB of loaded Editions, indexed by name
+	const editions = {};
+	
 	class Edition {
 		
 		/**
@@ -40,6 +52,25 @@ define("game/Edition", ["game/Dictionary"], (Dictionary) => {
 			this.allPlacedBonus = 0;
 		}
 
+		/**
+		 * Promise to load an edition
+		 */
+		static async load(name) {
+			if (editions[name])
+				return Promise.resolve(editions[name]);
+
+			// Use requirejs to support dependencies in the edition
+			// files
+			return new Promise(resolve => {
+				requirejs([ `editions/${name}` ], data => {
+					console.log(`Loaded edition ${name}`);
+					editions[name] = new Edition(data.layout, data.bag);
+					editions[name].name = name;
+					resolve(editions[name]);
+				});
+			});
+		}
+		
 		toString() {
 			return this.name;
 		}

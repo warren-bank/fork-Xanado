@@ -27,13 +27,16 @@ define("game/Dictionary", ["fs-extra"], (Fs) => {
 
 	class Dictionary {
 
+		/**
+		 * Promise to load a dictionary
+		 */
 		static async load(name) {
 			if (dictionaries[name])
 				return Promise.resolve(dictionaries[name]);
 			
-			console.log(`Loading dictionary ${name}`);
 			return Fs.readFile(`${APP_DIR}/dictionaries/${name}.dict`)
 			.then(dawg => {
+				console.log(`Loaded dictionary ${name}`);
 				dictionaries[name] = new Dictionary(dawg);
 				return dictionaries[name];
 			});
@@ -262,13 +265,6 @@ define("game/Dictionary", ["fs-extra"], (Fs) => {
 			}
 			
 			return foundWords;
-		}
-
-		/**
-		 * Check if a (string) word is allowed by this edition.
-		 */
-		allowsWord(word) {
-			return this.hasWord(wa);
 		}
 	}
 	return Dictionary;

@@ -316,7 +316,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 		}
 
 		processTurn(turn) {
-			console.log('turn', turn);
+			console.debug('Turn ', turn);
 			this.appendTurnToLog(turn);
 			this.scrollLogToEnd(300);
 			this.processMoveScore(turn);
@@ -449,8 +449,11 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 			for (let turn of gameData.turns)
 				this.appendTurnToLog(turn);
 			
-			if (gameData.endMessage)
-				this.displayEndMessage(gameData.endMessage);
+			if (gameData.endMessage) {
+				// Not clear why we have to freeze-thaw here
+				this.displayEndMessage(
+					Icebox.thaw(gameData.endMessage, ICE_TYPES));
+			}
 			
 			this.scrollLogToEnd(0);
 			
@@ -481,7 +484,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 			
 			this.socket
 			.on('connect', data => {
-				console.log('socket connected');
+				console.debug('Socket connected');
 				if (ui.wasConnected) {
 					ui.cancelNotification();
 					//window.location = window.location;
@@ -492,18 +495,20 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 				}
 			})
 			.on('disconnect', data => {
+				console.debug('Socket disconnected');
 				$('#problem_dialog')
 				.text("Server disconnected, trying to reconnect")
 				.dialog({ modal: true });
 			})
 			.on('turn', turn => ui.processTurn(turn))
 			.on('gameEnded', endMessage => {
-				endMessage = icebox.thaw(endMessage, ICE_TYPES);
+				console.debug("Received gameEnded");
 				ui.displayEndMessage(endMessage);
 				ui.notify('Game over!', 'Your game is over...');
 			})
 			.on('nextGame', nextGameKey => ui.displayNextGameMessage(nextGameKey))
 			.on('message', message => {
+				console.debug(`Message ${message.text}`);
 				// Chat received
 				let $mess = $(`<div><span class='name'>${message.name}</span>: ${message.text}</div>`);
 				$('#chatLog')
@@ -515,6 +520,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 				}
 			})
 			.on('join', playerNumber => {
+				console.debug(`Player ${playerNumber} joining`);
 				// Server has confirmed game has been joined
 				$(`tr.player${playerNumber} td.status`)
 				.removeClass('offline')
@@ -523,6 +529,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 			.on('leave', playerNumber => {
 				// Server has indicated game has been left
 				// AFAICT this
+				console.debug(`Player ${playerNumber} leaving`);
 				$(`tr.player ${playerNumber} td.status`)
 				.removeClass('online')
 				.addClass('offline');
@@ -594,7 +601,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 			} else if (square.owner == this.board) {
 				this.updateBoardSquare(square);
 			} else {
-				console.log('could not identify owner of square', square);
+				console.debug('could not identify owner of square', square);
 			}
 		}
 		
@@ -900,7 +907,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 			
 			// selecting the target first does not yet work.
 			if (square && !square.tile) {
-				console.log(`SelectSquare - ${square.x}/${square.y}`);
+				console.debug(`SelectSquare - ${square.x}/${square.y}`);
 				$(`#Board_${square.x}x${square.y}`)
 				.addClass('Targeted');
 			}
@@ -966,7 +973,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 			this.displayRemainingTileCounts();
 			if (this.board.tileCount > 0) {
 				this.setMoveAction('commitMove', 'Make move');
-				let move = this.board.calculateMove();
+				let move = this.board.analyseMove();
 				if (move.error) {
 					$('#move').append(move.error);
 					$('#turnButton').attr('disabled', 'disabled');
@@ -1051,14 +1058,14 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 		}
 		
 		processMoveResponse(data) {
-			console.log('move response:', data);
+			console.debug('move response:', data);
 			data = icebox.thaw(data, ICE_TYPES);
-			if (!data.newTiles) {
-				console.log('expected new tiles, got ' + data);
-			}
+			if (!data.newRack)
+				throw Error('expected new rack, got ' + data);
+
 			for (const square of this.rack.squares) {
-				if (data.newTiles.length && !square.tile) {
-					square.placeTile(data.newTiles.pop());
+				if (data.newRack.length && !square.tile) {
+					square.placeTile(data.newRack.pop());
 					this.rack.tileCount++;
 					this.updateRackSquare(square);
 				}
@@ -1068,8 +1075,9 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 		commitMove() {
 			try {
 				this.keyboardPlacements = [];
-				let move = this.board.calculateMove();
+				let move = this.board.analyseMove();
 				if (move.error) {
+					// fatal - should never get here
 					$('#problem_dialog')
 					.text(move.error)
 					.dialog();
@@ -1163,7 +1171,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 		
 		makeMove() {
 			let action = $('#turnButton').attr('action');
-			console.log('makeMove =>', action);
+			console.debug('makeMove =>', action);
 			this.deleteCursor();
 			this[action]();
 		}
@@ -1246,9 +1254,9 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, icebox, Tile, Square, Bag, Rack, Bo
 		enableNotifications() {
 			// must be called in response to user action
 			if (window.webkitNotifications) {
-				console.log('notification permission:', window.webkitNotifications.checkPermission());
+				console.debug('notification permission:', window.webkitNotifications.checkPermission());
 				if (window.webkitNotifications.checkPermission() != 0) {
-					console.log('requesting notification permission');
+					console.debug('requesting notification permission');
 					window.webkitNotifications.requestPermission();
 				}
 			}

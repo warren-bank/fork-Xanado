@@ -1,4 +1,15 @@
-define("game/edition/English_WWF", ["game/WWFEdition"], (WWFEdition) => {
+define("editions/English_WWF", () => {
+
+	const BOARD = [
+		'D__d___t',
+		'__t___D_',
+		'_d___d__',
+		'D___t__T',
+		'___d__d_',
+		'__D__d__',
+		'_t__T___'
+	];
+
 	const BAG = [
 		{ letter: "A", score: 1, count: 9 },
 		{ letter: "B", score: 4, count: 2 },
@@ -28,10 +39,5 @@ define("game/edition/English_WWF", ["game/WWFEdition"], (WWFEdition) => {
 		{ letter: "Z", score: 10, count: 1 }
 	];
 	
-	class English_WWF extends WWFEdition {
-		constructor() {
-			super(BAG);
-		}
-	}
-	return English_WWF;
+	return { layout: BOARD, bag: BAG };
 });

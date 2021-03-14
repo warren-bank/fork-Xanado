@@ -1,16 +1,16 @@
 define("server/Player", ["crypto", "game/Rack"], (Crypto, Rack) => {
 
 	class Player {
-		constructor(name, email, key) {
+		constructor(name, key) {
 			this.key = key || Crypto.randomBytes(8).toString('hex');
 			this.name = name;
-			this.email = email;
 			this.score = 0;
 			this.index = -1;
 			this.rack = new Rack(8);
 		}
 
-		joinGame(game) {
+		joinGame(game, index) {
+			this.index = index;
 			for (let j = 0; j < 7; j++)
 				this.rack.squares[j].tile = game.letterBag.getRandomTile();
 			this.score = 0;
@@ -21,10 +21,9 @@ define("server/Player", ["crypto", "game/Rack"], (Crypto, Rack) => {
 			if (this.index >= 0)
 				s += `${this.index} `;
 			s += `${this.name} `;
-			if (this.email)
-				s += `email ${this.email} `;
 			if (this.key)
 				s += `key ${this.key} `;
+			s += this.rack;
 			return s;
 		}
 

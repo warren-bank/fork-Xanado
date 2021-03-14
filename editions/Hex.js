@@ -1,4 +1,4 @@
-define("game/edition/Hex", ["game/Edition"], (Edition) => {
+define("editions/Hex", () => {
 
 	const BOARD = [
 		"_______",
@@ -30,13 +30,6 @@ define("game/edition/Hex", ["game/Edition"], (Edition) => {
 		{ letter: "E", score: 2, count: 14},
 		{ letter: "F", score: 1, count: 15}
 	];
-	
-	// Configure for a very short game (alphabet of only 16 letters)
-	class Test_Test extends Edition {
-		constructor() {
-			super(BOARD, BAG);
-		}
-	}
 
-	return Test_Test;
+	return { layout: BOARD, bag: BAG };
 });

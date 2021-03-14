@@ -1,7 +1,10 @@
 define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => {
 
 	class Board {
-		
+
+		/**
+		 * @param edition the Edition defining the board layout
+		 */
 		constructor(edition) {
 			this.allPlacedBonus = edition.allPlacedBonus;
 			this.dim = edition.dim;
@@ -77,7 +80,7 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 		// update the move score and list of words accordingly
 		// @param move the {score:N words:[]} move to update
 		// @param squares the set of squares to operate on
-		horizontalWordScores(move, squares) {
+		scoreAcrossWord(move, squares) {
 			let score = 0;
 			for (let row = 0; row < this.dim; row++) {
 				for (let col = 0; col < this.dim - 1; col++) {
@@ -109,7 +112,11 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 			move.score += score;
 		}
 
-		calculateMove() {
+		/**
+		 * UI-side move calculation.
+		 * @return an object representing the move 
+		 */
+		analyseMove() {
 			const squares = this.squares;
 			// Check that the start field is occupied
 
@@ -133,6 +140,7 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 				}
 			}
 			if (!tile) {
+				// Move can't be made. Should never happen?
 				return { error: "no new tile found" };
 			}
 			
@@ -184,22 +192,21 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 				}
 			}
 			
-			if (totalTiles == 1) {
+			if (totalTiles == 1)
 				return { error: 'first word must consist of at least two letters' };
-			}
 
 			let move = { words: [], score: 0 };
 
-			this.horizontalWordScores(move, squares);
-			// Create rotated version of the board to calculate vertical word scores.
-			const rotatedSquares = new Array(this.dim);
+			this.scoreAcrossWord(move, squares);
+			// Transpose the board to calculate vertical word scores.
+			const transpose = new Array(this.dim);
 			for (let col = 0; col < this.dim; col++) {
-				rotatedSquares[col] = new Array(this.dim);
+				transpose[col] = new Array(this.dim);
 				for (let row = 0; row < this.dim; row++) {
-					rotatedSquares[col][row] = squares[row][col];
+					transpose[col][row] = squares[row][col];
 				}
 			}
-			this.horizontalWordScores(move, rotatedSquares);
+			this.scoreAcrossWord(move, transpose);
 
 			// Collect and count tiles placed.
 			let tilesPlaced = [];
@@ -224,126 +231,5 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 		}
 	}
 	
-	/*	CheckDictionary() {
-		var word = "";
-		var wordSquares = [];
-		
-		var validHorizontalWords = [];
-		var validVerticalWords = [];
-
-		var invalidSquares = [];
-
-		var square = this.Squares[this.middle][this.middle];
-		if (square.Tile == 0) {
-			triggerEvent("ScrabbleBoardSquareStateChanged", { 'Board': this, 'Square': square, 'State': 1 });
-	
-			invalidSquares.push(square);
-		}
-
-		for (var row = 0; row < this.dim; row++) {
-			for (var col = 0; col < this.dim; col++) {
-				var square = this.Squares[col][row];
-				if (square.Tile != 0) {
-					wordSquares.push(square);
-					word += square.Tile.Letter;
-				} else {
-					if (word.length <= 1 || !this.Game.Dictionary.CheckWord(word)) {
-						for (var i = 0; i < wordSquares.length; i++) {
-							var square = wordSquares[i];
-							var id = IDPrefix_Board_SquareOrTile + square.X + "x" + square.Y;
-							var td = document.getElementById(id).parentNode;
-						
-							//$(td).addClass("Invalid");
-							triggerEvent("ScrabbleBoardSquareStateChanged", { 'Board': this, 'Square': square, 'State': 1 });
-							
-							invalidSquares.push(square);
-						}
-					} else {
-						var newArray = wordSquares.slice();
-						validHorizontalWords.push(newArray);
-					}
-				
-					word = "";
-					wordSquares = [];
-				}
-			}
-		}
-	
-		for (var col = 0; col < this.dim; col++) {
-			for (var row = 0; row < this.dim; row++) {
-				var square = this.Squares[col][row];
-				if (square.Tile != 0) {
-					wordSquares.push(square);
-					word += square.Tile.Letter;
-				} else {
-					if (word.length <= 1 || !this.Game.Dictionary.CheckWord(word)) {
-						for (var i = 0; i < wordSquares.length; i++) {
-							var square = wordSquares[i];
-							var id = IDPrefix_Board_SquareOrTile + square.X + "x" + square.Y;
-							var td = document.getElementById(id).parentNode;
-							
-							$(td).addClass("Invalid");
-							triggerEvent("ScrabbleBoardSquareStateChanged", { 'Board': this, 'Square': square, 'State': 1 });
-							
-							invalidSquares.push(square);
-						}
-					} else {
-						var newArray = wordSquares.slice();
-						validVerticalWords.push(newArray);
-					}
-					
-					word = "";
-					wordSquares = [];
-				}
-			}
-		}
-
-		for (var i = 0; i < validHorizontalWords.length; i++) {
-			wordSquares = validHorizontalWords[i];
-			for (var j = 0; j < wordSquares.length; j++) {
-				var square = wordSquares[j];
-				var id = IDPrefix_Board_SquareOrTile + square.X + "x" + square.Y;
-				var td = document.getElementById(id).parentNode;
-				//$(td).removeClass("Invalid");
-				//$(td).addClass("Valid");
-				triggerEvent("ScrabbleBoardSquareStateChanged", { 'Board': this, 'Square': square, 'State': 0 });
-			
-				for (var k = 0; k < invalidSquares.length; k++) {
-					if (invalidSquares[k] == square) {
-						invalidSquares.splice(k--, 1);
-					}
-				}
-			}
-		}
-	
-		for (var i = 0; i < validVerticalWords.length; i++) {
-			wordSquares = validVerticalWords[i];
-		
-			for (var j = 0; j < wordSquares.length; j++) {
-				var square = wordSquares[j];
-				//TODO: check if there is a path to the center square
-				//TODO: check played tiles (!Tile.Locked) are vertical XOR horizontal, and without gaps
-				//triggerEvent("ScrabbleBoardSquareStateChanged", { 'Board': this, 'Square': square, 'State': 2 });
-			}
-		
-			for (var j = 0; j < wordSquares.length; j++) {
-				var square = wordSquares[j];
-				var id = IDPrefix_Board_SquareOrTile + square.X + "x" + square.Y;
-				var td = document.getElementById(id).parentNode;
-				//$(td).removeClass("Invalid");
-				//$(td).addClass("Valid");
-				triggerEvent("ScrabbleBoardSquareStateChanged", { 'Board': this, 'Square': square, 'State': 0 });
-			
-				for (var k = 0; k < invalidSquares.length; k++) {
-					if (invalidSquares[k] == square) {
-						invalidSquares.splice(k--, 1);
-					}
-				}
-			}
-		}
-
-		return invalidSquares.length == 0;
-	}
-*/
 	return Board;
 });

@@ -1,7 +1,8 @@
 /**
- * As well as requirejs support, this fixed version of icebox corrects for freezing
- * of objects that have no constructor - such as the _events field in modern EventEmitter
- * subclasses - that is broken in the npm version. CC 8/3/21
+ * As well as requirejs support, this fixed version of icebox corrects
+ * for freezing of objects that have no constructor - such as the
+ * _events field in modern EventEmitter subclasses - that is broken in
+ * the npm version. CC 8/3/21
  */
 define("icebox", () => {
 	function ieConstructorName(constructor) { 
@@ -43,7 +44,7 @@ define("icebox", () => {
 								if (constructor) {
 									thawed = Object.create(constructor['prototype']);
 								} else {
-									console.log('no prototype for ' + object._icebox_constructorName);
+									throw Error('no prototype for ' + object._icebox_constructorName);
 									thawed = {};
 								}
 							} else {

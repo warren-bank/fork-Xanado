@@ -1,7 +1,8 @@
 /* eslint-env browser */
 
+// For games.html; populate the list of live games
+
 requirejs(["jquery"], () => {
-	// For games.html; populate the list of live games
 	$(document).ready(function() {
 		// AJAX request for list of games
 		$.getJSON('/games', function(data) {

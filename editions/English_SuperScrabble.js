@@ -1,5 +1,7 @@
 // Super Scrabble
-define("game/edition/English_SuperScrabble", ["game/Edition"], (Edition) => {
+define("editions/English_SuperScrabble", () => {
+
+	// Centre 15x15 of the board is the same as Scrabble
 	const BOARD = [
 		"D___d__T__d",
 		"_d___d__D__",
@@ -14,6 +16,8 @@ define("game/edition/English_SuperScrabble", ["game/Edition"], (Edition) => {
 		"d__T___d__Q"
 	];
 
+	// Tile distribution is almost - but not quite - double that
+	// of Scrabble
 	const BAG = [
 		{ letter: null, score: 0, count: 2 },
 		{ letter: "E", score: 1, count: 24 },
@@ -43,11 +47,6 @@ define("game/edition/English_SuperScrabble", ["game/Edition"], (Edition) => {
 		{ letter: "Q", score: 10, count: 2 },
 		{ letter: "Z", score: 10, count: 2 }
 	];
-	
-	class English_SuperScrabble extends Edition {
-		constructor() {
-			super(BOARD, BAG);
-		}
-	}
-	return English_SuperScrabble;
+
+	return { layout: BOARD, bag: BAG };
 });

@@ -20,7 +20,8 @@ const deps = [
 	'icebox',
 	'server/Game',
 	'server/Player',
-	'server/FileDB',
+	'server/ComputerPlayer',
+	'server/DirtyDB', // or server/FileDB, or server/RedisDB
 	'game/Tile',
 	'game/Square',
 	'game/Board',
@@ -29,9 +30,10 @@ const deps = [
 	'game/Edition',
 	'game/BestMove'];
 
+/* global APP_DIR */
 global.APP_DIR = null;
 
-define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, Game, Player, DB, Tile, Square, Board, Rack, LetterBag, Edition, findBestMove) => {
+define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, Game, Player, ComputerPlayer, DB, Tile, Square, Board, Rack, LetterBag, Edition, findBestMove) => {
 
 	// Live games; map from game key to Game
 	const games = {};
@@ -61,6 +63,19 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			game, 'connections', { enumerable: false });
 		games[key] = game;
 		console.log(`Loaded game ${game}`);
+
+		if (!game.endMessage) {
+			// May need to trigger computer players
+			let fp = game.players[game.whosTurn];
+			console.log(`Next to play is ${fp}`);
+			if (fp.play) {
+				fp.play(game).then(result => {
+					// updateGameState will cascade next robot player
+					game.updateGameState(fp, result);
+				});
+			}
+		}
+
 		return game;
 	}
 	
@@ -74,12 +89,12 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 				  const game = await loadGame(gamey.key)
 				  return {
 					  key: game.key,
-					  edition: game.edition.name,
+					  edition: game.edition,
 					  dictionary: game.dictionary,
 					  players: game.players.map(player => {
 						  return {
 							  name: player.name,
-							  connected: player.isConnected,
+							  connected: game.isConnected(player),
 							  email: player.email,
 							  key: player.key,
 							  hasTurn: player == game.players[game.whosTurn]};
@@ -89,22 +104,6 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		.then(gs => res.send(gs));
 	}
 
-	async function getEdition(edition, dictionary) {
-		return new Promise(resolve => {
-			requirejs([`game/edition/${edition}`], proto => {
-				// We want to define the editions as classes, so we can
-				// make use of inheritance, but we can't use the proto
-				// as-is, because it can't be serialised.
-				// Solve this by creating a neutral instance.
-				let instance = new proto();
-				let edo = new Edition(instance.layout, instance.bag);
-				edo.name = edition;
-				console.log(`Loaded edition ${edition}`);
-				resolve(edo);
-			});
-		});
-	}
-	
 	async function sendGameReminders(req, res) {
 		const games = await db.all()
 		games.map(async game => {
@@ -136,9 +135,13 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		const players = [];
 		for (let x = 1; x <= 6; x++) {
 			const name = req.body[`name${x}`];
-			const email = req.body[`email${x}`];
 			if (name) {
-				const player = new Player(name, email);
+				let player = (/^robot\d+$/i.test(name))
+					? new ComputerPlayer(name)
+					: new Player(name);
+				const email = req.body[`email${x}`];
+				if (email)
+					player.email = email;
 				players.push(player);
 				console.log(player.toString());
 			}
@@ -147,10 +150,10 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		if (players.length < 2)
 			throw Error('at least two players must participate in a game');
 
-		getEdition(req.body.edition)
+		console.log(`Game of ${players.length} players`);
+		
+		Edition.load(req.body.edition)
 		.then(edition => {
-			console.log(`Game of ${players.length} players`);
-
 			let game = new Game(edition, players);
 
 			if (req.body.dictionary && req.body.dictionary != "None") {
@@ -164,11 +167,21 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 
 			game.sendInvitations(config);
 
+			// If the first player is a robot, have them play
+			let fp = game.players[0];
+			console.log(`First to play is ${fp}`);
+			if (fp.play) {
+				fp.play(game).then(result => {
+					// updateGameState will cascade next robot player
+					game.updateGameState(fp, result);
+				});
+			}
+
 			// Redirect back to control panel
 			res.redirect("/client/games.html");
 		})
 		.catch(e => {
-			console.error(`Failed ${e}`);
+			console.error(`Failed to create game: `, e);
 		});
 	}
 
@@ -253,8 +266,10 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			throw Error(`Game ${gameKey} does not exist`);
 		const player = game.lookupPlayer(req.params.playerKey);
 		if (!game)
-			throw Error(`Player ${playerKey} does not exist`);
+			throw Error(`Player ${req.params.playerKey} does not exist`);
 
+		// Find the best move for the player, given the current board
+		// state. Note that it may not be their turn!
 		await findBestMove(game, player)
 		.then(move => {
 			res.send(Icebox.freeze(move));
@@ -279,7 +294,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			throw Error(`invalid player key ${playerKey} for game ${this.key}`);
 		const body = Icebox.thaw(req.body);
 
-		console.log(`game ${game.key} player ${player.name} command ${body.command}`, req.body.arguments);
+		console.log(`COMMAND ${body.command} player ${player.name} game ${game.key}`, req.body.arguments);
 
 		let result;
 		switch (req.body.command) {
@@ -291,7 +306,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 
 		case 'pass':
 			game.checkTurn(player);
-			result = game.pass('pass', player);
+			result = game.pass(player, 'pass');
 			break;
 
 		case 'swap':
@@ -306,17 +321,18 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			break;
 			
 		case 'takeBack':
-			result = game.undoPreviousMove(req.body.command, player);			
+			result = game.undoPreviousMove(player, 'takeBack');
 			break;
 
 		default:
 			throw Error(`unrecognized command: ${body.command}`);
 		}
 
-		let newTiles = result.tiles || [];
-		delete result.tiles; // don't want to log these
-		game.prepareResult(player, result);
-		res.send(Icebox.freeze({ newTiles: newTiles }));
+		let newRack = result.newRack || [];
+		
+		game.updateGameState(player, result);
+		
+		res.send(Icebox.freeze({ newRack: newRack }));
 	}
 	
 	function configureDatabase(database) {
@@ -333,7 +349,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		db.registerObject(LetterBag);
 		db.registerObject(Game);
 		db.registerObject(Player);
-		db.registerObject(Edition);
+		db.registerObject(ComputerPlayer);
 	}
 	
 	function runServer(config) {
@@ -437,9 +453,19 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			})
 			
 			.on('message', message => {
-				// Chat received, simply broadcast it to listeners
-				// SMELL: socket doesn't have a game, does it?
-				socket.game.notifyListeners('message', message);
+				console.log(message);
+				if (message.text == "/cheat") {
+					findBestMove(socket.game, socket.player)
+					.then(move => {
+						let start = move.start;
+						let cheat = `${move.word} ${move.down ? 'down' : 'across'} at row ${start[1] + 1} column ${start[0] + 1} for ${move.score}`;
+						socket.game.notifyListeners(
+							'message', {
+								name: socket.player.name,
+								text: cheat });
+					});
+				} else
+					socket.game.notifyListeners('message', message);
 			});
 		});
 
@@ -470,23 +496,30 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			.parseSystem()
 			.options;
 
+		// Load config.json
 		Fs.readFile(cliopt.config || 'config.json')
 		.then(json => {
 			config = JSON.parse(json);
 			config.database = config.database || 'data.db';
 		})
-		.then(() => Fs.readdir(`${APP_DIR}/js/game/edition`))
+		
+		// Index available editions
+		.then(() => Fs.readdir(`${APP_DIR}/editions`))
 		.then(editions => {
-			config.editions = editions.filter(e => /\.js$/.test(e)).map(e => e.replace(".js", ""));
+			// Edition names never start with _
+			config.editions = editions.filter(e => /^[^_].*\.js$/.test(e)).map(e => e.replace(".js", ""));
 		})
+		
+		// Index available dictionaries
 		.then(() => Fs.readdir(`${APP_DIR}/dictionaries`))
 		.then(dicts => {
 			config.dictionaries = dicts.filter(e => /\.dict$/.test(e)).map(e => e.replace(".dict", ""));
 		})
+		
+		// Configure email
 		.then(() => {
 			console.log('config', config);
 			
-			// Configure email
 			if (config.mailTransportConfig) {
 				config.smtp = NodeMailer.createTransport(config.mailTransportConfig);
 			} else if (process.env.MAILGUN_SMTP_SERVER) {
@@ -505,8 +538,11 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			}
 			return config;
 		})
+
+		// Configure database and run the server
 		.then(config => {
 			configureDatabase(config.database);
+			
 			runServer(config);
 		});
 	}

@@ -20,7 +20,7 @@ node dict.js -a scrabble
 
 Also included is a computer player, based on the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper),
 which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](
-https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf).
+https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf). Any player named `robot<N>` (where `<N>` is a number will be played by the computer player.) Note that the computer player requires a dictionary, and is very hard to beat!
 
 ## Installing
 

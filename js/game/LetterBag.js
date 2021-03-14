@@ -5,14 +5,15 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 		/**
 		 * Construct a new letter bag using the distribution for the
 		 * given bag definition (@see game/Edition)
+		 * @param edition the Edition defining the bag contents
 		 */
-		constructor(bagdef) {
+		constructor(edition) {
 			// Tiles in the bag
 			this.tiles = [];
 			// String of all the letters in the bag, except blank
 			this.legalLetters = '';
 
-			for (let letterDefinition of bagdef) {
+			for (let letterDefinition of edition.bag) {
 				if (letterDefinition.letter)
 					// Not blank
 					this.legalLetters += letterDefinition.letter;

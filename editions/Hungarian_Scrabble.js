@@ -1,5 +1,14 @@
-define("game/edition/Hungarian_Scrabble", ["game/ScrabbleEdition"], (ScrabbleEdition) => {
+define("editions/Hungarian_Scrabble", ["editions/_ScrabbleLayout"], (BOARD) => {
 
+	/**
+	 * TODO: Dictionary and ComputerPlayer code assume that tiles
+	 * can be represented using a single unicode code point. Clearly
+	 * this isn't the case for Hungarian.
+	 * This requires a major re-code to change strings to sequences
+	 * of Scrabble tile indices, which isn't going to happen any time
+	 * soon :-(. However this edition should be playable with human
+	 * players and no dictionary.
+	 */
 	const BAG = [
 		{ letter: "A", score: 1, count: 6 },
 		{ letter: "E", score: 1, count: 6 },
@@ -42,10 +51,5 @@ define("game/edition/Hungarian_Scrabble", ["game/ScrabbleEdition"], (ScrabbleEdi
 		{ letter: "TY", score: 10, count: 1 }
 	];
 	
-	class Hungarian_Scrabble extends ScrabbleEdition {
-		constructor() {
-			super(BAG);
-		}
-	}
-	return Hungarian_Scrabble;
+	return { layout: BOARD, bag: BAG };
 });

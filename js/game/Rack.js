@@ -52,6 +52,11 @@ define("game/Rack", ["triggerEvent", "game/Square"], (triggerEvent, Square) => {
 				return null;
 			}
 		}
+
+		toString() {
+			return "[" + this.squares.map(s => s.tile ? s.tile.letter : "_")
+			+ "]";
+		}
 	}
 
 	return Rack;
