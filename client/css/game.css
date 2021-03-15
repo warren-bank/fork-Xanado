@@ -1,3 +1,6 @@
+/**
+* Game board only
+*/
 .hidden {
 	display: none;
 }
@@ -7,10 +10,11 @@
 	font-size: 1em;
 }
 
-#blank {
-	width: 1em;
+button {
+    font-size: 1.2em;
 }
 
+/* Wrap around a rack or board table */
 div.tableDivWrap {
     margin: 0;
     padding: 0;
@@ -25,22 +29,20 @@ div.bottomShade table {
     box-shadow: 0 0 0.5em #000000;
 }
 
+/* Wraps everything */
 div#container {
     /*width: 59em;*/
 }
 
-div#letterbagStatus > div {
-    margin: 0.5em;
-}
-
-div#controls {
-    float: right;
+/* Div that wraps all the individual control panels */
+#controls {
+    float: left;
     margin: 1em;
     margin-top: 2em;
     width: 19.5em;
 }
 
-div#controls > div {
+#controls > div {
     background-color: #F7F7E3;
     border-color: #DCDCC6;
 
@@ -56,52 +58,49 @@ div#controls > div {
     padding: 0.4em;
 }
 
-div#log {
-    height: 10em;
-    overflow: auto;
-}
-
-div#log span.score {
-    padding-left: 0.5em;
-}
-
-div#log .moveDetail {
-    margin-left: 4em;
-}
-
-div#log > div {
-    margin-top: 0.4em;
-}
-
-div#log > div > div {
-    margin-top: 0.2em;
-}
-
-div#scoreboard {
-    min-height: 4em;
-}
-
-div#scoreboard td.online {
-    color: green;
-}
-
-div#scoreboard td.offline {
-    color: red;
-}
-
-div#whosturn {
+/* The #controls > div with the turn indicator */
+#whosturn {
     height: 1em;
 }
 
-div#move {
+/* The #controls > div with the scores and letter bag state */
+#scoreboard {
+    min-height: 4em;
+}
+
+#scoreboard td.online {
+    color: green;
+}
+
+#scoreboard td.offline {
+    color: red;
+}
+
+/* The #scoreboard > div that has the letter bag status */
+#letterbagStatus {
+}
+
+#letterbagStatus > div {
+    margin: 0.5em;
+}
+
+/* The #controls > div with the swap rack and turn control buttons */
+#turnControls {
+    display: none;
+}
+
+/* #turnControls > div showing the proposed move */
+#move {
     margin-bottom: 0.5em;
 }
 
-div#chat {
+/* The #controls > div with the chat */
+#chat {
     height: 6em;
 }
 
-div#chatLog {
+/* #chat > div chat message display */
+#chatLog {
     font-size: 0.8em;
     overflow: auto;
     margin-left: 5%;
@@ -110,17 +109,79 @@ div#chatLog {
     height: 4em;
 }
 
-div#messageInput {
+/* #chat > div chat message capture */
+#messageInput {
     margin-top: 1em;
     width: 100%;
 }
 
-div#messageInput input {
+#messageInput input {
     width: 95%;
 }
 
-div#turnControls {
-    display: none;
+/* The #controls div with the game events log */
+#log {
+    height: 10em;
+    overflow: auto;
+}
+
+#log span.score {
+    padding-left: 0.5em;
+}
+
+#log .moveDetail {
+    margin-left: 4em;
+}
+
+#log > div {
+    margin-top: 0.4em;
+}
+
+#log > div > div {
+    margin-top: 0.2em;
+}
+
+/* #rack > div, the rack with buttons used to control it */
+#rackControls {
+	width: 100%;
+	height: 5em;
+	text-align: center;
+	display: table;
+}
+
+#rackControls > table {
+	float: left;
+}
+
+#rackControls > div {
+	/* div that contains the rack control buttons - Shuffle, Take back */
+	display: table-cell;
+	vertical-align: middle;
+    font-size: 1.2em;
+	height: 100%;
+}
+
+#takeBackButton {
+    visibility: hidden;
+}
+
+/* Blank letter requester dialog */
+#blankLetterTable td {
+	font-size: 1.5em;
+	text-align: center;
+	border-color: #DCDCC6;
+    border-style: solid;
+	
+    -webkit-border-radius: 0.4em;
+    -moz-border-radius: 0.4em;
+    -ms-border-radius: 0.4em;
+    -o-border-radius: 0.4em;
+
+    border-radius: 0.4em;
+    border-collapse: separate;
+    border-spacing: 0 0;
+
+    border-width: 0.1em;
 }
 
 div#blankLetterRequester {
@@ -128,50 +189,11 @@ div#blankLetterRequester {
     font-size: 2em;
 }
 
-button {
+#blankLetterRequester button {
     font-size: 1em;
 }
 
-#rackControls {
-	width: 100%;
-	height: 5em;
-	text-align: center;
-}
-
-#rackControls > table {
-	float: left;
-}
-
-#rackButtons {
-	display: inline-block;
-	text-align: center;
-	padding-top: 1.5em;
-}
-
-#rack button {
-    font-size: 1.2em;
-}
-
-#TakeBackTiles {
-    visibility: hidden;
-}
-
-button#dummyInput {
-    /* The hidden dummy input button has the focus to capture keyboard events.  This is a hack. */
-    color: transparent;
-    background-color: transparent;
-    border-color: transparent;
-    cursor: default;
-    outline: 0;
-    width: 0px;
-    height: 0px;
-}
-
-div#blankLetterRequester button {
-    font-size: 1em;
-}
-
-div#boardWrap {
+#boardWrap {
     margin-top: 1em;
 	margin-left: 1em;
     float: left;
@@ -194,8 +216,8 @@ div.tableDivWrap table {
     background-color: #AAA38E;
 }
 
-div#rack table,
-div#swapRack table {
+/* the rack or swaprack */
+.rackTable {
     border-width: 0.2em;
     padding: 0.2em;
 }
@@ -551,20 +573,29 @@ div.tableDivWrap td.ValidButWrongPlacement {
     background-color: orange;
 }
 
-div#anagrams table {
-    width: 80%;
-}
-
-div#anagrams td, div#anagrams th {
-    margin: 0;
-    padding: 1em;
-}
-
-div#anagrams th {
-    border: none;
-}
-
 #timeout {
 	font-size: 1.5em;
 	color: white;
+}
+
+/* Background letters behind the swap rack */
+.bgLetterContainer {
+	position: relative;
+}
+
+.bgLetter {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	z-index: 0;
+	overflow: hidden;
+	font-size: 1.7em;
+	color: rgba(60, 60, 80, 0.3)!important;
+}
+
+.bgLetterContainer > .Tile {
+	z-index: 1;
+	position: relative;
 }

@@ -33,7 +33,7 @@ requirejs(["jquery", "jquery-ui"], () => {
 		}
 	}
 
-	$(document).ready(function() {
+	$(document).ready(() => {
 
 		// Set the editions and dictionaries from config.json
 		$.getJSON('/config', data => {
@@ -54,9 +54,9 @@ requirejs(["jquery", "jquery-ui"], () => {
 		$('input').attr('autocomplete', 'off');
 		$('input.name')
         .autocomplete({
-            source: addressBook.map(function(entry) { return entry.name; })
+            source: addressBook.map(entry => entry.name)
         })
-        .blur(function() {
+        .blur(function () {
             const entry = lookupName(addressBook, $(this).val());
             if (entry) {
                 $(this).siblings('input').val(entry.email);

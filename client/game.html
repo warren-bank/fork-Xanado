@@ -30,7 +30,7 @@
         <div id="rack" class="tableDivWrap bottomShade">
 		  <div id="timeout"></div>
 		  <div id='rackControls'>
-			<table id="rackTable">
+			<table class="rackTable">
 			  <tr>
 				<td class="Normal"><div id="Rack_0"><a></a></div></td>
 				<td class="Normal"><div id="Rack_1"><a></a></div></td>
@@ -42,9 +42,9 @@
 				<td class="Normal"><div id="Rack_7"><a></a></div></td>
 			  </tr>
 			</table>
-			<div id="rackButtons">
-			  <button id='Shuffle'>Shuffle</button>
-			  <button id='TakeBackTiles'>Take back</button>
+			<div>
+			  <button id='shuffleButton'>Shuffle</button>
+			  <button id='takeBackButton'>Take back</button>
 			</div>
 		  </div>
 		</div>
@@ -59,12 +59,30 @@
         <div id="turnControls">
 		  <div id="move"></div>
 		  <div id="swapRack" class="tableDivWrap bottomShade">
-			<table>
+			<table class="rackTable">
 			  <tr>
-				<td class="Normal"><div id="SwapRack_0"><a></a></div></td>
-				<td class="Normal"><div id="SwapRack_1"><a></a></div></td>
-				<td class="Normal"><div id="SwapRack_2"><a></a></div></td>
-				<td class="Normal"><div id="SwapRack_3"><a></a></div></td>
+				<td class="Normal bgLetterContainer">
+				  <div id="SwapRack_0"><a></a></div>
+				  <div class="bgLetter">S</div>
+				</td>
+				<td class="Normal bgLetterContainer">
+				  <div class="bgLetter">W</div>
+				  <div id="SwapRack_1">
+					<a></a>
+				  </div>
+				</td>
+				<td class="Normal bgLetterContainer">
+				  <div class="bgLetter">A</div>
+				  <div id="SwapRack_2">
+					<a></a>
+				  </div>
+				</td>
+				<td class="Normal bgLetterContainer">
+				  <div class="bgLetter">P</div>
+				  <div id="SwapRack_3">
+					<a></a>
+				  </div>
+				</td>
 				<td class="Normal"><div id="SwapRack_4"><a></a></div></td>
 				<td class="Normal"><div id="SwapRack_5"><a></a></div></td>
 				<td class="Normal"><div id="SwapRack_6"><a></a></div></td>
@@ -73,7 +91,6 @@
 		  </div>
 		  <div id="turnButtons">
 			<button id='turnButton' action='pass'>Pass</button>
-			<button id='dummyInput' />
 		  </div>
         </div>          
         <div id="chat">
@@ -86,10 +103,10 @@
         </div>
         <div id="log"></div>
 	  </div>
-      <div id="blankLetterRequester" class="hidden">
-		Enter a letter for the blank
-		<input type="text" id="blank" name="blank" maxlength="1" pattern="[A-Za-z]" />
-		<div id="badBlank" class="error"></div>
+	  <!-- blank letter request dialog -->
+      <div id="blankDialog" class="hidden">
+		Select the letter for the blank
+		<table id="blankLetterTable"></table>
       </div>
 	  <div id="problem_dialog" class="hidden">
 		Houston, we have a problem

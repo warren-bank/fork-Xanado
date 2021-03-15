@@ -3,7 +3,7 @@
 // For games.html; populate the list of live games
 
 requirejs(["jquery"], () => {
-	$(document).ready(function() {
+	$(document).ready(() => {
 		// AJAX request for list of games
 		$.getJSON('/games', function(data) {
 			if (data.length == 0) {

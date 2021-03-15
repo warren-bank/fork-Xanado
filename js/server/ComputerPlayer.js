@@ -33,8 +33,8 @@ define("server/ComputerPlayer", ["server/Player", "game/BestMove"], (Player, fin
 					if (!game.board.squares[col][row].tile)
 						placements.push({
 							letter: letter,
-							x: col,
-							y: row,
+							col: col,
+							row: row,
 							blank: false
 						});
 						

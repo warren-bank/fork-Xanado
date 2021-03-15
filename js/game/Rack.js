@@ -4,24 +4,30 @@ define("game/Rack", ["triggerEvent", "game/Square"], (triggerEvent, Square) => {
 		constructor(size) {
 			this.squares = [];
 			
-			for (let x = 0; x < size; x++)
-				this.squares[x] = new Square('_', this, x, -1);
+			for (let col = 0; col < size; col++)
+				this.squares.push(new Square('_', this, col));
 			
 			triggerEvent('RackReady', [ this ]);
 		}
-		
-		emptyTiles() {
-			for (let x = 0; x < this.squares.length; x++) {
-				const square = this.squares[x];
-				
-				square.placeTile(null);
-			}
+
+		/**
+		 * Remove all tiles from the rack
+		 */
+		empty() {
+			this.squares.forEach(s => s.placeTile(null));
+		}
+
+		/**
+		 * Get the number of squares currently occupied by a tile
+		 */
+		squaresUsed() {
+			return this.squares.reduce(
+				(acc, s) => acc += (s.tile ? 1 : 0), 0)
 		}
 		
-		toString() {
-			return `Rack ${this.squares.length}`;
-		}
-		
+		/**
+		 * Get an array of the letters currently on the rack
+		 */
 		letters() {
 			return this.squares.reduce(
 				(accu, square) => {
@@ -31,7 +37,14 @@ define("game/Rack", ["triggerEvent", "game/Square"], (triggerEvent, Square) => {
 				},
 				[]);
 		}
-		
+
+		/**
+		 * Find the first square on the rack that has the given letter
+		 * @param letter the letter to find
+		 * @param includingBlank if the search is to include a match
+		 * for the blank tile (which can potentially match any letter)
+		 * @return a Square or null
+		 */
 		findLetterSquare(letter, includingBlank) {
 			let blankSquare = null;
 			const square = this.squares.find(

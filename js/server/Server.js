@@ -384,7 +384,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			showStack: true
 		}));
 		
-		app.use(function(err, req, res, next) {
+		app.use((err, req, res, next) => {
 			if (res.headersSent) {
 				return next(err);
 			}
@@ -397,7 +397,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		});
 		
 		// TODO: use OAuth
-		const gameListAuth = BasicAuth(function(username, password) {
+		const gameListAuth = BasicAuth((username, password) => {
 			if (config.gameListLogin) {
 				return username == config.gameListLogin.username
 				&& password == config.gameListLogin.password;

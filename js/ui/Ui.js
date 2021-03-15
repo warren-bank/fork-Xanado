@@ -23,8 +23,6 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 	const ICE_TYPES = { Board: Board, Tile: Tile, Square: Square, Rack: Rack };
 
 	// Unicode characters
-	const RIGHTWARDS_DOUBLE_ARROW = '\u21d2';
-	const DOWNWARDS_DOUBLE_ARROW = '\u21d3';
 	const BLACK_CIRCLE = '\u25cf';
 
 	// Map the characters in the board template to CSS classes
@@ -41,7 +39,6 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 	class Ui {
 		
 		constructor() {
-			
 			let splitUrl = document.URL.match(/.*\/([0-9a-f]+)$/);
 			if (splitUrl) {
 				this.gameKey = splitUrl[1];
@@ -49,134 +46,14 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			} else {
 				console.log('cannot parse url');
 			}
-
-			const ui = this;
 			
-			$.get(`/game/${this.gameKey}`, (d, e) => ui.loadGame(d, e));
+			$.get(`/game/${this.gameKey}`, (d, e) => this.loadGame(d, e));
 
-			let $button = $("#turnButton");
-			$button.bind('click', () => ui.makeMove());
-
-			// Keystrokes - pretty useless, don't you think, Mary?
-			$('#dummyInput')
-			.on('keypress', event => {
-				let letter = String.fromCharCode(event.charCode).toUpperCase();
-				if (ui.cursor && ui.legalLetters.indexOf(letter) != -1) {
-					let rackSquare = ui.rack.findLetterSquare(letter, true);
-					if (rackSquare) {
-						if (rackSquare.tile.isBlank()) {
-							rackSquare.tile.letter = letter;
-						}
-						ui.keyboardPlacements.push([rackSquare, ui.cursor.square, ui.cursor.direction]);
-						ui.moveTile(rackSquare, ui.cursor.square);
-						let newCursorSquare;
-						if (ui.cursor.direction == 'horizontal') {
-							for (let x = ui.cursor.square.x; x < ui.board.dim; x++) {
-								let boardSquare = ui.board.squares[x][ui.cursor.square.y];
-								if (!boardSquare.tile) {
-									newCursorSquare = boardSquare;
-									break;
-								}
-							}
-						} else {
-							for (let y = ui.cursor.square.y; y < ui.board.dim; y++) {
-								let boardSquare = ui.board.squares[ui.cursor.square.x][y];
-								if (!boardSquare.tile) {
-									newCursorSquare = boardSquare;
-									break;
-								}
-							}
-						}
-						if (newCursorSquare) {
-							ui.setCursor(newCursorSquare);
-						} else {
-							ui.deleteCursor();
-						}
-					}
-				}
-			})
-			.on('keydown', event => {
-				switch (event.keyCode) {
-				case $.ui.keyCode.UP:
-					ui.stepMove(0, -1);
-					break;
-				case $.ui.keyCode.DOWN:
-					ui.stepMove(0, 1);
-					break;
-				case $.ui.keyCode.LEFT:
-					ui.stepMove(-1, 0);
-					break;
-				case $.ui.keyCode.RIGHT:
-					ui.stepMove(1, 0);
-					break;
-				case $.ui.keyCode.SPACE:
-					ui.turnCursor();
-					break;
-				case $.ui.keyCode.BACKSPACE:
-				case $.ui.keyCode.DELETE:
-					ui.deleteLast();
-					break;
-				case $.ui.keyCode.TAB:
-					break;
-				default:
-					return false;
-				}
-				event.stopPropagation();
-				event.preventDefault();
-				return true;
-			});
+			$("#shuffleButton").on('click', () => this.shuffle());
+			$("#takeBackButton").on('click', () => this.takeBackTiles());
+			$("#turnButton").on('click', () => this.makeMove());
 		}
 
-		deleteLast() {
-			if (this.keyboardPlacements.length) {
-				let lastPlacement = this.keyboardPlacements.pop();
-				let rackSquare = lastPlacement[0];
-				let boardSquare = lastPlacement[1];
-				let cursorDirection = lastPlacement[2];
-				if (!rackSquare.tile && boardSquare.tile) {
-					this.moveTile(boardSquare, rackSquare);
-					this.setCursor(boardSquare, cursorDirection);
-				} else {
-					this.keyboardPlacements = []; // user has moved stuff around, forget keyboard entry
-				}
-			}
-		}
-
-		// Just used for cursor-key moves, NOT used in D&D
-		stepMove(dx, dy) {
-			if (!this.cursor)
-				return;
-			let x = this.cursor.square.x;
-			let y = this.cursor.square.y;
-			if (dx > 0) {
-				for (x++; x < this.board.dim && this.board.squares[x][y].tile; x++);
-			}
-			if (dx < 0) {
-				for (x--; x >= 0 && this.board.squares[x][y].tile; x--);
-			}
-			if (dy > 0) {
-				for (y++; y < this.board.dim && this.board.squares[x][y].tile; y++);
-			}
-			if (dy < 0) {
-				for (y--; y >= 0 && this.board.squares[x][y].tile; y--);
-			}
-			if (x >= 0 && x < this.board.dim && y >= 0 && y < this.board.dim
-				&& (x != this.cursor.square.x || y != this.cursor.square.y)) {
-				let oldCursorSquare = this.cursor.square;
-				this.cursor.square = this.board.squares[x][y];
-				this.updateBoardSquare(oldCursorSquare);
-				this.updateBoardSquare(this.cursor.square);
-			}
-		}
-
-		turnCursor() {
-			if (this.cursor) {
-				this.cursor.direction =
-				(this.cursor.direction == 'horizontal') ? 'vertical' : 'horizontal';
-				this.updateBoardSquare(this.cursor.square);
-			}
-		}
-		
 		scrollLogToEnd(speed) {
 			$('#log').animate({ scrollTop: $('#log').prop('scrollHeight') }, speed);
 		}
@@ -299,8 +176,9 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 		
 		placeTurnTiles(turn) {
 			for (const placement of turn.placements) {
-				this.board.squares[placement.x][placement.y]
-				.placeTile(new Tile(placement.letter, placement.score), true);
+				let square = this.board.squares[placement.col][placement.row];
+				square.placeTile(
+					new Tile(placement.letter, placement.score), true);
 			}
 		}
 		
@@ -347,7 +225,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			if (turn.type == 'challenge' || turn.type == 'takeBack') {
 				let tilesTakenBack = [];
 				for (const placement of turn.placements) {
-					let square = this.board.squares[placement.x][placement.y];
+					let square = this.board.squares[placement.col][placement.row];
 					if (square.tile.isBlank()) {
 						square.tile.letter = ' ';
 					}
@@ -423,11 +301,16 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 		loadGame(data) {
 			const gameData = Icebox.thaw(data, ICE_TYPES);
 			console.log('gameData', gameData);
-			
+
+			// Can swap up to 7 tiles
 			this.swapRack = new Rack(7);
+			// Number of tiles currently on the rack
 			this.swapRack.tileCount = 0;
+			
 			this.board = gameData.board;
+			// Number of tiles player has placed on the board
 			this.board.tileCount = 0;
+			
 			this.legalLetters = gameData.legalLetters;
 			this.players = gameData.players;
 			this.keyboardPlacements = [];
@@ -440,15 +323,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 					this.rack = player.rack;
 					this.playerNumber = playerNumber;
 					this.thisPlayer = player;
-					this.rack.tileCount =
-					player.rack.squares.reduce(
-						(accu, square) => {
-							if (square.tile) {
-								accu++;
-							}
-							return accu;
-						},
-						0);
+					this.rack.tileCount = this.rack.squaresUsed();
 				}
 				playerNumber++;
 				
@@ -463,9 +338,9 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			
 			this.drawBoard();
 			if (this.rack) {
-				this.createRack();
-				this.createSwapRack();
-			}			
+				this.createRack(this.rack, "Rack");
+				this.createRack(this.swapRack, "SwapRack");
+			}
 			
 			$('#log').append("<div class='gameStart'>Game started</div>");
 			for (let turn of gameData.turns)
@@ -505,7 +380,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			this.socket
 			
 			.on('connect', data => {
-				console.debug('Socket connected');
+				console.debug('Server: Socket connected');
 				if (ui.wasConnected) {
 					ui.cancelNotification();
 					//window.location = window.location;
@@ -517,7 +392,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			})
 			
 			.on('disconnect', data => {
-				console.debug('Socket disconnected');
+				console.debug('Server: Socket disconnected');
 				$('#problem_dialog')
 				.text("Server disconnected, trying to reconnect")
 				.dialog({ modal: true });
@@ -533,7 +408,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			
 			.on('nextGame', nextGameKey => ui.displayNextGameMessage(nextGameKey))
 			.on('message', message => {
-				console.debug(`Message ${message.text}`);
+				console.debug(`Server: Message ${message.text}`);
 				// Chat received
 				let $mess = $(`<div><span class='name'>${message.name}</span>: ${message.text}</div>`);
 				$('#chatLog')
@@ -546,7 +421,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			})
 			
 			.on('join', info => {
-				console.debug("Player ", info, " joining");
+				console.debug("Server: Player ", info, " joining");
 				if (info.timeout)
 					this.startCountdown(info.timeout);
 
@@ -559,14 +434,13 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			.on('leave', playerNumber => {
 				// Server has indicated game has been left
 				// AFAICT this
-				console.debug(`Player ${playerNumber} leaving`);
+				console.debug(`Server: Player ${playerNumber} leaving`);
 				$(`tr.player ${playerNumber} td.status`)
 				.removeClass('online')
 				.addClass('offline');
 			});
 			
 			$('input[name=message]')
-			.bind('focus', () => ui.clearCursor())
 			.bind('change', function() {
 				// Send chat
 				ui.socket.emit('message',
@@ -600,24 +474,24 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 					.append('(' + count + ')');
 				}
 			}
-			if (counts.letterBag < 7) {
+			if (counts.letterBag < 7)
 				$('#swapRack').hide();
-			} else {
+			else
 				$('#swapRack').show();
-			}
 		}
 
 		/**
-		 * Map from a DOM element id back to a Square. Does not work for the swapRack;
-		 * so how does that function?
+		 * Map from a DOM element id back to a Square on one
+		 * of the board, the rack, or the swapRack
 		 */
 		idToSquare(id) {
-			let match = id.match(/(Board|Rack)_(\d+)x?(\d*)/);
+			let match = id.match(/^(Board|SwapRack|Rack)_(\d+)(?:x(\d+))?$/);
 			if (match) {
 				if (match[1] == 'Board') {
 					return this.board.squares[match[2]][match[3]];
+				} else if (match[1] == 'SwapRack')	{
+					return this.swapRack.squares[match[2]];
 				} else {
-					// TODO: Could be rack or swapRack....
 					return this.rack.squares[match[2]];
 				}
 			} else
@@ -625,40 +499,21 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 		}
 		
 		updateSquare(square) {
-			if (square.owner == this.rack
-				|| square.owner == this.swapRack) {
+			if (square.owner == this.rack || square.owner == this.swapRack)
 				this.updateRackSquare(square);
-			} else if (square.owner == this.board) {
+			else if (square.owner == this.board)
 				this.updateBoardSquare(square);
-			} else {
-				console.debug('could not identify owner of square', square);
-			}
+			else
+				throw Error(`could not identify owner of square ${square}`);
 		}
 		
-		clearCursor() {
-			let cursor = this.cursor;
-			if (cursor) {
-				delete this.cursor;
-				this.updateBoardSquare(cursor.square);
-			}
-		}
-		
-		placeCursor(square) {
-			this.cursor = {
-				square: square,
-				direction: 'horizontal'
-			}
-		}
-		
-		// A single square on the board
 		updateBoardSquare(square) {
 			let ui = this;
-			
+
 			let $div = $(`<div id='${square.id}'></div>`);
-			
-			// we're creating a bunch of callbacks below that close over the UI object
-			
 			if (square.tile) {
+				// There's a tile on the square
+				$div.removeClass('Empty');
 				$div.addClass('Tile');
 				
 				if (square.tileLocked) {
@@ -671,6 +526,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 				}
 				
 				if (!square.tileLocked) {
+					// tile isn't locked, valid drag source
 					$div.on("click", () => {
 						if (ui.currentlySelectedSquare) {
 							if (ui.currentlySelectedSquare == square) {
@@ -715,51 +571,26 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 				$a.append(`<span class='Letter'>${square.tile.letter ? square.tile.letter : ''}</span>`);
 				$a.append(`<span class='Score'>${square.tile.score ? square.tile.score : '0'}</span>`);
 				$div.append($a);
-			} else {
+			} else { // no tile on the square, valid drop target
 				if (!ui.boardLocked()) {
 					$div.on("click", () => {
 						if (ui.currentlySelectedSquare) {
 							ui.moveTile(ui.currentlySelectedSquare, square);
 							ui.selectSquare(null);
-						} else {
-							if (ui.cursor) {
-								if (ui.cursor.square == square) {
-									// clicked on cursor to change direction
-									if (ui.cursor.direction == 'horizontal') {
-										ui.cursor.direction = 'vertical';
-									} else {
-										delete ui.cursor;
-									}
-								} else {
-									// clicked on other square to move cursor
-									ui.clearCursor();
-									ui.placeCursor(square);
-								}
-							} else {
-								ui.placeCursor(square);
-							}
-							ui.updateSquare(square);
 						}
 					})
 					.droppable({
 						hoverClass: "dropActive",
 						drop: function(event, jui) {
-							ui.deleteCursor();
 							ui.moveTile(ui.idToSquare($(jui.draggable).attr("id")), square);
 							ui.playAudio("tiledown");
 						}
 					});
 				}
 				
-				let text = ' ';
-				if (ui.cursor && ui.cursor.square == square) {
-					text = (ui.cursor.direction == 'horizontal')
-					? RIGHTWARDS_DOUBLE_ARROW : DOWNWARDS_DOUBLE_ARROW;
-					$div.addClass('Cursor');
-					$('#dummyInput').focus();
-				} else
-					text = square.scoreText(ui.board.middle);
+				let text = square.scoreText(ui.board.middle);
 				$div.addClass('Empty')
+				$div.removeClass('Tile')
 				.append($(`<a>${text}</a>`));
 			}
 			
@@ -795,14 +626,12 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			
 			this.refreshBoard();
 		}
-		
+
+		// Update a square in this.rack or this.swapRack
 		updateRackSquare(square) {
-			let id = square.id;
-			
-			let $parent = $('#' + id).parent();
-			
-			let $div = $(`<div id='${id}'></div>`);
-			$parent.empty().append($div);
+			let $div = $(`#${square.id}`);
+			let $td = $div.parent();
+			$div.empty();
 			
 			let $a = $("<a></a>");
 			$div.append($a);
@@ -811,6 +640,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			// we're creating a bunch of callbacks below that close over the UI object
 			
 			if (square.tile) {
+				$div.removeClass('Empty');
 				$div.addClass('Tile');
 				if (square.tile.isBlank()) {
 					$div.addClass('BlankLetter');
@@ -857,7 +687,8 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 				$a.append(`<span class='Letter'>${square.tile.letter ? square.tile.letter : ''}</span>`);
 				$a.append(`<span class='Score'>${square.tile.score ? square.tile.score : ''}</span>`);
 			} else {
-				$div.attr('class', 'Empty');
+				$div.removeClass('Tile');
+				$div.addClass('Empty');
 				
 				$div.click(
 					() => {
@@ -871,40 +702,22 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 				$div.droppable({
 					hoverClass: "dropActive",
 					drop: function(event, jui) {
-						ui.deleteCursor();
 						ui.moveTile(ui.idToSquare($(jui.draggable).attr("id")), square);
 					}
 				});
 			}
 		}
-		
-		createRack() {
-			let rack = this.rack;
-			
-			for (let x = 0; x < rack.squares.length; x++) {
-				rack.squares[x].id = `Rack_${x}`;
-			}
-			
-			let ui = this;
-			$("#Shuffle").on('click', () => ui.shuffle());
-			$("#TakeBackTiles").on('click', () => ui.takeBackTiles());
 
-			for (let x = 0; x < rack.squares.length; x++)
-				ui.updateRackSquare(rack.squares[x]);
-		}
-		
-		createSwapRack() {
-			const rack = this.swapRack;
-			for (let x = 0; x < rack.squares.length; x++) {
-				this.updateRackSquare(rack.squares[x]);
-			}
+		// Assign DOM ids and update the rack square
+		createRack(rack, idbase) {
+			rack.squares.forEach((s, idx) => {
+				s.id = `${idbase}_${idx}`;
+				this.updateRackSquare(s);
+			});
 		}
 		
 		refreshRack() {
-			let rack = this.rack;
-			for (let x = 0; x < rack.squares.length; x++) {
-				this.updateRackSquare(rack.squares[x]);
-			}
+			this.rack.squares.forEach(s => this.updateRackSquare());
 		}
 		
 		refreshBoard() {
@@ -937,57 +750,59 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			
 			// selecting the target first does not yet work.
 			if (square && !square.tile) {
-				console.debug(`SelectSquare - ${square.x}/${square.y}`);
-				$(`#Board_${square.x}x${square.y}`)
+				console.debug(`SelectSquare - ${square.col},${square.row}`);
+				$(`#Board_${square.col}x${square.row}`)
 				.addClass('Targeted');
 			}
 		}
 		
 		moveTile(fromSquare, toSquare) {
-			let blankLetterRequesterButton = $("#blankLetterRequester button");
-			let blankLetterRequesterSkip = $("#blankLetterRequesterSkip button");
-			
 			let tile = fromSquare.tile;
 			let ui = this;
 
 			function setLetter(letter) {
 				tile.letter = letter;
 				ui.updateSquare(toSquare);
-				$('#dummyInput').focus();
-				blankLetterRequesterSkip.off('click');
-				blankLetterRequesterButton.off('keypress');
 			}
 
 			fromSquare.placeTile(null);
 			fromSquare.owner.tileCount--;
 			if (tile.isBlank() && !tile.letter || (tile.letter == ' ')) {
 				if (fromSquare.owner != this.board && toSquare.owner == this.board) {
-					let $dlg = $('#blankLetterRequester');
-					
-					$("#blank")
-					.on("change", function (e, target) {
-						let letter = $("#blank").val();
-						letter = letter.toUpperCase();
-						if (ui.legalLetters.indexOf(letter) != -1 && letter != " ") {
+					let $dlg = $('#blankDialog');
+					let $tab = $("#blankLetterTable");
+					$tab.empty();
+					let ll = this.legalLetters.split("");
+					let dim = Math.ceil(Math.sqrt(ll.length));
+					let rowlength = dim;
+					let $row = null;
+					while (ll.length > 0) {
+						let letter = ll.shift();
+						if (rowlength == dim) {
+							if ($row)
+								$tab.append($row);
+							$row = $("<tr></tr>");
+							rowlength = 0;
+						}
+						let $td = $(`<td>${letter}</td>`);
+						$td.on('click', () => {
 							setLetter(letter);
 							$dlg.dialog("close");
-						}  else
-							$("#badBlank").text(ui.legalLetters + " only");
-						event.stopPropagation();
-						e.preventDefault();
-					});
-					
+						});
+						$row.append($td);
+						rowlength++;
+					}
+					if ($row)
+						$tab.append($row);
+				
 					$dlg.dialog({
 						modal: true,
-						buttons: {
-							"Leave empty": function () {
-								setLetter("_");
-								$(this).dialog("close");
-							}
-						}
+						closeOnEscape: false,
+						closeText: "hide"
 					});
 							
-				} else if (toSquare.owner == ui.rack || toSquare.owner == ui.swapRack) {
+				} else if (toSquare.owner == ui.rack
+						   || toSquare.owner == ui.swapRack) {
 					tile.letter = ' ';
 				}
 			}
@@ -1002,6 +817,8 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			$('#move').empty();
 			this.displayRemainingTileCounts();
 			if (this.board.tileCount > 0) {
+				// Player has dropped some tiles on the board
+				// (tileCount > 0), move action is to make the move
 				this.setMoveAction('commitMove', 'Make move');
 				let move = this.board.analyseMove();
 				if (move.error) {
@@ -1013,18 +830,21 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 						$('#move').append(`<div>${word.word} ${word.score}</div>`);
 					$('#turnButton').removeAttr('disabled');
 				}
-				$('#TakeBackTiles').css('visibility', 'inherit');
+				$('#takeBackButton').css('visibility', 'inherit');
 				$('#swapRack').hide();
 			} else if (this.swapRack.tileCount > 0) {
+				// Swaprack has tiles on it, change the move action
+				// to swap
 				this.setMoveAction('swapTiles', 'Swap tiles');
 				$('#board .ui-droppable').droppable('disable');
 				$('#turnButton').removeAttr('disabled');
-				$('#TakeBackTiles').css('visibility', 'inherit');
+				$('#takeBackButton').css('visibility', 'inherit');
 			} else {
+				// Otherwise turn action is a pass
 				this.setMoveAction('pass', 'Pass');
 				$('#board .ui-droppable').droppable('enable');
 				$('#turnButton').removeAttr('disabled');
-				$('#TakeBackTiles').css('visibility', 'hidden');
+				$('#takeBackButton').css('visibility', 'hidden');
 			}
 		}
 		
@@ -1119,7 +939,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 				}
 				for (let i = 0; i < move.tilesPlaced.length; i++) {
 					let tilePlaced = move.tilesPlaced[i];
-					let square = this.board.squares[tilePlaced.x][tilePlaced.y];
+					let square = this.board.squares[tilePlaced.col][tilePlaced.row];
 					square.tileLocked = true;
 					this.updateBoardSquare(square);
 				}
@@ -1141,9 +961,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 		addLastMoveActionButton(action, label) {
 			let ui = this;
 			let $button = $(`<div><button class='moveAction'>${label}</button></div>`);
-			$button.click(function() {
-				ui[action]();
-			});
+			$button.click(() => this[action]());
 			$('#log div.moveScore').last().append($button);
 		}
 		
@@ -1202,28 +1020,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 		makeMove() {
 			let action = $('#turnButton').attr('action');
 			console.debug('makeMove =>', action);
-			this.deleteCursor();
 			this[action]();
-		}
-		
-		deleteCursor() {
-			if (this.cursor) {
-				let cursorSquare = this.cursor.square;
-				delete this.cursor;
-				this.updateBoardSquare(cursorSquare);
-			}
-		}
-		
-		setCursor(square, direction) {
-			if (this.cursor) {
-				let oldCursorSquare = this.cursor.square;
-				this.cursor.square = square;
-				this.updateBoardSquare(oldCursorSquare);
-			} else {
-				this.cursor = { square: square,
-								direction: (direction || 'horizontal') };
-			}
-			this.updateBoardSquare(square);
 		}
 		
 		takeBackTiles() {
@@ -1233,6 +1030,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 					freeRackSquares.push(square);
 
 			const ui = this;
+			
 			function putBackToRack(tile) {
 				if (tile.isBlank())
 					tile.letter = ' ';
@@ -1263,7 +1061,6 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 					this.updateRackSquare(square);
 				}
 			}
-			this.deleteCursor();
 			this.updateGameStatus();
 		}
 		

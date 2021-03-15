@@ -156,9 +156,9 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 					throw Error(`cannot find letter ${placement.letter} in rack of player ${player.name}`);
 				}
 				placement.score = fromSquare.tile.score;
-				let toSquare = game.board.squares[placement.x][placement.y];
+				let toSquare = game.board.squares[placement.col][placement.row];
 				if (toSquare.tile)
-					throw Error(`target tile (${placement.x},${placement.y}) is already occupied`);
+					throw Error(`target tile (${placement.col},${placement.row}) is already occupied`);
 				return [fromSquare, toSquare];
 			});
 			placements.forEach(squares => {
@@ -176,9 +176,7 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 				});
 				throw Error(move.error);
 			}
-			placements.forEach(function(squares) {
-				squares[1].tileLocked = true;
-			});
+			placements.forEach(squares => squares[1].tileLocked = true);
 
 			// add score
 			player.score += move.score;
@@ -244,9 +242,9 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 				challenger: player.index,
 				whosTurn: (reason == "challenge"
 						   ? this.whosTurn : previousMove.player.index),
-				placements: previousMove.placements.map(function(placement) {
-					return { x: placement[1].x,
-							 y: placement[1].y }
+				placements: previousMove.placements.map(placement => {
+					return { col: placement[1].col,
+							 row: placement[1].row }
 				}),
 				returnLetters: returnLetters
 			};
@@ -403,7 +401,8 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 					.then(result => {
 						console.log(`${p} played, updateGameState`);
 						this.updateGameState(p, result);
-						this.notifyListeners('turn', result);
+						// If we do this, computer turns are notified twice.
+						//this.notifyListeners('turn', result);
 					});
 				} else if (this.isConnected(p))
 					result.timeout = this.startTimeout(p);
@@ -468,10 +467,10 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 			// Tally scores
 			let playerWithNoTiles;
 			let pointsRemainingOnRacks = 0;
-			this.players.forEach(function(player) {
+			this.players.forEach(player => {
 				let tilesLeft = false;
 				let rackScore = 0;
-				player.rack.squares.forEach(function (square) {
+				player.rack.squares.forEach(square => {
 					if (square.tile) {
 						rackScore += square.tile.score;
 						tilesLeft = true;
@@ -496,7 +495,7 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 
 			let endMessage = {
 				reason: reason,
-				players: this.players.map(function(player) {
+				players: this.players.map(player => {
 					return { name: player.name,
 							 score: player.score,
 							 tallyScore: player.tallyScore,

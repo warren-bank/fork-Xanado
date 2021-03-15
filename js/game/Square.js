@@ -4,15 +4,20 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 
 	/**
 	 * A square on the game board or rack. A Tile holder with
-	 * some underlying attributes; a position, and owner, and
+	 * some underlying attributes; a position, an owner, and
 	 * a type that dictates the score multipliers that apply.
+	 * The owner will be a Rack or a Board.
+	 * @param type  /^[QqTtSs_]$/ see Board.js
+	 * @param owner Board or Rack
+	 * @param col column where the square is
+	 * @param row row where the square is (undefined on a rack)
 	 */
 	class Square {
-		constructor(type, owner, x, y) {
-			this.type = type; // /^[QqTtSs_]$/ see Board.js
+		constructor(type, owner, col, row) {
+			this.type = type;
 			this.owner = owner;
-			this.x = x;
-			this.y = y;
+			this.col = col;
+			this.row = row;
 			this.letterScoreMultiplier = 1;
 			this.wordScoreMultiplier = 1;
 			switch (this.type) {
@@ -33,6 +38,9 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 
 		/**
 		 * Place a tile on this square
+		 * @param tile the Tile to place
+		 * @param lockedwhether the tile is to be locekd to the square
+		 * (fixed on the board)
 		 */
 		placeTile(tile, locked) {
 			if (tile && this.tile)
@@ -68,7 +76,7 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 		scoreText(middle) {
 			switch (this.type) {
 			case 'D':
-				return (this.x == middle && this.y == middle)
+				return (this.col == middle && this.row == middle)
 				? STAR : "DOUBLE WORD SCORE";
 			case 'T':
 				return "TRIPLE WORD SCORE";
@@ -89,10 +97,12 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 		 * Debug
 		 */
 		toString() {
-			let string =  `${this.scoreText()} square @ ${this.x}`;
-			if (this.y != -1) {
-				string += ',' + this.y;
-			}
+			// All squares have a col
+			let string =  `${this.type} square @ ${this.col}`;
+			// Squares on the board have a row too
+			if (this.row >= 0)
+				string += ',' + this.row;
+
 			if (this.tile) {
 				string += ` => ${this.tile}`;
 				if (this.tileLocked)

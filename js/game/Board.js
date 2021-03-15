@@ -27,23 +27,15 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 		}
 
 		/**
-		 * Apply f() to each square
-		 */
-		forAllSquares(f) {
-			for (let col = 0; col < this.dim; col++) {
-				const column = this.squares[col];
-				for (let row = 0; row < this.dim; row++)
-					f(column[row]);
-			}
-		}
-
-		/**
 		 * Remove all tiles
 		 */
-		emptyTiles() {
-			this.forAllSquares(function (square) {
-				square.placeTile(null);
-			});
+		empty() {
+			for (let col = 0; col < this.dim; col++) {
+				const column = this.squares[col];
+				for (let row = 0; row < this.dim; row++) {
+					column[row].placeTile(null);
+				}
+			}
 		}
 
 		/**
@@ -215,8 +207,8 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 					let square = squares[col][row];
 					if (square.tile && !square.tileLocked) {
 						tilesPlaced.push({ letter: square.tile.letter,
-										   x: col,
-										   y: row,
+										   col: col,
+										   row: row,
 										   blank: square.tile.isBlank() });
 					}
 				}
