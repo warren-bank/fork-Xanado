@@ -2,6 +2,7 @@ body {
 	color: white;
     margin-left: 3em;
     margin-right: 3em;
+	font-size: 1.2em;
 }
 
 fieldset {
@@ -31,3 +32,7 @@ button.player {
 	margin-bottom: 1.5em;
 }
 
+.deleteGame {
+	color: white;
+	background-color: seagreen;
+}

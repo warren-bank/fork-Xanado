@@ -32,6 +32,9 @@ requirejs(["jquery"], () => {
 					}
 					$p.append($but);
 				});
+				let $a = $(`<a href='/deletegame/${game.key}'></a>`);
+				$a.append(`<button class="deleteGame">DELETE</button>`);
+				$p.append($a);
 				$gt.append($p);
 			});
 		});

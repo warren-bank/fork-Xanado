@@ -125,7 +125,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			}
 		}
 		
-		displayEndMessage(endMessage) {
+		displayEndMessage(endMessage, cheer) {
 			let winners;
 			for (const i in this.players) {
 				let player = this.players[i];
@@ -154,8 +154,14 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			$("#whosturn").text("Game over");
 
 			let names = [];
-			for (let player of winners)
-				names.push(player == this.thisPlayer ? 'you' : player.name);
+			for (let player of winners) {
+				if (player == this.thisPlayer) {
+					names.push('you');
+					if (cheer)
+						this.playAudio("applause");
+				} else
+					name.push(player.name);
+			}
 
 			let who;
 			if (names.length == 0)
@@ -168,6 +174,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 				who = names.slice(0, length - 1).join(", ") + ", and " + names[length - 1];
 
 			let verb = (winners.length == 1 && who != "you") ? 'has' : 'have';
+
 
 			$('#log')
 			.append(`<div class='gameEnded'>Game has ended, ${who} ${verb} won</div>`);
@@ -347,7 +354,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 				this.appendTurnToLog(turn);
 			
 			if (gameData.endMessage) {
-				this.displayEndMessage(gameData.endMessage, ICE_TYPES);
+				this.displayEndMessage(gameData.endMessage, false);
 			}
 			
 			this.scrollLogToEnd(0);
@@ -402,7 +409,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 			
 			.on('gameEnded', endMessage => {
 				console.debug("Received gameEnded");
-				ui.displayEndMessage(endMessage);
+				ui.displayEndMessage(endMessage, true);
 				ui.notify('Game over!', 'Your game is over...');
 			})
 			

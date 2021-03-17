@@ -265,6 +265,18 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		});
 	}
 
+	async function deleteGame(req, res) {
+		const gameKey = req.params.gameKey;
+		const game = await loadGame(gameKey);
+		if (!game)
+			throw Error(`Game ${gameKey} does not exist`);
+		
+		db.set(gameKey, undefined);
+
+		// Redirect back to control panel
+		res.redirect("/client/games.html");
+	}
+	
 	async function bestMove(req, res) {
 		const gameKey = req.params.gameKey;
 		const game = await loadGame(gameKey);
@@ -446,6 +458,8 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		// Request handler for game command
 		app.post("/game/:gameKey", handleCommand);
 
+		app.get("/deletegame/:gameKey", deleteGame);
+		
 		io.sockets.on('connection', socket => {
 			// The server socket only listens to two messages, 'join' and 'message'
 			// However it emits a lot more, in 'Game.js'

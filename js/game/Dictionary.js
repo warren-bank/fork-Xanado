@@ -49,8 +49,8 @@ define("game/Dictionary", ["fs-extra"], (Fs) => {
 		constructor(dawg) {
 			this.dawg = dawg;
 
-			//let numberOfNodes = this.readNumber();
-			//console.log(`${data.length} bytes ${numberOfNodes} nodes`);
+			let numberOfNodes = this.readNumber(0);
+			console.log(`${dawg.length} bytes ${numberOfNodes} nodes`);
 		}
 
 		sNode(i) {
@@ -59,18 +59,19 @@ define("game/Dictionary", ["fs-extra"], (Fs) => {
 
 		/**
 		 * Apply the callback to each of the words represented in the DAWG (potentially huge!)
-		 * @param callback function that accepts a word
+		 * @param callback function that accepts an array of letter indices
 		 */
 		walk(callback) {
-			return this.DAWG_walk(DAWG_ROOT, "", callback);
+			return this.DAWG_walk(DAWG_ROOT, [], callback);
 		}
 		
 		// @private
 		DAWG_walk(dawg_index, s, cb) {
 			const letter = this.DAWG_Letter(dawg_index);
+
 			let currentString = s.slice(0, s.length);
 			currentString.push(letter);
-			
+
 			if (this.DAWG_IsEndOfWord(dawg_index))
 				cb(currentString);
 			
@@ -100,9 +101,9 @@ define("game/Dictionary", ["fs-extra"], (Fs) => {
 		}
 
 		// @private read a 4-byte little-endian number at the given
-		// int offset
+		// (1-based) int offset
 		DAWG_Number(offset) {
-			let byte_offset = 4 * offset + DAWG_OFFSET;
+			let byte_offset = 4 * offset;// + DAWG_OFFSET;
 			let result = 0;
 			for (let i = byte_offset + 3; i >= byte_offset; i--) {
 				result = (result << 8) | this.dawg[i];
