@@ -10,194 +10,93 @@
  * alphabet of code points sorted in the same order as that used to
  * generate the DAWG.
  */
-define("game/Dictionary", ["fs-extra"], (Fs) => {
+define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 	
-	// Constants used in interpreting the DAWG
-	const LETTER_BIT_SHIFT = 25;
-	const LETTER_BIT_MASK      = 0x3E000000;
-	const CHILD_INDEX_BIT_MASK = 0x1FFFFFF;
-	const END_OF_WORD_BIT_MASK = 0x80000000;
-	const END_OF_LIST_BIT_MASK = 0x40000000;
-	
-	const DAWG_OFFSET = 4; // 4 bytes initial data at top of file, stores the number of nodes in the DAWG
-	const DAWG_ROOT = 1; // offset of the root node of the DAWG
+	// Constants used in interpreting the integer encoding of the DAWG
+	const END_OF_WORD_BIT_MASK = 0x1;
+	const END_OF_LIST_BIT_MASK = 0x2;
+	const CHILD_INDEX_SHIFT = 2;
+	const CHILD_INDEX_BIT_MASK = 0x3FFFFFFF;
 	
 	// Cache of dictionaries
 	const dictionaries = {};
 
-	class Dictionary {
-
-		/**
-		 * Promise to load a dictionary
-		 */
-		static async load(name) {
-			if (dictionaries[name])
-				return Promise.resolve(dictionaries[name]);
-			
-			return Fs.readFile(`${APP_DIR}/dictionaries/${name}.dict`)
-			.then(dawg => {
-				console.log(`Loaded dictionary ${name}`);
-				dictionaries[name] = new Dictionary(dawg);
-				return dictionaries[name];
-			});
-		}
-		
-		/**
-		 * @param dawg a Buffer or Array containing the DAWG data.
-		 * It's actually an array of little-endian 4-byte integers.
-		 */
-		constructor(dawg) {
-			this.dawg = dawg;
-
-			let numberOfNodes = this.readNumber(0);
-			console.log(`${dawg.length} bytes ${numberOfNodes} nodes`);
-		}
-
-		sNode(i) {
-			return `${i}: ${this.DAWG_Letter(i)} ${this.DAWG_IsEndOfWord(i)} ${this.DAWG_NextIndex(i)} ${this.DAWG_ChildIndex(i)}`;
+	// DAWG
+	class Node {
+		constructor(letter) {
+			this.letter = letter;
 		}
 
 		/**
-		 * Apply the callback to each of the words represented in the DAWG (potentially huge!)
-		 * @param callback function that accepts an array of letter indices
+		 * Depth-first walk; calls cb on each word encoded in the DAWG
+		 * @param s the word constructed so far
+		 * @param cb the callback
 		 */
-		walk(callback) {
-			return this.DAWG_walk(DAWG_ROOT, [], callback);
-		}
-		
-		// @private
-		DAWG_walk(dawg_index, s, cb) {
-			const letter = this.DAWG_Letter(dawg_index);
-
-			let currentString = s.slice(0, s.length);
-			currentString.push(letter);
-
-			if (this.DAWG_IsEndOfWord(dawg_index))
-				cb(currentString);
+		walk(s, cb) {
+			const letter = this.letter;
+			if (this.isEndOfWord)
+				cb(s + this.letter);
 			
-			const childIndex = this.DAWG_ChildIndex(dawg_index);
-			if (childIndex > 0) {
-				//console.log(`----DAWG_ChildIndex ${childIndex}`);
-				this.DAWG_walk(childIndex, currentString, cb);
-			}
+			if (this.child)
+				this.child.walk(s + this.letter, cb);
 			
-			const nextIndex = this.DAWG_NextIndex(dawg_index);
-			//alert("DAWG_NextIndex: " + nextIndex);
-			if (nextIndex > 0) {
-				//console.log(`---DAWG_NextIndex ${nextIndex}`);
-				this.DAWG_walk(nextIndex, s, cb);
-			}
-		}
-		
-		// @private Read a 4-byte little-endian unsigned integer
-		// from the DAWG data at the given byte index
-		readNumber(byte_offset) {
-			let result = 0;
-			for (let i = byte_offset + 3; i >= byte_offset; i--) {
-				result = (result << 8) | this.dawg[i];
-			}
-
-			return result;
+			if (this.next)
+				this.next.walk(s, cb);
 		}
 
-		// @private read a 4-byte little-endian number at the given
-		// (1-based) int offset
-		DAWG_Number(offset) {
-			let byte_offset = 4 * offset;// + DAWG_OFFSET;
-			let result = 0;
-			for (let i = byte_offset + 3; i >= byte_offset; i--) {
-				result = (result << 8) | this.dawg[i];
-			}
-			return result;
-		}
-
-		// Get the index of the letter encoded in word at the given index
-		// @private
-		DAWG_Letter(offset) {
-			return (this.DAWG_Number(offset) & LETTER_BIT_MASK) >> LETTER_BIT_SHIFT;
-		}
-
-		// Determine if the word at the given index is the end of a word
-		// @private
-		DAWG_IsEndOfWord(offset) {
-			return (this.DAWG_Number(offset) & END_OF_WORD_BIT_MASK) != 0;
-		}
-
-		// Get the next index in a list, or 0 if this is the end of a list
-		// @private
-		DAWG_NextIndex(offset) {
-			const val = this.DAWG_Number(offset) & END_OF_LIST_BIT_MASK;
-			return val == 0 ? (offset + 1) : 0;
-		}
-
-		// Get the index of a child node at this offset
-		// @private
-		DAWG_ChildIndex(offset) {
-			return this.DAWG_Number(offset) & CHILD_INDEX_BIT_MASK;
-		}
-
-		// @private
-		checkWordRecursive(chars, chars_index, dawg_index) {
-			if (this.DAWG_Letter(dawg_index) == chars[chars_index]) {
+		/**
+		 * Check if the word beyond char_index is represented by the
+		 * DAWG below this node
+		 * @param chars the word we're checking
+		 * @param char_index the end of the substring matched to reach this node
+		 */
+		checkWord(chars, chars_index) {
+			if (this.letter == chars[chars_index]) {
 				if (chars_index == chars.length - 1)
-					return this.DAWG_IsEndOfWord(dawg_index);
-				const childIndex = this.DAWG_ChildIndex(dawg_index);
-				if (childIndex > 0)
-					return this.checkWordRecursive(
-						chars, chars_index + 1, childIndex);
+					return this.isEndOfWord;
+				if (this.child)
+					return this.child.checkWord(chars, chars_index + 1);
 				return false;
 			} else {
 				// Try the next alternative
-				const nextIndex = this.DAWG_NextIndex(dawg_index);
-				if (nextIndex > 0)
-					return this.checkWordRecursive(chars, chars_index, nextIndex);
+				if (this.next)
+					return this.next.checkWord(chars, chars_index);
 				return false;
 			}
 		}
 
 		/**
-		 * Check if a word is in the dictionary
-		 * @param chars a word to check, as an array of letter indices
-		 * @return true if the word is found, false otherwise
+		 * @param s the string built so far in this recursion
+		 * @param sortedChars the available set of characters, sorted
 		 */
-		hasWord(chars) {
-			return this.checkWordRecursive(chars, 0, DAWG_ROOT);
-		}
-
-		// @param dawg_index offset of the current DAWG node
-		// @param s the string built so far in this recursion
-		// @param sortedChars the available set of characters, sorted
-		// @private
-		findAnagramsRecursive(dawg_index, s, sortedChars) {
+		findAnagrams(s, sortedChars) {
 			let foundWords = [];
 
-			//console.log("far", this.sNode(dawg_index), s);
-			
-			s.push(this.DAWG_Letter(dawg_index));
+			s += this.letter;
 
-			if (this.DAWG_IsEndOfWord(dawg_index))
+			if (this.isEndOfWord)
 				// A word is found
-				foundWords.push(s.slice(0, s.length));
+				foundWords.push(s);
 
-			let childIndex = this.DAWG_ChildIndex(dawg_index);
 			let previousChar = -1;
-			if (sortedChars.length > 0 && childIndex > 0) {
+			if (sortedChars.length > 0 && this.child) {
+				let child = this.child;
+
 				// Characters left, and this node has children
-				for (let i = 0; i < sortedChars.length; i++) {
+				for (let i = 0; child && i < sortedChars.length; i++) {
 					const currentChar = sortedChars[i];
 					
 					if (currentChar == previousChar)
 						continue; // hmmmmm
 					
 					do { // for each child of the subnode
-						const letter = this.DAWG_Letter(childIndex);
+						const letter = child.letter;
 						if (currentChar == letter) {
 							sortedChars.splice(i, 1);
-							const moreWords = this.findAnagramsRecursive(
-								childIndex, s, sortedChars);
+							const moreWords = child.findAnagrams(s, sortedChars);
 							foundWords = foundWords.concat(moreWords);
 							sortedChars.splice(i, 0, currentChar);
-							childIndex = this.DAWG_NextIndex(childIndex);
+							child = child.next;
 							break;
 						}
 
@@ -208,11 +107,9 @@ define("game/Dictionary", ["fs-extra"], (Fs) => {
 							break;
 
 						// Next child
-						childIndex = this.DAWG_NextIndex(childIndex);
+						child = child.next;
 						
-					} while (childIndex > 0);
-					
-					if (childIndex <= 0) break;
+					} while (child);
 					
 					previousChar = currentChar;
 				}
@@ -222,23 +119,90 @@ define("game/Dictionary", ["fs-extra"], (Fs) => {
 			
 			return foundWords;
 		}
+	}
+	
+	class Dictionary {
 
 		/**
-		 * Find anagrams of a set of letter indexes
-		 * @param theChars array of letter indices
-		 * @return an array of anagrams, each of which is a word from
-		 * the dictionary as a letter-index array
+		 * Promise to load a dictionary
+		 */
+		static async load(name) {
+			if (dictionaries[name])
+				return Promise.resolve(dictionaries[name]);
+			
+			return Fs.readFile(`${APP_DIR}/dictionaries/${name}.dict`)
+			.then(data => Gzip.ungzip(data))
+			.then(buffer => {
+				console.log(`Loaded dictionary ${name}`);
+				dictionaries[name] = new Dictionary(buffer.buffer);
+				return dictionaries[name];
+			});
+		}
+
+		/**
+		 * @param dawg a Buffer or Array containing the DAWG data.
+		 * It's actually an array of little-endian 4-byte integers.
+		 */
+		constructor(data) {
+			let dv = new DataView(data);
+			let index = 0;
+			let numberOfNodes = dv.getUint32(4 * index++);
+			let nodes = [];
+			for (let i = 0; i < numberOfNodes; i++) {
+				let letter = dv.getUint32(4 * index++);
+				let node = new Node(String.fromCodePoint(letter));
+				let numb = dv.getUint32(4 * index++);
+				if ((numb & END_OF_WORD_BIT_MASK) != 0)
+					node.isEndOfWord = true;
+				if ((numb & END_OF_LIST_BIT_MASK) == 0)
+					node.next = i + 1;
+				if (((numb >> CHILD_INDEX_SHIFT) & CHILD_INDEX_BIT_MASK) > 0)
+					node.child = ((numb >> CHILD_INDEX_SHIFT) & CHILD_INDEX_BIT_MASK);
+				//console.log(`${nodes.length} `,node);
+				nodes.push(node);
+			}
+			for (let i = 0; i < nodes.length; i++) {
+				let node = nodes[i];
+				if (typeof node.next === "number")
+					node.next = nodes[node.next];
+				if (typeof node.child === "number")
+					node.child = nodes[node.child];
+			}
+			this.root = nodes[0];
+		}
+
+		/**
+		 * Apply the callback to each of the words represented in the DAWG
+		 * (potentially huge!)
+		 * @param callback function that accepts an array of letter indices
+		 */
+		walk(callback) {
+			return this.root.walk([], callback);
+		}
+		
+		/**
+		 * Check if a word is in the dictionary
+		 * @param chars a word to check
+		 * @return true if the word is found, false otherwise
+		 */
+		hasWord(chars) {
+			return this.root.checkWord(chars, 0);
+		}
+
+
+		/**
+		 * Find anagrams of a set of letters
+		 * @param theChars the letters
+		 * @return an array of anagrams
 		 */
 		findAnagrams(theChars) {	
 			if (theChars.length < 2)
 				return [ theChars ];
 
 			// Sort the list of characters. This is to avoid
-			// unneccesary recursions in findAnagramsRecursive by
+			// unneccessary recursions in Node.findAnagrams by
 			// eliminating already-considered letters from consideration.
-			let sortedChars = theChars.slice(0, theChars.length);
-			sortedChars.sort();
-			
+			let sortedChars = theChars.split("").sort();
 			let foundWords = [];
 			let previousChar = -1; // Impossible
 			
@@ -253,8 +217,8 @@ define("game/Dictionary", ["fs-extra"], (Fs) => {
 
 				// Recursively find anagrams rooted at the current index
 				// using the remaining letters
-				const moreWords = this.findAnagramsRecursive(
-					DAWG_ROOT + currentChar, [], sortedChars);
+				const moreWords = this.root.findAnagrams(
+					currentChar, '', sortedChars);
 				
 				// Put the letter back where we found it
 				sortedChars.splice(i, 0, currentChar);

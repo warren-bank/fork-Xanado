@@ -43,7 +43,10 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 	
 	// Database
 	let db;
-		
+
+	// Status-monitoring sockets (game pages)
+	let monitors = [];
+	
 	/**
 	 * Load the game from the DB, if not already in server memory
 	 * @param key game key
@@ -84,7 +87,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 	 */
 	async function listGames(req, res) {
 		const games = await db.all();
-		const loads = games.filter(game => !game.endMessage)
+		const loads = games.filter(game => game && !game.endMessage)
 			  .map(async gamey => {
 				  const game = await loadGame(gamey.key)
 				  return {
@@ -160,8 +163,8 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			if (req.body.dictionary && req.body.dictionary != "None") {
 				console.log(`\twith dictionary ${req.body.dictionary}`);
 				game.dictionary = req.body.dictionary;
-			}
-			console.log("\twith no dictionary");
+			} else
+				console.log("\twith no dictionary");
 
 			game.time_limit = req.body.time_limit || 0;
 			if (game.time_limit > 0)
@@ -294,6 +297,13 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		});
 	}
 
+	function updateMonitors() {
+		monitors.forEach(socket => {
+			console.log("Update monitor");
+			socket.emit('update');
+		});
+	}
+	
 	/**
 	 * Handle game command received as an AJAX request
 	 * @throw if anything goes wrong
@@ -353,6 +363,8 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		let newRack = result.newRack || [];
 		
 		game.updateGameState(player, result);
+
+		updateMonitors();
 		
 		res.send(Icebox.freeze({ newRack: newRack }));
 	}
@@ -464,6 +476,12 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			// The server socket only listens to two messages, 'join' and 'message'
 			// However it emits a lot more, in 'Game.js'
 			socket
+
+			.on('monitor', () => {
+				console.log("Monitor joined");
+				monitors.push(socket);
+			})
+
 			.on('join', async params => {
 				
 				// Request to join a game.
@@ -474,6 +492,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 				}
 				game.newConnection(socket, params.playerKey);
 				socket.game = game;
+				updateMonitors();
 			})
 			
 			.on('message', message => {

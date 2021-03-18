@@ -15,12 +15,13 @@ requirejs.config({
 const DESCRIPTION = "USAGE\n  node dict.js [options] <dictionary> <words>\n"
 + "Explore a DAWG dictionary."
 
-requirejs(["node-getopt", "fs-extra", "game/Dictionary"], (Getopt, Fs, Dictionary) => {
+APP_DIR = __dirname;
+
+requirejs(["node-getopt", "fs-extra", "node-gzip", "game/Dictionary"], (Getopt, Fs, Gzip, Dictionary) => {
 	let opt = Getopt.create([
         ["h", "help", "Show this help"],
 		["l", "list", "Dump a complete list of the words in the DAWG"],
-		["a", "anagrams", "Find anagrams of the words"],
-		["A", "alphabet=ARG", "Alphabet to use (default is English)"]
+		["a", "anagrams", "Find anagrams of the words"]
 	])
         .bindHelp()
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
@@ -34,20 +35,17 @@ requirejs(["node-getopt", "fs-extra", "game/Dictionary"], (Getopt, Fs, Dictionar
 		dawgfile = opt.argv.shift();
 	}
 
-	const alphabet = opt.options.alphabet || "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	
 	console.log(`Loading DAWG from ${dawgfile}`);
-	Fs.readFile(dawgfile)
-	.then(dawg => {
-		let dict = new Dictionary(dawg, 15);
+	Dictionary.load(dawgfile)
+	.then(dict => {
 		if (opt.options.list) {
 			let list = [];
-			dict.walk(w => list.push(w.map(l => alphabet.charAt(l)).join("")));
+			dict.walk(w => list.push(w));
 			console.log(list.join("\n"));
 		}
 		for (let word of opt.argv) {
-			let wa = word.split("").map(l => alphabet.indexOf(l.toUpperCase()));
-			let ok = dict.hasWord(wa);
+			let ok = dict.hasWord(word.toUpperCase());
 			console.log(`"${word}" is ${ok ? "" : 'not '}in the dictionary`);
 			if (opt.options.anagrams) {
 				console.log(`\nAnagrams of "${word}"`);

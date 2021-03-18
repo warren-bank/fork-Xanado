@@ -6,7 +6,7 @@
 const deps = [
 	"jquery",    // Jquery and components are accessed via $
 	"jquery-ui",
-	"touch-punch", // support for touch devices
+//	"touch-punch", // support for touch devices
 	"cookie",
 
 	"socket.io",
@@ -17,7 +17,7 @@ const deps = [
 	"game/Rack",
 	"game/Board" ];
 
-define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => {
+define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack, Board) => {
 
 	// Class references for icebox
 	const ICE_TYPES = { Board: Board, Tile: Tile, Square: Square, Rack: Rack };
@@ -724,7 +724,7 @@ define("ui/Ui", deps, (jq, jqui, tp, ck, io, Icebox, Tile, Square, Bag, Rack, Bo
 		}
 		
 		refreshRack() {
-			this.rack.squares.forEach(s => this.updateRackSquare());
+			this.rack.squares.forEach(s => this.updateRackSquare(s));
 		}
 		
 		refreshBoard() {

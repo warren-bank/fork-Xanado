@@ -19,7 +19,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
     let down_cross_checks;
 	
 	function goodWord(word) {
-		return dict.hasWord(edition.getLetterIndices(word));
+		return dict.hasWord(word);
 	}
 
 	/**
@@ -697,6 +697,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 		
 		if (!game.dictionary)
 			throw Error("Cannot find moves with no dictionary");
+		
 		await Dictionary.load(game.dictionary)
 		.then(d => { dict = d; });
 
