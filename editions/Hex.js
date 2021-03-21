@@ -31,5 +31,5 @@ define("editions/Hex", () => {
 		{ letter: "F", score: 1, count: 15}
 	];
 
-	return { layout: BOARD, bag: BAG };
+	return { layout: BOARD, bag: BAG, swapCount: 1, rackCount: 3 };
 });

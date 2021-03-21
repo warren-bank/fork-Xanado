@@ -11,136 +11,12 @@
 
 define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionary) => {
 
-	// Shared information during move computation
-	let rack, board, edition, dict;
-    let best_down_word, best_across_word;
-    let anchors;
-    let across_cross_checks;
-    let down_cross_checks;
-	
-	function goodWord(word) {
-		return dict.hasWord(word);
-	}
-
-	/**
-	 * Determine which letters can fit in each cell of a row and form
-	 * a valid down word. This returns the letter matrix for each row
-	 * as to which characters are valid for each cell.
-	 * @param board the Board
-	 * @return {Array<Array<str>>} the cross check letter matrix.
-	 */
-	function acrossCrosschecks(board) {
-
-		let cross_checks = [];
-
-		for (let row = 0; row < board.dim; row++) {
-			let row_cross_checks = [];
-
-			for (let col = 0; col < board.dim; col++) {
-				row_cross_checks[col] = [];
-				if (board.squares[col][row].tile) {
-					// The cell isn't empty
-					row_cross_checks[col].push(board.squares[col][row].tile.letter);
-					continue;
-				}
-
-				// Find the words above and below (if applicable).
-				let word_above = '';
-				let j = row - 1;
-				while (j >= 0 && board.squares[col][j].tile) {
-					word_above = board.squares[col][j].tile.letter + word_above;
-					j--;
-				}
-
-				let word_below = '';
-				j = row + 1;
-				while (j < board.dim && board.squares[col][j].tile) {
-					word_below += board.squares[col][j].tile.letter;
-					j++;
-				}
-
-				// Find which (if any) letters in the alphabet form a
-				// valid cross word.
-				for (let letter of edition.alphabeta) {
-					if (word_above && word_below) {
-						if (goodWord(word_above + letter + word_below))
-							row_cross_checks[col].push(letter);
-					} else if (word_above && word_below) {
-						if (goodWord(word_above + letter))
-							row_cross_checks[col].push(letter);
-					} else if (word_below) {
-						if (goodWord(letter + word_below)) {
-							row_cross_checks[col].push(letter);
-						}
-					} else
-						row_cross_checks[col].push(letter);
-				}
-			}
-			cross_checks.push(row_cross_checks);
-		}
-		
-		return cross_checks;
-	}
-
-	/**
-	 * Move generation
-	 * Determine which letters can fit in each cell of a column and
-	 * form a valid across word. This returns the letter matrix for
-	 * each column as to which characters are valid for each cell.
-	 * @param board the Board
-	 * @return {Array<Array<str>>} the cross check letter matrix.
-	 */
-	function downCrosschecks(board) {
-
-		let cross_checks = [];
-
-		for (let col = 0; col < board.dim; col++) {
-			let column_cross_checks = [];
-
-			for (let row = 0; row < board.dim; row++) {
-				column_cross_checks[row] = [];
-				
-				if (board.squares[col][row].tile) {
-					column_cross_checks[row].push(board.squares[col][row].tile.letter)
-					continue;
-				}
-
-				// Find the words left and right (if applicable).
-				let word_left = '';
-				let j = col - 1;
-				while (j != -1 && board.squares[j][row].tile) {
-					word_left = board.squares[j][row].tile.letter + word_left;
-					j -= 1;
-				}
-
-				let word_right = '';
-				j = col + 1
-				while (j != board.dim && board.squares[j][row].tile) {
-					word_right += board.squares[j][row].tile.letter;
-					j += 1;
-				}
-
-				// Find which (if any) letters in the alphabet form
-				// a valid cross word.
-				for (let letter of edition.alphabeta) {
-					if (word_left && word_right) {
-						if (goodWord(word_left + letter + word_right))
-							column_cross_checks[row].push(letter);
-					} else if (word_left) {
-						if (goodWord(word_left + letter))
-							column_cross_checks[row].push(letter);
-					} else if (word_right) {
-						if (goodWord(letter + word_right))
-							column_cross_checks[row].push(letter);
-					} else
-						column_cross_checks[row].push(letter);
-				}
-			}
-			cross_checks.push(column_cross_checks);
-		}
-		
-		return cross_checks;
-	}
+	// Shortcuts to game information during move computation
+	let rack;     // class Rack
+	let board;    // class Board
+	let edition;  // class Edition
+    let bestWord;
+    let anchors, crossChecks;
 
 	/**
 	 * An anchor is an empty cell with an adjacent (horizontal or
@@ -153,7 +29,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 	 * @return {Array<Array<Boolean>>} the column-major anchor matrix.
 	 */
 	function findAnchors(board) {
-		let no_anchors = true
+		let noAnchors = true
 		let anchors = [];
 
 		for (let col = 0; col < board.dim; col++) {
@@ -167,7 +43,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 					|| (col < (board.dim - 1) && board.squares[col + 1][row].tile)
 					|| (row > 0 && board.squares[col][row - 1].tile)
 					|| (row < (board.dim - 1) && board.squares[col][row + 1].tile)) {
-					no_anchors = false;
+					noAnchors = false;
 					column.push(true);
 					
 				} else
@@ -176,7 +52,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 			anchors.push(column);
 		}
 
-		if (no_anchors)
+		if (noAnchors)
 			anchors[board.middle][board.middle] = true;
 
 		return anchors;
@@ -186,20 +62,20 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
     // @param {Array<str>} rack the rack of letters to filter.
     // @return {Arrary<str>} the filtered rack.
     function filterRack(rack, letter) {
-        let letter_removed = false;
-        let new_rack = [];
+        let letterRemoved = false;
+        let newRack = [];
 
-        for (let current_letter of rack) {
+        for (let currentLetter of rack) {
             // Same letter, hasn't been removed.
-            if (current_letter == letter && !letter_removed)
-                letter_removed = true;
+            if (currentLetter == letter && !letterRemoved)
+                letterRemoved = true;
             // Different letter or letter already removed,
 			// add it to the new rack.
             else
-				new_rack.push(current_letter);
+				newRack.push(currentLetter);
 		}
 
-        return new_rack;
+        return newRack;
 	}
 	
 	/**
@@ -218,20 +94,111 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 		return result;
 	}
 	
+	/**
+	 * Determine which letters can fit in each cell of a row and form
+	 * a valid cross word. This returns a square matrix where each [col][row]
+	 * has two arrays, one of valid vertical chars and another of valid
+	 * horizontal chars. The 'h' lists give the letters that are
+	 * valid for forming a vertical cross word, and the 'v' lists
+	 * give the letters valid for creating a horizontal cross word.
+	 * @param board the Board
+	 * @return [c][r]{h:[],v:[]} the cross check letter matrix.
+	 */
+	function computeCrossChecks(board) {
+		let cols = [];
+
+		for (let col = 0; col < board.dim; col++) {
+			let thisCol = [];
+			cols.push(thisCol);
+			
+			for (let row = 0; row < board.dim; row++) {
+				let thisCell = { h: [], v: [] };
+				thisCol[row] = thisCell;
+				
+				if (board.squares[col][row].tile) {
+					// The cell isn't empty, only this letter is valid
+					thisCell.h.push(board.squares[col][row].tile.letter);
+					thisCell.v.push(board.squares[col][row].tile.letter);
+					continue;
+				}
+
+				// Find the known words above and below
+				let wordAbove = '';
+				let r = row - 1;
+				while (r >= 0 && board.squares[col][r].tile) {
+					wordAbove = board.squares[col][r].tile.letter + wordAbove;
+					r--;
+				}
+
+				let wordBelow = '';
+				r = row + 1;
+				while (r < board.dim && board.squares[col][r].tile) {
+					wordBelow += board.squares[col][r].tile.letter;
+					r++;
+				}
+
+				// Find the known words left and right
+				let wordLeft = '';
+				let c = col - 1;
+				while (c >= 0 && board.squares[c][row].tile) {
+					wordLeft = board.squares[c][row].tile.letter + wordLeft;
+					c--;
+				}
+
+				let wordRight = '';
+				c = col + 1
+				while (c != board.dim && board.squares[c][row].tile) {
+					wordRight += board.squares[c][row].tile.letter;
+					c++;
+				}
+
+				// Find which (if any) letters in the alphabet form a
+				// valid cross word.
+				for (let letter of edition.alphabeta) {
+					if (wordAbove && wordBelow) {
+						if (dict.hasWord(wordAbove + letter + wordBelow))
+							thisCell.h.push(letter);
+					} else if (wordAbove) {
+						if (dict.hasWord(wordAbove + letter))
+							thisCell.h.push(letter);
+					} else if (wordBelow) {
+						if (dict.hasWord(letter + wordBelow))
+							thisCell.h.push(letter);
+					} else
+						thisCell.h.push(letter);
+					
+					if (wordLeft && wordRight) {
+						if (dict.hasWord(wordLeft + letter + wordRight))
+							thisCell.v.push(letter);
+					} else if (wordLeft) {
+						if (dict.hasWord(wordLeft + letter))
+							thisCell.v.push(letter);
+					} else if (wordRight) {
+						if (dict.hasWord(letter + wordRight))
+							thisCell.v.push(letter);
+					} else
+						thisCell.v.push(letter);
+				}
+			}
+		}
+		
+		return cols;
+	}
+
     /**
-     * Given a word played down, compute it's score.
+     * Given a word played at col, row, compute its score.
 	 * 
-     * @param {str} word the word to compute the score of.
-     * @param col, row the coordinates of the last letter
+	 * @param axis 'h' or 'v' depending if the word is played across
+	 * or down
+     * @param word the word to compute the score of.
+     * @param col, row the coordinates of the LAST letter
      * of the word on the board.
-     * @param tilesPlayed the number of tiles played from the rack
-     * played from the rack.
      * @return {int} the score of the word.
      */
-    function scoreDownWord(word, col, row, allPlaced) {
-		// Board.analyseMove does this by transposing the board and
-		// running the across analysis.
-		
+    function scoreWord(axis, word, col, row) {
+		let drow = axis === 'h' ? 0 : 1;
+		let dcol = axis === 'h' ? 1 : 0;
+
 		// Accumulator for word letter scores
 		let wordScore = 0;
 
@@ -244,11 +211,12 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 		let debug = false;//(word=="LURS");
 		
 		// Work back from the last letter
-        for (let k = 0; k < word.length; k++) {
-			let r = row - k;
-			let letter = word[word.length - k - 1];
+        for (let lIndex = 0; lIndex < word.length; lIndex++) {
+			let r = row - lIndex * drow;
+			let c = col - lIndex * dcol;
+			let letter = word[word.length - lIndex - 1];
             let letterScore = edition.letterValue(letter);		
-			let square = board.squares[col][r];
+			let square = board.squares[c][r];
 			
 			if (square.tileLocked) {
 				wordScore += letterScore;
@@ -265,7 +233,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 			let crossWordMultiplier = square.wordScoreMultiplier;
 			wordMultiplier *= crossWordMultiplier;
 
-			if (debug && square.wordScoreMultiplier!=1)
+			if (debug && square.wordScoreMultiplier != 1)
 				console.log(`${col},${r} *${square.wordScoreMultiplier}`);
 
 			// This is a new tile, need to analyse cross words and
@@ -273,25 +241,25 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 			let crossWord = ''; // debug
 			let crossWordScore = 0;
 				
-			// Look left
-            for (let c = col - 1;
-				 c >= 0 && board.squares[c][r].tile;
-				 c--) {
-                crossWordScore += board.squares[c][r].tile.score;
+			// Look left/up
+            for (let cp = c - drow, rp = r - dcol;
+				 cp >= 0 && rp >= 0 && board.squares[cp][rp].tile;
+				 cp -= drow, rp -= dcol) {
+                crossWordScore += board.squares[cp][rp].tile.score;
 				if (debug)
-					crossWord = board.squares[c][r].tile.letter + crossWord;
+					crossWord = board.squares[cp][rp].tile.letter + crossWord;
 			}
 
 			if (debug)
 				crossWord += letter;
 				
-			// Look right
-            for (let c = col + 1;
-				 c < board.dim && board.squares[c][r].tile;
-				 c++) {
-                crossWordScore += board.squares[c][r].tile.score
+			// Look right/down
+            for (let cp = c + drow, rp = r + dcol;
+				 cp < board.dim && rp < board.dim && board.squares[c][r].tile;
+				 cp += drow, rp += dcol) {
+                crossWordScore += board.squares[cp][rp].tile.score
 				if (debug)
-					crossWord = crossWord + board.squares[c][r].tile.letter;
+					crossWord = crossWord + board.squares[cp][rp].tile.letter;
 			}
                 
             if (crossWordScore > 0) {
@@ -311,11 +279,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 		if (debug)
 			console.log(`${word}*${wordMultiplier}->${wordScore}`);
         
-        // If the full rack is played, add bonus
-        if (allPlaced)
-            wordScore += board.allPlacedBonus
-
-        // Add cross word values to the down word value
+        // Add cross word values to the main word value
 		wordScore += crossWordsScore;
 		
 		if (debug)
@@ -324,359 +288,178 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
         return wordScore;
 	}
 
-    // See scoreDownWord for the transpose with comments
-    function scoreAcrossWord(word, col, row, allPlaced) {
-
-        let wordScore = 0;
-        let crossWordsScore = 0;
-		let wordMultiplier = 1;
-
-		for (let k = 0; k < word.length; k++) {
-			let c = col - k;
-			let letter = word[word.length - k - 1];
-            let letterScore = edition.letterValue(letter);
-			let square = board.squares[c][row];
-			
-			if (square.tileLocked) {
-				wordScore += letterScore;
-				continue;
-			}
-
-			wordMultiplier *= square.wordMultiplier;
-			letterScore *= square.letterScoreMultiplier;
-			wordScore += letterScore;
-			
-			let crossWordScore = 0;
-
-            for (let r = row - 1;
-				 r >= 0 && board.squares[c][r].tile;
-				 r--) {
-                crossWordScore += board.squares[c][r].tile.score;
-			}
-				
-            for (let r = row + 1;
-				 r < board.dim && board.squares[c][r].tile;
-				 r++) {
-                crossWordScore += board.squares[c][r].tile.score;
-			}
-		
-            if (crossWordScore > 0) {
-				crossWordScore += letterScore;
-				crossWordScore *= square.wordMultiplier;
-				crossWordsScore += crossWordScore;
-			}
-		}
-		
-        wordScore *= wordMultiplier;
-
-		if (allPlaced)
-            wordScore += board.allPlacedBonus;
-
-        return wordScore + crossWordsScore;
-	}
-
-    /**
-     * Given an anchor position, recursively compute possible across
-     * word plays by extending right on the board. For each word,
-     * compute its point value, and update the best_across_word score
-     * accordingly.
-	 * 
-     * @param col, row index of the anchor position
-	 * on the board.
-     * @param {Array<str>} rack the user's letter rack.
-     * @param {str} current_word the current permutation of the word.
-     * @param {Array<Array<int>>} rack_played_indices a list of the indices
-	 * of letters played
-     * from the rack while extending right. 
-     */
-	function extend_right(col, row, rack, current_word, rack_played_indices) {
-		if (col >= board.dim)
-			return;
-		
-        // For the current coordinate, find common letters between
-		// the rack and cross checks.
-        let common_letters = intersection(rack, across_cross_checks[col][row]);
-
-        // Base Case - no common letters.
-        if (board.squares[col][row].tile && common_letters.length == 0)
-            return;
-
-        // Case 1: empty cell.
-        if (!board.squares[col][row].tile) {
-            for (let letter of common_letters) {
-                // Score the current word, if it's in the dictionary.
-				if (goodWord(current_word + letter)) {
-					
-					if ((col + 1 < board.dim
-						 && !board.squares[col + 1][row].tile)
-						|| col == (board.dim - 1)) {
-						
-                        let word = current_word + letter;
-						const rpi = rack_played_indices.concat([[col, row]]);
-                        let score = scoreAcrossWord(
-							word, col, row,
-							rpi.length == 7);
-
-                        // Update the best across word, if the score of
-						// the current word is better.
-						if (score > best_across_word.score) {
-                            best_across_word.start = [col - word.length + 1, row];
-                            best_across_word.word = word;
-							best_across_word.score = score;
-							console.log(`Best across ${word} ${score}`, rpi);
-						}
-					}
-				}
-                // Keep extending right to form words.
-                extend_right(
-                    col + 1, row,
-                    filterRack(rack, letter),
-                    current_word + letter,
-                    rack_played_indices.concat([[col, row]])
-                )
-			}
-		}
-        // Case 2: occupied cell.
-        else {
-            // Score the current word, if it's in the dictionary.
-            if (goodWord(
-				current_word + board.squares[col][row].tile.letter)) {
-				
-                if ((col + 1 < board.dim && !board.squares[col + 1][row].tile)
-					|| col == (board.dim - 1)) {
-                    let word = current_word + board.squares[col][row].tile.letter;
-                    let score = scoreAcrossWord(
-						word, col, row, rack_played_indices.length == 7);
-
-                    // Update the best across word, if the score of the current word is better.
-                    if (score > best_across_word.score) {
-                        best_across_word.start = [col - word.length + 1, row];
-                        best_across_word.word = word;
-                        best_across_word.score = score;
-						console.log(`Best across ${word} ${score}`, rack_played_indices);
-					}
-				}
-			}
-
-            // Keep extending right to form words.
-            extend_right(
-                col + 1, row,
-                rack,
-                current_word + board.squares[col][row].tile.letter,
-                rack_played_indices
-            )
-		}
-	}
-
-    /**
-     * Given a position to the left of an anchor, recursively compute
-     * possible across word plays by extending left before extending
-     * right on the board. For each word, compute its point value, and
-     * update the best_across_word score accordingly.
-	 * 
-     * @param col, row index of the current position on the board.
-     * @param {Array<str>} rack the user's letter rack.
-     * @param {str} left_part the current left_part of the word.
-     */
-    function extend_right_with_left_part(col, row, rack, left_part) {
-
-		if (col < 0)
-			return;
-
-        // For the current coordinate, find common letters between the
-        // rack and cross checks.
-		let common_letters = intersection(rack, across_cross_checks[col][row]);
-
-        // Base Case - no common letters
-		if (common_letters.length == 0)
-            return;
-
-        // Case 1: the cell to the left of the current index is empty,
-		// or col = 0.
-		if (col == 0 || !board.squares[col - 1][row].tile) {
-            for (let letter of common_letters) {
-                let word = letter + left_part;
-                let rack_played_indices = [];
-				
-				for (let k = 0; k < word.length; k++)
-                    rack_played_indices.push([col + k, row]);
-
-                // Extend right to form words.
-                extend_right(
-                    col + word.length, row,
-                    filterRack(rack, letter),
-                    word,
-                    rack_played_indices
-                );
-
-                // Keep extending left.
-                extend_right_with_left_part(
-                    col - 1, row,
-                    filterRack(rack, letter),
-                    word
-                );
-			}
-		}
-        // Case 2: the cell to the left of the current index is occupied.
-	}
-	
-    /**
+	/**
      * Given an anchor position, recursively compute possible down
      * word plays by extending down the board. For each word,
-     * compute its point value, and update the best_down_word score
+     * compute its point value, and update the bestWord score
      * accordingly.
 	 * 
      * @param col, row index of the current position on the board.
      * @param {Array<str>} rack the user's letter rack.
-     * @param {str} current_word the current permutation of the word.
-     * @param {Array<Array<int>>} rack_played_indices a list of the
+     * @param {str} currentWord the current permutation of the word.
+     * @param {Array<Array<int>>} rackPlayedIndices a list of the
 	 * indices of letters played
      * from the rack while extending down. 
      */
-    function extend_down(col, row, rack, current_word, rack_played_indices) {
+	function extend(axis, col, row, rack, currentWord, rackPlayedIndices) {
 
-		if (row >= board.dim)
+		if (row >= board.dim || col >= board.dim)
 			return;
-		if (/[0-9]/.test(current_word)) {
-			console.log(col, row, rack, rack_played_indices);
-			console.log(current_word);
-			throw Error("NO");
-		}
-		if (!down_cross_checks[col])
-			throw Error("UGH "+col);
+
+		let drow = axis === 'h' ? 0 : 1;
+		let dcol = axis === 'v' ? 0 : 1;
 		
 		// For the current coordinate, find common letters between the
 		// rack and cross checks.
-		let common_letters = intersection(rack, down_cross_checks[col][row]);
-
-        // Base Case - no tile and no useable letters in the rack
-        if (!board.squares[col][row].tile && common_letters.length == 0)
+		let commonLetters = intersection(rack, crossChecks[col][row][axis])
+		
+        if (!board.squares[col][row].tile && commonLetters.length == 0)
+			//  no tile and no useable letters in the rack
             return;
 
-		//console.log(`Extend down '${current_word}' ${col},${row} rack `, rack);
+		//console.log(`Extend ${axis} '${currentWord}' ${col},${row} rack `, rack);
 
-        if (board.squares[col][row].tile) {
-			// Case 2: occupied cell.
-			let letter = board.squares[col][row].tile.letter;
-            if (goodWord(current_word + letter)) {				
-				// New word is in the dictionary
-				
-                if ((row + 1 < board.dim && !board.squares[col][row + 1].tile)
-					|| row == (board.dim - 1)) {
-					// The next tile down blank or off the board, so
-					// this is a playable word
-
-                    let word = current_word + letter;
-                    let score = scoreDownWord(
-						word, col, row, rack_played_indices.length == 7);
-
-                    // Update the best across word, if the score of the
-					// current word is better.
-                    if (score > best_down_word.score) {
-                        best_down_word.start = [col, row - word.length + 1];
-                        best_down_word.word = word;
-                        best_down_word.score = score;
-						console.log(`Best down ${word} ${score}`,
-									rack_played_indices);
-					}
-				}
-			}
-
-            // Keep extending down to form words.
-            extend_down(
-                col, row + 1,
-                rack, // not filtered
-                current_word + board.squares[col][row].tile.letter,
-                rack_played_indices
-            );
+		// Determine if the next tile after the word is blank or off
+		// the board - a precondition of the word being playable.
+		if (!(col + dcol == board.dim || row + drow == board.dim
+			  || !board.squares[col + dcol][row + drow].tile)) {
+			return;
 		}
-        // Case 1: empty cell.
-        else {
-            for (let letter of common_letters) {
-                if (goodWord(current_word + letter)) {
-					// New word is in the dictionary
+		
+        if (board.squares[col][row].tile) {
+			// Occupied square
+			let letter = board.squares[col][row].tile.letter;
+            let word = currentWord + letter;
+            if (word.length > 1 && dict.hasWord(word)) {				
+				// New word is in the dictionary
 
-                    if ((row + 1 < board.dim
-						 && !board.squares[col][row + 1].tile)
-						|| row == (board.dim - 1)) {
-						// The next tile down blank or off the board, so
-						// this is a playable word
-	
-                        let word = current_word + letter;
-						let rpi = rack_played_indices.concat([[col, row]]);
-                        let score = scoreDownWord(
-							word, col, row,
-							rpi.length == 7);
+                let score = scoreWord(axis, word, col, row);
+				
+				// If the full rack is played, add bonus
+				if (rackPlayedIndices.length == board.rackCount)
+					score += board.allPlacedBonus;
 
-                        // Update the best across word, if the score of
-						// the current word is better.
-                        if (score > best_down_word.score) {
-                            best_down_word.start = [col, row - word.length + 1];
-                            best_down_word.word = word;
-                            best_down_word.score = score;
-							console.log(`Best down ${word} ${score}`, rpi);
-						}
-					}
+                if (score > bestWord.score) {
+                    bestWord.start = [
+						col - dcol * (word.length - 1),
+						row - drow * (word.length - 1)
+					];
+                    bestWord.word = word;
+                    bestWord.score = score;
+					bestWord.axis = axis;
+					console.log(
+						`Best ${axis} extension ${word} ${score}`,
+						rackPlayedIndices);
+				} else {
+					console.log(
+						`Reject ${axis} extension ${word} ${score}`,
+						rackPlayedIndices);
 				}
-                
-                // Keep extending down to form words.
-                extend_down(
-                    col, row + 1,
-                    filterRack(rack, letter),
-                    current_word + letter,
-                    rack_played_indices.concat([[col, row]])
-                );
 			}
+
+            // Keep extending to form words
+            extend(
+				axis, col + dcol, row + drow,
+                rack, // not filtered, no tile placed
+                currentWord + board.squares[col][row].tile.letter,
+                rackPlayedIndices
+			);
+
+			return;
+		}
+
+		// empty cell.
+        for (let letter of commonLetters) {
+            let word = currentWord + letter;
+            if (word.length > 1 && dict.hasWord(word)) {
+				// New word is in the dictionary
+
+				let rpi = rackPlayedIndices.concat([[col, row]]);
+                let score = scoreWord(axis, word, col, row);
+
+				// If the full rack is played, add bonus
+				if (rpi.length == board.rackCount)
+					score += board.allPlacedBonus;
+
+                if (score > bestWord.score) {
+                    bestWord.start = [
+						col - dcol * (word.length - 1),
+						row - drow * (word.length - 1)
+					];
+                    bestWord.word = word;
+                    bestWord.score = score;
+					bestWord.axis = axis;
+					console.log(
+						`Best ${axis} word ${word} ${score}`, rpi);
+				}
+				else {
+					console.log(
+						`Reject ${axis} word ${word} ${score}`,
+						rpi);
+				}
+			}
+                
+			// Keep extending down to form words.
+			extend(
+				axis, col + dcol, row + drow,
+				filterRack(rack, letter),
+				currentWord + letter,
+				rackPlayedIndices.concat([[col, row]])
+			);
 		}
 	}
 
-    /**
-     * Given a position above an anchor, recursively compute possible
-     * down word plays by extending up before extending down on the
+	/**
+     * Given a position above/left of an anchor, recursively compute possible
+     * word plays by extending up/right before extending down/left on the
      * board. For each word, compute its point value, and update the
-     * best_down_word score accordingly.
+     * bestWord score accordingly.
 	 * 
      * @param col, row the current position on the board.
      * @param {Array<str>} rack the user's letter rack.
-     * @param {str} top_part the current top_part of the word.
+     * @param {str} topPart the current topPart of the word.
      */
-    function extend_down_with_top_part(col, row, rack, top_part) {
+    function extendWithPrior(axis, col, row, rack, topPart) {
 
-		if (row < 0)
+		if (row < 0 || col < 0)
 			return; // out of bounds
 		
         // For the current coordinate, find common letters between
 		// the rack and cross checks.
-		let common_letters = intersection(rack, down_cross_checks[col][row]);
+		let commonLetters = intersection(rack,	crossChecks[col][row][axis]);
+
+		let drow = axis === 'v' ? 1 : 0;
+		let dcol = axis === 'h' ? 1 : 0;
 
         // Base Case - no common letters
-        if (common_letters.length == 0)
+        if (commonLetters.length == 0)
             return;
 
-        if (row == 0 || !board.squares[col][row - 1].tile) {
-			// The cell above is empty, or off the board.
+        if ((axis === 'h' && col === 0) || (axis === 'v' && row === 0)
+			|| !board.squares[col - dcol][row - drow].tile) {
 
-            for (let letter of common_letters) {
-                let word = letter + top_part;
-                let rack_played_indices = [];
+            for (let letter of commonLetters) {
+                let word = letter + topPart;
+                let rackPlayedIndices = [];
 
                 for (let k = 0; k < word.length; k++)
-					rack_played_indices.push([col, row + k]);
+					rackPlayedIndices.push([col + k * dcol, row + k * drow]);
 
-                // Extend down to form words.
-                extend_down(
-                    col, row + word.length,
+                // Extend down/right to form words.
+                extend(
+					axis, col + dcol * word.length, row + drow * word.length,
                     filterRack(rack, letter),
                     word,
-                    rack_played_indices
-                );
+                    rackPlayedIndices
+				);
 
-                // Keep extending up.
-                extend_down_with_top_part(
-                    col, row - 1,
-                    filterRack(rack, letter),
-                    word
-                );
+                // Keep extending up/left
+                extendWithPrior(
+					axis,
+					col - dcol, row - drow,
+					filterRack(rack, letter),
+					word
+				);
 			}
 		}
 	}
@@ -708,45 +491,39 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 		// Compute the anchors and cross checks.
 		anchors = findAnchors(board);
 
-		across_cross_checks = acrossCrosschecks(board);
-		down_cross_checks = downCrosschecks(board);
+		crossChecks = computeCrossChecks(board);
 
-		best_down_word = {
+		bestWord = {
 			start: [-1, -1],
+			axis: '?',
 			word: '',
-			score: 0,
-			down: true
+			score: 0
 		};
 
-		best_across_word = {
-			start: [-1, -1],
-			word: '',
-			score: 0,
-			down: false
-		};
-
-		// Find down words
 		for (let col = 0; col < board.dim; col++) {
 			for (let row = 0; row < board.dim; row++) {
 				if (anchors[col][row]) {
 					// Valid anchor site
+
+					//console.log(`anchor @ ${col},${row} v`);
 					
-					// Case 1: cell above the anchor is empty of off
+					// Find down words
 					if (row > 0 && !board.squares[col][row - 1].tile) {
-						extend_down(
-							col, row,
+						// cell above the anchor is empty
+						extend(
+							'v', col, row,
 							rack,
 							'',
 							[]
 						);
 
-						extend_down_with_top_part(
-							col, row - 1,
+						extendWithPrior(
+							'v', col, row - 1,
 							rack,
 							''
 						);
 					}
-					// Case 2: cell above the anchor is occupied.
+					// cell above the anchor is occupied.
 					else {
 						// Grab the word above the anchor, if there is one.
 						let word = '';
@@ -757,32 +534,26 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 						}
 
 						// Look down from the anchor.
-						extend_down(
-							col, row,
+						extend(
+							'v', col, row,
 							rack,
 							word,
 							[]
 						);
 					}
-				}
-			}
-		}
 
-		// Find across words
-		for (let row = 0; row < board.dim; row++) {
-			for (let col = 0; col < board.dim; col++) {
-				if (anchors[row][col]) {
-					// Case 1: cell to the left of the anchor is empty.
+					//console.log(`anchor @ ${col},${row} h`);
+
+					// Find across words
 					if (col > 0 && !board.squares[col - 1][row].tile) {
-						extend_right(
-							col, row,
+						extend(
+							'h', col, row,
 							rack,
 							'',
 							[]
 						);
-
-						extend_right_with_left_part(
-							col - 1, row,
+						extendWithPrior(
+							'h', col - 1, row,
 							rack,
 							''
 						);
@@ -798,21 +569,21 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 						}
 						
 						// Compute possible words extending right of the anchor.
-						extend_right(
+						extend(
+							'h',
 							col, row,
 							rack,
 							word,
 							[]
 						);
 					}
+
 				}
 			}
 		}
+		console.log(bestWord);
 
-		if (best_across_word.score >= best_down_word.score)
-			return best_across_word
-		else
-			return best_down_word
+		return bestWord;
 	}
 
 	return findBestMove;

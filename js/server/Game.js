@@ -321,7 +321,7 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 		 * letters.
 		 */
 		swapTiles(player, letters) {
-			if (this.letterBag.remainingTileCount() < 7) {
+			if (this.letterBag.remainingTileCount() < this.board.rackCount) {
 				throw Error(`cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
 			}
 			delete this.previousMove;
@@ -394,10 +394,9 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 				result.whosTurn = this.whosTurn;
 
 				let p = this.players[this.whosTurn];
-				if (p.play) {
+				if (p.isRobot) {
 					// Play computer player(s)
-					p.play(this)
-					// may recurse!
+					p.autoplay(this)
 					.then(result => {
 						console.log(`${p} played, updateGameState`);
 						this.updateGameState(p, result);

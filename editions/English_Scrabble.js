@@ -31,5 +31,5 @@ define("editions/English_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 		{ letter: "Z", score: 10, count: 1 }
 	];
 	
-	return { layout: LAYOUT, bag: BAG };
+	return { layout: LAYOUT, bag: BAG, rackCount: 7, swapCount: 7 };
 });

@@ -43,5 +43,5 @@ define("editions/Czech_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 		{ letter: "Ž", score: 4, count: 1 }
 	];
 	
-	return { layout: LAYOUT, bag: BAG };
+	return { layout: LAYOUT, bag: BAG, swapCount: 7, rackCount: 7 };
 });

@@ -31,6 +31,6 @@ define("editions/Estonian_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 		{ letter: "Ü", score: 5, count: 2 }
 	];
 	
-	return { layout: LAYOUT, bag: BAG };
+	return { layout: LAYOUT, bag: BAG, swapCount: 7, rackCount: 7 };
 });
 	   

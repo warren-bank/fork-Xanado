@@ -48,5 +48,5 @@ define("editions/English_SuperScrabble", () => {
 		{ letter: "Z", score: 10, count: 2 }
 	];
 
-	return { layout: BOARD, bag: BAG };
+	return { layout: BOARD, bag: BAG, swapCount: 7, rackCount: 7 };
 });

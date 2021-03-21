@@ -39,5 +39,5 @@ define("editions/German_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 		{ letter: "Y", score: 10, count: 1 }
 	];
 
-	return { layout: LAYOUT, bag: BAG };
+	return { layout: LAYOUT, bag: BAG, swapCount: 7, rackCount: 7 };
 });

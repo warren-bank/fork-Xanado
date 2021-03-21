@@ -38,7 +38,7 @@ define("server/ComputerPlayer", ["server/Player", "game/BestMove"], (Player, fin
 							blank: false
 						});
 						
-					if (move.down)
+					if (move.axis === 'v')
 						row++;
 					else
 						col++;

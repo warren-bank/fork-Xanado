@@ -309,14 +309,14 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			const gameData = Icebox.thaw(data, ICE_TYPES);
 			console.log('gameData', gameData);
 
-			// Can swap up to 7 tiles
-			this.swapRack = new Rack(7);
-			// Number of tiles currently on the rack
-			this.swapRack.tileCount = 0;
-			
 			this.board = gameData.board;
 			// Number of tiles player has placed on the board
 			this.board.tileCount = 0;
+			
+			// Can swap up to game.swapCount tiles
+			this.swapRack = new Rack(this.board.swapCount);
+			// Number of tiles currently on the rack
+			this.swapRack.tileCount = 0;
 			
 			this.legalLetters = gameData.legalLetters;
 			this.players = gameData.players;
@@ -345,8 +345,10 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			
 			this.drawBoard();
 			if (this.rack) {
-				this.createRack(this.rack, "Rack");
-				this.createRack(this.swapRack, "SwapRack");
+				this.createRackUI(
+					this.rack, "Rack");
+				this.createRackUI(
+					this.swapRack, "Swap");
 			}
 			
 			$('#log').append("<div class='gameStart'>Game started</div>");
@@ -481,7 +483,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					.append('(' + count + ')');
 				}
 			}
-			if (counts.letterBag < 7)
+			if (counts.letterBag < this.board.rackCount)
 				$('#swapRack').hide();
 			else
 				$('#swapRack').show();
@@ -715,12 +717,21 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			}
 		}
 
-		// Assign DOM ids and update the rack square
-		createRack(rack, idbase) {
-			rack.squares.forEach((s, idx) => {
-				s.id = `${idbase}_${idx}`;
-				this.updateRackSquare(s);
-			});
+		createRackUI(rack, idbase) {
+			let $rack = $(`#${idbase}Table tr`);
+			let n = 0;
+			for (let idx = 0; idx < rack.squares.length; idx++) {
+				const id = `${idbase}_${idx}`;
+				let $td = $(`<td class="Normal"><div id="${id}"><a></a></div></td>`);
+				if (idbase == "Swap") {
+					const letter = idbase.toUpperCase().charAt(idx);
+					$td.addClass("bgLetterContainer");
+					$td.append(`<div class="bgLetter">${letter}</div>`);
+				}
+				$rack.append($td);
+				rack.squares[idx].id = id;
+				this.updateRackSquare(rack.squares[idx]);
+			}
 		}
 		
 		refreshRack() {
@@ -816,7 +827,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			toSquare.placeTile(tile);
 			toSquare.owner.tileCount++;
 			if (!this.boardLocked()) {
-				window.setTimeout(() => ui.updateGameStatus(), 100);
+				window.setTimeout(() => ui.updateGameStatus(), 500);
 			}
 		}
 		
@@ -941,7 +952,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					return;
 				}
 				this.endMove();
-				if (move.tilesPlaced.length == 7) {
+				if (move.tilesPlaced.length == this.board.rackCount) {
 					this.playAudio("applause");
 				}
 				for (let i = 0; i < move.tilesPlaced.length; i++) {

@@ -52,5 +52,5 @@ define("editions/Hungarian_Scrabble", ["editions/_ScrabbleLayout"], (BOARD) => {
 		{ letter: "TY", score: 10, count: 1 }
 	];
 	
-	return { layout: BOARD, bag: BAG };
+	return { layout: BOARD, bag: BAG, swapCount: 7, rackCount: 7 };
 });

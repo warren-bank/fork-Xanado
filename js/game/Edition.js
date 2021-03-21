@@ -17,7 +17,8 @@ define("game/Edition", () => {
 	class Edition {
 		
 		/**
-		 * @param board an array of strings, each representing a row of the
+		 * @param data { bag:, layout:, rackCount:, swapCount: }
+		 * layout: an array of strings, each representing a row of the
 		 * Lower-right quadrant of the board, so 0,0 is the middle. Each
 		 * character in the strings represents the scoring for that square
 		 * encoded as follows:
@@ -25,7 +26,7 @@ define("game/Edition", () => {
 		 * t = triple letter, T = triple word
 		 *  q = quad letter, Q = quad word
 		 * _ = normal
-		 * @param bag the initial bag of letters at the start of a game.
+		 * bag: the initial bag of letters at the start of a game.
 		 * Each letter is given by { letter: score: count: } where letter
 		 * is a code point, score is the score for using that letter,
 		 * and count is the number of letters in the bag. Blank is represented
@@ -33,16 +34,20 @@ define("game/Edition", () => {
 		 * if a dictionary is used, then there has to be a 1:1 correspondence
 		 * between the alphabet used to generate the DAWG and the letters in
 		 * the bag.
+		 * rackCount: the number of tiles on a players rack
+		 * swapCount: number of tiles swappable in a turn
 		 */
-		constructor(layout, bag) {
-			this.layout = layout;
-			this.bag = bag;
+		constructor(data) {
+			this.layout = data.layout;
+			this.bag = data.bag;
+			this.rackCount = data.rackCount;
+			this.swapCount = data.swapCount;
 			this.scores = {}; // map letter->score
 			
 			this.dim = 2 * this.layout.length - 1;
 
 			this.alphabeta = [];
-			for (let tile of bag) {
+			for (let tile of this.bag) {
 				if (tile.letter) {
 					this.alphabeta.push(tile.letter);
 					this.scores[tile.letter] = tile.score;
@@ -64,7 +69,7 @@ define("game/Edition", () => {
 			return new Promise(resolve => {
 				requirejs([ `editions/${name}` ], data => {
 					console.log(`Loaded edition ${name}`);
-					editions[name] = new Edition(data.layout, data.bag);
+					editions[name] = new Edition(data);
 					editions[name].name = name;
 					resolve(editions[name]);
 				});

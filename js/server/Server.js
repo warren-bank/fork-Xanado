@@ -71,8 +71,9 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			// May need to trigger computer players
 			let fp = game.players[game.whosTurn];
 			console.log(`Next to play is ${fp}`);
-			if (fp.play) {
-				fp.play(game).then(result => {
+			if (fp.isRobot) {
+				fp.autoplay(game)
+				.then(result => {
 					// updateGameState will cascade next robot player
 					game.updateGameState(fp, result);
 				});
@@ -135,29 +136,31 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 	// for each player. Optional email may be sent.
 	function newGame(req, res) {
 		console.log(`Constructing new game ${req.body.edition}`);
-		
-		const players = [];
-		for (let x = 1; x <= 6; x++) {
-			const name = req.body[`name${x}`];
-			if (name) {
-				let player = (/^robot\d+$/i.test(name))
-					? new ComputerPlayer(name)
-					: new Player(name);
-				const email = req.body[`email${x}`];
-				if (email)
-					player.email = email;
-				players.push(player);
-				console.log(player.toString());
-			}
-		}
-		
-		if (players.length < 2)
-			throw Error('at least two players must participate in a game');
-
-		console.log(`Game of ${players.length} players`);
-		
+				
 		Edition.load(req.body.edition)
 		.then(edition => {
+
+			const players = [];
+			for (let x = 1; x <= 6; x++) {
+				const name = req.body[`name${x}`];
+				if (name) {
+					const player = new Player(name, edition.rackCount);
+					if (/^robot\d+$/i.test(name))
+						player.isRobot = true;
+					else
+						// optional, may be empty
+						player.email = req.body[`email${x}`];
+
+					players.push(player);
+					console.log(player.toString());
+				}
+			}
+		
+			if (players.length < 2)
+				throw Error('at least two players must participate in a game');
+
+			console.log(`Game of ${players.length} players`);
+
 			let game = new Game(edition, players);
 
 			if (req.body.dictionary && req.body.dictionary != "None") {
@@ -177,18 +180,8 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 
 			game.sendInvitations(config);
 
-			// If the first player is a robot, have them play
-			let fp = game.players[0];
-			console.log(`First to play is ${fp}`);
-			if (fp.play) {
-				fp.play(game).then(result => {
-					// updateGameState will cascade next robot player
-					game.updateGameState(fp, result);
-				});
-			}
-
 			// Redirect back to control panel
-			res.redirect("/client/games.html");
+			res.redirect("/html/games.html");
 		})
 		.catch(e => {
 			console.error(`Failed to create game: `, e);
@@ -207,7 +200,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 
 		game.createFollowonGame(player);
 		// Redirect back to control panel
-		res.redirect("/client/games.html");
+		res.redirect("/html/games.html");
 	}
 
 	/**
@@ -264,7 +257,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 					response.endMessage = game.endMessage;
 				res.send(Icebox.freeze(response));
 			},
-			'html': () => res.sendFile(`${APP_DIR}/client/game.html`)
+			'html': () => res.sendFile(`${APP_DIR}/html/game.html`)
 		});
 	}
 
@@ -277,7 +270,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		db.set(gameKey, undefined);
 
 		// Redirect back to control panel
-		res.redirect("/client/games.html");
+		res.redirect("/html/games.html");
 	}
 	
 	async function bestMove(req, res) {
@@ -299,7 +292,6 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 
 	function updateMonitors() {
 		monitors.forEach(socket => {
-			console.log("Update monitor");
 			socket.emit('update');
 		});
 	}
@@ -431,7 +423,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		}, "Enter game list access login");
 
 		// HTML page for main interface
-		app.get("/", (req, res) => res.redirect("/client/games.html"));
+		app.get("/", (req, res) => res.redirect("/html/games.html"));
 
 		// AJAX request to send email reminders about active games
 		app.post("/send-game-reminders", (req, res) =>
@@ -478,10 +470,20 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			socket
 
 			.on('monitor', () => {
+				// Game monitor has joined
 				console.log("Monitor joined");
 				monitors.push(socket);
 			})
 
+			.on('disconnect', () => {
+				const i = monitors.indexOf(socket);
+				if (i >= 0) {
+					// Game monitor has disconnected
+					console.log("Monitor disconnected");
+					monitors.slice(i, 1);
+				}
+			})
+			
 			.on('join', async params => {
 				
 				// Request to join a game.
@@ -498,10 +500,11 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			.on('message', message => {
 				console.log(message);
 				if (message.text == "/cheat") {
+					console.log(`Player ${socket.player} is cheating`);
 					findBestMove(socket.game, socket.player)
 					.then(move => {
 						let start = move.start;
-						let cheat = `${move.word} ${move.down ? 'down' : 'across'} at row ${start[1] + 1} column ${start[0] + 1} for ${move.score}`;
+						let cheat = `${move.word} ${move.axis} at row ${start[1] + 1} column ${start[0] + 1} for ${move.score}`;
 						socket.game.notifyListeners(
 							'message', {
 								name: socket.player.name,

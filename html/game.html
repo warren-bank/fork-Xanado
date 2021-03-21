@@ -8,21 +8,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
     <style type="text/css" media="all">
-      @import "/client/css/common.css";
+      @import "/css/common.css";
     </style>
     <style type="text/css" media="all">
-      @import "/client/css/game.css";
+      @import "/css/game.css";
     </style>
     <link href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet">
 
 	<script data-main="rjs_config.js" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script>
   </head>
   <body id="body">
-    <audio id="yourturn" src="/client/audio/yourturn.mp3" preload="auto" type="audio/mp3"></audio>
-    <audio id="applause" src="/client/audio/applause.mp3" preload="auto" type="audio/mp3"></audio>
-	<audio id="tiledown" src="/client/audio/tiledown.mp3" preload="auto" type="audio/mp3"></audio>
-	<audio id="oops" src="/client/audio/oops.mp3" preload="auto" type="audio/mp3"></audio>
-	<audio id="teehee" src="/client/audio/teehee.mp3" preload="auto" type="audio/mp3"></audio>
+    <audio id="yourturn" src="/audio/yourturn.mp3" preload="auto" type="audio/mp3"></audio>
+    <audio id="applause" src="/audio/applause.mp3" preload="auto" type="audio/mp3"></audio>
+	<audio id="tiledown" src="/audio/tiledown.mp3" preload="auto" type="audio/mp3"></audio>
+	<audio id="oops" src="/audio/oops.mp3" preload="auto" type="audio/mp3"></audio>
+	<audio id="teehee" src="/audio/teehee.mp3" preload="auto" type="audio/mp3"></audio>
 	<script type="text/javascript">requirejs(["js/ui/game"]);</script>
     <div id="container">
       <div id="boardWrap">
@@ -30,16 +30,8 @@
         <div id="rack" class="tableDivWrap bottomShade">
 		  <div id="timeout"></div>
 		  <div id='rackControls'>
-			<table class="rackTable">
+			<table class="rackTable" id="RackTable">
 			  <tr>
-				<td class="Normal"><div id="Rack_0"><a></a></div></td>
-				<td class="Normal"><div id="Rack_1"><a></a></div></td>
-				<td class="Normal"><div id="Rack_2"><a></a></div></td>
-				<td class="Normal"><div id="Rack_3"><a></a></div></td>
-				<td class="Normal"><div id="Rack_4"><a></a></div></td>
-				<td class="Normal"><div id="Rack_5"><a></a></div></td>
-				<td class="Normal"><div id="Rack_6"><a></a></div></td>
-				<td class="Normal"><div id="Rack_7"><a></a></div></td>
 			  </tr>
 			</table>
 			<div>
@@ -59,33 +51,8 @@
         <div id="turnControls">
 		  <div id="move"></div>
 		  <div id="swapRack" class="tableDivWrap bottomShade">
-			<table class="rackTable">
+			<table class="rackTable" id="SwapTable">
 			  <tr>
-				<td class="Normal bgLetterContainer">
-				  <div id="SwapRack_0"><a></a></div>
-				  <div class="bgLetter">S</div>
-				</td>
-				<td class="Normal bgLetterContainer">
-				  <div class="bgLetter">W</div>
-				  <div id="SwapRack_1">
-					<a></a>
-				  </div>
-				</td>
-				<td class="Normal bgLetterContainer">
-				  <div class="bgLetter">A</div>
-				  <div id="SwapRack_2">
-					<a></a>
-				  </div>
-				</td>
-				<td class="Normal bgLetterContainer">
-				  <div class="bgLetter">P</div>
-				  <div id="SwapRack_3">
-					<a></a>
-				  </div>
-				</td>
-				<td class="Normal"><div id="SwapRack_4"><a></a></div></td>
-				<td class="Normal"><div id="SwapRack_5"><a></a></div></td>
-				<td class="Normal"><div id="SwapRack_6"><a></a></div></td>
 			  </tr>
 			</table>
 		  </div>

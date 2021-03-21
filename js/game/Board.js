@@ -23,6 +23,9 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 				}
 			}
 
+			this.rackCount = edition.rackCount;
+			this.swapCount = edition.swapCount;
+			
 			triggerEvent('BoardReady', [ this ]);
 		}
 
@@ -213,7 +216,7 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 					}
 				}
 			}
-			if (tilesPlaced.length == 7) {
+			if (tilesPlaced.length == this.rackCount) {
 				move.score += this.allPlacedBonus;
 				move.allTilesBonus = true;
 			}
