@@ -61,7 +61,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		appendTurnToLog(turn) {
 			let player = this.players[turn.player];
 			let $scorediv = $("<div class='score'></div>");
-			$scorediv.append(`<span class='playerName'>${player.name}'s move</span>`);
+			$scorediv.append(`<span class='playerName'>${player.name}'s turn</span>`);
 			//$scorediv.append(`<span class='score'>${turn.score}</span>`);
 			
 			let $div = $("<div class='moveScore'></div>");
@@ -74,9 +74,9 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					$detail.append(`<span class='word'>${word.word}</span>`);
 					$detail.append(`<span class='score'>(${word.score})</span> `);
 				}
-				if (turn.move.allTilesBonus) {
-					$detail.append(`<span class='word'>All tiles placed bonus</span>`);
-					$detail.append(`<span class='score'>50</span>`);
+				if (turn.move.bonus > 0) {
+					$detail.append(`<span class='word'>+ bonus </span>`);
+					$detail.append(`<span class='score'>${turn.move.bonus}</span>`);
 				}
 				break;
 			case 'timeout':
@@ -136,13 +136,13 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				if (player.tallyScore > 0) {
 					$('#log').append(
 						`<div class='gameEndScore'>${player.name} gained ${player.tallyScore} points from racks of the other players`);
-				} else {
+				} else if (player.tallyScore < 0) {
 					let letters = "";
 					for (const square of player.rack.squares) {
 						if (square && square.tile)
 							letters += square.tile.letter;
 					}
-					$('#log').append(`<div class='gameEndScore'>${player.name} lost ${-player.tallyScore} points for a rack containing the letters ${letters}</div>`);
+						$('#log').append(`<div class='gameEndScore'>${player.name} lost ${-player.tallyScore} points for a rack containing the letters ${letters}</div>`);
 				}
 				$(player.scoreElement).text(player.score);
 				if (!winners || player.score > winners[0].score) {
@@ -158,9 +158,9 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				if (player == this.thisPlayer) {
 					names.push('you');
 					if (cheer)
-						this.playAudio("applause");
+						this.playAudio("endCheer");
 				} else
-					name.push(player.name);
+					names.push(player.name);
 			}
 
 			let who;
@@ -182,10 +182,12 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		}
 		
 		placeTurnTiles(turn) {
-			for (const placement of turn.placements) {
+			for (let placement of turn.placements) {
 				let square = this.board.squares[placement.col][placement.row];
 				square.placeTile(
 					new Tile(placement.letter, placement.score), true);
+				let $div = $(`#Board_${placement.col}x${placement.row}`);
+				$div.addClass("lastPlacement");
 			}
 		}
 		
@@ -225,6 +227,8 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			this.appendTurnToLog(turn);
 			this.scrollLogToEnd(300);
 			this.processMoveScore(turn);
+			$(".lastPlacement").removeClass("lastPlacement");
+			
 			// If this has been a move by another player, place tiles on board
 			if (turn.type == 'move' && turn.player != this.playerNumber) {
 				this.placeTurnTiles(turn);
@@ -320,7 +324,6 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			
 			this.legalLetters = gameData.legalLetters;
 			this.players = gameData.players;
-			this.keyboardPlacements = [];
 			this.remainingTileCounts  = gameData.remainingTileCounts;
 			
 			let playerNumber = 0;
@@ -385,10 +388,15 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			this.socket = io.connect(null, { transports: transports });
 
 			let ui = this;
+			let $reconnectDialog = null;
 			
 			this.socket
 			
 			.on('connect', data => {
+				if ($reconnectDialog) {
+					$reconnectDialog.dialog("close");
+					$reconnectDialog = null;
+				}
 				console.debug('Server: Socket connected');
 				if (ui.wasConnected) {
 					ui.cancelNotification();
@@ -402,9 +410,14 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			
 			.on('disconnect', data => {
 				console.debug('Server: Socket disconnected');
-				$('#problem_dialog')
+				$reconnectDialog = $('#problem_dialog')
 				.text("Server disconnected, trying to reconnect")
 				.dialog({ modal: true });
+				setTimeout(() => {
+					ui.socket.emit('join', { gameKey: ui.gameKey,
+											 playerKey: ui.playerKey });
+				}, 1000);
+				
 			})
 			
 			.on('turn', turn => ui.processTurn(turn))
@@ -457,6 +470,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 								 text: $(this).val() });
 				$(this).val('');
 			});
+			
 			$(document)
 			.bind('SquareChanged', (e, square) => ui.updateSquare(square))
 			.bind('Refresh', () => ui.refresh())
@@ -519,20 +533,23 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		updateBoardSquare(square) {
 			let ui = this;
 
-			let $div = $(`<div id='${square.id}'></div>`);
+			const $div = $(`#${square.id}`)
+				  .removeClass("Selected")
+				  .removeClass("Temp");
+			
 			if (square.tile) {
 				// There's a tile on the square
-				$div.removeClass('Empty');
-				$div.addClass('Tile');
+				$div
+				.removeClass('Empty')
+				.addClass('Tile');
 				
-				if (square.tileLocked) {
+				if (square.tileLocked)
 					$div.addClass('Locked');
-				} else {
+				else
 					$div.addClass('Temp');
-				}
-				if (square.tile.isBlank()) {
+
+				if (square.tile.isBlank())
 					$div.addClass('BlankLetter');
-				}
 				
 				if (!square.tileLocked) {
 					// tile isn't locked, valid drag source
@@ -579,7 +596,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				let $a = $("<a></a>");
 				$a.append(`<span class='Letter'>${square.tile.letter ? square.tile.letter : ''}</span>`);
 				$a.append(`<span class='Score'>${square.tile.score ? square.tile.score : '0'}</span>`);
-				$div.append($a);
+				$div.html($a);
 			} else { // no tile on the square, valid drop target
 				if (!ui.boardLocked()) {
 					$div.on("click", () => {
@@ -599,14 +616,14 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				
 				let text = square.scoreText(ui.board.middle);
 				$div.addClass('Empty')
-				$div.removeClass('Tile')
-				.append($(`<a>${text}</a>`));
+				.removeClass('Tile')
+				.html(`<a>${text}</a>`);
 			}
 			
-			$(`#${square.id}`)
-			.parent()
-			.empty()
-			.append($div);
+			//$(`#${square.id}`)
+			//.parent()
+			//.empty()
+			//.append($div);
 		}
 		
 		drawBoard() {
@@ -843,7 +860,12 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					$('#move').append(move.error);
 					$('#turnButton').attr('disabled', 'disabled');
 				} else {
-					$('#move').append(`<div>score: ${move.score}</div>`);
+					const bonus = this.board.calculateBonus(
+						move.tilesPlaced.length);
+					const $score = $(`<div>score: ${move.score}</div>`);
+					if (bonus > 0)
+						$score.append(` + bonus ${bonus}`);
+					$('#move').append($score);
 					for (const word of move.words)
 						$('#move').append(`<div>${word.word} ${word.score}</div>`);
 					$('#turnButton').removeAttr('disabled');
@@ -942,7 +964,6 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		
 		commitMove() {
 			try {
-				this.keyboardPlacements = [];
 				let move = this.board.analyseMove();
 				if (move.error) {
 					// fatal - should never get here
@@ -951,10 +972,12 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					.dialog();
 					return;
 				}
+				move.bonus = this.board.calculateBonus(move.tilesPlayed);
+				move.score += move.bonus;
 				this.endMove();
-				if (move.tilesPlaced.length == this.board.rackCount) {
-					this.playAudio("applause");
-				}
+				if (move.bonus > 0)
+					this.playAudio("bonusCheer");
+
 				for (let i = 0; i < move.tilesPlaced.length; i++) {
 					let tilePlaced = move.tilesPlaced[i];
 					let square = this.board.squares[tilePlaced.col][tilePlaced.row];

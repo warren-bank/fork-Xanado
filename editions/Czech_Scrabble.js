@@ -1,6 +1,8 @@
-define("editions/Czech_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
+define("editions/Czech_Scrabble", ["editions/_Scrabble"], (Scrabble) => {
 
-	const BAG = [
+	const scrabble = Scrabble();
+
+	scrabble.bag = [
 		{ score: 0, count: 2 },
 		{ letter: "A", score: 1, count: 5 },
 		{ letter: "Á", score: 2, count: 2 },
@@ -43,5 +45,5 @@ define("editions/Czech_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 		{ letter: "Ž", score: 4, count: 1 }
 	];
 	
-	return { layout: LAYOUT, bag: BAG, swapCount: 7, rackCount: 7 };
+	return scrabble;
 });

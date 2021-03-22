@@ -1,7 +1,9 @@
-define("editions/Hungarian_Scrabble", ["editions/_ScrabbleLayout"], (BOARD) => {
+define("editions/Hungarian_Scrabble", ["editions/_Scrabble"], (Scrabble) => {
 
+	const scrabble = Scrabble();
+	
 	/**
-	 * TODO: Dictionary and ComputerPlayer code assume that tiles
+	 * TODO: Dictionary and BestMove code assume that tiles
 	 * can be represented using a single unicode code point. Clearly
 	 * this isn't the case for Hungarian.
 	 * This requires a major re-code to change strings to sequences
@@ -9,7 +11,7 @@ define("editions/Hungarian_Scrabble", ["editions/_ScrabbleLayout"], (BOARD) => {
 	 * soon :-(. However this edition should be playable with human
 	 * players and no dictionary.
 	 */
-	const BAG = [
+	scrabble.bag = [
 		{ score: 0, count: 2 },
 		{ letter: "A", score: 1, count: 6 },
 		{ letter: "E", score: 1, count: 6 },
@@ -52,5 +54,5 @@ define("editions/Hungarian_Scrabble", ["editions/_ScrabbleLayout"], (BOARD) => {
 		{ letter: "TY", score: 10, count: 1 }
 	];
 	
-	return { layout: BOARD, bag: BAG, swapCount: 7, rackCount: 7 };
+	return scrabble;
 });

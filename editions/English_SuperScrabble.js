@@ -19,7 +19,7 @@ define("editions/English_SuperScrabble", () => {
 	// Tile distribution is almost - but not quite - double that
 	// of Scrabble
 	const BAG = [
-		{ letter: null, score: 0, count: 2 },
+		{ score: 0, count: 2 },
 		{ letter: "E", score: 1, count: 24 },
 		{ letter: "A", score: 1, count: 16 },
 		{ letter: "I", score: 1, count: 13 },
@@ -48,5 +48,11 @@ define("editions/English_SuperScrabble", () => {
 		{ letter: "Z", score: 10, count: 2 }
 	];
 
-	return { layout: BOARD, bag: BAG, swapCount: 7, rackCount: 7 };
+	return {
+		layout: BOARD,
+		bag: BAG,
+		swapCount: 7,
+		rackCount: 7,
+		bonuses: { 7: 50 }
+	};
 });

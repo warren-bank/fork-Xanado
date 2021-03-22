@@ -42,5 +42,11 @@ define("editions/English_Lexulous", () => {
 		{ letter: "Z", count: 1, score: 12 }
 	];
 	
-	return { layout: LAYOUT, bag: BAG, rackCount: 8, swapCount: 7 };
+	return {
+		layout: LAYOUT,
+		bag: BAG,
+		rackCount: 8,
+		swapCount: 7,
+		bonuses: { 7: 40, 8: 50 } 
+	};
 });

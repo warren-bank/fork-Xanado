@@ -42,6 +42,8 @@ define("game/Edition", () => {
 			this.bag = data.bag;
 			this.rackCount = data.rackCount;
 			this.swapCount = data.swapCount;
+			this.bonuses = data.bonuses;
+			
 			this.scores = {}; // map letter->score
 			
 			this.dim = 2 * this.layout.length - 1;
@@ -54,7 +56,6 @@ define("game/Edition", () => {
 				}
 			}
 			this.alphabet = this.alphabeta.sort().join("");
-			this.allPlacedBonus = 0;
 		}
 
 		/**

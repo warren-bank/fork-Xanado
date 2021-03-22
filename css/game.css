@@ -599,3 +599,7 @@ div.tableDivWrap td.ValidButWrongPlacement {
 	z-index: 1;
 	position: relative;
 }
+
+.lastPlacement {
+	background-color: #E2E298!important;
+}

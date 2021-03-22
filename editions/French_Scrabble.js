@@ -1,5 +1,6 @@
-define("editions/French_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
-	const BAG = [
+define("editions/French_Scrabble", ["editions/_Scrabble"], (Scrabble) => {
+	const scrabble = Scrabble();
+	scrabble.bag = [
 		{ score: 0, count: 2 },
 		{ letter: "E", score: 1, count: 15 },
 		{ letter: "A", score: 1, count: 9 },
@@ -29,5 +30,5 @@ define("editions/French_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 		{ letter: "Z", score: 10, count: 1 }
 	];
 	
-	return { layout: LAYOUT, bag: BAG };
+	return scrabble;
 });

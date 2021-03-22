@@ -40,5 +40,11 @@ define("editions/Tiny", () => {
 		{ letter: "Z", score: 1, count: 1 }
 	];
 
-	return { layout: BOARD, bag: BAG };
+	return {
+		layout: BOARD,
+		bag: BAG,
+		rackCount: 4,
+		swapCount: 3,
+		bonuses: { 3: 10, 4: 15 }
+	};
 });

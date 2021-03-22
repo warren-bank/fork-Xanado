@@ -123,12 +123,13 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 		}
 
 		/**
-		 * @param player the player making the move
+		 * @param player the Player making the move
 		 */
 		makeMove(player, placementList) {
 			this.stopTimeout();
 			
-			console.log(`makeMove ${player.key}`, placementList);
+			console.log(`makeMove player ${player.index} ${player.key}`,
+						placementList);
 			console.log(`Player's rack is ${player.rack}`);
 			console.log("Placement ", placementList);
 			
@@ -167,6 +168,7 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 				squares[1].placeTile(tile);
 			});
 			let move = this.board.analyseMove();
+			
 			if (move.error) {
 				// fixme should be generalized function -- wait, no rollback? :|
 				placements.forEach(squares => {
@@ -179,6 +181,8 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 			placements.forEach(squares => squares[1].tileLocked = true);
 
 			// add score
+			move.bonus = this.board.calculateBonus(placements.length);
+			move.score += move.bonus;
 			player.score += move.score;
 
 			// get new tiles
@@ -375,44 +379,45 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 		 * whether the game has ended, save state and notify game
 		 * listeners.
 		 */
-		updateGameState(player, result) {
-			result.timestamp = Date.now();
+		updateGameState(player, turn) {
+			turn.timestamp = Date.now();
 
 			// store turn log
-			delete result.newRack; // no point logging this
-			this.turns.push(result);
+			delete turn.newRack; // no point logging this
+			this.turns.push(turn);
 
 			// determine whether the game's end has been reached
 			if (this.passes == (this.players.length * 2)) {
 				this.finish('all players passed twice');
 			} else if (player.rack.squares.every(square => !square.tile)) {
 				this.finish(`${this.players[this.whosTurn].name} ended the game`);
-			} else if (result.type != "challenge") {
+			} else if (turn.type != "challenge") {
 				// determine who's turn it is now, for anything except
 				// a successful challenge
 				this.whosTurn = (this.whosTurn + 1) % this.players.length;
-				result.whosTurn = this.whosTurn;
+				turn.whosTurn = this.whosTurn;
 
 				let p = this.players[this.whosTurn];
 				if (p.isRobot) {
 					// Play computer player(s)
 					p.autoplay(this)
-					.then(result => {
+					.then(turn => {
 						console.log(`${p} played, updateGameState`);
-						this.updateGameState(p, result);
+						this.updateGameState(p, turn);
 						// If we do this, computer turns are notified twice.
-						//this.notifyListeners('turn', result);
+						//this.notifyListeners('turn', turn);
 					});
 				} else if (this.isConnected(p))
-					result.timeout = this.startTimeout(p);
+					turn.timeout = this.startTimeout(p);
 			}
 
 			// store new game data
 			this.save();
 
 			// notify listeners
-			result.remainingTileCounts = this.remainingTileCounts();
-			this.notifyListeners('turn', result);
+			turn.remainingTileCounts = this.remainingTileCounts();
+			//console.log("Notify turn", turn);
+			this.notifyListeners('turn', turn);
 
 			// if the game has ended, send extra notification with final scores
 			if (this.ended()) {

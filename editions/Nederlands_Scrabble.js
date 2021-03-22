@@ -1,6 +1,8 @@
-define("editions/Nederlands_Scrabble", ["editions/_ScrabbleLayout"], (BOARD) => {
+define("editions/Nederlands_Scrabble", ["editions/_Scrabble"], (Scrabble) => {
 
-	const BAG = [
+	const scrabble = Scrabble();
+	
+	scrabble.bag = [
 		{ score: 0, count: 2 },
 		{ letter: "A", score: 1, count: 6 },
 		{ letter: "B", score: 3, count: 2 },
@@ -30,5 +32,5 @@ define("editions/Nederlands_Scrabble", ["editions/_ScrabbleLayout"], (BOARD) => 
 		{ letter: "Z", score: 4, count: 2 }
 	];
 
-	return { layout: BOARD, bag: BAG };
+	return scrabble;
 });

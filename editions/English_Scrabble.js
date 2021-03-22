@@ -1,7 +1,9 @@
 // Classic Scrabble
-define("editions/English_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
+define("editions/English_Scrabble", ["editions/_Scrabble"], (Scrabble) => {
 
-	const BAG = [
+	const scrabble = Scrabble();
+	
+	scrabble.bag = [
 		{ score: 0, count: 2 },
 		{ letter: "A", score: 1, count: 9 },
 		{ letter: "B", score: 3, count: 2 },
@@ -31,5 +33,5 @@ define("editions/English_Scrabble", ["editions/_ScrabbleLayout"], (LAYOUT) => {
 		{ letter: "Z", score: 10, count: 1 }
 	];
 	
-	return { layout: LAYOUT, bag: BAG, rackCount: 7, swapCount: 7 };
+	return scrabble;
 });

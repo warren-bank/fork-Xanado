@@ -12,13 +12,14 @@ define("server/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack,
 			// +1 to allow space for tile swapping
 			this.rack = new Rack(rackSize + 1);
 			this.isRobot = false;
-			console.log("Created ",this);
+			//console.log("Created",this);
 		}
 
 		copy() {
 			const p = new Player(this.name, this.rackSize);
 			p.key = this.key;
 			p.isRobot = this.isRobot;
+			return p;
 		}
 		
 		joinGame(game, index) {
@@ -26,7 +27,7 @@ define("server/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack,
 			for (let i = 0; i < this.rackSize; i++) {
 				this.rack.squares[i].tile = game.letterBag.getRandomTile();
 			}
-			console.log(`${this.name} is joining with rack `, this.rack);
+			console.log(`${this.name} is joining`);
 			this.score = 0;
 		}
 
@@ -87,16 +88,15 @@ define("server/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack,
 							blank: false
 						});
 						
-					if (move.axis === 'v')
-						row++;
-					else
-						col++;
+					row += move.drow;
+					col += move.dcol;
 				}
 				if (placements.length == 0) {
 					console.log(`${this.name} can't move, passing`);
 					return game.pass(player, 'pass');
 				} else {
-					console.log(`${this.name} best move ${move.word} @`, move.start);
+					console.log(
+						`${this.name} best move ${move.word} @`, move.start);
 					return game.makeMove(player, placements);
 				}
 			});

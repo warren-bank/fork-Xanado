@@ -6,10 +6,14 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 		 * @param edition the Edition defining the board layout
 		 */
 		constructor(edition) {
-			this.allPlacedBonus = edition.allPlacedBonus;
+			// Copy essentials from the Edition, so we don't try
+			// to serialise the Edition
+			this.bonuses = edition.bonuses;
+			this.rackCount = edition.rackCount;
+			this.swapCount = edition.swapCount;
 			this.dim = edition.dim;
+
 			this.middle = Math.floor(this.dim / 2);
-			
 			this.squares = new Array(this.dim);
 
 			for (let col = 0; col < this.dim; col++) {
@@ -22,9 +26,6 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 					this.squares[col][row] = new Square(type, this, col, row);
 				}
 			}
-
-			this.rackCount = edition.rackCount;
-			this.swapCount = edition.swapCount;
 			
 			triggerEvent('BoardReady', [ this ]);
 		}
@@ -108,8 +109,20 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 		}
 
 		/**
-		 * UI-side move calculation.
-		 * @return an object representing the move 
+		 * Calculate the bonus if tilesPlaced tiles are placed
+		 * Really belong in Edition, but here because Edition is
+		 * not sent to the client.
+		 */
+		calculateBonus(tilesPlaced) {
+			if (typeof this.bonuses[tilesPlaced] === "number")
+				return this.bonuses[tilesPlaced];
+			return 0;
+		}
+		
+		/**
+		 * UI-side move calculation. Note that the score calculated
+		 * does NOT include any bonuses!
+		 * @return an object representing the move.
 		 */
 		analyseMove() {
 			const squares = this.squares;
@@ -215,10 +228,6 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 										   blank: square.tile.isBlank() });
 					}
 				}
-			}
-			if (tilesPlaced.length == this.rackCount) {
-				move.score += this.allPlacedBonus;
-				move.allTilesBonus = true;
 			}
 			move.tilesPlaced = tilesPlaced;
 

@@ -20,7 +20,6 @@ const deps = [
 	'icebox',
 	'server/Game',
 	'server/Player',
-	'server/ComputerPlayer',
 	'server/DirtyDB', // or server/FileDB, or server/RedisDB
 	'game/Tile',
 	'game/Square',
@@ -33,7 +32,7 @@ const deps = [
 /* global APP_DIR */
 global.APP_DIR = null;
 
-define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, Game, Player, ComputerPlayer, DB, Tile, Square, Board, Rack, LetterBag, Edition, findBestMove) => {
+define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, Game, Player, DB, Tile, Square, Board, Rack, LetterBag, Edition, findBestMove) => {
 
 	// Live games; map from game key to Game
 	const games = {};
@@ -375,7 +374,6 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		db.registerObject(LetterBag);
 		db.registerObject(Game);
 		db.registerObject(Player);
-		db.registerObject(ComputerPlayer);
 	}
 	
 	function runServer(config) {
