@@ -535,7 +535,8 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 
 			const $div = $(`#${square.id}`)
 				  .removeClass("Selected")
-				  .removeClass("Temp");
+				  .removeClass("Temp")
+				  .off("click");
 			
 			if (square.tile) {
 				// There's a tile on the square
@@ -543,15 +544,19 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				.removeClass('Empty')
 				.addClass('Tile');
 				
-				if (square.tileLocked)
-					$div.addClass('Locked');
-				else
-					$div.addClass('Temp');
-
+				if ($div.hasClass("ui-droppable"))
+					$div.droppable("destroy");
+				
 				if (square.tile.isBlank())
 					$div.addClass('BlankLetter');
 				
-				if (!square.tileLocked) {
+				if (square.tileLocked) {
+					$div.addClass('Locked');
+					if ($div.hasClass("ui-draggable"))
+						$div.draggable("destroy");
+				} else {
+					$div.addClass('Temp');
+
 					// tile isn't locked, valid drag source
 					$div.on("click", () => {
 						if (ui.currentlySelectedSquare) {
@@ -590,14 +595,17 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 						}
 					});
 				}
-				if (square.tile.letter && square.tile.letter === "_") {
+				if (square.tile.letter && square.tile.letter === "_")
 					square.tile.letter = "";
-				}
+
 				let $a = $("<a></a>");
 				$a.append(`<span class='Letter'>${square.tile.letter ? square.tile.letter : ''}</span>`);
 				$a.append(`<span class='Score'>${square.tile.score ? square.tile.score : '0'}</span>`);
 				$div.html($a);
 			} else { // no tile on the square, valid drop target
+				if ($div.hasClass("ui-draggable"))
+					$div.draggable("destroy");
+				
 				if (!ui.boardLocked()) {
 					$div.on("click", () => {
 						if (ui.currentlySelectedSquare) {
@@ -612,7 +620,8 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 							ui.playAudio("tiledown");
 						}
 					});
-				}
+				} else if ($div.hasClass("ui-droppable"))
+					$div.droppable("destroy");
 				
 				let text = square.scoreText(ui.board.middle);
 				$div.addClass('Empty')
