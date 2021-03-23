@@ -113,7 +113,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		displayNextGameMessage(nextGameKey) {
 			if (nextGameKey) {
 				$('#log')
-				.append(`<div class='nextGame'><a href='/game/${nextGameKey}/${$.cookie(this.gameKey)}'>next game</a></div>`);
+				.append(`<a href='/game/${nextGameKey}/${$.cookie(this.gameKey)}'><button class='nextGame'>Next game</button></a>`);
 				$('#makeNextGame').remove();
 			} else {
 				let $but = $(`<button>Another game</button>`);
@@ -410,7 +410,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			
 			.on('disconnect', data => {
 				console.debug('Server: Socket disconnected');
-				$reconnectDialog = $('#problem_dialog')
+				$reconnectDialog = $('#problemDialog')
 				.text("Server disconnected, trying to reconnect")
 				.dialog({ modal: true });
 				setTimeout(() => {
@@ -483,7 +483,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			if (counts.letterBag > 0) {
 				$('#letterbagStatus')
 				.empty()
-				.append(`<div><span id='remainingTileCount'>${counts.letterBag}</span> remaining tiles</div>`);
+				.append(`<div><span class='remainingTileCount'>${counts.letterBag}</span> remaining tiles</div>`);
 				$('#scoreboard td.remainingTiles').empty();
 			} else {
 				$('#letterbagStatus')
@@ -930,7 +930,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 									   arguments: args }),
 				success: success,
 				error: function(jqXHR, textStatus, errorThrown) {
-					$('#problem_dialog')
+					$('#problemDialog')
 					.text(`Move request returned error: ${textStatus} (${errorThrown})`)
 					.dialog();
 				}
@@ -976,7 +976,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				let move = this.board.analyseMove();
 				if (move.error) {
 					// fatal - should never get here
-					$('#problem_dialog')
+					$('#problemDialog')
 					.text(move.error)
 					.dialog();
 					return;
@@ -1001,7 +1001,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				this.enableNotifications();
 			}
 			catch (e) {
-				$('#problem_dialog')
+				$('#problemDialog')
 				.text(`error in commitMove: ${e}`)
 				.dialog({ modal: true });
 			}

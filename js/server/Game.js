@@ -191,6 +191,20 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 				placements[i][0].placeTile(newRack[i]);
 			}
 			console.log("words ", move.words);
+			if (this.dictionary) {
+				let game = this;
+				Dictionary.load(game.dictionary)
+				.then(dict => {
+					for (let w of move.words) {
+						console.log("Checking ",w);
+						if (!dict.hasWord(w.word))
+							game.notifyListeners(
+								'message', {
+									name: "Dictionary",
+									text: `${w.word} was not found` });
+					}
+				});
+			}
 			
 			game.previousMove = {
 				placements: placements,

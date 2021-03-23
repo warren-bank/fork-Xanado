@@ -75,7 +75,7 @@ requirejs(["jquery", "jquery-ui"], () => {
 					if (playerNames.indexOf(name) >= 0) {
 						event.stopPropagation();
 						event.preventDefault();
-						$('#problem_dialog')
+						$('#problemDialog')
 						.text("Player names must be unique")
 						.dialog()
 						.open();
@@ -88,7 +88,7 @@ requirejs(["jquery", "jquery-ui"], () => {
 			if (playerCount < 2) {
 				event.stopPropagation();
 				event.preventDefault();
-				$('#problem_dialog')
+				$('#problemDialog')
 				.text("Require at least 2 players to make a game")
 				.dialog()
 				.open();

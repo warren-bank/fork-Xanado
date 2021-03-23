@@ -407,7 +407,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		});
 		
 		process.on('unhandledRejection', function(reason) {
-			console.log("Unhandled Rejection:", reason, reason.stack);
+			console.log("Command rejected", reason, reason.stack);
 		});
 		
 		// TODO: use OAuth

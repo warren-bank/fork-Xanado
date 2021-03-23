@@ -30,7 +30,7 @@ div.bottomShade table {
 }
 
 /* Wraps everything */
-div#container {
+div.container {
     /*width: 59em;*/
 }
 
@@ -193,7 +193,7 @@ div#blankLetterRequester {
     font-size: 1em;
 }
 
-#boardWrap {
+.boardWrap {
     margin-top: 1em;
 	margin-left: 1em;
     float: left;

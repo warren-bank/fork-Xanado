@@ -308,7 +308,7 @@ class Trie {
 			// words are added in alphabetical order, but this is not
 			// a requirement.
 			if (x === word.length - 1) {
-				console.log("WARNING input not in alphabetical order");
+				console.log(`WARNING input not in alphabetical order ${word}`);
 				current.isEndOfWord = true;
 			}
 		}
@@ -552,6 +552,7 @@ requirejs(["node-getopt", "fs-extra", 'node-gzip', 'game/Dictionary'], (Getopt, 
 			.toString()
 			.toUpperCase()
 			.split(/\r?\n/)
+			.map(w => w.replace(/[\W].*$/, "")) // comments
 			.sort();
 
 		// First step; generate a Trie from the words in the lexicon

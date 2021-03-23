@@ -1,4 +1,4 @@
-	<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -17,7 +17,7 @@
 
 	<script data-main="rjs_config.js" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script>
   </head>
-  <body id="body">
+  <body>
     <audio id="yourturn" src="/audio/yourturn.mp3" preload="auto" type="audio/mp3"></audio>
     <audio id="endCheer" src="/audio/endCheer.mp3" preload="auto" type="audio/mp3"></audio>
     <audio id="bonusCheer" src="/audio/bonusCheer.mp3" preload="auto" type="audio/mp3"></audio>
@@ -25,8 +25,8 @@
 	<audio id="oops" src="/audio/oops.mp3" preload="auto" type="audio/mp3"></audio>
 	<audio id="teehee" src="/audio/teehee.mp3" preload="auto" type="audio/mp3"></audio>
 	<script type="text/javascript">requirejs(["js/ui/game"]);</script>
-    <div id="container">
-      <div id="boardWrap">
+    <div class="container">
+      <div class="boardWrap">
         <div id="board" class="tableDivWrap surroundShade"></div>
         <div id="rack" class="tableDivWrap bottomShade">
 		  <div id="timeout"></div>
@@ -76,7 +76,7 @@
 		Select the letter for the blank
 		<table id="blankLetterTable"></table>
       </div>
-	  <div id="problem_dialog" class="hidden">
+	  <div id="problemDialog" class="hidden">
 		Houston, we have a problem
 	  </div>
     </div>
