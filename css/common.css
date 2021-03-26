@@ -21,3 +21,8 @@ body
     user-select: none;
 }
 
+.glyph {
+	width: 1em;
+	height: 1em;
+}
+

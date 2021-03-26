@@ -69,7 +69,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		if (!game.endMessage) {
 			// May need to trigger computer players
 			let fp = game.players[game.whosTurn];
-			console.log(`Next to play is ${fp}`);
+			console.log(`Next to play is ${fp.isRobot ? "robot" : "human"} ${fp}`);
 			if (fp.isRobot) {
 				fp.autoplay(game)
 				.then(result => {
@@ -98,8 +98,8 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 					  players: game.players.map(player => {
 						  return {
 							  name: player.name,
+							  isRobot: player.isRobot,
 							  connected: game.isConnected(player),
-							  email: player.email,
 							  key: player.key,
 							  hasTurn: player == game.players[game.whosTurn]};
 					  })};
@@ -133,33 +133,36 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 	
 	// Handle construction of a game given up to 6 players. Name is required
 	// for each player. Optional email may be sent.
-	function newGame(req, res) {
+	function newGame(req, res, next) {
 		console.log(`Constructing new game ${req.body.edition}`);
 				
+		if (req.body.players.length < 2)
+			throw Error('At least two players must participate in a game');
+
 		Edition.load(req.body.edition)
 		.then(edition => {
 
 			const players = [];
-			for (let x = 1; x <= 6; x++) {
-				const name = req.body[`name${x}`];
-				if (name) {
-					const player = new Player(name, edition.rackCount);
-					if (/^robot\d+$/i.test(name))
-						player.isRobot = true;
-					else
+			let haveHuman = false;
+			for (let p of req.body.players) {
+				const player = new Player(p.name, edition.rackCount);
+				player.isRobot = (p.isRobot == "true");
+				if (!player.isRobot) {
+					haveHuman = true;
+					if (player.email)
 						// optional, may be empty
-						player.email = req.body[`email${x}`];
-
-					players.push(player);
-					console.log(player.toString());
+						player.email = p.email;
 				}
+
+				players.push(player);
+				console.log(player.toString());
 			}
 		
-			if (players.length < 2)
-				throw Error('at least two players must participate in a game');
+			if (!haveHuman)
+				throw Error('At least one player must be a human!');
 
-			console.log(`Game of ${players.length} players`);
-
+			console.log(`Game of ${players.length} players`, players);
+			
 			let game = new Game(edition, players);
 
 			if (req.body.dictionary && req.body.dictionary != "None") {
@@ -173,7 +176,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 				console.log(`\t${game.time_limit} minute time limit`);
 			else
 				console.log("\twith no time limit");
-			
+
 			// Save the game when everything has been initialised
 			game.save();
 
@@ -183,7 +186,7 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			res.redirect("/html/games.html");
 		})
 		.catch(e => {
-			console.error(`Failed to create game: `, e);
+			res.status(500).send(e.toString());
 		});
 	}
 
@@ -502,10 +505,10 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 					findBestMove(socket.game, socket.player)
 					.then(move => {
 						let start = move.start;
-						let cheat = `${move.word} ${move.axis} at row ${start[1] + 1} column ${start[0] + 1} for ${move.score}`;
+						let cheat = `${move.word} at row ${start[1] + 1} column ${start[0] + 1} for ${move.score}`;
 						socket.game.notifyListeners(
 							'message', {
-								name: socket.player.name,
+								name: 'Dictionary',
 								text: cheat });
 					});
 				} else

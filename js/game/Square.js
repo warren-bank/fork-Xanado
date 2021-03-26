@@ -43,8 +43,10 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 		 * (fixed on the board)
 		 */
 		placeTile(tile, locked) {
-			if (tile && this.tile)
+			if (tile && this.tile && tile !== this.tile) {
+				console.log("Tile ", tile, " over ", this.tile);
 				throw Error(`square already occupied: ${this}`);
+			}
 
 			if (tile) {
 				this.tile = tile;

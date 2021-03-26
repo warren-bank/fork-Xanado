@@ -4,7 +4,8 @@
 
 requirejs(["jquery", "socket.io"], (jq, io) => {
 	const BLACK_CIRCLE = '\u25cf';
-
+	const ROBOT_FACE = ' <img class="glyph" src="/images/robotface.png" />';
+	
 	$(document).ready(() => {
 
 		function refresh() {
@@ -27,9 +28,10 @@ requirejs(["jquery", "socket.io"], (jq, io) => {
 					
 					game.players.map(player => {
 						let $but = $(`<button class="player">${player.name}</button>`);
-						if (/^robot\d+$/i.test(player.name))
+						if (player.isRobot) {
+							$but.append(ROBOT_FACE);
 							$but.prop("disabled", true);
-						else {
+						} else {
 							if (player.connected)
 								$but.append(` <span class="greenDot">${BLACK_CIRCLE}</span>`);
 							let $a = $(`<a href='/game/${game.key}/${player.key}'></a>`);

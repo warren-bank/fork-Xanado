@@ -40,3 +40,7 @@ button.player {
 .greenDot {
 	color: seagreen;
 }
+
+.hidden {
+	display: none;
+}

@@ -387,7 +387,6 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			
 			this.socket = io.connect(null, { transports: transports });
 
-			let ui = this;
 			let $reconnectDialog = null;
 			
 			this.socket
@@ -398,13 +397,13 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					$reconnectDialog = null;
 				}
 				console.debug('Server: Socket connected');
-				if (ui.wasConnected) {
-					ui.cancelNotification();
+				if (this.wasConnected) {
+					this.cancelNotification();
 					//window.location = window.location;
 				} else {
-					ui.wasConnected = true;
-					ui.socket.emit('join', { gameKey: ui.gameKey,
-											 playerKey: ui.playerKey });
+					this.wasConnected = true;
+					this.socket.emit('join', { gameKey: this.gameKey,
+											 playerKey: this.playerKey });
 				}
 			})
 			
@@ -413,6 +412,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				$reconnectDialog = $('#problemDialog')
 				.text("Server disconnected, trying to reconnect")
 				.dialog({ modal: true });
+				let ui = this;
 				setTimeout(() => {
 					ui.socket.emit('join', { gameKey: ui.gameKey,
 											 playerKey: ui.playerKey });
@@ -420,15 +420,16 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				
 			})
 			
-			.on('turn', turn => ui.processTurn(turn))
+			.on('turn', turn => this.processTurn(turn))
 			
 			.on('gameEnded', endMessage => {
 				console.debug("Received gameEnded");
-				ui.displayEndMessage(endMessage, true);
-				ui.notify('Game over!', 'Your game is over...');
+				this.displayEndMessage(endMessage, true);
+				this.notify('Game over!', 'Your game is over...');
 			})
 			
-			.on('nextGame', nextGameKey => ui.displayNextGameMessage(nextGameKey))
+			.on('nextGame', nextGameKey =>
+				this.displayNextGameMessage(nextGameKey))
 			.on('message', message => {
 				console.debug(`Server: Message ${message.text}`);
 				// Chat received
@@ -437,9 +438,8 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				.append($mess)
 				.animate({ scrollTop: $('#chatLog').prop('scrollHeight') }, 100);
 				
-				if (message.name != ui.thisPlayer.name) {
-					ui.notify(message.name + " says", message.text);
-				}
+				if (message.name != this.thisPlayer.name)
+					this.notify(message.name + " says", message.text);
 			})
 			
 			.on('join', info => {
@@ -461,21 +461,22 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				.removeClass('online')
 				.addClass('offline');
 			});
-			
+
+			let socket = this.socket;
 			$('input[name=message]')
 			.bind('change', function() {
 				// Send chat
-				ui.socket.emit('message',
-							   { name: ui.thisPlayer.name,
-								 text: $(this).val() });
+				socket.emit('message',
+							{ name: ui.thisPlayer.name,
+							  text: $(this).val() });
 				$(this).val('');
 			});
 			
 			$(document)
-			.bind('SquareChanged', (e, square) => ui.updateSquare(square))
-			.bind('Refresh', () => ui.refresh())
-			.bind('RefreshRack', () => ui.refreshRack())
-			.bind('RefreshBoard', () => ui.refreshBoard());
+			.bind('SquareChanged', (e, square) => this.updateSquare(square))
+			.bind('Refresh', () => this.refresh())
+			.bind('RefreshRack', () => this.refreshRack())
+			.bind('RefreshBoard', () => this.refreshBoard());
 		}
 		
 		displayRemainingTileCounts() {
@@ -520,135 +521,139 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			} else
 				throw Error(`cannot parse #${id}`);
 		}
-		
+
+		// A square is a space for a tile on a rack or on the board
 		updateSquare(square) {
-			if (square.owner == this.rack || square.owner == this.swapRack)
-				this.updateRackSquare(square);
-			else if (square.owner == this.board)
-				this.updateBoardSquare(square);
-			else
-				throw Error(`could not identify owner of square ${square}`);
-		}
-		
-		updateBoardSquare(square) {
-			let ui = this;
-
-			const $div = $(`#${square.id}`)
-				  .removeClass("Selected")
-				  .removeClass("Temp")
-				  .off("click");
+			let $div = $(`#${square.id}`)
+				.removeClass("Selected")
+				.removeClass("Temp")
+				.off("click");
 			
-			if (square.tile) {
-				// There's a tile on the square
-				$div
-				.removeClass('Empty')
-				.addClass('Tile');
-				
-				if ($div.hasClass("ui-droppable"))
-					$div.droppable("destroy");
-				
-				if (square.tile.isBlank())
-					$div.addClass('BlankLetter');
-				
-				if (square.tileLocked) {
-					$div.addClass('Locked');
-					if ($div.hasClass("ui-draggable"))
-						$div.draggable("destroy");
-				} else {
-					$div.addClass('Temp');
+			if (square.tile)
+				this.updateOccupiedSquare(square, $div);
+			else
+				this.updateEmptySquare(square, $div);
 
-					// tile isn't locked, valid drag source
-					$div.on("click", () => {
-						if (ui.currentlySelectedSquare) {
-							if (ui.currentlySelectedSquare == square) {
-								ui.selectSquare(null);
-								return;
-							}
-						}
-						ui.selectSquare(square);
-					});
-					
-					let doneOnce = false;
-					
-					$div.draggable({
-						revert: "invalid",
-						opacity: 1,
-						helper: "clone",
-						
-						start: (event, jui) => {
-							ui.selectSquare(null);
-							$(this).css({ opacity: 0.5 });
-							$(jui.helper)
-							.animate({'font-size' : '120%'}, 300)
-							.addClass("dragBorder");
-						},
-						
-						drag: (event, jui) => {
-							if (!doneOnce) {
-								$(jui.helper).addClass("dragBorder");
-								doneOnce = true;
-							}
-						},
-						
-						stop: () => {
-							$(this).css({ opacity: 1 });
-						}
-					});
-				}
-				if (square.tile.letter && square.tile.letter === "_")
-					square.tile.letter = "";
+		}
 
-				let $a = $("<a></a>");
-				$a.append(`<span class='Letter'>${square.tile.letter ? square.tile.letter : ''}</span>`);
-				$a.append(`<span class='Score'>${square.tile.score ? square.tile.score : '0'}</span>`);
-				$div.html($a);
-			} else { // no tile on the square, valid drop target
+		updateOccupiedSquare(square, $div) {
+
+			if ($div.hasClass("ui-droppable"))
+				$div.droppable("destroy");
+
+			$div
+			.removeClass("Empty")
+			.addClass("Tile");
+				
+			if (square.tile.isBlank())
+				$div.addClass('BlankLetter');
+				
+			if (square.owner == this.board && square.tileLocked) {
+				$div.addClass('Locked');
 				if ($div.hasClass("ui-draggable"))
 					$div.draggable("destroy");
-				
-				if (!ui.boardLocked()) {
-					$div.on("click", () => {
-						if (ui.currentlySelectedSquare) {
-							ui.moveTile(ui.currentlySelectedSquare, square);
-							ui.selectSquare(null);
+			} else {
+				// tile isn't locked, valid drag source
+				$div
+				.addClass('Temp')
+				.on("click", () => {
+					if (this.currentlySelectedSquare) {
+						if (this.currentlySelectedSquare == square) {
+							this.selectSquare(null);
+							return;
 						}
-					})
-					.droppable({
-						hoverClass: "dropActive",
-						drop: function(event, jui) {
-							ui.moveTile(ui.idToSquare($(jui.draggable).attr("id")), square);
-							ui.playAudio("tiledown");
-						}
-					});
-				} else if ($div.hasClass("ui-droppable"))
-					$div.droppable("destroy");
-				
-				let text = square.scoreText(ui.board.middle);
-				$div.addClass('Empty')
-				.removeClass('Tile')
-				.html(`<a>${text}</a>`);
+					}
+					this.selectSquare(square);
+				});
+					
+				$div.draggable({
+					revert: "invalid",
+					opacity: 1,
+					helper: "clone",
+					
+					start: (event, jui) => {
+						$div.css({ opacity: 0.5 });
+						this.selectSquare(null);
+						$(jui.helper)
+						.animate({'font-size' : '120%'}, 300)
+						.addClass("dragBorder");
+					},
+					
+					drag: (event, jui) => $(jui.helper).addClass("dragBorder"),
+					
+					stop: () => $div.css({ opacity: 1 })
+				});
 			}
+
+			if (square.tile.letter && square.tile.letter === "_") {
+				throw "DON't THINK SHOULD EVER FIRE";
+				square.tile.letter = "";
+			}
+
+			let letter = square.tile.letter ? square.tile.letter : '';
+			let score = square.tile.score ? square.tile.score : '0';
 			
-			//$(`#${square.id}`)
-			//.parent()
-			//.empty()
-			//.append($div);
+			let $a = $("<a></a>");
+			$a.append(`<span class='Letter'>${letter}</span>`);
+			$a.append(`<span class='Score'>${score}</span>`);
+			$div.html($a);
+		}
+
+		updateEmptySquare(square, $div) {
+			
+			// Not draggable
+			if ($div.hasClass("ui-draggable"))
+				$div.draggable("destroy");
+
+			// no tile on the square, valid drop target
+			$div
+			.removeClass("Tile")
+			.addClass("Empty");
+						
+			if (square.owner == this.board && this.boardLocked()) {
+				if ($div.hasClass("ui-droppable"))
+					$div.droppable("destroy");
+			}
+			else {
+				$div.on("click", () => {
+					if (this.currentlySelectedSquare) {
+						this.moveTile(this.currentlySelectedSquare, square);
+						this.selectSquare(null);
+					}
+				})
+
+				.droppable({
+					hoverClass: "dropActive",
+					drop: (event, jui) => {
+						this.moveTile(this.idToSquare(
+							$(jui.draggable).attr("id")), square);
+						this.playAudio("tiledown");
+					}
+				});
+			}
+
+			let text = (square.owner == this.board)
+				? square.scoreText(this.board.middle) : "";
+
+			$div.addClass('Empty')
+			.removeClass('Tile')
+			.html(`<a>${text}</a>`);
 		}
 		
 		drawBoard() {
 			let board = this.board;
 
 			let tab = $("<table></table>");
-			for (let y = 0; y < board.dim; y++) {
+			for (let row = 0; row < board.dim; row++) {
 				let tr = $("<tr></tr>");
-				for (let x = 0; x < board.dim; x++) {
-					let square = board.squares[x][y];
-					let id = `Board_${x}x${y}`;
+				for (let col = 0; col < board.dim; col++) {
+					let square = board.squares[col][row];
+					let id = `Board_${col}x${row}`;
 					square.id = id;
 					let td = $(`<td></td>`);
 					tr.append(td);
 					td.addClass(SQUARE_CLASS[square.type]);
-					if (x == board.middle && y == board.middle)
+					if (col == board.middle && row == board.middle)
 						td.addClass('StartField');
 					else if (square.type != '_')
 						td.addClass('SpecialField');
@@ -660,87 +665,6 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			$('#board').append(tab);
 			
 			this.refreshBoard();
-		}
-
-		// Update a square in this.rack or this.swapRack
-		updateRackSquare(square) {
-			let $div = $(`#${square.id}`);
-			let $td = $div.parent();
-			$div.empty();
-			
-			let $a = $("<a></a>");
-			$div.append($a);
-			
-			let ui = this;
-			// we're creating a bunch of callbacks below that close over the UI object
-			
-			if (square.tile) {
-				$div.removeClass('Empty');
-				$div.addClass('Tile');
-				if (square.tile.isBlank()) {
-					$div.addClass('BlankLetter');
-				}
-				$div
-				.addClass('Temp')
-				.click(
-					function () {
-						if (ui.currentlySelectedSquare) {
-							if (ui.currentlySelectedSquare == square) {
-								ui.selectSquare(null);
-								return;
-							}
-						}
-						ui.selectSquare(square);
-					}
-				);
-				
-				let doneOnce = false;
-				
-				$div.draggable({
-					revert: "invalid",
-					opacity: 1,
-					helper: "clone",
-					start: function(event, jui) {
-						ui.selectSquare(null);
-						$(this).css({ opacity: 0.5 });
-						$(jui.helper)
-						.animate({'font-size' : '120%'}, 300)
-						.addClass("dragBorder");
-					},
-					
-					drag: function(event, jui) {
-						if (!doneOnce) {
-							$(jui.helper).addClass("dragBorder");
-							doneOnce = true;
-						}
-					},
-					stop: function(event, jui) {
-						$(this).css({ opacity: 1 });
-					}
-				});
-				
-				$a.append(`<span class='Letter'>${square.tile.letter ? square.tile.letter : ''}</span>`);
-				$a.append(`<span class='Score'>${square.tile.score ? square.tile.score : ''}</span>`);
-			} else {
-				$div.removeClass('Tile');
-				$div.addClass('Empty');
-				
-				$div.click(
-					() => {
-						if (ui.currentlySelectedSquare) {
-							ui.moveTile(ui.currentlySelectedSquare, square);
-							ui.selectSquare(null);
-						}
-					}
-				);
-				
-				$div.droppable({
-					hoverClass: "dropActive",
-					drop: function(event, jui) {
-						ui.moveTile(ui.idToSquare($(jui.draggable).attr("id")), square);
-					}
-				});
-			}
 		}
 
 		createRackUI(rack, idbase) {
@@ -756,20 +680,19 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				}
 				$rack.append($td);
 				rack.squares[idx].id = id;
-				this.updateRackSquare(rack.squares[idx]);
+				this.updateSquare(rack.squares[idx]);
 			}
 		}
 		
 		refreshRack() {
-			this.rack.squares.forEach(s => this.updateRackSquare(s));
+			this.rack.squares.forEach(s => this.updateSquare(s));
 		}
 		
 		refreshBoard() {
 			let board = this.board;
-			for (let y = 0; y < board.dim; y++) {
-				for (let x = 0; x < board.dim; x++) {
-					this.updateBoardSquare(board.squares[x][y]);
-				}
+			for (let col = 0; col < board.dim; col++) {
+				for (let row = 0; row < board.dim; row++)
+					this.updateSquare(board.squares[col][row]);
 			}
 		}
 		
@@ -777,12 +700,13 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			this.refreshRack();
 			this.refreshBoard();
 		}
-		
+
+		// Square selection is used for click-click moves when dragging
+		// isn't available
 		selectSquare(square) {
 			
-			if (this.currentlySelectedSquare) {
+			if (this.currentlySelectedSquare)
 				$('#' + this.currentlySelectedSquare.id).removeClass('Selected');
-			}
 			
 			this.currentlySelectedSquare = square;
 			
@@ -802,17 +726,13 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		
 		moveTile(fromSquare, toSquare) {
 			let tile = fromSquare.tile;
-			let ui = this;
-
-			function setLetter(letter) {
-				tile.letter = letter;
-				ui.updateSquare(toSquare);
-			}
 
 			fromSquare.placeTile(null);
 			fromSquare.owner.tileCount--;
-			if (tile.isBlank() && !tile.letter || (tile.letter == ' ')) {
-				if (fromSquare.owner != this.board && toSquare.owner == this.board) {
+			if (tile.isBlank()) {			
+				if (fromSquare.owner != this.board
+					&& toSquare.owner == this.board) {
+					
 					let $dlg = $('#blankDialog');
 					let $tab = $("#blankLetterTable");
 					$tab.empty();
@@ -830,7 +750,8 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 						}
 						let $td = $(`<td>${letter}</td>`);
 						$td.on('click', () => {
-							setLetter(letter);
+							tile.letter = letter;
+							this.updateSquare(toSquare);
 							$dlg.dialog("close");
 						});
 						$row.append($td);
@@ -845,14 +766,16 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 						closeText: "hide"
 					});
 							
-				} else if (toSquare.owner == ui.rack
-						   || toSquare.owner == ui.swapRack) {
+				} else if (toSquare.owner == this.rack
+						   || toSquare.owner == this.swapRack) {
 					tile.letter = ' ';
+					this.updateSquare(toSquare);
 				}
 			}
 			toSquare.placeTile(tile);
 			toSquare.owner.tileCount++;
 			if (!this.boardLocked()) {
+				const ui = this;
 				window.setTimeout(() => ui.updateGameStatus(), 500);
 			}
 		}
@@ -930,9 +853,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 									   arguments: args }),
 				success: success,
 				error: function(jqXHR, textStatus, errorThrown) {
-					$('#problemDialog')
-					.text(`Move request returned error: ${textStatus} (${errorThrown})`)
-					.dialog();
+					console.error(`Move request returned error: ${textStatus} (${errorThrown})`);
 				}
 			});
 		}
@@ -966,7 +887,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				if (data.newRack.length && !square.tile) {
 					square.placeTile(data.newRack.pop());
 					this.rack.tileCount++;
-					this.updateRackSquare(square);
+					this.updateSquare(square);
 				}
 			}
 		}
@@ -991,7 +912,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					let tilePlaced = move.tilesPlaced[i];
 					let square = this.board.squares[tilePlaced.col][tilePlaced.row];
 					square.tileLocked = true;
-					this.updateBoardSquare(square);
+					this.updateSquare(square);
 				}
 				this.board.tileCount = 0;
 				this.sendMoveToServer('makeMove',
@@ -1083,12 +1004,12 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			
 			function putBackToRack(tile) {
 				if (tile.isBlank())
-					tile.letter = ' ';
+					tile.letter = '';
 
 				let square = freeRackSquares.pop();
 				square.tile = tile;
 				ui.rack.tileCount++;
-				ui.updateRackSquare(square);
+				ui.updateSquare(square);
 			}
 			
 			for (let y = 0; y < this.board.dim; y++) {
@@ -1098,7 +1019,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 						putBackToRack(boardSquare.tile);
 						boardSquare.tile = null;
 						this.board.tileCount--;
-						this.updateBoardSquare(boardSquare);
+						this.updateSquare(boardSquare);
 					}
 				}
 			}
@@ -1108,7 +1029,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					putBackToRack(square.tile);
 					square.tile = null;
 					this.swapRack.tileCount--;
-					this.updateRackSquare(square);
+					this.updateSquare(square);
 				}
 			}
 			this.updateGameStatus();
@@ -1143,14 +1064,15 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			let ui = this;
 			if (window.webkitNotifications) {
 				this.cancelNotification();
-				let notification = window.webkitNotifications.createNotification('favicon.ico', title, text);
+				let notification = window.webkitNotifications
+					.createNotification('favicon.ico', title, text);
 				this.notification = notification;
 				$(notification)
 				.on('click', function () {
 					this.cancel();
 				})
-				.on('close', function () {
-					delete ui.notification;
+				.on('close', () => {
+					delete this.notification;
 				});
 				notification.show();
 			}

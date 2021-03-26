@@ -297,8 +297,7 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 				promise = Dictionary.load(game.dictionary)
 				.then(dict => {
 					return game.previousMove.words
-					.filter(word => !dict.hasWord(
-						game.edition.getLetterIndices(word)));
+					.filter(word => !dict.hasWord(word));
 				});
 			} else
 				promise = Promise.resolve([]);
