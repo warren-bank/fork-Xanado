@@ -39,5 +39,11 @@ define("editions/English_WWF", () => {
 		{ letter: "Z", score: 10, count: 1 }
 	];
 	
-	return { layout: BOARD, bag: BAG, swapCount: 7, rackCount: 7 };
+	return {
+		layout: BOARD,
+		bag: BAG,
+		swapCount: 7,
+		rackCount: 7,
+		bonuses: { 7: 35 } 
+	};
 });

@@ -88,7 +88,9 @@ requirejs(["jquery", "jquery-ui"], () => {
 
 	$(document).ready(() => {
 		
-		$(document).tooltip();
+		$(document).tooltip({
+			position: { at: "right center"}
+		});
 		
 		// Set the editions and dictionaries from config.json
 		$.getJSON('/config', data => {

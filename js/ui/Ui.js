@@ -6,7 +6,7 @@
 const deps = [
 	"jquery",    // Jquery and components are accessed via $
 	"jquery-ui",
-//	"touch-punch", // support for touch devices
+	//"touch-punch", // support for touch devices
 	"cookie",
 
 	"socket.io",
@@ -462,13 +462,13 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				.addClass('offline');
 			});
 
-			let socket = this.socket;
+			let ui = this;
 			$('input[name=message]')
 			.bind('change', function() {
 				// Send chat
-				socket.emit('message',
-							{ name: ui.thisPlayer.name,
-							  text: $(this).val() });
+				ui.socket.emit(
+					'message',
+					{ name: ui.thisPlayer.name, text: $(this).val() });
 				$(this).val('');
 			});
 			

@@ -505,11 +505,11 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 					findBestMove(socket.game, socket.player)
 					.then(move => {
 						let start = move.start;
-						let cheat = `${move.word} at row ${start[1] + 1} column ${start[0] + 1} for ${move.score}`;
+						let play = move.word ? `${move.word} at row ${start[1] + 1} column ${start[0] + 1} for ${move.score}` : "can't find a play";
 						socket.game.notifyListeners(
 							'message', {
 								name: 'Dictionary',
-								text: cheat });
+								text: play });
 					});
 				} else
 					socket.game.notifyListeners('message', message);
