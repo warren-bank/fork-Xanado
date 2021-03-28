@@ -66,56 +66,55 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 		}
 
 		/**
-		 * @param s the string built so far in this recursion
+		 * @param soFar the string built so far in this recursion
 		 * @param sortedChars the available set of characters, sorted
 		 */
-		findAnagrams(s, sortedChars) {
+		findAnagrams(soFar, sortedChars) {
 			let foundWords = [];
-
-			s += this.letter;
-
-			if (this.isEndOfWord)
-				// A word is found
-				foundWords.push(s);
-
-			let previousChar = -1;
-			if (sortedChars.length > 0 && this.child) {
-				let child = this.child;
-
-				// Characters left, and this node has children
-				for (let i = 0; child && i < sortedChars.length; i++) {
-					const currentChar = sortedChars[i];
-					
-					if (currentChar == previousChar)
-						continue; // hmmmmm
-					
-					do { // for each child of the subnode
-						const letter = child.letter;
-						if (currentChar == letter) {
-							sortedChars.splice(i, 1);
-							const moreWords = child.findAnagrams(s, sortedChars);
-							foundWords = foundWords.concat(moreWords);
-							sortedChars.splice(i, 0, currentChar);
-							child = child.next;
-							break;
-						}
-
-						if (currentChar < letter)
-							// Because we sorted the characters before
-							// starting, we know that any lower character
-							// has already been considered
-							break;
-
-						// Next child
-						child = child.next;
-						
-					} while (child);
-					
-					previousChar = currentChar;
-				}
-			}
 			
-			s.pop();
+			const word = soFar + this.letter;
+
+			if (this.isEndOfWord) {
+				// A word is found
+				foundWords.push(word);
+			}
+
+			let child = this.child;
+			if (sortedChars.length == 0 || !child)
+				return foundWords;
+
+			// Characters left, and this node has children
+			let previousChar = ''; // last char looked at, to avoid repeats
+			for (let i = 0; child && i < sortedChars.length; i++) {
+				const currentChar = sortedChars[i];
+				if (currentChar == previousChar)
+					continue; // hmmmmm
+					
+				do { // for each child of the subnode
+					const letter = child.letter;
+					if (currentChar == letter) {
+
+						sortedChars.splice(i, 1);
+						const moreWords = child.findAnagrams(word, sortedChars);
+						foundWords = foundWords.concat(moreWords);
+						sortedChars.splice(i, 0, currentChar);
+						child = child.next;
+						break;
+					}
+
+					if (currentChar < letter)
+						// Because we sorted the characters before
+						// starting, we know that any lower character
+						// has already been considered
+						break;
+
+					// Next child
+					child = child.next;
+						
+				} while (child);
+					
+				previousChar = currentChar;
+			}
 			
 			return foundWords;
 		}
@@ -195,7 +194,9 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 		 * @param theChars the letters
 		 * @return an array of anagrams
 		 */
-		findAnagrams(theChars) {	
+		findAnagrams(theChars) {
+			theChars = theChars.toUpperCase();
+			
 			if (theChars.length < 2)
 				return [ theChars ];
 
@@ -203,7 +204,7 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 			// unneccessary recursions in Node.findAnagrams by
 			// eliminating already-considered letters from consideration.
 			let sortedChars = theChars.split("").sort();
-			let foundWords = [];
+			const foundWords = {};
 			let previousChar = -1; // Impossible
 			
 			for (let i = 0; i < sortedChars.length; i++) {
@@ -214,22 +215,20 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 
 				// Remove currentChar from the list
 				sortedChars.splice(i, 1);
-
+				
 				// Recursively find anagrams rooted at the current index
 				// using the remaining letters
-				const moreWords = this.root.findAnagrams(
-					currentChar, '', sortedChars);
+				const moreWords = this.root.findAnagrams('', sortedChars);
 				
 				// Put the letter back where we found it
 				sortedChars.splice(i, 0, currentChar);
 
-				if (moreWords.length > 0)
-					foundWords = foundWords.concat(moreWords);
+				moreWords.forEach(w => foundWords[w] = true);
 
 				previousChar = currentChar;
 			}
 			
-			return foundWords;
+			return Object.keys(foundWords);
 		}
 	}
 	return Dictionary;

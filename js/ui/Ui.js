@@ -119,9 +119,9 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 				let $but = $(`<button></button>`);
 				$but.text($.i18n('button-another-game'));
 				$but.on('click', this.sendMoveToServer('anotherGame', null));
-				let $ngb = $("<div id='makeNextGame'></div>");
-				$ngb.append($but);
-				$ngb.append($.i18n('log-same-players'));
+				let $ngb = $("<div id='makeNextGame'></div>")
+					.append($but).append(" ")
+					.append($.i18n('log-same-players'));
 				$('#log').append($ngb);
 			}
 		}
