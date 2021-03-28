@@ -34,10 +34,9 @@ requirejs(["node-getopt", "fs-extra", "node-gzip", "game/Dictionary"], (Getopt, 
 				console.log(`"${word}" is BAD`);
 			if (opt.options.anagrams) {
 				console.log(`\nAnagrams of "${word}"`);
-				let anag = dict.findAnagrams(wa);
+				let anag = dict.findAnagrams(word);
 				console.log(anag);
-				let words = anag.map(a => a.map(i => alphabet.charAt(i)).join(""));
-				console.log(words.join(", "));
+				console.log(anag.join(", "));
 			}
 		}
 		console.log(`Checked ${words.length} words`);
@@ -54,7 +53,6 @@ requirejs(["node-getopt", "fs-extra", "node-gzip", "game/Dictionary"], (Getopt, 
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
 		.parseSystem();
 
-	let dawgfile;
     if (opt.argv.length == 0) {
         opt.showHelp();
         throw "No DAWG filename given";

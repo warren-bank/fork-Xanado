@@ -6,18 +6,52 @@
 
 requirejs.config({
 	paths: {
+		jquery:
+		"//cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min",
+		
+		jqueryui:
+		"//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min",
+		
+		i18n:
+		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.min",
+		
+		i18n_emitter:
+		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.emitter.min",
+
+		i18n_fallbacks:
+		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.fallbacks.min",
+
+		i18n_language:
+		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.language.min",
+
+		i18n_messagestore:
+		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.messagestore.min",
+		
+		i18n_parser:
+		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.parser.min",
+		
+		touchpunch:
+		"//cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min",
+		
 		"socket.io": "//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io",
-		jquery: "//cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min",
-		"touch-punch": "//cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min",
-		"jquery-ui": "//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min",
 		cookie: "//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min",
 
 		icebox: "js/repaired_icebox",
-		
-		server: "js/server",
+
+		browserApp: "js/ui/browserApp",
 		ui: "js/ui",
 		game: "js/game",
 		// use browser version of triggerEvent ($.trigger)
 		triggerEvent: "js/ui/triggerEvent"
+	},
+	
+	shim: {
+		jqueryui: ["jquery"],
+		i18n: ["jquery"],
+		i18n_emitter: ["i18n"],
+		i18n_fallbacks: ["i18n"],
+		i18n_language: ["i18n"],
+		i18n_messagestore: ["i18n"],
+		i18n_parser: ["i18n"]
 	}
 });

@@ -15,6 +15,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 	let rack;        // class Rack
 	let board;       // class Board
 	let edition;     // class Edition
+	let dict;        // Class Dictionary
 	
     let bestPlay;    // best play found so far
     let crossChecks; // checks for valid words on opposite axis
@@ -235,7 +236,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 
 			// This is a new tile, need to analyse cross words and
 			// apply bonuses
-			let crossWord = ''; // debug
+			//let crossWord = ''; // debug
 			let crossWordScore = 0;
 				
 			// Look left/up
@@ -464,50 +465,56 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 	 * @param rack rack in the form of a simple array of letters
 	 * @param board the partially-complete Board
 	 * @param e Edition
-	 * @return data containing the best possible move information.
+	 * @return Promise that resolves to data containing the best
+	 * possible move information.
 	 */
-	async function findBestMove(game, player) {		
-		if (!game.edition)
+	function findBestMove(game, player) {		
+		if (!game.edition) {
 			console.log("Game has no edition", game);
-		await Edition.load(game.edition)
-		.then(e => { edition = e; });
-		
-		if (!game.dictionary)
-			throw Error("Cannot find moves with no dictionary");
-		
-		await Dictionary.load(game.dictionary)
-		.then(d => { dict = d; });
-
-		rack = player.rack.letters();
-		console.log("finding best move for rack ",rack);
-		board = game.board;
-
-		// Compute the anchors and cross checks.
-		const anchors = findAnchors(board);
-
-		crossChecks = computeCrossChecks(board);
-
-		bestPlay = {
-			start: [-1, -1],
-			dcol: 0,
-			drow: 0,
-			word: '',
-			score: 0
-		};
-
-		for (let col = 0; col < board.dim; col++) {
-			for (let row = 0; row < board.dim; row++) {
-				if (anchors[col][row]) {
-					// Valid anchor site
-					exploreAnchor(1, 0, col, row);
-					exploreAnchor(0, 1, col, row);
-				}
-			}
+			return Promise.reject('Game has no edition');
 		}
-		console.log(bestPlay);
 
-		return bestPlay;
+		if (!game.dictionary) {
+			console.log("Cannot find moves with no dictionary");
+			return Promise.reject('Game has no dictionary');
+		}
+
+		 return Edition.load(game.edition)
+		 .then(e => { edition = e; })
+		 .then(() => Dictionary.load(game.dictionary))
+		 .then(d => { dict = d; })
+		 .then(() => {
+			 rack = player.rack.letters();
+			 console.log("finding best move for rack ",rack);
+			 board = game.board;
+
+			 // Compute the anchors and cross checks.
+			 const anchors = findAnchors(board);
+
+			 crossChecks = computeCrossChecks(board);
+
+			 bestPlay = {
+				 start: [-1, -1], // col, row
+				 dcol: 0,         // 1 if it's a column move, or
+				 drow: 0,         // 1 if it's a row move
+				 word: '',
+				 score: 0
+			 };
+
+			 for (let col = 0; col < board.dim; col++) {
+				 for (let row = 0; row < board.dim; row++) {
+					 if (anchors[col][row]) {
+						 // Valid anchor site
+						 exploreAnchor(1, 0, col, row);
+						 exploreAnchor(0, 1, col, row);
+					 }
+				 }
+			 }
+			 console.log(bestPlay);
+
+			 return bestPlay;
+		 });
 	}
-
+	
 	return findBestMove;
 });

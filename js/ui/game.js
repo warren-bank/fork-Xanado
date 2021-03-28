@@ -1,8 +1,6 @@
 /* eslint-env browser */
 
-requirejs(["jquery", "ui/Ui"], (jq, Ui) => {
-	$(document).ready(() => {
-		new Ui();
-	});
+requirejs(["browserApp", "ui/Ui"], (browserApp, Ui) => {
+	browserApp.then(() => new Ui());
 });
 

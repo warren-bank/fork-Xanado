@@ -2,11 +2,11 @@
 
 // For games.html; populate the list of live games
 
-requirejs(["jquery", "socket.io"], (jq, io) => {
+requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 	const BLACK_CIRCLE = '\u25cf';
 	const ROBOT_FACE = ' <img class="glyph" src="/images/robotface.png" />';
 	
-	$(document).ready(() => {
+	browserApp.then(() => {
 
 		function refresh() {
 			console.log("Refreshing");
@@ -20,11 +20,12 @@ requirejs(["jquery", "socket.io"], (jq, io) => {
 				let $gt = $('#game-table');
 				$gt.empty();
 				data.map(game => {
-					let $p = $(`<div>${game.players.length} player ${game.edition}</div>`);
+					let msg = $.i18n('msg-game-desc', game.players.length, game.edition);
+					let $p = $(`<div>${msg}</div>`);
 					if (game.dictionary)
-						$p.append(`, using ${game.dictionary}`);
+						$p.append($.i18n('msg-using-dict', game.dictionary));
 					if (game.time_limit > 0)
-						$p.append(`, time limit ${game.time_limit} minutes`);
+						$p.append($.i18n('msg-time-limit', game.time_limit));
 					
 					game.players.map(player => {
 						let $but = $(`<button class="player">${player.name}</button>`);
@@ -40,7 +41,7 @@ requirejs(["jquery", "socket.io"], (jq, io) => {
 						}
 						$p.append($but);
 					});
-					let $a = $(`<a href='/deletegame/${game.key}'></a>`);
+					let $a = $(`<a href='/deleteGame/${game.key}'></a>`);
 					$a.append(`<button class="deleteGame">DELETE</button>`);
 					$p.append($a);
 					$gt.append($p);
@@ -53,12 +54,12 @@ requirejs(["jquery", "socket.io"], (jq, io) => {
 		let transports = ['websocket', 'flashsocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'];
 		if (navigator.userAgent.search("Firefox") >= 0) {
 			transports = ['htmlfile', 'xhr-polling', 'jsonp-polling'];
-			}
+		}
 
 		let socket = io.connect(null, { transports: transports });
 
 		socket
-		.on('connect', data => console.debug('Server: Socket connected'))
+		.on('connect', () => console.debug('Server: Socket connected'))
 		.on('update', () => refresh());
 
 		socket.emit('monitor');

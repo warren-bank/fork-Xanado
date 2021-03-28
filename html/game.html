@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta charset="utf-8" />
     <base href="/" />
-    <title>HTML Scrabble</title>
+    <title>Crossword Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
     <style type="text/css" media="all">
@@ -36,8 +36,8 @@
 			  </tr>
 			</table>
 			<div>
-			  <button id='shuffleButton'>Shuffle</button>
-			  <button id='takeBackButton'>Take back</button>
+			  <button id='shuffleButton' data-i18n="button-shuffle"></button>
+			  <button id='takeBackButton' data-i18n="button-get-tiles"></button>
 			</div>
 		  </div>
 		</div>
@@ -58,7 +58,7 @@
 			</table>
 		  </div>
 		  <div id="turnButtons">
-			<button id='turnButton' action='pass'>Pass</button>
+			<button id='turnButton' action='pass' data-i18n="button-pass"></button>
 		  </div>
         </div>          
         <div id="chat">
@@ -73,11 +73,10 @@
 	  </div>
 	  <!-- blank letter request dialog -->
       <div id="blankDialog" class="hidden">
-		Select the letter for the blank
+		<span data-i18n="msg-select-blank"></span>
 		<table id="blankLetterTable"></table>
       </div>
 	  <div id="problemDialog" class="hidden">
-		Houston, we have a problem
 	  </div>
     </div>
   </body>

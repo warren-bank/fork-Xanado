@@ -19,32 +19,33 @@
   </head>
   <body>
 	<script type="text/javascript">requirejs(["js/ui/invite-game"]);</script>
-    <h1>Create a new game</h1>
+    <h1 data-i18n="h1-create-game"></h1>
 	<table>
 	  <tr>
-		<th>Game</th>
-		<td><select id="edition" name="edition" title="Select the game you want to play"></select></td>
+		<th data-i18n="h3-game"></th>
+		<td><select id="edition" name="edition" data-tooltip="tooltip-edition"></select></td>
 	  </tr><tr>
-		<th>Dictionary</th>
-		<td><select id="dictionary" name="dictionary" title="A dictionary is optional for human player games, but is required for computer players and can be used to automate challenges.">
-			<option>None</option>
+		<th data-i18n="h3-dictionary"></th>
+		<td>
+		  <select id="dictionary" name="dictionary" data-tooltip="tooltip-dictionary">
+			<option value="none" data-i18n="option-none"></option>
 		  </select>
 		</td>
 		<td></td>
 	  </tr>
 	  <tr>
-		<th>Time limit</th>
-		<td><input type="number" name="time_limit" id="time_limit" step="0.1" title="Maximum time allowed to make a move, in minutes. If a player fails to make a move in this time, they will be forced to pass. Leave blank for no time limit."/></td>
+		<th data-i18n="h3-time-limit"></th>
+		<td><input type="number" name="time_limit" id="time_limit" step="0.1" data-tooltip="tooltip-time-limit"/></td>
 	  </tr>
 	</table>
-    <h2>Players</h2>
+    <h2 data-i18n="h2-players"></h2>
 	<div id="playersWrap">
 	  <div id="players">
 	  </div>
-	  <button type="button" id="addPlayer" title="Add another player to the game">Add Player</button>
+	  <button type="button" id="addPlayer" data-tooltip="tooltip-add-player" data-i18n="button-add-player"></button>
 	</div>
-    <button id="createGameButton" type="button" title="Create the new game. Play will start with a randomly selected player.">Create Game</button>
-	<div id="problemDialog" title="Problem" class="hidden">
+    <button id="createGameButton" type="button" data-tooltip="tooltip-create-game" data-i18n="button-create-game"></button>
+	<div id="problemDialog" class="hidden">
 	</div>
   </body>
 </html>

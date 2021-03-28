@@ -1,4 +1,4 @@
-const deps = [
+const gamedeps = [
 	"events",
 	"crypto",
 	"icebox",
@@ -6,11 +6,10 @@ const deps = [
 	"game/Bag",
 	"game/LetterBag",
 	"game/Edition",
-	"game/Dictionary",
-	"server/Player"
+	"game/Dictionary"
 ];
 
-define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edition, Dictionary, Player) => {
+define("server/Game", gamedeps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edition, Dictionary) => {
 
 	class Game extends Events.EventEmitter {
 
@@ -66,7 +65,8 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 			let game = this;
 			setTimeout(() => {
 				console.log(`${player.name} has timed out at ${Date.now()}`);
-				game.updateGameState(player, game.pass(player, 'timeout'));
+				game.pass(player, 'timeout')
+				.then(r => game.updateGameState(player, r));
 			}, timeout + 10000);
 			this.nextTimeout = Date.now() + timeout;
 			return this.nextTimeout;
@@ -106,7 +106,14 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 		 * @return the player object, or null if the player isn't found
 		 */
 		lookupPlayer(playerKey) {
-			return this.players.find(p => (p.key == playerKey));
+			let player = this.players.find(p => (p.key == playerKey));
+			if (player)
+				return Promise.resolve({
+					game: this,
+					player: player
+				});
+			else
+				return Promise.reject('msg-player-does-not-exist');
 		}
 
 		/**
@@ -114,12 +121,18 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 		 * @throw if the player (or the game) is not playable
 		 */
 		checkTurn(player) {
-			if (this.ended())
-				throw Error(`Game ${this.key} has ended: ${this.endMessage.reason}`);
+			if (this.ended()) {
+				console.log(
+					`Game ${this.key} has ended: ${this.endMessage.reason}`);
+				return Promise.reject('msg-game-has-ended');
+			}
 
 			// determine if it is this player's turn
-			if (player !== this.players[this.whosTurn])
-				throw Error(`not ${player.name}'s turn`);
+			if (player !== this.players[this.whosTurn]) {
+				console.log(`not ${player.name}'s turn`);
+				return Promise.reject('msg-not-your-turn');
+			}
+			return Promise.resolve(this, player);
 		}
 
 		/**
@@ -252,7 +265,7 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 			}
 			previousMove.player.score -= previousMove.score;
 
-			return {
+			return Promise.resolve({
 				type: reason,
 				player: previousMove.player.index,
 				score: -previousMove.score,
@@ -265,7 +278,7 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 							 row: placement[1].row }
 				}),
 				returnLetters: returnLetters
-			};
+			});
 		}
 		
 		/**
@@ -280,17 +293,18 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 			delete this.previousMove;
 			this.passes++;
 
-			return {
+			return Promise.resolve({
 				type: reason,
 				player: player.index,
 				score: 0
-			};
+			});
 		}
 
 		/**
 		 * Check the words created by the previous move are in the dictionary
+		 * @return Promise
 		 */
-		async challengePreviousMove(player) {
+		challengePreviousMove(player) {
 			let promise;
 			if (this.dictionary) {
 				let game = this;
@@ -452,10 +466,11 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 						config);
 				});
 		}
-		
-		async createFollowonGame(startPlayer) {
+
+		// @return Promise
+		createAnotherGame(startPlayer) {
 			if (this.nextGameKey) {
-				throw Error(`follow on game already created: old ${this.key} new ${this.nextGameKey}`);
+				throw Error(`another game already created: old ${this.key} new ${this.nextGameKey}`);
 			}
 			console.log("Create follow-on game");
 			let oldGame = this;
@@ -466,7 +481,7 @@ define("server/Game", deps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edit
 				let oldPlayer = this.players[(i + startPlayer.index) % playerCount];
 				newPlayers.push(oldPlayer.copy());
 			}
-			Edition.load(this.edition)
+			return Edition.load(this.edition)
 			.then(edition => {
 				let newGame = new Game(edition, newPlayers);
 				newGame.dictionary = oldGame.dictionary;

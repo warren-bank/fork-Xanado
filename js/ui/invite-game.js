@@ -1,7 +1,31 @@
 /* eslint-env browser, jquery */
 /* global localStorage */
 
-requirejs(["jquery", "jquery-ui"], () => {
+requirejs(["browserApp"], browserApp => {
+
+	const TOOLTIPS = {
+		position: { at: "right center"},
+		items: "[data-tooltip]",
+		content: function() {
+			return $.i18n($(this).data("tooltip"));
+		}
+	};
+
+	const MORETIPS = {
+		position: { at: "right center"}
+	};
+	
+	function haveRobots() {
+		return $(".isRobot:checked").length > 0;
+	}
+	
+	function validate() {
+		console.log(`Validate edition ${$("#edition").val()} dictionary ${$("#dictionary").val()}`);
+		$('#createGameButton').prop(
+			"disabled",
+			$("#dictionary").val() == "none" && haveRobots()
+			|| !$("#edition").val());
+	}
 	
 	function loadAddressBook() {
 		if (localStorage.getItem('addressBook'))
@@ -39,22 +63,30 @@ requirejs(["jquery", "jquery-ui"], () => {
 
 	function addPlayer(name, isRobot, email) {
 		const $div = $('<div class="player"></div>');
-		const $cb = $('<input type="checkbox" class="isRobot"/>');
-		$cb.on("change", function() {
+		const $isRobot = $('<input type="checkbox" class="isRobot"/>');
+		$isRobot.on("change", function() {
 			$(this).closest(".player").find(".email").toggle();
-		});
+			validate();
+		})
+		.attr("title", $.i18n('tooltip-isrobot'))
+		.tooltip(MORETIPS)
+		.prop("checked", isRobot);
+
 		const $remove = $('<button type="button" class="removeButton">Remove</button>');
 		$remove.on("click", function() {
 			if ($("#players > div").length < 3) {
 				$('#problemDialog')
-				.text("Require at least 2 players to make a game")
+				.text($.i18n('msg-need-2-players'))
 				.dialog();
 			} else
 				$(this).closest(".player").remove();
 		});
 		
 		const $email = $('<span class="email"></span>');
-		const $emb = $('<button type="button" class="emailInvite" title="Click to add an email address for this player to receive an invitation">Email</button>');
+		const $emb = $('<button type="button" class="emailInvite"></button>');
+		$emb.append($.i18n('button-email'));
+		$emb.attr("title", $.i18n('tooltip-email'));
+		$emb.tooltip(MORETIPS);
 		const $emv = $(`<input type="email" size="30" value="${email||''}"/>`);
 		$emb.on("click", function() {
 			$emb.hide(); $emv.show();
@@ -72,26 +104,30 @@ requirejs(["jquery", "jquery-ui"], () => {
 		} else {
 			$emb.show(); $emv.hide();
 		}
-						  
+		
+		const $input = $(`<input type="text" class="name" size="10" value="${name}"/>`);
+		$input.attr("title", $.i18n('tooltip-name'));
+		$input.tooltip(MORETIPS);
+
 		$div
-		.append(`Name <input type="text" class="name" size="10" value="${name}" title="Enter the name by which the player will be known. Names must be unique."/>`)
-		.append('Robot?')
-		.append($cb)
+		.append($.i18n('prompt-name'))
+		.append($input)
+		.append($.i18n('prompt-robot'))
+		.append($isRobot)
 		.append($email)
 		.append($remove);
 		
-		$cb.prop("checked", isRobot);
 		if (isRobot) $email.toggle();
 
 		$("#players").append($div);
 	}
 
-	$(document).ready(() => {
+	browserApp.then(() => {
+
+		$.i18n({locale: "en"});
 		
-		$(document).tooltip({
-			position: { at: "right center"}
-		});
-		
+		$("body").i18n();
+			
 		// Set the editions and dictionaries from config.json
 		$.getJSON('/config', data => {
 			const $eds = $("#edition");
@@ -109,16 +145,16 @@ requirejs(["jquery", "jquery-ui"], () => {
 		
 		const addressBook = loadAddressBook();
 		$('input.name')
-        .autocomplete({
-            source: addressBook.map(entry => entry.name)
-        })
-        .blur(function () {
-            const entry = lookupName(addressBook, $(this).val());
-            if (entry) {
-                $(this).siblings('.isRobot').val(entry.isRobot);
-                $(this).siblings('.email').val(entry.email);
-            }
-        });
+		.autocomplete({
+			source: addressBook.map(entry => entry.name)
+		})
+		.blur(function () {
+			const entry = lookupName(addressBook, $(this).val());
+			if (entry) {
+				$(this).siblings('.isRobot').val(entry.isRobot);
+				$(this).siblings('.email').val(entry.email);
+			}
+		});
 		
 		$('form').on('keyup keypress', function(e) {
 			var keyCode = e.keyCode || e.which;
@@ -137,19 +173,47 @@ requirejs(["jquery", "jquery-ui"], () => {
 		});
 		
 		$("#addPlayer")
-		.on("click", () => addPlayer("New Player", false));
+		.on("click", () => addPlayer($.i18n('msg-new-player'), false));
 
-		addPlayer("Player1", false);
-		addPlayer("Player2", true);
+		addPlayer($.i18n('msg-player-1'), false);
+		addPlayer($.i18n('msg-player-2'), true);
+
+		// Using tooltips with a selectmenu is horrible. Applying tooltip()
+		// to the select is useless, you have to apply it to the span that
+		// covers the select. However this span is not created until some
+		// indeterminate time in the future, and there is no event triggered.
+		// The alternative is to create the selectmenu now, but doing so blows
+		// away the browser's memory of previous selections, which we want.
+		//$("select")
+		//.selectmenu()
+		//.each(function() {
+		//	$(`#${this.id}-button`).attr("data-tooltip", $(this).data('tooltip'));
+		//});
+		
+		// Instead, initialise the "title" attribute from the data-tooltip...
+		$("select").each(function() {
+			$(this).attr("title", $.i18n($(this).data('tooltip')));
+		});
+		// ... and later, when the selectmenus have (hopefully) been created,
+		// map them to jquery tooltips.
+		setTimeout(() => {
+			$(".ui-selectmenu-button").tooltip(MORETIPS);
+			// By now the select values should have been assigned, and we can
+			// validate
+			validate();
+		}, 100);
+		
+		$("#dictionary").on("selectmenuchange", validate)
+		$("#edition").on("selectmenuchange", validate);
 		
 		// Submit to create the game
-		$('#createGameButton').on('click', function() {
+		$('#createGameButton')
+		.on('click', function() {
 			let data = {
 				edition: $("#edition").val(),
 				dictionary: $("#dictionary").val(),
 				players: [] };
 			const playerNames = [];
-			let playerIndex = 0;
 			$("#players > div").each(function() {
 				const name = $(this).find('input.name').val();
 				const isRobot = $(this).find('input.isRobot').prop("checked");
@@ -159,7 +223,7 @@ requirejs(["jquery", "jquery-ui"], () => {
 					event.stopPropagation();
 					event.preventDefault();
 					$('#problemDialog')
-					.text("Player names must be unique")
+					.text($.i18n('msg-unique'))
 					.dialog();
 					return false;
 				}
@@ -174,16 +238,17 @@ requirejs(["jquery", "jquery-ui"], () => {
 				});
 			});
 			saveAddressBook(addressBook);
-			$.post("newgame", data)
+			$.post("newGame", data)
 			.done(() => {
 				window.location.replace("/html/games.html");
 			})
 			.fail(e => {
 				$('#problemDialog')
-				.text(`Failed to create game: ${e.responseText}`)
+				.text($.i18n('msg-create-failed', e.responseText))
 				.dialog();
 			});
 			return true;
 		});
+		$(document).tooltip(TOOLTIPS);
 	});
 });

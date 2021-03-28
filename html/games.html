@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
 	<base href=".." />
 	
-    <title>Select Game &amp; Player</title>
+    <title>Create/Join Game</title>
 
     <style type="text/css" media="all">
       @import "/css/common.css";
@@ -19,15 +19,15 @@
   </head>
   <body>
 	<script type="text/javascript">requirejs(["js/ui/games"]);</script>
-	<h1>Crossword Games</h1>
+	<h1 data-i18n="h1-crossword-games"></h1>
 	<div id="active_games">
-	  <h2>Active games</h2>
+	  <h2 data-i18n="msg-active-games"></h2>
 	  <div id="game-table"></div>
-	  Select your player above, or 
+	  <span data-i18n="msg-select-player"></span>
 	</div>
 	<div>
 	  <a href="/html/invite-game.html">
-		<button>Create a new game</button>
+		<button data-i18n="button-create-new-game"></button>
 	  </a>
 	</div>
   </body>

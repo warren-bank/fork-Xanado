@@ -1,5 +1,6 @@
-/* eslint-env browser,node */
+/* eslint-env node */
 /* global APP_DIR */
+/* global DataView */
 
 /**
  * Dictionary support using a Directed Acyclic Word Graph (DAWG) in the
@@ -33,7 +34,6 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 		 * @param cb the callback
 		 */
 		walk(s, cb) {
-			const letter = this.letter;
 			if (this.isEndOfWord)
 				cb(s + this.letter);
 			

@@ -3,12 +3,9 @@
 /**
  * User interface to a game in a browser
  */
-const deps = [
-	"jquery",    // Jquery and components are accessed via $
-	"jquery-ui",
-	//"touch-punch", // support for touch devices
+const uideps = [
+	"jqueryui",
 	"cookie",
-
 	"socket.io",
 	"icebox",
 	"game/Tile",
@@ -17,7 +14,7 @@ const deps = [
 	"game/Rack",
 	"game/Board" ];
 
-define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack, Board) => {
+define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => {
 
 	// Class references for icebox
 	const ICE_TYPES = { Board: Board, Tile: Tile, Square: Square, Rack: Rack };
@@ -38,7 +35,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 
 	class Ui {
 		
-		constructor() {
+		constructor() {		
 			let splitUrl = document.URL.match(/.*\/([0-9a-f]+)$/);
 			if (splitUrl) {
 				this.gameKey = splitUrl[1];
@@ -46,7 +43,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			} else {
 				console.log('cannot parse url');
 			}
-			
+
 			$.get(`/game/${this.gameKey}`, (d, e) => this.loadGame(d, e));
 
 			$("#shuffleButton").on('click', () => this.shuffle());
@@ -55,50 +52,48 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		}
 
 		scrollLogToEnd(speed) {
-			$('#log').animate({ scrollTop: $('#log').prop('scrollHeight') }, speed);
+			$('#log').animate({
+				scrollTop: $('#log').prop('scrollHeight')
+			}, speed);
 		}
 		
 		appendTurnToLog(turn) {
-			let player = this.players[turn.player];
-			let $scorediv = $("<div class='score'></div>");
-			$scorediv.append(`<span class='playerName'>${player.name}'s turn</span>`);
-			//$scorediv.append(`<span class='score'>${turn.score}</span>`);
+			const player = this.players[turn.player];
+			const $scorediv = $("<div class='score'></div>");
+			let mess = $.i18n('log-turn', player.name);
+			$scorediv.append(`<span class='playerName'>${mess}</span>`);
 			
-			let $div = $("<div class='moveScore'></div>");
+			const $div = $("<div class='moveScore'></div>");
 			$div.append($scorediv);
 
-			let $detail = $("<div class='moveDetail'></div>");
+			const $detail = $("<div class='moveDetail'></div>");
 			switch (turn.type) {
 			case 'move':
-				for (const word of turn.move.words) {
-					$detail.append(`<span class='word'>${word.word}</span>`);
-					$detail.append(`<span class='score'>(${word.score})</span> `);
-				}
-				if (turn.move.bonus > 0) {
-					$detail.append(`<span class='word'>+ bonus </span>`);
-					$detail.append(`<span class='score'>${turn.move.bonus}</span>`);
-				}
+				for (const word of turn.move.words)
+					$detail.append($.i18n('log-move', word.word, word.score));
+				if (turn.move.bonus > 0)
+					$detail.append($.i18n('log-bonus', turn.move.bonus));
 				break;
 			case 'timeout':
-				$detail.text("Timed out");
+				$detail.text($.i18n('log-timeout'));
 				break;			
 			case 'pass':
-				$detail.text("Passed");
+				$detail.text($.i18n('log-passed'));
 				break;
 			case 'swap':
-				$detail.text(`Swapped ${turn.count} tile ${turn.count > 1 ? "s" : ""}`);
+				$detail.text($.i18n('log-swapped', turn.count));
 				break;
 			case 'challenge':
-				$detail.text("Previous move challenged successfully!");
+				$detail.text($.i18n('log-challenge-won'));
 				break;
 			case 'failedChallenge':
-				$detail.text("Challenge failed! All words are OK");
+				$detail.text($.i18n('log-challenge-lost'));
 				break;
 			case 'takeBack':
-				$detail.text("Took back previous move");
+				$detail.text($.i18n('log-took-back'));
 				break;
 			default:
-				$detail.text("Unknown move type ${turn.type}");
+				throw Error(`Unknown move type ${turn.type}`);
 			}
 			$div.append($detail);
 			$('#log').append($div);
@@ -112,15 +107,21 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		
 		displayNextGameMessage(nextGameKey) {
 			if (nextGameKey) {
-				$('#log')
-				.append(`<a href='/game/${nextGameKey}/${$.cookie(this.gameKey)}'><button class='nextGame'>Next game</button></a>`);
+				const $but = ("<button class='nextGame'></button>");
+				$but.text($.i18n('button-next-game'));
+				const $a = $("<a></a>");
+				$a.attr(
+					"href", `/game/${nextGameKey}/${$.cookie(this.gameKey)}`);
+				$a.append($but);
+				$('#log').append($a);
 				$('#makeNextGame').remove();
 			} else {
-				let $but = $(`<button>Another game</button>`);
-				$but.on('click', this.sendMoveToServer('another', null));
+				let $but = $(`<button></button>`);
+				$but.text($.i18n('button-another-game'));
+				$but.on('click', this.sendMoveToServer('anotherGame', null));
 				let $ngb = $("<div id='makeNextGame'></div>");
 				$ngb.append($but);
-				$ngb.append(' if you want another game with the same players');
+				$ngb.append($.i18n('log-same-players'));
 				$('#log').append($ngb);
 			}
 		}
@@ -133,17 +134,21 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				player.score = endPlayer.score;
 				player.tallyScore = endPlayer.tallyScore;
 				player.rack = endPlayer.rack;
+				const $gsd = $("<div class='gameEndScore'></div>");
 				if (player.tallyScore > 0) {
-					$('#log').append(
-						`<div class='gameEndScore'>${player.name} gained ${player.tallyScore} points from racks of the other players`);
+					$gsd.text($.i18n('log-gained-from-racks',
+									 player.name, player.tallyScore));
 				} else if (player.tallyScore < 0) {
 					let letters = "";
 					for (const square of player.rack.squares) {
 						if (square && square.tile)
 							letters += square.tile.letter;
 					}
-						$('#log').append(`<div class='gameEndScore'>${player.name} lost ${-player.tallyScore} points for a rack containing the letters ${letters}</div>`);
+					$gsd.text($.i18n(
+						"log-lost-for-rack",
+						player.name, -player.tallyScore, letters));
 				}
+				$('#log').append($gsd);
 				$(player.scoreElement).text(player.score);
 				if (!winners || player.score > winners[0].score) {
 					winners = [ player ];
@@ -151,14 +156,16 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					winners.push(player);
 				}
 			}
-			$("#whosturn").text("Game over");
+			$("#whosturn").text($.i18n('log-game-over'));
 
 			let names = [];
+			let youWon = false;
 			for (let player of winners) {
 				if (player == this.thisPlayer) {
-					names.push('you');
+					names.push($.i18n('you'));
 					if (cheer)
 						this.playAudio("endCheer");
+					youWon = true;
 				} else
 					names.push(player.name);
 			}
@@ -169,15 +176,17 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			else if (names.length == 1)
 				who = names[0];
 			else if (names.length == 2)
-				who = `${names[0]} and ${names[1]}`;
+				who = $.i18n('log-name-name', names[0], names[1]);
 			else
-				who = names.slice(0, length - 1).join(", ") + ", and " + names[length - 1];
+				who = $.i18n('log-name-name',
+					names.slice(0, length - 1).join(", "), names[length - 1]);
 
-			let verb = (winners.length == 1 && who != "you") ? 'has' : 'have';
-
-
-			$('#log')
-			.append(`<div class='gameEnded'>Game has ended, ${who} ${verb} won</div>`);
+			let has = (winners.length == 1 && !youWon) ? 1 : 2;
+			let $div = $("<div class='gameEnded'></div>");
+			$div.text($.i18n('log-game-ended', who, has));
+					  
+			$('#log').append($div);
+					  
 			this.displayNextGameMessage(endMessage.nextGameKey);
 		}
 		
@@ -194,11 +203,10 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		displayWhosTurn(playerNumber) {
 			let $wt = $('#whosturn');
 			if (playerNumber == this.playerNumber) {
-				$wt.text("Your turn");
+				$wt.text($.i18n('turn-yours'));
 				$('#turnControls').css('display', 'block');
 			} else if (typeof playerNumber == 'number') {
-				let name = this.players[playerNumber].name;
-				$wt.text(`${name}'${((name.charAt(name.length - 1) == 's') ? '' : 's')} turn`);
+				$wt.text($.i18n('turn-theirs', this.players[playerNumber].name));
 				$('#turnControls').css('display', 'none');
 			} else {
 				$wt.empty();
@@ -264,26 +272,30 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					if (turn.type == 'challenge') {
 						this.playAudio("oops");
 						this.notify(
-							'Challenged!',
-							`${this.players[turn.challenger].name} has successfully challenged your move. You have lost the ${-turn.score} points you scored and the tiles you had placed are back on your rack`);
+							$.i18n('notify-title-challenged'),
+							$.i18n('notify-body-challenged',
+								   this.players[turn.challenger].name,
+								  -turn.score));
 					}
 				}
 				if (turn.type == 'takeBack') {
-					this.notify('Move retracted',
-								`${this.players[turn.challenger].name} has taken back their move.`);
+					this.notify($.i18n('notify-title-retracted'),
+								$.i18n('notify-body-retracted',
+									  this.players[turn.challenger].name));
 				}
 			}
 			if (turn.type == "failedChallenge") {
 				if (turn.player == this.playerNumber) {
 					this.playAudio("oops");
 					this.notify(
-						'Failed challenge!',
-						`Your challenge failed, you have lost your turn.`);
+						$.i18n('notify-title-you-failed'),
+						$.i18n('notify-body-you-failed'));
 				} else {
 					this.playAudio("oops");
 					this.notify(
-						'Failed challenge!',
-						`${this.players[turn.player].name} challenged your move, but the dictionary backed you up.`);
+						$.i18n('notify-title-they-failed'),
+						$.i18n('notify-body-they-failed',
+							   this.players[turn.player].name));
 				}
 			}
 			this.remainingTileCounts = turn.remainingTileCounts;
@@ -300,7 +312,9 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 					this.addTakeBackMoveButton();
 				}
 				if (turn.whosTurn == this.playerNumber && turn.type != 'takeBack') {
-					this.notify('Your turn!', this.players[turn.player].name + ' has made a move and now it is your turn.');
+					this.notify($.i18n('notify-title-your-turn'),
+								$.i18n('notify-body-your-turn',
+									   this.players[turn.player].name));
 					if (turn.type == 'move') {
 						this.addChallengeButton();
 					}
@@ -338,7 +352,8 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				playerNumber++;
 				
 				let tr = $(`<tr class='player${playerNumber - 1}'></tr>`);
-				tr.append(`<td class='name'>${player.rack ? "You" : player.name}</td>`);
+				let who = player.rack ? $.i18n('You') : player.name;
+				tr.append(`<td class='name'>${who}</td>`);
 				tr.append("<td class='remainingTiles'></td>");
 				tr.append(`<td class='status offline'>${BLACK_CIRCLE}</td>`);
 				player.scoreElement = $(`<td class='score'>${player.score}</td>`);
@@ -348,13 +363,13 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			
 			this.drawBoard();
 			if (this.rack) {
-				this.createRackUI(
-					this.rack, "Rack");
-				this.createRackUI(
-					this.swapRack, "Swap");
+				this.createRackUI(this.rack, "Rack");
+				this.createRackUI(this.swapRack, "Swap");
 			}
+
+			const gs = $.i18n('log-game-started');
+			$('#log').append(`<p class='gameStart'>${gs}</p>`);
 			
-			$('#log').append("<div class='gameStart'>Game started</div>");
 			for (let turn of gameData.turns)
 				this.appendTurnToLog(turn);
 			
@@ -391,7 +406,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			
 			this.socket
 			
-			.on('connect', data => {
+			.on('connect', () => {
 				if ($reconnectDialog) {
 					$reconnectDialog.dialog("close");
 					$reconnectDialog = null;
@@ -407,10 +422,10 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				}
 			})
 			
-			.on('disconnect', data => {
+			.on('disconnect', () => {
 				console.debug('Server: Socket disconnected');
 				$reconnectDialog = $('#problemDialog')
-				.text("Server disconnected, trying to reconnect")
+				.text($.i18n('msg-server-disconnected'))
 				.dialog({ modal: true });
 				let ui = this;
 				setTimeout(() => {
@@ -425,7 +440,8 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 			.on('gameEnded', endMessage => {
 				console.debug("Received gameEnded");
 				this.displayEndMessage(endMessage, true);
-				this.notify('Game over!', 'Your game is over...');
+				this.notify($.i18n('notify-title-game-over'),
+							$.i18n('notify-body-game-over'));
 			})
 			
 			.on('nextGame', nextGameKey =>
@@ -439,7 +455,7 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				.animate({ scrollTop: $('#chatLog').prop('scrollHeight') }, 100);
 				
 				if (message.name != this.thisPlayer.name)
-					this.notify(message.name + " says", message.text);
+					this.notify(message.name, message.text);
 			})
 			
 			.on('join', info => {
@@ -482,14 +498,15 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		displayRemainingTileCounts() {
 			let counts = this.remainingTileCounts;
 			if (counts.letterBag > 0) {
+				const mess = $.i18n('letterbag-remaining', counts.letterBag);
 				$('#letterbagStatus')
 				.empty()
-				.append(`<div><span class='remainingTileCount'>${counts.letterBag}</span> remaining tiles</div>`);
+				.append(`<div>${mess}</div>`);
 				$('#scoreboard td.remainingTiles').empty();
 			} else {
 				$('#letterbagStatus')
 				.empty()
-				.append("<div>The letterbag is empty</div>");
+				.append($.i18n('letterbag-empty'));
 				let countElements = $('#scoreboard td.remainingTiles');
 				for (let i = 0; i < counts.players.length; i++) {
 					let count = counts.players[i];
@@ -585,11 +602,6 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 				});
 			}
 
-			if (square.tile.letter && square.tile.letter === "_") {
-				throw "DON't THINK SHOULD EVER FIRE";
-				square.tile.letter = "";
-			}
-
 			let letter = square.tile.letter ? square.tile.letter : '';
 			let score = square.tile.score ? square.tile.score : '0';
 			
@@ -669,7 +681,6 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 
 		createRackUI(rack, idbase) {
 			let $rack = $(`#${idbase}Table tr`);
-			let n = 0;
 			for (let idx = 0; idx < rack.squares.length; idx++) {
 				const id = `${idbase}_${idx}`;
 				let $td = $(`<td class="Normal"><div id="${id}"><a></a></div></td>`);
@@ -893,55 +904,48 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		}
 		
 		commitMove() {
-			try {
-				let move = this.board.analyseMove();
-				if (move.error) {
-					// fatal - should never get here
-					$('#problemDialog')
-					.text(move.error)
-					.dialog();
-					return;
-				}
-				move.bonus = this.board.calculateBonus(move.tilesPlayed);
-				move.score += move.bonus;
-				this.endMove();
-				if (move.bonus > 0)
-					this.playAudio("bonusCheer");
-
-				for (let i = 0; i < move.tilesPlaced.length; i++) {
-					let tilePlaced = move.tilesPlaced[i];
-					let square = this.board.squares[tilePlaced.col][tilePlaced.row];
-					square.tileLocked = true;
-					this.updateSquare(square);
-				}
-				this.board.tileCount = 0;
-				this.sendMoveToServer('makeMove',
-									  move.tilesPlaced,
-									  data => this.processMoveResponse(data));
-				
-				this.enableNotifications();
-			}
-			catch (e) {
+			let move = this.board.analyseMove();
+			if (move.error) {
+				// fatal - should never get here
 				$('#problemDialog')
-				.text(`error in commitMove: ${e}`)
-				.dialog({ modal: true });
+				.text(move.error)
+				.dialog();
+				return;
 			}
+			move.bonus = this.board.calculateBonus(move.tilesPlayed);
+			move.score += move.bonus;
+			this.endMove();
+			if (move.bonus > 0)
+				this.playAudio("bonusCheer");
+
+			for (let i = 0; i < move.tilesPlaced.length; i++) {
+				let tilePlaced = move.tilesPlaced[i];
+				let square = this.board.squares[tilePlaced.col][tilePlaced.row];
+				square.tileLocked = true;
+				this.updateSquare(square);
+			}
+			this.board.tileCount = 0;
+			this.sendMoveToServer('makeMove',
+								  move.tilesPlaced,
+								  data => this.processMoveResponse(data));
+			
+			this.enableNotifications();
 		}
 
 		// Add an action button that affects a previous move.
 		addLastMoveActionButton(action, label) {
-			let ui = this;
 			let $button = $(`<div><button class='moveAction'>${label}</button></div>`);
 			$button.click(() => this[action]());
 			$('#log div.moveScore').last().append($button);
 		}
 		
 		addChallengeButton() {
-			this.addLastMoveActionButton('challenge', 'Challenge last move');
+			this.addLastMoveActionButton('challenge', $.i18n('button-challenge'));
 		}
 		
 		addTakeBackMoveButton() {
-			this.addLastMoveActionButton('takeBackMove', 'Take back move');
+			this.addLastMoveActionButton(
+				'takeBackMove', $.i18n('button-take-back'));
 		}
 		
 		removeMoveActionButtons() {
@@ -1061,7 +1065,8 @@ define("ui/Ui", deps, (jq, jqui, /*tp,*/ ck, io, Icebox, Tile, Square, Bag, Rack
 		}
 		
 		notify(title, text) {
-			let ui = this;
+			// TODO: either use HTML5 Notification API, or
+			// provide this feedback some other way
 			if (window.webkitNotifications) {
 				this.cancelNotification();
 				let notification = window.webkitNotifications

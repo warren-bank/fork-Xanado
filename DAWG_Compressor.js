@@ -1,3 +1,6 @@
+/* eslint-env node */
+/* global DataView */
+
 /**
  * Based on Appel & Jacobsen, with ideas from Weck and Toal. Not the
  * fastest, or the most efficient, but who cares? It works for us.
@@ -531,7 +534,7 @@ requirejs.config({
 	}
 });
 
-requirejs(["node-getopt", "fs-extra", 'node-gzip', 'game/Dictionary'], (Getopt, Fs, Gzip, Dictionary) => {
+requirejs(["node-getopt", "fs-extra", 'node-gzip'], (Getopt, Fs, Gzip) => {
 	let opt = new Getopt(OPTIONS)
 		.bindHelp()
 		.setHelp(DESCRIPTION + "\nOPTIONS\n[[OPTIONS]]")
@@ -542,7 +545,6 @@ requirejs(["node-getopt", "fs-extra", 'node-gzip', 'game/Dictionary'], (Getopt, 
 		throw "Both <infile> and <outfile> are required";
 	}
 
-	let lenCheck = opt.length || 15;
 	let infile = opt.argv[0];
 	let outfile = opt.argv[1];
 
@@ -559,7 +561,7 @@ requirejs(["node-getopt", "fs-extra", 'node-gzip', 'game/Dictionary'], (Getopt, 
 		let trie = new Trie(lexicon);
 
 		// Second step; generate a graph from the tree
-		let red = trie.generateDAWG();
+		trie.generateDAWG();
 		
 		// We have a DAWG. We could output it now like this:
 		//console.log(JSON.stringify(trie.first.simplify(), null, " "));
@@ -576,7 +578,7 @@ requirejs(["node-getopt", "fs-extra", 'node-gzip', 'game/Dictionary'], (Getopt, 
 		}
 		console.log(`Uncompressed ${dawg.length * 4} bytes`);
 
-		z = await Gzip.gzip(dv);
+		const z = await Gzip.gzip(dv);
 		console.log(`Compressed ${z.length} bytes`);
 
 		// Debug
