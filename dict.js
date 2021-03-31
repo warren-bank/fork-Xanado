@@ -35,7 +35,7 @@ requirejs(["node-getopt", "fs-extra", "node-gzip", "game/Dictionary"], (Getopt, 
 			if (opt.options.anagrams) {
 				console.log(`\nAnagrams of "${word}"`);
 				let anag = dict.findAnagrams(word);
-				console.log(anag.join(", "));
+				console.log(anag);
 			}
 		}
 		console.log(`Checked ${words.length} words`);

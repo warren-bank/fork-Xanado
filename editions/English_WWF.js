@@ -1,7 +1,8 @@
 define("editions/English_WWF", () => {
 
 	const BOARD = [
-		'D__d___t',
+		'D___D___',
+		'___d___t',
 		'__t___D_',
 		'_d___d__',
 		'D___t__T',
@@ -11,6 +12,7 @@ define("editions/English_WWF", () => {
 	];
 
 	const BAG = [
+		{ score: 0, count: 2 },
 		{ letter: "A", score: 1, count: 9 },
 		{ letter: "B", score: 4, count: 2 },
 		{ letter: "C", score: 4, count: 2 },

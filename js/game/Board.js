@@ -3,6 +3,17 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 	class Board {
 
 		/**
+		 * Board.Placement
+		 *
+		 * {
+		 *    letter: letter to place,
+		 *    col: col column,
+		 *    row: row row,
+		 *    isBlank: true if this is a cast blank
+		 * }
+		 */
+		
+		/**
 		 * @param edition the Edition defining the board layout
 		 */
 		constructor(edition) {
@@ -129,7 +140,7 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 			// Check that the start field is occupied
 
 			if (!squares[this.middle][this.middle].tile) {
-				return { error: "start field must be used" };
+				return { error: "centre must be used" };
 			}
 			
 			// Determine that the placement of the Tile(s) is legal
@@ -222,10 +233,12 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 				for (let row = 0; row < this.dim; row++) {
 					let square = squares[col][row];
 					if (square.tile && !square.tileLocked) {
-						tilesPlaced.push({ letter: square.tile.letter,
-										   col: col,
-										   row: row,
-										   blank: square.tile.isBlank() });
+						tilesPlaced.push({
+							letter: square.tile.letter,
+							col: col,
+							row: row,
+							isBlank: square.tile.isBlank
+						});
 					}
 				}
 			}

@@ -66,56 +66,50 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 		}
 
 		/**
-		 * @param soFar the string built so far in this recursion
+		 * @param realWord the string built so far in this recursion
+		 * @param blankedWord the string built using spaces for blanks
+		 * if they are used
 		 * @param sortedChars the available set of characters, sorted
 		 */
-		findAnagrams(soFar, sortedChars) {
-			let foundWords = [];
+		findAnagrams(realWord, blankedWord, sortedChars, foundWords) {
 			
-			const word = soFar + this.letter;
+			// is this character available from sortedChars?
+			// Only use blank if no other choice
+			let i = sortedChars.indexOf(this.letter);
+			if (i < 0) // not there, try blank
+				i = sortedChars.indexOf(' ');
+			
+			if (i >= 0) {
+				const match = sortedChars[i];
+				
+				// The char is available from sortedChars.
+				// Is this then a word?
+				if (this.isEndOfWord) {
+					// A word is found
+					foundWords[realWord + this.letter] = blankedWord + match;
+				}
 
-			if (this.isEndOfWord) {
-				// A word is found
-				foundWords.push(word);
-			}
-
-			let child = this.child;
-			if (sortedChars.length == 0 || !child)
-				return foundWords;
-
-			// Characters left, and this node has children
-			let previousChar = ''; // last char looked at, to avoid repeats
-			for (let i = 0; child && i < sortedChars.length; i++) {
-				const currentChar = sortedChars[i];
-				if (currentChar == previousChar)
-					continue; // hmmmmm
-					
-				do { // for each child of the subnode
-					const letter = child.letter;
-					if (currentChar == letter) {
-
-						sortedChars.splice(i, 1);
-						const moreWords = child.findAnagrams(word, sortedChars);
-						foundWords = foundWords.concat(moreWords);
-						sortedChars.splice(i, 0, currentChar);
-						child = child.next;
-						break;
-					}
-
-					if (currentChar < letter)
-						// Because we sorted the characters before
-						// starting, we know that any lower character
-						// has already been considered
-						break;
-
-					// Next child
-					child = child.next;
-						
-				} while (child);
-					
-				previousChar = currentChar;
+				if (sortedChars.length == 1)
+					return;
+				
+				// Cut the matched letter out of sortedChars and recurse
+				// over our child node chain
+				sortedChars.splice(i, 1);
+			
+				for (let child = this.child; child; child = child.next) {
+					child.findAnagrams(
+						realWord + this.letter,
+						blankedWord + match,
+						sortedChars,
+						foundWords);
+				}
+				sortedChars.splice(i, 0, match);
 			}
 			
+			if (this.next)
+				this.next.findAnagrams(
+					realWord, blankedWord, sortedChars, foundWords);
+
 			return foundWords;
 		}
 	}
@@ -192,7 +186,7 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 		/**
 		 * Find anagrams of a set of letters
 		 * @param theChars the letters
-		 * @return an array of anagrams
+		 * @return a map of anagrams to the letter sequence that matched
 		 */
 		findAnagrams(theChars) {
 			theChars = theChars.toUpperCase();
@@ -200,35 +194,14 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 			if (theChars.length < 2)
 				return [ theChars ];
 
-			// Sort the list of characters. This is to avoid
-			// unneccessary recursions in Node.findAnagrams by
-			// eliminating already-considered letters from consideration.
+			// Sort the list of characters. Not strictly needed,
+			// just easier to debug.
 			let sortedChars = theChars.split("").sort();
+
+			//console.log("Sorted chars", sortedChars);
 			const foundWords = {};
-			let previousChar = -1; // Impossible
-			
-			for (let i = 0; i < sortedChars.length; i++) {
-				const currentChar = sortedChars[i];		
-
-				if (currentChar == previousChar)
-					continue; // no point doing it again
-
-				// Remove currentChar from the list
-				sortedChars.splice(i, 1);
-				
-				// Recursively find anagrams rooted at the current index
-				// using the remaining letters
-				const moreWords = this.root.findAnagrams('', sortedChars);
-				
-				// Put the letter back where we found it
-				sortedChars.splice(i, 0, currentChar);
-
-				moreWords.forEach(w => foundWords[w] = true);
-
-				previousChar = currentChar;
-			}
-			
-			return Object.keys(foundWords);
+			this.root.findAnagrams('', '', sortedChars, foundWords)
+			return foundWords;
 		}
 	}
 	return Dictionary;

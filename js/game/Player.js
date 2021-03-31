@@ -1,4 +1,4 @@
-define("server/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack, findBestMove) => {
+define("game/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack, findBestMove) => {
 
 	class Player {
 		constructor(name, rackSize) {
@@ -15,19 +15,26 @@ define("server/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack,
 			//console.log("Created",this);
 		}
 
+		/**
+		 * Make a copy of the player with a fresh empty rack
+		 */
 		copy() {
 			const p = new Player(this.name, this.rackSize);
 			p.key = this.key;
 			p.isRobot = this.isRobot;
 			return p;
 		}
-		
-		joinGame(game, index) {
+
+		/**
+		 * Join a game by drawing an initial rack from the letter bag.
+		 * @param letterBag LetterBag to draw tiles from
+		 * @param index 'Player N'
+		 */
+		joinGame(letterBag, index) {
+			for (let i = 0; i < this.rackSize; i++)
+				// May assign null if bag is empty
+				this.rack.squares[i].tile = letterBag.getRandomTile();
 			this.index = index;
-			for (let i = 0; i < this.rackSize; i++) {
-				this.rack.squares[i].tile = game.letterBag.getRandomTile();
-			}
-			console.log(`${this.name} is joining`);
 			this.score = 0;
 		}
 
@@ -44,6 +51,7 @@ define("server/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack,
 
 		/**
 		 * Send an email invitation to a player
+		 * Only useful server-side
 		 */
 		async sendInvitation(subject, config) {
 			if (!this.email)
@@ -80,13 +88,15 @@ define("server/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack,
 				let row = move.start[1];
 				let placements = [];
 				for (let letter of letters) {
-					if (!game.board.squares[col][row].tile)
+					if (!game.board.squares[col][row].tile) {
+						const sq = this.rack.findLetterSquare(letter, true);
 						placements.push({
 							letter: letter,
 							col: col,
 							row: row,
-							blank: false
+							isBlank: sq.tile.isBlank
 						});
+					}
 						
 					row += move.drow;
 					col += move.dcol;

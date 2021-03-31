@@ -1,17 +1,13 @@
-const gamedeps = [
-	"events",
-	"crypto",
-	"icebox",
-	"game/Board",
-	"game/Bag",
-	"game/LetterBag",
-	"game/Edition",
-	"game/Dictionary"
-];
+/* eslint node */
 
-define("server/Game", gamedeps, (Events, Crypto, Icebox, Board, Bag, LetterBag, Edition, Dictionary) => {
+define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/LetterBag", "game/Edition",	"game/Dictionary" ], (Crypto, Icebox, Board, Bag, LetterBag, Edition, Dictionary) => {
 
-	class Game extends Events.EventEmitter {
+	/**
+	 * The Game object could be used server or browser side, but in the
+	 * event is only used on the server, which is responsible for management
+	 * of all the active games.
+	 */
+	class Game {
 
 		static setDatabase(db) {
 			Game.database = db;
@@ -21,9 +17,10 @@ define("server/Game", gamedeps, (Events, Crypto, Icebox, Board, Bag, LetterBag, 
 		 * @param edition Edition object
 		 * @param players list of Player
 		 */
-		constructor(edition, players) {
-			super();
+		constructor(edition, players, dictionary) {
+			// TODO: why can't we keep a pointer to the edition object?
 			this.edition = edition.name;
+			this.dictionary = dictionary;
 			this.players = players;
 			this.key = Crypto.randomBytes(8).toString('hex');
 			this.creationTimestamp = (new Date()).toISOString();
@@ -35,8 +32,10 @@ define("server/Game", gamedeps, (Events, Crypto, Icebox, Board, Bag, LetterBag, 
 			this.connections = [];
 			this.board = new Board(edition);
 			this.letterBag = new LetterBag(edition);
-			for (let i = 0; i < this.players.length; i++)
-				this.players[i].joinGame(this, i);
+			for (let i = 0; i < this.players.length; i++) {
+				this.players[i].joinGame(this.letterBag, i);
+				console.log(`${this.players[i].name} is player ${i}`);
+			}
 		}
 
 		/**
@@ -118,7 +117,8 @@ define("server/Game", gamedeps, (Events, Crypto, Icebox, Board, Bag, LetterBag, 
 
 		/**
 		 * Check that the given player is in this game, and it's their turn.
-		 * @throw if the player (or the game) is not playable
+		 * Returned promise is rejected if it isn't the players turn or
+		 * the game is not playable
 		 */
 		checkTurn(player) {
 			if (this.ended()) {
@@ -137,6 +137,7 @@ define("server/Game", gamedeps, (Events, Crypto, Icebox, Board, Bag, LetterBag, 
 
 		/**
 		 * @param player the Player making the move
+		 * @param placementList array of Board.Placement
 		 */
 		makeMove(player, placementList) {
 			this.stopTimeout();
@@ -157,10 +158,9 @@ define("server/Game", gamedeps, (Events, Crypto, Icebox, Board, Bag, LetterBag, 
 					let square = rackSquares[i];
 					if (square && square.tile &&
 						(square.tile.letter == placement.letter
-						 || (square.tile.isBlank() && placement.blank))) {
-						if (placement.blank) {
+						 || (square.tile.isBlank && placement.isBlank))) {
+						if (placement.isBlank)
 							square.tile.letter = placement.letter;
-						}
 						fromSquare = square;
 						delete rackSquares[i];
 						break;

@@ -10,18 +10,18 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 		constructor(edition) {
 			// Tiles in the bag
 			this.tiles = [];
-			// String of all the letters in the bag, except blank
-			this.legalLetters = '';
+			// Array of all the letters in the bag, excluding blank
+			this.legalLetters = [];
 
 			for (let letterDefinition of edition.bag) {
 				if (letterDefinition.letter)
 					// Not blank
-					this.legalLetters += letterDefinition.letter;
+					this.legalLetters.push(letterDefinition.letter);
 				
 				const count = Math.floor(letterDefinition.count);
 				for (let n = 0; n < count; ++n) {
 					const tile = new Tile(
-						letterDefinition.letter || " ", letterDefinition.score);
+						letterDefinition.letter, letterDefinition.score);
 					this.tiles.push(tile);
 				}
 			}
@@ -40,19 +40,24 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 
 		/**
 		 * Get a single random tile from the bag
+		 * @return a Tile, or null if there are no tiles left
 		 */
 		getRandomTile() {
 			this.shake();
-			return this.tiles.pop();
+			if (this.tiles.length > 0)
+				return this.tiles.pop();
+			return null;
 		}
 
 		/**
-		 * Remove count random tiles from the bag
+		 * Remove count random tiles from the bag.
+		 * @return an array of 'count' Tile. If there aren't enough
+		 * tiles in the bag, may return a shorter array.
 		 */
 		getRandomTiles(count) {
 			this.shake();
 			const tiles = [];
-			for (let i = 0; this.tiles.length && (i < count); i++)
+			for (let i = 0; this.tiles.length > 0 && i < count; i++)
 				tiles.push(this.tiles.pop());
 			return tiles;
 		}

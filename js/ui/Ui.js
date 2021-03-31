@@ -107,7 +107,7 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 		
 		displayNextGameMessage(nextGameKey) {
 			if (nextGameKey) {
-				const $but = ("<button class='nextGame'></button>");
+				const $but = $("<button class='nextGame'></button>");
 				$but.text($.i18n('button-next-game'));
 				const $a = $("<a></a>");
 				$a.attr(
@@ -116,7 +116,7 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 				$('#log').append($a);
 				$('#makeNextGame').remove();
 			} else {
-				let $but = $(`<button></button>`);
+				let $but = $("<button></button>");
 				$but.text($.i18n('button-another-game'));
 				$but.on('click', this.sendMoveToServer('anotherGame', null));
 				let $ngb = $("<div id='makeNextGame'></div>")
@@ -245,9 +245,6 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 				let tilesTakenBack = [];
 				for (const placement of turn.placements) {
 					let square = this.board.squares[placement.col][placement.row];
-					if (square.tile.isBlank()) {
-						square.tile.letter = ' ';
-					}
 					tilesTakenBack.unshift(square.tile);
 					square.placeTile(null);
 				}
@@ -373,9 +370,8 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 			for (let turn of gameData.turns)
 				this.appendTurnToLog(turn);
 			
-			if (gameData.endMessage) {
+			if (gameData.endMessage)
 				this.displayEndMessage(gameData.endMessage, false);
-			}
 			
 			this.scrollLogToEnd(0);
 			
@@ -395,10 +391,10 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 				}
 			}
 			
-			let transports = ['websocket', 'flashsocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'];
-			if (navigator.userAgent.search("Firefox") >= 0) {
-				transports = ['htmlfile', 'xhr-polling', 'jsonp-polling'];
-			}
+			let transports = ['websocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'];
+//			if (navigator.userAgent.search("Firefox") >= 0) {
+//				transports = ['htmlfile', 'xhr-polling', 'jsonp-polling'];
+//			}
 			
 			this.socket = io.connect(null, { transports: transports });
 
@@ -446,6 +442,7 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 			
 			.on('nextGame', nextGameKey =>
 				this.displayNextGameMessage(nextGameKey))
+			
 			.on('message', message => {
 				console.debug(`Server: Message ${message.text}`);
 				// Chat received
@@ -562,7 +559,7 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 			.removeClass("Empty")
 			.addClass("Tile");
 				
-			if (square.tile.isBlank())
+			if (square.tile.isBlank)
 				$div.addClass('BlankLetter');
 				
 			if (square.owner == this.board && square.tileLocked) {
@@ -602,8 +599,8 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 				});
 			}
 
-			let letter = square.tile.letter ? square.tile.letter : '';
-			let score = square.tile.score ? square.tile.score : '0';
+			let letter = square.tile.letter;
+			let score = square.tile.score;
 			
 			let $a = $("<a></a>");
 			$a.append(`<span class='Letter'>${letter}</span>`);
@@ -740,14 +737,14 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 
 			fromSquare.placeTile(null);
 			fromSquare.owner.tileCount--;
-			if (tile.isBlank()) {			
+			if (tile.isBlank) {			
 				if (fromSquare.owner != this.board
 					&& toSquare.owner == this.board) {
 					
 					let $dlg = $('#blankDialog');
 					let $tab = $("#blankLetterTable");
 					$tab.empty();
-					let ll = this.legalLetters.split("");
+					let ll = this.legalLetters.slice();
 					let dim = Math.ceil(Math.sqrt(ll.length));
 					let rowlength = dim;
 					let $row = null;
@@ -761,6 +758,7 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 						}
 						let $td = $(`<td>${letter}</td>`);
 						$td.on('click', () => {
+							// Horrible hack
 							tile.letter = letter;
 							this.updateSquare(toSquare);
 							$dlg.dialog("close");
@@ -1007,11 +1005,10 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 			const ui = this;
 			
 			function putBackToRack(tile) {
-				if (tile.isBlank())
-					tile.letter = '';
-
 				let square = freeRackSquares.pop();
 				square.tile = tile;
+				if (tile.isBlank)
+					tile.letter = ' ';
 				ui.rack.tileCount++;
 				ui.updateSquare(square);
 			}

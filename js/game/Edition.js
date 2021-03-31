@@ -50,10 +50,9 @@ define("game/Edition", () => {
 
 			this.alphabeta = [];
 			for (let tile of this.bag) {
-				if (tile.letter) {
+				if (!tile.isBlank)
 					this.alphabeta.push(tile.letter);
-					this.scores[tile.letter] = tile.score;
-				}
+				this.scores[tile.letter] = tile.score;
 			}
 			this.alphabet = this.alphabeta.sort().join("");
 		}

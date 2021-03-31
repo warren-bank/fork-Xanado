@@ -50,7 +50,7 @@ define("game/Rack", ["triggerEvent", "game/Square"], (triggerEvent, Square) => {
 			const square = this.squares.find(
 				square => {
 					if (square.tile) {
-						if (square.tile.isBlank() && !blankSquare) {
+						if (square.tile.isBlank && !blankSquare) {
 							blankSquare = square;
 						} else if (square.tile.letter == letter) {
 							return true;

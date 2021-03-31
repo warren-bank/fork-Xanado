@@ -18,9 +18,9 @@ const deps = [
 	'errorhandler',
 	'basic-auth-connect',
 	'icebox',
-	'server/Game',
-	'server/Player',
 	'server/DirtyDB', // or server/FileDB, or server/RedisDB
+	'game/Game',
+	'game/Player',
 	'game/Tile',
 	'game/Square',
 	'game/Board',
@@ -32,7 +32,7 @@ const deps = [
 /* global APP_DIR */
 global.APP_DIR = null;
 
-define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, Game, Player, DB, Tile, Square, Board, Rack, LetterBag, Edition, findBestMove) => {
+define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, DB, Game, Player, Tile, Square, Board, Rack, LetterBag, Edition, findBestMove) => {
 
 	// Live games; map from game key to Game
 	const games = {};
@@ -215,14 +215,16 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 
 			console.log(`Game of ${players.length} players`, players);
 			
-			let game = new Game(edition, players);
-
+			let dictionary = null;
 			if (req.body.dictionary
 				&& req.body.dictionary != "none") {
 				console.log(`\twith dictionary ${req.body.dictionary}`);
-				game.dictionary = req.body.dictionary;
+				dictionary = req.body.dictionary;
 			} else
 				console.log("\twith no dictionary");
+
+
+			let game = new Game(edition, players, dictionary);
 
 			game.time_limit = req.body.time_limit || 0;
 			if (game.time_limit > 0)

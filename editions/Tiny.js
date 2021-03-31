@@ -1,6 +1,8 @@
+// Test edition
+// 11x11 board with all tile values
+// English letters, used with Custom_English.dict
 define("editions/Tiny", () => {
 
-	// 11x11 board
 	const BOARD = [
 		"D_____",
 		"_d____",
@@ -22,29 +24,29 @@ define("editions/Tiny", () => {
 		{ letter: "H", score: 1, count: 1 },
 		{ letter: "I", score: 1, count: 1 },
 		{ letter: "J", score: 1, count: 1 },
-		{ letter: "K", score: 1, count: 1 },
+		{ letter: "K", score: 5, count: 1 },
 		{ letter: "L", score: 1, count: 1 },
 		{ letter: "M", score: 1, count: 1 },
 		{ letter: "N", score: 1, count: 1 },
 		{ letter: "O", score: 1, count: 1 },
-		{ letter: "P", score: 1, count: 1 },
-		{ letter: "Q", score: 1, count: 1 },
+		{ letter: "P", score: 5, count: 1 },
+		{ letter: "Q", score: 10, count: 1 },
 		{ letter: "R", score: 1, count: 1 },
 		{ letter: "S", score: 1, count: 1 },
 		{ letter: "T", score: 1, count: 1 },
 		{ letter: "U", score: 1, count: 1 },
 		{ letter: "V", score: 1, count: 1 },
 		{ letter: "W", score: 1, count: 1 },
-		{ letter: "X", score: 1, count: 1 },
+		{ letter: "X", score: 10, count: 1 },
 		{ letter: "Y", score: 1, count: 1 },
-		{ letter: "Z", score: 1, count: 1 }
+		{ letter: "Z", score: 10, count: 1 }
 	];
 
 	return {
 		layout: BOARD,
 		bag: BAG,
-		rackCount: 4,
+		rackCount: 5,
 		swapCount: 3,
-		bonuses: { 3: 10, 4: 15 }
+		bonuses: { 3: 10, 4: 15, 5: 20 }
 	};
 });
