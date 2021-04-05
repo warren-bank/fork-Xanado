@@ -1,4 +1,6 @@
-/* eslint-env node */
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd, node */
 
 define("server/DirtyDB", ["fs", "dirty", "events", "icebox"], (Fs, Dirty, Events, Icebox) => {
 
@@ -8,19 +10,24 @@ define("server/DirtyDB", ["fs", "dirty", "events", "icebox"], (Fs, Dirty, Events
 	 * Icebox freeze/thaw.
 	 */
 	class DB extends Events.EventEmitter {
-		constructor(path) {
+		/**
+		 * @param path path to database on disc
+		 * @param classes array of dependencies that when required
+		 * return classes that are to be serialised
+		 */
+		constructor(path, classes) {
 			super()
 			this.prototypeMap = {};
+			const db = this;
+			requirejs(classes, function() {
+				for (let clzz of arguments)
+					db.prototypeMap[clzz.name] = clzz;
+			});
 			Events.EventEmitter.call(this);
 			console.log('opening database', path);
 			this.path = path;
 			this.dirty = new Dirty(path);
-			var db = this;
 			this.dirty.on('load', () => db.emit('load', 0));
-		}
-
-		registerObject(constructor) {
-			this.prototypeMap[constructor.name] = constructor;
 		}
 
 		// Get a value from the DB

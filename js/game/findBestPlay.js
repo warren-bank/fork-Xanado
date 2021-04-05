@@ -1,15 +1,14 @@
-/**
- * Python source: https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper/master/src/best_game_move.py
- * Author: Elijah Sawyers
- * Emails: elijahsawyers@gmail.com
- * Date: 03/27/2020
- * Reference: Loosely based on https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf
- *
- * Translation to Javascript, fixes and integration
- * Author: Crawford Currie
- */
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd */
 
-define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionary) => {
+/**
+ * Calculate the best move in a Crossword game, given a dictionary,
+ * a game edition, a current board state, and a player tile rack.
+ * Based on https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper/master/src/best_game_move.py by Elijah Sawyers<elijahsawyers@gmail.com>
+ * In turn loosely based on https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf
+ */
+define("game/findBestPlay", ["game/Edition", "game/Dictionary"], (Edition, Dictionary) => {
 
 	// Shortcuts to game information during move computation
 	let rack;        // class Rack
@@ -17,9 +16,11 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 	let edition;     // class Edition
 	let dict;        // Class Dictionary
 	
-    let bestPlay;    // best play found so far
+	let report;      // function to call when a new best play is found, or
+	                 // print a progress message or error to the console.
+
+    let bestScore;   // best score found so far
     let crossChecks; // checks for valid words on opposite axis
-	let timeout;     // May abort due to timeoout
 	
 	/**
 	 * An anchor is an empty cell with an adjacent (horizontal or
@@ -32,55 +33,49 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 	 * @return the column-major anchor matrix, or null if the centre
 	 * square is the only valid anchor.
 	 */
-	function findAnchors(board) {
-		let noAnchors = true
-		const anchors = [];
-
-		for (let col = 0; col < board.dim; col++) {
-			const column = [];
-			for (let row = 0; row < board.dim; row++) {
-				if (board.squares[col][row].tile)
-					column.push(false);
-
-				else if (
-					(col > 0 && board.squares[col - 1][row].tile)
-					|| (col < (board.dim - 1) && board.squares[col + 1][row].tile)
-					|| (row > 0 && board.squares[col][row - 1].tile)
-					|| (row < (board.dim - 1) && board.squares[col][row + 1].tile)) {
-					noAnchors = false;
-					column.push(true);
-					
-				} else
-					column.push(false);
-			}
-			anchors.push(column);
-		}
-
-		if (noAnchors)
-			return null;
-
-		return anchors;
+	function isAnchor(board, col, row) {
+		if (board.squares[col][row].tile)
+			return false;
+		if (col > 0 && board.squares[col - 1][row].tile)
+			return true;
+		if (col < (board.dim - 1) && board.squares[col + 1][row].tile)
+			return true;
+		if (row > 0 && board.squares[col][row - 1].tile)
+			return true;
+		return row < (board.dim - 1) && board.squares[col][row + 1].tile;
+	}
+	
+	// A start is any letter that has an adjacent blank space
+	function isStart(board, col, row) {
+		return board.squares[col][row].tile
+		&& (
+			(col > 0 && !board.squares[col - 1][row].tile)
+			|| (col < (board.dim - 1) && !board.squares[col + 1][row].tile)
+			|| (row > 0 && !board.squares[col][row - 1].tile)
+			|| (row < (board.dim - 1) && !board.squares[col][row + 1].tile));
 	}
 
-    // Removes a letter from the rack and returns it.
-    // @param rack the rack of letters to filter.
-    // @return the filtered rack.
-    function filterRack(rack, letter) {
-        let letterRemoved = false;
-        const newRack = [];
-
-        for (let currentLetter of rack) {
-            // Same letter, hasn't been removed.
-            if (currentLetter == letter && !letterRemoved)
-                letterRemoved = true;
-            // Different letter or letter already removed,
-			// add it to the new rack.
-            else
-				newRack.push(currentLetter);
-		}
-
-        return newRack;
+	/**
+	 * Removes a letter from the rack.
+     * @param rack the array of letters representing the rack.
+	 * @param letter the letter to remove. If the letter is not found
+	 * explicitly in the rack, then the first ' ' (blank) will be filtered.
+     * @return the filtered rack
+	 * @throw if the letter (or a blank) wasn't found on the rack
+	 */
+function rackWithoutLetter(rack, letter) {
+    let pos = rack.indexOf(letter);
+	if (pos < 0)
+		// Not found, try blank
+		pos = rack.indexOf(' ');
+	if (pos < 0) {
+		console.log(`${letter} is not on rack and no blank`, rack);
+		throw Error("Assert failed");
 	}
+	const newRack = rack.slice();
+	newRack.splice(pos, 1);
+	return newRack;
+}
 	
 	/**
 	 * Return a list of the letters that are in both the rack and
@@ -98,7 +93,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 				result.push(letter);
 		return result;
 	}
-	
+
 	/**
 	 * Determine which letters can fit in each square and form a valid
 	 * horizontal or vertical cross word. This returns a matrix where
@@ -110,11 +105,12 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 	 * cells can be indexed using the dcol parameter in the other
 	 * functions.
 	 * @param board the Board
+	 * @param available the set of available letters
 	 * @return [c][r][2] the cross check letter matrix.
 	 */
-	function computeCrossChecks(board) {
+	function computeCrossChecks(board, available) {
 		const xChecks = [];
-
+		
 		for (let col = 0; col < board.dim; col++) {
 			const thisCol = [];
 			xChecks.push(thisCol);
@@ -125,13 +121,12 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 				
 				if (board.squares[col][row].tile) {
 					// The cell isn't empty, only this letter is valid.
-					// Note it can never be blank!
 					thisCell[0].push(board.squares[col][row].tile.letter);
 					thisCell[1].push(board.squares[col][row].tile.letter);
 					continue;
 				}
 
-				// Find the known words above and below
+				// Find the words above and below
 				let wordAbove = '';
 				let r = row - 1;
 				while (r >= 0 && board.squares[col][r].tile) {
@@ -146,7 +141,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 					r++;
 				}
 
-				// Find the known words left and right
+				// Find the words left and right
 				let wordLeft = '';
 				let c = col - 1;
 				while (c >= 0 && board.squares[c][row].tile) {
@@ -161,32 +156,31 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 					c++;
 				}
 
-				// Find which (if any) letters in the alphabet form a
-				// valid cross word.
-				for (let letter of edition.alphabeta) {
-					if (wordAbove && wordBelow) {
-						if (dict.hasWord(wordAbove + letter + wordBelow))
-							thisCell[1].push(letter);
-					} else if (wordAbove) {
-						if (dict.hasWord(wordAbove + letter))
-							thisCell[1].push(letter);
-					} else if (wordBelow) {
-						if (dict.hasWord(letter + wordBelow))
-							thisCell[1].push(letter);
-					} else
-						thisCell[1].push(letter);
+				// Find which (if any) letters form a valid cross word
+				for (let letter of available) {
+					const h = wordLeft + letter + wordRight;
 					
-					if (wordLeft && wordRight) {
-						if (dict.hasWord(wordLeft + letter + wordRight))
-							thisCell[0].push(letter);
-					} else if (wordLeft) {
-						if (dict.hasWord(wordLeft + letter))
-							thisCell[0].push(letter);
-					} else if (wordRight) {
-						if (dict.hasWord(letter + wordRight))
-							thisCell[0].push(letter);
-					} else
+					// Is h a complete valid word, or just the letter
+					// on its tod?
+					const hIsWord = h.length === 1 || dict.hasWord(h);
+					// Is h a valid complete word, or a legal sub-sequence?
+					const hIsSeq = hIsWord || col > 0 && dict.hasSequence(h);
+
+					const v = wordAbove + letter + wordBelow;
+					const vIsWord = v.length === 1 || dict.hasWord(v);
+					const vIsSeq = vIsWord || row > 0 && dict.hasSequence(v);
+					
+					if (hIsWord && vIsSeq)
+						// A down word is playable with this letter, and
+						// there's a valid down sequence involving the
+						// letter
 						thisCell[0].push(letter);
+
+					if (vIsWord && hIsSeq)
+						// An across word is playable with this letter, and
+						// there's a valid across sequence involving the
+						// letter
+						thisCell[1].push(letter);
 				}
 			}
 		}
@@ -275,14 +269,10 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
         return wordScore;
 	}
 
-	function aborted() {
-		return (Date.now() > timeout);
-	}
-	
 	/**
      * Given an anchor position, recursively compute possible down
      * word plays by extending down the board. For each word,
-     * compute its point value, and update the bestPlay score
+     * compute its point value, and update the best score
      * accordingly.
 	 * 
      * @param col, row index of the current position on the board.
@@ -293,17 +283,8 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
      */
 	function extend(dcol, drow, col, row, rack, currentWord, rackPlayedIndices) {
 
-		if (row >= board.dim || col >= board.dim || aborted())
+		if (row >= board.dim || col >= board.dim)
 			return;
-
-		// For the current square, find common letters between the
-		// rack and cross checks
-		let commonLetters = intersection(rack, crossChecks[col][row][dcol])
-		//console.log(currentWord, "common letters", commonLetters);
-		
-        if (!board.squares[col][row].tile && commonLetters.length == 0)
-			//  no tile and no useable letters in the rack
-            return;
 		
 		// Determine if the next tile after the word is blank or off
 		// the board - a precondition of the extended word being playable.
@@ -312,32 +293,38 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 		
         if (board.squares[col][row].tile) {
 			// Occupied square
-			let letter = board.squares[col][row].tile.letter;
-            let word = currentWord + letter;
-            if (playable && word.length > 1 && dict.hasWord(word)) {
+			const letter = board.squares[col][row].tile.letter;
+            const word = currentWord + letter;
+			const match = dict.match(word);
+
+			if (!match)
+				return;
+			
+            if (playable && word.length > 1 && match.isEndOfWord) {
 				// New word is playable and is in the dictionary
 
-                let score = scoreWord(dcol, drow, word, col, row);
-					+ board.calculateBonus(rackPlayedIndices.length);
+                const score = scoreWord(dcol, drow, word, col, row);
+				+ (board.bonuses[rackPlayedIndices.length] || 0);
 				
-                if (score > bestPlay.score) {
-                    bestPlay.start = [
-						col - dcol * (word.length - 1),
-						row - drow * (word.length - 1)
-					];
-                    bestPlay.word = word;
-                    bestPlay.score = score;
-					bestPlay.dcol = dcol;
-					bestPlay.drow = drow;
-					console.log(
-						`Best ${drow > 0 ? 'down' : 'across'} extension ${word} ${score}`,
-						rackPlayedIndices);
-				} else
-					console.log(`Reject ${drow > 0 ? 'down' : 'across'} ${word} ${score}`,
-								rackPlayedIndices);
+				report(`Consider '${word}' ${score}`);
+                if (score > bestScore) {
+					bestScore = score;
+                    report({
+						start: [
+							col - dcol * (word.length - 1),
+							row - drow * (word.length - 1)
+						],
+						word: word,
+						score: score,
+						dcol: dcol,
+						drow: drow
+					});
+				}
+				else
+					report(`Reject '${word}' ${score}`, rackPlayedIndices);
 			}
 
-            // Keep extending to form words
+            // Keep extending to form longer words
 			extend(dcol, drow, col + dcol, row + drow,
 				   rack, // not filtered, no tile placed
 				   word, rackPlayedIndices);
@@ -345,41 +332,55 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 			return;
 		}
 
+		// For the current (empty) square, find common letters between
+		// the rack and cross checks, filtering letters that don't
+		// form a valid word extension
+		const available = (
+			(rack.indexOf(' ') >= 0)
+			? crossChecks[col][row][dcol]
+			: intersection(rack, crossChecks[col][row][dcol]))
+			.filter(l => dict.match(currentWord + l));
+		
+        if (!board.squares[col][row].tile && available.length == 0)
+			// no tile and no useable letters in the rack
+            return;
+		
+		//report(`E ${currentWord}+'${available.join("")}'`);
+
 		// empty cell.
-        for (let letter of commonLetters) {
-			if (aborted())
-				return;
-			
-            let word = currentWord + letter;
+        for (let letter of available) {
+            const word = currentWord + letter;
 
             if (playable && word.length > 1 && dict.hasWord(word)) {
 				// New word is in the dictionary
 
 				let rpi = rackPlayedIndices.concat([[col, row]]);
                 let score = scoreWord(dcol, drow, word, col, row)
-					+ board.calculateBonus(rpi.length);
+					+ (board.bonuses[rpi.length] || 0);
 
-                if (score > bestPlay.score) {
-                    bestPlay.start = [
-						col - dcol * (word.length - 1),
-						row - drow * (word.length - 1)
-					];
-                    bestPlay.word = word;
-                    bestPlay.score = score;
-					bestPlay.dcol = dcol;
-					bestPlay.drow = drow;
-					console.log(
-						`Best ${drow > 0 ? 'down' : 'across'} word ${word} ${score}`, rpi);
+				report(`Consider '${word}' ${score}`);
+                if (score > bestScore) {
+					bestScore = score;
+                    report({
+						start: [
+							col - dcol * (word.length - 1),
+							row - drow * (word.length - 1)
+						],
+						word: word,
+						score: score,
+						dcol: dcol,
+						drow: drow
+					});
 				}
 				else
-					console.log(`Reject ${word} ${score}`, rpi);
+					report(`Reject '${word}' ${score}`, rpi);
 			}
 
 			// Keep extending down to form words.
 			extend(
 				dcol, drow, col + dcol, row + drow,
-				filterRack(rack, letter),
-				currentWord + letter,
+				rackWithoutLetter(rack, letter),
+				word,
 				rackPlayedIndices.concat([[col, row]])
 			);
 		}
@@ -389,7 +390,7 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
      * Given a position above/left of an anchor, recursively compute possible
      * word plays by extending up/right before extending down/left on the
      * board. For each word, compute its point value, and update the
-     * bestPlay score accordingly.
+     * best score accordingly.
 	 * 
      * @param col, row the current position on the board.
      * @param {Array<str>} rack the user's letter rack.
@@ -403,46 +404,58 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
         if ((dcol > 0 && col === 0) || (drow > 0 && row === 0)
 			|| !board.squares[col - dcol][row - drow].tile) {
 
-			// For the current coordinate, find common letters between
-			// the rack and cross checks.
-			const commonLetters =
-				  intersection(rack, crossChecks[col][row][dcol]);
-
+			// For the current square, find common letters between
+			// the rack and cross checks. If we have a blank, then
+			// add any of the crossChecks that don't appear on the
+			// rack.
+			const available =
+				rack.indexOf(' ') >= 0
+				? crossChecks[col][row][dcol]
+				: intersection(rack, crossChecks[col][row][dcol])
+			
 			// Base Case - no common letters
-			if (commonLetters.length == 0)
+			if (available.length == 0)
 				return;
 
-            for (let letter of commonLetters) {
-				if (aborted())
-					return;
-				
-                const word = letter + prior;
-                const rackPlayedIndices = [];
+			let root = dict.root.match(prior);
+			
+			//console.log(`EWP ${prior}-'${rack.join("")}' '${available.join('')}'`);
+			const rackPlayedIndices = [];
+			for (let k = 0; k < prior.length + 1; k++)
+				rackPlayedIndices.push(
+					[col + k * dcol, row + k * drow]);
 
-                for (let k = 0; k < word.length; k++)
-					rackPlayedIndices.push([col + k * dcol, row + k * drow]);
+            for (let letter of available) {
+                const seq = letter + prior;
+				if (dict.hasSequence(seq)) {
 
-                // Extend down/right to try to form words
-                extend(dcol, drow,
-					   col + dcol * word.length, row + drow * word.length,
-                       filterRack(rack, letter),
-                       word,
-                       rackPlayedIndices);
+					const shrunkRack = rackWithoutLetter(rack, letter);
+					
+					// Extend down/right to try to form words, but only if
+					// the sequence can root a word.
+					if (dict.match(seq)) {
+						extend(dcol, drow,
+							   col + dcol * seq.length, row + drow * seq.length,
+							   shrunkRack,
+							   seq,
+							   rackPlayedIndices);
+					}
 
-                // Keep extending up/left
-                extendWithPrior(
-					dcol, drow,
-					col - dcol, row - drow,
-					filterRack(rack, letter),
-					word
-				);
+					// Keep extending up/left with the reduced rack
+					extendWithPrior(
+						dcol, drow,
+						col - dcol, row - drow,
+						shrunkRack,
+						seq
+					);
+				}
 			}
 		}
 	}
 
 	/**
 	 * Explore the words that can be formed around the given anchor
-	 * on the given axis. Update bestPlay if a better word is found.
+	 * on the given axis. Update best score if a better word is found.
 	 * @param dcol, drow 1/0 depending on whether we are looking vertically
 	 * or horizontally
 	 * @param col, row location of the anchor
@@ -476,20 +489,11 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 
 	/**
 	 * Special case of the opening move. Find anagrams of the player's
-	 * rack, and find the highest scoring position for each word.
-	 * @return bestPlay
+	 * rack, and find the highest scoring position for each possible word.
 	 */
 	function bestOpeningPlay() {
 		const choices = dict.findAnagrams(rack.join(""));
 
-		let bestPlay = {
-			start: [-1, -1], // col, row
-			dcol: 0,         // 1 if it's a column move, or
-			drow: 0,         // 1 if it's a row move
-			word: '',
-			score: 0
-		};
-		
 		for (let choice of Object.keys(choices)) {
 			// We assume the board is diagonally symmetrical, and
 			// we only have to test "across" constructions that can
@@ -498,7 +502,12 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 				 end < board.middle + choice.length;
 				 end++) {
 				const score = scoreWord(1, 0, choice, end, board.middle);
-				if (score > bestPlay.score) {
+				if (score > bestScore) {
+					bestScore = score;
+					let bestPlay = {
+						word: choice,
+						score: score
+					};
 					const start = end - (choice.length - 1);
 					if (Math.random() > 0.5) {
 						bestPlay.start = [start, board.middle]
@@ -509,82 +518,89 @@ define("game/BestMove", ["game/Edition", "game/Dictionary"], (Edition, Dictionar
 						bestPlay.dcol = 0;
 						bestPlay.drow = 1;
 					}
-					bestPlay.word = choice;
-					bestPlay.score = score;
-					console.log("New best opening", bestPlay);
+					report(bestPlay);
 				}
 			}
 		}
-		return bestPlay;
 	}
-	
+
 	/*
 	 * Given a user's letter rack, compute the best possible move.
-	 * 
-	 * @param rack rack in the form of a simple array of letters
-	 * @param board the partially-complete Board
-	 * @param e Edition
-	 * @return Promise that resolves to data containing the best
-	 * possible move information.
+	 * @pram game the Game
+	 * @param prack rack in the form of a simple array of letters
+	 * @param listener fn() that accepts a best play whenever a new
+	 * one is found, or a string containing a message
+	 * @return Promise that resolves when all best moves have been identified
 	 */
-    function findBestMove(game, player) {		
+    function findBestPlay(game, prack, listener) {
+		report = listener;
+		
 		if (!game.edition) {
-			console.log("Game has no edition", game);
+			report("Error: Game has no edition", game);
 			return Promise.reject('Game has no edition');
 		}
 
 		if (!game.dictionary) {
-			console.log("Cannot find moves with no dictionary");
+			report("Error: Cannot find moves with no dictionary");
 			return Promise.reject('Game has no dictionary');
 		}
 
-		return Edition.load(game.edition)
-		.then(e => { edition = e; })
-		.then(() => Dictionary.load(game.dictionary))
-		.then(d => { dict = d; })
-		.then(() => {
-			// sort and reverse to make sure high value letters come
-			// first and blanks come last. It's not going to make it
-			// any faster, but it will abort with a better result if
-			// it's going to time out.
-			rack = player.rack.letters().sort().reverse();
+		// sort and reverse to make sure high value letters come
+		// first and blanks come last. It's not going to make it
+		// any faster, but it will abort with a better result if
+		// it's going to time out.
+		rack = prack.sort().reverse();
 
-			console.log("finding best move for rack ",rack);
-			board = game.board;
+		report("Finding best play for rack " + rack);
+
+		board = game.board;
+		report("on board" + board );
+
+		const preamble = [
+			Dictionary.load(game.dictionary),
+			Edition.load(game.edition)
+		];
+
+		return Promise.all(preamble)
+		.then(de => {
+			dict = de[0];
+			edition = de[1];
+			
+			report("Starting computation");
+			bestScore = 0;
 
 			// Compute the anchors and cross checks.
-			const anchors = findAnchors(board);
-
-			if (anchors) {
-				bestPlay = {
-					start: [-1, -1], // col, row of the LAST letter
-					dcol: 0,         // 1 if it's a column move, or
-					drow: 0,         // 1 if it's a row move
-					word: '',
-					score: 0
-				};
-
-				crossChecks = computeCrossChecks(board);
-
-				timeout = Date.now() + 10000;
-				 
-				for (let col = 0; col < board.dim && !aborted(); col++) {
-					for (let row = 0; row < board.dim && !aborted(); row++) {
-						if (anchors[col][row]) {
-							// Valid anchor site
-							exploreAnchor(1, 0, col, row);
-							exploreAnchor(0, 1, col, row);
-						}
+			let anchored = false;
+			// What letters can be used to form a valid cross
+			// word? The whole alphabet if the rack contains a
+			// blank, the rack otherwise.
+			const available = rack.indexOf(' ') >= 0
+				  ? edition.alphabeta : rack;
+			crossChecks = computeCrossChecks(board, available);
+			for (let col = 0; col < board.dim; col++) {
+				for (let row = 0; row < board.dim; row++) {
+					if (isAnchor(board, col, row)) {
+						anchored = true;
+						// Explore anchor locations exhaustively. Might be able
+						// to do this more efficiently e.g. explore anchors that
+						// have bonuses first, but it's fast enough not to have
+						// to bother (though super scrabble with a blank near
+						// the end of a game is going to explore a LOT of
+						// alternatives!)
+						report(`Explore ${col},${row} across`);
+						exploreAnchor(1, 0, col, row);
+						report(`Explore ${col},${row} down`);
+						exploreAnchor(0, 1, col, row);
 					}
 				}
-			} else
-				bestPlay = bestOpeningPlay();
+			}
 
-			console.log(bestPlay);
+			if (!anchored)
+				// No anchors, so this is an opening play.
+				bestOpeningPlay();
 
-			return bestPlay;
 		});
 	}
 	
-	return findBestMove;
+	return findBestPlay;
 });

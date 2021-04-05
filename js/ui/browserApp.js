@@ -1,7 +1,9 @@
-/* eslint-env browser, jquery */
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd, browser, jquery */
 
 /**
- * Common dependency handling for all browser apps
+ * Common dependency handling for all browser apps (games, game, invite-game)
  * Returns a promise that resolves to a list of supported locales
  */
 const deps = [

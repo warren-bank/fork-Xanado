@@ -1,10 +1,11 @@
-/* eslint-env node */
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd, node */
 
 /**
- * Main Program for server.
+ * Main program for Crossword Game server.
  */
-const deps = [
-	'repl',
+const main_deps = [
 	'fs-extra',
 	'node-getopt',
 	'events',
@@ -18,21 +19,18 @@ const deps = [
 	'errorhandler',
 	'basic-auth-connect',
 	'icebox',
-	'server/DirtyDB', // or server/FileDB, or server/RedisDB
+	'server/DirtyDB',
 	'game/Game',
 	'game/Player',
-	'game/Tile',
-	'game/Square',
-	'game/Board',
-	'game/Rack',
-	'game/LetterBag',
 	'game/Edition',
-	'game/BestMove'];
+
+//	"game/findBestPlay"];
+	"game/findBestPlayController"];
 
 /* global APP_DIR */
 global.APP_DIR = null;
 
-define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, DB, Game, Player, Tile, Square, Board, Rack, LetterBag, Edition, findBestMove) => {
+define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, DB, Game, Player, Edition, findBestPlay) => {
 
 	// Live games; map from game key to Game
 	const games = {};
@@ -104,6 +102,41 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 	function trap(e, res) {
 		console.log("Trapped", e);
 		res.status(500).send(e.toString());
+	}
+
+	/**
+	 * Calculate a play for the given player
+	 */
+	function cheat(game, player) {
+		console.log(`Player ${player} is cheating`);
+
+		let bestPlay = null;
+		findBestPlay(game, player.rack.letters(), data => {
+			if (typeof data === "string")
+				console.log(data);
+			else
+				bestPlay = data;
+		})
+		.then(() => {
+			let play;
+			if (!bestPlay)
+				play = "can't find a play";
+			else {
+				let start = bestPlay.start;
+				play = `${bestPlay.word} at row ${start[1] + 1} column ${start[0] + 1} for ${bestPlay.score}`;
+			}
+			// Tell *everyone* what the cheat is
+			game.notifyListeners(
+				'message', {
+					name: 'Dictionary',
+					text: play });
+		})
+		.catch(e => {
+			game.notifyListeners(
+				'message', {
+					name: 'Dictionary',
+					text: e.toString() });
+		});
 	}
 	
 	/**
@@ -212,8 +245,6 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		
 			if (!haveHuman)
 				throw Error('msg-need-human');
-
-			console.log(`Game of ${players.length} players`, players);
 			
 			let dictionary = null;
 			if (req.body.dictionary
@@ -223,22 +254,25 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			} else
 				console.log("\twith no dictionary");
 
-
-			let game = new Game(edition, players, dictionary);
-
+			let game = new Game(edition.name, players, dictionary);
 			game.time_limit = req.body.time_limit || 0;
 			if (game.time_limit > 0)
 				console.log(`\t${game.time_limit} minute time limit`);
 			else
 				console.log("\twith no time limit");
 
-			// Save the game when everything has been initialised
-			game.save();
+			game.load()
+			.then(game => {
+				console.log(game.toString());
 
-			game.sendInvitations(config);
+				// Save the game when everything has been initialised
+				game.save();
 
-			// Redirect back to control panel
-			res.redirect("/html/games.html");
+				game.sendInvitations(config);
+
+				// Redirect back to control panel
+				res.redirect("/html/games.html");
+			});
 		})
 		.catch(e => trap(e, res));
 	}
@@ -321,35 +355,30 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 	}
 
 	/**
-	 * Handler for /deleteGame
+	 * Handler for /bestPlay (debug)
 	 * @return Promise
 	 */
-	function handle_deleteGame(req, res) {
-		const gameKey = req.params.gameKey;
-		return loadGame(gameKey)
-		.then(() => {
-			db.set(gameKey, undefined);
-			// Redirect back to control panel
-			res.redirect("/html/games.html");
-		})
-		.catch(e => trap(e, res));
-	}
-	
-	/**
-	 * Handler for /bestMove
-	 * @return Promise
-	 */
-	function handle_bestMove(req, res) {
+	function handle_bestPlay(req, res) {
 		const gameKey = req.params.gameKey;
 		const playerKey = req.params.playerKey;
 		return loadGame(gameKey)
 		.then(game => game.lookupPlayer(playerKey))
-		// Find the best move for the player, given the current board
-		// state. Note that it may not be their turn, that's OK
-		.then(info => findBestMove(info.game, info.player))
-		.then(move => res.send(Icebox.freeze(move)))
+		// Find the best play for the player, given the current board
+		// state. Note that it may not be their turn, that's OK, this is debug
+		.then(info => findBestPlay(info.game, info.player.rack.letters()))
+		.then(play => res.send(Icebox.freeze(play)))
 		.catch(e => trap(e, res));
 	}
+
+    function handle_deleteGame(req, res) {
+        const gameKey = req.params.gameKey;
+        return loadGame(gameKey)
+        .then(() => {
+            db.set(gameKey, undefined);
+			res.send("OK");
+        })
+        .catch(e => trap(e, res));
+    }
 
 	/**
 	 * Handle game command received as an AJAX request
@@ -371,6 +400,11 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			let promise;
 			switch (req.body.command) {
 
+			case 'deleteGame':
+				db.set(game.key, undefined);
+				promise = Promise.resolve({});
+				break;
+				
 			case 'makeMove':
 				promise = game.checkTurn(player)
 				.then(game => game.makeMove(player, body.arguments));
@@ -415,18 +449,20 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 	
 	function configureDatabase(database) {
 		// Configure database
-		db = new DB(database);
+		db = new DB(
+			database,
+			[ 'game/LetterBag',
+			  'game/Square',
+			  'game/Board',
+			  'game/Tile',
+			  'game/Rack',
+			  'game/Placement',
+			  'game/Move',
+			  'game/Game',
+			  'game/Player' ]);
+		
 		Game.setDatabase(db);
 		db.on('load', () => console.log('database loaded'));
-
-		// Register classes that are to be serialised
-		db.registerObject(Tile);
-		db.registerObject(Square);
-		db.registerObject(Board);
-		db.registerObject(Rack);
-		db.registerObject(LetterBag);
-		db.registerObject(Game);
-		db.registerObject(Player);
 	}
 	
 	function runServer(config) {
@@ -490,6 +526,8 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		
 		// Construct a new game
 		app.post("/newGame", handle_newGame);
+		
+        app.post("/deleteGame/:gameKey", handle_deleteGame);
 
 		// Create a follow-on game
 		app.get("/anotherGame", handle_anotherGame);
@@ -510,14 +548,12 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 		// Request handler for game interface / info
 		app.get("/game/:gameKey", handle_gameGET);
 		
-		// Request handler for best move
-		app.get("/bestMove/:gameKey/:playerKey", handle_bestMove);
+		// Request handler for best play. Debug.
+		app.get("/bestPlay/:gameKey/:playerKey", handle_bestPlay);
 		
 		// Request handler for game command
 		app.post("/game/:gameKey", handle_gamePOST);
 
-		app.get("/deleteGame/:gameKey", handle_deleteGame);
-		
 		io.sockets.on('connection', socket => {
 			// The server socket only listens to these messages.
 			// However it emits a lot more, in 'Game.js'
@@ -552,41 +588,12 @@ define("server/Server", deps, (Repl, Fs, Getopt, Events, SocketIO, Http, NodeMai
 			
 			.on('message', message => {
 				console.log(message);
-				if (message.text == "/cheat") {
-					console.log(`Player ${socket.player} is cheating`);
-					findBestMove(socket.game, socket.player)
-					.then(move => {
-						let start = move.start;
-						let play = move.word ? `${move.word} at row ${start[1] + 1} column ${start[0] + 1} for ${move.score}` : "can't find a play";
-						// Tell *everyone* what the cheat is
-						socket.game.notifyListeners(
-							'message', {
-								name: 'Dictionary',
-								text: play });
-					})
-					.catch(e => {
-						socket.game.notifyListeners(
-							'message', {
-								name: 'Dictionary',
-								text: e.toString() });
-					});
-				} else
+				if (message.text == "/cheat")
+					cheat(socket.game, socket.player);
+				else
 					socket.game.notifyListeners('message', message);
 			});
 		});
-
-		// Start interactive debug. Type javascript to inspect server internals.
-		// Questionable value, since chrome://inspect does an excellent job.
-		const repl = Repl.start({
-			prompt: "debug> ",
-			input: process.stdin,
-			output: process.stdout
-		});
-
-		repl.context.db = db;
-		repl.context.Game = Game;
-		repl.context.DB = DB;
-		repl.context.config = config;
 	}
 
 	function mainProgram(dirname) {

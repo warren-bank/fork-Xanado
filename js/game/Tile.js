@@ -1,5 +1,13 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd */
+
+/**
+ * A tile in a LetterBag, on a Board, or on a Rack.
+ */
 define("game/Tile", () => {
 	class Tile {
+		
 		/**
 		 * @param letter character(s) represented by this tile
 		 * @param score value of this tile
@@ -13,7 +21,7 @@ define("game/Tile", () => {
 			// be locked to the chosen letter.
 			this.letter = letter || ' ';
 			this.score = score || 0;
-			this.isBlank = !letter;
+			this.isBlank = !letter || letter === ' ';
 		}
 
 		toString() {

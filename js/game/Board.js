@@ -1,18 +1,11 @@
-define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => {
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd */
+
+define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, Move) => {
 
 	class Board {
 
-		/**
-		 * Board.Placement
-		 *
-		 * {
-		 *    letter: letter to place,
-		 *    col: col column,
-		 *    row: row row,
-		 *    isBlank: true if this is a cast blank
-		 * }
-		 */
-		
 		/**
 		 * @param edition the Edition defining the board layout
 		 */
@@ -37,8 +30,6 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 					this.squares[col][row] = new Square(type, this, col, row);
 				}
 			}
-			
-			triggerEvent('BoardReady', [ this ]);
 		}
 
 		/**
@@ -57,14 +48,40 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 		 * Debug
 		 */
 		toString() {
-			let s = `Board ${this.dim}x${this.dim}`;
+			let s = `Board ${this.dim}x${this.dim}\n`;
+			
 			for (let row = 0; row < this.dim; row++) {
-				s += "\n";
+				let r = [];
 				for (let col = 0; col < this.dim; col++) {
-					s += this.squares[col][row].type;
+					if (this.squares[col][row].tile)
+						r.push(this.squares[col][row].tile.letter);
+					else
+						r.push(' ');
 				}
+				s += r.join("|") + "\n";
 			}
 			return s;
+		}
+
+		/**
+		 * Load the board from the string representation output by
+		 * toString. This is for use in tests.
+		 */
+		parse(sboard) {
+			const lines = sboard.split("\n");
+			for (let row = 0; row < this.dim; row++) {
+				let r = lines[row].split("|");
+				r.shift();
+				console.log(r.join("|"));
+				let col = 0;
+				for (col = 0; col < this.dim; col++) {
+					let letter = r[col];
+					if (letter != ' ') {
+						this.squares[col][row].placeTile(
+							new Tile(letter, 1), true);
+					}
+				}
+			}
 		}
 
 		/**
@@ -84,11 +101,10 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 
 		// @private
 		// Calculate word score assuming word is horizontal, and
-		// update the move score and list of words accordingly
+		// update the move accordingly
 		// @param move the {score:N words:[]} move to update
 		// @param squares the set of squares to operate on
-		scoreAcrossWord(move, squares) {
-			let score = 0;
+		scoreNewWords(move, squares) {
 			for (let row = 0; row < this.dim; row++) {
 				for (let col = 0; col < this.dim - 1; col++) {
 					if (squares[col][row].tile && squares[col + 1][row].tile) {
@@ -107,21 +123,16 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 							wordScore += letterScore;
 							letters += square.tile.letter;
 						}
-						wordScore *= wordMultiplier;
-						if (isNewWord) {
-							move.words.push(
-								{ word: letters, score: wordScore });
-							score += wordScore;
-						}
+						if (isNewWord)
+							move.addWord(letters, wordScore * wordMultiplier);
 					}
 				}
 			}
-			move.score += score;
 		}
 
 		/**
 		 * Calculate the bonus if tilesPlaced tiles are placed
-		 * Really belong in Edition, but here because Edition is
+		 * Really belongs in Edition, but here because Edition is
 		 * not sent to the client.
 		 */
 		calculateBonus(tilesPlaced) {
@@ -133,7 +144,7 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 		/**
 		 * UI-side move calculation. Note that the score calculated
 		 * does NOT include any bonuses!
-		 * @return an object representing the move.
+		 * @return a Move, or an error.
 		 */
 		analyseMove() {
 			const squares = this.squares;
@@ -197,7 +208,7 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 				return { error: 'not touching old tile ' + topLeftX + '/' + topLeftY };
 			}
 
-			// Check whether there are any unconnected other placements, count total tiles on board
+			// Check whether there are any unconnected placements
 			let totalTiles = 0;
 			for (let col = 0; col < this.dim; col++) {
 				for (let row = 0; row < this.dim; row++) {
@@ -212,11 +223,15 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 			}
 			
 			if (totalTiles == 1)
-				return { error: 'first word must consist of at least two letters' };
+				return {
+					error: 'first word must consist of at least two letters'
+				};
 
-			let move = { words: [], score: 0 };
+			let move = new Move();
 
-			this.scoreAcrossWord(move, squares);
+			// Calculate horizontal word scores
+			this.scoreNewWords(move, squares);
+
 			// Transpose the board to calculate vertical word scores.
 			const transpose = new Array(this.dim);
 			for (let col = 0; col < this.dim; col++) {
@@ -225,25 +240,19 @@ define("game/Board", ["triggerEvent", "game/Square"], (triggerEvent, Square) => 
 					transpose[col][row] = squares[row][col];
 				}
 			}
-			this.scoreAcrossWord(move, transpose);
+			this.scoreNewWords(move, transpose);
 
-			// Collect and count tiles placed.
-			let tilesPlaced = [];
+			// Collect tiles placed.
 			for (let col = 0; col < this.dim; col++) {
 				for (let row = 0; row < this.dim; row++) {
 					let square = squares[col][row];
 					if (square.tile && !square.tileLocked) {
-						tilesPlaced.push({
-							letter: square.tile.letter,
-							col: col,
-							row: row,
-							isBlank: square.tile.isBlank
-						});
+						move.addPlacement(
+							square.tile.letter, col, row, square.tile.isBlank);
 					}
 				}
 			}
-			move.tilesPlaced = tilesPlaced;
-
+			
 			return move;
 		}
 	}

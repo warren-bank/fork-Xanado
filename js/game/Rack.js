@@ -1,3 +1,11 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd */
+
+/**
+ * A Rack is a set of tiles that a player can play from. It's effectively
+ * a 1D board.
+ */
 define("game/Rack", ["triggerEvent", "game/Square"], (triggerEvent, Square) => {
 
 	class Rack {

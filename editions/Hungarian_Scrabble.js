@@ -2,15 +2,6 @@ define("editions/Hungarian_Scrabble", ["editions/_Scrabble"], (Scrabble) => {
 
 	const scrabble = Scrabble();
 	
-	/**
-	 * TODO: Dictionary and BestMove code assume that tiles
-	 * can be represented using a single unicode code point. Clearly
-	 * this isn't the case for Hungarian.
-	 * This requires a major re-code to change strings to sequences
-	 * of Scrabble tile indices, which isn't going to happen any time
-	 * soon :-(. However this edition should be playable with human
-	 * players and no dictionary.
-	 */
 	scrabble.bag = [
 		{ score: 0, count: 2 },
 		{ letter: "A", score: 1, count: 6 },

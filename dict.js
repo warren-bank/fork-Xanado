@@ -18,35 +18,63 @@ const DESCRIPTION = "USAGE\n  node dict.js [options] <dictionary> <words>\n"
 APP_DIR = __dirname;
 
 requirejs(["node-getopt", "fs-extra", "node-gzip", "game/Dictionary"], (Getopt, Fs, Gzip, Dictionary) => {
-	
-	function check(opt, words) {
-	console.log(`Loading dictionary from ${opt.dawgfile}`);
-	Dictionary.load(opt.dawgfile)
-	.then(dict => {
+
+	function eachRoot(opt, root, dict) {
 		if (opt.options.list) {
 			let list = [];
-			dict.walk(w => list.push(w));
+			root.node.child.eachWord(root.word, w => list.push(w));
 			console.log(list.join("\n"));
 		}
-		for (let word of words) {
-			let ok = dict.hasWord(word.toUpperCase());
-			if (!ok && word.length > 14)
-				console.log(`"${word}" is BAD`);
-			if (opt.options.anagrams) {
-				console.log(`\nAnagrams of "${word}"`);
-				let anag = dict.findAnagrams(word);
-				console.log(anag);
+		else if (opt.options.anagrams) {
+			console.log(`\nAnagrams of "${root.word}"`);
+			let anag = dict.findAnagrams(root.word);
+			console.log(anag);
+		} else if (root.node && root.node.isEndOfWord)
+			console.log(`'${root.word}' was found`,
+						root.node.child ? "& is a root" : "");
+		else if (root.node && root.node.child)
+			console.log(`'${root.word}' is a root`);
+		else
+			console.log(`'${root.word}' NOT FOUND`);
+	}
+	
+	function checkSequence(word, dict) {
+		if (dict.hasSequence(word))
+			console.log(`'${word}' is a valid sequence`);
+		else
+			console.log(`'${word}' is NOT a valid sequence`);
+	}
+	
+	function withDictionary(opt, words) {
+		console.log(`Loading dictionary from ${opt.dawgfile}`);
+		Dictionary.load(opt.dawgfile)
+		.then(dict => {
+			if (opt.options.sequence)
+				for (let w of words)
+					checkSequence(w, dict);
+			else {
+				let roots = [];
+				for (let w of words) {
+					const word = w.toUpperCase();
+					const node = dict.match(word);
+					roots.push({ word: word, node: node });
+				}
+
+				if (roots.length === 0)
+					roots.push({ word: '', node: dict.root });
+
+				for (let root of roots)
+					eachRoot(opt, root, dict);
 			}
-		}
-		console.log(`Checked ${words.length} words`);
-	});
-}
+		});
+	}
 
 	let opt = Getopt.create([
         ["h", "help", "Show this help"],
 		["l", "list", "Dump a complete list of the words in the DAWG"],
-		["f", "file=ARG", "Check all words in file"],
-		["a", "anagrams", "Find anagrams of the words"]
+		["f", "file=ARG", "Check all words read from file"],
+		["a", "anagrams", "Find anagrams of the words and any sub-words"],
+		["s", "sequence", "Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. 'UZZL' is a valid sub-sequence in an English dictionary as it is found in 'PUZZLE', but 'UZZZL' isn't"]
 	])
         .bindHelp()
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
@@ -64,10 +92,11 @@ requirejs(["node-getopt", "fs-extra", "node-gzip", "game/Dictionary"], (Getopt, 
 		.then(data => {
 			let words = data.toString().split(/\s+/);
 			console.log(`Checking ${words.length} words`);
-			check(opt, words);
+			withDictionary(opt, words);
 		});
 		
-	} else
-		check(opt, opt.argv);
+	}
+	else
+		withDictionary(opt, opt.argv);
 	
 });

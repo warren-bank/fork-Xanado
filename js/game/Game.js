@@ -1,6 +1,8 @@
-/* eslint node */
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd */
 
-define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/LetterBag", "game/Edition",	"game/Dictionary" ], (Crypto, Icebox, Board, Bag, LetterBag, Edition, Dictionary) => {
+define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition", "game/Player" ], (Icebox, GenKey, Board, Bag, LetterBag, Edition, Player) => {
 
 	/**
 	 * The Game object could be used server or browser side, but in the
@@ -9,33 +11,49 @@ define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/Letter
 	 */
 	class Game {
 
+		// Store the db statically to avoid issues with serialisation
 		static setDatabase(db) {
 			Game.database = db;
 		}
 
 		/**
-		 * @param edition Edition object
+		 * @param edition edition *name*
 		 * @param players list of Player
+		 * @param dictionary dictionary *name* (may be null)
 		 */
 		constructor(edition, players, dictionary) {
-			// TODO: why can't we keep a pointer to the edition object?
-			this.edition = edition.name;
+			// Don't keep a pointer to the edition object so we can
+			// cheaply serialise and send to the games interface
+			this.edition = edition;
 			this.dictionary = dictionary;
 			this.players = players;
-			this.key = Crypto.randomBytes(8).toString('hex');
-			this.creationTimestamp = (new Date()).toISOString();
+			this.key = GenKey();
+			this.creationTimestamp = new Date().toISOString();
 			this.turns = [];
 			this.whosTurn = 0;
 			this.passes = 0;
 			this.time_limit = 0; // never time out
 			this.nextTimeout = 0;
 			this.connections = [];
-			this.board = new Board(edition);
-			this.letterBag = new LetterBag(edition);
-			for (let i = 0; i < this.players.length; i++) {
-				this.players[i].joinGame(this.letterBag, i);
-				console.log(`${this.players[i].name} is player ${i}`);
-			}
+		}
+
+		/**
+		 * Load the edition and complete setup of a new Game.
+		 * Server side only; during deserialisation on the client side
+		 * the board and letterbag are set up already.
+		 */
+		load() {
+			return Edition.load(this.edition)
+			.then(edo => {
+				this.board = new Board(edo);
+				this.letterBag = new LetterBag(edo);
+				// Add players
+				for (let i = 0; i < this.players.length; i++) {
+					this.players[i].joinGame(this.letterBag, i);
+					console.log(`${this.players[i].name} is player ${i}`);
+				}
+				return this;
+			});
 		}
 
 		/**
@@ -49,6 +67,19 @@ define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/Letter
 			}
 		}
 
+		getDictionary() {
+			if (this.dictionary) {
+				const game = this;
+				return new Promise(resolve => {
+					requirejs(["game/Dictionary"], Dictionary => {
+						Dictionary.load(game.dictionary)
+					});
+				});
+			}
+			
+			return Promise.reject();
+		}
+		
 		/**
 		 * Set a play timeout for the player if the game time limit is set
 		 * @return the clock time when the timeout will expire
@@ -83,7 +114,7 @@ define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/Letter
 		}
 
 		toString() {
-			return `${this.key} ${this.players.length} ${this.edition}`;
+			return `${this.key} game of ${this.players.length} players edition ${this.edition} dictionary ${this.dictionary}\n` + this.players;
 		}
 		
 		save() {
@@ -137,7 +168,7 @@ define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/Letter
 
 		/**
 		 * @param player the Player making the move
-		 * @param placementList array of Board.Placement
+		 * @param placementList array of Placement
 		 */
 		makeMove(player, placementList) {
 			this.stopTimeout();
@@ -152,7 +183,7 @@ define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/Letter
 			// validate the move (i.e. does the user have the tiles
 			// placed, are the tiles free on the board?)
 			let rackSquares = player.rack.squares.slice();
-			let placements = placementList.map(placement => {
+			let fromTos = placementList.map(placement => {
 				let fromSquare = null;
 				for (let i = 0; i < rackSquares.length; i++) {
 					let square = rackSquares[i];
@@ -175,52 +206,52 @@ define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/Letter
 					throw Error(`target tile (${placement.col},${placement.row}) is already occupied`);
 				return [fromSquare, toSquare];
 			});
-			placements.forEach(squares => {
+			fromTos.forEach(squares => {
 				let tile = squares[0].tile;
 				squares[0].placeTile(null);
 				squares[1].placeTile(tile);
 			});
+			
+			// TODO: This has already been done client-side. Do we really
+			// need to do it again?
 			let move = this.board.analyseMove();
 			
 			if (move.error) {
 				// fixme should be generalized function -- wait, no rollback? :|
-				placements.forEach(squares => {
+				fromTos.forEach(squares => {
 					let tile = squares[1].tile;
 					squares[1].placeTile(null);
 					squares[0].placeTile(tile);
 				});
 				throw Error(move.error);
 			}
-			placements.forEach(squares => squares[1].tileLocked = true);
+			fromTos.forEach(squares => squares[1].tileLocked = true);
 
 			// add score
-			move.bonus = this.board.calculateBonus(placements.length);
+			move.bonus = this.board.calculateBonus(fromTos.length);
 			move.score += move.bonus;
 			player.score += move.score;
 
 			// get new tiles
-			let newRack = this.letterBag.getRandomTiles(placements.length);
+			let newRack = this.letterBag.getRandomTiles(fromTos.length);
 			for (let i = 0; i < newRack.length; i++) {
-				placements[i][0].placeTile(newRack[i]);
+				fromTos[i][0].placeTile(newRack[i]);
 			}
 			console.log("words ", move.words);
-			if (this.dictionary) {
-				let game = this;
-				Dictionary.load(game.dictionary)
-				.then(dict => {
-					for (let w of move.words) {
-						console.log("Checking ",w);
-						if (!dict.hasWord(w.word))
-							game.notifyListeners(
-								'message', {
-									name: "Dictionary",
-									text: `${w.word} was not found` });
-					}
-				});
-			}
+			this.getDictionary(dict => {
+				for (let w of move.words) {
+					console.log("Checking ",w);
+					if (!dict.hasWord(w.word))
+						this.notifyListeners(
+							'message', {
+								name: "Dictionary",
+								text: `${w.word} was not found` });
+				}
+			})
+			.catch(() => {});
 			
 			game.previousMove = {
-				placements: placements,
+				placements: fromTos,
 				score: move.score,
 				player: player,
 				words: move.words.map(w => w.word)
@@ -305,18 +336,11 @@ define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/Letter
 		 * @return Promise
 		 */
 		challengePreviousMove(player) {
-			let promise;
-			if (this.dictionary) {
-				let game = this;
-				promise = Dictionary.load(game.dictionary)
-				.then(dict => {
-					return game.previousMove.words
-					.filter(word => !dict.hasWord(word));
-				});
-			} else
-				promise = Promise.resolve([]);
+			return this.getDictionary()
+			.then(dict => {
+				const bad = this.previousMove.words
+					  .filter(word => !dict.hasWord(word));
 			
-			return promise.then(bad => {
 				if (bad.length > 0) {
 					// Challenge succeeded
 					console.log(`Bad Words: ${bad.join(',')}`);
@@ -325,6 +349,10 @@ define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/Letter
 
 				// challenge failed, this player loses their turn
 				return this.pass(player, 'failedChallenge');
+			})
+			.catch(() => {
+				console.log("No dictionary, so challenge always succeeds");
+				return this.undoPreviousMove(player, "challenge");
 			});
 		}
 
@@ -473,23 +501,21 @@ define("game/Game", [ "crypto", "icebox", "game/Board", "game/Bag", "game/Letter
 				throw Error(`another game already created: old ${this.key} new ${this.nextGameKey}`);
 			}
 			console.log("Create follow-on game");
-			let oldGame = this;
-			let playerCount = oldGame.players.length;
+			let playerCount = this.players.length;
 			let newPlayers = [];
 			// re-order players so last winner starts
 			for (let i = 0; i < playerCount; i++) {
 				let oldPlayer = this.players[(i + startPlayer.index) % playerCount];
-				newPlayers.push(oldPlayer.copy());
+				newPlayers.push(new Player(oldPlayer));
 			}
-			return Edition.load(this.edition)
-			.then(edition => {
-				let newGame = new Game(edition, newPlayers);
-				newGame.dictionary = oldGame.dictionary;
-				newGame.time_limit = oldGame.time_limit;
-				oldGame.endMessage.nextGameKey = newGame.key;
-				oldGame.save();
+			return new Game(this.edition, newPlayers, this.dictionary)
+			.load()
+			.then(newGame => {
+				newGame.time_limit = this.time_limit;
+				this.endMessage.nextGameKey = newGame.key;
 				newGame.save();
-				oldGame.notifyListeners('nextGame', newGame.key);
+				this.save();
+				this.notifyListeners('nextGame', newGame.key);
 			});
 		}
 

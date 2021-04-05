@@ -9,15 +9,10 @@ const uideps = [
 	"socket.io",
 	"icebox",
 	"game/Tile",
-	"game/Square",
 	"game/Bag",
-	"game/Rack",
-	"game/Board" ];
+	"game/Rack" ];
 
-define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => {
-
-	// Class references for icebox
-	const ICE_TYPES = { Board: Board, Tile: Tile, Square: Square, Rack: Rack };
+define("ui/Ui", uideps, (jq, ck, socket_io, Icebox, Tile, Bag, Rack) => {
 
 	// Unicode characters
 	const BLACK_CIRCLE = '\u25cf';
@@ -35,7 +30,9 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 
 	class Ui {
 		
-		constructor() {		
+		constructor() {
+			this.iceTypes = null;
+
 			let splitUrl = document.URL.match(/.*\/([0-9a-f]+)$/);
 			if (splitUrl) {
 				this.gameKey = splitUrl[1];
@@ -44,13 +41,43 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 				console.log('cannot parse url');
 			}
 
-			$.get(`/game/${this.gameKey}`, (d, e) => this.loadGame(d, e));
+			$.get(`/game/${this.gameKey}`,
+				  data => this.thaw(data)
+				  .then(gameData => this.loadGame(gameData))
+				  .then(() => this.attachListeners()));
 
 			$("#shuffleButton").on('click', () => this.shuffle());
 			$("#takeBackButton").on('click', () => this.takeBackTiles());
 			$("#turnButton").on('click', () => this.makeMove());
 		}
 
+		thaw(data) {
+			if (this.iceTypes)
+				return Promise.resolve(Icebox.thaw(data, this.iceTypes));
+
+			const deps = [
+				'game/LetterBag',
+				'game/Square',
+				'game/Board',
+				'game/Tile',
+				'game/Rack',
+				'game/Placement',
+				'game/Move',
+				'game/Game',
+				'game/Player' ];
+			let game = this;
+			return new Promise((resolve, reject) => {
+				requirejs(deps, function() {
+					game.iceTypes = {};
+					for (let i in deps) {
+						game.iceTypes[deps[i].replace(/.*\//, "")] =
+						arguments[i];
+					}
+					resolve(Icebox.thaw(data, game.iceTypes));
+				});
+			});
+		}
+		
 		scrollLogToEnd(speed) {
 			$('#log').animate({
 				scrollTop: $('#log').prop('scrollHeight')
@@ -320,8 +347,7 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 			this.updateGameStatus();
 		}
 		
-		loadGame(data) {
-			const gameData = Icebox.thaw(data, ICE_TYPES);
+		loadGame(gameData) {
 			console.log('gameData', gameData);
 
 			this.board = gameData.board;
@@ -357,7 +383,6 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 				tr.append(player.scoreElement);
 				$tab.append(tr);
 			}
-			
 			this.drawBoard();
 			if (this.rack) {
 				this.createRackUI(this.rack, "Rack");
@@ -390,13 +415,13 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 					this.addTakeBackMoveButton();
 				}
 			}
+		}
+
+		// attach socket and event listeners
+		attachListeners() {
+			const transports = ['websocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'];
 			
-			let transports = ['websocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'];
-//			if (navigator.userAgent.search("Firefox") >= 0) {
-//				transports = ['htmlfile', 'xhr-polling', 'jsonp-polling'];
-//			}
-			
-			this.socket = io.connect(null, { transports: transports });
+			this.socket = socket_io.connect(null, { transports: transports });
 
 			let $reconnectDialog = null;
 			
@@ -477,7 +502,7 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 
 			let ui = this;
 			$('input[name=message]')
-			.bind('change', function() {
+			.on('change', function() {
 				// Send chat
 				ui.socket.emit(
 					'message',
@@ -486,10 +511,10 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 			});
 			
 			$(document)
-			.bind('SquareChanged', (e, square) => this.updateSquare(square))
-			.bind('Refresh', () => this.refresh())
-			.bind('RefreshRack', () => this.refreshRack())
-			.bind('RefreshBoard', () => this.refreshBoard());
+			.on('SquareChanged', (e, square) => this.updateSquare(square))
+			.on('Refresh', () => this.refresh())
+			.on('RefreshRack', () => this.refreshRack())
+			.on('RefreshBoard', () => this.refreshBoard());
 		}
 		
 		displayRemainingTileCounts() {
@@ -802,7 +827,7 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 					$('#turnButton').attr('disabled', 'disabled');
 				} else {
 					const bonus = this.board.calculateBonus(
-						move.tilesPlaced.length);
+						move.placements.length);
 					const $score = $(`<div>score: ${move.score}</div>`);
 					if (bonus > 0)
 						$score.append(` + bonus ${bonus}`);
@@ -856,7 +881,7 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 			this.cancelNotification();
 			$.ajax({
 				type: 'POST',
-				url: '/game/' + this.gameKey,
+				url: `/game/${this.gameKey}`,
 				contentType: 'application/json',
 				data: JSON.stringify({ command: command,
 									   arguments: args }),
@@ -888,17 +913,19 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 		
 		processMoveResponse(data) {
 			console.debug('move response:', data);
-			data = Icebox.thaw(data, ICE_TYPES);
-			if (!data.newRack)
-				throw Error('expected new rack, got ' + data);
+			this.thaw(data)
+			.then(data => {
+				if (!data.newRack)
+					throw Error('expected new rack, got ' + data);
 
-			for (const square of this.rack.squares) {
-				if (data.newRack.length && !square.tile) {
-					square.placeTile(data.newRack.pop());
-					this.rack.tileCount++;
-					this.updateSquare(square);
+				for (const square of this.rack.squares) {
+					if (data.newRack.length && !square.tile) {
+						square.placeTile(data.newRack.pop());
+						this.rack.tileCount++;
+						this.updateSquare(square);
+					}
 				}
-			}
+			});
 		}
 		
 		commitMove() {
@@ -916,15 +943,15 @@ define("ui/Ui", uideps, (jq, ck, io, Icebox, Tile, Square, Bag, Rack, Board) => 
 			if (move.bonus > 0)
 				this.playAudio("bonusCheer");
 
-			for (let i = 0; i < move.tilesPlaced.length; i++) {
-				let tilePlaced = move.tilesPlaced[i];
+			for (let i = 0; i < move.placements.length; i++) {
+				let tilePlaced = move.placements[i];
 				let square = this.board.squares[tilePlaced.col][tilePlaced.row];
 				square.tileLocked = true;
 				this.updateSquare(square);
 			}
 			this.board.tileCount = 0;
 			this.sendMoveToServer('makeMove',
-								  move.tilesPlaced,
+								  move.placements,
 								  data => this.processMoveResponse(data));
 			
 			this.enableNotifications();

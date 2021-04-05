@@ -1,12 +1,17 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd */
+
 /**
- * A word game edition.
+ * A Scrabble-like crossword game edition.
  *
  * Editions define the board layout and letter bag for a specific
- * Scrabble-like crossword game - Scrabble, Words With Friends,
+ * Scrabble-like crossword game - Scrabble, Words With Friends, Lexulous,
  * or a game you've made yourself.
+ *
  * Editions are only loaded once, and are subsequently kept in memory.
- * They are referred to be name in comms between the server and players,
-* and are not serialised.
+ * They are referred to by name in comms between the server and players,
+ * and are not sent to the browser.
  */
 
 define("game/Edition", () => {
@@ -50,7 +55,7 @@ define("game/Edition", () => {
 
 			this.alphabeta = [];
 			for (let tile of this.bag) {
-				if (!tile.isBlank)
+				if (tile.letter)
 					this.alphabeta.push(tile.letter);
 				this.scores[tile.letter] = tile.score;
 			}
@@ -60,17 +65,17 @@ define("game/Edition", () => {
 		/**
 		 * Promise to load an edition
 		 */
-		static async load(name) {
+		static load(name) {
 			if (editions[name])
 				return Promise.resolve(editions[name]);
 
 			// Use requirejs to support dependencies in the edition
 			// files
-			return new Promise(resolve => {
+			return new Promise((resolve, reject) => {
 				requirejs([ `editions/${name}` ], data => {
-					console.log(`Loaded edition ${name}`);
 					editions[name] = new Edition(data);
 					editions[name].name = name;
+					console.log(`Loaded edition ${name}`);
 					resolve(editions[name]);
 				});
 			});

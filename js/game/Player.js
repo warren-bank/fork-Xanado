@@ -1,28 +1,34 @@
-define("game/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack, findBestMove) => {
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd */
+
+define("game/Player", ["game/GenKey", "game/Rack", "game/Placement"], (GenKey, Rack, Placement) => {
 
 	class Player {
+
+		/**
+		 * @param name String name of the player, or a Player object to copy
+		 * @param rackSize number of tiles drawn (unused if name is a Player)
+		 */
 		constructor(name, rackSize) {
+			if (name instanceof Player) {
+				// Copying an existing player
+				rackSize = name.rackSize;
+				this.isRobot = name.isRobot;
+				name = name.name;
+			} else {
+				this.key = GenKey();
+				this.isRobot = false;
+			}
 			if (!rackSize)
 				throw Error("Invalid rack size");
-			this.key = Crypto.randomBytes(8).toString('hex');
 			this.name = name;
 			this.score = 0;
 			this.index = -1;
 			this.rackSize = rackSize;
-			// +1 to allow space for tile swapping
+			// +1 to allow space for tile sorting in the UI
 			this.rack = new Rack(rackSize + 1);
-			this.isRobot = false;
 			//console.log("Created",this);
-		}
-
-		/**
-		 * Make a copy of the player with a fresh empty rack
-		 */
-		copy() {
-			const p = new Player(this.name, this.rackSize);
-			p.key = this.key;
-			p.isRobot = this.isRobot;
-			return p;
 		}
 
 		/**
@@ -39,7 +45,7 @@ define("game/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack, f
 		}
 
 		toString() {
-			let s = "Player ";
+			let s = `${this.isRobot ? "Robot" : "Human"} player `;
 			if (this.index >= 0)
 				s += `${this.index} `;
 			s += `${this.name} `;
@@ -80,34 +86,47 @@ define("game/Player", ["crypto", "game/Rack", "game/BestMove"], (Crypto, Rack, f
 		 */
 		autoplay(game) {
 			let player = this;
-
-			return findBestMove(game, this)
-			.then(move => {
-				let letters = move.word.split("");
-				let col = move.start[0];
-				let row = move.start[1];
-				let placements = [];
-				for (let letter of letters) {
-					if (!game.board.squares[col][row].tile) {
-						const sq = this.rack.findLetterSquare(letter, true);
-						placements.push({
-							letter: letter,
-							col: col,
-							row: row,
-							isBlank: sq.tile.isBlank
-						});
+			let bestPlay = null;
+			
+			console.log(`autoplay ${this.name}`);
+			return new Promise((resolve, reject) => {
+				requirejs(
+					["game/findBestPlayController"],
+//					["game/findBestPlay"],
+					fn => resolve(fn));
+			})
+			.then(findBestPlay => findBestPlay(
+				game, this.rack.letters(), data => {
+					if (typeof data === "string")
+						console.log(data);
+					else {
+						bestPlay = data;
+						console.log("Best", bestPlay);
 					}
+				}))
+			.then(() => {
+				if (bestPlay) {
+					let letters = bestPlay.word.split("");
+					let col = bestPlay.start[0];
+					let row = bestPlay.start[1];
+					let placements = [];
+					for (let letter of letters) {
+						if (!game.board.squares[col][row].tile) {
+							let sq = this.rack.findLetterSquare(letter, true);
+							placements.push(new Placement(
+								letter, col, row, sq.tile.isBlank));
+						}
 						
-					row += move.drow;
-					col += move.dcol;
-				}
-				if (placements.length == 0) {
-					console.log(`${this.name} can't move, passing`);
-					return game.pass(player, 'pass');
-				} else {
+						row += bestPlay.drow;
+						col += bestPlay.dcol;
+					}
 					console.log(
-						`${this.name} best move ${move.word} @`, move.start);
+						`${this.name} best play ${bestPlay.word} @`,
+						bestPlay.start);
 					return game.makeMove(player, placements);
+				} else {
+					console.log(`${this.name} can't play, passing`);
+					return game.pass(player, 'pass');
 				}
 			});
 		}

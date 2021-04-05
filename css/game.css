@@ -96,7 +96,7 @@ div.container {
 
 /* The #controls > div with the chat */
 #chat {
-    height: 6em;
+    height: 10.2em;
 }
 
 /* #chat > div chat message display */
@@ -106,7 +106,7 @@ div.container {
     margin-left: 5%;
     border-width: 1em;
     width: 98%;
-    height: 4em;
+    height: 9em;
 }
 
 /* #chat > div chat message capture */
@@ -121,7 +121,7 @@ div.container {
 
 /* The #controls div with the game events log */
 #log {
-    height: 10em;
+    height: 14em;
     overflow: auto;
 }
 

@@ -1,12 +1,18 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd */
+
+/**
+ * A square on the game board or rack. A Tile holder with some
+ * underlying attributes; a position, an owner, and a type that
+ * dictates the score multipliers that apply.  The owner will be a
+ * Rack or a Board.
+ */
 define("game/Square", ["triggerEvent"], triggerEvent => {
 
-	const STAR = '\u2605';
+	const STAR = '\u2605'; // Centre square star
 
 	/**
-	 * A square on the game board or rack. A Tile holder with
-	 * some underlying attributes; a position, an owner, and
-	 * a type that dictates the score multipliers that apply.
-	 * The owner will be a Rack or a Board.
 	 * @param type  /^[QqTtSs_]$/ see Board.js
 	 * @param owner Board or Rack
 	 * @param col column where the square is
@@ -18,8 +24,16 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 			this.owner = owner;
 			this.col = col;
 			this.row = row;
+			
 			this.letterScoreMultiplier = 1;
 			this.wordScoreMultiplier = 1;
+			this.tile = null; // Tile placed on this square
+			
+			// True if the tile cannot be moved i.e. it was
+			// placed in a prior move. Locked tiles don't gather
+			// bonuses.
+			this.tileLocked = false;
+
 			switch (this.type) {
 			case 'd': this.letterScoreMultiplier = 2; break;
 			case 't': this.letterScoreMultiplier = 3; break;
@@ -28,12 +42,6 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 			case 'T': this.wordScoreMultiplier = 3; break;
 			case 'Q': this.wordScoreMultiplier = 4; break;
 			}
-			// Tile placed
-			this.tile = null;
-			// True if the tile cannot be moved in the UI i.e. was
-			// placed in a prior move. Locked tiles don't gather
-			// bonuses.
-			this.tileLocked = false;
 		}
 
 		/**
@@ -56,6 +64,7 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 				delete this.tileLocked;
 			}
 
+			// Used in the UI to update the square
 			triggerEvent('SquareChanged', [ this ]);
 		}
 

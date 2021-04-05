@@ -1,6 +1,12 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
 /* eslint-env browser, jquery */
+
 /* global localStorage */
 
+/**
+ * Browser app for game creation
+ */
 requirejs(["browserApp"], browserApp => {
 
 	const TOOLTIPS = {
@@ -175,8 +181,8 @@ requirejs(["browserApp"], browserApp => {
 		$("#addPlayer")
 		.on("click", () => addPlayer($.i18n('msg-new-player'), false));
 
-		addPlayer($.i18n('msg-player-1'), false);
-		addPlayer($.i18n('msg-player-2'), true);
+		addPlayer($.i18n('msg-human-player'), false);
+		addPlayer($.i18n('msg-robot-player'), true);
 
 		// Using tooltips with a selectmenu is horrible. Applying tooltip()
 		// to the select is useless, you have to apply it to the span that
@@ -237,6 +243,13 @@ requirejs(["browserApp"], browserApp => {
 					email: email
 				});
 			});
+			// Randomize player order in-place. Equivalent to picking a tile.
+			for (var i = data.players.length - 1; i > 0; i--) {
+				let j = Math.floor(Math.random() * (i + 1));
+				let temp = data.players[i];
+				data.players[i] = data.players[j];
+				data.players[j] = temp;
+			}
 			saveAddressBook(addressBook);
 			$.post("newGame", data)
 			.done(() => {

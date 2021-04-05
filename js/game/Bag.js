@@ -1,3 +1,7 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env amd */
+
 define("game/Bag", () => {
 	class Bag {
 		constructor(contents) {
