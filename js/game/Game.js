@@ -71,7 +71,7 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 			if (this.dictionary) {
 				const game = this;
 				return new Promise(resolve => {
-					requirejs(["game/Dictionary"], Dictionary => {
+					requirejs(["dawg/Dictionary"], Dictionary => {
 						Dictionary.load(game.dictionary)
 					});
 				});

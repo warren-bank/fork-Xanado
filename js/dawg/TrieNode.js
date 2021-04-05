@@ -8,8 +8,11 @@
  * It has pointers to a child list representing the next letters that can
  * follow this letter, and a next pointer to the next alternative to this
  * letter in the child list of it's parent node.
+ * Note this is only used while generating a DAWG from a Lexicon. TrieNodes
+ * are serialised using the above structure but are then rebuilt using
+ * LetterNodes at the sharp end.
  */
-define("dawg/Tnode", () => {
+define("dawg/TrieNode", () => {
 	
 	// Second integer of node tuple is encoded
 	const END_OF_WORD_BIT_MASK = 0x1;
@@ -18,7 +21,7 @@ define("dawg/Tnode", () => {
 
 	let nodeIds = 0;
 
-	class Tnode {
+	class TrieNode {
 		/**
 		 * @param letter codepoint
 		 * @param next next node pointer
@@ -133,7 +136,7 @@ define("dawg/Tnode", () => {
 			
 			if (!this.child) {
 				// child list does not exist yet
-				this.child = new Tnode(
+				this.child = new TrieNode(
 					thisLetter, null, wordEnder, startDepth, true);
 				return;
 			}
@@ -141,7 +144,7 @@ define("dawg/Tnode", () => {
 			if (this.child.letter > thisLetter) {
 				// thisLetter should be the first in the child list
 				this.child.isFirstChild = false;
-				this.child = new Tnode(
+				this.child = new TrieNode(
 					thisLetter, this.child, wordEnder, startDepth, true);
 				return;
 			}
@@ -153,7 +156,7 @@ define("dawg/Tnode", () => {
 					break;
 				child = child.next;
 			}
-			child.next = new Tnode(
+			child.next = new TrieNode(
 				thisLetter, child.next, wordEnder, startDepth, false);
 		}
 		
@@ -228,7 +231,7 @@ define("dawg/Tnode", () => {
 					trimmed += this.child.replaceRedundantNodes(red);
 			}
 			
-			// Traverse the rest of the "Trie", but a "Tnode" that is
+			// Traverse the rest of the "Trie", but a "TrieNode" that is
 			// not a direct child will never be directly replaced.
 			// This will allow the resulting "Dawg" to fit into a
 			// contiguous array of node lists.
@@ -255,5 +258,5 @@ define("dawg/Tnode", () => {
 		}
 	}
 
-	return Tnode;
+	return TrieNode;
 });

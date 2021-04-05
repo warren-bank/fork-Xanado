@@ -9,6 +9,7 @@ requirejs.config({
     nodeRequire: require,
 	paths: {
 		game: `${APP_DIR}/js/game`,
+		dawg: `${APP_DIR}/js/dawg`,
 		editions: `${APP_DIR}/editions`,
 		dictionaries: `${APP_DIR}/dictionaries`
 	}

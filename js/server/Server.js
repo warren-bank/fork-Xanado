@@ -24,8 +24,8 @@ const main_deps = [
 	'game/Player',
 	'game/Edition',
 
-//	"game/findBestPlay"];
-	"game/findBestPlayController"];
+	"game/findBestPlay"];
+//	"game/findBestPlayController"];
 
 /* global APP_DIR */
 global.APP_DIR = null;

@@ -9,6 +9,7 @@ requirejs.config({
     nodeRequire: require,
 	paths: {
 		game: "js/game",
+		dawg: "js/dawg"
 	}
 });
 
@@ -17,7 +18,7 @@ const DESCRIPTION = "USAGE\n  node dict.js [options] <dictionary> <words>\n"
 
 APP_DIR = __dirname;
 
-requirejs(["node-getopt", "fs-extra", "node-gzip", "game/Dictionary"], (Getopt, Fs, Gzip, Dictionary) => {
+requirejs(["node-getopt", "fs-extra", "node-gzip", "dawg/Dictionary"], (Getopt, Fs, Gzip, Dictionary) => {
 
 	function eachRoot(opt, root, dict) {
 		if (opt.options.list) {

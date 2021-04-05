@@ -16,7 +16,7 @@
  *
  * Note also the use of fs-extra and node-gzip makes this server-side only.
  */
-define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
+define("dawg/Dictionary", ["fs-extra", "node-gzip", "dawg/LetterNode"], (Fs, Gzip, LetterNode) => {
 	
 	// Constants used in interpreting the integer encoding of the DAWG
 	const END_OF_WORD_BIT_MASK = 0x1;
@@ -27,153 +27,6 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 	// Cache of dictionaries
 	const dictionaries = {};
 
-	// DAWG
-	class Node {
-		constructor(letter) {
-			this.letter = letter;
-			// The next 2 are numbers during loading, converted to a pointer
-			this.next = null;
-			this.child = null;
-		}
-
-		/**
-		 * Enumerate each word in the dictionary. Calls cb on each word.
-		 * Caution this is NOT the same as dawg/Tnode.eachWord.
-		 * @param s the word constructed so far
-		 * @param cb the callback, accepts a string and a node
-		 */
-		eachWord(s, cb) {
-			if (this.isEndOfWord)
-				cb(s + this.letter, this);
-			
-			if (this.child)
-				this.child.eachWord(s + this.letter, cb);
-			
-			if (this.next)
-				this.next.eachWord(s, cb);
-		}
-
-		/**
-		 * Enumerate each node in the dictionary in depth-first order.
-		 * Calls cb on each node.
-		 * @param cb the callback, accepts a node. If the callback returns
-		 * true, will carry on, otherwise will terminate the enumeration.
-		 */
-		eachNode(cb) {
-			if (!cb(this))
-				return false;
-			
-			if (this.child && !this.child.eachNode(cb))
-				return false;
-			
-			if (this.next && !this.next.eachNode(cb))
-				return false;
-
-			return true;
-		}
-
-		/**
-		 * Build forward and backward lists to allow us to navigate
-		 * in both directions - forward through words, and backwards too.
-		 */
-		buildLists(pre) {
-			this.pre = [];
-			this.post = [];
-			if (pre) {
-				this.pre.push(pre);
-				pre.post.push(this);
-			}
-			if (this.child)
-				this.child.buildLists(this);
-			if (this.next)
-				this.next.buildLists(pre);
-		}
-		
-
-		/**
-		 * Return the Node that matches the last character
-		 * in chars, even if it's not isEndOfWord
-		 * @param chars a string of characters that may
-		 * be the root of a word
-		 * @param index the start index within partialWord
-		 */
-		match(chars, index) {
-			if (typeof index === "undefined")
-				index = 0;
-			if (this.letter == chars[index]) {
-				if (index == chars.length - 1)
-					return this;
-				if (this.child)
-					return this.child.match(chars, index + 1);
-				return null;
-			} else {
-				// Try the next alternative
-				if (this.next)
-					return this.next.match(chars, index);
-				return null;
-			}
-		}
-		
-		/**
-		 * Check if the word beyond index is represented by the
-		 * DAWG below this node
-		 * @param chars the word we're checking
-		 * @param index the end of the substring matched to reach this node
-		 */
-		checkWord(chars, index) {
-			let m = this.match(chars, index);
-			return m && m.isEndOfWord;
-		}
-
-		/**
-		 * @param realWord the string built so far in this recursion
-		 * @param blankedWord the string built using spaces for blanks
-		 * if they are used
-		 * @param sortedChars the available set of characters, sorted
-		 */
-		findAnagrams(realWord, blankedWord, sortedChars, foundWords) {
-			
-			// is this character available from sortedChars?
-			// Only use blank if no other choice
-			let i = sortedChars.indexOf(this.letter);
-			if (i < 0) // not there, try blank
-				i = sortedChars.indexOf(' ');
-			
-			if (i >= 0) {
-				const match = sortedChars[i];
-				
-				// The char is available from sortedChars.
-				// Is this then a word?
-				if (this.isEndOfWord) {
-					// A word is found
-					foundWords[realWord + this.letter] = blankedWord + match;
-				}
-
-				if (sortedChars.length == 1)
-					return;
-				
-				// Cut the matched letter out of sortedChars and recurse
-				// over our child node chain
-				sortedChars.splice(i, 1);
-			
-				for (let child = this.child; child; child = child.next) {
-					child.findAnagrams(
-						realWord + this.letter,
-						blankedWord + match,
-						sortedChars,
-						foundWords);
-				}
-				sortedChars.splice(i, 0, match);
-			}
-			
-			if (this.next)
-				this.next.findAnagrams(
-					realWord, blankedWord, sortedChars, foundWords);
-
-			return foundWords;
-		}
-	}
-	
 	class Dictionary {
 
 		/**
@@ -188,7 +41,7 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 			let nodes = [];
 			for (let i = 0; i < numberOfNodes; i++) {
 				let letter = dv.getUint32(4 * index++);
-				let node = new Node(String.fromCodePoint(letter));
+				let node = new LetterNode(String.fromCodePoint(letter));
 				let numb = dv.getUint32(4 * index++);
 				if ((numb & END_OF_WORD_BIT_MASK) != 0)
 					node.isEndOfWord = true;
@@ -255,7 +108,8 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 		 * @return true if the word is found, false otherwise
 		 */
 		hasWord(chars) {
-			return this.root.checkWord(chars, 0) !== null;
+			let m = this.root.match(chars, 0);
+			return m && m.isEndOfWord;
 		}
 
 		/**
@@ -296,10 +150,16 @@ define("game/Dictionary", ["fs-extra", "node-gzip"], (Fs, Gzip) => {
 			console.log(`Created sequence roots for dictionary '${this.name}'`);
 		}
 
-		sequenceRoots(ch) {
+		/**
+		 * Get a list of the sequence roots for ch. The sequence roots
+		 * are all those nodes that represent the character in any word.
+		 * From a sequence root we can follow post or pre to extend the
+		 * word in either direction.
+		 */
+		getSequenceRoots(ch) {
 			if (!this.sequenceRoots)
 				this.createSequenceRoots();
-			return this.sequenceRoots[ch];
+			return this.sequenceRoots[ch] || [];
 		}
 		
 		/**

@@ -7,8 +7,9 @@
  * a game edition, a current board state, and a player tile rack.
  * Based on https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper/master/src/best_game_move.py by Elijah Sawyers<elijahsawyers@gmail.com>
  * In turn loosely based on https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf
+ * javascript version, and rewrite for Dictionary integration, Crawford Currie.
  */
-define("game/findBestPlay", ["game/Edition", "game/Dictionary"], (Edition, Dictionary) => {
+define("game/findBestPlay", ["game/Edition", "dawg/Dictionary"], (Edition, Dictionary) => {
 
 	// Shortcuts to game information during move computation
 	let rack;        // class Rack
@@ -21,38 +22,30 @@ define("game/findBestPlay", ["game/Edition", "game/Dictionary"], (Edition, Dicti
 
     let bestScore;   // best score found so far
     let crossChecks; // checks for valid words on opposite axis
-	
+
 	/**
-	 * An anchor is an empty cell with an adjacent (horizontal or
-	 * vertical) non-empty cell. This returns a matrix the same size
-	 * as the board with true for each valid anchor. If there are no
-	 * anchors, indicating an empty game board, the centre square
-	 * is set as the only anchor.
-	 * 
-	 * @param board the Board
-	 * @return the column-major anchor matrix, or null if the centre
-	 * square is the only valid anchor.
+	 * Determine if the square is on the board and available for
+	 * placing a tile
 	 */
-	function isAnchor(board, col, row) {
-		if (board.squares[col][row].tile)
+	function isEmpty(col, row) {
+		if (col < 0 || row < 0
+			|| col >= board.dim || row >= board.dim)
 			return false;
-		if (col > 0 && board.squares[col - 1][row].tile)
-			return true;
-		if (col < (board.dim - 1) && board.squares[col + 1][row].tile)
-			return true;
-		if (row > 0 && board.squares[col][row - 1].tile)
-			return true;
-		return row < (board.dim - 1) && board.squares[col][row + 1].tile;
+		return !board.squares[col][row].tile;
 	}
 	
-	// A start is any letter that has an adjacent blank space
-	function isStart(board, col, row) {
-		return board.squares[col][row].tile
-		&& (
-			(col > 0 && !board.squares[col - 1][row].tile)
-			|| (col < (board.dim - 1) && !board.squares[col + 1][row].tile)
-			|| (row > 0 && !board.squares[col][row - 1].tile)
-			|| (row < (board.dim - 1) && !board.squares[col][row + 1].tile));
+	/**
+	 * An anchor is a square with a tile, that has an adjacent
+	 * (horizontal or vertical) non-empty square.
+	 * @param board the Board
+	 * @return true if this cell is a valid anchor
+	 */
+	function isAnchor(col, row) {
+		return !isEmpty(col, row)
+		&& (isEmpty(col - 1, row)
+			|| isEmpty(col + 1, row)
+			|| isEmpty(col, row - 1)
+			|| isEmpty(col, row + 1));
 	}
 
 	/**
@@ -63,37 +56,47 @@ define("game/findBestPlay", ["game/Edition", "game/Dictionary"], (Edition, Dicti
      * @return the filtered rack
 	 * @throw if the letter (or a blank) wasn't found on the rack
 	 */
-function rackWithoutLetter(rack, letter) {
-    let pos = rack.indexOf(letter);
-	if (pos < 0)
-		// Not found, try blank
-		pos = rack.indexOf(' ');
-	if (pos < 0) {
-		console.log(`${letter} is not on rack and no blank`, rack);
-		throw Error("Assert failed");
-	}
-	const newRack = rack.slice();
-	newRack.splice(pos, 1);
-	return newRack;
-}
-	
-	/**
-	 * Return a list of the letters that are in both the rack and
-	 * the letters array
-	 * @param rack array of letters
-	 * @param letters array of letters
-	 * @return a list of letters
-	 */
-	function intersection(rack, letters) {
-		if (rack.indexOf(' ') >= 0)
-			return letters;
-		const result = [];
-		for (let letter of rack)
-			if (letters.indexOf(letter) >= 0)
-				result.push(letter);
-		return result;
+	function rackWithoutLetter(rack, letter) {
+		let pos = rack.indexOf(letter);
+		if (pos < 0)
+			// Not found, try blank
+			pos = rack.indexOf(' ');
+		if (pos < 0) {
+			console.log(`${letter} is not on rack and no blank`, rack);
+			throw Error("Assert failed");
+		}
+		const newRack = rack.slice();
+		newRack.splice(pos, 1);
+		return newRack;
 	}
 
+	/**
+	 * Determine if a play can be completed, but only by using a blank.
+	 * Does not check if the rack contains a blank.
+	 */
+	function needBlank(rack, letter) {
+		if (rack.indexOf(letter) < 0)
+			return true;
+	}
+	
+	/**
+	 * Return a list of the letters that are in both arrays
+	 * @param a array of letters
+	 * @param b array of letters
+	 * @return intersection of a and b
+	 */
+	function intersection(a, b) {
+		return a.filter(l => b.indexOf(l) >= 0);
+	}
+
+	/**
+	 * For debug, return a pair of strings
+	 */
+	function pack(letters) {
+		return [ `'${letters.map(l => l.letter).join("")}'`,
+				 `'${letters.map(l => l.isBlank ? ' ' : l.letter).join("")}'` ];
+	}
+	
 	/**
 	 * Determine which letters can fit in each square and form a valid
 	 * horizontal or vertical cross word. This returns a matrix where
@@ -191,15 +194,14 @@ function rackWithoutLetter(rack, letter) {
     /**
      * Given a word played at col, row, compute its score. Note that the
 	 * "all tiles played" bonus is NOT applied here.
-	 * 
+     * @param col, row the coordinates of the LAST letter
 	 * @param dcol, drow 1/0 depending if the word is played across
 	 * or down
-     * @param word the word to compute the score of.
-     * @param col, row the coordinates of the LAST letter
+     * @param word a list of { letter:, isBlank: } tuples or Tile
      * of the word on the board.
      * @return {int} the score of the word.
      */
-    function scoreWord(dcol, drow, word, col, row) {
+    function scoreWord(col, row, dcol, drow, word) {
 
 		// Accumulator for word letter scores
 		let wordScore = 0;
@@ -214,10 +216,10 @@ function rackWithoutLetter(rack, letter) {
         for (let lIndex = 0; lIndex < word.length; lIndex++) {
 			const r = row - lIndex * drow;
 			const c = col - lIndex * dcol;
-			const letter = word[word.length - lIndex - 1];
+			const letter = word[word.length - lIndex - 1].letter;
+			const isBlank = word[word.length - lIndex - 1].isBlank;
 			const square = board.squares[c][r];
-            let letterScore = edition.letterValue(letter);		
-			
+            let letterScore = edition.letterValue(isBlank ? ' ' : letter);		
 			if (square.tileLocked) {
 				wordScore += letterScore;
 				continue; // pre-existing tile, no bonuses
@@ -270,220 +272,182 @@ function rackWithoutLetter(rack, letter) {
 	}
 
 	/**
-     * Given an anchor position, recursively compute possible down
-     * word plays by extending down the board. For each word,
+     * Given a position that can have a letter, recursively compute possible
+     * word plays by extending down/across the board. For each word,
      * compute its point value, and update the best score
      * accordingly.
 	 * 
      * @param col, row index of the current position on the board.
-     * @param {Array<str>} rack the user's letter rack.
-     * @param {str} currentWord the current permutation of the word.
-     * @param {Array<Array<int>>} rackPlayedIndices a list of the
-	 * indices of letters played from the rack while extending down. 
+     * @param dcol, drow the extension direction (only one will be 1)
+     * @param rack the user's letter rack.
+	 * @param rackPlayed number of tiles from the rack already played
+	 * @param dNode the current LetterNode
+	 * @param letters the known letters terminating at the dNode. Each
+	 * letter is a tuple { letter:, isBlank: } or a Tile
      */
-	function extend(dcol, drow, col, row, rack, currentWord, rackPlayedIndices) {
+	function extend(col, row,
+					dcol, drow,
+					rack, rackPlayed,
+					dNode,
+					letters) {
 
-		if (row >= board.dim || col >= board.dim)
-			return;
-		
-		// Determine if the next tile after the word is blank or off
-		// the board - a precondition of the extended word being playable.
-		let playable = (col + dcol == board.dim || row + drow == board.dim
-						|| !board.squares[col + dcol][row + drow].tile);
-		
-        if (board.squares[col][row].tile) {
-			// Occupied square
-			const letter = board.squares[col][row].tile.letter;
-            const word = currentWord + letter;
-			const match = dict.match(word);
+		//console.log(`Extend ${pack(letters)} ${col} ${row} ${dNode.letter} ${dNode.postLetters.join("")}`);
 
-			if (!match)
-				return;
-			
-            if (playable && word.length > 1 && match.isEndOfWord) {
-				// New word is playable and is in the dictionary
-
-                const score = scoreWord(dcol, drow, word, col, row);
-				+ (board.bonuses[rackPlayedIndices.length] || 0);
+		// Tail recurse; report words as soon as we find them
+		// Are we sitting at the end of a scoring word?
+		if (dNode.isEndOfWord
+			&& letters.length >= 2
+			&& rackPlayed > 0
+			&& (col + dcol == board.dim	|| row + drow == board.dim
+				|| isEmpty(col + dcol, row + drow))) {
+			const score = scoreWord(col, row, dcol, drow, letters);
+			+ (board.bonuses[rackPlayed] || 0);
 				
-				report(`Consider '${word}' ${score}`);
-                if (score > bestScore) {
-					bestScore = score;
-                    report({
-						start: [
-							col - dcol * (word.length - 1),
-							row - drow * (word.length - 1)
-						],
-						word: word,
-						score: score,
-						dcol: dcol,
-						drow: drow
-					});
-				}
-				else
-					report(`Reject '${word}' ${score}`, rackPlayedIndices);
+            if (score > bestScore) {
+				report(`Accept '${pack(letters)}' at ${col},${row} ${score}`);
+				bestScore = score;
+                report({
+					start: [
+						col - dcol * (letters.length - 1),
+						row - drow * (letters.length - 1)
+					],
+					word: letters.map(l => l.letter).join(''),
+					score: score,
+					dcol: dcol,
+					drow: drow
+				});
 			}
-
-            // Keep extending to form longer words
-			extend(dcol, drow, col + dcol, row + drow,
-				   rack, // not filtered, no tile placed
-				   word, rackPlayedIndices);
-
-			return;
+			//else
+			//	report(`Reject '${pack(letters)}' at ${col},${row} ${score}`);
 		}
 
-		// For the current (empty) square, find common letters between
-		// the rack and cross checks, filtering letters that don't
-		// form a valid word extension
-		const available = (
-			(rack.indexOf(' ') >= 0)
-			? crossChecks[col][row][dcol]
-			: intersection(rack, crossChecks[col][row][dcol]))
-			.filter(l => dict.match(currentWord + l));
+		let available;
+		let playedFromRack = rackPlayed;
 		
-        if (!board.squares[col][row].tile && available.length == 0)
-			// no tile and no useable letters in the rack
-            return;
-		
-		//report(`E ${currentWord}+'${available.join("")}'`);
+		// Do we have an empty cell we can extend into?
+		if (isEmpty(col + dcol, row + drow)) {
+			const haveBlank = (rack.indexOf(' ') >= 0);
+			const xc = crossChecks[col + dcol][row + drow][dcol];
+			
+			available = intersection(
+				dNode.postLetters,
+				haveBlank ? xc : intersection(rack, xc));
+			playedFromRack++;
+			
+		} else if (col + dcol < board.dim && row + drow < board.dim)
+			// Have pre-placed tile
+			available = [ board.squares[col + dcol][row + drow].tile.letter ];
+			
+		else
+			available = [];
 
-		// empty cell.
-        for (let letter of available) {
-            const word = currentWord + letter;
-
-            if (playable && word.length > 1 && dict.hasWord(word)) {
-				// New word is in the dictionary
-
-				let rpi = rackPlayedIndices.concat([[col, row]]);
-                let score = scoreWord(dcol, drow, word, col, row)
-					+ (board.bonuses[rpi.length] || 0);
-
-				report(`Consider '${word}' ${score}`);
-                if (score > bestScore) {
-					bestScore = score;
-                    report({
-						start: [
-							col - dcol * (word.length - 1),
-							row - drow * (word.length - 1)
-						],
-						word: word,
-						score: score,
-						dcol: dcol,
-						drow: drow
-					});
-				}
-				else
-					report(`Reject '${word}' ${score}`, rpi);
+		for (let letter of available) {
+			let shrunkRack, newLetters = letters.slice();
+			if (playedFromRack > rackPlayed) {
+				shrunkRack = rackWithoutLetter(rack, letter);
+				newLetters.push(
+					{ letter: letter, isBlank: needBlank(rack, letter) });
+			} else {
+				shrunkRack = rack;
+				newLetters.push({ letter: letter });
 			}
 
-			// Keep extending down to form words.
-			extend(
-				dcol, drow, col + dcol, row + drow,
-				rackWithoutLetter(rack, letter),
-				word,
-				rackPlayedIndices.concat([[col, row]])
-			);
+			for (let post of dNode.post) {
+				if (post.letter === letter) {
+					extend(col + dcol, row + drow,
+						   dcol, drow,
+						   shrunkRack, playedFromRack,
+						   post,
+						   newLetters);
+				}
+			}
 		}
 	}
 
 	/**
-     * Given a position above/left of an anchor, recursively compute possible
-     * word plays by extending up/right before extending down/left on the
-     * board. For each word, compute its point value, and update the
-     * best score accordingly.
+     * Given a position that may be part of a word, and the letters of
+	 * the word it may be part of, try to back up/left before extending
+	 * down/right.
 	 * 
-     * @param col, row the current position on the board.
-     * @param {Array<str>} rack the user's letter rack.
-     * @param {str} prior the current prior part of the word.
+     * @param col, row the current position on the board
+     * @param dcol, drow the extension direction (only one will be 1)
+     * @param rack remaining letters from the user's letter rack, array of char
+	 * @param rackPlayed number of tiles from the rack already played
+	 * @param anchorNode the DictNode where we started backing up
+	 * @param dNode the current dictionary node
+     * @param letters the letters found as part of the word. Each
+	 * letter is a tuple { letter:, isBlank: } or a Tile
      */
-    function extendWithPrior(dcol, drow, col, row, rack, prior) {
+    function explore(col, row,
+					dcol, drow,
+					rack, rackPlayed,
+					anchorNode, dNode,
+					letters) {
 
-		if (row < 0 || col < 0)
-			return; // out of bounds
+		let available; // the set of possible candidate letters
+		let playedFromRack = rackPlayed;
+
+		//console.log(`Explore ${pack(letters)} ${col} ${row} ${dNode.letter} ${dNode.preLetters.join("")}`);
 		
-        if ((dcol > 0 && col === 0) || (drow > 0 && row === 0)
-			|| !board.squares[col - dcol][row - drow].tile) {
-
-			// For the current square, find common letters between
-			// the rack and cross checks. If we have a blank, then
-			// add any of the crossChecks that don't appear on the
-			// rack.
-			const available =
-				rack.indexOf(' ') >= 0
-				? crossChecks[col][row][dcol]
-				: intersection(rack, crossChecks[col][row][dcol])
+		// Do we have an adjacent empty cell we can back up into?
+        if (isEmpty(col - dcol, row - drow)) {
+			// Find common letters between the rack, cross checks, and
+			// dNode pre.
+			const haveBlank = rack.indexOf(' ') >= 0;
+			const xc = crossChecks[col - dcol][row - drow][dcol];
 			
-			// Base Case - no common letters
-			if (available.length == 0)
-				return;
-
-			let root = dict.root.match(prior);
+			available =
+				  intersection(
+					  dNode.preLetters,
+					  haveBlank ? xc : intersection(rack, xc));
+			playedFromRack++;
 			
-			//console.log(`EWP ${prior}-'${rack.join("")}' '${available.join('')}'`);
-			const rackPlayedIndices = [];
-			for (let k = 0; k < prior.length + 1; k++)
-				rackPlayedIndices.push(
-					[col + k * dcol, row + k * drow]);
+		} else if (row - drow >= 0 && col - dcol >= 0)
+			// Non-empty square, might be able to walk back through it
+			available = [ board.squares[col - dcol][row - drow].tile.letter ];
+			
+		else
+			available = [];
 
-            for (let letter of available) {
-                const seq = letter + prior;
-				if (dict.hasSequence(seq)) {
+		// Head recurse; longer words are more likely to
+		// be high scoring, so want to find them first
+		for (let letter of available) {
+			let shrunkRack, newLetters = letters.slice();
+			if (playedFromRack > rackPlayed) {
+				shrunkRack = rackWithoutLetter(rack, letter);
+				newLetters.unshift(
+					{ letter: letter, isBlank: needBlank(rack, letter) });
+			} else {
+				shrunkRack = rack;
+				newLetters.unshift({ letter: letter });
+			}
 
-					const shrunkRack = rackWithoutLetter(rack, letter);
-					
-					// Extend down/right to try to form words, but only if
-					// the sequence can root a word.
-					if (dict.match(seq)) {
-						extend(dcol, drow,
-							   col + dcol * seq.length, row + drow * seq.length,
-							   shrunkRack,
-							   seq,
-							   rackPlayedIndices);
-					}
-
-					// Keep extending up/left with the reduced rack
-					extendWithPrior(
-						dcol, drow,
-						col - dcol, row - drow,
-						shrunkRack,
-						seq
-					);
+			for (let pre of dNode.pre) {
+				if (pre.letter === letter) {
+					explore(col - dcol, row - drow,
+						   dcol, drow,
+						   shrunkRack, playedFromRack,
+						   anchorNode, pre,
+						   newLetters);
 				}
 			}
 		}
-	}
-
-	/**
-	 * Explore the words that can be formed around the given anchor
-	 * on the given axis. Update best score if a better word is found.
-	 * @param dcol, drow 1/0 depending on whether we are looking vertically
-	 * or horizontally
-	 * @param col, row location of the anchor
-	 */
-	function exploreAnchor(dcol, drow, col, row) {
-
-		if ((drow > 0 && row > 0 || dcol > 0 && col > 0)
-			&& !board.squares[col - dcol][row - drow].tile) {
-			// cell above/left of the anchor is empty, so it might be
-			// a valid place to start a word
-
-			extend(dcol, drow, col, row, rack, '', []);
-			extendWithPrior(dcol, drow, col - dcol, row - drow, rack, '');
-		}
-		else {
-			// cell above/left of the anchor is occupied or off the board
-
-			let word = '';		
-			let r = row - drow;
-			let c = col - dcol;
-			while (r >= 0 && c >= 0 && board.squares[c][r].tile) {
-				word = board.squares[c][r].tile.letter + word;
-				r -= drow;
-				c -= dcol;
-			}
-
-			// Look down/right from the anchor.
-			extend(dcol, drow, col, row, rack, word, []);
+		
+		// If this is the start of a word in the dictionary, and
+		// we're at the edge of the board or the prior cell is
+		// empty, then we have a valid word start.
+		if (dNode.pre.length == 0
+			&& (row - drow < 0 || col - dcol < 0
+				|| isEmpty(col - dcol, row - drow))) {
+			
+			// try extending down beyond the anchor, with the letters
+			// that we have determined comprise a valid rooted sequence.
+			extend(col + dcol * (letters.length - 1),
+				   row + drow * (letters.length - 1),
+				   dcol, drow,
+				   rack, rackPlayed,
+				   anchorNode,
+				   letters);
 		}
 	}
 
@@ -493,31 +457,46 @@ function rackWithoutLetter(rack, letter) {
 	 */
 	function bestOpeningPlay() {
 		const choices = dict.findAnagrams(rack.join(""));
-
+		const drow = (Math.random() > 0.5) ? 1 : 0;
+		const dcol = (drow + 1) % 2;
+		
 		for (let choice of Object.keys(choices)) {
+			// Keep track of the rack
+			let letters = [];
+			let shrunkRack = rack;
+			let blankedWord = '';
+			for (let c of choice.split("")) {
+				const l = { letter: c };
+				if (needBlank(shrunkRack, c)) {
+					l.isBlank = true;
+					blankedWord += ' ';
+				} else
+					blankedWord += c;
+				letters.push(l);
+				shrunkRack = rackWithoutLetter(shrunkRack, c);
+			}
+			
 			// We assume the board is diagonally symmetrical, and
 			// we only have to test "across" constructions that can
 			// then be rotated 90
 			for (let end = board.middle;
 				 end < board.middle + choice.length;
 				 end++) {
-				const score = scoreWord(1, 0, choice, end, board.middle);
+				
+				const score = scoreWord(end, board.middle, 1, 0, letters);
 				if (score > bestScore) {
 					bestScore = score;
-					let bestPlay = {
-						word: choice,
-						score: score
-					};
 					const start = end - (choice.length - 1);
-					if (Math.random() > 0.5) {
-						bestPlay.start = [start, board.middle]
-						bestPlay.dcol = 1;
-						bestPlay.drow = 0;
-					} else {
-						bestPlay.start = [board.middle, start];
-						bestPlay.dcol = 0;
-						bestPlay.drow = 1;
-					}
+					const bestPlay = {
+						start: dcol
+						? [start, board.middle]
+						: [board.middle, start],
+						word: choice,
+						blankedWord: blankedWord,
+						score: score,
+						dcol: dcol,
+						drow: drow
+					};
 					report(bestPlay);
 				}
 			}
@@ -569,28 +548,41 @@ function rackWithoutLetter(rack, letter) {
 			report("Starting computation");
 			bestScore = 0;
 
-			// Compute the anchors and cross checks.
+			// Has at least one anchor been explored? If there are
+			// no anchors, we need to compute an opening play
 			let anchored = false;
-			// What letters can be used to form a valid cross
-			// word? The whole alphabet if the rack contains a
-			// blank, the rack otherwise.
-			const available = rack.indexOf(' ') >= 0
-				  ? edition.alphabeta : rack;
-			crossChecks = computeCrossChecks(board, available);
 			for (let col = 0; col < board.dim; col++) {
 				for (let row = 0; row < board.dim; row++) {
-					if (isAnchor(board, col, row)) {
-						anchored = true;
-						// Explore anchor locations exhaustively. Might be able
-						// to do this more efficiently e.g. explore anchors that
-						// have bonuses first, but it's fast enough not to have
-						// to bother (though super scrabble with a blank near
-						// the end of a game is going to explore a LOT of
-						// alternatives!)
-						report(`Explore ${col},${row} across`);
-						exploreAnchor(1, 0, col, row);
-						report(`Explore ${col},${row} down`);
-						exploreAnchor(0, 1, col, row);
+					// An anchor is any square that has a tile and has an
+					// adjacent blank that can be extended into to form a word
+					if (isAnchor(col, row)) {
+						if (!anchored) {
+							// What letters can be used to form a valid cross
+							// word? The whole alphabet if the rack contains a
+							// blank, the rack otherwise.
+							const available = rack.indexOf(' ') >= 0
+								  ? edition.alphabeta : rack;
+							crossChecks = computeCrossChecks(board, available);
+							anchored = true;
+						}
+						const anchorTile = board.squares[col][row].tile;
+						const roots = dict.getSequenceRoots(anchorTile.letter);
+						for (let anchorNode of roots) {
+							// Try and back up then forward through
+							// the dictionary to find longer sequences
+							explore(
+								col, row,
+								0, 1,
+								rack, 0,
+								anchorNode, anchorNode,
+								[ anchorTile ]);
+							explore(
+								col, row,
+								1, 0,
+								rack, 0,
+								anchorNode, anchorNode,
+								[ anchorTile ])
+						}
 					}
 				}
 			}

@@ -11,6 +11,7 @@ requirejs.config({
 	paths: {
 		server: "js/server",
 		game: "js/game",
+		dawg: "js/dawg",
 		icebox: "js/repaired_icebox",
 
 		// Server version of triggerEvent is a NOP (there is no event loop)

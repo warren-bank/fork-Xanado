@@ -2,10 +2,14 @@
    license information */
 /* eslint-env amd, node */
 
-define("dawg/Trie", ["dawg/Tnode"], Tnode => {
+/**
+ * Structure built during dictionary compression. Is not used in a "live"
+ * dictionary; that uses the richer "LetterNode".
+ */
+define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 	/**
 	 * A Trie - a tree of nodes, each of which has a next pointer to another
-	 * node, and a child pointer to another node. Tries are acyclic.
+	 * node, and a child pointer to another node.
 	 */
 	class Trie {
 		
@@ -17,7 +21,7 @@ define("dawg/Trie", ["dawg/Tnode"], Tnode => {
 			
 			this.numberOfWords = 0;
 			this.numberOfNodes = 0;
-			this.first = new Tnode(-1, null, false, 0, 0, null, false);
+			this.first = new TrieNode(-1, null, false, 0, 0, null, false);
 			this.maxWordLen = 0;
 			this.minWordLen = 1000000;
 			
