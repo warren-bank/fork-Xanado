@@ -96,8 +96,10 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Icebox, Tile, Bag, Rack) => {
 			const $detail = $("<div class='moveDetail'></div>");
 			switch (turn.type) {
 			case 'move':
-				for (const word of turn.move.words)
-					$detail.append($.i18n('log-move', word.word, word.score));
+				for (const word of turn.move.words) {
+					$detail.append($.i18n('log-move', word.word, word.score))
+					.append(' ');
+				}
 				if (turn.move.bonus > 0)
 					$detail.append($.i18n('log-bonus', turn.move.bonus));
 				break;
@@ -469,6 +471,9 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Icebox, Tile, Bag, Rack) => {
 				this.displayNextGameMessage(nextGameKey))
 			
 			.on('message', message => {
+				const m = /^(msg-[-a-z]+) (.*)$/.exec(message.text);
+				if (m)
+					message.text = $.i18n(m[1], m[2]);
 				console.debug(`Server: Message ${message.text}`);
 				// Chat received
 				let $mess = $(`<div><span class='name'>${message.name}</span>: ${message.text}</div>`);

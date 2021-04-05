@@ -278,25 +278,6 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 	}
 
 	/**
-	 * Handler for /anotherGame
-	 * Player has asked for a follow-on from the current game.
-	 * @return a Promise
-	 */
-	function handle_anotherGame(req, res) {
-		const gameKey = req.params.gameKey;
-		const playerKey = req.cookies[gameKey];
-		
-		return loadGame(gameKey)
-		.then(game => game.lookupPlayer(playerKey))
-		.then(info => {
-			info.game.createFollowonGame(info.player);
-			// Redirect back to control panel
-			res.redirect("/html/games.html");
-		})
-		.catch(e => trap(e, res));
-	}
-
-	/**
 	 * Handler for /game/:gameKey/:playerKey, player joining a game.
 	 * Sets a cookie in the response with the player key so future
 	 * requests can be handled correctly.
@@ -381,7 +362,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
     }
 
 	/**
-	 * Handle game command received as an AJAX request
+	 * Handle POST /game command received as an AJAX request
 	 * Sends [ tiles ], iceboxed
 	 * @return Promise
 	 */
@@ -529,9 +510,6 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		
         app.post("/deleteGame/:gameKey", handle_deleteGame);
 
-		// Create a follow-on game
-		app.get("/anotherGame", handle_anotherGame);
-		
 		app.get("/config", (req, res) =>
 				// To get here, had to know port and baseUrl
 				// so no point in resending.

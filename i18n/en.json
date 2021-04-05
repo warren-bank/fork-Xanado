@@ -63,6 +63,7 @@
 	"msg-game-has-ended": "Game has ended",
 	"msg-not-your-turn": "Not your turn",
 	"msg-player-does-not-exist": "Player does not exist",
+	"msg-word-not-found": "$1 not found",
 	
 	"notify-title-challenged": "Challenged!",
 	"notify-body-challenged": "$1 has successfully challenged your move. You have lost the $2 points you scored, and the tiles you played are back on your rack",

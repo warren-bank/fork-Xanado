@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd */
 
-define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition", "game/Player" ], (Icebox, GenKey, Board, Bag, LetterBag, Edition, Player) => {
+define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition", "game/Player", "dawg/Dictionary" ], (Icebox, GenKey, Board, Bag, LetterBag, Edition, Player, Dictionary) => {
 
 	/**
 	 * The Game object could be used server or browser side, but in the
@@ -68,14 +68,8 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 		}
 
 		getDictionary() {
-			if (this.dictionary) {
-				const game = this;
-				return new Promise(resolve => {
-					requirejs(["dawg/Dictionary"], Dictionary => {
-						Dictionary.load(game.dictionary)
-					});
-				});
-			}
+			if (this.dictionary)
+				return Dictionary.load(this.dictionary);
 			
 			return Promise.reject();
 		}
@@ -238,17 +232,21 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 				fromTos[i][0].placeTile(newRack[i]);
 			}
 			console.log("words ", move.words);
-			this.getDictionary(dict => {
+			this.getDictionary()
+			.then(dict => {
 				for (let w of move.words) {
 					console.log("Checking ",w);
 					if (!dict.hasWord(w.word))
 						this.notifyListeners(
 							'message', {
-								name: "Dictionary",
-								text: `${w.word} was not found` });
+								name: this.dictionary,
+								text: `msg-word-not-found ${w.word}`
+							});
 				}
 			})
-			.catch(() => {});
+			.catch((e) => {
+				console.log("Dictionary load failed", e);
+			});
 			
 			game.previousMove = {
 				placements: fromTos,

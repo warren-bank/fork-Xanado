@@ -41,6 +41,7 @@ requirejs.config({
 		browserApp: "js/ui/browserApp",
 		ui: "js/ui",
 		game: "js/game",
+		dawg: "js/dawg",
 		// use browser version of triggerEvent ($.trigger)
 		triggerEvent: "js/ui/triggerEvent"
 	},

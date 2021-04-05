@@ -16,7 +16,7 @@
  *
  * Note also the use of fs-extra and node-gzip makes this server-side only.
  */
-define("dawg/Dictionary", ["fs-extra", "node-gzip", "dawg/LetterNode"], (Fs, Gzip, LetterNode) => {
+define("dawg/Dictionary", ["dawg/LetterNode"], LetterNode => {
 	
 	// Constants used in interpreting the integer encoding of the DAWG
 	const END_OF_WORD_BIT_MASK = 0x1;
@@ -68,18 +68,22 @@ define("dawg/Dictionary", ["fs-extra", "node-gzip", "dawg/LetterNode"], (Fs, Gzi
 		}
 
 		/**
-		 * Promise to load a dictionary
+		 * Promise to load a dictionary. Server side only!
 		 */
-		static async load(name) {
+		static load(name) {
 			if (dictionaries[name])
 				return Promise.resolve(dictionaries[name]);
 			
-			return Fs.readFile(`${APP_DIR}/dictionaries/${name}.dict`)
-			.then(data => Gzip.ungzip(data))
-			.then(buffer => {
-				dictionaries[name] = new Dictionary(name, buffer.buffer);
-				console.log(`Loaded dictionary ${name}`);
-				return dictionaries[name];
+			return new Promise(resolve => {
+				requirejs(["fs-extra", "node-gzip"], (Fs, Gzip) => {
+					return Fs.readFile(`${APP_DIR}/dictionaries/${name}.dict`)
+					.then(data => Gzip.ungzip(data))
+					.then(buffer => {
+						dictionaries[name] = new Dictionary(name, buffer.buffer);
+						console.log(`Loaded dictionary ${name}`);
+						resolve(dictionaries[name]);
+					});
+				});
 			});
 		}
 

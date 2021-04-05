@@ -15,6 +15,7 @@ define("game/Player", ["game/GenKey", "game/Rack", "game/Placement"], (GenKey, R
 				// Copying an existing player
 				rackSize = name.rackSize;
 				this.isRobot = name.isRobot;
+				this.key = name.key; // re-use
 				name = name.name;
 			} else {
 				this.key = GenKey();
