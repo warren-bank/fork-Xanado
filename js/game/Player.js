@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd */
 
-define("game/Player", ["game/GenKey", "game/Rack", "game/Placement"], (GenKey, Rack, Placement) => {
+define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 
 	class Player {
 
@@ -97,7 +97,7 @@ define("game/Player", ["game/GenKey", "game/Rack", "game/Placement"], (GenKey, R
 					fn => resolve(fn));
 			})
 			.then(findBestPlay => findBestPlay(
-				game, this.rack.letters(), data => {
+				game, this.rack, data => {
 					if (typeof data === "string")
 						console.log(data);
 					else {
@@ -107,24 +107,7 @@ define("game/Player", ["game/GenKey", "game/Rack", "game/Placement"], (GenKey, R
 				}))
 			.then(() => {
 				if (bestPlay) {
-					let letters = bestPlay.word.split("");
-					let col = bestPlay.start[0];
-					let row = bestPlay.start[1];
-					let placements = [];
-					for (let letter of letters) {
-						if (!game.board.squares[col][row].tile) {
-							let sq = this.rack.findLetterSquare(letter, true);
-							placements.push(new Placement(
-								letter, col, row, sq.tile.isBlank));
-						}
-						
-						row += bestPlay.drow;
-						col += bestPlay.dcol;
-					}
-					console.log(
-						`${this.name} best play ${bestPlay.word} @`,
-						bestPlay.start);
-					return game.makeMove(player, placements);
+					return game.makeMove(player, bestPlay.placements);
 				} else {
 					console.log(`${this.name} can't play, passing`);
 					return game.pass(player, 'pass');

@@ -3,17 +3,20 @@
 /* eslint-env amd */
 
 /**
- * A Move is a collection of placements, and the total score achieved
+ * A Move is a collection of tile Placements, and the total score achieved
  * for the move. We also record the words created by the move.
  */
-define("game/Move", [ "game/Placement" ], (Placement) => {
+define("game/Move", () => {
 
 	class Move {
 		
-		constructor() {
-			this.words = [];      // words created by the move, array of { word:, score: }
-			this.score = 0;       // total score for all words
-			this.placements = []; // array of Placement
+		constructor(placements, words, score) {
+			// words created by the move, array of { word:, score: }
+			this.words = words || [];
+			// total score for all words
+			this.score = score || 0;
+			// list of Tile
+			this.placements = placements || [];
 		}
 
 		/**
@@ -26,9 +29,14 @@ define("game/Move", [ "game/Placement" ], (Placement) => {
 		
 		/**
 		 * Add a Tile placement to the move
+		 * @param tile the Tile to add
 		 */
-		addPlacement(letter, col, row, isBlank) {
-			this.placements.push(new Placement(letter, col, row, isBlank));
+		addPlacement(tile) {
+			this.placements.push(tile);
+		}
+
+		toString() {
+			return `Play ${this.placements} words ${this.words} for $this.score}`;
 		}
 	}
 

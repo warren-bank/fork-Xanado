@@ -17,15 +17,17 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 			// Array of all the letters in the bag, excluding blank
 			this.legalLetters = [];
 
-			for (let letterDefinition of edition.bag) {
-				if (letterDefinition.letter)
+			for (let letter of edition.bag) {
+				if (letter.letter)
 					// Not blank
-					this.legalLetters.push(letterDefinition.letter);
+					this.legalLetters.push(letter.letter);
 				
-				const count = Math.floor(letterDefinition.count);
+				const count = Math.floor(letter.count);
 				for (let n = 0; n < count; ++n) {
 					const tile = new Tile(
-						letterDefinition.letter, letterDefinition.score);
+						letter.letter || ' ',
+						typeof letter.letter !== "string",
+						letter.score);
 					this.tiles.push(tile);
 				}
 			}

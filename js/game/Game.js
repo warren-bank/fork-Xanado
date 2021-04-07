@@ -174,36 +174,10 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 			
 			let game = this;
 
-			// validate the move (i.e. does the user have the tiles
-			// placed, are the tiles free on the board?)
-			let rackSquares = player.rack.squares.slice();
-			let fromTos = placementList.map(placement => {
-				let fromSquare = null;
-				for (let i = 0; i < rackSquares.length; i++) {
-					let square = rackSquares[i];
-					if (square && square.tile &&
-						(square.tile.letter == placement.letter
-						 || (square.tile.isBlank && placement.isBlank))) {
-						if (placement.isBlank)
-							square.tile.letter = placement.letter;
-						fromSquare = square;
-						delete rackSquares[i];
-						break;
-					}
-				}
-				if (!fromSquare) {
-					throw Error(`cannot find letter ${placement.letter} in rack of player ${player.name}`);
-				}
-				placement.score = fromSquare.tile.score;
-				let toSquare = game.board.squares[placement.col][placement.row];
-				if (toSquare.tile)
-					throw Error(`target tile (${placement.col},${placement.row}) is already occupied`);
-				return [fromSquare, toSquare];
-			});
-			fromTos.forEach(squares => {
-				let tile = squares[0].tile;
-				squares[0].placeTile(null);
-				squares[1].placeTile(tile);
+			// Move tiles from the rack to the board
+			placementList.forEach(placement => {
+				const tile = rack.removeTile(placement);
+				game.board.squares[placement.col][placement.row].placeTile(tile);
 			});
 			
 			// TODO: This has already been done client-side. Do we really

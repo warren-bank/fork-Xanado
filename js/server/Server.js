@@ -437,7 +437,6 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			  'game/Board',
 			  'game/Tile',
 			  'game/Rack',
-			  'game/Placement',
 			  'game/Move',
 			  'game/Game',
 			  'game/Player' ]);
@@ -592,7 +591,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		Fs.readFile(cliopt.config || 'config.json')
 		.then(json => {
 			config = JSON.parse(json);
-			config.database = config.database || 'data.db';
+			config.database = config.database || 'games.db';
 		})
 		
 		// Index available editions

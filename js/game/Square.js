@@ -57,30 +57,19 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 			}
 
 			if (tile) {
+				tile.col = this.col;
+				tile.row = this.row;
 				this.tile = tile;
 				this.tileLocked = locked;
 			} else {
 				delete this.tile;
 				delete this.tileLocked;
 			}
-
+			
 			// Used in the UI to update the square
 			triggerEvent('SquareChanged', [ this ]);
 		}
 
-		/**
-		 * Get the letter score for the tile placed on the square
-		 * Does not apply wordMultiplier. Locked tiles only score their
-		 * face value.
-		 */
-		letterScore() {
-			if (!this.tile)
-				return 0;
-			if (this.tileLocked)
-				return this.tile.score;
-			return this.tile.score * this.letterScoreMultiplier;
-		}
-		
 		/**
 		 * Get the text to put in the square on the board UI.
 		 */

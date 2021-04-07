@@ -1,0 +1,28 @@
+// Rename this file 'config.json' and remove ALL comments
+{
+	// The port on the server to use. The default 9093 used by several
+	// other applications, see:
+	// https://www.speedguide.net/port.php?port=9093
+    "port": 9093,
+
+	// Mail configuration. Refer to the 'nodemailer' documentation.
+	// Not required unless you are mailing out invitations.
+    "baseUrl": "http://localhost:9093/",
+    "mailSender": "Crossword Server <crosswords@example.com>",
+    "mailTransportConfig": {
+        "host": "localhost"
+    },
+	
+	// The default edition when creating new games. Game editions can
+	// be found in the 'editions' directory.
+    "defaultEdition": "English_Scrabble",
+	
+	// The default dictionary when creating new games. Note that the
+	// robot player requires a dictionary. Dictionaries can be found
+	// in the 'dictionaries' directory.
+    "defaultDictionary": "SOWPODS_English",
+	
+	// The games database. If undefined, 'games.db' will be used.
+	"database": "games.db"
+}
+

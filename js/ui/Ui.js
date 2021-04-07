@@ -61,7 +61,6 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Icebox, Tile, Bag, Rack) => {
 				'game/Board',
 				'game/Tile',
 				'game/Rack',
-				'game/Placement',
 				'game/Move',
 				'game/Game',
 				'game/Player' ];
@@ -222,8 +221,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Icebox, Tile, Bag, Rack) => {
 		placeTurnTiles(turn) {
 			for (let placement of turn.placements) {
 				let square = this.board.squares[placement.col][placement.row];
-				square.placeTile(
-					new Tile(placement.letter, placement.score), true);
+				square.placeTile(placement, true);
 				let $div = $(`#Board_${placement.col}x${placement.row}`);
 				$div.addClass("lastPlacement");
 			}

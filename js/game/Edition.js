@@ -49,7 +49,7 @@ define("game/Edition", () => {
 			this.swapCount = data.swapCount;
 			this.bonuses = data.bonuses;
 			
-			this.scores = {}; // map letter->score
+			this.scores = { }; // map letter->score
 			
 			this.dim = 2 * this.layout.length - 1;
 
@@ -57,7 +57,9 @@ define("game/Edition", () => {
 			for (let tile of this.bag) {
 				if (tile.letter)
 					this.alphabeta.push(tile.letter);
-				this.scores[tile.letter] = tile.score;
+				else
+					tile.letter = ' '; // blank
+				this.scores[tile.letter] = tile.score || 0;
 			}
 			this.alphabet = this.alphabeta.sort().join("");
 		}
@@ -94,9 +96,9 @@ define("game/Edition", () => {
 		}
 		
 		/**
-		 * Get the value of a tile with the given letter
+		 * Get the score of a tile with the given letter
 		 */
-		letterValue(l) {
+		letterScore(l) {
 			return this.scores[l] ? this.scores[l] : 0;
 		}
 	}

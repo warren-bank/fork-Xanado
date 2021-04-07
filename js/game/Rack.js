@@ -3,19 +3,40 @@
 /* eslint-env amd */
 
 /**
- * A Rack is a set of tiles that a player can play from. It's effectively
- * a 1D board.
+ * A Rack is a set of tiles that a player can play from. It's
+ * a 1D array of Square.
  */
-define("game/Rack", ["triggerEvent", "game/Square"], (triggerEvent, Square) => {
+define("game/Rack", ["game/Square"], Square => {
 
 	class Rack {
 		constructor(size) {
+			let tiles;
+			if (typeof size !== "number") {
+				tiles = size;
+				size = tiles.length;
+			}
 			this.squares = [];
 			
-			for (let col = 0; col < size; col++)
-				this.squares.push(new Square('_', this, col));
-			
-			triggerEvent('RackReady', [ this ]);
+			for (let col = 0; col < size; col++) {
+				const sq = new Square('_', this, col);
+				if (tiles)
+					sq.tile = tiles[col];
+				this.squares.push(sq);
+			}
+		}
+
+		/**
+		 * Add a Tile to the rack
+		 * @param tile the Tile to add, must != null
+		 */
+		addTile(tile) {
+			for (let sq of this.squares) {
+				if (!sq.tile) {
+					sq.placeTile(tile);
+					return;
+				}
+			}
+			throw Error("Nowhere to put tile");
 		}
 
 		/**
@@ -34,48 +55,76 @@ define("game/Rack", ["triggerEvent", "game/Square"], (triggerEvent, Square) => {
 		}
 		
 		/**
-		 * Get an array of the letters currently on the rack
+		 * Get an array of the tiles currently on the rack
 		 */
-		letters() {
+		tiles() {
 			return this.squares.reduce(
 				(accu, square) => {
 					if (square.tile)
-						accu.push(square.tile.letter);
+						accu.push(square.tile);
 					return accu;
 				},
 				[]);
 		}
 
 		/**
-		 * Find the first square on the rack that has the given letter
-		 * @param letter the letter to find
-		 * @param includingBlank if the search is to include a match
-		 * for the blank tile (which can potentially match any letter)
-		 * @return a Square or null
+		 * Get an array of the letters currently on the rack
 		 */
-		findLetterSquare(letter, includingBlank) {
-			let blankSquare = null;
+		letters() {
+			return this.tiles().map(tile => tile.letter);
+		}
+		
+		/**
+		 * Find the first Tile the rack that can represent the given letter.
+		 * @param letter the letter to find
+		 * @return a Square
+		 */
+		findSquare(letter) {
+			let blank = null; // square containing the first blank found
 			const square = this.squares.find(
 				square => {
-					if (square.tile) {
-						if (square.tile.isBlank && !blankSquare) {
-							blankSquare = square;
-						} else if (square.tile.letter == letter) {
+					const tile = square.tile;
+					if (tile) {
+						if (tile.isBlank && !blank)
+							blank = square;
+						else if (tile.letter === letter)
 							return true;
-						}
 					}
 				});
-			if (square) {
+			
+			if (square)
 				return square;
-			} else if (includingBlank) {
-				return blankSquare;
-			} else {
-				return null;
-			}
+			
+			return blank;
+		}
+		
+		/**
+		 * Find the first Tile the rack that has the given letter. Does
+		 * not modify the rack.
+		 * @param letter the letter to find
+		 * @return a Tile or null
+		 */
+		findTile(letter) {
+			return this.findSquare(letter).tile;
+		}
+
+		/**
+		 * Find and remove a tile from the rack given a placement
+		 */
+		removeTile(placement) {
+			const square = this.findSquare(placement.letter, true);
+			if (!square)
+				throw Error("Cannot find a tile on the rack for " + letter);
+			const tile = square.tile;
+			tile.letter = placement.letter;
+			square.placeTile(null);
+			if (placement.score != tile.score)
+				throw Error("Pointless");
+			placement.score = tile.score; // pointless?
 		}
 
 		toString() {
-			return "[" + this.squares.map(s => s.tile ? s.tile.letter : "_")
+			return "[" + this.squares.map(s => s.tile ? s.tile.letter : 0)
 			+ "]";
 		}
 	}

@@ -22,9 +22,13 @@ requirejs(["node-getopt", "fs-extra", "node-gzip", "dawg/Dictionary"], (Getopt, 
 
 	function eachRoot(opt, root, dict) {
 		if (opt.options.list) {
-			let list = [];
-			root.node.child.eachWord(root.word, w => list.push(w));
-			console.log(list.join("\n"));
+			if (root.node.child) {
+				let list = [];
+				console.log(`-- ${root.word} --`);
+				root.node.child.eachWord(root.word, w => list.push(w));
+//				root.node.child.eachLongWord(root.word, w => list.push(w));
+				console.log(list.join("\n"));
+			}
 		}
 		else if (opt.options.anagrams) {
 			console.log(`\nAnagrams of "${root.word}"`);
@@ -58,11 +62,17 @@ requirejs(["node-getopt", "fs-extra", "node-gzip", "dawg/Dictionary"], (Getopt, 
 				for (let w of words) {
 					const word = w.toUpperCase();
 					const node = dict.match(word);
-					roots.push({ word: word, node: node });
+					if (node)
+						roots.push({ word: word, node: node });
 				}
 
-				if (roots.length === 0)
-					roots.push({ word: '', node: dict.root });
+				if (roots.length === 0) {
+					let letter = dict.root.child;
+					while (letter) {
+						roots.push({ word: letter.letter, node: dict.root });
+						letter = letter.next;
+					}
+				}
 
 				for (let root of roots)
 					eachRoot(opt, root, dict);
@@ -75,6 +85,7 @@ requirejs(["node-getopt", "fs-extra", "node-gzip", "dawg/Dictionary"], (Getopt, 
 		["l", "list", "Dump a complete list of the words in the DAWG"],
 		["f", "file=ARG", "Check all words read from file"],
 		["a", "anagrams", "Find anagrams of the words and any sub-words"],
+		["e", "extend", "List words that can be created using the words as roots"],
 		["s", "sequence", "Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. 'UZZL' is a valid sub-sequence in an English dictionary as it is found in 'PUZZLE', but 'UZZZL' isn't"]
 	])
         .bindHelp()

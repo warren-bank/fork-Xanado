@@ -53,14 +53,32 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 			for (let row = 0; row < this.dim; row++) {
 				let r = [];
 				for (let col = 0; col < this.dim; col++) {
-					if (this.squares[col][row].tile)
-						r.push(this.squares[col][row].tile.letter);
-					else
+					const t = this.squares[col][row].tile;
+					if (t) {
+						// Show cast blanks using lower case letters
+						// May not work in non-Latin languages.
+						if (t.isBlank)
+							r.push(t.letter.toLowerCase());
+						else
+							r.push(t.letter);
+					} else
 						r.push(' ');
 				}
 				s += r.join("|") + "\n";
 			}
 			return s;
+		}
+
+		/**
+		 * Determine if the square is on the board and available for
+		 * placing a tile
+		 * @param col column of interest
+		 * @param row row of interest
+		 */
+		isEmpty(col, row) {
+			return (col >= 0 && row >= 0
+					&& col < this.dim && row < this.dim
+					&& !this.squares[col][row].tile);
 		}
 
 		/**
@@ -77,8 +95,12 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 				for (col = 0; col < this.dim; col++) {
 					let letter = r[col];
 					if (letter != ' ') {
+						// Treat lower-case letters as cast blanks.
+						// May not work in non-latin languages.
 						this.squares[col][row].placeTile(
-							new Tile(letter, 1), true);
+							new Tile(
+								letter.toUpperCase(),
+								letter.toUpperCase() != letter, 1), true);
 					}
 				}
 			}
@@ -128,6 +150,104 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 					}
 				}
 			}
+		}
+
+		/**
+		 * Given a play at col, row, compute its score. Note that the
+		 * "all tiles played" bonus is NOT applied here.
+		 * @param col, row the coordinates of the LAST letter
+		 * @param dcol, drow 1/0 depending if the word is played across
+		 * or down
+		 * @param tiles a list of Tiles
+		 * @param words optional list to be populated with words that
+		 * have been created
+		 * by the play
+		 * @return the score of the play. Side effect is to update words.
+		 */
+		scorePlay(col, row, dcol, drow, tiles, words) {
+
+			if (words)
+				words.push(tiles.map(tile => tile.letter).join(""));
+			
+			// Accumulator for the primary word being formed by the tiles
+			let wordScore = 0;
+			
+			// Accumulator for crossing words scores.
+			let crossWordsScore = 0;
+
+			// Multipler for the vertical word
+			let wordMultiplier = 1;
+
+			// Work back from the last letter
+			for (let lIndex = 0; lIndex < tiles.length; lIndex++) {
+				const r = row - lIndex * drow;
+				const c = col - lIndex * dcol;
+				const tile = tiles[tiles.length - lIndex - 1];
+				if (r != tile.row)
+					debugger;
+				if (c != tile.col)
+					debugger;
+				let letterScore = tile.score;
+				const square = this.squares[c][r];
+
+				if (square.tileLocked) {
+					wordScore += letterScore;
+					continue; // pre-existing tile, no bonuses
+				}
+
+				// Letter is being placed, so letter multiplier applies to all
+				// new words created, including cross words
+				letterScore *= square.letterScoreMultiplier;
+
+				wordScore += letterScore;
+				
+				// Multiplier for any new words that cross this letter
+				let crossWordMultiplier = square.wordScoreMultiplier;
+				wordMultiplier *= crossWordMultiplier;
+
+				// This is a new tile, need to analyse cross words and
+				// apply bonuses
+				let crossWord = '';
+				let crossWordScore = 0;
+				
+				// Look left/up
+				for (let cp = c - drow, rp = r - dcol;
+					 cp >= 0 && rp >= 0 && this.squares[cp][rp].tile;
+					 cp -= drow, rp -= dcol) {
+					const tile = this.squares[cp][rp].tile;
+					crossWord += tile.letter;
+					crossWordScore += tile.score;
+				}
+
+				crossWord += tile.letter;
+				
+				// Look right/down
+				for (let cp = c + drow, rp = r + dcol;
+					 cp < this.dim && rp < this.dim
+					 && this.squares[cp][rp].tile;
+					 cp += drow, rp += dcol) {
+					const tile = this.squares[cp][rp].tile;
+					crossWord += tile.letter;
+					crossWordScore += tile.score
+				}
+
+				if (crossWordScore > 0) {
+					// This tile (and bonuses) contribute to cross words
+					if (words)
+						words.push(crossWord);
+					
+					crossWordScore += letterScore;
+					crossWordScore *= crossWordMultiplier;
+					crossWordsScore += crossWordScore;
+				}
+			}
+			
+			wordScore *= wordMultiplier;
+			
+			// Add cross word values to the main word value
+			wordScore += crossWordsScore;
+			
+			return wordScore;
 		}
 
 		/**
@@ -246,10 +366,8 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 			for (let col = 0; col < this.dim; col++) {
 				for (let row = 0; row < this.dim; row++) {
 					let square = squares[col][row];
-					if (square.tile && !square.tileLocked) {
-						move.addPlacement(
-							square.tile.letter, col, row, square.tile.isBlank);
-					}
+					if (square.tile && !square.tileLocked)
+						move.addPlacement(square.tile);
 				}
 			}
 			
