@@ -28,12 +28,13 @@ define("game/Rack", ["game/Square"], Square => {
 		/**
 		 * Add a Tile to the rack
 		 * @param tile the Tile to add, must != null
+		 * @return the col of the added tile
 		 */
 		addTile(tile) {
 			for (let sq of this.squares) {
 				if (!sq.tile) {
 					sq.placeTile(tile);
-					return;
+					return sq.col;
 				}
 			}
 			throw Error("Nowhere to put tile");
@@ -109,22 +110,25 @@ define("game/Rack", ["game/Square"], Square => {
 		}
 
 		/**
-		 * Find and remove a tile from the rack given a placement
+		 * Find and remove a tile from the rack. Will match the requested
+		 * tile within the Rack and return it.
+		 * @param remove the Tile to remove.
+		 * @return the removed tile
 		 */
-		removeTile(placement) {
-			const square = this.findSquare(placement.letter, true);
+		removeTile(remove) {
+			const square = this.findSquare(remove.letter, true);
 			if (!square)
-				throw Error("Cannot find a tile on the rack for " + letter);
+				throw Error("Cannot find a tile on the rack for "
+							+ remove.letter);
 			const tile = square.tile;
-			tile.letter = placement.letter;
+			tile.letter = remove.letter;
 			square.placeTile(null);
-			if (placement.score != tile.score)
-				throw Error("Pointless");
-			placement.score = tile.score; // pointless?
+			return tile;
 		}
 
 		toString() {
-			return "[" + this.squares.map(s => s.tile ? s.tile.letter : 0)
+			return "[" + this.squares.map(
+				s => s.tile ? s.tile.letter : '.')
 			+ "]";
 		}
 	}
