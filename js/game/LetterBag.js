@@ -18,15 +18,15 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 			this.legalLetters = [];
 
 			for (let letter of edition.bag) {
-				if (letter.letter)
+				if (!letter.isBlank)
 					// Not blank
 					this.legalLetters.push(letter.letter);
 				
 				const count = Math.floor(letter.count);
 				for (let n = 0; n < count; ++n) {
 					const tile = new Tile(
-						letter.letter || ' ',
-						typeof letter.letter !== "string",
+						letter.letter,
+						letter.isBlank,
 						letter.score);
 					this.tiles.push(tile);
 				}
