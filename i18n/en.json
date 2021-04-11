@@ -30,7 +30,7 @@
 
 	"log-turn": "$1's turn",
 	"log-move": "$1 ($2)",
-	"log-bonus": "+ bonus $1",
+	"log-total": " total $1",
 	"log-timeout": "Timed out",
 	"log-passed": "Passed",
 	"log-swapped": "Swapped $1 {{PLURAL:$1|tile|tiles}}",
@@ -64,6 +64,10 @@
 	"msg-not-your-turn": "Not your turn",
 	"msg-player-does-not-exist": "Player does not exist",
 	"msg-word-not-found": "$1 not found",
+	"msg-centre-must-be-used": "Centre must be used",
+	"msg-no-new-tile-found": "No new tile found",
+	"msg-disconnected": "Disconnected placement",
+	"msg-at-least-two": "First word must be at least two tiles",
 	
 	"notify-title-challenged": "Challenged!",
 	"notify-body-challenged": "$1 has successfully challenged your move. You have lost the $2 points you scored, and the tiles you played are back on your rack",
