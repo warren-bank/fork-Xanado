@@ -30,8 +30,9 @@ define("game/Tile", () => {
 			this.row = row;
 		}
 
-		toString() {
-			return `|${this.letter}(${this.score})|`;
+		toString(place) {
+			const pl = place ? `@${this.col},${this.row}` : '';
+			return `|${this.letter}${pl}(${this.score})|`;
 		}
 	}
 
