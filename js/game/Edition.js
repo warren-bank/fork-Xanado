@@ -57,8 +57,10 @@ define("game/Edition", () => {
 			for (let tile of this.bag) {
 				if (tile.letter)
 					this.alphabeta.push(tile.letter);
-				else
+				else {
 					tile.letter = ' '; // blank
+					tile.isBlank = true;
+				}
 				this.scores[tile.letter] = tile.score || 0;
 			}
 			this.alphabet = this.alphabeta.sort().join("");
@@ -73,7 +75,7 @@ define("game/Edition", () => {
 
 			// Use requirejs to support dependencies in the edition
 			// files
-			return new Promise((resolve, reject) => {
+			return new Promise(resolve => {
 				requirejs([ `editions/${name}` ], data => {
 					editions[name] = new Edition(data);
 					editions[name].name = name;
