@@ -1,6 +1,8 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env amd, node */
+/* global APP_DIR */
+
 const requirejs = require('requirejs');
 
 global.APP_DIR = `${__dirname}/../..`;
@@ -19,13 +21,13 @@ requirejs.config({
  * Worker thread for findBestPlay. Started in the worker thread to
  * find a best move.
  */
-requirejs(["worker_threads", "game/findBestPlay"], (threads, findBestPlay) => {
+requirejs(["worker_threads", "game/Game", "game/findBestPlay"], (threads, Game, findBestPlay) => {
 	
-	const info = threads.workerData;
+	const info = Game.thaw(threads.workerData);
 
 	/**
 	 * Note that the game is NOT a Game, but just the fields. If methods
-	 * need to be called on it, then Icebox can be used to freeze-thaw.
+	 * need to be called on it, then game/Fridge can be used to freeze-thaw.
 	 */
 	findBestPlay(info.game, info.rack,
 			 bestPlay => threads.parentPort.postMessage(bestPlay))
