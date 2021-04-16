@@ -57,24 +57,31 @@ define("game/Fridge", () => {
 				});
 				objectsFrozen.push(unfrozen);
 
-				let frozen = (typeof unfrozen.length == 'undefined')
-					? {} : [];
+				let frozen = {};
 
 				frozen._IB_ID = id;
 				
 				if (unfrozen.constructor
 					&& unfrozen.constructor.name
-					&& !/^(Array|Object)$/.test(unfrozen.constructor.name))
+					&& unfrozen.constructor.name !== 'Object')
 					frozen._IB_CN = unfrozen.constructor.name;
 				
-				if (unfrozen.constructor
-					&& unfrozen.constructor.name === 'Date')
-					frozen._IB_DATE = unfrozen.getTime();
-				else {
-					for (let prop in unfrozen) {
+				if (frozen._IB_CN === 'Date') {
+					frozen._IB_DATA = unfrozen.getTime();
+					return frozen;
+
+				} else if (frozen._IB_CN === 'Array') {
+
+					frozen._IB_DATA = [];
+					for (let i = 0; i < unfrozen.length; i++)
+						frozen._IB_DATA.push(_freeze(unfrozen[i]));
+
+				} else {
+					frozen._IB_DATA = {};
+					for (let prop in unfrozen)
+						// Exclude _* to avoid _events etc
 						if (!/^_/.test(prop))
-							frozen[prop] = _freeze(unfrozen[prop]);
-					}
+							frozen._IB_DATA[prop] = _freeze(unfrozen[prop]);
 				}
 				return frozen;
 			}
@@ -116,32 +123,39 @@ define("game/Fridge", () => {
 					throw Error(`Fridge: reference to unthawed ${object._IB_REF}`);
 				}
 
-				if (object._IB_CN === 'Date')
-					return new Date(object._IB_DATE);
+				let thawed, thawProps = false;
 
-				let thawed;
-				if (object.hasOwnProperty('_IB_CN')) {
+				if (object._IB_CN === 'Date')
+					return new Date(object._IB_DATA);
+
+				else if (object._IB_CN === 'Array')
+					thawed = object._IB_DATA.map(e => _thaw(e));
+
+				else if (object._IB_CN) {
 					let constructor = typeMap ? typeMap[object._IB_CN] : null;
 					if (constructor)
 						thawed = Object.create(constructor);
-					else
+					else {
 						console.log(`Warning: don't know how to recreate a ${object._IB_CN}`);
+						thawed = {};
+					}
+					thawProps = true;
+				} else {
+					thawed = {};
+					thawProps = true;
 				}
-
-				if (!thawed)
-					thawed = (typeof object.length === 'undefined') ? {} : [];
-
-				if (object.hasOwnProperty('_IB_ID')) {
+				
+				if (object.hasOwnProperty('_IB_ID'))
 					objectsThawed[object._IB_ID] = thawed;
-				}
-				for (let prop in object) {
-					if (object.hasOwnProperty(prop)	&& !/^_IB_/.test(prop))
-						thawed[prop] = _thaw(object[prop], objectsThawed);
-				}
-				object = thawed;
 
-				return object;
+				if (thawProps)
+					for (let prop in object._IB_DATA)
+						thawed[prop] = _thaw(
+							object._IB_DATA[prop], objectsThawed);
+				
+				return thawed;
 			}
+
 			return _thaw(object);
 		}
 	}

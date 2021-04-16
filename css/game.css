@@ -229,7 +229,8 @@ div.tableDivWrap tr {
     border: none;
 }
 
-div.tableDivWrap td, div.tableDivWrap th {
+div.tableDivWrap td,
+div.tableDivWrap th {
     margin: 0;
     padding: 0;
 
@@ -249,16 +250,8 @@ div.tableDivWrap td.Normal {
     border-color: #AAA38E;
 }
 
-div.tableDivWrap td.QuadWord,
 div.tableDivWrap td.DoubleWord,
-div.tableDivWrap td.TripleWord,
-div.tableDivWrap td.QuadLetter,
-div.tableDivWrap td.DoubleLetter,
-div.tableDivWrap td.TripleLetter {
-    background-color: #AAA38E;
-}
-
-div.tableDivWrap td.DoubleWord {
+div.tableDivWrap td.Middle {
     border-color: #FBBBB9;
 }
 
@@ -348,7 +341,8 @@ div.tableDivWrap td div a {
     }
 }
 
-div.tableDivWrap td.DoubleWord div {
+div.tableDivWrap td.DoubleWord div,
+div.tableDivWrap td.Middle div {
     background-color: #FBBBB9;
     border-color: #FBBBB9;
     color: #F75D59;
@@ -396,7 +390,7 @@ div.tableDivWrap td.SpecialField div.Empty a {
     letter-spacing: 0.0em;
 }
 
-div.tableDivWrap td.StartField div.Empty a {
+div.tableDivWrap td.Middle div.Empty a {
     font-size: 1.3em;
 }
 

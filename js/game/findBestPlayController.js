@@ -1,11 +1,9 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
-/* eslint-env amd, node */
-/* global APP_DIR */
 
 /**
  * This is the controller side of a best play thread. It provides 
- * the same API as findBestPlay().
+ * the same API as findBestPlay(). See also findBestPlayWorker.js
  */
 define("game/findBestPlayController", ["worker_threads", "game/Fridge"], (threads, Fridge) => {
 
@@ -19,7 +17,7 @@ define("game/findBestPlayController", ["worker_threads", "game/Fridge"], (thread
 	function findBestPlayController(game, letters, listener) {
 		return new Promise((resolve, reject) => {
 			const worker = new threads.Worker(
-				`${APP_DIR}/js/game/findBestPlayWorker.js`,
+				requirejs.toUrl('js/game/findBestPlayWorker.js'),
 				{
 					workerData: Fridge.freeze({
 						game: game,

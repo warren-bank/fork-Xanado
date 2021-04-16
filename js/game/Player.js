@@ -1,8 +1,11 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
-/* eslint-env amd */
+/* eslint-env amd, jquery */
 
 define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
+
+	// Unicode characters
+	const BLACK_CIRCLE = '\u25cf';
 
 	class Player {
 
@@ -22,6 +25,7 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 				this.isRobot = false;
 			}
 			if (!rackSize)
+				// Terminal, no point in translating
 				throw Error("Invalid rack size");
 			this.name = name;
 			this.score = 0;
@@ -29,6 +33,8 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 			this.rackSize = rackSize;
 			// +1 to allow space for tile sorting in the UI
 			this.rack = new Rack(rackSize + 1);
+			// Number of times this player has passed (or swapped)
+			this.passes = 0;
 			//console.log("Created",this);
 		}
 
@@ -90,31 +96,56 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 			let bestPlay = null;
 			
 			console.log(`autoplay ${this.name}`);
-			return new Promise((resolve, reject) => {
+			return new Promise(resolve => {
 				requirejs(
-					["game/findBestPlayController"],
-//					["game/findBestPlay"],
+//					["game/findBestPlayController"],
+					["game/findBestPlay"],
 					fn => resolve(fn));
 			})
 			.then(findBestPlay => findBestPlay(
-				game, this.rack, data => {
+				game, this.rack.tiles(), data => {
 					if (typeof data === "string")
 						console.log(data);
 					else {
 						bestPlay = data;
-						console.log("Best", bestPlay);
+						console.log("Best", bestPlay.toString());
 					}
 				}))
 			.then(() => {
 				if (bestPlay) {
-					return game.makeMove(player, bestPlay.placements);
+					return game.makeMove(player, bestPlay);
 				} else {
 					console.log(`${this.name} can't play, passing`);
 					return game.pass(player, 'pass');
 				}
 			});
 		}
-	}
 
+		createScoreDOM(thisPlayer) {
+			const $tr = $(`<tr class='player${this.index}'></tr>`);
+			const who = thisPlayer.key === this.key
+				? $.i18n('You')
+				: this.name;
+			$tr.append(`<td class='name'>${who}</td>`);
+			$tr.append("<td class='remainingTiles'></td>");
+			this.$status = $(`<td class='status offline'>${BLACK_CIRCLE}</td>`);
+			$tr.append(this.$status);
+			this.$score = $(`<td class='score'>${this.score}</td>`);
+			$tr.append(this.$score);
+			return $tr;
+		}
+
+		refreshDOM() {
+			this.$score.text(this.score);
+		}
+
+		online(tf) {
+			if (tf)
+				this.$status.removeClass('offline').addClass('online');
+			else
+				this.$status.removeClass('online').addClass('offline');
+		}
+	}
+	
 	return Player;
 });

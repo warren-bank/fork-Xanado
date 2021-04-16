@@ -2,8 +2,8 @@
 define("editions/English_SuperScrabble", () => {
 
 	// Centre 15x15 of the board is the same as Scrabble
-	const BOARD = [
-		"D___d__T__d",
+	const LAYOUT = [
+		"M___d__T__d",
 		"_d___d__D__",
 		"__t___t__D_",
 		"___D______T",
@@ -49,7 +49,7 @@ define("editions/English_SuperScrabble", () => {
 	];
 
 	return {
-		layout: BOARD,
+		layout: LAYOUT,
 		bag: BAG,
 		swapCount: 7,
 		rackCount: 7,

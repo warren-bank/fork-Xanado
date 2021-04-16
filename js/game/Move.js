@@ -9,7 +9,13 @@
 define("game/Move", () => {
 
 	class Move {
-		
+
+		/**
+		 * @param placements a list of Tile.
+		 * has an error
+		 * @param words array of {word: score:}
+		 * @param score total score for play
+		 */
 		constructor(placements, words, score) {
 			// words created by the move, array of { word:, score: }
 			this.words = words || [];
@@ -20,14 +26,6 @@ define("game/Move", () => {
 		}
 
 		/**
-		 * Add a word to the move, aggregating the score
-		 */
-		addWord(word, score) {
-			this.words.push({ word: word, score: score });
-			this.score += score;
-		}
-		
-		/**
 		 * Add a Tile placement to the move
 		 * @param tile the Tile to add
 		 */
@@ -36,7 +34,9 @@ define("game/Move", () => {
 		}
 
 		toString() {
-			return `Play ${this.placements} words ${this.words} for $this.score}`;
+			const pl = this.placements.map(t => t.toString(true));
+			const w = this.words.map(w => `${w.word}(${w.score})`);
+			return `Play ${pl} words ${w} for ${this.score}`;
 		}
 	}
 

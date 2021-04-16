@@ -57,13 +57,13 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	 * Mainly for debug, return a list of tiles as a string.
 	 * This lets us see how/if blanks have been used.
 	 */
-	function packRack(tiles) {
-		let word = tiles.map(l => l.letter).join("");
-		let blanks = tiles.map(l => l.isBlank ? ' ' : l.letter).join("");
-		if (blanks != word)
-			word += `/${blanks}`;
-		return word;
-	}
+	//function packRack(tiles) {
+	//	let word = tiles.map(l => l.letter).join("");
+	//	let blanks = tiles.map(l => l.isBlank ? ' ' : l.letter).join("");
+	//	if (blanks != word)
+	//		word += `/${blanks}`;
+	//	return word;
+	//}
 
 	/**
 	 * Determine which letters can fit in each square and form a valid
@@ -90,40 +90,40 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 				const thisCell = [[], []];
 				thisCol[row] = thisCell;
 				
-				if (board.squares[col][row].tile) {
+				if (board.at(col, row).tile) {
 					// The cell isn't empty, only this letter is valid.
-					thisCell[0].push(board.squares[col][row].tile.letter);
-					thisCell[1].push(board.squares[col][row].tile.letter);
+					thisCell[0].push(board.at(col, row).tile.letter);
+					thisCell[1].push(board.at(col, row).tile.letter);
 					continue;
 				}
 
 				// Find the words above and below
 				let wordAbove = '';
 				let r = row - 1;
-				while (r >= 0 && board.squares[col][r].tile) {
-					wordAbove = board.squares[col][r].tile.letter + wordAbove;
+				while (r >= 0 && board.at(col, r).tile) {
+					wordAbove = board.at(col, r).tile.letter + wordAbove;
 					r--;
 				}
 
 				let wordBelow = '';
 				r = row + 1;
-				while (r < board.dim && board.squares[col][r].tile) {
-					wordBelow += board.squares[col][r].tile.letter;
+				while (r < board.dim && board.at(col, r).tile) {
+					wordBelow += board.at(col, r).tile.letter;
 					r++;
 				}
 
 				// Find the words left and right
 				let wordLeft = '';
 				let c = col - 1;
-				while (c >= 0 && board.squares[c][row].tile) {
-					wordLeft = board.squares[c][row].tile.letter + wordLeft;
+				while (c >= 0 && board.at(c, row).tile) {
+					wordLeft = board.at(c, row).tile.letter + wordLeft;
 					c--;
 				}
 
 				let wordRight = '';
 				c = col + 1
-				while (c != board.dim && board.squares[c][row].tile) {
-					wordRight += board.squares[c][row].tile.letter;
+				while (c != board.dim && board.at(c, row).tile) {
+					wordRight += board.at(c, row).tile.letter;
 					c++;
 				}
 
@@ -193,13 +193,15 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 			&& (ecol == board.dim || erow == board.dim
 				|| board.isEmpty(ecol, erow))) {
 			const words = [];
-			const score = board.scorePlay(
-				col, row, dcol, drow, wordSoFar, words);
-			+ (board.bonuses[tilesPlayed] || 0);
+			const score =
+				  board.scorePlay(col, row, dcol, drow, wordSoFar, words);
 				
             if (score > bestScore) {
 				bestScore = score;
-                report(new Move(wordSoFar, words, score));
+                report(new Move(
+					wordSoFar.filter(t => !board.at(t.col, t.row).tile),
+					words,
+					score));
 			}
 			//else
 			//	report(`Reject '${pack(wordSoFar)}' at ${col},${row} ${score}`);
@@ -215,12 +217,13 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 			
 			available = intersection(
 				dNode.postLetters,
-				haveBlank ? xc : intersection(rackTiles.map(t => t.letter), xc));
+				haveBlank ? xc : intersection(
+					rackTiles.map(t => t.letter), xc));
 			playedTile = 1;
 			
 		} else if (ecol < board.dim && erow < board.dim)
 			// Have pre-placed tile
-			available = [ board.squares[ecol][erow].tile.letter ];
+			available = [ board.at(ecol, erow).tile.letter ];
 			
 		else
 			available = [];
@@ -236,7 +239,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 							 ecol, erow));
 				shrunkRack = shrunkRack.filter(t => t !== rackTile);
 			} else
-				wordSoFar.push(board.squares[ecol][erow].tile);
+				wordSoFar.push(board.at(ecol, erow).tile);
 
 			for (let post of dNode.post) {
 				if (post.letter === letter) {
@@ -297,7 +300,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 			
 		} else if (erow >= 0 && ecol >= 0)
 			// Non-empty square, might be able to walk back through it
-			available = [ board.squares[ecol][erow].tile.letter ];
+			available = [ board.at(ecol, erow).tile.letter ];
 			
 		else
 			available = [];
@@ -316,7 +319,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 				shrunkRack = shrunkRack.filter(t => t !== tile);
 			} else
 				// Letter already on the board
-				wordSoFar.unshift(board.squares[ecol][erow].tile);
+				wordSoFar.unshift(board.at(ecol, erow).tile);
 
 			for (let pre of dNode.pre) {
 				if (pre.letter === letter) {
@@ -353,20 +356,26 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	 * rack, and find the highest scoring position for each possible word.
 	 */
 	function bestOpeningPlay(rackTiles) {
-		const choices = dict.findAnagrams(rackTiles.map(l => l.letter).join(""));
+		const ruck = rackTiles.map(l => l.letter).join("");
+		const choices = dict.findAnagrams(ruck);
 		// Random whether it is played across or down
 		const drow = Math.round(Math.random());
 		const dcol = (drow + 1) % 2;
 		let bestScore = 0;
-		
+
 		for (let choice of Object.keys(choices)) {
 			// Keep track of the rack and played letters
+			const placements = [];
 			let shrunkRack = rackTiles;
-			let blankedWord = '';
 			for (let c of choice.split("")) {
 				const rackTile = shrunkRack.find(t => t.letter == c)
 					  || shrunkRack.find(t => t.isBlank);
-				placements.push(new Tile(c, rackTile.isBlank, raackTile.score));
+				if (!rackTile) {
+					// Can't do this with the available tiles
+					choice = "";
+					break;
+				}
+				placements.push(new Tile(c, rackTile.isBlank, rackTile.score));
 				shrunkRack = shrunkRack.filter(t => t !== rackTile);
 			}
 
@@ -376,16 +385,20 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 				 end < board.middle + choice.length;
 				 end++) {
 				
+				for (let i = 0; i < placements.length; i++) {
+					const pos = end - placements.length + i + 1;
+					placements[i].col = dcol == 0 ? board.middle : pos * dcol;
+					placements[i].row = drow == 0 ? board.middle : pos * drow;
+				}
+
 				const score = board.scorePlay(
 					end, board.middle, dcol, drow, placements);
+
 				if (score > bestScore) {
-					for (let i = 0; i < choice.length; i++) {
-						const pos = end - choice.length + i + 1;
-						placements[i].col = pos * dcol;
-						placements[i].row = pos * drow;
-					}
 					bestScore = score;
-					report(new Move(placements, score, [choice]));
+					report(new Move(placements, [
+						{ word: choice, score: score }
+					], score));
 				}
 			}
 		}
@@ -404,11 +417,13 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		
 		if (!game.edition) {
 			report("Error: Game has no edition", game);
+			// Terminal, no point in translating
 			return Promise.reject('Game has no edition');
 		}
 
 		if (!game.dictionary) {
 			report("Error: Cannot find moves with no dictionary");
+			// Terminal, no point in translating
 			return Promise.reject('Game has no dictionary');
 		}
 
@@ -452,12 +467,12 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 							// blank, the rack otherwise.
 							const available = rackTiles.find(l => l.isBlank)
 								  ? edition.alphabeta
-								  : (rackTiles.filter(t => !t.isBlock)
+								  : (rackTiles.filter(t => !t.isBlank)
 									 .map(t => t.letter));
 							crossChecks = computeCrossChecks(board, available);
 							anchored = true;
 						}
-						const anchorTile = board.squares[col][row].tile;
+						const anchorTile = board.at(col, row).tile;
 						const roots = dict.getSequenceRoots(anchorTile.letter);
 						for (let anchorNode of roots) {
 							// Try and back up then forward through
@@ -481,7 +496,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 
 			if (!anchored)
 				// No anchors, so this is an opening play.
-				bestOpeningPlay();
+				bestOpeningPlay(rackTiles);
 
 		});
 	}

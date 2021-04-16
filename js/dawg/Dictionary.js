@@ -2,7 +2,6 @@
    license information */
 /* eslint-env amd, node */
 
-/* global APP_DIR */
 /* global DataView */
 
 /**
@@ -75,8 +74,9 @@ define("dawg/Dictionary", ["dawg/LetterNode"], LetterNode => {
 				return Promise.resolve(dictionaries[name]);
 			
 			return new Promise(resolve => {
+				const root = requirejs.toUrl('');
 				requirejs(["fs-extra", "node-gzip"], (Fs, Gzip) => {
-					return Fs.readFile(`${APP_DIR}/dictionaries/${name}.dict`)
+					return Fs.readFile(`${root}/dictionaries/${name}.dict`)
 					.then(data => Gzip.ungzip(data))
 					.then(buffer => {
 						dictionaries[name] = new Dictionary(name, buffer.buffer);

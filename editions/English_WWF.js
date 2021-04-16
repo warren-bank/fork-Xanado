@@ -1,7 +1,7 @@
 define("editions/English_WWF", () => {
 
-	const BOARD = [
-		'D___D___',
+	const LAYOUT = [
+		'M___D___',
 		'___d___t',
 		'__t___D_',
 		'_d___d__',
@@ -42,7 +42,7 @@ define("editions/English_WWF", () => {
 	];
 	
 	return {
-		layout: BOARD,
+		layout: LAYOUT,
 		bag: BAG,
 		swapCount: 7,
 		rackCount: 7,

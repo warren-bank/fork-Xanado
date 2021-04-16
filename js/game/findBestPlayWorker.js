@@ -1,25 +1,22 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env amd, node */
-/* global APP_DIR */
-
 const requirejs = require('requirejs');
 
-global.APP_DIR = `${__dirname}/../..`;
-
 requirejs.config({
+	baseUrl: `${__dirname}/../..`,
     nodeRequire: require,
 	paths: {
-		game: `${APP_DIR}/js/game`,
-		dawg: `${APP_DIR}/js/dawg`,
-		editions: `${APP_DIR}/editions`,
-		dictionaries: `${APP_DIR}/dictionaries`
+		game: `js/game`,
+		dawg: `js/dawg`,
+		triggerEvent: 'js/server/triggerEvent'
 	}
 });
 
 /**
- * Worker thread for findBestPlay. Started in the worker thread to
- * find a best move.
+ * Worker thread for findBestPlay. This allows the best play to be
+ * found asynchronously, without blocking the main thread, so we can
+ * time it out if necessary. See also findBestPlayController.js
  */
 requirejs(["worker_threads", "game/Game", "game/findBestPlay"], (threads, Game, findBestPlay) => {
 	

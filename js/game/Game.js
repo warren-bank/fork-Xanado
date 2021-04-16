@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd */
 
-define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition", "game/Player", "dawg/Dictionary" ], (Icebox, GenKey, Board, Bag, LetterBag, Edition, Player, Dictionary) => {
+define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition", "game/Player", "dawg/Dictionary", 'game/Square', 'game/Tile', 'game/Rack', 'game/Move', 'game/Turn', "game/findBestPlay"/*Controller"*/], (Fridge, GenKey, Board, Bag, LetterBag, Edition, Player, Dictionary, Square, Tile, Rack, Move, Turn, findBestPlay) => {
 
 	/**
 	 * The Game object could be used server or browser side, but in the
@@ -10,11 +10,6 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 	 * of all the active games.
 	 */
 	class Game {
-
-		// Store the db statically to avoid issues with serialisation
-		static setDatabase(db) {
-			Game.database = db;
-		}
 
 		/**
 		 * @param edition edition *name*
@@ -31,12 +26,19 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 			this.creationTimestamp = new Date().toISOString();
 			this.turns = [];
 			this.whosTurn = 0;
-			this.passes = 0;
 			this.time_limit = 0; // never time out
 			this.nextTimeout = 0;
 			this.connections = [];
+			this.saver = null;
 		}
 
+		/**
+		 * Get the player with key
+		 */
+		getPlayerFromKey(key) {
+			return this.players.find(p => p.key === key);
+		}
+		
 		/**
 		 * Load the edition and complete setup of a new Game.
 		 * Server side only; during deserialisation on the client side
@@ -67,11 +69,20 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 			}
 		}
 
+		/**
+		 * Used for testing only
+		 */
+		loadBoard(sboard) {
+			return Edition.load(this.edition)
+			.then(ed => this.board.parse(sboard, ed));
+		}
+
 		getDictionary() {
 			if (this.dictionary)
 				return Dictionary.load(this.dictionary);
 			
-			return Promise.reject();
+			// Terminal, no point in translating
+			return Promise.reject('Game has no dictionary');
 		}
 		
 		/**
@@ -107,14 +118,22 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 			}
 		}
 
+		/**
+		 * Get the board square at [col][row]
+		 */
+		at(col, row) {
+			return this.board.squares[col][row];
+		}
+		
 		toString() {
 			return `${this.key} game of ${this.players.length} players edition ${this.edition} dictionary ${this.dictionary}\n` + this.players;
 		}
 		
+		/**
+		 * Return a promise to save the game
+		 */
 		save() {
-			console.log(`Saving game ${this.key}`);
-			Game.database.set(this.key, this);
-			console.log(`Saved game ${this.key}`);
+			return this.saver ? this.saver(this) : Promise.resolve();
 		}
 
 		// Send a message to all players connected to this game
@@ -137,255 +156,37 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 					player: player
 				});
 			else
-				return Promise.reject('msg-player-does-not-exist');
+				return Promise.reject('error-player-does-not-exist');
 		}
 
+		/**
+		 * Thaw a data block, taking into account Game's dependencies
+		 * @see Fridge
+		 */
+		static thaw(data) {
+			return Fridge.thaw(
+				data,
+				[ LetterBag, Square, Board, Tile, Rack,
+				  Game, Player, Move, Turn ]);
+		}
+		
 		/**
 		 * Check that the given player is in this game, and it's their turn.
 		 * Returned promise is rejected if it isn't the players turn or
 		 * the game is not playable
 		 */
 		checkTurn(player) {
-			if (this.ended()) {
-				console.log(
-					`Game ${this.key} has ended: ${this.endMessage.reason}`);
-				return Promise.reject('msg-game-has-ended');
+			if (this.ended) {
+				console.log(`Game ${this.key} has ended:`, this.ended);
+				return Promise.reject('error-game-has-ended');
 			}
 
 			// determine if it is this player's turn
 			if (player !== this.players[this.whosTurn]) {
 				console.log(`not ${player.name}'s turn`);
-				return Promise.reject('msg-not-your-turn');
+				return Promise.reject('error-not-your-turn');
 			}
 			return Promise.resolve(this, player);
-		}
-
-		/**
-		 * @param player the Player making the move
-		 * @param placementList array of Placement
-		 */
-		makeMove(player, placementList) {
-			this.stopTimeout();
-			
-			console.log(`makeMove player ${player.index} ${player.key}`,
-						placementList);
-			console.log(`Player's rack is ${player.rack}`);
-			console.log("Placement ", placementList);
-			
-			let game = this;
-
-			// Move tiles from the rack to the board
-			placementList.forEach(placement => {
-				const tile = rack.removeTile(placement);
-				game.board.squares[placement.col][placement.row].placeTile(tile);
-			});
-			
-			// TODO: This has already been done client-side. Do we really
-			// need to do it again?
-			let move = this.board.analyseMove();
-			
-			if (move.error) {
-				// fixme should be generalized function -- wait, no rollback? :|
-				fromTos.forEach(squares => {
-					let tile = squares[1].tile;
-					squares[1].placeTile(null);
-					squares[0].placeTile(tile);
-				});
-				throw Error(move.error);
-			}
-			fromTos.forEach(squares => squares[1].tileLocked = true);
-
-			// add score
-			move.bonus = this.board.calculateBonus(fromTos.length);
-			move.score += move.bonus;
-			player.score += move.score;
-
-			// get new tiles
-			let newRack = this.letterBag.getRandomTiles(fromTos.length);
-			for (let i = 0; i < newRack.length; i++) {
-				fromTos[i][0].placeTile(newRack[i]);
-			}
-			console.log("words ", move.words);
-			this.getDictionary()
-			.then(dict => {
-				for (let w of move.words) {
-					console.log("Checking ",w);
-					if (!dict.hasWord(w.word))
-						this.notifyListeners(
-							'message', {
-								name: this.dictionary,
-								text: `msg-word-not-found ${w.word}`
-							});
-				}
-			})
-			.catch((e) => {
-				console.log("Dictionary load failed", e);
-			});
-			
-			game.previousMove = {
-				placements: fromTos,
-				score: move.score,
-				player: player,
-				words: move.words.map(w => w.word)
-			};
-			game.passes = 0;
-
-			return {
-				type: 'move',
-				player: player.index,
-				score: move.score,
-				move: move,
-				placements: placementList,
-
-				newRack: newRack
-			};
-		}
-
-		/**
-		 * Undo the last move
-		 * @param player the current player (NOT the player who's move is
-		 * being undone)
-		 * @param reason for the undo, "challenge" or "takeBack"
-		 */
-		undoPreviousMove(player, reason) {
-			if (!this.previousMove)
-				throw Error('cannot take back move - no previous move in game');
-
-			let previousMove = this.previousMove;
-			delete this.previousMove;
-
-			let returnLetters = [];
-			for (const placement of previousMove.placements) {
-				let rackSquare = placement[0];
-				let boardSquare = placement[1];
-				if (rackSquare.tile) {
-					returnLetters.push(rackSquare.tile.letter);
-					this.letterBag.returnTile(rackSquare.tile);
-					rackSquare.placeTile(null);
-				}
-				rackSquare.placeTile(boardSquare.tile);
-				boardSquare.placeTile(null);
-			}
-			previousMove.player.score -= previousMove.score;
-
-			return Promise.resolve({
-				type: reason,
-				player: previousMove.player.index,
-				score: -previousMove.score,
-				
-				challenger: player.index,
-				whosTurn: (reason == "challenge"
-						   ? this.whosTurn : previousMove.player.index),
-				placements: previousMove.placements.map(placement => {
-					return { col: placement[1].col,
-							 row: placement[1].row }
-				}),
-				returnLetters: returnLetters
-			});
-		}
-		
-		/**
-		 * Player wants to (or has to) miss their move. Either they
-		 * can't play, or challenged and failed.
-		 * @param player player who is passing
-		 * @param reason pass reason = 'pass' or 'failedChallenge'
-		 */
-		pass(player, reason) {
-			this.stopTimeout();
-			
-			delete this.previousMove;
-			this.passes++;
-
-			return Promise.resolve({
-				type: reason,
-				player: player.index,
-				score: 0
-			});
-		}
-
-		/**
-		 * Check the words created by the previous move are in the dictionary
-		 * @return Promise
-		 */
-		challengePreviousMove(player) {
-			return this.getDictionary()
-			.then(dict => {
-				const bad = this.previousMove.words
-					  .filter(word => !dict.hasWord(word));
-			
-				if (bad.length > 0) {
-					// Challenge succeeded
-					console.log(`Bad Words: ${bad.join(',')}`);
-					return this.undoPreviousMove(player, "challenge");
-				}
-
-				// challenge failed, this player loses their turn
-				return this.pass(player, 'failedChallenge');
-			})
-			.catch(() => {
-				console.log("No dictionary, so challenge always succeeds");
-				return this.undoPreviousMove(player, "challenge");
-			});
-		}
-
-		returnPlayerLetters(player, letters) {
-			// return letter squares from the player's rack to the bag
-			let lettersToReturn = new Bag(letters);
-			this.letterBag.returnTiles(
-				player.rack.squares.reduce(
-				(accu, square) => {
-					if (square.tile && lettersToReturn.contains(square.tile.letter)) {
-						lettersToReturn.remove(square.tile.letter);
-						accu.push(square.tile);
-						square.placeTile(null);
-					}
-					return accu;
-				},
-					[]));
-			if (lettersToReturn.contents.length) {
-				throw Error(`could not find letters ${lettersToReturn.contents} to return on player ${player}'s rack`);
-			}
-		}
-
-		/**
-		 * Player wants to swap their current rack for a different
-		 * letters.
-		 */
-		swapTiles(player, letters) {
-			if (this.letterBag.remainingTileCount() < this.board.rackCount) {
-				throw Error(`cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
-			}
-			delete this.previousMove;
-			this.passes++;
-			let rackLetters = new Bag(player.rack.letters());
-			for (const letter of letters) {
-				if (rackLetters.contains(letter)) {
-					rackLetters.remove(letter);
-				} else {
-					throw Error(`cannot swap, rack does not contain letter ${letter}`);
-				}
-			}
-			
-			// The swap is legal.  First get new tiles, then return
-			// the old ones to the letter bag
-			let newRack = this.letterBag.getRandomTiles(letters.length);
-			this.returnPlayerLetters(player, letters);
-			
-			let tmpNewTiles = newRack.slice();
-			for (const square of player.rack.squares) {
-				if (!square.tile) {
-					square.placeTile(tmpNewTiles.pop());
-				}
-			}
-
-			return {
-				type: 'swap',
-				player: player.index,
-				score: 0,
-				
-				newRack: newRack,
-				count: letters.length,
-			};
 		}
 
 		remainingTileCounts() {
@@ -410,135 +211,97 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 			turn.timestamp = Date.now();
 
 			// store turn log
-			delete turn.newRack; // no point logging this
 			this.turns.push(turn);
 
-			// determine whether the game's end has been reached
-			if (this.passes == (this.players.length * 2)) {
-				this.finish('all players passed twice');
-			} else if (player.rack.squares.every(square => !square.tile)) {
-				this.finish(`${this.players[this.whosTurn].name} ended the game`);
-			} else if (turn.type != "challenge") {
-				// determine who's turn it is now, for anything except
-				// a successful challenge
-				this.whosTurn = (this.whosTurn + 1) % this.players.length;
-				turn.whosTurn = this.whosTurn;
+			this.save()
+			.then(() => {
+				//console.log("Notify turn", turn);
+				this.notifyListeners('turn', turn);
 
-				let p = this.players[this.whosTurn];
-				if (p.isRobot) {
-					// Play computer player(s)
-					p.autoplay(this)
-					.then(turn => {
-						console.log(`${p} played, updateGameState`);
-						this.updateGameState(p, turn);
-						// If we do this, computer turns are notified twice.
-						//this.notifyListeners('turn', turn);
-					});
-				} else if (this.isConnected(p))
-					turn.timeout = this.startTimeout(p);
+				// if the game has ended, send extra notification with
+				// final scores
+				if (this.ended) {
+					console.log("Game over", this.ended);
+					this.notifyListeners('gameEnded', this.ended);
+				} else {
+					console.log(`Player ${this.whosTurn}'s turn`);
+					const p = this.players[this.whosTurn];
+					if (p.isRobot) {
+						// Play computer player(s)
+						p.autoplay(this)
+						.then(turn => {
+							console.log(`${p} played, updateGameState`);
+							this.updateGameState(p, turn);
+							// If we do this, computer turns are notified twice.
+							//this.notifyListeners('turn', turn);
+						});
+					} else if (this.isConnected(p))
+						turn.timeout = this.startTimeout(p);
+				}
+			});
+		}
+
+		/**
+		 * Generate a game reference string addressed to the given player
+		 * in email (English only, no i18n support)
+		 */
+		emailJoinProse(player) {
+			let names = [];
+			for (let p of this.players) {
+				if (p !== player)
+					names.push(p.name);
 			}
-
-			// store new game data
-			this.save();
-
-			// notify listeners
-			turn.remainingTileCounts = this.remainingTileCounts();
-			//console.log("Notify turn", turn);
-			this.notifyListeners('turn', turn);
-
-			// if the game has ended, send extra notification with final scores
-			if (this.ended()) {
-				// Unclear why we have to freeze here, but not when
-				// sending the turn. If we don't, we get an infinite
-				// recursion in socket.io, in isBinary
-				let serial = Icebox.freeze(this.endMessage);
-				this.notifyListeners('gameEnded', serial);
+			let length = names.length;
+			switch (length) {
+			case 0:
+				return "";
+			case 1:
+				return names[0];
+			default:
+				return names.slice(0, length - 1).join(", ")
+				+ ` and ${names[length - 1]}`;
 			}
 		}
 
-		sendInvitations(config) {
+		/**
+		 * Send email invitations to players due to play in this game
+		 */
+		emailInvitations(config) {
 			this.players.forEach(
 				player => {
 					if (!player.email)
 						return;
 					player.sendInvitation(
-						`You have been invited to play Scrabble with ${this.joinProse(player)}`,
+						"You have been invited to play with "
+						+ this.emailJoinProse(player),
 						config);
 				});
 		}
 
-		// @return Promise
-		createAnotherGame(startPlayer) {
-			if (this.nextGameKey) {
-				throw Error(`another game already created: old ${this.key} new ${this.nextGameKey}`);
-			}
-			console.log("Create follow-on game");
-			let playerCount = this.players.length;
-			let newPlayers = [];
-			// re-order players so last winner starts
-			for (let i = 0; i < playerCount; i++) {
-				let oldPlayer = this.players[(i + startPlayer.index) % playerCount];
-				newPlayers.push(new Player(oldPlayer));
-			}
-			return new Game(this.edition, newPlayers, this.dictionary)
-			.load()
-			.then(newGame => {
-				newGame.time_limit = this.time_limit;
-				this.endMessage.nextGameKey = newGame.key;
-				newGame.save();
+		/**
+		 * Send email reminders to the next player due to play in this game
+		 * (English only, no i18n support)
+		 */
+		emailTurnReminder(config) {
+			if (this.ended)
+				return;
+			
+			const ageInDays =
+				  (new Date() - this.lastActivity())
+				  / 60000 / 60 / 24;
+			if (ageInDays > 14) {
+				console.log('Game timed out:',
+							this.players.map(({ name }) => name));
+				this.ended = { reason: 'timed out' };
 				this.save();
-				this.notifyListeners('nextGame', newGame.key);
-			});
-		}
-
-		finish(reason) {
-			console.log(`Finishing because ${reason}`);
-			
-			// Tally scores
-			let playerWithNoTiles;
-			let pointsRemainingOnRacks = 0;
-			this.players.forEach(player => {
-				let tilesLeft = false;
-				let rackScore = 0;
-				player.rack.squares.forEach(square => {
-					if (square.tile) {
-						rackScore += square.tile.score;
-						tilesLeft = true;
-					}
-				});
-				if (tilesLeft) {
-					player.score -= rackScore;
-					player.tallyScore = -rackScore;
-					pointsRemainingOnRacks += rackScore;
-				} else {
-					if (playerWithNoTiles) {
-						throw Error("unexpectedly found more than one player with no tiles when finishing game");
-					}
-					playerWithNoTiles = player;
-				}
-			});
-
-			if (playerWithNoTiles) {
-				playerWithNoTiles.score += pointsRemainingOnRacks;
-				playerWithNoTiles.tallyScore = pointsRemainingOnRacks;
+				return;
 			}
-
-			let endMessage = {
-				reason: reason,
-				players: this.players.map(player => {
-					return { name: player.name,
-							 score: player.score,
-							 tallyScore: player.tallyScore,
-							 rack: player.rack };
-				})
-			};
-			this.endMessage = endMessage;
-			
-			Game.database.snapshot();
-		}
-
-		ended() {
-			return this.endMessage;
+			const player = this.players[this.whosTurn];
+			if (player.email)
+				player.sendInvitation(
+					"It is your turn in your this with "
+					+ this.emailJoinProse(player),
+					config);
 		}
 
 		/**
@@ -581,7 +344,7 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 
 			this.connections.push(socket);
 
-			let result = { playerNumber: player.index };
+			let result = { playerKey: player.key };
 			if (player) {
 				if (this.isConnected(player)) {
 					console.log(`WARNING: ${player.name} ${player.key} already connected`);
@@ -606,28 +369,357 @@ define("game/Game", [ "icebox", "game/GenKey", "game/Board", "game/Bag", "game/L
 		}
 
 		/**
-		 * Generate a game reference string addressed to the given player
+		 * Check if the game is ended. This is done after any turn
+		 * that could result in an end-of-game state i.e. 'makeMove',
+		 * 'pass',
 		 */
-		joinProse(player) {
-			let names = [];
-			for (let p of this.players) {
-				if (p !== player)
-					names.push(p.name);
+		checkGameState() {
+			let reason;
+			
+			// determine whether the end has been reached
+			if (!this.players.find(p => p.passes < 2))
+				reason = 'log-all-passed-twice';
+
+			else if (this.letterBag.isEmpty() &&
+					 this.players.find(p => p.rack.isEmpty()))
+				reason = 'log-game-over';
+			else
+				return;
+
+			console.log(`Finishing because ${reason}`);
+			
+			// Tally scores
+			let playerWithNoTiles;
+			let pointsRemainingOnRacks = 0;
+			this.players.forEach(player => {
+				let tilesLeft = [];
+				let rackScore = 0;
+				player.rack.squares.forEach(square => {
+					if (square.tile) {
+						rackScore += square.tile.score;
+						if (!square.tile.isBlank)
+							tilesLeft.push(square.tile.letter);
+					}
+				});
+				if (tilesLeft.length > 0) {
+					player.score -= rackScore;
+					player.tally = -rackScore;
+					player.tilesLeft = tilesLeft;
+					pointsRemainingOnRacks += rackScore;
+				} else {
+					if (playerWithNoTiles)
+						throw Error("Found more than one player with no tiles when finishing game");
+					playerWithNoTiles = player;
+				}
+			});
+
+			if (playerWithNoTiles) {
+				playerWithNoTiles.score += pointsRemainingOnRacks;
+				playerWithNoTiles.tally = pointsRemainingOnRacks;
 			}
-			let length = names.length;
-			switch (length) {
-			case 0:
-				return "";
-			case 1:
-				return names[0];
-			default:
-				return names.slice(0, length - 1).join(", ")
-				+ ` and ${names[length - 1]}`;
+
+			let winningScore = -10000;
+			this.players.forEach(
+				player => winningScore = Math.max(winningScore, player.score));
+								 
+			this.ended = {
+				reason: reason, // i18n message key
+				winningScore: winningScore,
+				players: this.players.map(player => {
+					return {
+						player: player.index,
+						score: player.score,
+						tally: player.tally,
+						tilesLeft: player.tilesLeft
+					};
+				})
+			};
+			
+			return null;
+		}
+		
+		/**
+		 * Handler for 'cheat' command
+		 * Calculate a play for the given player
+		 */
+		cheat(player) {
+			console.log(`Player ${player.name} is cheating`);
+
+			let bestPlay = null;
+			findBestPlay(this, player.rack.tiles(), data => {
+				if (typeof data === "string")
+					console.log(data);
+				else
+					bestPlay = data;
+			})
+			.then(() => {
+				let play;
+				let msg = {
+					name: 'Dictionary'
+				};
+				if (!bestPlay)
+					msg.text = 'msg-no-play';
+				else {
+					console.log(bestPlay);
+					const start = bestPlay.placements[0];
+					msg.text = 'msg-hint';
+					const words = bestPlay.words.map(w => w.word).join(',');
+					msg.args = [ words, start.row + 1, start.col + 1 ];
+				}
+				// Tell *everyone* who the cheat is >:-)
+				this.notifyListeners('message', msg);
+			})
+			.catch(e => {
+				console.log('Error', e);
+				this.notifyListeners(
+					'message', {
+						name: 'Dictionary',
+						text: e.toString() });
+			});
+		}
+	
+		/**
+		 * Handler for 'makeMove' command.
+		 * @param player the Player making the move
+		 * @param placementList array of Placement
+		 * @return a Promise resolving to a Turn
+		 */
+		makeMove(player, move) {
+			this.stopTimeout();
+			
+			console.log(`makeMove player ${player.index} `, move.toString());
+			console.log(`Player's rack is ${player.rack}`);
+			
+			let game = this;
+
+			// Move tiles from the rack to the board
+			move.placements.forEach(placement => {
+				const tile = player.rack.removeTile(placement);
+				game.board.squares[placement.col][placement.row]
+				.placeTile(tile, true);
+			});
+
+			player.score += move.score;
+
+			// get new tiles to replace those placed
+			let newTiles = [];
+			for (let i = 0; i < move.placements.length; i++) {
+				let tile = this.letterBag.getRandomTile();
+				if (tile) {
+					player.rack.addTile(tile);
+					newTiles.push(tile);
+				}
 			}
+			
+			console.log("New rack", player.rack.toString());
+			
+			console.log("words ", move.words);
+			this.getDictionary()
+			.then(dict => {
+				for (let w of move.words) {
+					console.log("Checking ",w);
+					if (!dict.hasWord(w.word))
+						this.notifyListeners(
+							'message', {
+								name: this.dictionary,
+								text: 'msg-word-not-found',
+								args: w.word
+							});
+				}
+			})
+			.catch((e) => {
+				console.log("Dictionary load failed", e);
+			});
+			
+			game.previousMove = {
+				placements: move.placements,
+				newTiles: newTiles,
+				score: move.score,
+				player: player,
+				words: move.words.map(w => w.word)
+			};
+			player.passes = 0;
+
+			this.whosTurn = (this.whosTurn + 1) % this.players.length;
+			const turn = new Turn(this, 'move', player, move.score);
+			turn.move = move;
+			turn.newTiles = newTiles;
+
+			this.checkGameState();
+			
+			return Promise.resolve(turn);
+		}
+
+		/**
+		 * Handler for 'takeBack' command.
+		 * Undo the last move
+		 * @param player the current player (NOT the player who's move is
+		 * being undone)
+		 * @param type the type of the takeBack; 'took-back' or 'challenge-won'
+		 * @return a Promise resolving to a Turn
+		 */
+		takeBack(player, type) {
+			if (!this.previousMove)
+				throw Error('No previous move to take back');
+
+			let previousMove = this.previousMove;
+			delete this.previousMove;
+
+			// Move tiles that were added to the rack as a consequence
+			// of the previous move, back to the letter bag
+			for (let newTile of previousMove.newTiles) {
+				const tile = previousMove.player.rack.removeTile(newTile);
+				this.letterBag.returnTile(tile);
+			}
+
+			// Move placed tiles from the board back to the rack
+			for (let placement of previousMove.placements) {
+				const boardSquare =
+					this.board.squares[placement.col][placement.row];
+				this.rack.addTile(boardSquare.tile);
+				boardSquare.placeTile(null);
+			}
+			previousMove.player.score -= previousMove.score;
+
+			if (type === 'took-back')
+				this.whosTurn = previousMove.player.index;
+			// else a successful challenge, does not move the player on
+			
+			const turn = new Turn(this,
+				type, previousMove.player, -previousMove.score);
+			turn.move = previousMove;
+			turn.newTiles = previousMove.newTiles;
+			turn.challenger = player.index;
+			
+			return Promise.resolve(turn);
+		}
+		
+		/**
+		 * Handler for 'pass' command.
+		 * Player wants to (or has to) miss their move. Either they
+		 * can't play, or challenged and failed.
+		 * @param player player who is passing
+		 * @param type pass type, 'pass' or 'challenge-failed'
+		 * @return a Promise resolving to a Turn
+		 */
+		pass(player, type) {
+			this.stopTimeout();
+			
+			delete this.previousMove;
+			player.passes++;
+
+			this.checkGameState();
+
+			this.whosTurn = (this.whosTurn + 1) % this.players.length;
+
+			return Promise.resolve(new Turn(this, type, player, 0));
+		}
+
+		/**
+		 * Handler for 'challenge' command.
+		 * Check the words created by the previous move are in the dictionary
+		 * @param player the player doing the challenging
+		 * @return Promise resolving to a Turn
+		 */
+		challenge(player) {
+			return this.getDictionary()
+			.then(dict => {
+				const bad = this.previousMove.words
+					  .filter(word => !dict.hasWord(word));
+			
+				if (bad.length > 0) {
+					// Challenge succeeded
+					console.log(`Bad Words: ${bad.join(',')}`);
+					return this.takeBack(player, 'challenge-won');
+				}
+
+				// challenge failed, this player loses their turn
+				return this.pass(player, 'challenge-failed');
+			})
+			.catch(() => {
+				console.log("No dictionary, so challenge always succeeds");
+				return this.takeBack(player, 'challenge-won');
+			});
+		}
+
+		/**
+		 * Handler for swap command.
+		 * Player wants to swap their current rack for a different
+		 * letters.
+		 * @param player the Player doing the swap
+		 * @param tiles list of Tile to swap
+		 * @return Promise resolving to a Turn
+		 */
+		swap(player, tiles) {
+			if (this.letterBag.remainingTileCount() < tiles.length)
+				// Terminal, no point in translating
+				throw Error(`Cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
+
+			delete this.previousMove;
+			player.passes++;
+
+			for (const tile of tiles) {
+				const removed = player.rack.removeTile(tile);
+				if (!removed)
+					// Terminal, no point in translating
+					throw Error(`Cannot swap, player rack does not contain letter ${tile.letter}`);
+				this.letterBag.returnTile(removed);
+			}
+			
+			// The swap is legal.  First get new tiles, then return
+			// the old ones to the letter bag
+			let newTiles = [];
+
+			for (let i = 0; i < tiles.length; i++) {
+				let newTile = this.letterBag.getRandomTile();
+				newTiles.push(newTile);
+				for (const square of player.rack.squares) {
+					if (!square.tile)
+						square.placeTile(newTile);
+				}
+			}
+
+			this.whosTurn = (this.whosTurn + 1) % this.players.length;
+			const turn = new Turn(this, 'swap', player, 0);
+			turn.newTiles = newTiles;
+			return Promise.resolve(turn);
+		}
+
+		/**
+		 * Handler for 'anotherGame' command
+		 * @return Promise resolving to a (null) Turn
+		 */
+		anotherGame() {
+			if (this.nextGameKey) {
+				console.log(`another game already created: old ${this.key} new ${this.nextGameKey}`);
+				return Promise.resolve(); // NOP
+			}
+
+			console.log(`Create game to follow ${this.key}`);
+			// re-order players so last winner starts
+			const newPlayers = this.players.slice().sort((a, b) => {
+				return a.score > b.score ? 1 : a.score == b.score ? 0 : 1;
+			}).map(p => new Player(p));
+			return new Game(this.edition, newPlayers, this.dictionary)
+			.load()
+			.then(newGame => {
+				console.log(`Created follow-on game ${newGame.key}`);
+				newGame.time_limit = this.time_limit;
+				this.ended.nextGameKey = newGame.key;
+				newGame.saver = this.saver;
+				newGame.save();
+				this.save();
+				this.notifyListeners('nextGame', newGame.key);
+			});
+		}
+
+		createPlayerTableDOM(thisPlayer) {
+			let $tab = $('<table></table>');
+			this.players.forEach(
+				p => $tab.append(p.createScoreDOM(thisPlayer)));
+			return $tab;
 		}
 	}
-
-	Game.database = null;
 
 	return Game;
 });

@@ -31,10 +31,8 @@
         <div id="rack" class="tableDivWrap bottomShade">
 		  <div id="timeout"></div>
 		  <div id='rackControls'>
-			<table class="rackTable" id="RackTable">
-			  <tr>
-			  </tr>
-			</table>
+			<div id="tileRack">
+			</div>
 			<div>
 			  <button id='shuffleButton' data-i18n="button-shuffle"></button>
 			  <button id='takeBackButton' data-i18n="button-get-tiles"></button>
@@ -46,19 +44,14 @@
 	  <div id="controls">
         <div><span id="whosturn"></span></div>
         <div id="scoreboard">
-		  <table id="playerTable"></table>
 		  <div id='letterbagStatus'></div>
 		</div>
         <div id="turnControls">
 		  <div id="move"></div>
 		  <div id="swapRack" class="tableDivWrap bottomShade">
-			<table class="rackTable" id="SwapTable">
-			  <tr>
-			  </tr>
-			</table>
 		  </div>
 		  <div id="turnButtons">
-			<button id='turnButton' action='pass' data-i18n="button-pass"></button>
+			<button id='turnButton' data-action='pass' data-i18n="button-pass"></button>
 		  </div>
         </div>          
         <div id="chat">
@@ -73,7 +66,7 @@
 	  </div>
 	  <!-- blank letter request dialog -->
       <div id="blankDialog" class="hidden">
-		<span data-i18n="msg-select-blank"></span>
+		<span data-i18n="prompt-select-blank"></span>
 		<table id="blankLetterTable"></table>
       </div>
 	  <div id="problemDialog" class="hidden">

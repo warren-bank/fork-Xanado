@@ -2,7 +2,7 @@
 define("editions/English_Lexulous", () => {
 
 	const LAYOUT = [
-		"D______T",
+		"M______T",
 		"__d___d_",
 		"_d___t__",
 		"____D___",

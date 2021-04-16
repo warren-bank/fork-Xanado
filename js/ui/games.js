@@ -27,16 +27,16 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 	
 	// Format an active game
 	function formatGame(game) {
-		let msg = $.i18n('msg-game-desc', game.players.length, game.edition);
+		let msg = $.i18n('game-description', game.players.length, game.edition);
 		let $p = $(`<div>${msg}</div>`);
 		if (game.dictionary)
-			$p.append($.i18n('msg-using-dict', game.dictionary));
+			$p.append($.i18n('game-using-dict', game.dictionary));
 		if (game.time_limit > 0)
-			$p.append($.i18n('msg-time-limit', game.time_limit));
+			$p.append($.i18n('game-time-limit', game.time_limit));
 		
 		game.players.map(player => $p.append(formatPlayer(game, player)));
 
-		let $but = $('<button class="deleteGame">DELETE</button>');
+		let $but = $(`<button class="deleteGame">${$.i18n('game-delete')}</button>`);
 		$but.on('click', () => {
 			console.log(`Delete game ${game.key}`);
 			$.ajax({

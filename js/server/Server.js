@@ -18,8 +18,8 @@ const main_deps = [
 	'cookie-parser',
 	'errorhandler',
 	'basic-auth-connect',
-	'icebox',
-	'server/DirtyDB',
+	'dirty',
+	'game/Fridge',
 	'game/Game',
 	'game/Player',
 	'game/Edition',
@@ -27,10 +27,7 @@ const main_deps = [
 	"game/findBestPlay"];
 //	"game/findBestPlayController"];
 
-/* global APP_DIR */
-global.APP_DIR = null;
-
-define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Icebox, DB, Game, Player, Edition, findBestPlay) => {
+define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Dirty, Fridge, Game, Player, Edition, findBestPlay) => {
 
 	// Live games; map from game key to Game
 	const games = {};
@@ -39,11 +36,11 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 	let config;
 	
 	// Database
-	let db;
+	let database;
 
 	// Status-monitoring sockets (game pages)
 	let monitors = [];
-	
+
 	/**
 	 * Load the game from the DB, if not already in server memory
 	 * @param key game key
@@ -53,10 +50,17 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		if (games[key])
 			return Promise.resolve(games[key]);
 
-		const game = db.get(key);
+		const game = Game.thaw(database.get(key));
 
-		if (!game)
-			return Promise.reject('msg-game-does-not-exist');
+		if (!game) {
+			console.log(new Error(`Failed to thaw game ${key}`));
+			return Promise.reject('error-game-does-not-exist');
+		}
+		game.saver = saveGame => {
+			console.log(`Saving game ${saveGame.key}`);
+			return new Promise(resolve => database.set(
+				saveGame.key, Fridge.freeze(saveGame), resolve));
+		};
 
 		game.connections = [];
 
@@ -68,7 +72,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		games[key] = game;
 		console.log(`Loaded game ${game}`);
 
-		if (!game.endMessage) {
+		if (!game.ended) {
 			// May need to trigger computer players
 			const fp = game.players[game.whosTurn];
 			const what = fp.isRobot ? "robot" : "human";
@@ -105,76 +109,49 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 	}
 
 	/**
-	 * Calculate a play for the given player
-	 */
-	function cheat(game, player) {
-		console.log(`Player ${player} is cheating`);
-
-		let bestPlay = null;
-		findBestPlay(game, player.rack.letters(), data => {
-			if (typeof data === "string")
-				console.log(data);
-			else
-				bestPlay = data;
-		})
-		.then(() => {
-			let play;
-			if (!bestPlay)
-				play = "can't find a play";
-			else {
-				let start = bestPlay.start;
-				play = `${bestPlay.word} at row ${start[1] + 1} column ${start[0] + 1} for ${bestPlay.score}`;
-			}
-			// Tell *everyone* what the cheat is
-			game.notifyListeners(
-				'message', {
-					name: 'Dictionary',
-					text: play });
-		})
-		.catch(e => {
-			game.notifyListeners(
-				'message', {
-					name: 'Dictionary',
-					text: e.toString() });
-		});
-	}
-	
-	/**
-	 * Handler for /games; sends a list of active games
+	 * Handler for GET /games
+	 * Sends a list of active games
 	 * @return a Promise
 	 */
 	function handle_games(req, res) {
-		const games = db.all();
-		Promise.all(games.filter(
-			game => game && !game.endMessage)
-			  .map(gamey =>
-				   loadGame(gamey.key)
-				   .then(game => {
-					   return {
-						   key: game.key,
-						   edition: game.edition,
-						   dictionary: game.dictionary,
-						   time_limit: game.time_limit,
-						   players: game.players.map(player => {
-							   return {
-								   name: player.name,
-								   isRobot: player.isRobot,
-								   connected: game.isConnected(player),
-								   key: player.key,
-								   hasTurn: player == game.players[game.whosTurn]};
-						   })
-					   };
-				   })))
+		const promises = [];
+		database.forEach((key, frozenGame) => {
+			const game = Game.thaw(frozenGame);
+			if (!game || game.ended)
+				return;
+
+			promises.push(
+				loadGame(game.key)
+				.then(game => {
+					return {
+						key: game.key,
+						edition: game.edition,
+						dictionary: game.dictionary,
+						time_limit: game.time_limit,
+						players: game.players.map(player => {
+							return {
+								name: player.name,
+								isRobot: player.isRobot,
+								connected: game.isConnected(player),
+								key: player.key,
+							hasTurn: player == game.players[game.whosTurn]};
+						})
+					};
+				}));
+		});
+				  
+		Promise.all(promises)
 		.then(data => res.send(data))
 		.catch(e => trap(e, res));
 	}
 	
 	/**
-	 * Handler for /locales; sends a list of available locales
+	 * Handler for GET /locales; sends a list of available locales.
+	 * Used when selecting a presentation language for the UI.
 	 * @return a Promise
 	 */
 	function handle_locales(req, res) {
-		return Fs.readdir(`${APP_DIR}/i18n`)
+		return Fs.readdir(requirejs.toUrl('i18n'))
 		.then(files => {
 			res.send(
 				files.filter(file => /\.json$/.test(file))
@@ -184,45 +161,25 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 	}
 
 	/**
-	 * Email game reminders
-	 * @return a Promise
+	 * Handler for /send-game-reminders
+	 * Email reminders to next human player in each game
 	 */
-	function handle_sendGameReminders(req, res) {
-		// TODO: translation support
-		const games = db.all();
-		Promise.all(games.map(
-			game => db.get(game.key)
-			.then(game => {
-				if (!game.endMessage) {
-					const ageInDays =
-						  (new Date() - game.lastActivity())
-						  / 60000 / 60 / 24;
-					if (ageInDays > 14) {
-						console.log('Game timed out:',
-									game.players.map(({ name }) => name));
-						game.endMessage = { reason: 'timed out' };
-						game.save();
-						return;
-					}
-					const player = game.players[game.whosTurn];
-					player.sendInvitation(
-						`It is your turn in your game with ${game.joinProse(player)}`,
-						config);
-				}
-			})))
-		.then(() => res.send("Reminder emails sent"))
-		.catch(e => trap(e, res));
+	function handle_sendGameReminders() {
+		database.forEach((key, frozenGame) => {
+			const game = Game.thaw(frozenGame);
+			game.emailTurnReminder(config);
+		});
 	}
 	
 	/**
-	 * Handler for /newGame. 
+	 * Handler for POST /newGame. 
 	 * @return a Promise
 	 */
 	function handle_newGame(req, res) {
 		console.log(`Constructing new game ${req.body.edition}`);
 				
 		if (req.body.players.length < 2)
-			return Promise.reject('msg-need-2-players');
+			return Promise.reject('error-need-2-players');
 
 		return Edition.load(req.body.edition)
 		.then(edition => {
@@ -244,7 +201,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			}
 		
 			if (!haveHuman)
-				throw Error('msg-need-human');
+				throw Error('error-need-human');
 			
 			let dictionary = null;
 			if (req.body.dictionary
@@ -255,6 +212,11 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 				console.log("\twith no dictionary");
 
 			let game = new Game(edition.name, players, dictionary);
+			game.saver = () => {
+				console.log(`Saving game ${game.key}`);
+				return new Promise(resolve => database.set(
+					game.key, Fridge.freeze(game), resolve));
+			};
 			game.time_limit = req.body.time_limit || 0;
 			if (game.time_limit > 0)
 				console.log(`\t${game.time_limit} minute time limit`);
@@ -268,7 +230,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 				// Save the game when everything has been initialised
 				game.save();
 
-				game.sendInvitations(config);
+				game.emailInvitations(config);
 
 				// Redirect back to control panel
 				res.redirect("/html/games.html");
@@ -289,7 +251,11 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		return loadGame(gameKey)
 		.then(() => {
 			console.log(`Player ${playerKey} Entering ${gameKey}`); 
-			res.cookie(gameKey, playerKey, { path: '/', maxAge: (30 * 24 * 60 * 60 * 1000) });
+			res.cookie(gameKey, playerKey, {
+				path: '/',
+				maxAge: (30 * 24 * 60 * 60 * 1000) // 30 days
+			});
+			// Redirect to handle_gameGET() for the HTML
 			res.redirect(`/game/${gameKey}`);
 		})
 		.catch(e => trap(e, res));
@@ -298,7 +264,8 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 	/**
 	 * Handler for GET /game/:gameKey
 	 * If the accept: in the request is asking for 'application/json'
-	 * then respond with JSON, for HTML with the HTML page for the game.
+	 * then respond with JSON with the current game state, if it's
+	 * asking for HTML with the HTML page for the game.
 	 */
 	function handle_gameGET(req, res) {
 		const gameKey = req.params.gameKey;
@@ -306,37 +273,15 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		.then(game => {
 			// Use express-negotiate to negotiate the response type
 			req.negotiate({
-				'application/json': function () {
-					const response = {
-						board: game.board,
-						turns: game.turns,
-						language: game.language,
-						whosTurn: game.whosTurn,
-						remainingTileCounts: game.remainingTileCounts(),
-						legalLetters: game.letterBag.legalLetters,
-						players: []
-					}
-					const playerKey = req.cookies[game.key];
-					for (let i = 0; i < game.players.length; i++) {
-						const player = game.players[i];
-						response.players.push({
-							name: player.name,
-							score: player.score,
-							rack: (player.key == playerKey) ? player.rack : null
-						});
-					}
-					if (game.ended())
-						response.endMessage = game.endMessage;
-					res.send(Icebox.freeze(response));
-				},
-				'html': () => res.sendFile(`${APP_DIR}/html/game.html`)
+				'application/json': () => res.send(Fridge.freeze(game)),
+				'html': () => res.sendFile(requirejs.toUrl('html/game.html'))
 			});
 		})
 		.catch(e => trap(e, res));
 	}
 
 	/**
-	 * Handler for /bestPlay (debug)
+	 * Handler for GET /bestPlay
 	 * @return Promise
 	 */
 	function handle_bestPlay(req, res) {
@@ -346,49 +291,61 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		.then(game => game.lookupPlayer(playerKey))
 		// Find the best play for the player, given the current board
 		// state. Note that it may not be their turn, that's OK, this is debug
-		.then(info => findBestPlay(info.game, info.player.rack.letters()))
-		.then(play => res.send(Icebox.freeze(play)))
+		.then(info => findBestPlay(info.game, info.player.rack.tiles()))
+		.then(play => res.send(Fridge.freeze(play)))
 		.catch(e => trap(e, res));
 	}
 
+	/**
+	 * Handler for POST /deleteGame
+	 */
     function handle_deleteGame(req, res) {
         const gameKey = req.params.gameKey;
         return loadGame(gameKey)
         .then(() => {
-            db.set(gameKey, undefined);
+            database.rm(gameKey, undefined);
 			res.send("OK");
         })
         .catch(e => trap(e, res));
     }
 
+	function handle_anotherGame(req, res) {
+        return loadGame(req.params.gameKey)
+        .then(game => game.anotherGame())
+        .catch(e => trap(e, res));
+	}
+	
 	/**
-	 * Handle POST /game command received as an AJAX request
-	 * Sends [ tiles ], iceboxed
+	 * Handler for POST /game
+	 * Result is always a Turn object, though the actual content
+	 * varies according to the command sent.
 	 * @return Promise
 	 */
 	function handle_gamePOST(req, res) {
 		const gameKey = req.params.gameKey;
+		// Get cookie set by handle_enterGame that identifies the player
 		const playerKey = req.cookies[gameKey];
 		return loadGame(gameKey)
 		.then(game => game.lookupPlayer(playerKey))
 		.then(info => {
 			const game = info.game;
-			const player = info.player;
-			const body = Icebox.thaw(req.body);
 
-			console.log(`COMMAND ${body.command} player ${player.name} game ${game.key}`, req.body.arguments);
+			if (game.ended)
+				return;
+
+			const player = info.player;
+			const command = req.body.command;
+			const args = req.body.args ? JSON.parse(req.body.args) : null;
+
+
+			console.log(`COMMAND ${command} player ${player.name} game ${game.key}`, args);
 
 			let promise;
-			switch (req.body.command) {
+			switch (command) {
 
-			case 'deleteGame':
-				db.set(game.key, undefined);
-				promise = Promise.resolve({});
-				break;
-				
 			case 'makeMove':
 				promise = game.checkTurn(player)
-				.then(game => game.makeMove(player, body.arguments));
+				.then(game => game.makeMove(player, args));
 				break;
 
 			case 'pass':
@@ -398,51 +355,41 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 
 			case 'swap':
 				promise = game.checkTurn(player)
-				.then(game => game.swapTiles(player, body.arguments));
+				.then(game => game.swap(player, args));
 				break;
 
 			case 'challenge':
 				// Check the last move in the dictionary
-				promise = game.challengePreviousMove(player);
+				promise = game.challenge(player);
 				break;
 			
 			case 'takeBack':
-				promise = game.undoPreviousMove(player, 'takeBack');
+				promise = game.takeBack(player, 'took-back');
 				break;
 
-			case 'anotherGame':
-				promise = game.createAnotherGame(player);
-				return;
-
 			default:
-				throw Error(`unrecognized command: ${body.command}`);
+				// Terminal, no point in translating
+				throw Error(`unrecognized command: ${command}`);
 			}
 
 			return promise.then(result => {
-				let newRack = result.newRack || [];
 				game.updateGameState(player, result);
 				updateMonitors();
-				res.send(Icebox.freeze({ newRack: newRack }));
+				// Send something for Ui.handleMoveResponse
+				// This really only applies to swap and makeMove,
+				// as updateGameState sends info for other commands
+				res.send(Fridge.freeze(result.newTiles || []));
 			});
 		})
 		.catch(e => trap(e, res));
 	}
 	
-	function configureDatabase(database) {
-		// Configure database
-		db = new DB(
-			database,
-			[ 'game/LetterBag',
-			  'game/Square',
-			  'game/Board',
-			  'game/Tile',
-			  'game/Rack',
-			  'game/Move',
-			  'game/Game',
-			  'game/Player' ]);
-		
-		Game.setDatabase(db);
-		db.on('load', () => console.log('database loaded'));
+	function connectDatabase(file) {
+		console.log('opening database', file);
+		return new Promise(resolve => {
+			database = new Dirty(file);
+			database.on('load', resolve);
+		});
 	}
 	
 	function runServer(config) {
@@ -459,8 +406,10 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		app.use(CookieParser());
 
 		// Grab all static files relative to the project root
-		console.log(`static files from ${APP_DIR}`);
-		app.use(Express.static(APP_DIR));
+		// html, images, css etc
+		console.log(`static files from ${requirejs.toUrl('')}`);
+		console.log(`database is ${database.path}`);
+		app.use(Express.static(requirejs.toUrl('')));
 
 		app.use(ErrorHandler({
 			dumpExceptions: true,
@@ -493,8 +442,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		app.get("/", (req, res) => res.redirect("/html/games.html"));
 
 		// AJAX request to send email reminders about active games
-		app.post("/send-game-reminders", (req, res) =>
-				 handle_sendGameReminders(req, res));
+		app.post("/send-game-reminders", () => handle_sendGameReminders());
 
 		// AJAX request for available games
 		app.get("/games",
@@ -509,6 +457,8 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		
         app.post("/deleteGame/:gameKey", handle_deleteGame);
 
+		app.post("/anotherGame/:gameKey", handle_anotherGame);
+		
 		app.get("/config", (req, res) =>
 				// To get here, had to know port and baseUrl
 				// so no point in resending.
@@ -525,7 +475,8 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		// Request handler for game interface / info
 		app.get("/game/:gameKey", handle_gameGET);
 		
-		// Request handler for best play. Debug.
+		// Request handler for best play. Debug, allows us to pass in
+		// any player key
 		app.get("/bestPlay/:gameKey/:playerKey", handle_bestPlay);
 		
 		// Request handler for game command
@@ -565,18 +516,16 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			
 			.on('message', message => {
 				console.log(message);
-				if (message.text == "/cheat")
-					cheat(socket.game, socket.player);
+				if (message.text === '/cheat')
+					socket.game.cheat(socket.player);
 				else
 					socket.game.notifyListeners('message', message);
 			});
 		});
 	}
 
-	function mainProgram(dirname) {
+	function mainProgram() {
 
-		APP_DIR = dirname;
-		
 		// Command-line arguments
 		let cliopt = Getopt.create([
 			["h", "help", "Show this help"],
@@ -595,14 +544,14 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		})
 		
 		// Index available editions
-		.then(() => Fs.readdir(`${APP_DIR}/editions`))
+		.then(() => Fs.readdir(requirejs.toUrl('editions')))
 		.then(editions => {
 			// Edition names never start with _
 			config.editions = editions.filter(e => /^[^_].*\.js$/.test(e)).map(e => e.replace(".js", ""));
 		})
 		
 		// Index available dictionaries
-		.then(() => Fs.readdir(`${APP_DIR}/dictionaries`))
+		.then(() => Fs.readdir(requirejs.toUrl('dictionaries')))
 		.then(dicts => {
 			config.dictionaries = dicts.filter(e => /\.dict$/.test(e)).map(e => e.replace(".dict", ""));
 		})
@@ -631,11 +580,8 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		})
 
 		// Configure database and run the server
-		.then(config => {
-			configureDatabase(config.database);
-			
-			runServer(config);
-		});
+		.then(config => connectDatabase(config.database))
+		.then(() => runServer(config));
 	}
 
 	return mainProgram;

@@ -1,6 +1,6 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
-/* eslint-env amd */
+/* eslint-env amd, node, jquery */
 
 /**
  * A Rack is a set of tiles that a player can play from. It's
@@ -37,9 +37,21 @@ define("game/Rack", ["game/Square"], Square => {
 					return sq.col;
 				}
 			}
+			// Terminal, no point in translating
 			throw Error("Nowhere to put tile");
 		}
 
+		/**
+		 * Get the square at a position
+		 */
+		at(col) {
+			return this.squares[col];
+		}
+
+		isEmpty() {
+			return !this.squares.find(s => s.tile);
+		}
+		
 		/**
 		 * Remove all tiles from the rack
 		 */
@@ -118,6 +130,7 @@ define("game/Rack", ["game/Square"], Square => {
 		removeTile(remove) {
 			const square = this.findSquare(remove.letter, true);
 			if (!square)
+				// Terminal, no point in translating
 				throw Error("Cannot find a tile on the rack for "
 							+ remove.letter);
 			const tile = square.tile;
@@ -126,10 +139,57 @@ define("game/Rack", ["game/Square"], Square => {
 			return tile;
 		}
 
+		/**
+		 * Shuffle tile positions within the rack
+		 * @return this
+		 */
+		shuffle() {
+			const len = this.squares.length;
+			function random(i) {
+				return Math.floor(Math.random() * len);
+			}
+			for (let i = 0; i < 16; i++) {
+				let from = this.squares[random()];
+				let to = this.squares[random()];
+				let tmp = from.tile;
+				from.tile = to.tile;
+				to.tile = tmp;
+			}
+			return this;
+		}
+
 		toString() {
 			return "[" + this.squares.map(
 				s => s.tile ? s.tile.letter : '.')
 			+ "]";
+		}
+
+		/**
+		 * Create the DOM for the Rack.
+		 * @param idbase base of id's to uniquely identify this rack
+		 * @param underlay a string of letters to use as background of
+		 * the rack squares. This is in place of a label.
+		 */
+		createDOM(idbase, underlay) {
+			const $table = $('<table class="rackTable"></table>');
+			const $tr = $(`<tr></tr>`);
+			for (let idx = 0; idx < this.squares.length; idx++) {
+				const square = this.squares[idx];
+				const $td = square.createDOM(idbase, idx);
+				if (underlay) {
+					const letter = underlay.charAt(idx);
+					$td.addClass("bgLetterContainer");
+					$td.append(`<div class="bgLetter">${letter}</div>`);
+				}
+				$tr.append($td);
+			}
+			$table.append($tr);
+			this.refreshDOM();
+			return $table;
+		}
+
+		refreshDOM() {
+			this.squares.forEach(s => s.refreshDOM());
 		}
 	}
 

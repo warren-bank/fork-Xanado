@@ -82,7 +82,7 @@ requirejs(["browserApp"], browserApp => {
 		$remove.on("click", function() {
 			if ($("#players > div").length < 3) {
 				$('#problemDialog')
-				.text($.i18n('msg-need-2-players'))
+				.text($.i18n('error-need-2-players'))
 				.dialog();
 			} else
 				$(this).closest(".player").remove();
@@ -179,10 +179,10 @@ requirejs(["browserApp"], browserApp => {
 		});
 		
 		$("#addPlayer")
-		.on("click", () => addPlayer($.i18n('msg-new-player'), false));
+		.on("click", () => addPlayer($.i18n('name-new-player'), false));
 
-		addPlayer($.i18n('msg-human-player'), false);
-		addPlayer($.i18n('msg-robot-player'), true);
+		addPlayer($.i18n('name-human-player'), false);
+		addPlayer($.i18n('name-robot-player'), true);
 
 		// Using tooltips with a selectmenu is horrible. Applying tooltip()
 		// to the select is useless, you have to apply it to the span that
@@ -229,7 +229,7 @@ requirejs(["browserApp"], browserApp => {
 					event.stopPropagation();
 					event.preventDefault();
 					$('#problemDialog')
-					.text($.i18n('msg-unique'))
+					.text($.i18n('error-unique'))
 					.dialog();
 					return false;
 				}
@@ -257,7 +257,7 @@ requirejs(["browserApp"], browserApp => {
 			})
 			.fail(e => {
 				$('#problemDialog')
-				.text($.i18n('msg-create-failed', e.responseText))
+				.text($.i18n('error-create-failed', e.responseText))
 				.dialog();
 			});
 			return true;

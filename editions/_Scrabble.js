@@ -9,7 +9,7 @@ define("editions/_Scrabble", () => {
 		return {
 			// Layout of lower-right quadrant, including middle row/col
 			layout: [
-				"D___d__T",
+				"M___d__T",
 				"_d___d__",
 				"__t___t_",
 				"___D____",

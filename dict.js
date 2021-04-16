@@ -6,6 +6,7 @@
 const requirejs = require('requirejs');
 
 requirejs.config({
+	baseUrl: __dirname,
     nodeRequire: require,
 	paths: {
 		game: "js/game",
@@ -16,17 +17,21 @@ requirejs.config({
 const DESCRIPTION = "USAGE\n  node dict.js [options] <dictionary> <words>\n"
 + "Explore a DAWG dictionary."
 
-APP_DIR = __dirname;
-
 requirejs(["node-getopt", "fs-extra", "node-gzip", "dawg/Dictionary"], (Getopt, Fs, Gzip, Dictionary) => {
 
+	let biglist = {};
+	
 	function eachRoot(opt, root, dict) {
 		if (opt.options.list) {
 			if (root.node.child) {
 				let list = [];
 				console.log(`-- ${root.word} --`);
+				biglist[root.word] = true;
 				root.node.child.eachWord(root.word, w => list.push(w));
-//				root.node.child.eachLongWord(root.word, w => list.push(w));
+				
+				list = list.filter(w => !biglist[w]);
+				list.forEach(w => biglist[w] = true);
+				
 				console.log(list.join("\n"));
 			}
 		}
@@ -59,19 +64,24 @@ requirejs(["node-getopt", "fs-extra", "node-gzip", "dawg/Dictionary"], (Getopt, 
 					checkSequence(w, dict);
 			else {
 				let roots = [];
-				for (let w of words) {
-					const word = w.toUpperCase();
-					const node = dict.match(word);
-					if (node)
-						roots.push({ word: word, node: node });
-				}
 
-				if (roots.length === 0) {
+				if (words.length === 0) {
 					let letter = dict.root.child;
 					while (letter) {
 						roots.push({ word: letter.letter, node: dict.root });
 						letter = letter.next;
 					}
+				} else {
+					for (let w of words) {
+						const word = w.toUpperCase();
+						const node = dict.match(word);
+						if (node)
+							roots.push({ word: word, node: node });
+					}
+					roots.sort((a, b) => {
+						return a.word.length > b.word.length ? -1 :
+						a.word.length === b.word.length ? 0 : 1
+					});
 				}
 
 				for (let root of roots)
@@ -82,10 +92,9 @@ requirejs(["node-getopt", "fs-extra", "node-gzip", "dawg/Dictionary"], (Getopt, 
 
 	let opt = Getopt.create([
         ["h", "help", "Show this help"],
-		["l", "list", "Dump a complete list of the words in the DAWG"],
+		["l", "list", "Without paramaters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root"],
 		["f", "file=ARG", "Check all words read from file"],
 		["a", "anagrams", "Find anagrams of the words and any sub-words"],
-		["e", "extend", "List words that can be created using the words as roots"],
 		["s", "sequence", "Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. 'UZZL' is a valid sub-sequence in an English dictionary as it is found in 'PUZZLE', but 'UZZZL' isn't"]
 	])
         .bindHelp()

@@ -1,6 +1,6 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
-/* eslint-env amd */
+/* eslint-env amd, node, jquery */
 
 define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, Move) => {
 
@@ -64,11 +64,18 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 					} else
 						r.push(' ');
 				}
-				s += r.join("|") + "\n";
+				s += `|${r.join("|")}|\n`;
 			}
 			return s;
 		}
 
+		/**
+		 * Get the square at [col][row]
+		 */
+		at(col, row) {
+			return this.squares[col][row];
+		}
+		
 		/**
 		 * Determine if the square is on the board and available for
 		 * placing a tile
@@ -85,22 +92,23 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 		 * Load the board from the string representation output by
 		 * toString. This is for use in tests.
 		 */
-		parse(sboard) {
+		parse(sboard, edition) {
 			const lines = sboard.split("\n");
 			for (let row = 0; row < this.dim; row++) {
 				let r = lines[row].split("|");
 				r.shift();
-				console.log(r.join("|"));
 				let col = 0;
 				for (col = 0; col < this.dim; col++) {
 					let letter = r[col];
 					if (letter != ' ') {
 						// Treat lower-case letters as cast blanks.
 						// May not work in non-latin languages.
-						this.squares[col][row].placeTile(
-							new Tile(
-								letter.toUpperCase(),
-								letter.toUpperCase() != letter, 1), true);
+						const isBlank = letter.toUpperCase() != letter;
+						const tile = new Tile(
+							letter.toUpperCase(),
+							isBlank,
+							isBlank ? 0	: edition.letterScore(letter));
+						this.squares[col][row].placeTile(tile, true);
 					}
 				}
 			}
@@ -121,12 +129,18 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 					&& this.squares[col][row + 1].tileLocked));
 		}
 
-		// @private
-		// Calculate word score assuming word is horizontal, and
-		// update the move accordingly
-		// @param move the {score:N words:[]} move to update
-		// @param squares the set of squares to operate on
-		scoreNewWords(move, squares) {
+		/**
+		 * @private
+		 * Calculate score for all horizontal words that involve new
+		 * tiles.
+		 * This is used on the UI side, when the placement may be fragmented
+		 * and difficult to analyse.
+		 * @param squares the set of squares to operate on
+		 * @param words list {score:N word:""} to update
+		 * @return the total score
+		 */
+		scoreHorizontalWords(squares, words) {
+			let totalScore = 0;
 			for (let row = 0; row < this.dim; row++) {
 				for (let col = 0; col < this.dim - 1; col++) {
 					if (squares[col][row].tile && squares[col + 1][row].tile) {
@@ -145,18 +159,24 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 							wordScore += letterScore;
 							letters += square.tile.letter;
 						}
-						if (isNewWord)
-							move.addWord(letters, wordScore * wordMultiplier);
+						if (isNewWord) {
+							wordScore *= wordMultiplier;
+							totalScore += wordScore;
+							words.push({
+								word: letters,
+								score: wordScore
+							});
+						}
 					}
 				}
 			}
+			return totalScore;
 		}
 
 		/**
-		 * Given a play at col, row, compute its score. Note that the
-		 * "all tiles played" bonus is NOT applied here.
+		 * Given a play at col, row, compute its score.
 		 * @param col, row the coordinates of the LAST letter
-		 * @param dcol, drow 1/0 depending if the word is played across
+		 * @param dcol, drow 1/0 depending if the word is being played across
 		 * or down
 		 * @param tiles a list of Tiles
 		 * @param words optional list to be populated with words that
@@ -166,27 +186,22 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 		 */
 		scorePlay(col, row, dcol, drow, tiles, words) {
 
-			if (words)
-				words.push(tiles.map(tile => tile.letter).join(""));
-			
 			// Accumulator for the primary word being formed by the tiles
 			let wordScore = 0;
 			
 			// Accumulator for crossing words scores.
 			let crossWordsScore = 0;
 
-			// Multipler for the vertical word
+			// Multipler for the main word
 			let wordMultiplier = 1;
 
-			// Work back from the last letter
-			for (let lIndex = 0; lIndex < tiles.length; lIndex++) {
-				const r = row - lIndex * drow;
-				const c = col - lIndex * dcol;
-				const tile = tiles[tiles.length - lIndex - 1];
-				if (r != tile.row)
-					debugger;
-				if (c != tile.col)
-					debugger;
+			// Number of tiles being placed, for calculating bonus
+			let tilesPlaced = 0;
+			
+			for (let tile of tiles) {
+				const c = tile.col;
+				const r = tile.row;
+				
 				let letterScore = tile.score;
 				const square = this.squares[c][r];
 
@@ -199,6 +214,8 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 				// new words created, including cross words
 				letterScore *= square.letterScoreMultiplier;
 
+				tilesPlaced++;
+				
 				wordScore += letterScore;
 				
 				// Multiplier for any new words that cross this letter
@@ -215,7 +232,7 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 					 cp >= 0 && rp >= 0 && this.squares[cp][rp].tile;
 					 cp -= drow, rp -= dcol) {
 					const tile = this.squares[cp][rp].tile;
-					crossWord += tile.letter;
+					crossWord = tile.letter + crossWord;
 					crossWordScore += tile.score;
 				}
 
@@ -233,21 +250,27 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 
 				if (crossWordScore > 0) {
 					// This tile (and bonuses) contribute to cross words
-					if (words)
-						words.push(crossWord);
-					
 					crossWordScore += letterScore;
 					crossWordScore *= crossWordMultiplier;
+					if (words)
+						words.push({ word: crossWord, score: crossWordScore });
+					
 					crossWordsScore += crossWordScore;
 				}
 			}
 			
 			wordScore *= wordMultiplier;
 			
+			if (words)
+				words.push({
+					word: tiles.map(tile => tile.letter).join(""),
+					score: wordScore
+				});
+			
 			// Add cross word values to the main word value
 			wordScore += crossWordsScore;
 			
-			return wordScore;
+			return wordScore + this.calculateBonus(tilesPlaced);
 		}
 
 		/**
@@ -262,17 +285,15 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 		}
 		
 		/**
-		 * UI-side move calculation. Note that the score calculated
-		 * does NOT include any bonuses!
-		 * @return a Move, or an error.
+		 * UI-side move calculation.
+		 * @return a Move, or a string if there is a problem
 		 */
 		analyseMove() {
 			const squares = this.squares;
 			// Check that the start field is occupied
 
-			if (!squares[this.middle][this.middle].tile) {
-				return { error: "centre must be used" };
-			}
+			if (!squares[this.middle][this.middle].tile)
+				return 'warn-centre-must-be-used';
 			
 			// Determine that the placement of the Tile(s) is legal
 			
@@ -289,10 +310,10 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 					}
 				}
 			}
-			if (!tile) {
-				// Move can't be made. Should never happen?
-				return { error: "no new tile found" };
-			}
+			if (!tile)
+				// Move can't be made. Should never happen
+				// Terminal, no point in translating
+				throw Error('No new tile found');
 			
 			// Remember which newly placed tile positions are legal
 			const legalPlacements = new Array(this.dim);
@@ -309,7 +330,8 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 				} else if (!squares[col][topLeftY].tileLocked) {
 					legalPlacements[col][topLeftY] = true;
 					horizontal = true;
-					isTouchingOld = isTouchingOld || this.touchingOld(col, topLeftY);
+					isTouchingOld =
+					isTouchingOld || this.touchingOld(col, topLeftY);
 				}
 			}
 
@@ -319,14 +341,14 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 						break;
 					} else if (!squares[topLeftX][row].tileLocked) {
 						legalPlacements[topLeftX][row] = true;
-						isTouchingOld = isTouchingOld || this.touchingOld(topLeftX, row);
+						isTouchingOld =
+						isTouchingOld || this.touchingOld(topLeftX, row);
 					}
 				}
 			}
 
-			if (!isTouchingOld && !legalPlacements[this.middle][this.middle]) {
-				return { error: 'not touching old tile ' + topLeftX + '/' + topLeftY };
-			}
+			if (!isTouchingOld && !legalPlacements[this.middle][this.middle])
+				return 'warn-disconnected';
 
 			// Check whether there are any unconnected placements
 			let totalTiles = 0;
@@ -335,22 +357,19 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 					let square = squares[col][row];
 					if (square.tile) {
 						totalTiles++;
-						if (!square.tileLocked && !legalPlacements[col][row]) {
-							return { error: 'unconnected placement' };
-						}
+						if (!square.tileLocked && !legalPlacements[col][row])
+							return 'warn-disconnected';
 					}
 				}
 			}
 			
 			if (totalTiles == 1)
-				return {
-					error: 'first word must consist of at least two letters'
-				};
+				return 'warn-at-least-two';
 
 			let move = new Move();
 
 			// Calculate horizontal word scores
-			this.scoreNewWords(move, squares);
+			move.score = this.scoreHorizontalWords(squares, move.words);
 
 			// Transpose the board to calculate vertical word scores.
 			const transpose = new Array(this.dim);
@@ -360,18 +379,49 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 					transpose[col][row] = squares[row][col];
 				}
 			}
-			this.scoreNewWords(move, transpose);
+			move.score += this.scoreHorizontalWords(transpose, move.words);
 
 			// Collect tiles placed.
+			let placed = 0;
 			for (let col = 0; col < this.dim; col++) {
 				for (let row = 0; row < this.dim; row++) {
 					let square = squares[col][row];
-					if (square.tile && !square.tileLocked)
+					if (square.tile && !square.tileLocked) {
 						move.addPlacement(square.tile);
+						placed++;
+					}
 				}
 			}
-			
+
+			move.bonus = this.calculateBonus(placed);
+			move.score += move.bonus;
+
 			return move;
+		}
+
+		/**
+		 * Create the DOM representation
+		 */
+		createDOM() {
+			let $table = $("<table></table>");
+			for (let row = 0; row < this.dim; row++) {
+				let $tr = $("<tr></tr>");
+				for (let col = 0; col < this.dim; col++) {
+					let square = this.squares[col][row];
+					const $td = square.createDOM("Board", col, row);			
+					if (col == this.middle && row == this.middle)
+						$td.addClass('StartField');
+					else if (square.type != '_')
+						$td.addClass('SpecialField'); // score multiplier
+					$tr.append($td);
+				}
+				$table.append($tr);
+			}
+			return $table;
+		}
+
+		refreshDOM() {
+			this.squares.forEach(col => col.forEach(s => s.refreshDOM()));
 		}
 	}
 	

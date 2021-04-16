@@ -35,13 +35,17 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 			this.shake();
 		}
 
+		isEmpty() {
+			return this.tiles.length === 0;
+		}
+
 		/**
 		 * Randomize tiles in-place using Durstenfeld shuffle
 		 */
 		shake() {
-			for (var i = this.tiles.length - 1; i > 0; i--) {
-				var j = Math.floor(Math.random() * (i + 1));
-				var temp = this.tiles[i];
+			for (let i = this.tiles.length - 1; i > 0; i--) {
+				let j = Math.floor(Math.random() * (i + 1));
+				let temp = this.tiles[i];
 				this.tiles[i] = this.tiles[j];
 				this.tiles[j] = temp;
 			}
@@ -68,6 +72,8 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 		 */
 		getRandomTiles(count) {
 			const tiles = [];
+			if (count < 0)
+				throw Error("Negative count");
 			for (let i = 0; this.tiles.length > 0 && i < count; i++)
 				tiles.push(this.tiles.pop());
 			return tiles;
