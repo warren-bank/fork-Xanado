@@ -49,7 +49,7 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 		 */
 		toString() {
 			let s = `Board ${this.dim}x${this.dim}\n`;
-			
+
 			for (let row = 0; row < this.dim; row++) {
 				let r = [];
 				for (let col = 0; col < this.dim; col++) {
@@ -75,7 +75,7 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 		at(col, row) {
 			return this.squares[col][row];
 		}
-		
+
 		/**
 		 * Determine if the square is on the board and available for
 		 * placing a tile
@@ -188,7 +188,7 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 
 			// Accumulator for the primary word being formed by the tiles
 			let wordScore = 0;
-			
+
 			// Accumulator for crossing words scores.
 			let crossWordsScore = 0;
 
@@ -197,11 +197,11 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 
 			// Number of tiles being placed, for calculating bonus
 			let tilesPlaced = 0;
-			
+
 			for (let tile of tiles) {
 				const c = tile.col;
 				const r = tile.row;
-				
+
 				let letterScore = tile.score;
 				const square = this.squares[c][r];
 
@@ -215,9 +215,9 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 				letterScore *= square.letterScoreMultiplier;
 
 				tilesPlaced++;
-				
+
 				wordScore += letterScore;
-				
+
 				// Multiplier for any new words that cross this letter
 				let crossWordMultiplier = square.wordScoreMultiplier;
 				wordMultiplier *= crossWordMultiplier;
@@ -226,7 +226,7 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 				// apply bonuses
 				let crossWord = '';
 				let crossWordScore = 0;
-				
+
 				// Look left/up
 				for (let cp = c - drow, rp = r - dcol;
 					 cp >= 0 && rp >= 0 && this.squares[cp][rp].tile;
@@ -237,7 +237,7 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 				}
 
 				crossWord += tile.letter;
-				
+
 				// Look right/down
 				for (let cp = c + drow, rp = r + dcol;
 					 cp < this.dim && rp < this.dim
@@ -254,22 +254,22 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 					crossWordScore *= crossWordMultiplier;
 					if (words)
 						words.push({ word: crossWord, score: crossWordScore });
-					
+
 					crossWordsScore += crossWordScore;
 				}
 			}
-			
+
 			wordScore *= wordMultiplier;
-			
+
 			if (words)
 				words.push({
 					word: tiles.map(tile => tile.letter).join(""),
 					score: wordScore
 				});
-			
+
 			// Add cross word values to the main word value
 			wordScore += crossWordsScore;
-			
+
 			return wordScore + this.calculateBonus(tilesPlaced);
 		}
 
@@ -283,7 +283,7 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 				return this.bonuses[tilesPlaced];
 			return 0;
 		}
-		
+
 		/**
 		 * UI-side move calculation.
 		 * @return a Move, or a string if there is a problem
@@ -294,9 +294,9 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 
 			if (!squares[this.middle][this.middle].tile)
 				return 'warn-centre-must-be-used';
-			
+
 			// Determine that the placement of the Tile(s) is legal
-			
+
 			// Find top-leftmost placed tile
 			let col, row;
 			let topLeftX, topLeftY;
@@ -314,14 +314,14 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 				// Move can't be made. Should never happen
 				// Terminal, no point in translating
 				throw Error('No new tile found');
-			
+
 			// Remember which newly placed tile positions are legal
 			const legalPlacements = new Array(this.dim);
 			for (let col = 0; col < this.dim; col++) {
 				legalPlacements[col] = new Array(this.dim);
 			}
 			legalPlacements[topLeftX][topLeftY] = true;
-			
+
 			let isTouchingOld = this.touchingOld(topLeftX, topLeftY);
 			let horizontal = false;
 			for (let col = topLeftX + 1; col < this.dim; col++) {
@@ -362,7 +362,7 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 					}
 				}
 			}
-			
+
 			if (totalTiles == 1)
 				return 'warn-at-least-two';
 
@@ -424,6 +424,6 @@ define("game/Board", ["game/Square", "game/Tile", "game/Move"], (Square, Tile, M
 			this.squares.forEach(col => col.forEach(s => s.refreshDOM()));
 		}
 	}
-	
+
 	return Board;
 });

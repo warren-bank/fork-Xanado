@@ -34,11 +34,11 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 			this.owner = owner;
 			this.col = col;
 			this.row = row;
-			
+
 			this.letterScoreMultiplier = 1;
 			this.wordScoreMultiplier = 1;
 			this.tile = null; // Tile placed on this square
-			
+
 			// True if the tile cannot be moved i.e. it was
 			// placed in a prior move. Locked tiles don't gather
 			// bonuses.
@@ -77,7 +77,7 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 				delete this.tile;
 				delete this.tileLocked;
 			}
-			
+
 			// Used in the UI to update the square
 			triggerEvent('SquareChanged', [ this ]);
 		}
@@ -123,7 +123,7 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 				.removeClass("Selected")
 				.removeClass("Temp")
 				.off("click");
-			
+
 			if (this.tile)
 				this.refreshOccupied($div);
 			else
@@ -154,10 +154,10 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 			$div
 			.removeClass("Empty")
 			.addClass("Tile");
-				
+
 			if (this.tile.isBlank)
 				$div.addClass('BlankLetter');
-				
+
 			if (this.owner == this.board && this.tileLocked) {
 				$div.addClass('Locked');
 				if ($div.hasClass("ui-draggable"))
@@ -167,12 +167,12 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 				$div
 				.addClass('Temp')
 				.on("click", () => triggerEvent('SelectSquare', [ this ]));
-					
+
 				$div.draggable({
 					revert: "invalid",
 					opacity: 1,
 					helper: "clone",
-					
+
 					start: (event, jui) => {
 						$div.css({ opacity: 0.5 });
 						// Clear selection
@@ -182,16 +182,16 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 						.animate({'font-size' : '120%'}, 300)
 						.addClass("dragBorder");
 					},
-					
+
 					drag: (event, jui) => $(jui.helper).addClass("dragBorder"),
-					
+
 					stop: () => $div.css({ opacity: 1 })
 				});
 			}
 
 			let letter = this.tile.letter;
 			let score = this.tile.score;
-			
+
 			let $a = $("<a></a>");
 			$a.append(`<span class='Letter'>${letter}</span>`);
 			$a.append(`<span class='Score'>${score}</span>`);

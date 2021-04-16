@@ -21,7 +21,7 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 				if (!letter.isBlank)
 					// Not blank
 					this.legalLetters.push(letter.letter);
-				
+
 				const count = Math.floor(letter.count);
 				for (let n = 0; n < count; ++n) {
 					const tile = new Tile(

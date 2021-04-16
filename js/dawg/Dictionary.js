@@ -16,13 +16,13 @@
  * Note also the use of fs-extra and node-gzip makes this server-side only.
  */
 define("dawg/Dictionary", ["dawg/LetterNode"], LetterNode => {
-	
+
 	// Constants used in interpreting the integer encoding of the DAWG
 	const END_OF_WORD_BIT_MASK = 0x1;
 	const END_OF_LIST_BIT_MASK = 0x2;
 	const CHILD_INDEX_SHIFT = 2;
 	const CHILD_INDEX_BIT_MASK = 0x3FFFFFFF;
-	
+
 	// Cache of dictionaries
 	const dictionaries = {};
 
@@ -72,7 +72,7 @@ define("dawg/Dictionary", ["dawg/LetterNode"], LetterNode => {
 		static load(name) {
 			if (dictionaries[name])
 				return Promise.resolve(dictionaries[name]);
-			
+
 			return new Promise(resolve => {
 				const root = requirejs.toUrl('');
 				requirejs(["fs-extra", "node-gzip"], (Fs, Gzip) => {
@@ -105,7 +105,7 @@ define("dawg/Dictionary", ["dawg/LetterNode"], LetterNode => {
 		match(chars) {
 			return this.root.match(chars, 0);
 		}
-		
+
 		/**
 		 * Check if a word is in the dictionary
 		 * @param chars a word to check
@@ -123,7 +123,7 @@ define("dawg/Dictionary", ["dawg/LetterNode"], LetterNode => {
 		 */
 		findAnagrams(theChars) {
 			theChars = theChars.toUpperCase();
-			
+
 			if (theChars.length < 2)
 				return [ theChars ];
 
@@ -165,7 +165,7 @@ define("dawg/Dictionary", ["dawg/LetterNode"], LetterNode => {
 				this.createSequenceRoots();
 			return this.sequenceRoots[ch] || [];
 		}
-		
+
 		/**
 		 * Find start node for the character sequence
 		 * in the sequence index i.e. it forms a valid sub-part of a word

@@ -15,7 +15,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	/**
 	 * The entry point to this module is the 'findBestPlay' function only.
 	 */
-	
+
 	// Shortcuts to game information during move computation
 	let board;       // class Board
 	let edition;     // class Edition
@@ -81,15 +81,15 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	 */
 	function computeCrossChecks(board, available) {
 		const xChecks = [];
-		
+
 		for (let col = 0; col < board.dim; col++) {
 			const thisCol = [];
 			xChecks.push(thisCol);
-			
+
 			for (let row = 0; row < board.dim; row++) {
 				const thisCell = [[], []];
 				thisCol[row] = thisCell;
-				
+
 				if (board.at(col, row).tile) {
 					// The cell isn't empty, only this letter is valid.
 					thisCell[0].push(board.at(col, row).tile.letter);
@@ -130,7 +130,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 				// Find which (if any) letters form a valid cross word
 				for (let letter of available) {
 					const h = wordLeft + letter + wordRight;
-					
+
 					// Is h a complete valid word, or just the letter
 					// on its tod?
 					const hIsWord = h.length === 1 || dict.hasWord(h);
@@ -140,7 +140,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 					const v = wordAbove + letter + wordBelow;
 					const vIsWord = v.length === 1 || dict.hasWord(v);
 					const vIsSeq = vIsWord || row > 0 && dict.hasSequence(v);
-					
+
 					if (hIsWord && vIsSeq)
 						// A down word is playable with this letter, and
 						// there's a valid down sequence involving the
@@ -155,7 +155,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 				}
 			}
 		}
-		
+
 		return xChecks;
 	}
 
@@ -182,7 +182,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		// Square we're hopefully extending into
 		const ecol = col + dcol;
 		const erow = row + drow;
-		
+
 		//console.log(`Extend ${pack(wordSoFar)} ${col} ${row} ${dNode.letter} ${dNode.postLetters.join("")}`);
 
 		// Tail recurse; report words as soon as we find them
@@ -195,7 +195,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 			const words = [];
 			const score =
 				  board.scorePlay(col, row, dcol, drow, wordSoFar, words);
-				
+
             if (score > bestScore) {
 				bestScore = score;
                 report(new Move(
@@ -209,22 +209,22 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 
 		let available; // list of letters that can be extended with
 		let playedTile = 0;
-		
+
 		// Do we have an empty cell we can extend into?
 		if (board.isEmpty(ecol, erow)) {
 			const haveBlank = rackTiles.find(l => l.isBlank);
 			const xc = crossChecks[ecol][erow][dcol];
-			
+
 			available = intersection(
 				dNode.postLetters,
 				haveBlank ? xc : intersection(
 					rackTiles.map(t => t.letter), xc));
 			playedTile = 1;
-			
+
 		} else if (ecol < board.dim && erow < board.dim)
 			// Have pre-placed tile
 			available = [ board.at(ecol, erow).tile.letter ];
-			
+
 		else
 			available = [];
 
@@ -278,30 +278,30 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		// Square we're hopefully extending into
 		const ecol = col - dcol;
 		const erow = row - drow;
-		
+
 		let available; // the set of possible candidate letters
 		let playedTile = 0;
 
 		//console.log(`Explore ${pack(wordSoFar)} ${col} ${row} ${dNode.letter} ${dNode.preLetters.join("")}`);
-		
+
 		// Do we have an adjacent empty cell we can back up into?
         if (board.isEmpty(ecol, erow)) {
 			// Find common letters between the rack, cross checks, and
 			// dNode pre.
 			const haveBlank = rackTiles.find(l => l.isBlank);
 			const xc = crossChecks[ecol][erow][dcol];
-			
+
 			available =
 				  intersection(
 					  dNode.preLetters,
 					  haveBlank ? xc : intersection(
 						  rackTiles.map(l => l.letter),	xc));
 			playedTile = 1;
-			
+
 		} else if (erow >= 0 && ecol >= 0)
 			// Non-empty square, might be able to walk back through it
 			available = [ board.at(ecol, erow).tile.letter ];
-			
+
 		else
 			available = [];
 
@@ -333,13 +333,13 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 
 			wordSoFar.shift();
 		}
-		
+
 		// If this is the start of a word in the dictionary, and
 		// we're at the edge of the board or the prior cell is
 		// empty, then we have a valid word start.
 		if (dNode.pre.length == 0
 			&& (erow < 0 || ecol < 0 || board.isEmpty(ecol, erow))) {
-			
+
 			// try extending down beyond the anchor, with the letters
 			// that we have determined comprise a valid rooted sequence.
 			forward(col + dcol * (wordSoFar.length - 1),
@@ -384,7 +384,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 			for (let end = board.middle;
 				 end < board.middle + choice.length;
 				 end++) {
-				
+
 				for (let i = 0; i < placements.length; i++) {
 					const pos = end - placements.length + i + 1;
 					placements[i].col = dcol == 0 ? board.middle : pos * dcol;
@@ -414,7 +414,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	 */
     function findBestPlay(game, rack, listener) {
 		report = listener;
-		
+
 		if (!game.edition) {
 			report("Error: Game has no edition", game);
 			// Terminal, no point in translating
@@ -449,7 +449,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		.then(de => {
 			dict = de[0];
 			edition = de[1];
-			
+
 			report("Starting computation");
 			bestScore = 0;
 
@@ -500,6 +500,6 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 
 		});
 	}
-	
+
 	return findBestPlay;
 });

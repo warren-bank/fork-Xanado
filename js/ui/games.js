@@ -24,7 +24,7 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 		}
 		return $but;
 	}
-	
+
 	// Format an active game
 	function formatGame(game) {
 		let msg = $.i18n('game-description', game.players.length, game.edition);
@@ -33,7 +33,7 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 			$p.append($.i18n('game-using-dict', game.dictionary));
 		if (game.time_limit > 0)
 			$p.append($.i18n('game-time-limit', game.time_limit));
-		
+
 		game.players.map(player => $p.append(formatPlayer(game, player)));
 
 		let $but = $(`<button class="deleteGame">${$.i18n('game-delete')}</button>`);
@@ -51,7 +51,7 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 		$p.append($but);
 		return $p;
 	}
-	
+
 	function handle_refresh(data) {
 		console.log("Refreshing");
 		if (data.length == 0) {
@@ -63,7 +63,7 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 		$gt.empty();
 		data.forEach(game => $gt.append(formatGame(game)));
 	}
-	
+
 	function refresh() {
 		$.getJSON('/games', data => handle_refresh(data));
 	}
@@ -78,7 +78,7 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 		const socket = io.connect(null, { transports: transports });
 
 		refresh();
-		
+
 		socket
 		.on('connect', () => console.debug('Server: Socket connected'))
 		.on('update', () => refresh());

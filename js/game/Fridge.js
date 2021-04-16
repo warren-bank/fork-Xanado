@@ -11,7 +11,7 @@
  * serialised.
  */
 define("game/Fridge", () => {
-	
+
 	/**
 	 * Note that the objects being frozen are "interfered with" by the
 	 * addition of an _IB_ID field that indicates their "frozen ID".
@@ -60,12 +60,12 @@ define("game/Fridge", () => {
 				let frozen = {};
 
 				frozen._IB_ID = id;
-				
+
 				if (unfrozen.constructor
 					&& unfrozen.constructor.name
 					&& unfrozen.constructor.name !== 'Object')
 					frozen._IB_CN = unfrozen.constructor.name;
-				
+
 				if (frozen._IB_CN === 'Date') {
 					frozen._IB_DATA = unfrozen.getTime();
 					return frozen;
@@ -106,7 +106,7 @@ define("game/Fridge", () => {
 		static thaw(object, classes) {
 			let objectsThawed = [];
 			let typeMap = {};
-			
+
 			if (classes)
 				for (let clzz of classes)
 					typeMap[clzz.name] = clzz.prototype;
@@ -144,7 +144,7 @@ define("game/Fridge", () => {
 					thawed = {};
 					thawProps = true;
 				}
-				
+
 				if (object.hasOwnProperty('_IB_ID'))
 					objectsThawed[object._IB_ID] = thawed;
 
@@ -152,7 +152,7 @@ define("game/Fridge", () => {
 					for (let prop in object._IB_DATA)
 						thawed[prop] = _thaw(
 							object._IB_DATA[prop], objectsThawed);
-				
+
 				return thawed;
 			}
 

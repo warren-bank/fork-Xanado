@@ -19,7 +19,7 @@ requirejs.config({
  * time it out if necessary. See also findBestPlayController.js
  */
 requirejs(["worker_threads", "game/Game", "game/findBestPlay"], (threads, Game, findBestPlay) => {
-	
+
 	const info = Game.thaw(threads.workerData);
 
 	/**
@@ -28,7 +28,7 @@ requirejs(["worker_threads", "game/Game", "game/findBestPlay"], (threads, Game, 
 	 */
 	findBestPlay(info.game, info.rack,
 			 bestPlay => threads.parentPort.postMessage(bestPlay))
-	
+
 	.then(() => {
 		threads.parentPort.postMessage("findBestPlayWorker is exiting");
 	})

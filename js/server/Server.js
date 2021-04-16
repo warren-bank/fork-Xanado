@@ -34,7 +34,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 
 	// Configuration
 	let config;
-	
+
 	// Database
 	let database;
 
@@ -65,7 +65,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		game.connections = [];
 
 		Events.EventEmitter.call(game);
-		
+
 		Object.defineProperty(
 			// makes connections non-persistent
 			game, 'connections', { enumerable: false });
@@ -139,12 +139,12 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 					};
 				}));
 		});
-				  
+
 		Promise.all(promises)
 		.then(data => res.send(data))
 		.catch(e => trap(e, res));
 	}
-	
+
 	/**
 	 * Handler for GET /locales; sends a list of available locales.
 	 * Used when selecting a presentation language for the UI.
@@ -170,14 +170,14 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			game.emailTurnReminder(config);
 		});
 	}
-	
+
 	/**
 	 * Handler for POST /newGame. 
 	 * @return a Promise
 	 */
 	function handle_newGame(req, res) {
 		console.log(`Constructing new game ${req.body.edition}`);
-				
+
 		if (req.body.players.length < 2)
 			return Promise.reject('error-need-2-players');
 
@@ -199,10 +199,10 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 				players.push(player);
 				console.log(player.toString());
 			}
-		
+
 			if (!haveHuman)
 				throw Error('error-need-human');
-			
+
 			let dictionary = null;
 			if (req.body.dictionary
 				&& req.body.dictionary != "none") {
@@ -314,7 +314,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
         .then(game => game.anotherGame())
         .catch(e => trap(e, res));
 	}
-	
+
 	/**
 	 * Handler for POST /game
 	 * Result is always a Turn object, though the actual content
@@ -362,7 +362,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 				// Check the last move in the dictionary
 				promise = game.challenge(player);
 				break;
-			
+
 			case 'takeBack':
 				promise = game.takeBack(player, 'took-back');
 				break;
@@ -383,7 +383,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		})
 		.catch(e => trap(e, res));
 	}
-	
+
 	function connectDatabase(file) {
 		console.log('opening database', file);
 		return new Promise(resolve => {
@@ -391,7 +391,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			database.on('load', resolve);
 		});
 	}
-	
+
 	function runServer(config) {
 		// Configure express server
 		const app = Express();
@@ -415,19 +415,19 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			dumpExceptions: true,
 			showStack: true
 		}));
-		
+
 		app.use((err, req, res, next) => {
 			if (res.headersSent) {
 				return next(err);
 			}
-			
+
 			return res.status(err.status || 500).render('500');
 		});
-		
+
 		process.on('unhandledRejection', function(reason) {
 			console.log("Command rejected", reason, reason.stack);
 		});
-		
+
 		// TODO: use OAuth
 		const gameListAuth = BasicAuth((username, password) => {
 			if (config.gameListLogin) {
@@ -451,14 +451,14 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			   );
 
 		app.get("/locales",	handle_locales);
-		
+
 		// Construct a new game
 		app.post("/newGame", handle_newGame);
-		
+
         app.post("/deleteGame/:gameKey", handle_deleteGame);
 
 		app.post("/anotherGame/:gameKey", handle_anotherGame);
-		
+
 		app.get("/config", (req, res) =>
 				// To get here, had to know port and baseUrl
 				// so no point in resending.
@@ -474,18 +474,18 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 
 		// Request handler for game interface / info
 		app.get("/game/:gameKey", handle_gameGET);
-		
+
 		// Request handler for best play. Debug, allows us to pass in
 		// any player key
 		app.get("/bestPlay/:gameKey/:playerKey", handle_bestPlay);
-		
+
 		// Request handler for game command
 		app.post("/game/:gameKey", handle_gamePOST);
 
 		io.sockets.on('connection', socket => {
 			// The server socket only listens to these messages.
 			// However it emits a lot more, in 'Game.js'
-			
+
 			socket
 
 			.on('monitor', () => {
@@ -502,9 +502,9 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 					monitors.slice(i, 1);
 				}
 			})
-			
+
 			.on('join', async params => {
-				
+
 				// Request to join a game.
 				loadGame(params.gameKey)
 				.then(game => {
@@ -513,7 +513,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 					updateMonitors();
 				});
 			})
-			
+
 			.on('message', message => {
 				console.log(message);
 				if (message.text === '/cheat')
@@ -542,24 +542,24 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			config = JSON.parse(json);
 			config.database = config.database || 'games.db';
 		})
-		
+
 		// Index available editions
 		.then(() => Fs.readdir(requirejs.toUrl('editions')))
 		.then(editions => {
 			// Edition names never start with _
 			config.editions = editions.filter(e => /^[^_].*\.js$/.test(e)).map(e => e.replace(".js", ""));
 		})
-		
+
 		// Index available dictionaries
 		.then(() => Fs.readdir(requirejs.toUrl('dictionaries')))
 		.then(dicts => {
 			config.dictionaries = dicts.filter(e => /\.dict$/.test(e)).map(e => e.replace(".dict", ""));
 		})
-		
+
 		// Configure email
 		.then(() => {
 			console.log('config', config);
-			
+
 			if (config.mailTransportConfig) {
 				config.smtp = NodeMailer.createTransport(config.mailTransportConfig);
 			} else if (process.env.MAILGUN_SMTP_SERVER) {

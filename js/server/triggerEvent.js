@@ -8,6 +8,6 @@
 define("triggerEvent", ["events"],  (Events) => {
 
 	const emitter = new Events.EventEmitter();
-	
+
 	return (e, args) => emitter.emit(e, args);
 });

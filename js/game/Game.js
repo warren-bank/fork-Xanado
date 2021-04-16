@@ -38,7 +38,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 		getPlayerFromKey(key) {
 			return this.players.find(p => p.key === key);
 		}
-		
+
 		/**
 		 * Load the edition and complete setup of a new Game.
 		 * Server side only; during deserialisation on the client side
@@ -80,11 +80,11 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 		getDictionary() {
 			if (this.dictionary)
 				return Dictionary.load(this.dictionary);
-			
+
 			// Terminal, no point in translating
 			return Promise.reject('Game has no dictionary');
 		}
-		
+
 		/**
 		 * Set a play timeout for the player if the game time limit is set
 		 * @return the clock time when the timeout will expire
@@ -92,7 +92,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 		startTimeout(player) {
 			if (this.time_limit === 0)
 				return this.nextTimeout;
-			
+
 			this.stopTimeout();
 			let timeout = this.time_limit * 60 * 1000;
 			let timeoutAt = Date.now() + timeout;
@@ -106,7 +106,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 			this.nextTimeout = Date.now() + timeout;
 			return this.nextTimeout;
 		}
-		
+
 		lastActivity() {
 			if (this.turns.length
 				&& this.turns[this.turns.length - 1].timestamp) {
@@ -124,11 +124,11 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 		at(col, row) {
 			return this.board.squares[col][row];
 		}
-		
+
 		toString() {
 			return `${this.key} game of ${this.players.length} players edition ${this.edition} dictionary ${this.dictionary}\n` + this.players;
 		}
-		
+
 		/**
 		 * Return a promise to save the game
 		 */
@@ -169,7 +169,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 				[ LetterBag, Square, Board, Tile, Rack,
 				  Game, Player, Move, Turn ]);
 		}
-		
+
 		/**
 		 * Check that the given player is in this game, and it's their turn.
 		 * Returned promise is rejected if it isn't the players turn or
@@ -285,7 +285,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 		emailTurnReminder(config) {
 			if (this.ended)
 				return;
-			
+
 			const ageInDays =
 				  (new Date() - this.lastActivity())
 				  / 60000 / 60 / 24;
@@ -314,30 +314,35 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 			}
 			return false;
 		}
-		
+
+		/**
+		 * Player is on the given socket, as determined from an incoming
+		 * 'join'
+		 * @param socket the connecting socket
+		 * @param playerKey the key identifying the player
+		 */
 		newConnection(socket, playerKey) {
 
 			let player;
 			for (let knownPlayer of this.players) {
 				if (knownPlayer.key == playerKey) {
-					// Player is known to the game. Is this a reconnection?
+					// Player is known to the game. A reconnection.
 					player = knownPlayer;
 				} else {
 					for (let connection of this.connections) {
 						if (connection.player == knownPlayer) {
 							// knownPlayer is already connected.
-							// TODO: This emit is a side effect and would appear
-							// spurious; all it does is confirm to the player
-							// that they are online.
+							// SMELL: This emit is a side effect and
+							// would appear spurious; all it does is
+							// confirm to the player that they are
+							// online.
 							connection.emit('join', knownPlayer.index);
 						}
 					}
 				}
 			}
 
-			// What does 'join' *without* a playerKey do? At the moment nothing.
-			// TODO: assign a playerKey to the connection
-			if (playerKey && !player) {
+			if (!player) {
 				console.log(`player ${playerKey} not found`);
 				return;
 			}
@@ -354,12 +359,12 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 					result.timeout = this.startTimeout(player);
 
 				socket.player = player;
-				
+
 				console.log(`Player ${player.index} ${player.name} ${player.key} connected`);
 				// Tell players that the player is connected
 				this.notifyListeners('join', result);
 			}
-			
+
 			const game = this;
 			socket.on('disconnect', () => {
 				game.connections = game.connections.filter(c => c != this);
@@ -375,7 +380,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 		 */
 		checkGameState() {
 			let reason;
-			
+
 			// determine whether the end has been reached
 			if (!this.players.find(p => p.passes < 2))
 				reason = 'log-all-passed-twice';
@@ -387,7 +392,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 				return;
 
 			console.log(`Finishing because ${reason}`);
-			
+
 			// Tally scores
 			let playerWithNoTiles;
 			let pointsRemainingOnRacks = 0;
@@ -421,7 +426,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 			let winningScore = -10000;
 			this.players.forEach(
 				player => winningScore = Math.max(winningScore, player.score));
-								 
+
 			this.ended = {
 				reason: reason, // i18n message key
 				winningScore: winningScore,
@@ -434,10 +439,10 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 					};
 				})
 			};
-			
+
 			return null;
 		}
-		
+
 		/**
 		 * Handler for 'cheat' command
 		 * Calculate a play for the given player
@@ -477,7 +482,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 						text: e.toString() });
 			});
 		}
-	
+
 		/**
 		 * Handler for 'makeMove' command.
 		 * @param player the Player making the move
@@ -486,10 +491,10 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 		 */
 		makeMove(player, move) {
 			this.stopTimeout();
-			
+
 			console.log(`makeMove player ${player.index} `, move.toString());
 			console.log(`Player's rack is ${player.rack}`);
-			
+
 			let game = this;
 
 			// Move tiles from the rack to the board
@@ -510,9 +515,9 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 					newTiles.push(tile);
 				}
 			}
-			
+
 			console.log("New rack", player.rack.toString());
-			
+
 			console.log("words ", move.words);
 			this.getDictionary()
 			.then(dict => {
@@ -530,7 +535,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 			.catch((e) => {
 				console.log("Dictionary load failed", e);
 			});
-			
+
 			game.previousMove = {
 				placements: move.placements,
 				newTiles: newTiles,
@@ -546,7 +551,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 			turn.newTiles = newTiles;
 
 			this.checkGameState();
-			
+
 			return Promise.resolve(turn);
 		}
 
@@ -584,16 +589,16 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 			if (type === 'took-back')
 				this.whosTurn = previousMove.player.index;
 			// else a successful challenge, does not move the player on
-			
+
 			const turn = new Turn(this,
 				type, previousMove.player, -previousMove.score);
 			turn.move = previousMove;
 			turn.newTiles = previousMove.newTiles;
 			turn.challenger = player.index;
-			
+
 			return Promise.resolve(turn);
 		}
-		
+
 		/**
 		 * Handler for 'pass' command.
 		 * Player wants to (or has to) miss their move. Either they
@@ -604,7 +609,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 		 */
 		pass(player, type) {
 			this.stopTimeout();
-			
+
 			delete this.previousMove;
 			player.passes++;
 
@@ -626,7 +631,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 			.then(dict => {
 				const bad = this.previousMove.words
 					  .filter(word => !dict.hasWord(word));
-			
+
 				if (bad.length > 0) {
 					// Challenge succeeded
 					console.log(`Bad Words: ${bad.join(',')}`);
@@ -665,7 +670,7 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 					throw Error(`Cannot swap, player rack does not contain letter ${tile.letter}`);
 				this.letterBag.returnTile(removed);
 			}
-			
+
 			// The swap is legal.  First get new tiles, then return
 			// the old ones to the letter bag
 			let newTiles = [];
@@ -723,4 +728,4 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 
 	return Game;
 });
-	
+

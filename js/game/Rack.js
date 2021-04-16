@@ -16,7 +16,7 @@ define("game/Rack", ["game/Square"], Square => {
 				size = tiles.length;
 			}
 			this.squares = [];
-			
+
 			for (let col = 0; col < size; col++) {
 				const sq = new Square('_', this, col);
 				if (tiles)
@@ -51,7 +51,7 @@ define("game/Rack", ["game/Square"], Square => {
 		isEmpty() {
 			return !this.squares.find(s => s.tile);
 		}
-		
+
 		/**
 		 * Remove all tiles from the rack
 		 */
@@ -66,7 +66,7 @@ define("game/Rack", ["game/Square"], Square => {
 			return this.squares.reduce(
 				(acc, s) => acc += (s.tile ? 1 : 0), 0)
 		}
-		
+
 		/**
 		 * Get an array of the tiles currently on the rack
 		 */
@@ -86,7 +86,7 @@ define("game/Rack", ["game/Square"], Square => {
 		letters() {
 			return this.tiles().map(tile => tile.letter);
 		}
-		
+
 		/**
 		 * Find the first Tile the rack that can represent the given letter.
 		 * @param letter the letter to find
@@ -104,13 +104,13 @@ define("game/Rack", ["game/Square"], Square => {
 							return true;
 					}
 				});
-			
+
 			if (square)
 				return square;
-			
+
 			return blank;
 		}
-		
+
 		/**
 		 * Find the first Tile the rack that has the given letter. Does
 		 * not modify the rack.

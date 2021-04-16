@@ -30,16 +30,16 @@ define("game/findBestPlayController", ["worker_threads", "game/Fridge"], (thread
 				console.log("findBestPlay timed out");
 				worker.terminate();
 			}, 30000);
-			
+
 			worker.on('message', data => {
 				listener(data);
 			});
-			
+
 			worker.on('error', e => {
 				clearTimeout(timer);
 				reject(e);
 			});
-			
+
 			worker.on('exit', (code) => {
 				clearTimeout(timer);
 				if (code !== 0)

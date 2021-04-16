@@ -12,25 +12,25 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 	 * node, and a child pointer to another node.
 	 */
 	class Trie {
-		
+
 		/**
 		 * Construct a Trie from a simple word list
 		 */
 		constructor(lexicon) {
 			console.log("\nConstruct Trie and fill from lexicon");
-			
+
 			this.numberOfWords = 0;
 			this.numberOfNodes = 0;
 			this.first = new TrieNode(-1, null, false, 0, 0, null, false);
 			this.maxWordLen = 0;
 			this.minWordLen = 1000000;
-			
+
 			for (let word of lexicon)
 				this.addWord(word);
-			
+
 			console.log(`Trie of ${this.numberOfNodes} nodes built from ${this.numberOfWords} words`);
 		}
-		
+
 		/**
 		 * Add a word to the Trie
 		 * @param word string
@@ -41,7 +41,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 			for (let x = 0; x < word.length; x++) {
 				let hangPoint = current.child ?
 					current.findChild(word[x]) : null;
-				
+
 				if (!hangPoint) {
 					current.insertChild(
 						word[x], x === word.length - 1, word.length - x - 1);
@@ -71,7 +71,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 			this.numberOfNodes += nNew;
 			this.numberOfWords++;
 		}
-		
+
 		/**
 		 * Construct an array indexed on maxChildDepth (word length)
 		 * Each entry is an array that contains all the nodes with that
@@ -80,11 +80,11 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 */
 		createReductionStructure() {
 			console.log("\nCreate reduction structure");
-			
+
 			let counts = [];
 			for (let x = this.minWordLen; x < this.maxWordLen; x++)
 				counts[x] = 0;
-			
+
 			let red = [];
 			let queue = [];
 			let current = this.first.child;
@@ -92,7 +92,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 				queue.push(current);
 				current = current.next;
 			}
-			
+
 			let added = 0;
 			while (queue.length > 0) {
 				current = queue.shift();
@@ -107,16 +107,16 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 					current = current.next;
 				}
 			}
-			
+
 			for (let x = this.minWordLen; x < this.maxWordLen; x++)
 				if (counts[x] > 0)
 					console.log(`${counts[x]} words of length ${x}`);
-			
+
 			console.log(`${added} nodes added to the reduction structure`);
-			
+
 			return red;
 		}
-		
+
 		/**
 		 * Flag all of the redundant nodes in the Trie
 		 * Flagging requires the node comparison function that will take a
@@ -128,7 +128,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 */
 		findPrunedNodes(red) {
 			console.log("\nMark redundant nodes as pruned");
-			
+
 			// Use recursion because only direct children are considered for
 			// elimination to keep the remaining lists intact. Start at
 			// the largest "maxChildDepth" and work down from there for
@@ -153,7 +153,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 						// words, "isFirstChild". The node that we replace the
 						// "isFirstChild" node with can be located at any position.
 						continue;
-					
+
 					// Traverse the rest of the list looking for equivalent
 					// nodes that are both not pruned and are tagged as
 					// first children.  When we have found an identical list
@@ -171,22 +171,22 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 				console.log(`Pruned |${numberPruned}| nodes at depth |${y}|`);
 				totalPruned += numberPruned;
 			}
-			
+
 			console.log(`Identified a total of ${totalPruned} nodes for pruning`);
 		}
-		
+
 		/**
 		 * Label all of the remaining nodes in the Trie-Turned-DAWG so that
 		 * they will fit contiguously into an unsigned integer array.
 		 * @return all the nodes in the order they are indexed
 		 */
 		assignIndices() {
-			
+
 			console.log("\nAssign node indices");
 			let current = this.first.child;
 			let queue = [];
 			let nodeList = [];
-			
+
 			// The use of a queue during this step ensures that
 			// lists of contiguous nodes in the array will eliminate the need
 			// for a Next pointer.
@@ -194,7 +194,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 				queue.push(current);
 				current = current.next;
 			}
-			
+
 			let nextIndex = 0;
 			while (queue.length > 0) {
 				current = queue.shift();
@@ -210,29 +210,29 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 					}
 				}
 			}
-			
+
 			console.log(`Assigned ${nextIndex} node indexes`);
-			
+
 			return nodeList;
 		}
-		
+
 		/**
 		 * Go through the steps to 
 		 */
 		generateDAWG() {
-			
+
 			let red = this.createReductionStructure();
-			
+
 			this.findPrunedNodes(red);
-			
+
 			// Pruning is complete, so replace all pruned nodes with their
 			// first equivalent in the Trie
 			let trimmed = this.first.child.replaceRedundantNodes(red);
 			console.log(`Pruned ${trimmed} nodes`);
-			
+
 			return red;
 		}
-		
+
 		/**
 		 * Convert a DAWG expressed as a network of Trie nodes into a
 		 * linear 32-bit integer array.
@@ -240,22 +240,22 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 */
 		encodeDAWG() {
 			console.log("\nGenerate the unsigned integer array");
-			
+
 			let nodelist = this.assignIndices();
-			
+
 			if (nodelist.length > 0x3FFFFFFF)
 				throw Error(`Too many nodes remain for integer encoding`);
-			
+
 			let dawg = [ nodelist.length ];
 			// Add nodes
 			for (let i = 0; i < nodelist.length; i++)
 				nodelist[i].encode(dawg);
-			
+
 			console.log(`${dawg.length} integer array generated`);
-			
+
 			return dawg;
 		}
 	}
-	
+
 	return Trie;
 });

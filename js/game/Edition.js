@@ -18,9 +18,9 @@ define("game/Edition", () => {
 
 	// Static DB of loaded Editions, indexed by name
 	const editions = {};
-	
+
 	class Edition {
-		
+
 		/**
 		 * @param data { bag:, layout:, rackCount:, swapCount: }
 		 * layout: an array of strings, each representing a row of the
@@ -48,9 +48,9 @@ define("game/Edition", () => {
 			this.rackCount = data.rackCount;
 			this.swapCount = data.swapCount;
 			this.bonuses = data.bonuses;
-			
+
 			this.scores = { }; // map letter->score
-			
+
 			this.dim = 2 * this.layout.length - 1;
 
 			this.alphabeta = [];
@@ -84,7 +84,7 @@ define("game/Edition", () => {
 				});
 			});
 		}
-		
+
 		toString() {
 			return this.name;
 		}
@@ -96,7 +96,7 @@ define("game/Edition", () => {
 			return word.split("")
 			.map(l => this.alphabet.indexOf(l.toUpperCase()));
 		}
-		
+
 		/**
 		 * Get the score of a tile with the given letter
 		 */

@@ -94,7 +94,7 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 		autoplay(game) {
 			let player = this;
 			let bestPlay = null;
-			
+
 			console.log(`autoplay ${this.name}`);
 			return new Promise(resolve => {
 				requirejs(
@@ -146,6 +146,6 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 				this.$status.removeClass('online').addClass('offline');
 		}
 	}
-	
+
 	return Player;
 });

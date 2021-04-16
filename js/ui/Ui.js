@@ -60,7 +60,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				console.error(`${command} returned error: ${textStatus} (${errorThrown})`);
 			});;
 		}
-		
+
 		/**
 		 * Scroll to end of log.
 		 * @param speed animation duration in ms
@@ -77,13 +77,13 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 */
 		playAudio(id) {
 			let audio = document.getElementById(id);
-			
+
 			if (audio.playing)
 				audio.pause();
-			
+
 			audio.defaultPlaybackRate = 1;
 			audio.volume = 1;
-			
+
 			try {
 				audio.currentTime = 0;
 				audio.play();
@@ -125,7 +125,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			const $scorediv = $("<div class='score'></div>");
 			const mess = $.i18n('log-turn', player.name);
 			$scorediv.append(`<span class='playerName'>${mess}</span>`);
-			
+
 			const $div = $("<div class='moveScore'></div>");
 			$div.append($scorediv);
 
@@ -246,9 +246,9 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			let $div = $("<div class='gameEnded'></div>");
 			$div.text($.i18n(info.reason) + " "
 					  + $.i18n('log-game-ended', who, has));
-					  
+
 			$('#log').append($div);
-					  
+
 			this.logNextGameMessage(info.nextGameKey);
 		}
 
@@ -272,7 +272,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			$('#chatLog')
 			.append($mess)
 			.animate({ scrollTop: $('#chatLog').prop('scrollHeight') }, 100);
-				
+
 			if (message.name != this.thisPlayer.name)
 				this.notify(message.name, msg);
 		}
@@ -334,20 +334,20 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			// Number of tiles placed on the board since the last turn
 			this.placedCount = 0;
-			
+
 			// Can swap up to swapCount tiles
 			this.swapRack = new Rack(this.game.board.swapCount);
-			
+
 			const playerKey = $.cookie(this.game.key);
 			this.thisPlayer = this.game.getPlayerFromKey(playerKey);
-			
+
 			let $players = this.game.createPlayerTableDOM(this.thisPlayer);
 			$("#scoreboard").append($players);
-			
+
 			const $board = this.game.board.createDOM();
 			$('#board').append($board);
 			this.game.board.refreshDOM();
-			
+
 			$('#tileRack').append(this.thisPlayer.rack.createDOM('Rack'));
 			this.thisPlayer.rack.refreshDOM();
 
@@ -356,22 +356,22 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			const gs = $.i18n('log-game-started');
 			$('#log').append(`<p class='gameStart'>${gs}</p>`);
-			
+
 			for (let turn of game.turns)
 				this.appendTurnToLog(turn);
-			
+
 			if (game.ended)
 				this.logEndMessage(game.ended, false);
-			
+
 			this.scrollLogToEnd(0);
-			
+
 			this.updateWhosTurn(game.whosTurn);
 			this.lockBoard(!this.isPlayer(game.whosTurn));
-			
+
 			this.updateGameStatus();
-			
+
 			let lastTurn = game.turns.length && game.turns[game.turns.length - 1];
-			
+
 			if (lastTurn && lastTurn.type == 'move') {
 				if (this.isPlayer(game.whosTurn))
 					this.addChallengePreviousButton(lastTurn);
@@ -391,13 +391,13 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			const transports = [
 				'websocket', 'htmlfile',
 				'xhr-multipart', 'xhr-polling', 'jsonp-polling'];
-			
+
 			this.socket = socket_io.connect(null, { transports: transports });
 
 			let $reconnectDialog = null;
-			
+
 			this.socket
-			
+
 			.on('connect', () => {
 				if ($reconnectDialog) {
 					$reconnectDialog.dialog("close");
@@ -415,7 +415,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 					});
 				}
 			})
-			
+
 			.on('disconnect', () => {
 				console.debug('Server: Socket disconnected');
 				$reconnectDialog = $('#problemDialog')
@@ -427,24 +427,24 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 						playerKey: this.thisPlayer.key
 					});
 				}, 1000);
-				
+
 			})
-			
+
 			.on('turn', turn => this.processTurn(turn))
-			
+
 			.on('gameEnded', end => {
 				console.debug("Received gameEnded");
 				this.logEndMessage(end, true);
 				this.notify($.i18n('notify-game-over'),
 							$.i18n('notify-body-game-over'));
 			})
-			
+
 			.on('nextGame', nextGameKey =>
 				this.logNextGameMessage(nextGameKey))
-			
+
 			.on('message', message =>
 				this.chatMessage(message))
-			
+
 			.on('join', info => {
 				console.debug("Server: Player ", info, " joining");
 				if (info.timeout)
@@ -453,7 +453,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				const player = this.game.getPlayerFromKey(info.playerKey);
 				player.online(true);
 			})
-			
+
 			.on('leave', playerKey => {
 				// Server has indicated game has been left
 				// AFAICT this
@@ -524,7 +524,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			this.thisPlayer.rack.refreshDOM();
 			this.game.board.refreshDOM();
 		}
-		
+
 		moveTile(fromSquare, toSquare) {
 			let tile = fromSquare.tile;
 
@@ -533,12 +533,12 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 					this.placedCount--;
 			} else if (toSquare.owner === this.game.board)
 				this.placedCount++;
-			
+
 			fromSquare.placeTile(null);
 			if (tile.isBlank) {			
 				if (fromSquare.owner != this.game.board
 					&& toSquare.owner == this.game.board) {
-					
+
 					let $dlg = $('#blankDialog');
 					let $tab = $("#blankLetterTable");
 					$tab.empty();
@@ -566,13 +566,13 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 					}
 					if ($row)
 						$tab.append($row);
-				
+
 					$dlg.dialog({
 						modal: true,
 						closeOnEscape: false,
 						closeText: "hide"
 					});
-							
+
 				} else if (toSquare.owner == this.thisPlayer.rack
 						   || toSquare.owner == this.swapRack) {
 					tile.letter = ' ';
@@ -583,7 +583,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			if (!this.boardLocked)
 				window.setTimeout(() => this.updateGameStatus(), 500);
 		}
-		
+
 		updateGameStatus() {
 			$('#move').empty();
 			this.updateTileCounts();
@@ -662,7 +662,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			player.score += turn.deltaScore;
 			player.refreshDOM();
 			$(".lastPlacement").removeClass("lastPlacement");
-			
+
 			// If this has been a move by another player, place tiles on board
 			if (turn.type == 'move' && !this.isPlayer(turn.player))
 				this.placeTurnTiles(turn);
@@ -704,7 +704,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 								  -turn.score));
 					}
 				}
-				
+
 				if (turn.type == 'took-back') {
 					this.notify($.i18n('notify-title-retracted'),
 								$.i18n('notify-body-retracted',
@@ -803,7 +803,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			this.addLastMoveActionButton(
 				'challenge', $.i18n('button-challenge'));
 		}
-		
+
 		/**
 		 * Add a "Take back" button to the log pane to take back
 		 * (this player's) previous move.
@@ -830,7 +830,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			this.afterMove();
 			this.sendCommand('challenge');
 		}
-		
+
 		/**
 		 * Handler for the "Make Move" button. Invoked via 'makeMove'.
 		 */
@@ -857,7 +857,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			this.sendCommand('makeMove',
 							  move,
 							  data => this.handleMoveResponse(data));
-			
+
 			this.enableNotifications();
 		}
 
@@ -878,7 +878,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			this.afterMove();
 			this.sendCommand('pass');
 		}
-		
+
 		/**
 		 * Handler for the "Swap" button clicked. Invoked via 'makeMove'.
 		 */
@@ -935,7 +935,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 					tile.letter = ' ';
 				square.refreshDOM();
 			}
-			
+
 			for (let y = 0; y < this.game.board.dim; y++) {
 				for (let x = 0; x < this.game.board.dim; x++) {
 					const boardSquare = this.game.at(x, y);
@@ -947,7 +947,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 					}
 				}
 			}
-			
+
 			for (const square of this.swapRack.squares) {
 				if (square.tile) {
 					putBackToRack(square.tile);
@@ -977,7 +977,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				}
 			}
 		}
-		
+
 		// TODO: either use HTML5 Notification API, or
 		// provide this feedback some other way
 		notify(title, text) {
@@ -996,7 +996,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				notification.show();
 			}
 		}
-		
+
 		cancelNotification() {
 			if (this.notification) {
 				this.notification.cancel();
@@ -1004,6 +1004,6 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			}
 		}
 	}
-	
+
 	return Ui;
 });

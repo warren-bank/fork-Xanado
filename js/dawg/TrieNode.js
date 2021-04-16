@@ -13,7 +13,7 @@
  * LetterNodes at the sharp end.
  */
 define("dawg/TrieNode", () => {
-	
+
 	// Second integer of node tuple is encoded
 	const END_OF_WORD_BIT_MASK = 0x1;
 	const END_OF_LIST_BIT_MASK = 0x2;
@@ -36,33 +36,33 @@ define("dawg/TrieNode", () => {
 			this.isEndOfWord = isWordEnding;
 			this.maxChildDepth = starterDepth;
 			this.isFirstChild = isFirstChild;
-			
+
 			// first child node
 			this.child = null;
-			
+
 			// optimisation for comparison
 			this.numberOfChildren = 0;
 			// will be set true if the node is to be pruned
 			this.isPruned = false;
 			// not assigned yet
 			this.index = -1;
-			
+
 			this.id = nodeIds++;
 		}
-		
+
 		toString() {
 			let simpler = `{${this.id} ${this.letter}`;
-			
+
 			if (this.isEndOfWord)
 				simpler + ".";
 			if (this.child)
 				simpler += "+";
 			if (this.next)
 				simpler += "-";
-			
+
 			return `${simpler}}`;
 		}
-		
+
 		/**
 		 * Mark a node as pruned, and recursively mark every node
 		 * under and after it as well
@@ -73,16 +73,16 @@ define("dawg/TrieNode", () => {
 				return 0;
 			//console.log(`Prune ${this}`);
 			this.isPruned = true;
-			
+
 			let result = 0;
 			if (this.next)
 				result += this.next.prune();
 			if (this.child)
 				result += this.child.prune();
-			
+
 			return result + 1;
 		}
-		
+
 		/**
 		 * Depth-first tree walk. Will visit ends of words in
 		 * sorted order. Caution; this is NOT the same as dawg/Node.eachWord.
@@ -91,21 +91,21 @@ define("dawg/TrieNode", () => {
 		 * from the root to the end of the word
 		 */
 		eachWord(nodes, cb) {
-			
+
 			nodes.push(this);
-			
+
 			if (this.isEndOfWord)
 				cb(nodes);
-			
+
 			if (this.child)
 				this.child.eachWord(nodes, cb);
-			
+
 			nodes.pop();
-			
+
 			if (this.next)
 				this.next.eachWord(nodes, cb);
 		}
-		
+
 		/**
 		 * Search along this's child next chain for a node with the 
 		 * given letter.
@@ -123,7 +123,7 @@ define("dawg/TrieNode", () => {
 			}
 			return null;
 		}
-		
+
 		/**
 		 * Insert a letter in the child list of this node. The child
 		 * list is sorted on letter
@@ -133,14 +133,14 @@ define("dawg/TrieNode", () => {
 		 */
 		insertChild(thisLetter, wordEnder, startDepth) {
 			this.numberOfChildren++;
-			
+
 			if (!this.child) {
 				// child list does not exist yet
 				this.child = new TrieNode(
 					thisLetter, null, wordEnder, startDepth, true);
 				return;
 			}
-			
+
 			if (this.child.letter > thisLetter) {
 				// thisLetter should be the first in the child list
 				this.child.isFirstChild = false;
@@ -148,7 +148,7 @@ define("dawg/TrieNode", () => {
 					thisLetter, this.child, wordEnder, startDepth, true);
 				return;
 			}
-			
+
 			// thisLetter is not the first in the list
 			let child = this.child;
 			while (child.next) {
@@ -159,7 +159,7 @@ define("dawg/TrieNode", () => {
 			child.next = new TrieNode(
 				thisLetter, child.next, wordEnder, startDepth, false);
 		}
-		
+
 		/**
 		 * Determine if this and other are the parent nodes
 		 * of equal Trie branches.
@@ -167,7 +167,7 @@ define("dawg/TrieNode", () => {
 		sameSubtrie(other) {
 			if (other === this) // identity
 				return true;
-			
+
 			if (other === null
 				|| other.letter !== this.letter
 				|| other.maxChildDepth !== this.maxChildDepth
@@ -178,16 +178,16 @@ define("dawg/TrieNode", () => {
 				|| this.next === null && other.next !== null
 				|| this.next !== null && other.next === null)
 				return false;
-			
+
 			if (this.child != null && !this.child.sameSubtrie(other.child))
 				return false;
-			
+
 			if (this.next != null && !this.next.sameSubtrie(other.next))
 				return false;
-			
+
 			return true;
 		}
-		
+
 		/**
 		 * Returns the first node in the red[maxChildDepth], that is
 		 * identical to "this". If the function returns 'this'
@@ -204,18 +204,18 @@ define("dawg/TrieNode", () => {
 				throw Error("Same subtrie equivalent is pruned!");
 			return red[this.maxChildDepth][x];
 		}
-		
+
 		/**
 		 * Recursively replaces all redundant nodes in a trie with their
 		 * first equivalent.
 		 * @param red reduction structure
 		 */
 		replaceRedundantNodes(red) {
-			
+
 			if (!this.next && !this.child)
 				// Leaf node
 				return 0;
-			
+
 			let trimmed = 0;
 			if (this.child) {
 				if (this.child.isPruned) {
@@ -230,17 +230,17 @@ define("dawg/TrieNode", () => {
 				} else
 					trimmed += this.child.replaceRedundantNodes(red);
 			}
-			
+
 			// Traverse the rest of the "Trie", but a "TrieNode" that is
 			// not a direct child will never be directly replaced.
 			// This will allow the resulting "Dawg" to fit into a
 			// contiguous array of node lists.
 			if (this.next)
 				trimmed += this.next.replaceRedundantNodes(red);
-			
+
 			return trimmed;
 		}
-		
+
 		/**
 		 * Encode the node in a pair of integers. Requires node indices to have
 		 * been established.

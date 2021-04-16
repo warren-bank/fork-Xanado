@@ -20,11 +20,11 @@ requirejs(["browserApp"], browserApp => {
 	const MORETIPS = {
 		position: { at: "right center"}
 	};
-	
+
 	function haveRobots() {
 		return $(".isRobot:checked").length > 0;
 	}
-	
+
 	function validate() {
 		console.log(`Validate edition ${$("#edition").val()} dictionary ${$("#dictionary").val()}`);
 		$('#createGameButton').prop(
@@ -32,7 +32,7 @@ requirejs(["browserApp"], browserApp => {
 			$("#dictionary").val() == "none" && haveRobots()
 			|| !$("#edition").val());
 	}
-	
+
 	function loadAddressBook() {
 		if (localStorage.getItem('addressBook'))
 			return JSON.parse(localStorage.getItem('addressBook'));
@@ -87,7 +87,7 @@ requirejs(["browserApp"], browserApp => {
 			} else
 				$(this).closest(".player").remove();
 		});
-		
+
 		const $email = $('<span class="email"></span>');
 		const $emb = $('<button type="button" class="emailInvite"></button>');
 		$emb.append($.i18n('button-email'));
@@ -110,7 +110,7 @@ requirejs(["browserApp"], browserApp => {
 		} else {
 			$emb.show(); $emv.hide();
 		}
-		
+
 		const $input = $(`<input type="text" class="name" size="10" value="${name}"/>`);
 		$input.attr("title", $.i18n('tooltip-name'));
 		$input.tooltip(MORETIPS);
@@ -122,7 +122,7 @@ requirejs(["browserApp"], browserApp => {
 		.append($isRobot)
 		.append($email)
 		.append($remove);
-		
+
 		if (isRobot) $email.toggle();
 
 		$("#players").append($div);
@@ -131,9 +131,9 @@ requirejs(["browserApp"], browserApp => {
 	browserApp.then(() => {
 
 		$.i18n({locale: "en"});
-		
+
 		$("body").i18n();
-			
+
 		// Set the editions and dictionaries from config.json
 		$.getJSON('/config', data => {
 			const $eds = $("#edition");
@@ -148,7 +148,7 @@ requirejs(["browserApp"], browserApp => {
 				$dics.val(data.dictionary);
 			$dics.selectmenu();
 		});
-		
+
 		const addressBook = loadAddressBook();
 		$('input.name')
 		.autocomplete({
@@ -161,7 +161,7 @@ requirejs(["browserApp"], browserApp => {
 				$(this).siblings('.email').val(entry.email);
 			}
 		});
-		
+
 		$('form').on('keyup keypress', function(e) {
 			var keyCode = e.keyCode || e.which;
 			if (keyCode === 13) { 
@@ -169,7 +169,7 @@ requirejs(["browserApp"], browserApp => {
 				return false;
 			}
 		});
-		
+
 		$("#playerDialog .isRobot")
 		.on("change", function() {
 			if (this.checked)
@@ -177,7 +177,7 @@ requirejs(["browserApp"], browserApp => {
 			else
 				$("#playerDialog > dlg_email").show();
 		});
-		
+
 		$("#addPlayer")
 		.on("click", () => addPlayer($.i18n('name-new-player'), false));
 
@@ -195,7 +195,7 @@ requirejs(["browserApp"], browserApp => {
 		//.each(function() {
 		//	$(`#${this.id}-button`).attr("data-tooltip", $(this).data('tooltip'));
 		//});
-		
+
 		// Instead, initialise the "title" attribute from the data-tooltip...
 		$("select").each(function() {
 			$(this).attr("title", $.i18n($(this).data('tooltip')));
@@ -208,10 +208,10 @@ requirejs(["browserApp"], browserApp => {
 			// validate
 			validate();
 		}, 100);
-		
+
 		$("#dictionary").on("selectmenuchange", validate)
 		$("#edition").on("selectmenuchange", validate);
-		
+
 		// Submit to create the game
 		$('#createGameButton')
 		.on('click', function() {
@@ -224,7 +224,7 @@ requirejs(["browserApp"], browserApp => {
 				const name = $(this).find('input.name').val();
 				const isRobot = $(this).find('input.isRobot').prop("checked");
 				const email = $(this).find(`.email input`).val();
-				
+
 				if (playerNames.indexOf(name) >= 0) {
 					event.stopPropagation();
 					event.preventDefault();

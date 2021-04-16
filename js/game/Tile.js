@@ -8,7 +8,7 @@
  */
 define("game/Tile", () => {
 	class Tile {
-		
+
 		/**
 		 * @param letter character(s) represented by this tile
 		 * @param isBlank true if this tile is a blank (irresepective of letter)
