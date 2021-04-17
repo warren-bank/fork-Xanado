@@ -37,12 +37,11 @@ requirejs.config({
 		cookie: "//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min",
 
 
-		browserApp: "js/ui/browserApp",
-		ui: "js/ui",
+		browserApp: "js/browser/browserApp",
+		browser: "js/browser",
 		game: "js/game",
 		dawg: "js/dawg",
-		// use browser version of triggerEvent ($.trigger)
-		triggerEvent: "js/ui/triggerEvent"
+		platform: "js/browser"
 	},
 	
 	shim: {

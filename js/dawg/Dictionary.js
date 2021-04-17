@@ -12,10 +12,8 @@
  * represent code points. To use this dictionary you also need an
  * alphabet of code points sorted in the same order as that used to
  * generate the DAWG.
- *
- * Note also the use of fs-extra and node-gzip makes this server-side only.
  */
-define("dawg/Dictionary", ["dawg/LetterNode"], LetterNode => {
+define("dawg/Dictionary", [ "platform/Platform", "dawg/LetterNode" ], (Platform, LetterNode) => {
 
 	// Constants used in interpreting the integer encoding of the DAWG
 	const END_OF_WORD_BIT_MASK = 0x1;
@@ -67,7 +65,7 @@ define("dawg/Dictionary", ["dawg/LetterNode"], LetterNode => {
 		}
 
 		/**
-		 * Promise to load a dictionary. Server side only!
+		 * Promise to load a dictionary.
 		 */
 		static load(name) {
 			if (dictionaries[name])
@@ -75,14 +73,12 @@ define("dawg/Dictionary", ["dawg/LetterNode"], LetterNode => {
 
 			return new Promise(resolve => {
 				const root = requirejs.toUrl('');
-				requirejs(["fs-extra", "node-gzip"], (Fs, Gzip) => {
-					return Fs.readFile(`${root}/dictionaries/${name}.dict`)
-					.then(data => Gzip.ungzip(data))
-					.then(buffer => {
-						dictionaries[name] = new Dictionary(name, buffer.buffer);
-						console.log(`Loaded dictionary ${name}`);
-						resolve(dictionaries[name]);
-					});
+				return Platform.getResource(
+					`${root}/dictionaries/${name}.dict`)
+				.then(buffer => {
+					dictionaries[name] = new Dictionary(name, buffer.buffer);
+					console.log(`Loaded dictionary ${name}`);
+					resolve(dictionaries[name]);
 				});
 			});
 		}

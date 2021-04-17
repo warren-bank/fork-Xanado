@@ -13,8 +13,7 @@ requirejs.config({
 		game: "js/game",
 		dawg: "js/dawg",
 
-		// Server version of triggerEvent is a NOP (there is no event loop)
-		triggerEvent: "js/server/triggerEvent"
+		platform: "js/server"
 	}
 });
 

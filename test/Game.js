@@ -16,62 +16,48 @@ requirejs.config({
 		game: "js/game",
 		server: "js/server",
 		dawg: "js/dawg",
-		triggerEvent: "js/server/triggerEvent"
+
+		platform: "js/server"
 	}
 });
 
-requirejs(["dirty", "game/Fridge", "game/Edition", "game/Tile", "game/Rack", "game/Square", "game/Player", "game/Game", "game/LetterBag", "game/Board", "game/Move"], (Dirty, Fridge, Edition, Tile, Rack, Square, Player, Game, LetterBag, Board, Move) => {
+requirejs(["platform/Platform", "game/Edition", "game/Tile", "game/Rack", "game/Square", "game/Player", "game/Game", "game/LetterBag", "game/Board", "game/Move"], (Platform, Edition, Tile, Rack, Square, Player, Game, LetterBag, Board, Move) => {
 
-	let dirty = new Dirty("test.json");
-	let loaded = false;
-	dirty.on('load', () => {
-		if (loaded)
-			debugger;
-		loaded = true;
-		let player1 = new Player("player one", 7);
-		player1.isRobot = true;
-		let player2 = new Player("player two", 7);
-		let game = new Game("English_Scrabble",
-							[ player1, player2 ], "Custom_English");
-		let gameKey = game.key;
-		let saver = game => {
-			console.log(`Saving game ${game.key}`);
-			return new Promise(resolve => dirty.set(
-				game.key, Fridge.freeze(game), resolve))
-			.then(() => {
-				console.log(`Saved game ${game.key}`);
+	let db = new Platform.Database("test", "testgame");
+	let player1 = new Player("player one", 7);
+	player1.isRobot = true;
+	let player2 = new Player("player two", 7);
+	let game = new Game("English_Scrabble",
+						[ player1, player2 ], "Custom_English");
+	let gameKey = game.key;
+	let saver = game => {
+		console.log(`Saving game ${game.key}`);
+		return db.set(gameKey, game)
+		.then(() => {
+			console.log(`Saved game ${game.key}`);
 				return game;
 			});
 		};
-		let player = 0;
-		game.saver = saver;
-		game.load()
-		.then(() => game.save())
-		.then(async game => {
-			while (true) {
-				let data = dirty.get(gameKey);
-				const game = Fridge.thaw(
-					data,
-					[ Game,
-					  Player,
-					  Rack,
-					  Square,
-					  Tile,
-					  LetterBag,
-					  Board ]);
+	let player = 0;
+	game.saver = saver;
+	game.load()
+	.then(() => game.save())
+	.then(async game => {
+		while (true) {
+			await db.get(gameKey, Game.classes)
+			.then(game => {
 				game.saver = saver;
-				await game.players[player].autoplay(game)
-				.then(() => {
-					return game.save();
-				});
-				if (game.ended) {
-					console.log(game.ended);
-					break;
-				}
-				player = (player + 1) % 2;
+				return game.players[player].autoplay(game)
+				.then(() => game);
+			})
+			.then(game => game.save());
+			if (game.ended) {
+				console.log(game.ended);
+				break;
 			}
-			console.log("Game over");
-		});
+			player = (player + 1) % 2;
+		}
+		console.log("Game over");
 	});
 });
 

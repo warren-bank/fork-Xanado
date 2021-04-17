@@ -13,7 +13,7 @@ const uideps = [
 	"game/Rack",
 	"game/Game" ];
 
-define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
+define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 	class Ui {
 
@@ -32,7 +32,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			$.get(`/game/${gameKey}`,
 				  frozen => {
 					  console.log(`Loading game ${gameKey}`);
-					  const game = Game.thaw(frozen);
+					  const game = Fridge.thaw(frozen, Game.classes);
 					  this.loadGame(game);
 					  this.attachListeners();
 				  });
@@ -771,7 +771,7 @@ define("ui/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 */
 		handleMoveResponse(data) {
 			console.debug('move response:', data);
-			const newTiles = Game.thaw(data);
+			const newTiles = Fridge.thaw(data, Game.classes);
 
 			for (const square of this.thisPlayer.rack.squares) {
 				if (newTiles.length && !square.tile) {

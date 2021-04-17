@@ -13,7 +13,7 @@ requirejs.config({
 	paths: {
 		game: "js/game",
 		dawg: "js/dawg",
-		triggerEvent: "js/server/triggerEvent"
+		platform: "js/server"
 	}
 });
 

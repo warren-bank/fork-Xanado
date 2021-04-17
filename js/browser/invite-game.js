@@ -130,25 +130,30 @@ requirejs(["browserApp"], browserApp => {
 
 	browserApp.then(() => {
 
-		$.i18n({locale: "en"});
+		$.i18n();
 
+		// Translate data-i18n in the HTML
 		$("body").i18n();
 
 		// Set the editions and dictionaries from config.json
-		$.getJSON('/config', data => {
-			const $eds = $("#edition");
-			data.editions.forEach(e => $eds.append(`<option>${e}</option>`));
-			if (data.edition)
-				$eds.val(data.edition);
-			$eds.selectmenu();
+		$.getJSON('/defaults', defaults => {
+			$.getJSON('/editions', editions => {
+				const $eds = $("#edition");
+				editions.forEach(e => $eds.append(`<option>${e}</option>`));
+				if (defaults.edition)
+					$eds.val(defaults.edition);
+				$eds.selectmenu();
+			});
 
-			let $dics = $("#dictionary");
-			data.dictionaries.forEach(d => $dics.append(`<option>${d}</option>`));
-			if (data.dictionary)
-				$dics.val(data.dictionary);
-			$dics.selectmenu();
+			$.getJSON('/dictionaries', dictionaries => {
+				let $dics = $("#dictionary");
+				dictionaries.forEach(d => $dics.append(`<option>${d}</option>`));
+				if (defaults.dictionary)
+					$dics.val(defaults.dictionary);
+				$dics.selectmenu();
+			});
 		});
-
+		
 		const addressBook = loadAddressBook();
 		$('input.name')
 		.autocomplete({

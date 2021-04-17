@@ -1,4 +1,4 @@
-// Rename this file 'config.json' and remove ALL comments
+// Rename this file 'config.json' and remove ALL // comments
 {
 	// The port on the server to use. The default 9093 used by several
 	// other applications, see:
@@ -20,9 +20,6 @@
 	// The default dictionary when creating new games. Note that the
 	// robot player requires a dictionary. Dictionaries can be found
 	// in the 'dictionaries' directory.
-    "defaultDictionary": "SOWPODS_English",
-	
-	// The games database. If undefined, 'games.db' will be used.
-	"database": "games.db"
+    "defaultDictionary": "SOWPODS_English"
 }
 

@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd */
 
-define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition", "game/Player", "dawg/Dictionary", 'game/Square', 'game/Tile', 'game/Rack', 'game/Move', 'game/Turn', "game/findBestPlay"/*Controller"*/], (Fridge, GenKey, Board, Bag, LetterBag, Edition, Player, Dictionary, Square, Tile, Rack, Move, Turn, findBestPlay) => {
+define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition", "game/Player", "dawg/Dictionary", 'game/Square', 'game/Tile', 'game/Rack', 'game/Move', 'game/Turn', "game/findBestPlay"/*Controller"*/ ], (GenKey, Board, Bag, LetterBag, Edition, Player, Dictionary, Square, Tile, Rack, Move, Turn, findBestPlay) => {
 
 	/**
 	 * The Game object could be used server or browser side, but in the
@@ -157,17 +157,6 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 				});
 			else
 				return Promise.reject('error-player-does-not-exist');
-		}
-
-		/**
-		 * Thaw a data block, taking into account Game's dependencies
-		 * @see Fridge
-		 */
-		static thaw(data) {
-			return Fridge.thaw(
-				data,
-				[ LetterBag, Square, Board, Tile, Rack,
-				  Game, Player, Move, Turn ]);
 		}
 
 		/**
@@ -725,6 +714,9 @@ define("game/Game", [ "game/Fridge", "game/GenKey", "game/Board", "game/Bag", "g
 			return $tab;
 		}
 	}
+
+	Game.classes = [ LetterBag, Square, Board, Tile, Rack,
+					 Game, Player, Move, Turn ];
 
 	return Game;
 });

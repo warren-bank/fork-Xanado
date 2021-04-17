@@ -6,7 +6,7 @@
  * Browser app for the actual game. Instantiates the UI when
  * jquery and required plugins report ready.
  */
-requirejs(["browserApp", "ui/Ui"], (browserApp, Ui) => {
+requirejs(["browserApp", "browser/Ui"], (browserApp, Ui) => {
 	browserApp.then(() => new Ui());
 });
 

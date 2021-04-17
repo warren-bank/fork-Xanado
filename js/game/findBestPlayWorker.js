@@ -9,7 +9,7 @@ requirejs.config({
 	paths: {
 		game: `js/game`,
 		dawg: `js/dawg`,
-		triggerEvent: 'js/server/triggerEvent'
+		platform: 'js/server'
 	}
 });
 
@@ -18,9 +18,9 @@ requirejs.config({
  * found asynchronously, without blocking the main thread, so we can
  * time it out if necessary. See also findBestPlayController.js
  */
-requirejs(["worker_threads", "game/Game", "game/findBestPlay"], (threads, Game, findBestPlay) => {
+requirejs(["worker_threads", "game/Fridge", "game/Game", "game/findBestPlay"], (threads, Fridge, Game, findBestPlay) => {
 
-	const info = Game.thaw(threads.workerData);
+	const info = Fridge.thaw(threads.workerData, Game.classes);
 
 	/**
 	 * Note that the game is NOT a Game, but just the fields. If methods

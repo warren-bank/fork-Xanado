@@ -8,7 +8,7 @@
  * dictates the score multipliers that apply.  The owner will be a
  * Rack or a Board.
  */
-define("game/Square", ["triggerEvent"], triggerEvent => {
+define("game/Square", ["platform/Platform"], Platform => {
 
 	// Map the characters in the board template to CSS classes
 	const CSS_CLASS =  {
@@ -79,7 +79,7 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 			}
 
 			// Used in the UI to update the square
-			triggerEvent('SquareChanged', [ this ]);
+			Platform.trigger('SquareChanged', [ this ]);
 		}
 
 		/**
@@ -166,7 +166,7 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 				// tile isn't locked, valid drag source
 				$div
 				.addClass('Temp')
-				.on("click", () => triggerEvent('SelectSquare', [ this ]));
+				.on("click", () => Platform.trigger('SelectSquare', [ this ]));
 
 				$div.draggable({
 					revert: "invalid",
@@ -176,7 +176,7 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 					start: (event, jui) => {
 						$div.css({ opacity: 0.5 });
 						// Clear selection
-						triggerEvent('SelectSquare');
+						Platform.trigger('SelectSquare');
 						// Configure drag helper
 						$(jui.helper)
 						.animate({'font-size' : '120%'}, 300)
@@ -215,14 +215,14 @@ define("game/Square", ["triggerEvent"], triggerEvent => {
 			.removeClass("Tile")
 			.addClass("Empty");
 
-			$div.on("click", () => triggerEvent("SelectSquare", [ this ]))
+			$div.on("click", () => Platform.trigger("SelectSquare", [ this ]))
 			// Handle something dropping on us
 			.droppable({
 				hoverClass: "dropActive",
 				drop: (event, jui) => {
 					const source = $(jui.draggable).data("square");
 					// Tell the main UI about it
-					triggerEvent("DropSquare", [ source, this ]);
+					Platform.trigger("DropSquare", [ source, this ]);
 				}
 			});
 

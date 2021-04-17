@@ -10,14 +10,15 @@ requirejs.config({
     nodeRequire: require,
 	paths: {
 		game: "js/game",
-		dawg: "js/dawg"
+		dawg: "js/dawg",
+		platform: "js/server"
 	}
 });
 
 const DESCRIPTION = "USAGE\n  node dict.js [options] <dictionary> <words>\n"
 + "Explore a DAWG dictionary."
 
-requirejs(["node-getopt", "fs-extra", "node-gzip", "dawg/Dictionary"], (Getopt, Fs, Gzip, Dictionary) => {
+requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Platform, Dictionary) => {
 
 	let biglist = {};
 	
@@ -109,7 +110,7 @@ requirejs(["node-getopt", "fs-extra", "node-gzip", "dawg/Dictionary"], (Getopt, 
 	}
 
 	if (opt.options.file) {
-		Fs.readFile(opt.options.file)
+		Platform.getResource(opt.options.file)
 		.then(data => {
 			let words = data.toString().split(/\s+/);
 			console.log(`Checking ${words.length} words`);

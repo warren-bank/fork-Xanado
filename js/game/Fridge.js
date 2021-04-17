@@ -137,6 +137,7 @@ define("game/Fridge", () => {
 						thawed = Object.create(constructor);
 					else {
 						console.log(`Warning: don't know how to recreate a ${object._IB_CN}`);
+						debugger;
 						thawed = {};
 					}
 					thawProps = true;
