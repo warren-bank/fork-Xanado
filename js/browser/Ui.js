@@ -207,9 +207,10 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 							this.playAudio("endCheer");
 						youWon = true;
 						winners.push($.i18n('you'));
-					} else
+					} else {
 						winners.push(
 							this.game.players[playerState.player].name);
+					}
 				}
 
 				const player = this.game.players[playerState.player];
@@ -230,6 +231,10 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 				$('#log').append($gsd);
 				player.refreshDOM();
 			});
+
+			if (cheer && !youWon)
+				this.playAudio("lost");
+
 			$("#whosturn").text($.i18n('notify-game-over'));
 
 			let who;
