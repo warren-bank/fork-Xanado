@@ -11,28 +11,27 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 
 		/**
 		 * @param name String name of the player, or a Player object to copy
-		 * @param rackSize number of tiles drawn (unused if name is a Player)
+		 * @param isRobot if name is a string and true then it's a robot. If
+		 * name is a PLyer, ignored.
 		 */
-		constructor(name, rackSize) {
+		constructor(name, isRobot) {
 			if (name instanceof Player) {
 				// Copying an existing player
-				rackSize = name.rackSize;
 				this.isRobot = name.isRobot;
 				this.key = name.key; // re-use
 				name = name.name;
 			} else {
 				this.key = GenKey();
-				this.isRobot = false;
+				this.isRobot = isRobot;
 			}
-			if (!rackSize)
-				// Terminal, no point in translating
-				throw Error("Invalid rack size");
 			this.name = name;
 			this.score = 0;
+			// Index of the player in the game, assigned when the
+			// player joins a game
 			this.index = -1;
-			this.rackSize = rackSize;
-			// +1 to allow space for tile sorting in the UI
-			this.rack = new Rack(rackSize + 1);
+			// Player doesn't have a rack until they join a game, as
+			// it's only then we know how big it has to be.
+			this.rack = null;
 			// Number of times this player has passed (or swapped)
 			this.passes = 0;
 			//console.log("Created",this);
@@ -41,14 +40,17 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 		/**
 		 * Join a game by drawing an initial rack from the letter bag.
 		 * @param letterBag LetterBag to draw tiles from
+		 * @param rackSize size of racks in this game
 		 * @param index 'Player N'
 		 */
-		joinGame(letterBag, index) {
-			for (let i = 0; i < this.rackSize; i++)
-				// May assign null if bag is empty
+		joinGame(letterBag, rackSize, index) {
+			// +1 to allow space for tile sorting in the UI
+			this.rack = new Rack(rackSize + 1);
+			for (let i = 0; i < rackSize; i++)
 				this.rack.squares[i].tile = letterBag.getRandomTile();
 			this.index = index;
 			this.score = 0;
+			console.log(`${this.name} is player ${this.index}`);
 		}
 
 		toString() {
@@ -86,39 +88,6 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 			catch (e) {
 				console.log('cannot send mail:', e);
 			}
-		}
-
-		/**
-		 * Robot play
-		 */
-		autoplay(game) {
-			let player = this;
-			let bestPlay = null;
-
-			console.log(`autoplay ${this.name}`);
-			return new Promise(resolve => {
-				requirejs(
-//					["game/findBestPlayController"],
-					["game/findBestPlay"],
-					fn => resolve(fn));
-			})
-			.then(findBestPlay => findBestPlay(
-				game, this.rack.tiles(), data => {
-					if (typeof data === "string")
-						console.log(data);
-					else {
-						bestPlay = data;
-						console.log("Best", bestPlay.toString());
-					}
-				}))
-			.then(() => {
-				if (bestPlay) {
-					return game.makeMove(player, bestPlay);
-				} else {
-					console.log(`${this.name} can't play, passing`);
-					return game.pass(player, 'pass');
-				}
-			});
 		}
 
 		createScoreDOM(thisPlayer) {

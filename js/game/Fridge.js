@@ -39,14 +39,14 @@ define("game/Fridge", () => {
 					return unfrozen;
 
 				try {
-				if (unfrozen.hasOwnProperty('_IB_ID')) {
-					// ref to a previously frozen object
-					if (unfrozen.constructor) {
-						//console.log(`Ref to ${unfrozen._IB_ID} ${unfrozen.constructor.name}`);
-						return { _IB_REF: unfrozen._IB_ID };
+					if (unfrozen.hasOwnProperty('_IB_ID')) {
+						// ref to a previously frozen object
+						if (unfrozen.constructor) {
+							//console.log(`Ref to ${unfrozen._IB_ID} ${unfrozen.constructor.name}`);
+							return { _IB_REF: unfrozen._IB_ID };
+						}
 					}
-				}
-				}catch (e) {
+				} catch (e) {
 					debugger;
 				}
 				const id = objectsFrozen.length;

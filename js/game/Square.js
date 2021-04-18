@@ -70,7 +70,8 @@ define("game/Square", ["platform/Platform"], Platform => {
 
 			if (tile) {
 				tile.col = this.col;
-				tile.row = this.row;
+				if (typeof this.row !== "undefined")
+					tile.row = this.row;
 				this.tile = tile;
 				this.tileLocked = locked;
 			} else {

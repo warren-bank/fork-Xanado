@@ -13,15 +13,15 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 		/**
 		 * @param edition edition *name*
-		 * @param players list of Player
 		 * @param dictionary dictionary *name* (may be null)
 		 */
-		constructor(edition, players, dictionary) {
+		constructor(edition, dictionary) {
 			// Don't keep a pointer to the edition object so we can
-			// cheaply serialise and send to the games interface
+			// cheaply serialise and send to the games interface. Just
+			// keep the name of the relevant object.
 			this.edition = edition;
 			this.dictionary = dictionary;
-			this.players = players;
+			this.players = [];
 			this.key = GenKey();
 			this.creationTimestamp = new Date().toISOString();
 			this.turns = [];
@@ -30,6 +30,40 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			this.nextTimeout = 0;
 			this.connections = [];
 			this.saver = null;
+			this.board = null;
+			this.rackSize = 0;
+			this.letterBag = null;
+		}
+
+		/**
+		 * Finish construction of a new Game.
+		 * Load the edition and create the board and letter bag.
+		 * Can't be done in the constructor because we have to
+		 * return a Promise.
+		 * @return a Promise that resolves to this.
+		 */
+		create() {
+			return Edition.load(this.edition)
+			.then(edo => {
+				this.board = new Board(edo);
+				this.letterBag = new LetterBag(edo);
+				this.rackSize = edo.rackCount;
+				return this;
+			});
+		}
+
+		/**
+		 * Add a player to the game, and give them an initial rack
+		 * @param player a Player
+		 */
+		addPlayer(player) {
+			if (!this.letterBag)
+				throw Error("Cannot addPlayer() before create()");
+			this.players.push(player);
+			player.joinGame(
+				this.letterBag,
+				this.rackSize,
+				this.players.length - 1);
 		}
 
 		/**
@@ -37,25 +71,6 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 */
 		getPlayerFromKey(key) {
 			return this.players.find(p => p.key === key);
-		}
-
-		/**
-		 * Load the edition and complete setup of a new Game.
-		 * Server side only; during deserialisation on the client side
-		 * the board and letterbag are set up already.
-		 */
-		load() {
-			return Edition.load(this.edition)
-			.then(edo => {
-				this.board = new Board(edo);
-				this.letterBag = new LetterBag(edo);
-				// Add players
-				for (let i = 0; i < this.players.length; i++) {
-					this.players[i].joinGame(this.letterBag, i);
-					console.log(`${this.players[i].name} is player ${i}`);
-				}
-				return this;
-			});
 		}
 
 		/**
@@ -70,13 +85,27 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		}
 
 		/**
-		 * Used for testing only
+		 * Used for testing only.
+		 * @return Promise that resolves to this
 		 */
 		loadBoard(sboard) {
 			return Edition.load(this.edition)
-			.then(ed => this.board.parse(sboard, ed));
+			.then(ed => this.board.parse(sboard, ed))
+			.then(() => this);
 		}
 
+		/**
+		 * Get the edition for this game, lazy-loading as necessary
+		 * @return Promise resolving to an Edition
+		 */
+		getEdition() {
+			return Edition.load(this.edition);
+		}
+
+		/**
+		 * Get the dictionary for this game, lazy-loading as necessary
+		 * @return Promise resolving to a Dictionary
+		 */
 		getDictionary() {
 			if (this.dictionary)
 				return Dictionary.load(this.dictionary);
@@ -100,7 +129,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			let game = this;
 			setTimeout(() => {
 				console.log(`${player.name} has timed out at ${Date.now()}`);
-				game.pass(player, 'timeout')
+				game.pass('timeout')
 				.then(r => game.updateGameState(player, r));
 			}, timeout + 10000);
 			this.nextTimeout = Date.now() + timeout;
@@ -116,6 +145,32 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			} else {
 				return new Date(0);
 			}
+		}
+
+		/**
+		 * Robot play for the given player
+		 * @return a Promise resolving to a Turn
+		 */
+		autoplay(player) {
+			let bestPlay = null;
+
+			console.log(`autoplay ${player.name}`);
+			return findBestPlay(
+				this, player.rack.tiles(), data => {
+					if (typeof data === "string")
+						console.log(data);
+					else {
+						bestPlay = data;
+						console.log("Best", bestPlay.toString());
+					}
+				})
+			.then(() => {
+				if (bestPlay)
+					return this.makeMove(bestPlay);
+
+				console.log(`${this.name} can't play, passing`);
+				return this.pass('pass');
+			});
 		}
 
 		/**
@@ -178,19 +233,6 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			return Promise.resolve(this, player);
 		}
 
-		remainingTileCounts() {
-			return {
-				letterBag: this.letterBag.remainingTileCount(),
-				players: this.players.map(player => {
-					let count = 0;
-					for (const square of player.rack.squares) {
-						if (square.tile) count++;
-					}
-					return count;
-				})
-			};
-		}
-
 		/**
 		 * Wrap up after a command handler. Log the command, determine
 		 * whether the game has ended, save state and notify game
@@ -217,7 +259,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 					const p = this.players[this.whosTurn];
 					if (p.isRobot) {
 						// Play computer player(s)
-						p.autoplay(this)
+						this.autoplay(p)
 						.then(turn => {
 							console.log(`${p} played, updateGameState`);
 							this.updateGameState(p, turn);
@@ -433,7 +475,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		}
 
 		/**
-		 * Handler for 'cheat' command
+		 * Handler for /cheat message. This is NOT a turn handler
 		 * Calculate a play for the given player
 		 */
 		cheat(player) {
@@ -474,11 +516,11 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 		/**
 		 * Handler for 'makeMove' command.
-		 * @param player the Player making the move
-		 * @param placementList array of Placement
+		 * @param move a Move
 		 * @return a Promise resolving to a Turn
 		 */
-		makeMove(player, move) {
+		makeMove(move) {
+			const player = this.players[this.whosTurn];
 			this.stopTimeout();
 
 			console.log(`makeMove player ${player.index} `, move.toString());
@@ -525,11 +567,11 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				console.log("Dictionary load failed", e);
 			});
 
-			game.previousMove = {
+			this.previousMove = {
 				placements: move.placements,
 				newTiles: newTiles,
 				score: move.score,
-				player: player,
+				player: player.index,
 				words: move.words.map(w => w.word)
 			};
 			player.passes = 0;
@@ -547,43 +589,42 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		/**
 		 * Handler for 'takeBack' command.
 		 * Undo the last move
-		 * @param player the current player (NOT the player who's move is
-		 * being undone)
 		 * @param type the type of the takeBack; 'took-back' or 'challenge-won'
 		 * @return a Promise resolving to a Turn
 		 */
-		takeBack(player, type) {
-			if (!this.previousMove)
-				throw Error('No previous move to take back');
+		takeBack(type) {
+			const challenger = this.whosTurn;
+			const previousMove = this.previousMove;
+			const loser = this.players[previousMove.player];
 
-			let previousMove = this.previousMove;
 			delete this.previousMove;
 
 			// Move tiles that were added to the rack as a consequence
 			// of the previous move, back to the letter bag
 			for (let newTile of previousMove.newTiles) {
-				const tile = previousMove.player.rack.removeTile(newTile);
+				const tile = loser.rack.removeTile(newTile);
 				this.letterBag.returnTile(tile);
 			}
 
-			// Move placed tiles from the board back to the rack
+			// Move placed tiles from the board back to the loser's rack
 			for (let placement of previousMove.placements) {
 				const boardSquare =
 					this.board.squares[placement.col][placement.row];
-				this.rack.addTile(boardSquare.tile);
+				loser.rack.addTile(boardSquare.tile);
 				boardSquare.placeTile(null);
 			}
-			previousMove.player.score -= previousMove.score;
+			loser.score -= previousMove.score;
 
 			if (type === 'took-back')
-				this.whosTurn = previousMove.player.index;
+				// A takeBack, not a challenge. Let that player go again.
+				this.whosTurn = previousMove.player;
 			// else a successful challenge, does not move the player on
 
 			const turn = new Turn(this,
-				type, previousMove.player, -previousMove.score);
+				type, loser, -previousMove.score);
 			turn.move = previousMove;
 			turn.newTiles = previousMove.newTiles;
-			turn.challenger = player.index;
+			turn.challenger = challenger;
 
 			return Promise.resolve(turn);
 		}
@@ -592,11 +633,11 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * Handler for 'pass' command.
 		 * Player wants to (or has to) miss their move. Either they
 		 * can't play, or challenged and failed.
-		 * @param player player who is passing
 		 * @param type pass type, 'pass' or 'challenge-failed'
 		 * @return a Promise resolving to a Turn
 		 */
-		pass(player, type) {
+		pass(type) {
+			const player = this.players[this.whosTurn];
 			this.stopTimeout();
 
 			delete this.previousMove;
@@ -612,11 +653,14 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		/**
 		 * Handler for 'challenge' command.
 		 * Check the words created by the previous move are in the dictionary
-		 * @param player the player doing the challenging
 		 * @return Promise resolving to a Turn
 		 */
-		challenge(player) {
+		challenge() {
 			return this.getDictionary()
+			.catch(e => {
+				console.log("No dictionary, so challenge always succeeds");
+				return this.takeBack('challenge-won');
+			})
 			.then(dict => {
 				const bad = this.previousMove.words
 					  .filter(word => !dict.hasWord(word));
@@ -624,15 +668,11 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				if (bad.length > 0) {
 					// Challenge succeeded
 					console.log(`Bad Words: ${bad.join(',')}`);
-					return this.takeBack(player, 'challenge-won');
+					return this.takeBack('challenge-won');
 				}
 
 				// challenge failed, this player loses their turn
-				return this.pass(player, 'challenge-failed');
-			})
-			.catch(() => {
-				console.log("No dictionary, so challenge always succeeds");
-				return this.takeBack(player, 'challenge-won');
+				return this.pass('challenge-failed');
 			});
 		}
 
@@ -640,11 +680,12 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * Handler for swap command.
 		 * Player wants to swap their current rack for a different
 		 * letters.
-		 * @param player the Player doing the swap
 		 * @param tiles list of Tile to swap
 		 * @return Promise resolving to a Turn
 		 */
-		swap(player, tiles) {
+		swap(tiles) {
+			const player = this.players[this.whosTurn];
+
 			if (this.letterBag.remainingTileCount() < tiles.length)
 				// Terminal, no point in translating
 				throw Error(`Cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
@@ -652,7 +693,13 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			delete this.previousMove;
 			player.passes++;
 
-			for (const tile of tiles) {
+			// First get some new tiles
+			let newTiles = [], tile;
+			for (tile of tiles)
+				newTiles.push(this.letterBag.getRandomTile());
+
+			// Return selected tiles to the letter bag
+			for (tile of tiles) {
 				const removed = player.rack.removeTile(tile);
 				if (!removed)
 					// Terminal, no point in translating
@@ -660,18 +707,9 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				this.letterBag.returnTile(removed);
 			}
 
-			// The swap is legal.  First get new tiles, then return
-			// the old ones to the letter bag
-			let newTiles = [];
-
-			for (let i = 0; i < tiles.length; i++) {
-				let newTile = this.letterBag.getRandomTile();
-				newTiles.push(newTile);
-				for (const square of player.rack.squares) {
-					if (!square.tile)
-						square.placeTile(newTile);
-				}
-			}
+			// Place new tiles on the rack
+			for (tile of newTiles)
+				player.rack.addTile(tile);
 
 			this.whosTurn = (this.whosTurn + 1) % this.players.length;
 			const turn = new Turn(this, 'swap', player, 0);
@@ -694,15 +732,15 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			const newPlayers = this.players.slice().sort((a, b) => {
 				return a.score > b.score ? 1 : a.score == b.score ? 0 : 1;
 			}).map(p => new Player(p));
-			return new Game(this.edition, newPlayers, this.dictionary)
-			.load()
+			return new Game(this.edition, this.dictionary).create()
 			.then(newGame => {
-				console.log(`Created follow-on game ${newGame.key}`);
+				newPlayers.forEach(p => newGame.addPlayer(p));
 				newGame.time_limit = this.time_limit;
 				this.ended.nextGameKey = newGame.key;
 				newGame.saver = this.saver;
 				newGame.save();
 				this.save();
+				console.log(`Created follow-on game ${newGame.key}`);
 				this.notifyListeners('nextGame', newGame.key);
 			});
 		}

@@ -84,6 +84,8 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 		 * tile doesn't re-emerge.
 		 */
 		returnTile(tile) {
+			delete tile.row;
+			delete tile.col;
 			this.tiles.push(tile);
 			this.shake();
 		}
@@ -93,7 +95,11 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 		 * the tiles don't re-emerge in the same order.
 		 */
 		returnTiles(tiles) {
-			this.tiles = this.tiles.concat(tiles);
+			tiles.forEach(tile => {
+				delete tile.row;
+				delete tile.col;
+				this.tiles.push(tile);
+			});
 			this.shake();
 		}
 

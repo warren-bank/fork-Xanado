@@ -143,6 +143,7 @@ requirejs(["browserApp"], browserApp => {
 				if (defaults.edition)
 					$eds.val(defaults.edition);
 				$eds.selectmenu();
+				validate();
 			});
 
 			$.getJSON('/dictionaries', dictionaries => {
@@ -151,6 +152,7 @@ requirejs(["browserApp"], browserApp => {
 				if (defaults.dictionary)
 					$dics.val(defaults.dictionary);
 				$dics.selectmenu();
+				validate();
 			});
 		});
 		

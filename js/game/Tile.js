@@ -25,9 +25,11 @@ define("game/Tile", () => {
 			// be locked to the chosen letter.
 			this.letter = letter || ' ';
 			this.score = score || 0;
-			this.isBlank = isBlank;
-			this.col = col;
-			this.row = row;
+			this.isBlank = isBlank || false;
+			if (typeof col !== "undefined")
+				this.col = col;
+			if (typeof row !== "undefined")
+				this.row = row;
 		}
 
 		toString(place) {

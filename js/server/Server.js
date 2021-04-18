@@ -218,7 +218,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 					console.log(`Next to play is ${what} ${fp}`);
 					if (fp.isRobot) {
 						// This is done asynchronously
-						return fp.autoplay(game)
+						return game.autoplay(fp)
 						.then(result => {
 							// updateGameState will cascade next robot player
 							game.updateGameState(fp, result);
@@ -341,26 +341,6 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 
 			return Edition.load(req.body.edition)
 			.then(edition => {
-
-				const players = [];
-				let haveHuman = false;
-				for (let p of req.body.players) {
-					const player = new Player(p.name, edition.rackCount);
-					player.isRobot = (p.isRobot == "true");
-					if (!player.isRobot) {
-						haveHuman = true;
-						if (player.email)
-							// optional, may be empty
-							player.email = p.email;
-					}
-
-					players.push(player);
-					console.log(player.toString());
-				}
-
-				if (!haveHuman)
-					throw Error('error-need-human');
-
 				let dictionary = null;
 				if (req.body.dictionary
 					&& req.body.dictionary != "none") {
@@ -369,7 +349,28 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 				} else
 					console.log("\twith no dictionary");
 
-				let game = new Game(edition.name, players, dictionary);
+				return new Game(edition.name, dictionary).create();
+			})
+			.then(game => {
+
+				let haveHuman = false;
+				for (let p of req.body.players) {
+					const player = new Player(
+						p.name, p.isRobot == "true");
+					if (!player.isRobot) {
+						haveHuman = true;
+						if (player.email)
+							// optional, may be empty
+							player.email = p.email;
+					}
+
+					game.addPlayer(player);
+					console.log(player.toString());
+				}
+
+				if (!haveHuman)
+					throw Error('error-need-human');
+
 				game.saver = () => {
 					console.log(`Saving game ${game.key}`);
 					return this.db.set(game.key, game);
@@ -380,18 +381,16 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 				else
 					console.log("\twith no time limit");
 
-				game.load()
-				.then(game => {
-					console.log(game.toString());
+				console.log(game.toString());
 
-					// Save the game when everything has been initialised
-					game.save();
+				// Save the game when everything has been initialised
+				// (asynchronous)
+				game.save();
 
-					game.emailInvitations(this.config);
+				game.emailInvitations(this.config);
 
-					// Redirect back to control panel
-					res.redirect("/html/games.html");
-				});
+				// Redirect back to control panel
+				res.redirect("/html/games.html");
 			})
 			.catch(e => this.trap(e, res));
 		}
@@ -486,6 +485,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 				if (game.ended)
 					return;
 
+				// Who the request is coming from
 				const player = info.player;
 				const command = req.body.command;
 				const args = req.body.args ? JSON.parse(req.body.args) : null;
@@ -498,26 +498,26 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 
 				case 'makeMove':
 					promise = game.checkTurn(player)
-					.then(game => game.makeMove(player, args));
+					.then(game => game.makeMove(args));
 					break;
 
 				case 'pass':
 					promise = game.checkTurn(player)
-					.then(game => game.pass(player, 'pass'));
+					.then(game => game.pass('pass'));
 					break;
 
 				case 'swap':
 					promise = game.checkTurn(player)
-					.then(game => game.swap(player, args));
+					.then(game => game.swap(args));
 					break;
 
 				case 'challenge':
 					// Check the last move in the dictionary
-					promise = game.challenge(player);
+					promise = game.challenge();
 					break;
 
 				case 'takeBack':
-					promise = game.takeBack(player, 'took-back');
+					promise = game.takeBack('took-back');
 					break;
 
 				default:

@@ -2,11 +2,6 @@
    license information */
 /* eslint-env node */
 
-/**
- * This is NOT a unit test, it is a stand-alone test for the game engine.
- * It will play a complete game between two robot players. It does not test
- * the server.
- */
 const requirejs = require('requirejs');
 
 requirejs.config({
@@ -14,50 +9,195 @@ requirejs.config({
     nodeRequire: require,
 	paths: {
 		game: "js/game",
-		server: "js/server",
 		dawg: "js/dawg",
-
 		platform: "js/server"
 	}
 });
 
-requirejs(["platform/Platform", "game/Edition", "game/Tile", "game/Rack", "game/Square", "game/Player", "game/Game", "game/LetterBag", "game/Board", "game/Move"], (Platform, Edition, Tile, Rack, Square, Player, Game, LetterBag, Board, Move) => {
+requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Player", "game/Game", "game/Move", "game/Turn", "game/findBestPlay"], (TestRunner, Edition, Tile, Rack, Player, Game, Move, Turn, findBestPlay) => {
+    let tr = new TestRunner("Game");
+    let assert = tr.assert;
 
-	let db = new Platform.Database("test", "testgame");
-	let player1 = new Player("player one", 7);
-	player1.isRobot = true;
-	let player2 = new Player("player two", 7);
-	let game = new Game("English_Scrabble",
-						[ player1, player2 ], "Custom_English");
-	let gameKey = game.key;
-	let saver = game => {
-		console.log(`Saving game ${game.key}`);
-		return db.set(gameKey, game)
-		.then(() => {
-			console.log(`Saved game ${game.key}`);
-				return game;
-			});
-		};
-	let player = 0;
-	game.saver = saver;
-	game.load()
-	.then(() => game.save())
-	.then(async game => {
-		while (true) {
-			await db.get(gameKey, Game.classes)
-			.then(game => {
-				game.saver = saver;
-				return game.players[player].autoplay(game)
-				.then(() => game);
-			})
-			.then(game => game.save());
-			if (game.ended) {
-				console.log(game.ended);
-				break;
-			}
-			player = (player + 1) % 2;
-		}
-		console.log("Game over");
+	tr.deTest("autoplay", () => {
+		return new Game("English_Scrabble", "Custom_English").create()
+		.then(game => {
+			let player = new Player("test", true);
+			game.addPlayer(player);
+			// Override the random rack
+			player.rack.empty();
+			player.rack.squares[0].placeTile(new Tile("I", false, 1));
+			player.rack.squares[1].placeTile(new Tile(null, true, 0));
+			return game.autoplay(player);
+		})
+
+		.then(() => new Game("Tiny", "Custom_English").create())
+		.then(game => {
+			player = new Player("test", true);
+			game.addPlayer(player);
+			player.rack.empty();
+			player.rack.squares[0].placeTile(new Tile("A", false, 1));
+			player.rack.squares[1].placeTile(new Tile("B", false, 1));
+			player.rack.squares[2].placeTile(new Tile("C", false, 1));
+			player.rack.squares[3].placeTile(new Tile("D", false, 1));
+			return game.autoplay(player);
+		})
+
+		.then(() => new Game("Tiny", "SOWPODS_English").create())
+		.then(game => {
+			player = new Player("test", true);
+			game.addPlayer(player);
+			player.rack.empty();
+			player.rack.squares[0].placeTile(new Tile(' ', true, 1));
+			player.rack.squares[1].placeTile(new Tile(undefined, true, 1));
+			player.rack.squares[2].placeTile(new Tile(null, true, 1));
+			return game.autoplay(player);
+		});
 	});
+	
+	tr.deTest("swap", () => {
+		return new Game("Tiny", "Custom_English").create()
+		.then(game => {
+			const player = new Player("test1", false);
+			game.addPlayer(player);
+			player.rack.empty();
+			player.rack.addTile(new Tile('A', false, 1));
+			player.rack.addTile(new Tile('B', false, 1));
+			player.rack.addTile(new Tile('C', false, 1));
+			player.rack.addTile(new Tile('D', false, 1));
+			player.rack.addTile(new Tile('E', false, 1));
+			game.addPlayer(new Player("test2", false));
+			// Leave 5 tiles in the bag - enough to swap
+			game.letterBag.getRandomTiles(
+				game.letterBag.remainingTileCount() - 5);
+			return game.loadBoard("| | | | | | | | | | | |\n" +
+								  "| | | | | | | | | | | |\n" +
+								  "| | | | | | | | | | | |\n" +
+								  "| | | | | | | | | | | |\n" +
+								  "| | | | | | | | | | | |\n" +
+								  "| | | | | | | | | | | |\n" +
+								  "| | | | | | | | | | | |\n" +
+								  "| | | | | | | | | | | |\n" +
+								  "| | | | | | | | | | | |\n" +
+								  "| | | | | | | | | | | |\n" +
+								  "| | | | | | | | | | | |\n");
+		})
+		.then(game => game.swap([
+			new Tile('A', false, 1),
+			new Tile('C', false, 1),
+			new Tile('E', false, 1)
+		]))
+		.then(turn => {
+			//console.log("TURN", turn);
+			assert(turn instanceof Turn);
+			assert.equal(turn.type, "swap");
+			assert.equal(turn.player, 0);
+			assert.equal(turn.deltaScore, 0);
+			assert.equal(turn.nextToGo, 1);
+			assert.equal(turn.leftInBag, 5);
+			assert.equal(turn.onRacks[0], 5);
+			assert.equal(turn.onRacks[1], 5);
+			let newt = turn.newTiles;
+			assert.equal(3, newt.length);
+		});
+	});
+
+	tr.deTest("makeMove", () => {
+		return new Game("Tiny", "Custom_English").create()
+		.then(game => {
+			const player = new Player("test1", false);
+			game.addPlayer(player);
+			player.rack.empty();
+			player.rack.addTile(new Tile('W', false, 1));
+			player.rack.addTile(new Tile('O', false, 1));
+			player.rack.addTile(new Tile('R', false, 1));
+			player.rack.addTile(new Tile('D', false, 1));
+			player.rack.addTile(new Tile('X', false, 1));
+			game.addPlayer(new Player("test2", false));
+			// Leave 3 tiles in the bag - not enough to refill the rack
+			game.letterBag.getRandomTiles(
+				game.letterBag.remainingTileCount() - 3);
+			return game.makeMove(
+				new Move(
+					[
+						new Tile('W', false, 1, 7, 7),
+						new Tile('O', false, 1, 8, 7),
+						new Tile('R', false, 1, 9, 7),
+						new Tile('D', false, 1, 10, 7) ],
+					[ { word: "WORD", score: 99 }],
+					99));
+		})
+		.then(turn => {
+			console.log(turn);
+			assert(turn instanceof Turn);
+			assert.equal(turn.type, "move");
+			assert.equal(turn.player, 0);
+			assert.equal(turn.deltaScore, 99);
+			assert.equal(turn.nextToGo, 1);
+			assert.equal(turn.leftInBag, 0);
+			assert.equal(turn.onRacks[0], 4);
+			assert.equal(turn.onRacks[1], 5);
+			assert(turn.move instanceof Move);
+			let newt = turn.newTiles;
+			assert.equal(3, newt.length);
+		});
+	});
+
+	tr.deTest("badChallenge", () => {
+		// Implicitly tests pass
+		const game = new Game("Tiny", "Custom_English");
+		return game.create()
+		.then(game => {
+			game.addPlayer(new Player("test1", true));
+			game.addPlayer(new Player("test2", true));
+			return game.autoplay(game.players[game.whosTurn]);
+		})
+		.then(() => game.challenge())
+		.then(turn => {
+			console.log(turn);
+			assert(turn instanceof Turn);
+			assert.equal(turn.type, "challenge-failed");
+			assert.equal(turn.player, 1);
+			assert.equal(turn.deltaScore, 0);
+			assert.equal(turn.nextToGo, 0);
+		});
+	});
+
+	tr.addTest("goodChallenge", () => {
+		// Implicitly tests takeBack
+		const game = new Game("Tiny", "Custom_English");
+		return game.create()
+		.then(() => {
+			const player = new Player("test1", true);
+			game.addPlayer(player);
+			player.rack.empty();
+			player.rack.addTile(new Tile('X', false, 1));
+			player.rack.addTile(new Tile('Y', false, 1));
+			player.rack.addTile(new Tile('Z', false, 1));
+			player.rack.addTile(new Tile('Z', false, 1));
+			player.rack.addTile(new Tile('Y', false, 1));
+			game.addPlayer(new Player("test2", true));
+			return game.makeMove(
+				new Move(
+					[
+						new Tile('X', false, 1, 7, 7),
+						new Tile('Y', false, 1, 8, 7),
+						new Tile('Z', false, 1, 9, 7),
+						new Tile('Z', false, 1, 10, 7) ],
+					[ { word: "XYZZ", score: 99 }],
+					99));
+		})
+		.then(() => game.challenge())
+		.then(turn => {
+			//console.log(turn);
+			assert(turn instanceof Turn);
+			assert.equal(turn.type, "challenge-won");
+			assert.equal(turn.player, 0);
+			assert.equal(turn.challenger, 1);
+			assert.equal(turn.deltaScore, -99);
+			assert.equal(turn.nextToGo, 1);
+		});
+	});
+
+	tr.run();
 });
 

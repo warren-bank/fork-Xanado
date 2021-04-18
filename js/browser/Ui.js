@@ -298,26 +298,19 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 		 * swap rack, if enough tiles remain in the bag.
 		 */
 		updateTileCounts() {
-			let counts = this.game.remainingTileCounts();
-			if (counts.letterBag > 0) {
-				const mess = $.i18n('letterbag-remaining', counts.letterBag);
-				$('#letterbagStatus')
-				.empty()
-				.append(`<div>${mess}</div>`);
+			let remains = this.game.letterBag.remainingTileCount();
+			if (remains > 0) {
+				const mess = $.i18n('letterbag-remaining', remains);
+				$('#letterbagStatus').html(`<div>${mess}</div>`);
 				$('#scoreboard td.remainingTiles').empty();
 			} else {
-				$('#letterbagStatus')
-				.empty()
-				.append($.i18n('letterbag-empty'));
-				/*const countElements = $('#scoreboard td.remainingTiles');
-				for (let i = 0; i < counts.players.length; i++) {
-					let count = counts.players[i];
-					$(countElements[i])
-					.empty()
-					.append('(' + count + ')');
-				}*/
+				$('#letterbagStatus').text($.i18n('letterbag-empty'));
+				const countElements = $('#scoreboard td.remainingTiles');
+				this.game.players.forEach(
+					(player, i) =>
+					$(countElements[i]).text(`(${player.rack.squaresUsed()})`));
 			}
-			if (counts.letterBag < this.game.board.rackCount)
+			if (remains < this.game.board.rackCount)
 				$('#swapRack').hide();
 			else
 				$('#swapRack').show();
@@ -670,8 +663,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			// Shrink the bag by the number of placed tiles. This is purely
 			// to keep the counts in synch.
 			this.game.letterBag.getRandomTiles(
-				this.game.letterBag.remainingTileCount()
-				- turn.remainingTiles.letterBag);
+				this.game.letterBag.remainingTileCount() - turn.leftInBag);
 
 			if (turn.type == 'challenge-won' || turn.type == 'took-back') {
 				if (this.isPlayer(turn.player))

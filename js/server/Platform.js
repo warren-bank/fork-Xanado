@@ -64,8 +64,7 @@ define("platform/Platform", ["events", "fs-extra", "node-gzip", "game/Fridge"], 
 		}
 
 		rm(key) {
-			return Fs.unlink(`${this.directory}/${key}.${this/type}`,
-							 { force: true })
+			return Fs.remove(`${this.directory}/${key}.${this.type}`);
 		}
 	}
 	

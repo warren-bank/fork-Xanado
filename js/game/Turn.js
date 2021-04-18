@@ -20,7 +20,11 @@ define("game/Turn", () => {
 			this.deltaScore = deltaScore;
 			// info to update records on the client
 			this.nextToGo = game.whosTurn;
-			this.remainingTiles = game.remainingTileCounts();
+			// Counts of tiles left in bag and on player racks after play
+			// Assumes the Turn is constructed after the play is complete
+			this.leftInBag = game.letterBag.remainingTileCount();
+			this.onRacks = game.players.map(
+				player => player.rack.squaresUsed());
 		}
 	}
 
