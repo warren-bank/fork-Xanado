@@ -16,6 +16,10 @@ This version has some major differences from Hans'.
 https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players at Scrabble, Words with Friends, or Lexulous.
 * The UI has been fixed and massaged to make it more mobile device friendly.
 
+The installation comes with emulations of a number of commercially available
+games - Scrabble®, Lexulous, and Words With Friends. Also included is support
+to help you in designing your own game.
+
 ## Installation
 
 The code is written in Javascript ES6 and tested using `node.js` version 11.15.0. You will require this or a more recent version of `node.js`
@@ -49,13 +53,27 @@ As many players as you like can be robots, but you need at least one human playe
 
 Dictionaries are stored in the `dictionaries` directory in the form of a DAWG (Directed Acyclic Word Graph), which is generated from a lexicon (list of words) using a processor based on Daniel Weck's DAWG_Compressor program. To build a new dictionary, follow the instructions given when you run
 ```
-$ node DAWG_Compressor.js
+$ node js/dawg/compressor.js
 ```
-Another program, `dict.js` can be used to explore the DAWG e.g.
+`js/dawg/explore.js` can be used to explore the generated DAWG(s) e.g.
 ```
-$ node dict.js --dict dictionaries/SOWPODS_English.dict --anagrams scrabble
+$ node js/dawg/explore.js SOWPODS_English --anagrams scrabble
 ```
 Again, run it with no parameters for help.
+
+## Designing your own game
+Game definitions can be found in the `editions` directory. Each definition
+describes the layout of the lower-right quadrant of the board (it is assumed
+to be mirrored), the contents of the bag, the number of tiles on the rack
+and the number that can be swapped in a play, and the bonuses for playing
+numbers of tiles in one play.
+
+Choosing point values for tiles, and the number of tiles of each letter,
+can be difficult. Included is a version of
+[Joshua Lewis' Valett program](https://github.com/jmlewis/valett)
+which analyses a word corpus and recommends tile values and counts for the
+letter combinations encountered in the corpus (the corpus can be any big list
+of words, or it can simply be a lexicon).
 
 ## IMPORTANT NOTICES:
 

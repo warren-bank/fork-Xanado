@@ -5,9 +5,9 @@
 /* global DataView */
 
 /**
- * Generate a DAWG (Directed Acyclic Word Graph) from a word lexicon.
- * Generates a somewhat optimised Trie, encodes it in an integer array,
- * then gzips the result.
+ * Program to generate a DAWG (Directed Acyclic Word Graph) from a
+ * word lexicon. Generates a somewhat optimised Trie, encodes it in
+ * an integer array, which it then gzips.
  *
  * Based on Appel & Jacobsen, with ideas from Weck and Toal. Not the
  * fastest, or the most efficient, but who cares? It works.
@@ -15,9 +15,9 @@
 const requirejs = require('requirejs');
 
 requirejs.config({
+	baseUrl: `${__dirname}/../..`,
 	paths: {
-		dawg: `${__dirname}/js/dawg`,
-		game: `${__dirname}/js/game` // for Dictionary
+		dawg: `js/dawg`
 	}
 });
 
@@ -70,13 +70,6 @@ requirejs(["fs-extra", 'node-gzip', 'dawg/Trie'], (Fs, Gzip, Trie) => {
 
 		const z = await Gzip.gzip(dv);
 		console.log(`Compressed ${z.length} bytes`);
-
-		// Debug
-		//console.log("Validate that dictionary regenerates lexicon");
-		//let ub = await Gzip.ungzip(z);
-		//console.log(`Uncompressed ${ub.length}`);
-		//let dict = new Dictionary(ub.buffer);
-		//dict.walk(w => console.log(w));
 
 		// Write DAWG binary bytes
 		return Fs.writeFile(outfile, z)

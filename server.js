@@ -7,6 +7,7 @@
 const requirejs = require('requirejs');
 
 requirejs.config({
+	baseUrl: __dirname,
     nodeRequire: require,
 	paths: {
 		server: "js/server",
