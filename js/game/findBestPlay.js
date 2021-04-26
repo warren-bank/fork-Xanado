@@ -27,6 +27,8 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
     let bestScore;   // best score found so far
     let crossChecks; // checks for valid words on opposite axis
 
+	//let noisy = false;
+
 	/**
 	 * Unlike Appel and Jacobsen, who anchor plays on empty squares,
 	 * we anchor plays on a square with a tile that has an adjacent
@@ -35,11 +37,11 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	 * @return true if this square is a valid anchor
 	 */
 	function isAnchor(col, row) {
-		return !board.isEmpty(col, row)
-		&& (board.isEmpty(col - 1, row)
-			|| board.isEmpty(col + 1, row)
-			|| board.isEmpty(col, row - 1)
-			|| board.isEmpty(col, row + 1));
+		return !board.at(col, row).isEmpty()
+		&& (col > 0 && board.at(col - 1, row).isEmpty()
+			|| col < board.cols - 1 && board.at(col + 1, row).isEmpty()
+			|| row > 0 && board.at(col, row - 1).isEmpty()
+			|| row < board.rows - 1 && board.at(col, row + 1).isEmpty());
 	}
 
 	/**
@@ -57,13 +59,13 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	 * Mainly for debug, return a list of tiles as a string.
 	 * This lets us see how/if blanks have been used.
 	 */
-	//function packRack(tiles) {
-	//	let word = tiles.map(l => l.letter).join("");
-	//	let blanks = tiles.map(l => l.isBlank ? ' ' : l.letter).join("");
-	//	if (blanks != word)
-	//		word += `/${blanks}`;
-	//	return word;
-	//}
+	function pack(tiles) {
+		let word = tiles.map(l => l.letter).join("");
+		let blanks = tiles.map(l => l.isBlank ? ' ' : l.letter).join("");
+		if (blanks != word)
+			word += `/${blanks}`;
+		return word;
+	}
 
 	/**
 	 * Determine which letters can fit in each square and form a valid
@@ -82,11 +84,11 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	function computeCrossChecks(board, available) {
 		const xChecks = [];
 
-		for (let col = 0; col < board.dim; col++) {
+		for (let col = 0; col < board.cols; col++) {
 			const thisCol = [];
 			xChecks.push(thisCol);
 
-			for (let row = 0; row < board.dim; row++) {
+			for (let row = 0; row < board.rows; row++) {
 				const thisCell = [[], []];
 				thisCol[row] = thisCell;
 
@@ -107,7 +109,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 
 				let wordBelow = '';
 				r = row + 1;
-				while (r < board.dim && board.at(col, r).tile) {
+				while (r < board.rows && board.at(col, r).tile) {
 					wordBelow += board.at(col, r).tile.letter;
 					r++;
 				}
@@ -122,7 +124,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 
 				let wordRight = '';
 				c = col + 1
-				while (c != board.dim && board.at(c, row).tile) {
+				while (c != board.cols && board.at(c, row).tile) {
 					wordRight += board.at(c, row).tile.letter;
 					c++;
 				}
@@ -183,49 +185,51 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		const ecol = col + dcol;
 		const erow = row + drow;
 
-		//console.log(`Extend ${pack(wordSoFar)} ${col} ${row} ${dNode.letter} ${dNode.postLetters.join("")}`);
+		//console.log(`forward '${pack(wordSoFar)}' ${col}:${dcol} ${row}:${drow} [${dNode.postLetters.join("")}]`);
 
 		// Tail recurse; report words as soon as we find them
 		// Are we sitting at the end of a scoring word?
 		if (dNode.isEndOfWord
 			&& wordSoFar.length >= 2
 			&& tilesPlayed > 0
-			&& (ecol == board.dim || erow == board.dim
-				|| board.isEmpty(ecol, erow))) {
+			&& (ecol == board.cols || erow == board.rows
+				|| !board.at(ecol, erow).tile)) {
 			const words = [];
 			const score =
 				  board.scorePlay(col, row, dcol, drow, wordSoFar, words);
 
             if (score > bestScore) {
 				bestScore = score;
+				//console.log(drow > 0 ? 'vertical' : 'horizontal')
                 report(new Move(
 					wordSoFar.filter(t => !board.at(t.col, t.row).tile),
 					words,
 					score));
 			}
-			//else
-			//	report(`Reject '${pack(wordSoFar)}' at ${col},${row} ${score}`);
+			else if (col == 5 && row == 6)
+				report(`Reject '${pack(wordSoFar)}' at ${col},${row} ${score}`);
 		}
 
 		let available; // list of letters that can be extended with
 		let playedTile = 0;
 
-		// Do we have an empty cell we can extend into?
-		if (board.isEmpty(ecol, erow)) {
-			const haveBlank = rackTiles.find(l => l.isBlank);
-			const xc = crossChecks[ecol][erow][dcol];
+		if (ecol < board.cols && erow < board.rows) {
+			// Do we have an empty cell we can extend into?
+			if (board.at(ecol, erow).isEmpty()) {
+				const haveBlank = rackTiles.find(l => l.isBlank);
+				const xc = crossChecks[ecol][erow][dcol];
+				
+				available = intersection(
+					dNode.postLetters,
+					haveBlank ? xc : intersection(
+						rackTiles.map(t => t.letter), xc));
+				playedTile = 1;
 
-			available = intersection(
-				dNode.postLetters,
-				haveBlank ? xc : intersection(
-					rackTiles.map(t => t.letter), xc));
-			playedTile = 1;
-
-		} else if (ecol < board.dim && erow < board.dim)
-			// Have pre-placed tile
-			available = [ board.at(ecol, erow).tile.letter ];
-
-		else
+			} else
+				// Have pre-placed tile
+				available = [ board.at(ecol, erow).tile.letter ];
+		}
+		else // off the board
 			available = [];
 
 		for (let letter of available) {
@@ -282,27 +286,28 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		let available; // the set of possible candidate letters
 		let playedTile = 0;
 
-		//console.log(`Explore ${pack(wordSoFar)} ${col} ${row} ${dNode.letter} ${dNode.preLetters.join("")}`);
+		//console.log(`back '${pack(wordSoFar)}' ${col}:${dcol} ${row}:${drow} [${dNode.preLetters.join("")}]`);
 
 		// Do we have an adjacent empty cell we can back up into?
-        if (board.isEmpty(ecol, erow)) {
-			// Find common letters between the rack, cross checks, and
-			// dNode pre.
-			const haveBlank = rackTiles.find(l => l.isBlank);
-			const xc = crossChecks[ecol][erow][dcol];
+        if (ecol >= 0 && erow >= 0) {
+			if (board.at(ecol, erow).isEmpty()) {
+				// Find common letters between the rack, cross checks, and
+				// dNode pre.
+				const haveBlank = rackTiles.find(l => l.isBlank);
+				const xc = crossChecks[ecol][erow][dcol];
 
-			available =
-				  intersection(
-					  dNode.preLetters,
-					  haveBlank ? xc : intersection(
-						  rackTiles.map(l => l.letter),	xc));
-			playedTile = 1;
-
-		} else if (erow >= 0 && ecol >= 0)
-			// Non-empty square, might be able to walk back through it
-			available = [ board.at(ecol, erow).tile.letter ];
-
+				available =
+				intersection(
+					dNode.preLetters,
+					haveBlank ? xc : intersection(
+						rackTiles.map(l => l.letter),	xc));
+				playedTile = 1;
+			} else
+				// Non-empty square, might be able to walk back through it
+				available = [ board.at(ecol, erow).tile.letter ];
+		}
 		else
+			// Off the board, nothing available for backing up
 			available = [];
 
 		// Head recurse; longer words are more likely to
@@ -338,8 +343,8 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		// we're at the edge of the board or the prior cell is
 		// empty, then we have a valid word start.
 		if (dNode.pre.length == 0
-			&& (erow < 0 || ecol < 0 || board.isEmpty(ecol, erow))) {
-
+			&& (erow < 0 || ecol < 0 || board.at(ecol, erow).isEmpty())) {
+			//console.log(`back word start ${ecol}:${dcol},${erow}:${drow}`);
 			// try extending down beyond the anchor, with the letters
 			// that we have determined comprise a valid rooted sequence.
 			forward(col + dcol * (wordSoFar.length - 1),
@@ -381,21 +386,23 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 
 			// Slide the word over the middle to find the optimum
 			// position
-			for (let end = board.middle;
-				 end < board.middle + choice.length;
+			let mid = dcol == 0 ? board.midcol : board.midrow;
+			for (let end = mid;
+				 end < mid + choice.length;
 				 end++) {
 
 				for (let i = 0; i < placements.length; i++) {
 					const pos = end - placements.length + i + 1;
-					placements[i].col = dcol == 0 ? board.middle : pos * dcol;
-					placements[i].row = drow == 0 ? board.middle : pos * drow;
+					placements[i].col = dcol == 0 ? board.midcol : pos * dcol;
+					placements[i].row = drow == 0 ? board.midrow : pos * drow;
 				}
 
 				const score = board.scorePlay(
-					end, board.middle, dcol, drow, placements);
+					end, mid, dcol, drow, placements);
 
 				if (score > bestScore) {
 					bestScore = score;
+					//console.log(drow > 0 ? 'vertical' : 'horizontal')
 					report(new Move(placements, [
 						{ word: choice, score: score }
 					], score));
@@ -438,7 +445,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		report("Finding best play for rack " + rackTiles);
 
 		board = game.board;
-		report("on board" + board );
+		report(`on ${board}` );
 
 		const preamble = [
 			Dictionary.load(game.dictionary),
@@ -456,8 +463,8 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 			// Has at least one anchor been explored? If there are
 			// no anchors, we need to compute an opening play
 			let anchored = false;
-			for (let col = 0; col < board.dim; col++) {
-				for (let row = 0; row < board.dim; row++) {
+			for (let col = 0; col < board.cols; col++) {
+				for (let row = 0; row < board.rows; row++) {
 					// An anchor is any square that has a tile and has an
 					// adjacent blank that can be extended into to form a word
 					if (isAnchor(col, row)) {
@@ -477,15 +484,19 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 						for (let anchorNode of roots) {
 							// Try and back up then forward through
 							// the dictionary to find longer sequences
-							back(
-								col, row,
-								0, 1,
-								rackTiles, 0,
-								anchorNode, anchorNode,
-								[ anchorTile ]);
+
+							// across
 							back(
 								col, row,
 								1, 0,
+								rackTiles, 0,
+								anchorNode, anchorNode,
+								[ anchorTile ]);
+
+							// down
+							back(
+								col, row,
+								0, 1,
 								rackTiles, 0,
 								anchorNode, anchorNode,
 								[ anchorTile ])

@@ -51,7 +51,8 @@ define("game/Edition", () => {
 
 			this.scores = { }; // map letter->score
 
-			this.dim = 2 * this.layout.length - 1;
+			this.rows = 2 * this.layout.length - 1;
+			this.cols = this.rows;
 
 			this.alphabeta = [];
 			for (let tile of this.bag) {
@@ -83,6 +84,12 @@ define("game/Edition", () => {
 					resolve(editions[name]);
 				});
 			});
+		}
+
+		squareType(col, row) {
+			const coli = Math.abs(col - Math.floor(this.cols / 2));
+			const rowi = Math.abs(row - Math.floor(this.rows / 2));
+			return this.layout[coli].charAt(rowi);
 		}
 
 		toString() {

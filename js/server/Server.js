@@ -179,7 +179,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 					if (message.text === '/cheat')
 						socket.game.cheat(socket.player);
 					else
-						socket.game.notifyListeners('message', message);
+						socket.game.notifyPlayers('message', message);
 				});
 			});
 		}
@@ -264,21 +264,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			.then(
 				promises =>	Promise.all(promises)
 				.then(games =>
-					  games.filter(game => !game.ended)
-					  .map(game => { return {
-						  key: game.key,
-						  edition: game.edition,
-						  dictionary: game.dictionary,
-						  time_limit: game.time_limit,
-						  players: game.players.map(player => {
-							  return {
-								  name: player.name,
-								  isRobot: player.isRobot,
-								  connected: game.isConnected(player),
-								  key: player.key,
-								  hasTurn: player == game.players[game.whosTurn]};
-						  })
-					  }}))
+					  games.map(game => game.catalogue()))
 				.then(data => res.send(data)))
 			.catch(e => this.trap(e, res));
 		}

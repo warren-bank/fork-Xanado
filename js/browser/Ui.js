@@ -449,7 +449,8 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 					this.startCountdown(info.timeout);
 
 				const player = this.game.getPlayerFromKey(info.playerKey);
-				player.online(true);
+				if (player)
+					player.online(true);
 			})
 
 			.on('leave', playerKey => {
@@ -601,6 +602,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 					$('#turnButton').removeAttr('disabled');
 				}
 
+				// Use visibility and not display to keep the layout stable
 				$('#takeBackButton').css('visibility', 'inherit');
 				$('#swapRack').hide();
 			} else if (this.swapRack.squaresUsed() > 0) {
@@ -635,16 +637,20 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 		/**
 		 * @param turn a Turn
 		 * Put the tiles placed in a turn into their correct sites on
-		 * the board.
+		 * the board for a player who is not this player.
 		 */
 		placeTurnTiles(turn) {
+			let player = this.game.players[turn.player];
 			for (let placement of turn.move.placements) {
 				let square = this.game.at(placement.col, placement.row);
 				square.placeTile(placement, true); // lock it down
 				// Highlight it as just placed
 				let $div = $(`#Board_${placement.col}x${placement.row}`);
 				$div.addClass("lastPlacement");
+				player.rack.removeTile(placement);
 			}
+			for (let newTile of turn.newTiles)
+				player.rack.addTile(newTile);
 		}
 
 		/**
@@ -656,6 +662,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			console.debug('Turn ', turn);
 			this.appendTurnToLog(turn);
 			this.scrollLogToEnd(300);
+            this.removeMoveActionButtons();
 			let player = this.game.players[turn.player];
 			player.score += turn.deltaScore;
 			player.refreshDOM();
@@ -665,50 +672,47 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			if (turn.type == 'move' && !this.isPlayer(turn.player))
 				this.placeTurnTiles(turn);
 
-			// Shrink the bag by the number of placed tiles. This is purely
-			// to keep the counts in synch.
-			this.game.letterBag.getRandomTiles(
-				this.game.letterBag.remainingTileCount() - turn.leftInBag);
-
-			if (turn.type == 'challenge-won' || turn.type == 'took-back') {
-				if (this.isPlayer(turn.player))
-					// Take new tiles out of our rack
-					for (let newTile of turn.newTiles) {
-						const tile = this.thisPlayer.rack.removeTile(newTile);
-						this.letterBag.returnTile(tile);
-					}
-
-				// Take back the placements
-				for (const placement of turn.move.placements) {
-					const r = placement[0];
-					const b = placement[1];
-					let square = this.game.at(b.col, b.row);
-					const recoveredTile = square.tile;
-					square.placeTile(null);
-					if (this.isPlayer(turn.player))
-						// It's one of ours, pop it back on the rack
-						this.thisPlayer.rack.addTile(recoveredTile);
+			switch (turn.type) {
+			case 'challenge-won':
+			case 'took-back':
+				// Move new tiles out of challenged player's rack
+				// into the bag
+				for (let newTile of turn.newTiles) {
+					const tile = player.rack.removeTile(newTile);
+					this.game.letterBag.returnTile(tile);
 				}
 
+				// Take back the placements from the board into the
+				// challenged player's rack
+				for (const placement of turn.move.placements) {
+					let square = this.game.at(placement.col, placement.row);
+					const recoveredTile = square.tile;
+					square.placeTile(null);
+					player.rack.addTile(recoveredTile);
+				}
+
+				// Refresh rack, if it's us
 				if (this.isPlayer(turn.player)) {
-					this.thisPlayer.rack.refreshDOM();
-					if (turn.type == 'challenge-won') {
+					player.rack.refreshDOM();
+					if (turn.type === 'challenge-won') {
 						this.playAudio("oops");
 						this.notify(
 							$.i18n('notify-title-challenged'),
 							$.i18n('notify-body-challenged',
-								   this.players[turn.challenger].name,
-								  -turn.score));
+								   this.game.players[turn.challenger].name,
+								   -turn.score));
 					}
 				}
 
 				if (turn.type == 'took-back') {
-					this.notify($.i18n('notify-title-retracted'),
-								$.i18n('notify-body-retracted',
-									  this.players[turn.challenger].name));
+					this.notify(
+						$.i18n('notify-title-retracted'),
+						$.i18n('notify-body-retracted',
+							   this.game.players[turn.challenger].name));
 				}
-			}
-			if (turn.type == "challenge-failed") {
+				break;
+
+			case 'challenge-failed':
 				if (this.isPlayer(turn.player)) {
 					this.playAudio("oops");
 					this.notify(
@@ -718,32 +722,42 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 					this.playAudio("oops");
 					this.notify(
 						$.i18n('notify-title-they-failed'),
-						$.i18n('notify-body-they-failed',
-							   this.players[turn.player].name));
+						$.i18n('notify-body-they-failed', player.name));
 				}
+				break;
+
+			case 'move':
+				// Shrink the bag by the number of placed tiles. This is purely
+				// to keep the counts in synch, we never use tiles taken
+				// from the bag on the client side.
+				this.game.letterBag.getRandomTiles(
+					this.game.letterBag.remainingTileCount() - turn.leftInBag);
+				break;
 			}
+
 			if (this.isPlayer(turn.nextToGo)) {
 				this.playAudio("yourturn");
 				if (turn.timeout)
 					this.startCountdown(turn.timeout);
-			}
-			this.lockBoard(!this.isPlayer(turn.nextToGo));
-            this.removeMoveActionButtons();
-			if (typeof turn.nextToGo == 'number'
-				&& turn.type != 'challenge-won') {
+				this.lockBoard(false);
+			} else
+				this.lockBoard(true);
+
+			if (typeof turn.nextToGo === 'number'
+				&& turn.type !== 'challenge-won') {
 
 				this.updateWhosTurn(turn.nextToGo);
 				if (turn.type == 'move')
 					this.addTakeBackPreviousButton(turn);
 
 				if (this.isPlayer(turn.nextToGo)
-					&& turn.type != 'took-back') {
+					&& turn.type !== 'took-back') {
 					// It's our turn, and we didn't just take back
 					this.notify($.i18n('notify-title-your-turn'),
 								$.i18n('notify-body-your-turn',
 									   this.game.players[turn.player].name));
 
-					if (turn.type == 'move')
+					if (turn.type === 'move')
 						this.addChallengePreviousButton(turn);
 				}
 			}
@@ -770,13 +784,13 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			console.debug('move response:', data);
 			const newTiles = Fridge.thaw(data, Game.classes);
 
-			for (const square of this.thisPlayer.rack.squares) {
+			this.thisPlayer.rack.forEachSquare(square => {
 				if (newTiles.length && !square.tile) {
 					const tile = newTiles.pop()
 					square.placeTile(tile);
 					square.refreshDOM();
 				}
-			}
+			});
 		}
 
 		/**
@@ -921,9 +935,10 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 		 */
 		takeBackTiles() {
 			const freeRackSquares = [];
-			for (const square of this.thisPlayer.rack.squares)
+			this.thisPlayer.rack.forEachSquare(square => {
 				if (!square.tile)
 					freeRackSquares.push(square);
+			});
 
 			function putBackToRack(tile) {
 				let square = freeRackSquares.pop();
@@ -933,25 +948,22 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 				square.refreshDOM();
 			}
 
-			for (let y = 0; y < this.game.board.dim; y++) {
-				for (let x = 0; x < this.game.board.dim; x++) {
-					const boardSquare = this.game.at(x, y);
-					if (boardSquare.tile && !boardSquare.tileLocked) {
-						putBackToRack(boardSquare.tile);
-						boardSquare.tile = null;
-						this.placedCount--;
-						boardSquare.refreshDOM();
-					}
+			this.game.board.forEachSquare(boardSquare => {
+				if (boardSquare.tile && !boardSquare.tileLocked) {
+					putBackToRack(boardSquare.tile);
+					boardSquare.tile = null;
+					this.placedCount--;
+					boardSquare.refreshDOM();
 				}
-			}
+			});
 
-			for (const square of this.swapRack.squares) {
+			this.swapRack.forEachSquare(square => {
 				if (square.tile) {
 					putBackToRack(square.tile);
 					square.tile = null;
 					square.refreshDOM();
 				}
-			}
+			});
 			this.updateGameStatus();
 		}
 

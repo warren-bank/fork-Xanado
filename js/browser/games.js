@@ -33,7 +33,8 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 			$p.append($.i18n('game-using-dict', game.dictionary));
 		if (game.time_limit > 0)
 			$p.append($.i18n('game-time-limit', game.time_limit));
-
+		if (game.ended)
+			$p.append($.i18n('game-ended'));
 		game.players.map(player => $p.append(formatPlayer(game, player)));
 
 		let $but = $(`<button class="deleteGame">${$.i18n('game-delete')}</button>`);

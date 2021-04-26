@@ -25,8 +25,8 @@ requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Pl
 			game.addPlayer(player);
 			// Override the random rack
 			player.rack.empty();
-			player.rack.squares[0].placeTile(new Tile("I", false, 1));
-			player.rack.squares[1].placeTile(new Tile(null, true, 0));
+			player.rack.addTile(new Tile("I", false, 1));
+			player.rack.addTile(new Tile(null, true, 0));
 			return game.autoplay(player);
 		})
 
@@ -35,10 +35,10 @@ requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Pl
 			player = new Player("test", true);
 			game.addPlayer(player);
 			player.rack.empty();
-			player.rack.squares[0].placeTile(new Tile("A", false, 1));
-			player.rack.squares[1].placeTile(new Tile("B", false, 1));
-			player.rack.squares[2].placeTile(new Tile("C", false, 1));
-			player.rack.squares[3].placeTile(new Tile("D", false, 1));
+			player.rack.addtile(new Tile("A", false, 1));
+			player.rack.addTile(new Tile("B", false, 1));
+			player.rack.addTile(new Tile("C", false, 1));
+			player.rack.addTile(new Tile("D", false, 1));
 			return game.autoplay(player);
 		})
 
@@ -47,9 +47,9 @@ requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Pl
 			player = new Player("test", true);
 			game.addPlayer(player);
 			player.rack.empty();
-			player.rack.squares[0].placeTile(new Tile(' ', true, 1));
-			player.rack.squares[1].placeTile(new Tile(undefined, true, 1));
-			player.rack.squares[2].placeTile(new Tile(null, true, 1));
+			player.rack.at(0).placeTile(new Tile(' ', true, 1));
+			player.rack.at(1).placeTile(new Tile(undefined, true, 1));
+			player.rack.at(2).placeTile(new Tile(null, true, 1));
 			return game.autoplay(player);
 		});
 	});

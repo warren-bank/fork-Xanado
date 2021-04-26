@@ -57,7 +57,7 @@
 	"log-took-back": "Took back previous move",
 	"log-same-players": "if you want another game with the same players",
 	"log-gained-from-racks": "$1 gained $2 {{PLURAL:$2|point|points}} from the racks of the other players",
-	"log-lost-for-rack": "$1 lost $2 {{PLURAL:$2|point|points}} for a rack containing $3",
+	"log-lost-for-rack": "$1 lost $2 {{PLURAL:$2|point|points}} for a rack containing '$3'",
 	"log-game-started": "Game started",
 	"log-game-over": "Game over,",
 	"log-name-name": "$1 and $2",
@@ -65,6 +65,7 @@
 	
 	"msg-no-play": "Can't find a play",
 	"msg-hint": "Hint: $1 at row $2 column $3",
+	"msg-hinted": "$1 asked for a hint",
 	"msg-word-not-found": "$1 not found",
 
 	"option-none": "None",
@@ -78,6 +79,7 @@
 	"game-description": "$1 player $2",
 	"game-using-dict": ", dictionary $1",
 	"game-time-limit": ", time limit $1 {{PLURAL:$2|minute|minutes}}",
+	"game-ended": " (ended)",
 	"game-delete": "Delete",
 	"game-select-player": "Select your player above, or ",
 	"name-human-player": "Human",

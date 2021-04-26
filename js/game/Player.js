@@ -38,6 +38,19 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 		}
 
 		/**
+		 * Create simple structure describing the player, for use in the
+		 * games interface
+		 */
+		catalogue(game) {
+			return {
+				name: this.name,
+				isRobot: this.isRobot,
+				connected: game.isConnected(this),
+				key: this.key
+			};
+		}
+
+		/**
 		 * Join a game by drawing an initial rack from the letter bag.
 		 * @param letterBag LetterBag to draw tiles from
 		 * @param rackSize size of racks in this game
@@ -47,7 +60,7 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 			// +1 to allow space for tile sorting in the UI
 			this.rack = new Rack(rackSize + 1);
 			for (let i = 0; i < rackSize; i++)
-				this.rack.squares[i].tile = letterBag.getRandomTile();
+				this.rack.addTile(letterBag.getRandomTile());
 			this.index = index;
 			this.score = 0;
 			console.log(`${this.name} is player ${this.index}`);

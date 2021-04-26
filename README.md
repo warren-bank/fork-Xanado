@@ -1,28 +1,31 @@
-# Online multiplayer word grid game with HTML/JavaScript UI
+# Multiplayer word grid game server and interface
 
-Why another Crossword game? For a number of reasons. While there are a number of public servers out there offering clones of, or alternatives to, the classic SCRABBLE® game, they are limited in a number of ways:
-* Their source code is not public, and setting up your own server is not an option
-* They are generally limited to a single version of the game
-* Their dictionaries are usually based on the standard Scrabble SOWPODS dictionary, which is stuffed full of obscure American Emglish words that only a Scrabble afficionado will know. This makes the game inaccessible for casual players, and those wishing to play in non-English languages.
+While there are a number of public servers out there offering clones of the classic SCRABBLE® game, they are limited in a number of ways:
+* Their source code is not public, and setting up your own server is not an option.
+* They are generally limited to a single version of the game.
+* Their dictionaries are usually based on the standard Scrabble SOWPODS dictionary, which is stuffed full of obscure American English words that only a Scrabble afficionado will know. This makes the game inaccessible for casual players, and those wishing to play in non-English languages.
+* They plague you with tedious advertisements.
 
-A further application of the game is as a teaching aid for langauge learners. Included is a dictionary based on the Oxford 5000 most important words to learn in English. By playing the game, learners are exposed to new words that they can then seek the definition of.
+I wanted a game I could host on my own server, and experiment with different
+dictionaries, board layouts, tile sets, and rule combinations.
 
-This is a fork of [Hans Hübner's html-scrabble](https://github.com/hanshuebner/html-scrabble). I started fixing his code but rapidly realised it required an awful lot of work, and made a fork to simplify that.
+A further application that has emerged is as an entertaining teaching aid
+for langauge learners. Included is a dictionary based on the Oxford 5000 most
+important words to learn in English. By playing the game against the robot,
+learners are exposed to new words that they can then seek the definition of.
 
-This version has some major differences from Hans'.
-* It has been rewritten to use ES6 Javascript and updated dependencies. It supports different board layouts and tile sets, and makes it easy to define your own.
-* It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui) that was removed in html-scrabble. Dictionaries have been moved server-side and made optional and integrated into gameplay. New dictionaries are easy to generate from word lists. DAWGs have been extended to be bidirectional for best move computation.
-* It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](
-https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players at Scrabble, Words with Friends, or Lexulous.
+## History
+This is a fork of [Hans Hübner's html-scrabble](https://github.com/hanshuebner/html-scrabble). I started working on their code but rapidly realised it required a fork, rather than bothering them with hundreds of pull requests.
+
+This version has some major differences:
+* It has been rewritten to use Javascript ES6 and updated dependencies. It supports different board layouts and tile sets, and makes it easy to define your own.
+* It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui) that was not used in html-scrabble. Dictionaries have been moved server-side and made optional, and integrated into gameplay. New dictionaries are easy to generate from word lists.
+* It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players.
 * The UI has been fixed and massaged to make it more mobile device friendly.
 
-The installation comes with emulations of a number of commercially available
-games - Scrabble®, Lexulous, and Words With Friends. Also included is support
-to help you in designing your own game.
+# Installation
 
-## Installation
-
-The code is written in Javascript ES6 and tested using `node.js` version 11.15.0. You will require this or a more recent version of `node.js`
+The code is written in Javascript ES6 and tested using `node.js` version 11.15.0. You will require this or a more recent version of `node.js`. The client runsin a browser and works on all the browsers I tested (Chrome, Firefox, Android.)
 
 First use `git clone` to clone the repository to your local machine. Then in
 the root directory of the distribution
@@ -41,17 +44,35 @@ You can then visit the games page at `http://localhost:9093`.
 
 If you want the server to send out email invitations, you should refer to the `nodemailer` documentation for information on how to configure it.
 
-Note the `/editions` directory, which contains all the templates for the different game boards, and `/dictionaries` which contains all the DAWGs for the dictionaries.
-
-## Usage
-
-Normally one player will act as the game host, and create a new game on the games page. Once a game has been created, other players either follow the link in email or click on their name in the games page to join the game. The game interface is fairly self explanatory if you know the [rules of Scrabble](https://www.officialgamerules.org/scrabble). The game starts with a randomly selected player.
+# Usage
+Normally one player will act as the host, and create a new game
+on the games page. Once a game has been created, other players either
+follow the link in email or click on their name in the games page to
+join the game. The game interface is fairly self explanatory if you
+know the [rules of Scrabble](https://www.officialgamerules.org/scrabble).
+The game starts with a randomly selected player.
 
 As many players as you like can be robots, but you need at least one human player (otherwise, what's the point?)
 
-## Building Dictionaries
+The installation comes with emulations of a number of commercially available
+games - SCRABBLE®, Super SCRABBLE®, Lexulous, and Words With Friends.
+Guidance for creating your own custom game is given below.
 
-Dictionaries are stored in the `dictionaries` directory in the form of a DAWG (Directed Acyclic Word Graph), which is generated from a lexicon (list of words) using a processor based on Daniel Weck's DAWG_Compressor program. To build a new dictionary, follow the instructions given when you run
+# Dictionaries
+The `/dictionaries` directory contains all the
+dictionaries. Included with the installation are 4 pre-built dictionaries:
+* SOWPODS_English - 409K words from an [unofficial version](https://www.wordgamedictionary.com/sowpods/download/sowpods.txt) of the standard European English SCRABBLE® dictionary.
+* German - the word list from the [germandict project on Sourceforge](https://sourceforge.net/projects/germandict/files/). 404K words.
+* British_English - a custom British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American word spellings are also included, to reflect the flexible nature of our shared language. 66K words.
+* Oxford_5000 - 28K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
+
+## Building your own dictionary
+
+Dictionaries are stored in the `dictionaries` directory in the form of
+a DAWG (Directed Acyclic Word Graph), which is generated from a
+lexicon (list of words) using a processor based on [Daniel Weck's
+DAWG_Compressor program](https://github.com/danielweck/scrabble-html-ui). To build a new dictionary, follow the
+instructions given when you run:
 ```
 $ node js/dawg/compressor.js
 ```
@@ -59,21 +80,29 @@ $ node js/dawg/compressor.js
 ```
 $ node js/dawg/explore.js SOWPODS_English --anagrams scrabble
 ```
-Again, run it with no parameters for help.
+Run it with no parameters for help.
 
-## Designing your own game
-Game definitions can be found in the `editions` directory. Each definition
-describes the layout of the lower-right quadrant of the board (it is assumed
-to be mirrored), the contents of the bag, the number of tiles on the rack
-and the number that can be swapped in a play, and the bonuses for playing
-numbers of tiles in one play.
+# Designing your own game
+Game definitions can be found in the `/editions` directory. Each
+definition describes the layout of the lower-right quadrant of the
+board (it is assumed to be mirrored), the contents of the bag, the
+number of tiles on the rack, the number of tiles that can be swapped
+in a play, and the bonuses for playing certain numbers of tiles in one
+play.
 
+## Valett
 Choosing point values for tiles, and the number of tiles of each letter,
-can be difficult. Included is a version of
+can be difficult to get right. Included is a version of
 [Joshua Lewis' Valett program](https://github.com/jmlewis/valett)
 which analyses a word corpus and recommends tile values and counts for the
-letter combinations encountered in the corpus (the corpus can be any big list
-of words, or it can simply be a lexicon).
+letter combinations encountered in the corpus based on probability (the corpus
+can be any big list of words, or it can simply be a lexicon).
+
+## Challenges
+Currently only [double challenge](https://en.wikipedia.org/wiki/Challenge_(Scrabble)) is supported. An extension would be to support other challenge types.
+
+# Internationalisation
+The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English and (a poor translation to) French. To generate your own translation, copy `/i18n/en.json` to a file using your language code (e.g. `de` for German) and edit the new file to provide the translation. If you do create a translation, please feel free to issue a pull request to get it into the source code.
 
 ## IMPORTANT NOTICES:
 

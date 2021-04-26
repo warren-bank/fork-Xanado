@@ -6,23 +6,37 @@
  * A Rack is a set of tiles that a player can play from. It's
  * a 1D array of Square.
  */
-define("game/Rack", ["game/Square"], Square => {
+define("game/Rack", ["game/Surface"], Surface => {
 
-	class Rack {
+	/**
+	 * A Rack is a 1-column Surface
+	 */
+	class Rack extends Surface {
+
+		/**
+		 * @param size a rack size, or an array of Tile (for tests)
+		 */
 		constructor(size) {
-			let tiles;
-			if (typeof size !== "number") {
-				tiles = size;
-				size = tiles.length;
-			}
-			this.squares = [];
+			super(typeof size === 'number' ? size : size.length, 1,
+				  () => '_');
+			if (typeof size !== 'number')
+				for (let tile of size)
+					this.addTile(tile);
+		}
 
-			for (let col = 0; col < size; col++) {
-				const sq = new Square('_', this, col);
-				if (tiles)
-					sq.tile = tiles[col];
-				this.squares.push(sq);
-			}
+		/**
+		 * Debug
+		 */
+		toString() {
+			return `Rack ${this.tiles().join(',')}`;
+		}
+
+		/**
+		 * @override Surface
+		 * One dimensional
+		 */
+		at(col) {
+			return super.at(col, 0);
 		}
 
 		/**
@@ -31,53 +45,37 @@ define("game/Rack", ["game/Square"], Square => {
 		 * @return the col of the added tile
 		 */
 		addTile(tile) {
-			for (let sq of this.squares) {
-				if (!sq.tile) {
-					sq.placeTile(tile);
-					return sq.col;
+			let col = -1;
+			this.forEachSquare(square => {
+				if (!square.tile) {
+					square.placeTile(tile);
+					col = square.col;
+					return true;
 				}
-			}
-			// Terminal, no point in translating
-			throw Error("Nowhere to put tile");
-		}
-
-		/**
-		 * Get the square at a position
-		 */
-		at(col) {
-			return this.squares[col];
-		}
-
-		isEmpty() {
-			return !this.squares.find(s => s.tile);
-		}
-
-		/**
-		 * Remove all tiles from the rack
-		 */
-		empty() {
-			this.squares.forEach(s => s.placeTile(null));
+			});
+			return col;
 		}
 
 		/**
 		 * Get the number of squares currently occupied by a tile
 		 */
 		squaresUsed() {
-			return this.squares.reduce(
-				(acc, s) => acc += (s.tile ? 1 : 0), 0)
+			let count = 0;
+			this.forEachSquare(square => {
+				if (square.tile) count++;
+			});
+			return count;
 		}
 
 		/**
 		 * Get an array of the tiles currently on the rack
 		 */
 		tiles() {
-			return this.squares.reduce(
-				(accu, square) => {
-					if (square.tile)
-						accu.push(square.tile);
-					return accu;
-				},
-				[]);
+			let tiles = [];
+			this.forEachSquare(square => {
+				if (square.tile) tiles.push(square.tile);
+			});
+			return tiles;
 		}
 
 		/**
@@ -93,22 +91,16 @@ define("game/Rack", ["game/Square"], Square => {
 		 * @return a Square
 		 */
 		findSquare(letter) {
-			let blank = null; // square containing the first blank found
-			const square = this.squares.find(
-				square => {
-					const tile = square.tile;
-					if (tile) {
-						if (tile.isBlank && !blank)
-							blank = square;
-						else if (tile.letter === letter)
-							return true;
-					}
-				});
+			let square;
+			this.forEachSquare(sq => {
+				if (sq.tile) {
+					if (!square && sq.tile.isBlank
+					   || sq.tile.letter === letter)
+						square = sq;
+				}
+			});
 
-			if (square)
-				return square;
-
-			return blank;
+			return square;
 		}
 
 		/**
@@ -124,7 +116,7 @@ define("game/Rack", ["game/Square"], Square => {
 		/**
 		 * Find and remove a tile from the rack. Will match the requested
 		 * tile within the Rack and return it.
-		 * @param remove the Tile to remove.
+		 * @param remove the Tile to remove, or null to remove any tile
 		 * @return the removed tile
 		 */
 		removeTile(remove) {
@@ -144,24 +136,18 @@ define("game/Rack", ["game/Square"], Square => {
 		 * @return this
 		 */
 		shuffle() {
-			const len = this.squares.length;
+			const len = this.cols;
 			function random(i) {
 				return Math.floor(Math.random() * len);
 			}
 			for (let i = 0; i < 16; i++) {
-				let from = this.squares[random()];
-				let to = this.squares[random()];
+				let from = this.at(random());
+				let to = this.at(random());
 				let tmp = from.tile;
 				from.tile = to.tile;
 				to.tile = tmp;
 			}
 			return this;
-		}
-
-		toString() {
-			return "[" + this.squares.map(
-				s => s.tile ? s.tile.letter : '.')
-			+ "]";
 		}
 
 		/**
@@ -173,8 +159,8 @@ define("game/Rack", ["game/Square"], Square => {
 		createDOM(idbase, underlay) {
 			const $table = $('<table class="rackTable"></table>');
 			const $tr = $(`<tr></tr>`);
-			for (let idx = 0; idx < this.squares.length; idx++) {
-				const square = this.squares[idx];
+			let idx = 0;
+			this.forEachSquare(square => {
 				const $td = square.createDOM(idbase, idx);
 				if (underlay) {
 					const letter = underlay.charAt(idx);
@@ -182,14 +168,11 @@ define("game/Rack", ["game/Square"], Square => {
 					$td.append(`<div class="bgLetter">${letter}</div>`);
 				}
 				$tr.append($td);
-			}
+				idx++;
+			});
 			$table.append($tr);
 			this.refreshDOM();
 			return $table;
-		}
-
-		refreshDOM() {
-			this.squares.forEach(s => s.refreshDOM());
 		}
 	}
 

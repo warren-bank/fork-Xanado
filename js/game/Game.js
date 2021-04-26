@@ -177,7 +177,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * Get the board square at [col][row]
 		 */
 		at(col, row) {
-			return this.board.squares[col][row];
+			return this.board.at(col, row);
 		}
 
 		toString() {
@@ -191,8 +191,20 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			return this.saver ? this.saver(this) : Promise.resolve();
 		}
 
-		// Send a message to all players connected to this game
-		notifyListeners(message, data) {
+		/**
+		 * Notify just one player
+		 */
+		notifyPlayer(player, message, data) {
+			for (let socket of this.connections) {
+				if (socket.player === player)
+					socket.emit(message, data);
+			}
+		}
+
+		/**
+		 * Broadcast to all players
+		 */
+		notifyPlayers(message, data) {
 			this.connections.forEach(socket => {
 				socket.emit(message, data);
 			});
@@ -247,13 +259,13 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			this.save()
 			.then(() => {
 				//console.log("Notify turn", turn);
-				this.notifyListeners('turn', turn);
+				this.notifyPlayers('turn', turn);
 
 				// if the game has ended, send extra notification with
 				// final scores
 				if (this.ended) {
 					console.log("Game over", this.ended);
-					this.notifyListeners('gameEnded', this.ended);
+					this.notifyPlayers('gameEnded', this.ended);
 				} else {
 					console.log(`Player ${this.whosTurn}'s turn`);
 					const p = this.players[this.whosTurn];
@@ -264,7 +276,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 							console.log(`${p} played, updateGameState`);
 							this.updateGameState(p, turn);
 							// If we do this, computer turns are notified twice.
-							//this.notifyListeners('turn', turn);
+							//this.notifyPlayers('turn', turn);
 						});
 					} else if (this.isConnected(p))
 						turn.timeout = this.startTimeout(p);
@@ -339,11 +351,29 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * Does player have an active connection to this game?
 		 */
 		isConnected(player) {
+			if (!this.connections)
+				return false;
 			for (let connection of this.connections) {
 				if (connection.player == player)
 					return true;
 			}
 			return false;
+		}
+
+		/**
+		 * Create simple structure describing the game, for use in the
+		 * games interface
+		 */
+		catalogue() {
+			return {
+				key: this.key,
+				edition: this.edition,
+				ended: this.ended ? true : false,
+				dictionary: this.dictionary,
+				time_limit: this.time_limit,
+				players: this.players.map(player => player.catalogue(this)),
+				nextToPlay: this.whosTurn
+			};
 		}
 
 		/**
@@ -393,14 +423,14 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 				console.log(`Player ${player.index} ${player.name} ${player.key} connected`);
 				// Tell players that the player is connected
-				this.notifyListeners('join', result);
+				this.notifyPlayers('join', result);
 			}
 
 			const game = this;
 			socket.on('disconnect', () => {
 				game.connections = game.connections.filter(c => c != this);
 				if (player)
-					game.notifyListeners('leave', player.index);
+					game.notifyPlayers('leave', player.key);
 			});
 		}
 
@@ -430,7 +460,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			this.players.forEach(player => {
 				let tilesLeft = [];
 				let rackScore = 0;
-				player.rack.squares.forEach(square => {
+				player.rack.forEachSquare(square => {
 					if (square.tile) {
 						rackScore += square.tile.score;
 						if (!square.tile.isBlank)
@@ -490,24 +520,31 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			})
 			.then(() => {
 				let play;
-				let msg = {
+				let hint = {
 					name: 'Dictionary'
 				};
 				if (!bestPlay)
-					msg.text = 'msg-no-play';
+					hint.text = 'hint-no-play';
 				else {
 					console.log(bestPlay);
 					const start = bestPlay.placements[0];
-					msg.text = 'msg-hint';
+					hint.text = 'msg-hint';
 					const words = bestPlay.words.map(w => w.word).join(',');
-					msg.args = [ words, start.row + 1, start.col + 1 ];
+					hint.args = [ words, start.row + 1, start.col + 1 ];
 				}
-				// Tell *everyone* who the cheat is >:-)
-				this.notifyListeners('message', msg);
+				// Tell the player the hint
+				this.notifyPlayer(player, 'message', hint);
+				
+				// Tell *everyone* who asked for a hint
+				this.notifyPlayers('message', {
+					name: 'Dictionary',
+					text: 'msg-hinted',
+					args: [ player.name ]
+				});
 			})
 			.catch(e => {
 				console.log('Error', e);
-				this.notifyListeners(
+				this.notifyPlayers(
 					'message', {
 						name: 'Dictionary',
 						text: e.toString() });
@@ -531,7 +568,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			// Move tiles from the rack to the board
 			move.placements.forEach(placement => {
 				const tile = player.rack.removeTile(placement);
-				game.board.squares[placement.col][placement.row]
+				game.board.at(placement.col, placement.row)
 				.placeTile(tile, true);
 			});
 
@@ -554,13 +591,16 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			.then(dict => {
 				for (let w of move.words) {
 					console.log("Checking ",w);
-					if (!dict.hasWord(w.word))
-						this.notifyListeners(
-							'message', {
+					if (!dict.hasWord(w.word)) {
+						// Only want to notify the player
+						this.notifyPlayer(
+							player, 'message',
+							{
 								name: this.dictionary,
 								text: 'msg-word-not-found',
 								args: w.word
 							});
+					}
 				}
 			})
 			.catch((e) => {
@@ -609,7 +649,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			// Move placed tiles from the board back to the loser's rack
 			for (let placement of previousMove.placements) {
 				const boardSquare =
-					this.board.squares[placement.col][placement.row];
+					  this.board.at(placement.col, placement.row);
 				loser.rack.addTile(boardSquare.tile);
 				boardSquare.placeTile(null);
 			}
@@ -620,8 +660,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				this.whosTurn = previousMove.player;
 			// else a successful challenge, does not move the player on
 
-			const turn = new Turn(this,
-				type, loser, -previousMove.score);
+			const turn = new Turn(this, type, loser, -previousMove.score);
 			turn.move = previousMove;
 			turn.newTiles = previousMove.newTiles;
 			turn.challenger = challenger;
@@ -741,7 +780,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				newGame.save();
 				this.save();
 				console.log(`Created follow-on game ${newGame.key}`);
-				this.notifyListeners('nextGame', newGame.key);
+				this.notifyPlayers('nextGame', newGame.key);
 			});
 		}
 

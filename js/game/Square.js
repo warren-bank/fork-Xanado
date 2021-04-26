@@ -31,7 +31,7 @@ define("game/Square", ["platform/Platform"], Platform => {
 	class Square {
 		constructor(type, owner, col, row) {
 			this.type = type;
-			this.owner = owner;
+			this.owner = owner; // Rack or Board
 			this.col = col;
 			this.row = row;
 
@@ -54,6 +54,13 @@ define("game/Square", ["platform/Platform"], Platform => {
 			case 'T': this.wordScoreMultiplier = 3; break;
 			case 'Q': this.wordScoreMultiplier = 4; break;
 			}
+		}
+
+		/**
+		 * Determine if the square has a tile or not
+		 */
+		isEmpty() {
+			return !this.tile;
 		}
 
 		/**
@@ -159,7 +166,7 @@ define("game/Square", ["platform/Platform"], Platform => {
 			if (this.tile.isBlank)
 				$div.addClass('BlankLetter');
 
-			if (this.owner == this.board && this.tileLocked) {
+			if (this.tileLocked) {
 				$div.addClass('Locked');
 				if ($div.hasClass("ui-draggable"))
 					$div.draggable("destroy");
