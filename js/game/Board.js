@@ -84,11 +84,12 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		
 		/**
 		 * True if one of the neighbours of [col, row] is already occupied by
-		 * a tile
+		 * a tile that was placed in a previous move
 		 */
 		touchingOld(col, row) {
 			return (
-				(col > 0 && this.at(col - 1, row).tile && this.at(col - 1, row).tileLocked)
+				(col > 0 && this.at(col - 1, row).tile
+				 && this.at(col - 1, row).tileLocked)
 				|| (col < this.cols - 1 && this.at(col + 1, row).tile
 					&& this.at(col + 1, row).tileLocked)
 				|| (row > 0 && this.at(col, row - 1).tile
