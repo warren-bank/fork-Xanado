@@ -5,9 +5,7 @@
 define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition", "game/Player", "dawg/Dictionary", 'game/Square', 'game/Tile', 'game/Rack', 'game/Move', 'game/Turn', "game/findBestPlay"/*Controller"*/ ], (GenKey, Board, Bag, LetterBag, Edition, Player, Dictionary, Square, Tile, Rack, Move, Turn, findBestPlay) => {
 
 	/**
-	 * The Game object could be used server or browser side, but in the
-	 * event is only used on the server, which is responsible for management
-	 * of all the active games.
+	 * The Game object may be used server or browser side.
 	 */
 	class Game {
 
@@ -74,18 +72,8 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		}
 
 		/**
-		 * Cancel current timeout
-		 */
-		stopTimeout() {
-			if (this.timer) {
-				clearTimeout(this.timer);
-				delete this.timer;
-				this.nextTimeout = 0;
-			}
-		}
-
-		/**
 		 * Used for testing only.
+		 * @param sboard string representation of a game board (@see game/Board)
 		 * @return Promise that resolves to this
 		 */
 		loadBoard(sboard) {
@@ -96,7 +84,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 		/**
 		 * Get the edition for this game, lazy-loading as necessary
-		 * @return Promise resolving to an Edition
+		 * @return Promise resolving to an Edition.
 		 */
 		getEdition() {
 			return Edition.load(this.edition);
@@ -116,7 +104,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 		/**
 		 * Set a play timeout for the player if the game time limit is set
-		 * @return the clock time when the timeout will expire
+		 * @return the clock time when the timeout will expire.
 		 */
 		startTimeout(player) {
 			if (this.time_limit === 0)
@@ -130,21 +118,33 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			setTimeout(() => {
 				console.log(`${player.name} has timed out at ${Date.now()}`);
 				game.pass('timeout')
-				.then(r => game.updateGameState(player, r));
+				.then(turn => game.finishTurn(turn));
 			}, timeout + 10000);
 			this.nextTimeout = Date.now() + timeout;
 			return this.nextTimeout;
 		}
 
+		/**
+		 * Cancel current timeout
+		 */
+		stopTimeout() {
+			if (this.timer) {
+				clearTimeout(this.timer);
+				delete this.timer;
+				this.nextTimeout = 0;
+			}
+		}
+
+		/**
+		 * Determine when the last activity on the game happened. This
+		 * is either the last time a turn was processed, or the creation time.
+		 */
 		lastActivity() {
 			if (this.turns.length
-				&& this.turns[this.turns.length - 1].timestamp) {
+				&& this.turns[this.turns.length - 1].timestamp)
 				return new Date(this.turns[this.turns.length - 1].timestamp);
-			} else if (this.creationTimestamp) {
-				return new Date(this.creationTimestamp);
-			} else {
-				return new Date(0);
-			}
+
+			return new Date(this.creationTimestamp);
 		}
 
 		/**
@@ -180,6 +180,9 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			return this.board.at(col, row);
 		}
 
+		/**
+		 * Simple summary of the game, for console output
+		 */
 		toString() {
 			return `${this.key} game of ${this.players.length} players edition ${this.edition} dictionary ${this.dictionary}\n` + this.players;
 		}
@@ -192,7 +195,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		}
 
 		/**
-		 * Notify just one player
+		 * Send a message to just one player
 		 */
 		notifyPlayer(player, message, data) {
 			for (let socket of this.connections) {
@@ -202,7 +205,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		}
 
 		/**
-		 * Broadcast to all players
+		 * Broadcast a message to all players
 		 */
 		notifyPlayers(message, data) {
 			this.connections.forEach(socket => {
@@ -212,8 +215,9 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 		/**
 		 * Get the player object for the player identified by the key
-		 * @param key the key to look up
-		 * @return the player object, or null if the player isn't found
+		 * @param playerKey the key to look up
+		 * @return a Promise that resolves to { game:, player: } if the
+		 * polayer is found.
 		 */
 		lookupPlayer(playerKey) {
 			let player = this.players.find(p => (p.key == playerKey));
@@ -228,8 +232,9 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 		/**
 		 * Check that the given player is in this game, and it's their turn.
-		 * Returned promise is rejected if it isn't the players turn or
-		 * the game is not playable
+		 * @param player a Player object
+		 * @return a Promise resolving to this game, rejected if it isn't
+		 * the players turn
 		 */
 		checkTurn(player) {
 			if (this.ended) {
@@ -238,25 +243,28 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			}
 
 			// determine if it is this player's turn
-			if (player !== this.players[this.whosTurn]) {
-				console.log(`not ${player.name}'s turn`);
-				return Promise.reject('error-not-your-turn');
-			}
-			return Promise.resolve(this, player);
+			if (player === this.players[this.whosTurn])
+				return Promise.resolve(this);
+
+			console.log(`not ${player.name}'s turn`);
+			return Promise.reject('error-not-your-turn');
 		}
 
 		/**
 		 * Wrap up after a command handler. Log the command, determine
 		 * whether the game has ended, save state and notify game
 		 * listeners.
+		 * @param turn a Turn object
+		 * @return a Promise that resolves when the game has been saved and
+		 * all players have been notified.
 		 */
-		updateGameState(player, turn) {
+		finishTurn(turn) {
 			turn.timestamp = Date.now();
 
 			// store turn log
 			this.turns.push(turn);
 
-			this.save()
+			return this.save()
 			.then(() => {
 				//console.log("Notify turn", turn);
 				this.notifyPlayers('turn', turn);
@@ -266,21 +274,17 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				if (this.ended) {
 					console.log("Game over", this.ended);
 					this.notifyPlayers('gameEnded', this.ended);
-				} else {
-					console.log(`Player ${this.whosTurn}'s turn`);
-					const p = this.players[this.whosTurn];
-					if (p.isRobot) {
-						// Play computer player(s)
-						this.autoplay(p)
-						.then(turn => {
-							console.log(`${p} played, updateGameState`);
-							this.updateGameState(p, turn);
-							// If we do this, computer turns are notified twice.
-							//this.notifyPlayers('turn', turn);
-						});
-					} else if (this.isConnected(p))
-						turn.timeout = this.startTimeout(p);
+					return;
 				}
+				console.log(`Player ${this.whosTurn}'s turn`);
+				const nextPlayer = this.players[this.whosTurn];
+				if (nextPlayer.isRobot) {
+					// Play computer player(s)
+					return this.autoplay(nextPlayer)
+					// May recurse if the player after is also a robot
+					.then(turn => this.finishTurn(turn));
+				} else if (this.isConnected(nextPlayer))
+					turn.timeout = this.startTimeout(nextPlayer);
 			});
 		}
 
@@ -335,7 +339,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			if (ageInDays > 14) {
 				console.log('Game timed out:',
 							this.players.map(({ name }) => name));
-				this.ended = { reason: 'timed out' };
+				this.ended = { reason: 'ended-timed-out' };
 				this.save();
 				return;
 			}
@@ -368,7 +372,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			return {
 				key: this.key,
 				edition: this.edition,
-				ended: this.ended ? true : false,
+				ended: this.ended,
 				dictionary: this.dictionary,
 				time_limit: this.time_limit,
 				players: this.players.map(player => player.catalogue(this)),
@@ -444,11 +448,11 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 			// determine whether the end has been reached
 			if (!this.players.find(p => p.passes < 2))
-				reason = 'log-all-passed-twice';
+				reason = 'ended-all-passed-twice';
 
 			else if (this.letterBag.isEmpty() &&
 					 this.players.find(p => p.rack.isEmpty()))
-				reason = 'log-game-over';
+				reason = 'ended-game-over';
 			else
 				return;
 
@@ -519,7 +523,6 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 					bestPlay = data;
 			})
 			.then(() => {
-				let play;
 				let hint = {
 					name: 'Dictionary'
 				};
@@ -696,7 +699,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 */
 		challenge() {
 			return this.getDictionary()
-			.catch(e => {
+			.catch(() => {
 				console.log("No dictionary, so challenge always succeeds");
 				return this.takeBack('challenge-won');
 			})

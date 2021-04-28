@@ -25,6 +25,10 @@
 	"button-add-player": "Add Player",
 	"button-email": "Email",
 	
+	"ended-all-passed-twice": "All players passed twice: $1",
+	"ended-game-over": "Game over: $1",
+	"ended-timed-out": "Timed out",
+
 	"error-create-failed": "`Failed to create game: $1",
 	"error-game-does-not-exist": "Game does not exist",
 	"error-game-has-ended": "Game has ended",
@@ -44,12 +48,10 @@
 	
 	"letterbag-remaining": "$1 {{PLURAL:$1|tile|tiles}} left in the bag",
 	"letterbag-empty": "The letterbag is empty",
-
-	"log-all-passed-twice": "all players passed twice",
+	
 	"log-turn": "$1's turn",
 	"log-move": "$1 ($2)",
 	"log-total": " total $1",
-	"log-timeout": "Timed out",
 	"log-pass": "Passed",
 	"log-swap": "Swapped $1 {{PLURAL:$1|tile|tiles}}",
 	"log-challenge-won": "Previous move challenged successfully!",
@@ -59,7 +61,6 @@
 	"log-gained-from-racks": "$1 gained $2 {{PLURAL:$2|point|points}} from the racks of the other players",
 	"log-lost-for-rack": "$1 lost $2 {{PLURAL:$2|point|points}} for a rack containing '$3'",
 	"log-game-started": "Game started",
-	"log-game-over": "Game over,",
 	"log-name-name": "$1 and $2",
 	"log-game-ended": "$1 {{PLURAL:$2|has|have}} won",
 	
@@ -77,8 +78,8 @@
 
 	"warn-server-disconnected": "Server disconnected, trying to reconnect",	
 	"game-description": "$1 player $2",
-	"game-using-dict": ", dictionary $1",
-	"game-time-limit": ", time limit $1 {{PLURAL:$2|minute|minutes}}",
+	"game-using-dict": "Dictionary $1",
+	"game-time-limit": "Time limit $1 {{PLURAL:$2|minute|minutes}}",
 	"game-ended": " (ended)",
 	"game-delete": "Delete",
 	"game-select-player": "Select your player above, or ",

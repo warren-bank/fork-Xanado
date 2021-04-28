@@ -41,6 +41,10 @@ button.player {
 	color: seagreen;
 }
 
+.winner {
+	color: #00FF00;
+}
+
 .hidden {
 	display: none;
 }

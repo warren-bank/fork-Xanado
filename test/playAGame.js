@@ -24,7 +24,7 @@ requirejs.config({
 requirejs(["platform/Platform", "game/Edition", "game/Tile", "game/Rack", "game/Square", "game/Player", "game/Game", "game/LetterBag", "game/Board", "game/Move"], (Platform, Edition, Tile, Rack, Square, Player, Game, LetterBag, Board, Move) => {
 
 	let db = new Platform.Database("test", "testgame");
-	let game = new Game("Tiny", "Custom_English");
+	let game = new Game("Tiny", "SOWPODS_English");
 	let gameKey = game.key;
 	let saver = game => {
 		console.log(`Saving game ${game.key}`);

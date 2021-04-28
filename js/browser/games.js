@@ -27,17 +27,35 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 
 	// Format an active game
 	function formatGame(game) {
-		let msg = $.i18n('game-description', game.players.length, game.edition);
-		let $p = $(`<div>${msg}</div>`);
-		if (game.dictionary)
-			$p.append($.i18n('game-using-dict', game.dictionary));
-		if (game.time_limit > 0)
-			$p.append($.i18n('game-time-limit', game.time_limit));
-		if (game.ended)
-			$p.append($.i18n('game-ended'));
-		game.players.map(player => $p.append(formatPlayer(game, player)));
+		const $p = $(`<div></div>`)
 
-		let $but = $(`<button class="deleteGame">${$.i18n('game-delete')}</button>`);
+		const msg = [ $.i18n('game-description',
+						   game.players.length, game.edition) ];
+		if (game.dictionary)
+			msg.push($.i18n('game-using-dict', game.dictionary));
+		if (game.time_limit > 0)
+			msg.push($.i18n('game-time-limit', game.time_limit));
+		if (game.ended) {
+			const info = game.ended;
+			let results;
+			if (info.players) {
+				results = info.players.map(p => {
+					const s = game.players[p.player].name +
+						  ':' + p.score;
+					if (p.score === info.winningScore)
+						return `<span class="winner">${s}</span>`;
+					else
+						return s;
+				}).join(', ');
+			}
+			msg.push($.i18n(info.reason, results));
+			$p.append(msg.join(", "));
+		} else {
+			$p.append(msg.join(", "));
+			game.players.map(player => $p.append(formatPlayer(game, player)));
+		}
+
+		const $but = $(`<button class="deleteGame">${$.i18n('game-delete')}</button>`);
 		$but.on('click', () => {
 			console.log(`Delete game ${game.key}`);
 			$.ajax({

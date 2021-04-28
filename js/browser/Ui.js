@@ -58,7 +58,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			.done(success)
 			.fail((jqXHR, textStatus, errorThrown) => {
 				console.error(`${command} returned error: ${textStatus} (${errorThrown})`);
-			});;
+			});
 		}
 
 		/**
@@ -419,6 +419,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 				$reconnectDialog = $('#problemDialog')
 				.text($.i18n('warn-server-disconnected'))
 				.dialog({ modal: true });
+				const ui = this;
 				setTimeout(() => {
 					ui.socket.emit('join', {
 						gameKey: this.game.key,
@@ -779,6 +780,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 		 * Process the response to a "makeMove" or "swap" command,
 		 * which replies with a list of tiles to be added to the
 		 * rack to replace those that were played.
+		 * TODO: messy, this ought to be handled in processTurn
 		 */
 		handleMoveResponse(data) {
 			console.debug('move response:', data);

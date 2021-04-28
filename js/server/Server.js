@@ -187,9 +187,9 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		/**
 		 * Load the game from the DB, if not already in server memory
 		 * @param key game key
-		 * @return a Promise to load the Game
+		 * @return a Promise that resolves to a loaded Game
 		 */
-		loadGame(key) {
+		async loadGame(key) {
 			if (this.games[key])
 				return Promise.resolve(this.games[key]);
 
@@ -211,19 +211,16 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 				this.games[key] = game;
 				console.log(`Loaded game ${game}`);
 
+				// May need to trigger several computer players until we
+				// get to a human
 				if (!game.ended) {
-					// May need to trigger computer players
-					const fp = game.players[game.whosTurn];
-					const what = fp.isRobot ? "robot" : "human";
-					console.log(`Next to play is ${what} ${fp}`);
-					if (fp.isRobot) {
-						// This is done asynchronously
-						return game.autoplay(fp)
-						.then(result => {
-							// updateGameState will cascade next robot player
-							game.updateGameState(fp, result);
-							return game;
-						});
+					const nextPlayer = game.players[game.whosTurn];
+					const what = nextPlayer.isRobot ? "robot" : "human";
+					console.log(`Next to play is ${what} ${nextPlayer}`);
+					if (nextPlayer.isRobot) {
+						return game.autoplay(nextPlayer)
+						// May autoplay next robot recursively
+						.then(turn => game.finishTurn(turn));
 					}
 				}
 
@@ -312,7 +309,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		 * Email reminders to next human player in each game
 		 */
 		handle_sendGameReminders() {
-			this.db.all((key, game) => game.emailTurnReminder(config));
+			this.db.all((key, game) => game.emailTurnReminder(this.config));
 		}
 
 		/**
@@ -511,13 +508,18 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 					throw Error(`unrecognized command: ${command}`);
 				}
 
-				return promise.then(result => {
-					game.updateGameState(player, result);
-					this.updateMonitors();
-					// Send something for Ui.handleMoveResponse
-					// This really only applies to swap and makeMove,
-					// as updateGameState sends info for other commands
-					res.send(Fridge.freeze(result.newTiles || []));
+				return promise.then(turn => {
+					game.finishTurn(turn)
+					.then(() => {
+						// Notify non-game monitors (games pages)
+						this.updateMonitors();
+						// Respond with the new tile list for the
+						// human player. This is only used for swap
+						// and makeMove, and other info (such as robot
+						// tile states) is sent using messaging.
+						// TODO: this is messy; mixed messaging.
+						res.send(Fridge.freeze(turn.newTiles || []));
+					});
 				});
 			})
 			.catch(e => this.trap(e, res));
