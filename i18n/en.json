@@ -62,9 +62,9 @@
 	"log-lost-for-rack": "$1 lost $2 {{PLURAL:$2|point|points}} for a rack containing '$3'",
 	"log-game-started": "Game started",
 	"log-name-name": "$1 and $2",
-	"log-game-ended": "$1 {{PLURAL:$2|has|have}} won",
+	"log-winner": "$1 {{PLURAL:$2|has|have}} won",
 	
-	"msg-no-play": "Can't find a play",
+	"hint-no-play": "Can't find a play",
 	"msg-hint": "Hint: $1 at row $2 column $3",
 	"msg-hinted": "$1 asked for a hint",
 	"msg-word-not-found": "$1 not found",

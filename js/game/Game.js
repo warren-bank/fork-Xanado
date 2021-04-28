@@ -21,7 +21,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			this.dictionary = dictionary;
 			this.players = [];
 			this.key = GenKey();
-			this.creationTimestamp = new Date().toISOString();
+			this.creationTimestamp = Date.now();
 			this.turns = [];
 			this.whosTurn = 0;
 			this.time_limit = 0; // never time out
@@ -138,13 +138,15 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		/**
 		 * Determine when the last activity on the game happened. This
 		 * is either the last time a turn was processed, or the creation time.
+		 * @return a time in epoch ms
 		 */
 		lastActivity() {
-			if (this.turns.length
-				&& this.turns[this.turns.length - 1].timestamp)
-				return new Date(this.turns[this.turns.length - 1].timestamp);
+			if (this.turns.length > 0) {
+				console.log(this.key,this.turns[this.turns.length - 1].timestamp,this.ended.winningScore);
+				return this.turns[this.turns.length - 1].timestamp;
+			}
 
-			return new Date(this.creationTimestamp);
+			return this.creationTimestamp;
 		}
 
 		/**
@@ -334,7 +336,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				return;
 
 			const ageInDays =
-				  (new Date() - this.lastActivity())
+				  (Date.now() - this.lastActivity())
 				  / 60000 / 60 / 24;
 			if (ageInDays > 14) {
 				console.log('Game timed out:',
@@ -376,7 +378,8 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				dictionary: this.dictionary,
 				time_limit: this.time_limit,
 				players: this.players.map(player => player.catalogue(this)),
-				nextToPlay: this.whosTurn
+				nextToPlay: this.whosTurn,
+				timestamp: this.lastActivity()
 			};
 		}
 

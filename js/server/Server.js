@@ -255,14 +255,18 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		 * @return a Promise
 		 */
 		handle_games(req, res) {
-			this.db.keys()
+			return this.db.keys()
 			.then(keys => keys.map(
 				key => this.db.get(key, Game.classes)))
-			.then(
-				promises =>	Promise.all(promises)
-				.then(games =>
-					  games.map(game => game.catalogue()))
-				.then(data => res.send(data)))
+			.then(promises => Promise.all(promises))
+			.then(games => games.map(
+				game => game.catalogue())
+				.sort((a, b) =>	a.timestamp > b.timestamp ? 1
+					  : a.timestamp < b.timestamp ? -1 : 0))
+			.then(data => {
+				console.log(data);
+				res.send(data);
+			})
 			.catch(e => this.trap(e, res));
 		}
 

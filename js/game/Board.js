@@ -302,9 +302,9 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 			let isTouchingOld = this.touchingOld(topLeftX, topLeftY);
 			let horizontal = false;
 			for (let col = topLeftX + 1; col < this.cols; col++) {
-				if (!this.at(col, topLeftY).tile) {
+				if (this.at(col, topLeftY).isEmpty())
 					break;
-				} else if (!this.at(col, topLeftY).tileLocked) {
+				if (!this.at(col, topLeftY).tileLocked) {
 					legalPlacements[col][topLeftY] = true;
 					horizontal = true;
 					isTouchingOld =
@@ -329,15 +329,18 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 
 			// Check whether there are any unconnected placements
 			let totalTiles = 0;
+			let disco = false;
 			this.forEachSquare((square, col, row) => {
 				if (square.tile) {
 					totalTiles++;
-					if (!square.tileLocked && !legalPlacements[col][row])
-						return 'warn-disconnected';
+					disco = disco || (!square.tileLocked && !legalPlacements[col][row]);
 				}
 			});
+			
+			if (disco)
+				return 'warn-disconnected';
 
-			if (totalTiles == 1)
+			if (totalTiles < 2)
 				return 'warn-at-least-two';
 
 			let move = new Move();

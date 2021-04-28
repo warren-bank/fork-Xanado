@@ -144,9 +144,9 @@ define("game/Square", ["platform/Platform"], Platform => {
 			else
 				$(`#${this.id}`).removeClass('Selected');
 			// Unused
-			$('#board td').removeClass('Targeted');
-			if (!this.tile)
-				$(`#${this.id}`).addClass('Targeted');
+			//$('#board td').removeClass('Targeted');
+			//if (!this.tile)
+			//	$(`#${this.id}`).addClass('Targeted');
 		}
 
 		/**

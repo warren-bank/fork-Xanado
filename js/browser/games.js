@@ -67,7 +67,7 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 				}
 			});
 		});
-		$p.append($but);
+		$p.append(' ').append($but);
 		return $p;
 	}
 

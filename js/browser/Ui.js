@@ -249,8 +249,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 
 			let has = (winners.length == 1 && !youWon) ? 1 : 2;
 			let $div = $("<div class='gameEnded'></div>");
-			$div.text($.i18n(info.reason) + " "
-					  + $.i18n('log-game-ended', who, has));
+			$div.text($.i18n(info.reason, $.i18n('log-winner', who, has)));
 
 			$('#log').append($div);
 
