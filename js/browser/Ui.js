@@ -635,26 +635,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 		}
 
 		/**
-		 * @param turn a Turn
-		 * Put the tiles placed in a turn into their correct sites on
-		 * the board for a player who is not this player.
-		 */
-		placeTurnTiles(turn) {
-			let player = this.game.players[turn.player];
-			for (let placement of turn.move.placements) {
-				let square = this.game.at(placement.col, placement.row);
-				square.placeTile(placement, true); // lock it down
-				// Highlight it as just placed
-				let $div = $(`#Board_${placement.col}x${placement.row}`);
-				$div.addClass("lastPlacement");
-				player.rack.removeTile(placement);
-			}
-			for (let newTile of turn.newTiles)
-				player.rack.addTile(newTile);
-		}
-
-		/**
-		 * Process a Turn object received to show the result of a move
+		 * Process a Turn object received to show the result of a
 		 * command.
 		 * @param turn a Turn
 		 */
@@ -667,10 +648,6 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			player.score += turn.deltaScore;
 			player.refreshDOM();
 			$(".lastPlacement").removeClass("lastPlacement");
-
-			// If this has been a move by another player, place tiles on board
-			if (turn.type == 'move' && !this.isPlayer(turn.player))
-				this.placeTurnTiles(turn);
 
 			switch (turn.type) {
 			case 'challenge-won':
@@ -727,6 +704,26 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 				break;
 
 			case 'move':
+				if (!this.isPlayer(turn.player)) {
+					// Put the tiles placed in a turn into place on
+					// the board for a player who is not this player.
+					for (let placement of turn.move.placements) {
+						let square = this.game.at(placement.col, placement.row);
+						player.rack.removeTile(placement);
+						square.placeTile(placement, true); // lock it down
+						// Highlight it as just placed
+						let $div = $(`#Board_${placement.col}x${placement.row}`);
+						$div.addClass("lastPlacement");
+					}
+				}
+
+				// Add new tiles to the rack once board placements are done
+				for (let newTile of turn.newTiles)
+					player.rack.addTile(newTile);
+
+				if (this.isPlayer(turn.player))
+					player.rack.refreshDOM();
+
 				// Shrink the bag by the number of placed tiles. This is purely
 				// to keep the counts in synch, we never use tiles taken
 				// from the bag on the client side.
@@ -773,25 +770,6 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			this.removeMoveActionButtons();
 			$('#move').empty();
 			this.lockBoard(true);
-		}
-
-		/**
-		 * Process the response to a "makeMove" or "swap" command,
-		 * which replies with a list of tiles to be added to the
-		 * rack to replace those that were played.
-		 * TODO: messy, this ought to be handled in processTurn
-		 */
-		handleMoveResponse(data) {
-			console.debug('move response:', data);
-			const newTiles = Fridge.thaw(data, Game.classes);
-
-			this.thisPlayer.rack.forEachSquare(square => {
-				if (newTiles.length && !square.tile) {
-					const tile = newTiles.pop()
-					square.placeTile(tile);
-					square.refreshDOM();
-				}
-			});
 		}
 
 		/**
@@ -866,9 +844,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 				square.refreshDOM();
 			}
 			this.placedCount = 0;
-			this.sendCommand('makeMove',
-							  move,
-							  data => this.handleMoveResponse(data));
+			this.sendCommand('makeMove', move);
 
 			this.enableNotifications();
 		}

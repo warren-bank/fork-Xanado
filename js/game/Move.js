@@ -4,7 +4,9 @@
 
 /**
  * A Move is a collection of tile Placements, and the total score achieved
- * for the move. We also record the words created by the move.
+ * for the move. We also record the words created by the move. It is
+ * used to send a human player's play to the server, which then responds
+ * with a turn (or several, if robots are playing)
  */
 define("game/Move", () => {
 

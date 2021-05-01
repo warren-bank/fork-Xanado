@@ -141,10 +141,8 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * @return a time in epoch ms
 		 */
 		lastActivity() {
-			if (this.turns.length > 0) {
-				console.log(this.key,this.turns[this.turns.length - 1].timestamp,this.ended.winningScore);
+			if (this.turns.length > 0)
 				return this.turns[this.turns.length - 1].timestamp;
-			}
 
 			return this.creationTimestamp;
 		}
