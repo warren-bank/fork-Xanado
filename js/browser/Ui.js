@@ -190,6 +190,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 					.append($.i18n('log-same-players'));
 				$('#log').append($ngb);
 			}
+			this.scrollLogToEnd(300);
 		}
 
 		/**
