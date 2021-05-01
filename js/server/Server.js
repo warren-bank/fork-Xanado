@@ -263,10 +263,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 				game => game.catalogue())
 				.sort((a, b) =>	a.timestamp > b.timestamp ? 1
 					  : a.timestamp < b.timestamp ? -1 : 0))
-			.then(data => {
-				console.log(data);
-				res.send(data);
-			})
+			.then(data => res.send(data))
 			.catch(e => this.trap(e, res));
 		}
 
