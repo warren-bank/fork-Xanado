@@ -12,6 +12,23 @@
 
 button {
     font-size: 1.2em;
+	padding: 0;
+}
+
+.crossword-icon {
+    margin: 2px;
+    background-size: 100% 100%;
+    background-position: center;
+	margin-top: -15px !important;
+	margin-left: -15px !important;
+	width: 32px !important;
+	height: 32px !important;
+}
+
+.blockTitle {
+	font-size: 1em;
+	font-weight: bold;
+	color: brown;
 }
 
 /* Wrap around a rack or board table */
@@ -37,9 +54,8 @@ div.container {
 /* Div that wraps all the individual control panels */
 #controls {
     float: left;
-    margin: 1em;
-    margin-top: 2em;
-    width: 19.5em;
+    margin-top: 1em;
+    width: 20em;
 }
 
 #controls > div {
@@ -64,19 +80,28 @@ div.container {
 }
 
 /* The #controls > div with the scores and letter bag state */
-#scoreboard {
+#scoresBlock {
     min-height: 4em;
 }
 
-#scoreboard td.online {
+#scoresBlock td.online {
     color: green;
 }
 
-#scoreboard td.offline {
-    color: red;
+#scoresBlock td.offline {
+    color: #FF0000;
 }
 
-/* The #scoreboard > div that has the letter bag status */
+#scoresBlock .myTurn {
+	visibility: hidden;
+	color: green;
+}
+
+#scoresBlock tr.whosTurn td.myTurn {
+	visibility: inherit;
+}
+
+/* The #scoresBlock > div that has the letter bag status */
 #letterbagStatus {
 }
 
@@ -85,64 +110,63 @@ div.container {
 }
 
 /* The #controls > div with the swap rack and turn control buttons */
-#turnControls {
+#yourPlayBlock {
     display: none;
 }
 
-/* #turnControls > div showing the proposed move */
+/* #yourPlayBlock > div showing the proposed move */
 #move {
     margin-bottom: 0.5em;
 }
 
 /* The #controls > div with the chat */
-#chat {
-    height: 10.2em;
+#chatBlock {
+    max-height: 11em;
 }
 
-/* #chat > div chat message display */
-#chatLog {
-    font-size: 0.8em;
+/* #chatBlock > div chat message display */
+#chatMessages {
     overflow: auto;
     margin-left: 5%;
-    border-width: 1em;
-    width: 98%;
-    height: 9em;
+	max-height: 7em;
 }
 
-/* #chat > div chat message capture */
-#messageInput {
-    margin-top: 1em;
+/* #chatBlock > div chat message capture */
+#chatInput {
+    margin-top: 0.25em;
     width: 100%;
 }
 
-#messageInput input {
+#chatInput input {
     width: 95%;
 }
 
-/* The #controls div with the game events log */
-#log {
+/* The #log > div with the game events log */
+#logMessages {
+	font-size: 0.8em;
     height: 14em;
     overflow: auto;
 }
 
-#log span.score {
+#logMessages .score {
     padding-left: 0.5em;
 }
 
-#log .moveDetail {
-    margin-left: 4em;
+#logMessages .moveDetail {
+    margin-left: 2em;
 }
 
-#log > div {
+#logMessages > div {
     margin-top: 0.4em;
 }
 
-#log > div > div {
+#log Messages> div > div {
     margin-top: 0.2em;
 }
 
 /* #rack > div, the rack with buttons used to control it */
 #rackControls {
+	margin-top: 0.5em;
 	width: 100%;
 	height: 5em;
 	text-align: center;
@@ -163,6 +187,19 @@ div.container {
 
 #takeBackButton {
     visibility: hidden;
+}
+
+.ui-button-icon-only {
+	width: 45px;
+	height: 45px;
+}
+
+.shuffle-icon {
+	background-image: url(../images/shuffle.png) !important;
+}
+
+.take-back-icon {
+	background-image: url(../images/take-back.png) !important;
 }
 
 /* Blank letter requester dialog */
@@ -207,9 +244,6 @@ div.tableDivWrap table {
     border-width: 0.2em;
     border-style: solid;
     border-color:  #54534A;
-
-    margin-top: 1em;
-    margin-bottom: 1em;
 
     padding: 0.2em;
 
@@ -596,4 +630,16 @@ div.tableDivWrap td.ValidButWrongPlacement {
 
 .lastPlacement {
 	background-color: #E2E298!important;
+}
+
+.playerName {
+	font-weight: bold;
+}
+
+.word {
+	font-style: italic
+}
+
+.wordScore {
+	font-size: 0.75em;
 }
