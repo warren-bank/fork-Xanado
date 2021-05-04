@@ -4,16 +4,17 @@
  * User interface to a game in a browser
  */
 const uideps = [
-	"jqueryui",
-	"cookie",
 	"socket.io",
 	"game/Fridge",
 	"game/Tile",
 	"game/Bag",
 	"game/Rack",
-	"game/Game" ];
+	"game/Game",
+	"jqueryui",
+	"cookie",
+	"browser/icon_button" ];
 
-define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) => {
+define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 	class Ui {
 
@@ -66,8 +67,8 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 		 * @param speed animation duration in ms
 		 */
 		scrollLogToEnd(speed) {
-			$('#log').animate({
-				scrollTop: $('#log').prop('scrollHeight')
+			$('#logMessages').animate({
+				scrollTop: $('#logMessages').prop('scrollHeight')
 			}, speed);
 		}
 
@@ -123,8 +124,8 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 		appendTurnToLog(turn) {
 			const player = this.game.players[turn.player];
 			const $scorediv = $("<div class='score'></div>");
-			const mess = $.i18n('log-turn', player.name);
-			$scorediv.append(`<span class='playerName'>${mess}</span>`);
+			const pn = `<span class='playerName'>${player.name}</span>`;
+			$scorediv.append($.i18n('log-turn', pn));
 
 			const $div = $("<div class='moveScore'></div>");
 			$div.append($scorediv);
@@ -138,9 +139,11 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 					let ws = 0;
 					let sum = 0;
 					for (let word of turn.move.words) {
-						$detail.append(
-							$.i18n('log-move', word.word, word.score))
-						.append(' ');
+						$detail
+						.append(`<span class="word">${word.word}</span>`)
+						.append(' (')
+						.append(`<span class="wordScore">${word.score}</span>`)
+						.append(') ');
 						ws++;
 						sum += word.score;
 					}
@@ -163,7 +166,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 				throw Error(`Unknown move type ${turn.type}`);
 			}
 			$div.append($detail);
-			$('#log').append($div);
+			$('#logMessages').append($div);
 		}
 
 		/**
@@ -178,7 +181,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 				$a.attr(
 					"href", `/game/${nextGameKey}/${$.cookie(this.game.key)}`);
 				$a.append($but);
-				$('#log').append($a);
+				$('#logMessages').append($a);
 				$('#makeNextGame').remove();
 			} else {
 				$but.text($.i18n('button-another-game'));
@@ -188,7 +191,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 					.append($but)
 					.append(" ")
 					.append($.i18n('log-same-players'));
-				$('#log').append($ngb);
+				$('#logMessages').append($ngb);
 			}
 			this.scrollLogToEnd(300);
 		}
@@ -229,7 +232,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 						-playerState.tally,
 						playerState.tilesLeft.join(',')));
 				}
-				$('#log').append($gsd);
+				$('#logMessages').append($gsd);
 				player.refreshDOM();
 			});
 
@@ -252,7 +255,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			let $div = $("<div class='gameEnded'></div>");
 			$div.text($.i18n(info.reason, $.i18n('log-winner', who, has)));
 
-			$('#log').append($div);
+			$('#logMessages').append($div);
 
 			this.logNextGameMessage(info.nextGameKey);
 		}
@@ -263,20 +266,26 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 		 * with supplied message args
 		 */
 		chatMessage(message) {
-			// If $.i18n doesn't find a trnaslation, it will simply
-			// return the message
 			let args = [ message.text ];
 			if (typeof message.args === "string")
 				args.push(message.args);
 			else if (message.args instanceof Array)
 				args = args.concat(message.args);
-			const msg = $.i18n.apply(null, args);
+			let msg = $.i18n.apply(null, args);
+			msg = `<span class="chatMessage">${msg}</span>`;
 			console.debug(`Server: Message ${msg}`);
-			// Chat received
-			let $mess = $(`<div><span class='name'>${message.name}</span>: ${msg}</div>`);
-			$('#chatLog')
+
+			const sender = /^msg-/.test(message.sender)
+				  ? $.i18n(message.sender) : message.sender;
+
+			const pn = `<span class='playerName'>${sender}</span>`;
+
+			let $mess = $(`<div>${pn}: ${msg}</div>`);
+			$('#chatMessages')
 			.append($mess)
-			.animate({ scrollTop: $('#chatLog').prop('scrollHeight') }, 100);
+			.animate({
+				scrollTop: $('#chatMessages').prop('scrollHeight')
+			}, 100);
 
 			if (message.name != this.thisPlayer.name)
 				this.notify(message.name, msg);
@@ -286,14 +295,18 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 		 * Show who's turn it is
 		 */
 		updateWhosTurn(whosTurn) {
-			let $wt = $('#whosturn');
+			$("tr.whosTurn").removeClass("whosTurn");
+			$(`#player${whosTurn}`).addClass("whosTurn");
+
 			if (this.isPlayer(whosTurn)) {
-				$wt.text($.i18n('turn-yours'));
-				$('#turnControls').css('display', 'block');
+				//let $wt = $('#whosturn');
+				//$wt.text($.i18n('turn-yours'));
+				$('#yourPlayBlock').css('display', 'block');
 			} else {
-				$wt.text($.i18n('turn-theirs',
-								this.game.players[whosTurn].name));
-				$('#turnControls').css('display', 'none');
+				//let $wt = $('#whosturn');
+				//$wt.text($.i18n('turn-theirs',
+				//				this.game.players[whosTurn].name));
+				$('#yourPlayBlock').css('display', 'none');
 			}
 		}
 
@@ -307,10 +320,10 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			if (remains > 0) {
 				const mess = $.i18n('letterbag-remaining', remains);
 				$('#letterbagStatus').html(`<div>${mess}</div>`);
-				$('#scoreboard td.remainingTiles').empty();
+				$('#scoresBlock td.remainingTiles').empty();
 			} else {
 				$('#letterbagStatus').text($.i18n('letterbag-empty'));
-				const countElements = $('#scoreboard td.remainingTiles');
+				const countElements = $('#scoresBlock td.remainingTiles');
 				this.game.players.forEach(
 					(player, i) =>
 					$(countElements[i]).text(`(${player.rack.squaresUsed()})`));
@@ -340,7 +353,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			this.thisPlayer = this.game.getPlayerFromKey(playerKey);
 
 			let $players = this.game.createPlayerTableDOM(this.thisPlayer);
-			$("#scoreboard").append($players);
+			$("#playerTable").append($players);
 
 			const $board = this.game.board.createDOM();
 			$('#board').append($board);
@@ -353,7 +366,7 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			this.swapRack.refreshDOM();
 
 			const gs = $.i18n('log-game-started');
-			$('#log').append(`<p class='gameStart'>${gs}</p>`);
+			$('#logMessages').append(`<p class='gameStart'>${gs}</p>`);
 
 			for (let turn of game.turns)
 				this.appendTurnToLog(turn);
@@ -377,8 +390,26 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 					this.addTakeBackPreviousButton(lastTurn);
 			}
 
-			$("#shuffleButton").on('click', () => this.shuffleRack());
-			$("#takeBackButton").on('click', () => this.takeBackTiles());
+			$('#shuffleButton').button({
+				showLabel: false,
+				icon: 'shuffle-icon',
+				title: $.i18n("button-shuffle"),
+				classes: {
+					'ui-button-icon': 'crossword-icon'
+				}
+			})
+			.on('click', () => this.shuffleRack());
+			
+			$("#takeBackButton").button({
+				showLabel: false,
+				icon: 'take-back-icon',
+				title: $.i18n("button-take-back"),
+				classes: {
+					'ui-button-icon': 'crossword-icon'
+				}				
+			})
+			.on('click', () => this.takeBackTiles());
+
 			$("#turnButton").on('click', () => this.makeMove());
 		}
 
@@ -463,12 +494,15 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			});
 
 			let ui = this;
-			$('input[name=message]')
+			$('#chatInput input')
 			.on('change', function() {
 				// Send chat
 				ui.socket.emit(
 					'message',
-					{ name: ui.thisPlayer.name, text: $(this).val() });
+					{
+						sender: ui.thisPlayer.name,
+						text: $(this).val()
+					});
 				$(this).val('');
 			});
 
@@ -596,10 +630,15 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 					$('#move').append($.i18n(move));
 					$('#turnButton').attr('disabled', 'disabled');
 				} else {
-					const $score = $(`<div>score: ${move.score}</div>`);
-					$('#move').append($score);
-					for (const word of move.words)
-						$('#move').append(`<div>${word.word} ${word.score}</div>`);
+					for (const word of move.words) {
+						$('#move')
+						.append(`<span class="word">${word.word}</span>`)
+						.append(' (')
+						.append(`<span class="wordScore">${word.score}</span>`)
+						.append(') ');
+					}
+					const total = $.i18n("log-total", move.score);
+					$('#move').append(`<span class="totalScore">${total}</span>`);
 					$('#turnButton').removeAttr('disabled');
 				}
 
@@ -781,7 +820,8 @@ define("browser/Ui", uideps, (jq, ck, socket_io, Fridge, Tile, Bag, Rack, Game) 
 			let $button =
 				$(`<div><button class='moveAction'>${label}</button></div>`);
 			$button.click(() => this[action]());
-			$('#log div.moveScore').last().append($button);
+			$('#logMessages div.moveScore').last().append($button);
+			this.scrollLogToEnd(300);
 		}
 
 		/**

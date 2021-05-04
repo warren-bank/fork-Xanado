@@ -43,11 +43,14 @@
         <div id="letters" class="tableDivWrap" style="display:none;"></div>
       </div>
 	  <div id="controls">
-        <div><span id="whosturn"></span></div>
-        <div id="scoreboard">
+        <div id="scoresBlock">
+		  <div class="blockTitle" data-i18n="block-scores"></div>
+		  <div id="playerTable"></div>
 		  <div id='letterbagStatus'></div>
+          <!--div id="whosturn"></div-->
 		</div>
-        <div id="turnControls">
+        <div id="yourPlayBlock">			
+		  <div class="blockTitle" data-i18n="block-your-play"></div>
 		  <div id="move"></div>
 		  <div id="swapRack" class="tableDivWrap bottomShade">
 		  </div>
@@ -55,15 +58,14 @@
 			<button id='turnButton' data-action='pass' data-i18n="button-pass"></button>
 		  </div>
         </div>          
-        <div id="chat">
-		  <div id="chatLog">
-            <div>Chat</div>
-		  </div>
-		  <div id="messageInput">
-            <input name="message"/>
-		  </div>
+        <div id="chatBlock">
+          <div class="blockTitle" data-i18n="block-chat"></div>
+		  <div id="chatMessages"></div>
+		  <div id="chatInput"><input/></div>
         </div>
-        <div id="log"></div>
+        <div id="logBlock">
+          <div class="blockTitle" data-i18n="block-log"></div>
+		  <div id="logMessages"></div>
 	  </div>
 	  <!-- blank letter request dialog -->
       <div id="blankDialog" class="hidden">
