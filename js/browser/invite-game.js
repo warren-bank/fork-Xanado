@@ -288,7 +288,7 @@ requirejs(["browserApp"], browserApp => {
 			})
 			.fail(e => {
 				$('#problemDialog')
-				.text($.i18n('error-create-failed', e.responseText))
+				.text($.i18n('error-create-failed', e.responseText || e.state()))
 				.dialog();
 			});
 			return true;

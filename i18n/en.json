@@ -34,7 +34,7 @@
 	"ended-game-over": "Game over: $1",
 	"ended-timed-out": "Timed out",
 
-	"error-create-failed": "`Failed to create game: $1",
+	"error-create-failed": "Failed to create game: $1",
 	"error-game-does-not-exist": "Game does not exist",
 	"error-game-has-ended": "Game has ended",
 	"error-need-human": "At least one player must be a human",
