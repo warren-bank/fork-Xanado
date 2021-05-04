@@ -13,6 +13,11 @@
 	"DoubleLetter": "DOUBLE LETTER SCORE",
 	"Normal": " ",
 
+	"block-scores": "Scores",
+	"block-chat": "Chat",
+	"block-your-play": "Your play",
+	"block-log": "Log",
+
 	"button-another-game": "Another game",
 	"button-challenge": "Challenge last move",
 	"button-get-tiles": "Take back",
@@ -47,7 +52,7 @@
 	"h3-time-limit": "Time limit",
 	
 	"letterbag-remaining": "$1 {{PLURAL:$1|tile|tiles}} left in the bag",
-	"letterbag-empty": "The letterbag is empty",
+	"letterbag-empty": "The letter bag is empty",
 	
 	"log-turn": "$1's turn",
 	"log-move": "$1 ($2)",
@@ -63,11 +68,15 @@
 	"log-game-started": "Game started",
 	"log-name-name": "$1 and $2",
 	"log-winner": "$1 {{PLURAL:$2|has|have}} won",
-	
-	"hint-no-play": "Can't find a play",
-	"msg-hint": "Hint: $1 at row $2 column $3",
+
+	"msg-advisor": "Advisor",
 	"msg-hinted": "$1 asked for a hint",
-	"msg-word-not-found": "$1 not found",
+	"msg-word-not-found": "$1 not found in $2",
+	"msg-enabled": "enabled",
+	"msg-disabled": "disabled",
+	"msg-hint": "Hint: $1 at row $2 column $3 for $4",
+	"msg-advice": "$1 at row $2 column $3 would have scored $4",
+	"msg-no-play": "Can't find a play",
 
 	"option-none": "None",
 	
@@ -85,7 +94,7 @@
 	"game-select-player": "Select your player above, or ",
 	"name-human-player": "Human",
 	"name-robot-player": "Robot",
-	"name-new-player": "New Player",
+	"name-new-player": "Player $1",
 	"warn-centre-must-be-used": "Centre must be used",
 	"warn-disconnected": "Disconnected placement",
 	"warn-at-least-two": "First word must be at least two tiles",
