@@ -510,11 +510,11 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		}
 
 		/**
-		 * Handler for /cheat message. This is NOT a turn handler
+		 * Handler for 'hint' message. This is NOT a turn handler
 		 * Calculate a play for the given player
 		 */
-		cheat(player) {
-			console.log(`Player ${player.name} is cheating`);
+		hint(player) {
+			console.log(`Player ${player.name} asked for a hint`);
 
 			let bestPlay = null;
 			findBestPlay(this, player.rack.tiles(), data => {
@@ -525,23 +525,25 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			})
 			.then(() => {
 				let hint = {
-					name: 'Dictionary'
+					sender: 'msg-advisor'
 				};
 				if (!bestPlay)
-					hint.text = 'hint-no-play';
+					hint.text = 'msg-no-play';
 				else {
 					console.log(bestPlay);
 					const start = bestPlay.placements[0];
 					hint.text = 'msg-hint';
 					const words = bestPlay.words.map(w => w.word).join(',');
-					hint.args = [ words, start.row + 1, start.col + 1 ];
+					hint.args = [
+						words, start.row + 1, start.col + 1, bestPlay.score
+					];
 				}
 				// Tell the player the hint
 				this.notifyPlayer(player, 'message', hint);
 				
 				// Tell *everyone* who asked for a hint
 				this.notifyPlayers('message', {
-					name: 'Dictionary',
+					sender: 'msg-advisor',
 					text: 'msg-hinted',
 					args: [ player.name ]
 				});
@@ -550,8 +552,44 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				console.log('Error', e);
 				this.notifyPlayers(
 					'message', {
-						name: 'Dictionary',
+						sender: 'msg-advisor',
 						text: e.toString() });
+			});
+		}
+
+		/**
+		 * Advise player as to what better play they might have been
+		 * able to make.
+		 * @param player a Player
+		 * @param theirScore score they got from their play
+		 */
+		advise(player, theirScore) {
+			console.log(`Computing advice for ${player.name} > ${theirScore}`);
+
+			let bestPlay = null;
+			return findBestPlay(this, player.rack.tiles(), data => {
+				if (typeof data === "string")
+					console.log(data);
+				else
+					bestPlay = data;
+			})
+			.then(() => {
+				if (bestPlay && bestPlay.score > theirScore) {
+					console.log(`Better play found for ${player.name}`);
+					const start = bestPlay.placements[0];
+					const words = bestPlay.words.map(w => w.word).join(',');
+					const advice = {
+						sender: 'msg-advisor',
+						text: 'msg-advice',
+						args: [	words, start.row + 1, start.col + 1,
+								bestPlay.score ]
+					};
+					this.notifyPlayer(player, 'message', advice);
+				} else
+					console.log(`No better plays found for ${player.name}`);
+			})
+			.catch(e => {
+				console.log('Error', e);
 			});
 		}
 
@@ -560,12 +598,16 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * @param move a Move
 		 * @return a Promise resolving to a Turn
 		 */
-		makeMove(move) {
+		async makeMove(move) {
 			const player = this.players[this.whosTurn];
 			this.stopTimeout();
 
 			console.log(`makeMove player ${player.index} `, move.toString());
 			console.log(`Player's rack is ${player.rack}`);
+
+			// Fire up a thread to generate advice
+			if (player.wantsAdvice)
+				await this.advise(player, move.score);
 
 			let game = this;
 
@@ -600,9 +642,9 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 						this.notifyPlayer(
 							player, 'message',
 							{
-								name: this.dictionary,
+								sender: 'msg-advisor',
 								text: 'msg-word-not-found',
-								args: w.word
+								args: [ w.word, dict.name ]
 							});
 					}
 				}
@@ -771,9 +813,9 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			}
 
 			console.log(`Create game to follow ${this.key}`);
-			// re-order players so last winner starts
+			// re-order players so they play in score order
 			const newPlayers = this.players.slice().sort((a, b) => {
-				return a.score > b.score ? 1 : a.score == b.score ? 0 : 1;
+				return a.score > b.score ? -1 : a.score < b.score ? 1 : 0;
 			}).map(p => new Player(p));
 			return new Game(this.edition, this.dictionary).create()
 			.then(newGame => {

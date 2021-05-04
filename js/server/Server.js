@@ -25,8 +25,8 @@ const main_deps = [
 	'game/Player',
 	'game/Edition',
 
-	"game/findBestPlay"];
-//	"game/findBestPlayController"];
+//	"game/findBestPlay"]; // when debugging, use this
+	"game/findBestPlayController"];
 
 define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Platform, Fridge, Game, Player, Edition, findBestPlay) => {
 
@@ -176,9 +176,19 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 
 				.on('message', message => {
 					console.log(message);
-					if (message.text === '/cheat')
-						socket.game.cheat(socket.player);
-					else
+					if (message.text === 'hint')
+						socket.game.hint(socket.player);
+					else if (message.text === 'advise') {
+						socket.player.wantsAdvice = !socket.player.wantsAdvice;
+						socket.game.notifyPlayer(
+							socket.player, 'message',
+							{
+								sender: "msg-advisor",
+								text: 'msg-'
+								+ (socket.player.wantsAdvice
+								   ? 'enabled' : 'disabled')
+							});
+					} else
 						socket.game.notifyPlayers('message', message);
 				});
 			});

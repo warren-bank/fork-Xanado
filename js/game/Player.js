@@ -26,14 +26,17 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 			}
 			this.name = name;
 			this.score = 0;
-			// Index of the player in the game, assigned when the
-			// player joins a game
+			// Index of the player in the game, assigned when they
+			// join a game
 			this.index = -1;
 			// Player doesn't have a rack until they join a game, as
 			// it's only then we know how big it has to be.
 			this.rack = null;
 			// Number of times this player has passed (or swapped)
 			this.passes = 0;
+			// Set true to advise player of better plays than the one
+			// they used
+			this.wantsAdvice = false;
 			//console.log("Created",this);
 		}
 
@@ -104,11 +107,12 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 		}
 
 		createScoreDOM(thisPlayer) {
-			const $tr = $(`<tr class='player${this.index}'></tr>`);
+			const $tr = $(`<tr id='player${this.index}'></tr>`);
+			$tr.append(`<td class='myTurn'>&#10148;</td>`);
 			const who = thisPlayer.key === this.key
 				? $.i18n('You')
 				: this.name;
-			$tr.append(`<td class='name'>${who}</td>`);
+			$tr.append(`<td class='playerName'>${who}</td>`);
 			$tr.append("<td class='remainingTiles'></td>");
 			this.$status = $(`<td class='status offline'>${BLACK_CIRCLE}</td>`);
 			$tr.append(this.$status);
