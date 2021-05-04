@@ -21,15 +21,38 @@ requirejs(["browserApp"], browserApp => {
 		position: { at: "right center"}
 	};
 
+	let addressBook;
+
 	function haveRobots() {
 		return $(".isRobot:checked").length > 0;
 	}
 
+	// Validate fields to determine if Create Game can be enabled
 	function validate() {
 		console.log(`Validate edition ${$("#edition").val()} dictionary ${$("#dictionary").val()}`);
+
+		let playerNamesUnique = true;
+		$(".duplicate").removeClass("duplicate");
+		const playerNames = [];
+		$("#players > div").each(function() {
+			const $name = $(this).find('input.name');
+			const name = $name.val();
+			if (playerNames.indexOf(name) >= 0) {
+				$name.addClass("duplicate");
+				playerNamesUnique = false;
+			}
+			playerNames.push(name);
+		});
+
+		if (!playerNamesUnique)
+			$('#problemDialog')
+			.text($.i18n('error-unique'))
+			.dialog();
+
 		$('#createGameButton').prop(
 			"disabled",
-			$("#dictionary").val() == "none" && haveRobots()
+			!playerNamesUnique
+			|| $("#dictionary").val() === "none" && haveRobots()
 			|| !$("#edition").val());
 	}
 
@@ -67,7 +90,8 @@ requirejs(["browserApp"], browserApp => {
 		}
 	}
 
-	function addPlayer(name, isRobot, email) {
+	// Add a player to the game
+	function createPlayerDOM(name, isRobot, email) {
 		const $div = $('<div class="player"></div>');
 		const $isRobot = $('<input type="checkbox" class="isRobot"/>');
 		$isRobot.on("change", function() {
@@ -112,8 +136,20 @@ requirejs(["browserApp"], browserApp => {
 		}
 
 		const $input = $(`<input type="text" class="name" size="10" value="${name}"/>`);
-		$input.attr("title", $.i18n('tooltip-name'));
-		$input.tooltip(MORETIPS);
+		$input
+		.attr("title", $.i18n('tooltip-name'))
+		.tooltip(MORETIPS)
+		.autocomplete({
+			source: addressBook.map(entry => entry.name)
+		})
+		.blur(function () {
+			const entry = lookupName(addressBook, $(this).val());
+			if (entry) {
+				$(this).siblings('.isRobot').val(entry.isRobot);
+				$(this).siblings('.email').val(entry.email);
+			}
+			validate();
+		});
 
 		$div
 		.append($.i18n('prompt-name'))
@@ -128,7 +164,26 @@ requirejs(["browserApp"], browserApp => {
 		$("#players").append($div);
 	}
 
+	// Handle a click on "Add Player"
+	function inventPlayer() {
+		const playerNames = [];
+		$("#players > div").each(function() {
+			playerNames.push($(this).find('input.name').val());
+		});
+
+		// Choose a unique name
+		let idx = playerNames.length + 1;
+		let pn;
+		do
+			pn = $.i18n('name-new-player', idx++);
+		while (playerNames.indexOf(pn) >= 0);
+
+		createPlayerDOM(pn, false);
+	}
+
 	browserApp.then(() => {
+
+		addressBook = loadAddressBook();
 
 		$.i18n();
 
@@ -156,19 +211,6 @@ requirejs(["browserApp"], browserApp => {
 			});
 		});
 		
-		const addressBook = loadAddressBook();
-		$('input.name')
-		.autocomplete({
-			source: addressBook.map(entry => entry.name)
-		})
-		.blur(function () {
-			const entry = lookupName(addressBook, $(this).val());
-			if (entry) {
-				$(this).siblings('.isRobot').val(entry.isRobot);
-				$(this).siblings('.email').val(entry.email);
-			}
-		});
-
 		$('form').on('keyup keypress', function(e) {
 			var keyCode = e.keyCode || e.which;
 			if (keyCode === 13) { 
@@ -177,36 +219,26 @@ requirejs(["browserApp"], browserApp => {
 			}
 		});
 
-		$("#playerDialog .isRobot")
-		.on("change", function() {
-			if (this.checked)
-				$("#playerDialog > dlg_email").hide();
-			else
-				$("#playerDialog > dlg_email").show();
-		});
+		// Create default players, Human and Robot
+		createPlayerDOM($.i18n('name-human-player'), false);
+		createPlayerDOM($.i18n('name-robot-player'), true);
 
-		$("#addPlayer")
-		.on("click", () => addPlayer($.i18n('name-new-player'), false));
+		// Button to add additional players
+		$("#addPlayer").on("click", () => inventPlayer());
 
-		addPlayer($.i18n('name-human-player'), false);
-		addPlayer($.i18n('name-robot-player'), true);
-
-		// Using tooltips with a selectmenu is horrible. Applying tooltip()
-		// to the select is useless, you have to apply it to the span that
-		// covers the select. However this span is not created until some
-		// indeterminate time in the future, and there is no event triggered.
-		// The alternative is to create the selectmenu now, but doing so blows
-		// away the browser's memory of previous selections, which we want.
-		//$("select")
-		//.selectmenu()
-		//.each(function() {
-		//	$(`#${this.id}-button`).attr("data-tooltip", $(this).data('tooltip'));
-		//});
-
-		// Instead, initialise the "title" attribute from the data-tooltip...
+		// Using tooltips with a selectmenu is horrible. Applying
+		// tooltip() to the select is useless, you have to apply it to
+		// the span that covers the select. However this span is not
+		// created until some indeterminate time in the future, and
+		// there is no event triggered.  The alternative is to create
+		// the selectmenu now, but doing so blows away the browser's
+		// memory of previous selections, which we want. Instead, we
+		// have to brute-force initialise the "title" attribute from
+		// the data-tooltip...
 		$("select").each(function() {
 			$(this).attr("title", $.i18n($(this).data('tooltip')));
 		});
+
 		// ... and later, when the selectmenus have (hopefully) been created,
 		// map them to jquery tooltips.
 		setTimeout(() => {
@@ -219,7 +251,7 @@ requirejs(["browserApp"], browserApp => {
 		$("#dictionary").on("selectmenuchange", validate)
 		$("#edition").on("selectmenuchange", validate);
 
-		// Submit to create the game
+		// Create the game
 		$('#createGameButton')
 		.on('click', function() {
 			let data = {
@@ -232,14 +264,6 @@ requirejs(["browserApp"], browserApp => {
 				const isRobot = $(this).find('input.isRobot').prop("checked");
 				const email = $(this).find(`.email input`).val();
 
-				if (playerNames.indexOf(name) >= 0) {
-					event.stopPropagation();
-					event.preventDefault();
-					$('#problemDialog')
-					.text($.i18n('error-unique'))
-					.dialog();
-					return false;
-				}
 				playerNames.push(name);
 
 				rememberPlayer(addressBook, name, isRobot, email);

@@ -35,6 +35,11 @@ button#addPlayer {
 	margin-top: 0.25em;
 }
 
+.duplicate {
+	background-color: red;
+	color: white;
+}
+
 th {
 	text-align: right;
 	padding-right: 0.5em;
