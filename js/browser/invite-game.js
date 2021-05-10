@@ -257,7 +257,9 @@ requirejs(["browserApp"], browserApp => {
 			let data = {
 				edition: $("#edition").val(),
 				dictionary: $("#dictionary").val(),
-				players: [] };
+				time_limit: $("#time_limit").val(),
+				players: []
+			};
 			const playerNames = [];
 			$("#players > div").each(function() {
 				const name = $(this).find('input.name').val();

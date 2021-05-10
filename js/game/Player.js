@@ -69,6 +69,41 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 			console.log(`${this.name} is player ${this.index}`);
 		}
 
+		/**
+		 * Set a play timeout for the player if they haven't player before
+		 * time has elapsed
+		 * @param time number of ms before elapse, or 0 for no timeout
+		 * @param timedOut a function invoked if the timer expires
+		 */
+		startTimer(time, timedOut) {
+			this.stopTimer();
+
+			if (time === 0)
+				// No timeout, nothing to do
+				return;
+
+			this.timeoutAt = Date.now() + time;
+			console.log(`${this.name}'s go will time out in ${time/1000}s at ${new Date(this.timeoutAt)}`);
+
+			// Set an overriding timeout
+			this._timeoutTimer = setTimeout(() => {
+				this._timeoutTimer = null;
+				console.log(`${this.name} has timed out at ${Date.now()}`);
+				// Invoke the timeout function
+				timedOut();
+			}, time);
+		}
+
+		/**
+		 * Cancel current timeout
+		 */
+		stopTimer() {
+			if (this._timeoutTimer) {
+				clearTimeout(this._timeoutTimer);
+				this._timeoutTimer = null;
+			}
+		}
+
 		toString() {
 			let s = `${this.isRobot ? "Robot" : "Human"} player `;
 			if (this.index >= 0)

@@ -17,7 +17,6 @@
 	"block-chat": "Chat",
 	"block-your-play": "Your play",
 	"block-log": "Log",
-
 	"button-another-game": "Another game",
 	"button-challenge": "Challenge last move",
 	"button-get-tiles": "Take back",
@@ -30,6 +29,15 @@
 	"button-add-player": "Add Player",
 	"button-email": "Email",
 	
+	"chat-advisor": "Advisor",
+	"chat-hinted": "$1 asked for a hint",
+	"chat-word-not-found": "$1 not found in $2",
+	"chat-enabled": "enabled",
+	"chat-disabled": "disabled",
+	"chat-hint": "Hint: $1 at row $2 column $3 for $4",
+	"chat-advice": "$1 at row $2 column $3 would have scored $4",
+	"chat-no-play": "Can't find a play",
+
 	"ended-all-passed-twice": "All players passed twice: $1",
 	"ended-game-over": "Game over: $1",
 	"ended-timed-out": "Timed out",
@@ -43,6 +51,13 @@
 	"error-player-does-not-exist": "Player does not exist",
 	"error-unique": "Player names must be unique",
 
+	"game-description": "$1 player $2",
+	"game-using-dict": "Dictionary $1",
+	"game-time-limit": "Time limit $1 {{PLURAL:$2|minute|minutes}}",
+	"game-ended": " (ended)",
+	"game-delete": "Delete",
+	"game-select-player": "Select your player above, or ",
+
 	"h1-crossword-games": "Crossword Games",
 	"h1-create-game": "Create a new game",
 	"h2-players": "Players",
@@ -50,10 +65,9 @@
 	"h3-game": "Game",
 	"h3-dictionary": "Dictionary",
 	"h3-time-limit": "Time limit",
-	
+
 	"letterbag-remaining": "$1 {{PLURAL:$1|tile|tiles}} left in the bag",
 	"letterbag-empty": "The letter bag is empty",
-	
 	"log-turn": "$1's turn",
 	"log-move": "$1 ($2)",
 	"log-total": " total $1",
@@ -68,36 +82,11 @@
 	"log-game-started": "Game started",
 	"log-name-name": "$1 and $2",
 	"log-winner": "$1 {{PLURAL:$2|has|have}} won",
+	"log-timeout": "Timed out",
 
-	"msg-advisor": "Advisor",
-	"msg-hinted": "$1 asked for a hint",
-	"msg-word-not-found": "$1 not found in $2",
-	"msg-enabled": "enabled",
-	"msg-disabled": "disabled",
-	"msg-hint": "Hint: $1 at row $2 column $3 for $4",
-	"msg-advice": "$1 at row $2 column $3 would have scored $4",
-	"msg-no-play": "Can't find a play",
-
-	"option-none": "None",
-	
-	"prompt-name": "Name",
-	"prompt-robot": "Robot?",
-	
-	"prompt-select-blank": "Select the letter for the blank",
-
-	"warn-server-disconnected": "Server disconnected, trying to reconnect",	
-	"game-description": "$1 player $2",
-	"game-using-dict": "Dictionary $1",
-	"game-time-limit": "Time limit $1 {{PLURAL:$2|minute|minutes}}",
-	"game-ended": " (ended)",
-	"game-delete": "Delete",
-	"game-select-player": "Select your player above, or ",
 	"name-human-player": "Human",
 	"name-robot-player": "Robot",
 	"name-new-player": "Player $1",
-	"warn-centre-must-be-used": "Centre must be used",
-	"warn-disconnected": "Disconnected placement",
-	"warn-at-least-two": "First word must be at least two tiles",
 
 	"notify-title-challenged": "Challenged!",
 	"notify-body-challenged": "$1 has successfully challenged your move. You have lost the $2 points you scored, and the tiles you played are back on your rack",
@@ -112,12 +101,14 @@
 	"notify-game-over": "Game over",
 	"notify-body-game-over": "Your game is over...",
 
-	"turn-theirs": "$1's turn",
-	"turn-yours": "Your turn",
+	"option-none": "None",
+	
+	"prompt-name": "Name",
+	"prompt-robot": "Robot?",
+	"prompt-select-blank": "Select the letter for the blank",
 
-	"you": "you",
-	"You": "You",
-
+	"tick-you": "You have $1 seconds remaining to play",
+	"tick-them": "$1 has $2 seconds to play",
 	"tooltip-add-player": "Add another player to the game",
 	"tooltip-create-game": "Create the new game. Play will start with a randomly selected player",
 	"tooltip-time-limit": "Maximum time allowed to make a move, in minutes. If a player fails to make a move in this time, they will be forced to pass. Leave blank for no time limit",
@@ -125,5 +116,15 @@
 	"tooltip-edition": "Select the game you want to play",
 	"tooltip-email": "Click to add an email address for this player to receive an invitation",
 	"tooltip-name": "Enter the name by which the player will be known. Names must be unique",
-	"tooltip-isrobot": "Make the computer play this player"
+	"tooltip-isrobot": "Make the computer play this player",
+	"turn-theirs": "$1's turn",
+	"turn-yours": "Your turn",
+
+	"warn-server-disconnected": "Server disconnected, trying to reconnect",	
+	"warn-centre-must-be-used": "Centre must be used",
+	"warn-disconnected": "Disconnected placement",
+	"warn-at-least-two": "First word must be at least two tiles",
+
+	"you": "you",
+	"You": "You"
 }

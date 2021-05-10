@@ -25,7 +25,6 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			this.turns = [];
 			this.whosTurn = 0;
 			this.time_limit = 0; // never time out
-			this.nextTimeout = 0;
 			this.connections = [];
 			this.saver = null;
 			this.board = null;
@@ -100,39 +99,6 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 			// Terminal, no point in translating
 			return Promise.reject('Game has no dictionary');
-		}
-
-		/**
-		 * Set a play timeout for the player if the game time limit is set
-		 * @return the clock time when the timeout will expire.
-		 */
-		startTimeout(player) {
-			if (this.time_limit === 0)
-				return this.nextTimeout;
-
-			this.stopTimeout();
-			let timeout = this.time_limit * 60 * 1000;
-			let timeoutAt = Date.now() + timeout;
-			console.log(`${player.name}'s go will time out in ${this.time_limit} minutes at ${timeoutAt}`);
-			let game = this;
-			setTimeout(() => {
-				console.log(`${player.name} has timed out at ${Date.now()}`);
-				game.pass('timeout')
-				.then(turn => game.finishTurn(turn));
-			}, timeout + 10000);
-			this.nextTimeout = Date.now() + timeout;
-			return this.nextTimeout;
-		}
-
-		/**
-		 * Cancel current timeout
-		 */
-		stopTimeout() {
-			if (this.timer) {
-				clearTimeout(this.timer);
-				delete this.timer;
-				this.nextTimeout = 0;
-			}
 		}
 
 		/**
@@ -220,7 +186,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * polayer is found.
 		 */
 		lookupPlayer(playerKey) {
-			let player = this.players.find(p => (p.key == playerKey));
+			const player = this.players.find(p => (p.key == playerKey));
 			if (player)
 				return Promise.resolve({
 					game: this,
@@ -231,7 +197,8 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		}
 
 		/**
-		 * Check that the given player is in this game, and it's their turn.
+		 * Before processing a Move instruction (pass or play) check that
+		 * the given player is in this game, and it's their turn.
 		 * @param player a Player object
 		 * @return a Promise resolving to this game, rejected if it isn't
 		 * the players turn
@@ -283,8 +250,12 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 					return this.autoplay(nextPlayer)
 					// May recurse if the player after is also a robot
 					.then(turn => this.finishTurn(turn));
-				} else if (this.isConnected(nextPlayer))
-					turn.timeout = this.startTimeout(nextPlayer);
+				} else if (!this.ended) {
+					nextPlayer.startTimer(
+						this.time_limit * 60 * 1000,
+						() => this.pass('timeout')
+						.then(turn => this.finishTurn(turn)));
+				}
 			});
 		}
 
@@ -293,12 +264,12 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * in email (English only, no i18n support)
 		 */
 		emailJoinProse(player) {
-			let names = [];
+			const names = [];
 			for (let p of this.players) {
 				if (p !== player)
 					names.push(p.name);
 			}
-			let length = names.length;
+			const length = names.length;
 			switch (length) {
 			case 0:
 				return "";
@@ -339,6 +310,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			if (ageInDays > 14) {
 				console.log('Game timed out:',
 							this.players.map(({ name }) => name));
+
 				this.ended = { reason: 'ended-timed-out' };
 				this.save();
 				return;
@@ -362,6 +334,22 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 					return true;
 			}
 			return false;
+		}
+
+		/**
+		 * Pass the turn to the given player
+		 * @param index the index of the player to get the turn
+		 * @param timeout if undefined, use the game time limit
+		 */
+		startTurn(index, timeout) {
+			this.whosTurn = index;
+			console.log(`Starting ${this.players[index].name}'s turn`);
+			if (this.time_limit && !this.ended) {
+				this.players[index].startTimer(
+					timeout || this.time_limit * 60 * 1000,
+					() => this.pass('timeout')
+					.then(turn => this.finishTurn(turn)));
+			}
 		}
 
 		/**
@@ -415,14 +403,14 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 			this.connections.push(socket);
 
-			let result = { playerKey: player.key };
+			const result = { playerKey: player.key };
 			if (player) {
-				if (this.isConnected(player)) {
+				if (this.isConnected(player))
 					console.log(`WARNING: ${player.name} ${player.key} already connected`);
-					result.timeout = this.nextTimeout;
-				}
-				else if (player.index == this.whosTurn)
-					result.timeout = this.startTimeout(player);
+				else if (player.index == this.whosTurn && !this.ended)
+					player.startTimer(this.time_limit * 60 * 1000,
+									  () => this.pass('timeout')
+									  .then(turn => this.finishTurn(turn)));
 
 				socket.player = player;
 
@@ -431,12 +419,66 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				this.notifyPlayers('join', result);
 			}
 
+			if (this.allPlayersReady() && !this.ended)
+				this.startTheClock();
+			else
+				this.notifyPlayers(
+					'tick',
+					{
+						player: this.whosTurn,
+						timeout: 0
+					});
+
 			const game = this;
 			socket.on('disconnect', () => {
 				game.connections = game.connections.filter(c => c != this);
 				if (player)
 					game.notifyPlayers('leave', player.key);
 			});
+		}
+
+		/**
+		 * Return true if the game is "live" - all players connected
+		 */
+		allPlayersReady() {
+			for (let player of this.players) {
+				if (!(player.isRobot || this.isConnected(player)))
+					return false;
+			}
+			return true;
+		}
+
+		/**
+		 * If the game has a time limit, start an interval timer to
+		 * notify players of the remaining time for the player
+		 * who's turn it is.
+		 */
+		startTheClock() {
+			if (this.time_limit && !this._intervalTimer) {
+				// Broadcast a ping every second
+				this._intervalTimer = setInterval(() => {
+					if (this.players[this.whosTurn].timeoutAt) {
+						this.notifyPlayers(
+							'tick',
+							{
+								player: this.whosTurn,
+								timeout: this.players[this.whosTurn].timeoutAt
+							});
+					}
+				}, 1000);
+				console.log("Started tick timer", this._intervalTimer);
+			}
+		}
+
+		/**
+		 * Stop the clock timer, if it is running.
+		 */
+		stopTheClock() {
+			if (this._intervalTimer) {
+				console.log("Stopping timer");
+				clearInterval(this._intervalTimer);
+				this._intervalTimer = null;
+			}
 		}
 
 		/**
@@ -458,12 +500,14 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				return;
 
 			console.log(`Finishing because ${reason}`);
+			this.stopTheClock();
+			this.players.forEach(player => player.stopTimer());
 
 			// Tally scores
 			let playerWithNoTiles;
 			let pointsRemainingOnRacks = 0;
 			this.players.forEach(player => {
-				let tilesLeft = [];
+				const tilesLeft = [];
 				let rackScore = 0;
 				player.rack.forEachSquare(square => {
 					if (square.tile) {
@@ -524,15 +568,15 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 					bestPlay = data;
 			})
 			.then(() => {
-				let hint = {
-					sender: 'msg-advisor'
+				const hint = {
+					sender: 'chat-advisor'
 				};
 				if (!bestPlay)
-					hint.text = 'msg-no-play';
+					hint.text = 'chat-no-play';
 				else {
 					console.log(bestPlay);
 					const start = bestPlay.placements[0];
-					hint.text = 'msg-hint';
+					hint.text = 'chat-hint';
 					const words = bestPlay.words.map(w => w.word).join(',');
 					hint.args = [
 						words, start.row + 1, start.col + 1, bestPlay.score
@@ -543,8 +587,8 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				
 				// Tell *everyone* who asked for a hint
 				this.notifyPlayers('message', {
-					sender: 'msg-advisor',
-					text: 'msg-hinted',
+					sender: 'chat-advisor',
+					text: 'chat-hinted',
 					args: [ player.name ]
 				});
 			})
@@ -552,7 +596,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				console.log('Error', e);
 				this.notifyPlayers(
 					'message', {
-						sender: 'msg-advisor',
+						sender: 'chat-advisor',
 						text: e.toString() });
 			});
 		}
@@ -579,8 +623,8 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 					const start = bestPlay.placements[0];
 					const words = bestPlay.words.map(w => w.word).join(',');
 					const advice = {
-						sender: 'msg-advisor',
-						text: 'msg-advice',
+						sender: 'chat-advisor',
+						text: 'chat-advice',
 						args: [	words, start.row + 1, start.col + 1,
 								bestPlay.score ]
 					};
@@ -600,7 +644,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 */
 		async makeMove(move) {
 			const player = this.players[this.whosTurn];
-			this.stopTimeout();
+			player.stopTimer();
 
 			console.log(`makeMove player ${player.index} `, move.toString());
 			console.log(`Player's rack is ${player.rack}`);
@@ -621,9 +665,9 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			player.score += move.score;
 
 			// get new tiles to replace those placed
-			let newTiles = [];
+			const newTiles = [];
 			for (let i = 0; i < move.placements.length; i++) {
-				let tile = this.letterBag.getRandomTile();
+				const tile = this.letterBag.getRandomTile();
 				if (tile) {
 					player.rack.addTile(tile);
 					newTiles.push(tile);
@@ -642,8 +686,8 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 						this.notifyPlayer(
 							player, 'message',
 							{
-								sender: 'msg-advisor',
-								text: 'msg-word-not-found',
+								sender: 'chat-advisor',
+								text: 'chat-word-not-found',
 								args: [ w.word, dict.name ]
 							});
 					}
@@ -658,11 +702,13 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				newTiles: newTiles,
 				score: move.score,
 				player: player.index,
+				remainingTime: player.remainingTime,
 				words: move.words.map(w => w.word)
 			};
 			player.passes = 0;
 
-			this.whosTurn = (this.whosTurn + 1) % this.players.length;
+			this.startTurn((this.whosTurn + 1) % this.players.length);
+
 			const turn = new Turn(this, 'move', player, move.score);
 			turn.move = move;
 			turn.newTiles = newTiles;
@@ -674,12 +720,16 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 		/**
 		 * Handler for 'takeBack' command.
-		 * Undo the last move
+		 * Undo the last move. This might be as a result of a player request,
+		 * or the result of a challenge.
 		 * @param type the type of the takeBack; 'took-back' or 'challenge-won'
 		 * @return a Promise resolving to a Turn
 		 */
 		takeBack(type) {
-			const challenger = this.whosTurn;
+			// The UI ensures that 'took-back' can only be issued by the
+			// previous player.
+			// SMELL: Might a comms race result in it being issued by
+			// someone else?
 			const previousMove = this.previousMove;
 			const loser = this.players[previousMove.player];
 
@@ -701,10 +751,21 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			}
 			loser.score -= previousMove.score;
 
-			if (type === 'took-back')
-				// A takeBack, not a challenge. Let that player go again.
-				this.whosTurn = previousMove.player;
-			// else a successful challenge, does not move the player on
+			const challenger = this.whosTurn;
+			let timeout = 0;
+			if (type === 'took-back') {
+				// A takeBack, not a challenge. Let that player go again,
+				// but with just the remaining time from their move.
+				this.startTurn(previousMove.player, previousMove.remainingTime);
+			}
+			// else a successful challenge, does not move the player on.
+			// Timer was cancelled during the challenge, and needs to be
+			// restarted.
+			else {
+				// A successful challenge restarts the timer for the challenging
+				// player from the beginning
+				this.startTurn(this.whosTurn, this.time_limit * 60 * 1000);
+			}
 
 			const turn = new Turn(this, type, loser, -previousMove.score);
 			turn.move = previousMove;
@@ -723,14 +784,12 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 */
 		pass(type) {
 			const player = this.players[this.whosTurn];
-			this.stopTimeout();
-
+			player.stopTimer();
 			delete this.previousMove;
 			player.passes++;
 
 			this.checkGameState();
-
-			this.whosTurn = (this.whosTurn + 1) % this.players.length;
+			this.startTurn((this.whosTurn + 1) % this.players.length);
 
 			return Promise.resolve(new Turn(this, type, player, 0));
 		}
@@ -741,6 +800,9 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * @return Promise resolving to a Turn
 		 */
 		challenge() {
+			// Cancel any outstanding timer until the challenge is resolved
+			this.players[this.whosTurn].stopTimer();
+
 			return this.getDictionary()
 			.catch(() => {
 				console.log("No dictionary, so challenge always succeeds");
@@ -770,6 +832,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 */
 		swap(tiles) {
 			const player = this.players[this.whosTurn];
+			player.stopTimer();
 
 			if (this.letterBag.remainingTileCount() < tiles.length)
 				// Terminal, no point in translating
@@ -779,7 +842,8 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			player.passes++;
 
 			// First get some new tiles
-			let newTiles = [], tile;
+			const newTiles = [];
+			let tile;
 			for (tile of tiles)
 				newTiles.push(this.letterBag.getRandomTile());
 
@@ -796,7 +860,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			for (tile of newTiles)
 				player.rack.addTile(tile);
 
-			this.whosTurn = (this.whosTurn + 1) % this.players.length;
+			this.startTurn((this.whosTurn + 1) % this.players.length);
 			const turn = new Turn(this, 'swap', player, 0);
 			turn.newTiles = newTiles;
 			return Promise.resolve(turn);
@@ -830,8 +894,11 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			});
 		}
 
+		/**
+		 * Create the DOM for the player table
+		 */
 		createPlayerTableDOM(thisPlayer) {
-			let $tab = $('<table></table>');
+			const $tab = $('<table></table>');
 			this.players.forEach(
 				p => $tab.append(p.createScoreDOM(thisPlayer)));
 			return $tab;

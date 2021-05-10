@@ -25,23 +25,29 @@ define("game/findBestPlayController", ["worker_threads", "game/Fridge"], (thread
 					})
 				});
 
-			// Allow 30s to find a play
-			const timer = setTimeout(() => {
-				console.log("findBestPlay timed out");
-				worker.terminate();
-			}, 30000);
+			// Apply the game time limit
+			let timer;
+			if (game.time_limit > 0) {
+				timer = setTimeout(() => {
+					console.log("findBestPlay timed out");
+					worker.terminate();
+				}, game.time_limit * 60 * 1000);
+			}
 
+			// Pass worker messages on to listener
 			worker.on('message', data => {
 				listener(data);
 			});
 
 			worker.on('error', e => {
-				clearTimeout(timer);
+				if (timer)
+					clearTimeout(timer);
 				reject(e);
 			});
 
 			worker.on('exit', (code) => {
-				clearTimeout(timer);
+				if (timer)
+					clearTimeout(timer);
 				if (code !== 0)
 					console.log(`findBestPlayWorker reported code ${code}`);
 				resolve();

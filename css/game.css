@@ -601,11 +601,6 @@ div.tableDivWrap td.ValidButWrongPlacement {
     background-color: orange;
 }
 
-#timeout {
-	font-size: 1.5em;
-	color: white;
-}
-
 /* Background letters behind the swap rack */
 .bgLetterContainer {
 	position: relative;
@@ -642,4 +637,21 @@ div.tableDivWrap td.ValidButWrongPlacement {
 
 .wordScore {
 	font-size: 0.75em;
+}
+
+#timeout {
+	font-size: 1.5em;
+	color: grey;
+}
+
+#timeout.tick-alert-low {
+	color: white;
+}
+
+#timeout.tick-alert-medium {
+	color:orange;
+}
+
+#timeout.tick-alert-high {
+	color: red;
 }

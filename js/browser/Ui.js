@@ -100,24 +100,6 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * If this is a timed game, start the timeout counter. This is
-		 * purely for visual feedback; the actual timer is on the server.
-		 */
-		startCountdown(abstime) {
-			if (abstime <= 0)
-				return;
-			console.debug("Starting timer feedback");
-			$("#timeout").show();
-			function tick() {
-				let remainSecs = Math.floor((abstime - Date.now()) / 1000);
-				$('#timeout').text(remainSecs);
-				if (remainSecs > 0)
-					setTimeout(tick, 1000);
-			}
-			tick();
-		}
-
-		/**
 		 * Append information a turn it is to the log.
 		 * @param turn a Turn
 		 */
@@ -275,7 +257,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			msg = `<span class="chatMessage">${msg}</span>`;
 			console.debug(`Server: Message ${msg}`);
 
-			const sender = /^msg-/.test(message.sender)
+			const sender = /^chat-/.test(message.sender)
 				  ? $.i18n(message.sender) : message.sender;
 
 			const pn = `<span class='playerName'>${sender}</span>`;
@@ -289,6 +271,33 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			if (message.name != this.thisPlayer.name)
 				this.notify(message.name, msg);
+		}
+
+		/**
+		 * Process a tick from the server. Does nothing in an untimed game.
+		 */
+		processTick(tick) {
+			if (tick.timeout === 0)
+				return;
+			let $to = $('#timeout')
+				.removeClass('tick-alert-high tick-alert-medium tick-alert-low');
+			const deltasecs = Math.floor((tick.timeout - Date.now()) / 1000);
+			let stick = '';
+			if (this.isPlayer(tick.player)) {
+				stick = $.i18n('tick-you', deltasecs);
+				if (deltasecs < 10)
+					this.playAudio('tick');
+				if (deltasecs < 15)
+					$to.fadeOut(100).addClass('tick-alert-high');
+				else if (deltasecs < 45)
+					$to.fadeOut(100).addClass('tick-alert-medium');
+				else if (deltasecs < 90)
+					$to.fadeOut(100).addClass('tick-alert-low');
+			}
+			else
+				stick = $.i18n('tick-them',
+							   this.game.players[tick.player].name, deltasecs);
+			$to.text(stick).fadeIn(200);
 		}
 
 		/**
@@ -462,6 +471,8 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			.on('turn', turn => this.processTurn(turn))
 
+			.on('tick', tick => this.processTick(tick))
+
 			.on('gameEnded', end => {
 				console.debug("Received gameEnded");
 				this.logEndMessage(end, true);
@@ -477,8 +488,6 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			.on('join', info => {
 				console.debug("Server: Player ", info, " joining");
-				if (info.timeout)
-					this.startCountdown(info.timeout);
 
 				const player = this.game.getPlayerFromKey(info.playerKey);
 				if (player)
@@ -774,8 +783,6 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			if (this.isPlayer(turn.nextToGo)) {
 				this.playAudio("yourturn");
-				if (turn.timeout)
-					this.startCountdown(turn.timeout);
 				this.lockBoard(false);
 			} else
 				this.lockBoard(true);
@@ -798,7 +805,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 						this.addChallengePreviousButton(turn);
 				}
 			}
-			this.game.whosTurn = turn.nextToPlay;
+			this.game.whosTurn = turn.nextToGo;
 			this.updateGameStatus();
 		}
 
