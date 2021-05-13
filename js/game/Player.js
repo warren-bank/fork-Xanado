@@ -120,9 +120,7 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 		 * Only useful server-side
 		 */
 		async sendInvitation(subject, config) {
-			if (!this.email)
-				return;
-			console.log(`sendInvitation to ${this.name} subject ${subject}`);
+			console.log(`Sending email invitation to ${this.name} subject ${subject}`);
 			try {
 				const url = `${config.baseUrl}game/${this.key}`;
 				console.log('link: ', url);

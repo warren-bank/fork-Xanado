@@ -351,11 +351,10 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 
 				let haveHuman = false;
 				for (let p of req.body.players) {
-					const player = new Player(
-						p.name, p.isRobot == "true");
+					const player = new Player(p.name, p.isRobot == "true");
 					if (!player.isRobot) {
 						haveHuman = true;
-						if (player.email)
+						if (p.email)
 							// optional, may be empty
 							player.email = p.email;
 					}
@@ -547,7 +546,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			["c", "config=ARG", "Path to config file (default config.json)"]
 		])
 			.bindHelp()
-			.setHelp("Scrabble server\n[[OPTIONS]]")
+			.setHelp("Crossword game server\n[[OPTIONS]]")
 			.parseSystem()
 			.options;
 

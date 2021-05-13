@@ -318,7 +318,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			const player = this.players[this.whosTurn];
 			if (player.email)
 				player.sendInvitation(
-					"It is your turn in your this with "
+					"It is your turn in your game with "
 					+ this.emailJoinProse(player),
 					config);
 		}
