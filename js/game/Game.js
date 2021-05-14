@@ -653,7 +653,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			if (player.wantsAdvice)
 				await this.advise(player, move.score);
 
-			let game = this;
+			const game = this;
 
 			// Move tiles from the rack to the board
 			move.placements.forEach(placement => {
@@ -752,7 +752,6 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			loser.score -= previousMove.score;
 
 			const challenger = this.whosTurn;
-			let timeout = 0;
 			if (type === 'took-back') {
 				// A takeBack, not a challenge. Let that player go again,
 				// but with just the remaining time from their move.

@@ -5,7 +5,7 @@
 /**
  * Browser app for games.html; populate the list of live games
  */
-requirejs(["browserApp", "socket.io"], (browserApp, io) => {
+requirejs(["browser/browserApp", "socket.io"], (browserApp, io) => {
 	const BLACK_CIRCLE = '\u25cf';
 	const ROBOT_FACE = ' <img class="glyph" src="/images/robotface.png" />';
 
@@ -18,7 +18,7 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 		} else {
 			if (player.connected)
 				$but.append(` <span class="greenDot">${BLACK_CIRCLE}</span>`);
-			let $a = $(`<a href='/game/${game.key}/${player.key}'></a>`);
+			const $a = $(`<a href='/game/${game.key}/${player.key}'></a>`);
 			$a.append($but);
 			$but = $a;
 		}
@@ -78,21 +78,26 @@ requirejs(["browserApp", "socket.io"], (browserApp, io) => {
 			return;
 		}
 		$("#active_games").show();
-		let $gt = $('#game-table');
+		const $gt = $('#game-table');
 		$gt.empty();
 		data.forEach(game => $gt.append(formatGame(game)));
 	}
 
 	function refresh() {
+		console.log("Refreshing");
 		$.getJSON('/games', data => handle_refresh(data));
 	}
 
 	browserApp.then(() => {
 
-		let transports = ['websocket', 'flashsocket', 'htmlfile', 'xhr-multipart', 'xhr-polling', 'jsonp-polling'];
-		if (navigator.userAgent.search("Firefox") >= 0) {
-			transports = ['htmlfile', 'xhr-polling', 'jsonp-polling'];
-		}
+		let transports = [
+			'websocket',
+			'htmlfile',
+			'xhr-multipart',
+			'xhr-polling',
+			'jsonp-polling'];
+		// if (navigator.userAgent.search("Firefox") >= 0)
+		//transports = ['htmlfile', 'xhr-polling', 'jsonp-polling'];
 
 		const socket = io.connect(null, { transports: transports });
 

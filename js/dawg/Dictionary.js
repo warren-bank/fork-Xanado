@@ -32,14 +32,14 @@ define("dawg/Dictionary", [ "platform/Platform", "dawg/LetterNode" ], (Platform,
 		 */
 		constructor(name, data) {
 			this.name = name;
-			let dv = new DataView(data);
+			const dv = new DataView(data);
 			let index = 0;
-			let numberOfNodes = dv.getUint32(4 * index++);
-			let nodes = [];
+			const numberOfNodes = dv.getUint32(4 * index++);
+			const nodes = [];
 			for (let i = 0; i < numberOfNodes; i++) {
-				let letter = dv.getUint32(4 * index++);
-				let node = new LetterNode(String.fromCodePoint(letter));
-				let numb = dv.getUint32(4 * index++);
+				const letter = dv.getUint32(4 * index++);
+				const node = new LetterNode(String.fromCodePoint(letter));
+				const numb = dv.getUint32(4 * index++);
 				if ((numb & END_OF_WORD_BIT_MASK) != 0)
 					node.isEndOfWord = true;
 				if ((numb & END_OF_LIST_BIT_MASK) == 0)
@@ -51,7 +51,7 @@ define("dawg/Dictionary", [ "platform/Platform", "dawg/LetterNode" ], (Platform,
 			}
 			// Convert node indices to pointers
 			for (let i = 0; i < nodes.length; i++) {
-				let node = nodes[i];
+				const node = nodes[i];
 				if (typeof node.next === "number")
 					node.next = nodes[node.next];
 				if (typeof node.child === "number")
@@ -108,7 +108,7 @@ define("dawg/Dictionary", [ "platform/Platform", "dawg/LetterNode" ], (Platform,
 		 * @return true if the word is found, false otherwise
 		 */
 		hasWord(chars) {
-			let m = this.root.match(chars, 0);
+			const m = this.root.match(chars, 0);
 			return m && m.isEndOfWord;
 		}
 
@@ -125,7 +125,7 @@ define("dawg/Dictionary", [ "platform/Platform", "dawg/LetterNode" ], (Platform,
 
 			// Sort the list of characters. Not strictly needed,
 			// just easier to debug.
-			let sortedChars = theChars.split("").sort();
+			const sortedChars = theChars.split("").sort();
 
 			//console.log("Sorted chars", sortedChars);
 			const foundWords = {};

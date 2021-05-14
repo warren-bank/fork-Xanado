@@ -20,7 +20,7 @@ const DESCRIPTION = "USAGE\n  node dict.js [options] <dictionary> <words>\n"
 
 requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Platform, Dictionary) => {
 
-	let biglist = {};
+	const biglist = {};
 	
 	function eachRoot(opt, root, dict) {
 		if (opt.options.list) {
@@ -38,7 +38,7 @@ requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Plat
 		}
 		else if (opt.options.anagrams) {
 			console.log(`\nAnagrams of "${root.word}"`);
-			let anag = dict.findAnagrams(root.word);
+			const anag = dict.findAnagrams(root.word);
 			console.log(anag);
 		} else if (root.node && root.node.isEndOfWord)
 			console.log(`'${root.word}' was found`,
@@ -64,7 +64,7 @@ requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Plat
 				for (let w of words)
 					checkSequence(w, dict);
 			else {
-				let roots = [];
+				const roots = [];
 
 				if (words.length === 0) {
 					let letter = dict.root.child;
@@ -91,7 +91,7 @@ requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Plat
 		});
 	}
 
-	let opt = Getopt.create([
+	const opt = Getopt.create([
         ["h", "help", "Show this help"],
 		["l", "list", "Without paramaters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root"],
 		["f", "file=ARG", "Check all words read from file"],
@@ -112,7 +112,7 @@ requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Plat
 	if (opt.options.file) {
 		Platform.getResource(opt.options.file)
 		.then(data => {
-			let words = data.toString().split(/\s+/);
+			const words = data.toString().split(/\s+/);
 			console.log(`Checking ${words.length} words`);
 			withDictionary(opt, words);
 		});

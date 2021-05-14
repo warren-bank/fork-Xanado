@@ -86,7 +86,8 @@ define("game/Rack", ["game/Surface"], Surface => {
 		}
 
 		/**
-		 * Find the first Tile the rack that can represent the given letter.
+		 * Find a Tile on the rack that can represent the given letter.
+		 * If a normal letter can't be found, a blank will be used.
 		 * @param letter the letter to find
 		 * @return a Square
 		 */
@@ -137,13 +138,13 @@ define("game/Rack", ["game/Surface"], Surface => {
 		 */
 		shuffle() {
 			const len = this.cols;
-			function random(i) {
+			function random() {
 				return Math.floor(Math.random() * len);
 			}
 			for (let i = 0; i < 16; i++) {
-				let from = this.at(random());
-				let to = this.at(random());
-				let tmp = from.tile;
+				const from = this.at(random());
+				const to = this.at(random());
+				const tmp = from.tile;
 				from.tile = to.tile;
 				to.tile = tmp;
 			}

@@ -44,8 +44,8 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 		 */
 		shake() {
 			for (let i = this.tiles.length - 1; i > 0; i--) {
-				let j = Math.floor(Math.random() * (i + 1));
-				let temp = this.tiles[i];
+				const j = Math.floor(Math.random() * (i + 1));
+				const temp = this.tiles[i];
 				this.tiles[i] = this.tiles[j];
 				this.tiles[j] = temp;
 			}

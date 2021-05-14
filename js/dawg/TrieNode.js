@@ -54,7 +54,7 @@ define("dawg/TrieNode", () => {
 			let simpler = `{${this.id} ${this.letter}`;
 
 			if (this.isEndOfWord)
-				simpler + ".";
+				simpler += ".";
 			if (this.child)
 				simpler += "+";
 			if (this.next)

@@ -59,7 +59,7 @@ requirejs(["node-getopt", "fs-extra", 'design/Valett'], (Getopt, Fs, Valett) => 
 		"}"
 	].join("\n");
 
-	let opt = Getopt.create([
+	const opt = Getopt.create([
 		["c", "config", "Config file (JSON) - see above"]
 	])
         .bindHelp()
@@ -70,7 +70,7 @@ requirejs(["node-getopt", "fs-extra", 'design/Valett'], (Getopt, Fs, Valett) => 
 		// Read config from file (JSON)
 		Fs.readFile(opt.options.config)
 		.then(data => {
-			let reconfig = JSON.parse(data.toString());
+			const reconfig = JSON.parse(data.toString());
 			console.log(`Config from ${opt.options.config}`);
 			for (let key of Object.keys(reconfig))
 				config[key] = reconfig[key];
@@ -103,7 +103,7 @@ requirejs(["node-getopt", "fs-extra", 'design/Valett'], (Getopt, Fs, Valett) => 
 				  config.frequencyByLengthWeights,
 				  config.entropyWeights);
 		let sum;
-		let count = [];
+		const count = [];
 		let factor = config.tileCount;
 		while (config.tileCount > 0) {
 			sum = 0;
@@ -123,7 +123,7 @@ requirejs(["node-getopt", "fs-extra", 'design/Valett'], (Getopt, Fs, Valett) => 
 		sum = 0;
 		for (let letter of letters) {
 			const score = values[v.hash[letter]].score + config.minPoints;
-			let num = count[letter];
+			const num = count[letter];
 			sum += num;
 			console.log(`{ letter: "${letter}", score: ${score}, count: ${num} }`);
 		}

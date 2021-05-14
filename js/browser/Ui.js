@@ -77,7 +77,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 * pre-loaded in the HTML.
 		 */
 		playAudio(id) {
-			let audio = document.getElementById(id);
+			const audio = document.getElementById(id);
 
 			if (audio.playing)
 				audio.pause();
@@ -155,7 +155,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 * Append a formatted "next game" message to the log
 		 */
 		logNextGameMessage(nextGameKey) {
-			let $but = $("<button></button>");
+			const $but = $("<button></button>");
 			if (nextGameKey) {
 				$but.addClass('nextGame')
 				.text($.i18n('button-next-game'));
@@ -169,7 +169,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				$but.text($.i18n('button-another-game'));
 				$but.on('click',
 						() => $.post(`/anotherGame/${this.game.key}`));
-				let $ngb = $("<div id='makeNextGame'></div>")
+				const $ngb = $("<div id='makeNextGame'></div>")
 					.append($but)
 					.append(" ")
 					.append($.i18n('log-same-players'));
@@ -233,8 +233,8 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 							 winners.slice(0, length - 1).join(", "),
 							 winners[winners.length - 1]);
 
-			let has = (winners.length == 1 && !youWon) ? 1 : 2;
-			let $div = $("<div class='gameEnded'></div>");
+			const has = (winners.length == 1 && !youWon) ? 1 : 2;
+			const $div = $("<div class='gameEnded'></div>");
 			$div.text($.i18n(info.reason, $.i18n('log-winner', who, has)));
 
 			$('#logMessages').append($div);
@@ -262,7 +262,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			const pn = `<span class='playerName'>${sender}</span>`;
 
-			let $mess = $(`<div>${pn}: ${msg}</div>`);
+			const $mess = $(`<div>${pn}: ${msg}</div>`);
 			$('#chatMessages')
 			.append($mess)
 			.animate({
@@ -279,7 +279,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		processTick(tick) {
 			if (tick.timeout === 0)
 				return;
-			let $to = $('#timeout')
+			const $to = $('#timeout')
 				.removeClass('tick-alert-high tick-alert-medium tick-alert-low');
 			const deltasecs = Math.floor((tick.timeout - Date.now()) / 1000);
 			let stick = '';
@@ -306,17 +306,8 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		updateWhosTurn(whosTurn) {
 			$("tr.whosTurn").removeClass("whosTurn");
 			$(`#player${whosTurn}`).addClass("whosTurn");
-
-			if (this.isPlayer(whosTurn)) {
-				//let $wt = $('#whosturn');
-				//$wt.text($.i18n('turn-yours'));
-				$('#yourPlayBlock').css('display', 'block');
-			} else {
-				//let $wt = $('#whosturn');
-				//$wt.text($.i18n('turn-theirs',
-				//				this.game.players[whosTurn].name));
-				$('#yourPlayBlock').css('display', 'none');
-			}
+			$('#yourPlayBlock').css(
+				'display', this.isPlayer(whosTurn) ? 'block' : 'none');
 		}
 
 		/**
@@ -325,7 +316,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 * swap rack, if enough tiles remain in the bag.
 		 */
 		updateTileCounts() {
-			let remains = this.game.letterBag.remainingTileCount();
+			const remains = this.game.letterBag.remainingTileCount();
 			if (remains > 0) {
 				const mess = $.i18n('letterbag-remaining', remains);
 				$('#letterbagStatus').html(`<div>${mess}</div>`);
@@ -361,7 +352,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			const playerKey = $.cookie(this.game.key);
 			this.thisPlayer = this.game.getPlayerFromKey(playerKey);
 
-			let $players = this.game.createPlayerTableDOM(this.thisPlayer);
+			const $players = this.game.createPlayerTableDOM(this.thisPlayer);
 			$("#playerTable").append($players);
 
 			const $board = this.game.board.createDOM();
@@ -390,7 +381,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			this.updateGameStatus();
 
-			let lastTurn = game.turns.length && game.turns[game.turns.length - 1];
+			const lastTurn = game.turns.length && game.turns[game.turns.length - 1];
 
 			if (lastTurn && lastTurn.type == 'move') {
 				if (this.isPlayer(game.whosTurn))
@@ -502,7 +493,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				player.online(false);
 			});
 
-			let ui = this;
+			const ui = this;
 			$('#chatInput input')
 			.on('change', function() {
 				// Send chat
@@ -569,7 +560,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		moveTile(fromSquare, toSquare) {
-			let tile = fromSquare.tile;
+			const tile = fromSquare.tile;
 
 			if (fromSquare.owner === this.game.board) {
 				if (toSquare.owner !== this.game.board)
@@ -582,22 +573,22 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				if (fromSquare.owner != this.game.board
 					&& toSquare.owner == this.game.board) {
 
-					let $dlg = $('#blankDialog');
-					let $tab = $("#blankLetterTable");
+					const $dlg = $('#blankDialog');
+					const $tab = $("#blankLetterTable");
 					$tab.empty();
-					let ll = this.game.letterBag.legalLetters.slice();
-					let dim = Math.ceil(Math.sqrt(ll.length));
+					const ll = this.game.letterBag.legalLetters.slice();
+					const dim = Math.ceil(Math.sqrt(ll.length));
 					let rowlength = dim;
 					let $row = null;
 					while (ll.length > 0) {
-						let letter = ll.shift();
+						const letter = ll.shift();
 						if (rowlength == dim) {
 							if ($row)
 								$tab.append($row);
 							$row = $("<tr></tr>");
 							rowlength = 0;
 						}
-						let $td = $(`<td>${letter}</td>`);
+						const $td = $(`<td>${letter}</td>`);
 						$td.on('click', () => {
 							// Horrible hack
 							tile.letter = letter;
@@ -634,7 +625,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				// Player has dropped some tiles on the board
 				// (tileCount > 0), move action is to make the move
 				this.setMoveAction('commitMove', 'Make move');
-				let move = this.game.board.analyseMove();
+				const move = this.game.board.analyseMove();
 				if (typeof move === "string") {
 					$('#move').append($.i18n(move));
 					$('#turnButton').attr('disabled', 'disabled');
@@ -693,7 +684,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			this.appendTurnToLog(turn);
 			this.scrollLogToEnd(300);
             this.removeMoveActionButtons();
-			let player = this.game.players[turn.player];
+			const player = this.game.players[turn.player];
 			player.score += turn.deltaScore;
 			player.refreshDOM();
 			$(".lastPlacement").removeClass("lastPlacement");
@@ -711,7 +702,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				// Take back the placements from the board into the
 				// challenged player's rack
 				for (const placement of turn.move.placements) {
-					let square = this.game.at(placement.col, placement.row);
+					const square = this.game.at(placement.col, placement.row);
 					const recoveredTile = square.tile;
 					square.placeTile(null);
 					player.rack.addTile(recoveredTile);
@@ -757,11 +748,11 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 					// Put the tiles placed in a turn into place on
 					// the board for a player who is not this player.
 					for (let placement of turn.move.placements) {
-						let square = this.game.at(placement.col, placement.row);
+						const square = this.game.at(placement.col, placement.row);
 						player.rack.removeTile(placement);
 						square.placeTile(placement, true); // lock it down
 						// Highlight it as just placed
-						let $div = $(`#Board_${placement.col}x${placement.row}`);
+						const $div = $(`#Board_${placement.col}x${placement.row}`);
 						$div.addClass("lastPlacement");
 					}
 				}
@@ -824,7 +815,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 * pane.
 		 */
 		addLastMoveActionButton(action, label) {
-			let $button =
+			const $button =
 				$(`<div><button class='moveAction'>${label}</button></div>`);
 			$button.click(() => this[action]());
 			$('#logMessages div.moveScore').last().append($button);
@@ -873,7 +864,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 * Handler for the "Make Move" button. Invoked via 'makeMove'.
 		 */
 		commitMove() {
-			let move = this.game.board.analyseMove();
+			const move = this.game.board.analyseMove();
 			if (typeof move === "string") {
 				// fatal - should never get here
 				$('#problemDialog')
@@ -886,8 +877,8 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				this.playAudio("bonusCheer");
 
 			for (let i = 0; i < move.placements.length; i++) {
-				let tilePlaced = move.placements[i];
-				let square = this.game.at(tilePlaced.col, tilePlaced.row);
+				const tilePlaced = move.placements[i];
+				const square = this.game.at(tilePlaced.col, tilePlaced.row);
 				square.tileLocked = true;
 				square.refreshDOM();
 			}
@@ -920,7 +911,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 */
 		swap() {
 			this.afterMove();
-			let tiles = this.swapRack.tiles();
+			const tiles = this.swapRack.tiles();
 			this.swapRack.empty();
 			this.sendCommand(
 				'swap',
@@ -950,7 +941,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 * This action will map to the matching function in 'this'.
 		 */
 		makeMove() {
-			let action = $('#turnButton').data('action');
+			const action = $('#turnButton').data('action');
 			console.debug('makeMove =>', action);
 			this[action]();
 		}
@@ -966,7 +957,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			});
 
 			function putBackToRack(tile) {
-				let square = freeRackSquares.pop();
+				const square = freeRackSquares.pop();
 				square.tile = tile;
 				if (tile.isBlank)
 					tile.letter = ' ';
@@ -1017,7 +1008,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		notify(title, text) {
 			if (window.webkitNotifications) {
 				this.cancelNotification();
-				let notification = window.webkitNotifications
+				const notification = window.webkitNotifications
 					.createNotification('favicon.ico', title, text);
 				this.notification = notification;
 				$(notification)

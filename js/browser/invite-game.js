@@ -7,7 +7,7 @@
 /**
  * Browser app for game creation
  */
-requirejs(["browserApp"], browserApp => {
+requirejs(["browser/browserApp"], browserApp => {
 
 	const TOOLTIPS = {
 		position: { at: "right center"},
@@ -202,7 +202,7 @@ requirejs(["browserApp"], browserApp => {
 			});
 
 			$.getJSON('/dictionaries', dictionaries => {
-				let $dics = $("#dictionary");
+				const $dics = $("#dictionary");
 				dictionaries.forEach(d => $dics.append(`<option>${d}</option>`));
 				if (defaults.dictionary)
 					$dics.val(defaults.dictionary);
@@ -254,7 +254,7 @@ requirejs(["browserApp"], browserApp => {
 		// Create the game
 		$('#createGameButton')
 		.on('click', function() {
-			let data = {
+			const data = {
 				edition: $("#edition").val(),
 				dictionary: $("#dictionary").val(),
 				time_limit: $("#time_limit").val(),
@@ -278,8 +278,8 @@ requirejs(["browserApp"], browserApp => {
 			});
 			// Randomize player order in-place. Equivalent to picking a tile.
 			for (var i = data.players.length - 1; i > 0; i--) {
-				let j = Math.floor(Math.random() * (i + 1));
-				let temp = data.players[i];
+				const j = Math.floor(Math.random() * (i + 1));
+				const temp = data.players[i];
 				data.players[i] = data.players[j];
 				data.players[j] = temp;
 			}

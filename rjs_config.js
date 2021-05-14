@@ -37,7 +37,6 @@ requirejs.config({
 		cookie: "//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min",
 
 
-		browserApp: "js/browser/browserApp",
 		browser: "js/browser",
 		game: "js/game",
 		dawg: "js/dawg",

@@ -6,7 +6,7 @@
  * Common dependency handling for all browser apps (games, game, invite-game)
  * Returns a promise that resolves to a list of supported locales
  */
-const deps = [
+define("browser/browserApp", [
 	"jquery",
 	"jqueryui",
 	"i18n",
@@ -15,12 +15,10 @@ const deps = [
 	"i18n_language",
 	"i18n_messagestore",
 	"i18n_parser"
-];
-
-define("browserApp", deps, () => {
+], () => {
 	return new Promise(resolve => {
 		$.getJSON('/locales', function(locales) {
-			let params = {};
+			const params = {};
 			locales.forEach(locale => {
 				params[locale] = `/i18n/${locale}.json`;
 			});

@@ -95,7 +95,7 @@ define("game/Square", ["platform/Platform"], Platform => {
 		 */
 		toString() {
 			// All squares have a col
-			let string =  `${this.type} square @ ${this.col}`;
+			let string = `${this.type} square @ ${this.col}`;
 			// Squares on the board have a row too
 			if (this.row >= 0)
 				string += ',' + this.row;
@@ -112,14 +112,14 @@ define("game/Square", ["platform/Platform"], Platform => {
 		 * Create the DOM representation
 		 */
 		createDOM(idbase, col, row) {
-			let $td = $(`<td></td>`);
+			const $td = $(`<td></td>`);
 			$td.addClass(CSS_CLASS[this.type]);
 
 			let id = `${idbase}_${col}`;
 			if (typeof row !== "undefined")
 				id += `x${row}`;
 			this.id = id;
-			let $div = $(`<div id='${id}'><a></a></div>`);
+			const $div = $(`<div id='${id}'><a></a></div>`);
 			// Associate the square with the div for dragging
 			$div.data('square', this);
 			$td.append($div);
@@ -127,7 +127,7 @@ define("game/Square", ["platform/Platform"], Platform => {
 		}
 
 		refreshDOM() {
-			let $div = $(`#${this.id}`)
+			const $div = $(`#${this.id}`)
 				.removeClass("Selected")
 				.removeClass("Temp")
 				.off("click");
@@ -197,10 +197,9 @@ define("game/Square", ["platform/Platform"], Platform => {
 				});
 			}
 
-			let letter = this.tile.letter;
-			let score = this.tile.score;
-
-			let $a = $("<a></a>");
+			const letter = this.tile.letter;
+			const score = this.tile.score;
+			const $a = $("<a></a>");
 			$a.append(`<span class='Letter'>${letter}</span>`);
 			$a.append(`<span class='Score'>${score}</span>`);
 			$div.html($a);
@@ -234,7 +233,7 @@ define("game/Square", ["platform/Platform"], Platform => {
 				}
 			});
 
-			let text = $.i18n(CSS_CLASS[this.type]);
+			const text = $.i18n(CSS_CLASS[this.type]);
 
 			$div.addClass('Empty')
 			.removeClass('Tile')

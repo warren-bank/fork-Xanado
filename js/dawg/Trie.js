@@ -39,7 +39,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 			let current = this.first;
 			let nNew = 0;
 			for (let x = 0; x < word.length; x++) {
-				let hangPoint = current.child ?
+				const hangPoint = current.child ?
 					current.findChild(word[x]) : null;
 
 				if (!hangPoint) {
@@ -81,12 +81,12 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		createReductionStructure() {
 			console.log("\nCreate reduction structure");
 
-			let counts = [];
+			const counts = [];
 			for (let x = this.minWordLen; x < this.maxWordLen; x++)
 				counts[x] = 0;
 
-			let red = [];
-			let queue = [];
+			const red = [];
+			const queue = [];
 			let current = this.first.child;
 			while (current) {
 				queue.push(current);
@@ -142,7 +142,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 				// surviving nodes.
 				// Could equally use for (w in readArray[y])
 				// but this is a useful check
-				let nodesAtDepth = red[y];
+				const nodesAtDepth = red[y];
 				for (let w = 0; w < nodesAtDepth.length - 1; w++) {
 					if (nodesAtDepth[w].isPruned)
 						// The Node is already pruned.  Note that this node need
@@ -184,8 +184,8 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 
 			console.log("\nAssign node indices");
 			let current = this.first.child;
-			let queue = [];
-			let nodeList = [];
+			const queue = [];
+			const nodeList = [];
 
 			// The use of a queue during this step ensures that
 			// lists of contiguous nodes in the array will eliminate the need
@@ -221,7 +221,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 */
 		generateDAWG() {
 
-			let red = this.createReductionStructure();
+			const red = this.createReductionStructure();
 
 			this.findPrunedNodes(red);
 
@@ -241,12 +241,12 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		encodeDAWG() {
 			console.log("\nGenerate the unsigned integer array");
 
-			let nodelist = this.assignIndices();
+			const nodelist = this.assignIndices();
 
 			if (nodelist.length > 0x3FFFFFFF)
 				throw Error(`Too many nodes remain for integer encoding`);
 
-			let dawg = [ nodelist.length ];
+			const dawg = [ nodelist.length ];
 			// Add nodes
 			for (let i = 0; i < nodelist.length; i++)
 				nodelist[i].encode(dawg);

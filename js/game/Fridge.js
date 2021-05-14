@@ -57,7 +57,7 @@ define("game/Fridge", () => {
 				});
 				objectsFrozen.push(unfrozen);
 
-				let frozen = {};
+				const frozen = {};
 
 				frozen._IB_ID = id;
 
@@ -87,7 +87,7 @@ define("game/Fridge", () => {
 			}
 
 			// Clean out temporary fields used in freezing
-			let frozen = _freeze(object);
+			const frozen = _freeze(object);
 			for (let uf of objectsFrozen)
 				delete uf._IB_ID;
 
@@ -104,8 +104,8 @@ define("game/Fridge", () => {
 		 * within frozen data.
 		 */
 		static thaw(object, classes) {
-			let objectsThawed = [];
-			let typeMap = {};
+			const objectsThawed = [];
+			const typeMap = {};
 
 			if (classes)
 				for (let clzz of classes)
@@ -132,7 +132,7 @@ define("game/Fridge", () => {
 					thawed = object._IB_DATA.map(e => _thaw(e));
 
 				else if (object._IB_CN) {
-					let constructor = typeMap ? typeMap[object._IB_CN] : null;
+					const constructor = typeMap ? typeMap[object._IB_CN] : null;
 					if (constructor)
 						thawed = Object.create(constructor);
 					else {

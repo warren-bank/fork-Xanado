@@ -30,10 +30,10 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 			const rows = sboard.split("\n");
 			let row = 0;
 			while (row < this.rows && row < rows.length) {
-				let r = rows[row].split("|");
+				const r = rows[row].split("|");
 				let col = 1;
 				while (col < this.cols && col < r.length) {
-					let letter = r[col];
+					const letter = r[col];
 					if (letter != ' ') {
 						// Treat lower-case letters as cast blanks.
 						// May not work in non-latin languages.
@@ -120,7 +120,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 				while (col < this.cols
 					   && row < this.rows
 					   && this.at(col, row).tile) {
-					let square = this.at(col, row);
+					const square = this.at(col, row);
 					let letterScore = square.tile.score;
 					isNewWord = isNewWord || !square.tileLocked;
 					if (!square.tileLocked) {
@@ -201,7 +201,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 				wordScore += letterScore;
 
 				// Multiplier for any new words that cross this letter
-				let crossWordMultiplier = square.wordScoreMultiplier;
+				const crossWordMultiplier = square.wordScoreMultiplier;
 				wordMultiplier *= crossWordMultiplier;
 
 				// This is a new tile, need to analyse cross words and
@@ -343,7 +343,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 			if (totalTiles < 2)
 				return 'warn-at-least-two';
 
-			let move = new Move();
+			const move = new Move();
 
 			// Calculate scores
 			move.score = this.scoreNewWords(move.words);
@@ -366,11 +366,11 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		 * Create the DOM representation
 		 */
 		createDOM() {
-			let $table = $("<table></table>");
+			const $table = $("<table></table>");
 			for (let row = 0; row < this.rows; row++) {
-				let $tr = $("<tr></tr>");
+				const $tr = $("<tr></tr>");
 				for (let col = 0; col < this.cols; col++) {
-					let square = this.at(col, row);
+					const square = this.at(col, row);
 					const $td = square.createDOM("Board", col, row);			
 					if (col == this.midcol && row == this.midrow)
 						$td.addClass('StartField');

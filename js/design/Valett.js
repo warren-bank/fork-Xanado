@@ -8,7 +8,7 @@ define("design/Valett", () => {
 
 	function norm(vector) {
 		let sum = 0
-		let normedVector = []
+		const normedVector = []
 		
 		for (let num of vector)
 			sum += num;
@@ -24,7 +24,7 @@ define("design/Valett", () => {
 	}
 
 	function normMatrix(matrix) {
-		let normedMatrix = [];
+		const normedMatrix = [];
 		for (let i = 0; i < matrix.length; i++)
 			normedMatrix[i] = [];
 		for (let i = 0; i < matrix.length; i++)
@@ -34,7 +34,7 @@ define("design/Valett", () => {
 
 	
 	function transposeMatrix(matrix) {
-		let transposedMatrix = []
+		const transposedMatrix = []
 		for (let i = 0; i < matrix.length; i++)
 			transposedMatrix[i] = [];
 		
@@ -102,18 +102,18 @@ define("design/Valett", () => {
 		analyze(maxValue, weights, frequencyByLengthWeights, entropyWeights) {
 			while (frequencyByLengthWeights.length < this.maxLength)
 				frequencyByLengthWeights.push(0);
-			let normedFrequencyByLengthWeights = norm(frequencyByLengthWeights)
-			let normedEntropyWeights = norm(entropyWeights);
+			const normedFrequencyByLengthWeights = norm(frequencyByLengthWeights)
+			const normedEntropyWeights = norm(entropyWeights);
 		
-			let entropyValues = []
+			const entropyValues = []
 
-			let frequencyValues = norm(this.frequency);
-			let frequencyByLengthValues = transposeMatrix(normMatrix(transposeMatrix(this.frequencyByLength)));
+			const frequencyValues = norm(this.frequency);
+			const frequencyByLengthValues = transposeMatrix(normMatrix(transposeMatrix(this.frequencyByLength)));
 			entropyValues[0] = norm(this.entropy[0]);
 			entropyValues[1] = norm(this.entropy[1]);
 
 			// Calculate utility using weights
-			let utility = [];
+			const utility = [];
 			for (let i = 0; i < this.letters.length; i++)
 				utility[i] = { score: 0, count: frequencyValues[i] };
 
@@ -156,7 +156,7 @@ define("design/Valett", () => {
 			
 			for (let word of this.words) {
 				let i = 0;
-				let wl = word.split("");
+				const wl = word.split("");
 				for (let letter of wl) {
 					let prevLetter = null
 					let nextLetter = null
@@ -185,7 +185,7 @@ define("design/Valett", () => {
 		}
 
 		_entropy() {
-			let inOut = []
+			const inOut = []
 			inOut[0] = normMatrix(transposeMatrix(this.transitionFrequency));
 			inOut[1] = normMatrix(this.transitionFrequency);
 			
@@ -196,7 +196,7 @@ define("design/Valett", () => {
 						if (inOut[i][j][k] === 0)
 							inOut[i][j][k] = .000000001;
 			}
-			this.entropy = [[], []]
+			this.entropy = [[], []];
 			for (let i = 0; i <= 1; i++) {
 				for (let j = 0; j < this.letters.length; j++) { // Ignore start/end
 					this.entropy[i][j] = 0;

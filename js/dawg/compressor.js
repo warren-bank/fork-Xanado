@@ -35,12 +35,12 @@ requirejs(["fs-extra", 'node-gzip', 'dawg/Trie'], (Fs, Gzip, Trie) => {
 		return;
 	}
 
-	let infile = process.argv[2];
-	let outfile = process.argv[3];
+	const infile = process.argv[2];
+	const outfile = process.argv[3];
 
 	Fs.readFile(infile)
 	.then(async function(data) {
-		let lexicon = data
+		const lexicon = data
 			.toString()
 			.toUpperCase()
 			.split(/\r?\n/)
@@ -48,7 +48,7 @@ requirejs(["fs-extra", 'node-gzip', 'dawg/Trie'], (Fs, Gzip, Trie) => {
 			.sort();
 
 		// First step; generate a Trie from the words in the lexicon
-		let trie = new Trie(lexicon);
+		const trie = new Trie(lexicon);
 
 		// Second step; generate a graph from the tree
 		trie.generateDAWG();
@@ -57,12 +57,11 @@ requirejs(["fs-extra", 'node-gzip', 'dawg/Trie'], (Fs, Gzip, Trie) => {
 		//console.log(JSON.stringify(trie.first.simplify(), null, " "));
 
 		// Instead we want to generate an integer array for use with Dictionary
-		// let dawg = trie.generateIntegerArray(red);
-		let dawg = trie.encodeDAWG();
+		const dawg = trie.encodeDAWG();
 
 		// Pack the array of encoded integers into an ArrayBuffer
-		let buffer = new ArrayBuffer(dawg.length * 4);
-		let dv = new DataView(buffer);
+		const buffer = new ArrayBuffer(dawg.length * 4);
+		const dv = new DataView(buffer);
 		for (let i = 0; i < dawg.length; i++) {
 			dv.setUint32(i * 4, dawg[i]); // Little endian
 		}

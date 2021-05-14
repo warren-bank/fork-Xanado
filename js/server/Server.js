@@ -5,7 +5,7 @@
 /**
  * Main program for Crossword Game server.
  */
-const main_deps = [
+define("server/Server", [
 	'fs-extra',
 	'node-getopt',
 	'events',
@@ -25,10 +25,8 @@ const main_deps = [
 	'game/Player',
 	'game/Edition',
 
-//	"game/findBestPlay"]; // when debugging, use this (unthreaded)
-	"game/findBestPlayController"];
-
-define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Platform, Fridge, Game, Player, Edition, findBestPlay) => {
+	//"game/findBestPlay"]; // when debugging, use this (unthreaded)
+	"game/findBestPlayController"], (Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Platform, Fridge, Game, Player, Edition, findBestPlay) => {
 
 	class Server {
 		
@@ -44,11 +42,6 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 
 			// Status-monitoring sockets (game pages)
 			this.monitors = [];
-
-			const http = Http.Server(app);
-			const io = SocketIO(http)
-
-			http.listen(config.port);
 
 			app.use(MethodOverride());
 			app.use(Express.urlencoded({ extended: true }));
@@ -88,10 +81,12 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			}, "Enter game list access login");
 
 			// HTML page for main interface
-			app.get("/", (req, res) => res.redirect("/html/games.html"));
+			app.get("/", (req, res) =>
+					res.sendFile(requirejs.toUrl('html/games.html')));
 
 			// AJAX request to send email reminders about active games
-			app.post("/send-game-reminders", () => this.handle_sendGameReminders());
+			app.post("/send-game-reminders", () =>
+					 this.handle_sendGameReminders());
 
 			// AJAX request for available games
 			app.get("/games",
@@ -141,6 +136,9 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 			// Request handler for game command
 			app.post("/game/:gameKey",
 					  (req, res) => this.handle_gamePOST(req, res));
+
+			const http = Http.Server(app);
+			const io = SocketIO(http);
 
 			io.sockets.on('connection', socket => {
 				// The server socket only listens to these messages.
@@ -194,6 +192,8 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 						socket.game.notifyPlayers('message', message);
 				});
 			});
+
+			http.listen(config.port);
 		}
 
 		/**
@@ -285,7 +285,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 		 * @return a Promise
 		 */
 		handle_locales(req, res) {
-			let db = new Platform.Database('i18n', 'json');
+			const db = new Platform.Database('i18n', 'json');
 			return db.keys()
 			.then(keys => {
 				res.send(keys);
@@ -541,7 +541,7 @@ define("server/Server", main_deps, (Fs, Getopt, Events, SocketIO, Http, NodeMail
 	function mainProgram() {
 
 		// Command-line arguments
-		let cliopt = Getopt.create([
+		const cliopt = Getopt.create([
 			["h", "help", "Show this help"],
 			["c", "config=ARG", "Path to config file (default config.json)"]
 		])

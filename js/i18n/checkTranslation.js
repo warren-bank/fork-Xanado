@@ -42,7 +42,7 @@ requirejs(["node-getopt", "fs-extra"], (Getopt, Fs) => {
 		`node ${process.argv[1].replace(/.*\//, "")} fr`
 	];
 
-	let opt = Getopt.create([
+	const opt = Getopt.create([
 		[ "v", "verbose", "Shout about it" ]
 	])
 		.bindHelp()

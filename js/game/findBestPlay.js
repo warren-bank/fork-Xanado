@@ -61,7 +61,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	 */
 	function pack(tiles) {
 		let word = tiles.map(l => l.letter).join("");
-		let blanks = tiles.map(l => l.isBlank ? ' ' : l.letter).join("");
+		const blanks = tiles.map(l => l.isBlank ? ' ' : l.letter).join("");
 		if (blanks != word)
 			word += `/${blanks}`;
 		return word;
@@ -386,7 +386,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 
 			// Slide the word over the middle to find the optimum
 			// position
-			let mid = dcol == 0 ? board.midcol : board.midrow;
+			const mid = dcol == 0 ? board.midcol : board.midrow;
 			for (let end = mid;
 				 end < mid + choice.length;
 				 end++) {

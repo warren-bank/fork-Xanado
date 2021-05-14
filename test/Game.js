@@ -32,7 +32,7 @@ requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Pl
 
 		.then(() => new Game("Tiny", "Oxford_5000").create())
 		.then(game => {
-			player = new Player("test", true);
+			let player = new Player("test", true);
 			game.addPlayer(player);
 			player.rack.empty();
 			player.rack.addTile(new Tile("A", false, 1));
@@ -44,7 +44,7 @@ requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Pl
 
 		.then(() => new Game("Tiny", "SOWPODS_English").create())
 		.then(game => {
-			player = new Player("test", true);
+			let player = new Player("test", true);
 			game.addPlayer(player);
 			player.rack.empty();
 			player.rack.addTile(new Tile(' ', true, 1));

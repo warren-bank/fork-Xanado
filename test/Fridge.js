@@ -23,7 +23,8 @@ requirejs(["test/TestRunner", "game/Fridge"], (TestRunner, Fridge) => {
 		toString() {
 			return this.wibble;
 		}
-	};
+	}
+
     let tr = new TestRunner("Fridge");
     let assert = tr.assert;
 	
