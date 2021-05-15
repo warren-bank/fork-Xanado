@@ -2,7 +2,18 @@
    license information */
 /* eslint-env amd */
 
-define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition", "game/Player", "dawg/Dictionary", 'game/Square', 'game/Tile', 'game/Rack', 'game/Move', 'game/Turn', "game/findBestPlay"/*Controller"*/ ], (GenKey, Board, Bag, LetterBag, Edition, Player, Dictionary, Square, Tile, Rack, Move, Turn, findBestPlay) => {
+define("game/Game", [
+	"platform/Platform",
+	"dawg/Dictionary",
+	"game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition",
+	"game/Player", 'game/Square', 'game/Tile', 'game/Rack', 'game/Move',
+	'game/Turn'
+], (
+	Platform,
+	Dictionary,
+	GenKey, Board, Bag, LetterBag, Edition,
+	Player, Square, Tile, Rack, Move,
+	Turn) => {
 
 	/**
 	 * The Game object may be used server or browser side.
@@ -25,11 +36,12 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			this.turns = [];
 			this.whosTurn = 0;
 			this.time_limit = 0; // never time out
-			this.connections = [];
-			this.saver = null;
 			this.board = null;
 			this.rackSize = 0;
 			this.letterBag = null;
+			// We don't serialise these
+			this._connections = [];
+			this._db = null;
 		}
 
 		/**
@@ -47,6 +59,17 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				this.rackSize = edo.rackCount;
 				return this;
 			});
+		}
+
+		/**
+		 * Set the database to use to save the game. The database is not
+		 * serialised, and has to be reset when a game is loaded by
+		 * deserialisation.
+		 * @param db a 
+		 */
+		setDB(db) {
+			this._db = db;
+			this._connections = [];
 		}
 
 		/**
@@ -121,7 +144,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			let bestPlay = null;
 
 			console.log(`autoplay ${player.name}`);
-			return findBestPlay(
+			return Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
 					if (typeof data === "string")
 						console.log(data);
@@ -157,16 +180,20 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * Return a promise to save the game
 		 */
 		save() {
-			return this.saver ? this.saver(this) : Promise.resolve();
+			if (!this._db) return Promise.resolve();
+			console.log(`Saving game ${this.key}`);
+			return this._db.set(this.key, this);
 		}
 
 		/**
-		 * Send a message to just one player
+		 * Send a message to just one player. Note that the player
+		 * may be connected multiple times, so it's not enough to
+		 * send the message to one socket.
 		 */
 		notifyPlayer(player, message, data) {
-			for (let socket of this.connections) {
-				if (socket.player === player)
-					socket.emit(message, data);
+			for (let connection of this._connections) {
+				if (connection.player === player)
+					connection.socket.emit(message, data);
 			}
 		}
 
@@ -174,9 +201,8 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 * Broadcast a message to all players
 		 */
 		notifyPlayers(message, data) {
-			this.connections.forEach(socket => {
-				socket.emit(message, data);
-			});
+			this._connections.forEach(
+				connection => connection.socket.emit(message, data));
 		}
 
 		/**
@@ -325,15 +351,26 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 		/**
 		 * Does player have an active connection to this game?
+		 * @return a connection, or null if not connected.
 		 */
-		isConnected(player) {
-			if (!this.connections)
-				return false;
-			for (let connection of this.connections) {
+		getConnection(player) {
+			if (!this._connections)
+				return null;
+			for (let connection of this._connections) {
 				if (connection.player == player)
-					return true;
+					return connection;
 			}
-			return false;
+			return null;
+		}
+
+		/**
+		 * Notify players with a list of the currently connected players,
+		 * as identified by their key.
+		 */
+		updateConnections() {
+			this.notifyPlayers(
+				'connections',
+				this._connections.map(connection => connection.player.key));
 		}
 
 		/**
@@ -371,53 +408,46 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 		/**
 		 * Player is on the given socket, as determined from an incoming
-		 * 'join'
+		 * 'join'. Server side only.
 		 * @param socket the connecting socket
 		 * @param playerKey the key identifying the player
 		 */
-		newConnection(socket, playerKey) {
+		connect(socket, playerKey) {
 
-			let player;
-			for (let knownPlayer of this.players) {
-				if (knownPlayer.key == playerKey) {
-					// Player is known to the game. A reconnection.
-					player = knownPlayer;
-				} else {
-					for (let connection of this.connections) {
-						if (connection.player == knownPlayer) {
-							// knownPlayer is already connected.
-							// SMELL: This emit is a side effect and
-							// would appear spurious; all it does is
-							// confirm to the player that they are
-							// online.
-							connection.emit('join', knownPlayer.index);
-						}
-					}
+			// Right now we refuse to reconnect if the player has an open
+			// connection. An alternative would be to dump the previous
+			// connection, if it's still live?
+			for (let connection of this._connections) {
+				if (connection.player.key === playerKey) {
+					console.log(`WARNING: player ${playerKey} already connected, cannot reconnect`);
+					return;
 				}
 			}
 
+			// Make sure this is a valid (known) player
+			const player = this.players.find(p => p.key === playerKey);
 			if (!player) {
-				console.log(`player ${playerKey} not found`);
+				console.log(`WARNING: player key ${playerKey} not found in game ${this.key}`);
 				return;
 			}
 
-			this.connections.push(socket);
+			// Player is connected.
+			this._connections.push({
+				socket: socket,
+				game: this,
+				player: player
+			});
 
-			const result = { playerKey: player.key };
-			if (player) {
-				if (this.isConnected(player))
-					console.log(`WARNING: ${player.name} ${player.key} already connected`);
-				else if (player.index == this.whosTurn && !this.ended)
-					player.startTimer(this.time_limit * 60 * 1000,
-									  () => this.pass('timeout')
-									  .then(turn => this.finishTurn(turn)));
+			if (this.getConnection(player) !== null)
+				console.log(`WARNING: ${player.name} ${player.key} already connected`);
+			else if (player.index == this.whosTurn && !this.ended)
+				player.startTimer(this.time_limit * 60 * 1000,
+								  () => this.pass('timeout')
+								  .then(turn => this.finishTurn(turn)));
 
-				socket.player = player;
-
-				console.log(`Player ${player.index} ${player.name} ${player.key} connected`);
-				// Tell players that the player is connected
-				this.notifyPlayers('join', result);
-			}
+			console.log(`Player ${player.index} ${player.name} ${player.key} connected`);
+			// Tell players that the player is connected
+			this.updateConnections();
 
 			if (this.allPlayersReady() && !this.ended)
 				this.startTheClock();
@@ -431,9 +461,12 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 
 			const game = this;
 			socket.on('disconnect', () => {
-				game.connections = game.connections.filter(c => c != this);
-				if (player)
-					game.notifyPlayers('leave', player.key);
+				const conn = this._connections.find(
+					connection => connection.socket === socket);
+				console.log(`${conn.player.toString()} disconnected`);
+				this._connections = this._connections.filter(
+					connection => connection.socket != socket);
+				game.updateConnections();
 			});
 		}
 
@@ -442,7 +475,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 		 */
 		allPlayersReady() {
 			for (let player of this.players) {
-				if (!(player.isRobot || this.isConnected(player)))
+				if (!player.isRobot && this.getConnection(player) === null)
 					return false;
 			}
 			return true;
@@ -561,7 +594,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			console.log(`Player ${player.name} asked for a hint`);
 
 			let bestPlay = null;
-			findBestPlay(this, player.rack.tiles(), data => {
+			Platform.findBestPlay(this, player.rack.tiles(), data => {
 				if (typeof data === "string")
 					console.log(data);
 				else
@@ -611,7 +644,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 			console.log(`Computing advice for ${player.name} > ${theirScore}`);
 
 			let bestPlay = null;
-			return findBestPlay(this, player.rack.tiles(), data => {
+			return Platform.findBestPlay(this, player.rack.tiles(), data => {
 				if (typeof data === "string")
 					console.log(data);
 				else
@@ -885,7 +918,7 @@ define("game/Game", [ "game/GenKey", "game/Board", "game/Bag", "game/LetterBag",
 				newPlayers.forEach(p => newGame.addPlayer(p));
 				newGame.time_limit = this.time_limit;
 				this.ended.nextGameKey = newGame.key;
-				newGame.saver = this.saver;
+				newGame._db = this._db;
 				newGame.save();
 				this.save();
 				console.log(`Created follow-on game ${newGame.key}`);

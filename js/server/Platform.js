@@ -5,7 +5,15 @@
 /**
  * node.js implementation of Platform
  */
-define("platform/Platform", ["events", "fs-extra", "node-gzip", "game/Fridge"],  (Events, Fs, Gzip, Fridge) => {
+define("platform/Platform",
+	   [
+		   "events", "fs-extra", "node-gzip",
+		   "game/Fridge", "game/findBestPlayController"
+	   ],
+	   (
+		   Events, Fs, Gzip,
+		   Fridge, findBestPlay
+	   ) => {
 
 	const emitter = new Events.EventEmitter();
 
@@ -88,6 +96,10 @@ define("platform/Platform", ["events", "fs-extra", "node-gzip", "game/Fridge"], 
 				}
 				return data;
 			});
+		}
+
+		static findBestPlay() {
+			return findBestPlay.apply(null, arguments);
 		}
 	}
 

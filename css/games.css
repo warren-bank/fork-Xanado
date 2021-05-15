@@ -37,8 +37,20 @@ button.player {
 	background-color: seagreen;
 }
 
-.greenDot {
+.robot {
+	margin-left: 0.5em;
+	width: 1em;
+	height: 1em;
+}
+
+.online {
+	margin-left: 0.5em;
 	color: seagreen;
+}
+
+.offline {
+	margin-left: 0.5em;
+	color: darkred;
 }
 
 .winner {

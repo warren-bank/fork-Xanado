@@ -7,17 +7,20 @@
  */
 requirejs(["browser/browserApp", "socket.io"], (browserApp, io) => {
 	const BLACK_CIRCLE = '\u25cf';
-	const ROBOT_FACE = ' <img class="glyph" src="/images/robotface.png" />';
 
 	// Format a player
 	function formatPlayer(game, player) {
 		let $but = $(`<button class="player">${player.name}</button>`);
 		if (player.isRobot) {
-			$but.append(ROBOT_FACE);
+			$but.append('<img class="robot" src="/images/robotface.png"></img>');
 			$but.prop("disabled", true);
 		} else {
+			const $spot = $(`<span>${BLACK_CIRCLE}</span>`);
 			if (player.connected)
-				$but.append(` <span class="greenDot">${BLACK_CIRCLE}</span>`);
+				$spot.addClass('online');
+			else
+				$spot.addClass('offline');
+			$but.append($spot);
 			const $a = $(`<a href='/game/${game.key}/${player.key}'></a>`);
 			$a.append($but);
 			$but = $a;

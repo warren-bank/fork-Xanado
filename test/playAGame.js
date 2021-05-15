@@ -26,14 +26,6 @@ requirejs(["platform/Platform", "game/Edition", "game/Tile", "game/Rack", "game/
 	let db = new Platform.Database("test", "testgame");
 	let game = new Game("Tiny", "SOWPODS_English");
 	let gameKey = game.key;
-	let saver = game => {
-		console.log(`Saving game ${game.key}`);
-		return db.set(gameKey, game)
-		.then(() => {
-			console.log(`Saved game ${game.key}`);
-			return game;
-		});
-	};
 	let player = 0;
 
 	game.create()
@@ -42,7 +34,7 @@ requirejs(["platform/Platform", "game/Edition", "game/Tile", "game/Rack", "game/
 		game.addPlayer(player1);
 		let player2 = new Player("player two", true);
 		game.addPlayer(player2);
-		game.saver = saver;
+		game.setDB(db);
 		console.log(player1.toString());
 		return game.save();
 	})
@@ -51,7 +43,7 @@ requirejs(["platform/Platform", "game/Edition", "game/Tile", "game/Rack", "game/
 		while (!finished) {
 			await db.get(gameKey, Game.classes)
 			.then(game => {
-				game.saver = saver;
+				game.setDB(db);
 				return game.autoplay(game.players[player])
 				.then(() => game);
 			})
@@ -62,7 +54,7 @@ requirejs(["platform/Platform", "game/Edition", "game/Tile", "game/Rack", "game/
 				}
 				player = (player + 1) % 2;
 				return game.save();
-			})
+			});
 		}
 		console.log("Game over");
 	});

@@ -452,6 +452,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				.dialog({ modal: true });
 				const ui = this;
 				setTimeout(() => {
+					// Try and rejoin after a timeout
 					ui.socket.emit('join', {
 						gameKey: this.game.key,
 						playerKey: this.thisPlayer.key
@@ -477,20 +478,15 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			.on('message', message =>
 				this.chatMessage(message))
 
-			.on('join', info => {
-				console.debug("Server: Player ", info, " joining");
-
-				const player = this.game.getPlayerFromKey(info.playerKey);
-				if (player)
-					player.online(true);
-			})
-
-			.on('leave', playerKey => {
-				// Server has indicated game has been left
-				// AFAICT this
-				const player = this.game.getPlayerFromKey(playerKey);
-				console.debug(`Server: Player ${player.name} leaving`);
-				player.online(false);
+			.on('connections', info => {
+				// Update active connections
+				for (let player of this.game.players)
+					player.online(false);
+				for (let key of info) {
+					const player = this.game.getPlayerFromKey(key);
+					if (player)
+						player.online(true);
+				}
 			});
 
 			const ui = this;

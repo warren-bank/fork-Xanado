@@ -5,28 +5,25 @@
 /**
  * Main program for Crossword Game server.
  */
-define("server/Server", [
-	'fs-extra',
-	'node-getopt',
-	'events',
-	'socket.io',
-	'http',
-	'nodemailer',
-	'express',
-	'express-negotiate',
-	'method-override',
-	'cookie-parser',
-	'errorhandler',
-	'basic-auth-connect',
+define(
+	"server/Server",
+	[
+		'fs-extra', 'node-getopt', 'events',
+		'socket.io', 'http', 'nodemailer',
+		'express', 'express-negotiate', 'cookie-parser', 'errorhandler', 'basic-auth-connect',   
+		'platform/Platform',
+		'game/Fridge', 'game/Game', 'game/Player', 'game/Edition',
 
-	'platform/Platform',
-	'game/Fridge',
-	'game/Game',
-	'game/Player',
-	'game/Edition',
-
-	//"game/findBestPlay"]; // when debugging, use this (unthreaded)
-	"game/findBestPlayController"], (Fs, Getopt, Events, SocketIO, Http, NodeMailer, Express, negotiate, MethodOverride, CookieParser, ErrorHandler, BasicAuth, Platform, Fridge, Game, Player, Edition, findBestPlay) => {
+		//"game/findBestPlay"]; // when debugging, use this (unthreaded)
+		"game/findBestPlayController"
+	],
+	(
+		Fs, Getopt, Events,
+		SocketIO, Http, NodeMailer,
+		Express, negotiate, CookieParser, ErrorHandler, BasicAuth,
+		Platform,
+		Fridge, Game, Player, Edition, findBestPlay
+	) => {
 
 	class Server {
 		
@@ -43,20 +40,21 @@ define("server/Server", [
 			// Status-monitoring sockets (game pages)
 			this.monitors = [];
 
-			app.use(MethodOverride());
+			// Parse incoming requests with url-encoded payloads
 			app.use(Express.urlencoded({ extended: true }));
+
+			// Parse incoming requests with a JSON body
 			app.use(Express.json());
+
+			// Grab unsigned cookies from the Cookie header
 			app.use(CookieParser());
 
 			// Grab all static files relative to the project root
-			// html, images, css etc
+			// html, images, css etc. The Content-type should be set
+			// based on the file mime type (extension) but it doesn't
+			// always get it right.....
 			console.log(`static files from ${requirejs.toUrl('')}`);
 			app.use(Express.static(requirejs.toUrl('')));
-
-			app.use(ErrorHandler({
-				dumpExceptions: true,
-				showStack: true
-			}));
 
 			app.use((err, req, res, next) => {
 				if (res.headersSent) {
@@ -65,6 +63,11 @@ define("server/Server", [
 
 				return res.status(err.status || 500).render('500');
 			});
+
+			app.use(ErrorHandler({
+				dumpExceptions: true,
+				showStack: true
+			}));
 
 			process.on('unhandledRejection', reason => {
 				console.log("Command rejected", reason, reason.stack);
@@ -147,27 +150,34 @@ define("server/Server", [
 				socket
 
 				.on('monitor', () => {
-					// Game monitor has joined
-					console.log("Monitor joined");
+					// Games monitor has joined
 					this.monitors.push(socket);
+					console.log("Monitor joined");
 				})
 
 				.on('disconnect', () => {
+					// Don't need to find the game using this socket, because
+					// each game has a 'disconnect' listener on each of the
+					// sockets being used.
+
+					// Remove any monitor using this socket
 					const i = this.monitors.indexOf(socket);
 					if (i >= 0) {
 						// Game monitor has disconnected
 						console.log("Monitor disconnected");
 						this.monitors.slice(i, 1);
+					} else {
+						console.log("Anonymous disconnect");
+						this.updateMonitors();
 					}
 				})
 
 				.on('join', async params => {
-
-					// Request to join a game.
+					// Player has joined
+					console.log("Player joining");
 					this.loadGame(params.gameKey)
 					.then(game => {
-						game.newConnection(socket, params.playerKey);
-						socket.game = game;
+						game.connect(socket, params.playerKey);
 						this.updateMonitors();
 					});
 				})
@@ -208,12 +218,7 @@ define("server/Server", [
 			return this.db.get(key, Game.classes)
 			.then(game => {
 
-				game.saver = saveGame => {
-					console.log(`Saving game ${saveGame.key}`);
-					return this.db.set(saveGame.key, saveGame);
-				};
-
-				game.connections = [];
+				game.setDB(this.db);
 
 				Events.EventEmitter.call(game);
 
@@ -227,8 +232,7 @@ define("server/Server", [
 				// get to a human
 				if (!game.ended) {
 					const nextPlayer = game.players[game.whosTurn];
-					const what = nextPlayer.isRobot ? "robot" : "human";
-					console.log(`Next to play is ${what} ${nextPlayer}`);
+					console.log(`Next to play is ${nextPlayer}`);
 					if (nextPlayer.isRobot) {
 						return game.autoplay(nextPlayer)
 						// May autoplay next robot recursively
@@ -267,9 +271,10 @@ define("server/Server", [
 		 * @return a Promise
 		 */
 		handle_games(req, res) {
+			const server = this;
 			return this.db.keys()
 			.then(keys => keys.map(
-				key => this.db.get(key, Game.classes)))
+				key => server.games[key] || this.db.get(key, Game.classes)))
 			.then(promises => Promise.all(promises))
 			.then(games => games.map(
 				game => game.catalogue())
@@ -345,9 +350,12 @@ define("server/Server", [
 				} else
 					console.log("\twith no dictionary");
 
-				return new Game(edition.name, dictionary).create();
+				return new Game(edition.name, dictionary)
+				.create();
 			})
 			.then(game => {
+
+				game.setDB(this.db);
 
 				let haveHuman = false;
 				for (let p of req.body.players) {
@@ -366,10 +374,6 @@ define("server/Server", [
 				if (!haveHuman)
 					throw Error('error-need-human');
 
-				game.saver = () => {
-					console.log(`Saving game ${game.key}`);
-					return this.db.set(game.key, game);
-				};
 				game.time_limit = req.body.time_limit || 0;
 				if (game.time_limit > 0)
 					console.log(`\t${game.time_limit} minute time limit`);
@@ -478,13 +482,12 @@ define("server/Server", [
 				const game = info.game;
 
 				if (game.ended)
-					return;
+					return Promise.resolve();
 
 				// Who the request is coming from
 				const player = info.player;
 				const command = req.body.command;
 				const args = req.body.args ? JSON.parse(req.body.args) : null;
-
 				
 				console.log(`COMMAND ${command} player ${player.name} game ${game.key}`, args);
 

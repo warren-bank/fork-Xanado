@@ -48,7 +48,7 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 			return {
 				name: this.name,
 				isRobot: this.isRobot,
-				connected: game.isConnected(this),
+				connected: this.isRobot || (game.getConnection(this) !== null),
 				key: this.key
 			};
 		}
@@ -108,10 +108,9 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 			let s = `${this.isRobot ? "Robot" : "Human"} player `;
 			if (this.index >= 0)
 				s += `${this.index} `;
-			s += `${this.name} `;
+			s += `'${this.name}' `;
 			if (this.key)
 				s += `key ${this.key} `;
-			s += this.rack;
 			return s;
 		}
 
