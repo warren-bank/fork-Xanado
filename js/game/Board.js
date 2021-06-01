@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd, node, jquery */
 
-define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile, Move) => {
+define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile, Move) => {
 
 	class Board extends Surface{
 
@@ -27,10 +27,10 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		 * toString. This is for use in tests.
 		 */
 		parse(sboard, edition) {
-			const rows = sboard.split("\n");
+			const rows = sboard.split('\n');
 			let row = 0;
 			while (row < this.rows && row < rows.length) {
-				const r = rows[row].split("|");
+				const r = rows[row].split('|');
 				let col = 1;
 				while (col < this.cols && col < r.length) {
 					const letter = r[col];
@@ -77,7 +77,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 							r.push(' ');
 					}
 				}
-				s += `|${r.join("|")}|\n`;
+				s += `|${r.join('|')}|\n`;
 			}
 			return s;
 		}
@@ -105,7 +105,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		 * and difficult to analyse. It works on one axis, as given
 		 * by dcol and drow
 		 * @param dcol, drow axis to operate on
-		 * @param words list {score:N word:""} to update
+		 * @param words list {score:N word:''} to update
 		 * @return the total score
 		 */
 		scoreNewWords(words) {
@@ -245,7 +245,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 
 			if (words)
 				words.push({
-					word: tiles.map(tile => tile.letter).join(""),
+					word: tiles.map(tile => tile.letter).join(''),
 					score: wordScore
 				});
 
@@ -261,7 +261,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		 * not sent to the client.
 		 */
 		calculateBonus(tilesPlaced) {
-			if (typeof this.bonuses[tilesPlaced] === "number")
+			if (typeof this.bonuses[tilesPlaced] === 'number')
 				return this.bonuses[tilesPlaced];
 			return 0;
 		}
@@ -366,12 +366,12 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		 * Create the DOM representation
 		 */
 		createDOM() {
-			const $table = $("<table></table>");
+			const $table = $('<table></table>');
 			for (let row = 0; row < this.rows; row++) {
-				const $tr = $("<tr></tr>");
+				const $tr = $('<tr></tr>');
 				for (let col = 0; col < this.cols; col++) {
 					const square = this.at(col, row);
-					const $td = square.createDOM("Board", col, row);			
+					const $td = square.createDOM('Board', col, row);			
 					if (col == this.midcol && row == this.midrow)
 						$td.addClass('StartField');
 					else if (square.type != '_')

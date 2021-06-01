@@ -6,7 +6,7 @@
  * A Rack is a set of tiles that a player can play from. It's
  * a 1D array of Square.
  */
-define("game/Rack", ["game/Surface"], Surface => {
+define('game/Rack', ['game/Surface'], Surface => {
 
 	/**
 	 * A Rack is a 1-column Surface
@@ -124,7 +124,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 			const square = this.findSquare(remove.letter, true);
 			if (!square)
 				// Terminal, no point in translating
-				throw Error("Cannot find a tile on the rack for "
+				throw Error('Cannot find a tile on the rack for '
 							+ remove.letter);
 			const tile = square.tile;
 			tile.letter = remove.letter;
@@ -165,8 +165,8 @@ define("game/Rack", ["game/Surface"], Surface => {
 				const $td = square.createDOM(idbase, idx);
 				if (underlay) {
 					const letter = underlay.charAt(idx);
-					$td.addClass("bgLetterContainer");
-					$td.append(`<div class="bgLetter">${letter}</div>`);
+					$td.addClass('bgLetterContainer');
+					$td.append(`<div class='bgLetter'>${letter}</div>`);
 				}
 				$tr.append($td);
 				idx++;

@@ -1,19 +1,19 @@
 /*@preserve Copyright (C) 2021 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env node, mocha */
 
-if (typeof module !== "undefined") {
+if (typeof module !== 'undefined') {
     requirejs = require('requirejs');
     // node.js
 }
 
 requirejs.config({
-    baseUrl: "..",
+    baseUrl: '..',
     paths: {
-        "game": "js/game"
+        'game': 'js/game'
     }
 });
 
-requirejs(["test/TestRunner", "game/Fridge"], (TestRunner, Fridge) => {
+requirejs(['test/TestRunner', 'game/Fridge'], (TestRunner, Fridge) => {
 	class Wibble {
 		constructor(wib) {
 			this._ignore = 666;
@@ -25,19 +25,19 @@ requirejs(["test/TestRunner", "game/Fridge"], (TestRunner, Fridge) => {
 		}
 	}
 
-    let tr = new TestRunner("Fridge");
+    let tr = new TestRunner('Fridge');
     let assert = tr.assert;
 	
-    tr.addTest("simple", () => {
+    tr.addTest('simple', () => {
 
 		let simple = {
 			number: 10,
-			string: "String",
-			_ignore: "ignore", // will make assert.deepEqual fail
+			string: 'String',
+			_ignore: 'ignore', // will make assert.deepEqual fail
 			date: new Date(1234567890123),
 			array: [ 1, 2, 3 ],
-			classObject: new Wibble("wibble"),
-			object: { data: "lorem ipsum" }
+			classObject: new Wibble('wibble'),
+			object: { data: 'lorem ipsum' }
 		};
 		let frozen = Fridge.freeze(simple);
 		let thawed = Fridge.thaw(frozen, [ Wibble ]);
@@ -50,13 +50,13 @@ requirejs(["test/TestRunner", "game/Fridge"], (TestRunner, Fridge) => {
 		assert.equal(thawed.classObject.toString(), simple.classObject.toString());
 	});
 
-    tr.addTest("instance-ref", () => {
+    tr.addTest('instance-ref', () => {
 
-		let frood = new Wibble("frood");
+		let frood = new Wibble('frood');
 		let simple = {
 			obj1: frood,
 			obj2: frood,
-			obj3: new Wibble("not frood")
+			obj3: new Wibble('not frood')
 		};
 		let frozen = Fridge.freeze(simple);
 		let thawed = Fridge.thaw(frozen, [ Wibble ]);
@@ -65,7 +65,7 @@ requirejs(["test/TestRunner", "game/Fridge"], (TestRunner, Fridge) => {
 		assert.equal(thawed.obj1, thawed.obj2);
 	});
 
-    tr.addTest("array-ref", () => {
+    tr.addTest('array-ref', () => {
 
 		let frood = [ 1, 2, 3, 4];
 		let simple = {
@@ -79,7 +79,7 @@ requirejs(["test/TestRunner", "game/Fridge"], (TestRunner, Fridge) => {
 		assert.equal(thawed.obj1, thawed.obj2);
 	});
 
-    tr.addTest("object-ref", () => {
+    tr.addTest('object-ref', () => {
 
 		let frood = { 1: 2, 3: 4 };
 		let simple = {
@@ -93,7 +93,7 @@ requirejs(["test/TestRunner", "game/Fridge"], (TestRunner, Fridge) => {
 		assert.equal(thawed.obj1, thawed.obj2);
 	});
 
-    tr.addTest("self-referential", () => {
+    tr.addTest('self-referential', () => {
 
 		let frood = new Wibble();
 		frood.wibble = frood;

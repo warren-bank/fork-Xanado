@@ -10,14 +10,14 @@ requirejs.config({
 	baseUrl: __dirname,
     nodeRequire: require,
 	paths: {
-		server: "js/server",
-		game: "js/game",
-		dawg: "js/dawg",
+		server: 'js/server',
+		game: 'js/game',
+		dawg: 'js/dawg',
 
-		platform: "js/server"
+		platform: 'js/server'
 	}
 });
 
 // Server exports the mainProgam function, so simply require it and
 // run it.
-requirejs(["server/Server"], main => main(__dirname));
+requirejs(['server/Server'], main => main(__dirname));

@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd */
 
-define("game/Bag", () => {
+define('game/Bag', () => {
 	class Bag {
 		constructor(contents) {
 			this.contents = contents ? contents.slice() : [];

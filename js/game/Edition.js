@@ -14,7 +14,7 @@
  * and are not sent to the browser.
  */
 
-define("game/Edition", () => {
+define('game/Edition', () => {
 
 	// Static DB of loaded Editions, indexed by name
 	const editions = {};
@@ -64,7 +64,7 @@ define("game/Edition", () => {
 				}
 				this.scores[tile.letter] = tile.score || 0;
 			}
-			this.alphabet = this.alphabeta.sort().join("");
+			this.alphabet = this.alphabeta.sort().join('');
 		}
 
 		/**
@@ -100,7 +100,7 @@ define("game/Edition", () => {
 		 * Get the letter indices for the letters in the given word
 		 */
 		getLetterIndices(word) {
-			return word.split("")
+			return word.split('')
 			.map(l => this.alphabet.indexOf(l.toUpperCase()));
 		}
 

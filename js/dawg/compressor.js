@@ -21,17 +21,17 @@ requirejs.config({
 	}
 });
 
-requirejs(["fs-extra", 'node-gzip', 'dawg/Trie'], (Fs, Gzip, Trie) => {
+requirejs(['fs-extra', 'node-gzip', 'dawg/Trie'], (Fs, Gzip, Trie) => {
 	const DESCRIPTION = [
-		"USAGE",
-		`node ${process.argv[1].replace(/.*\//, "")} <lexicon> <outfile>`,
-		"Create a directed acyclic word graph (DAWG) from a list of words.",
-		"<lexicon> is a text file containing a list of words, and <outfile>",
-		"is the binary file containing the compressed DAWG, as used by the",
-		"Dictionary.js module." ];
+		'USAGE',
+		`node ${process.argv[1].replace(/.*\//, '')} <lexicon> <outfile>`,
+		'Create a directed acyclic word graph (DAWG) from a list of words.',
+		'<lexicon> is a text file containing a list of words, and <outfile>',
+		'is the binary file containing the compressed DAWG, as used by the',
+		'Dictionary.js module.' ];
 
 	if (process.argv.length < 4) {
-		console.log(DESCRIPTION.join("\n"));
+		console.log(DESCRIPTION.join('\n'));
 		return;
 	}
 
@@ -44,7 +44,7 @@ requirejs(["fs-extra", 'node-gzip', 'dawg/Trie'], (Fs, Gzip, Trie) => {
 			.toString()
 			.toUpperCase()
 			.split(/\r?\n/)
-			.map(w => w.replace(/[\W].*$/, "")) // comments
+			.map(w => w.replace(/[\W].*$/, '')) // comments
 			.sort();
 
 		// First step; generate a Trie from the words in the lexicon
@@ -54,7 +54,7 @@ requirejs(["fs-extra", 'node-gzip', 'dawg/Trie'], (Fs, Gzip, Trie) => {
 		trie.generateDAWG();
 		
 		// We have a DAWG. We could output it now like this:
-		//console.log(JSON.stringify(trie.first.simplify(), null, " "));
+		//console.log(JSON.stringify(trie.first.simplify(), null, ' '));
 
 		// Instead we want to generate an integer array for use with Dictionary
 		const dawg = trie.encodeDAWG();
@@ -76,6 +76,6 @@ requirejs(["fs-extra", 'node-gzip', 'dawg/Trie'], (Fs, Gzip, Trie) => {
 	})
 	.catch(e => {
 		console.log(e.toString());
-		console.log(DESCRIPTION.join("\n"));
+		console.log(DESCRIPTION.join('\n'));
 	});
 });

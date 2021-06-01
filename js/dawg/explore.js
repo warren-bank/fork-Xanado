@@ -9,16 +9,16 @@ const requirejs = require('requirejs');
 requirejs.config({
 	baseUrl: `${__dirname}/../..`,
 	paths: {
-		dawg: "js/dawg",
-		game: "js/game",
-		platform: "js/server"
+		dawg: 'js/dawg',
+		game: 'js/game',
+		platform: 'js/server'
 	}
 });
 
-const DESCRIPTION = "USAGE\n  node dict.js [options] <dictionary> <words>\n"
-+ "Explore a DAWG dictionary."
+const DESCRIPTION = 'USAGE\n  node dict.js [options] <dictionary> <words>\n'
+	  + 'Explore a DAWG dictionary.';
 
-requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Platform, Dictionary) => {
+requirejs(['node-getopt', 'platform/Platform', 'dawg/Dictionary'], (Getopt, Platform, Dictionary) => {
 
 	const biglist = {};
 	
@@ -33,16 +33,16 @@ requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Plat
 				list = list.filter(w => !biglist[w]);
 				list.forEach(w => biglist[w] = true);
 				
-				console.log(list.join("\n"));
+				console.log(list.join('\n'));
 			}
 		}
 		else if (opt.options.anagrams) {
-			console.log(`\nAnagrams of "${root.word}"`);
+			console.log(`\nAnagrams of '${root.word}'`);
 			const anag = dict.findAnagrams(root.word);
 			console.log(anag);
 		} else if (root.node && root.node.isEndOfWord)
 			console.log(`'${root.word}' was found`,
-						root.node.child ? "& is a root" : "");
+						root.node.child ? '& is a root' : '');
 		else if (root.node && root.node.child)
 			console.log(`'${root.word}' is a root`);
 		else
@@ -81,7 +81,7 @@ requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Plat
 					}
 					roots.sort((a, b) => {
 						return a.word.length > b.word.length ? -1 :
-						a.word.length === b.word.length ? 0 : 1
+						a.word.length === b.word.length ? 0 : 1;
 					});
 				}
 
@@ -92,11 +92,11 @@ requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Plat
 	}
 
 	const opt = Getopt.create([
-        ["h", "help", "Show this help"],
-		["l", "list", "Without paramaters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root"],
-		["f", "file=ARG", "Check all words read from file"],
-		["a", "anagrams", "Find anagrams of the words and any sub-words"],
-		["s", "sequence", "Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. 'UZZL' is a valid sub-sequence in an English dictionary as it is found in 'PUZZLE', but 'UZZZL' isn't"]
+        ['h', 'help', 'Show this help'],
+		['l', 'list', 'Without paramaters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root'],
+		['f', 'file=ARG', 'Check all words read from file'],
+		['a', 'anagrams', 'Find anagrams of the words and any sub-words'],
+		['s', 'sequence', 'Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. "UZZL" is a valid sub-sequence in an English dictionary as it is found in "PUZZLE", but "UZZZL" isn\'t']
 	])
         .bindHelp()
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
@@ -104,7 +104,7 @@ requirejs(["node-getopt", "platform/Platform", "dawg/Dictionary"], (Getopt, Plat
 
     if (opt.argv.length == 0) {
         opt.showHelp();
-        throw "No DAWG filename given";
+        throw 'No DAWG filename given';
     } else {
 		opt.dawgfile = opt.argv.shift();
 	}

@@ -3,7 +3,7 @@
 /**
  * Browser implementation of Platform
  */
-define("platform/Platform", () => {
+define('platform/Platform', () => {
 	class Platform {
 		static trigger(e, args) {
 			// Pass events straight to the document

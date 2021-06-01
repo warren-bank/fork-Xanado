@@ -2,11 +2,11 @@
    license information */
 /* eslint-env amd */
 
-define("game/Game", [
-	"platform/Platform",
-	"dawg/Dictionary",
-	"game/GenKey", "game/Board", "game/Bag", "game/LetterBag", "game/Edition",
-	"game/Player", 'game/Square', 'game/Tile', 'game/Rack', 'game/Move',
+define('game/Game', [
+	'platform/Platform',
+	'dawg/Dictionary',
+	'game/GenKey', 'game/Board', 'game/Bag', 'game/LetterBag', 'game/Edition',
+	'game/Player', 'game/Square', 'game/Tile', 'game/Rack', 'game/Move',
 	'game/Turn'
 ], (
 	Platform,
@@ -39,7 +39,7 @@ define("game/Game", [
 			this.board = null;
 			this.rackSize = 0;
 			this.letterBag = null;
-			// We don't serialise these
+			// List of decorated sockets, We don't serialise these
 			this._connections = [];
 			this._db = null;
 		}
@@ -78,7 +78,7 @@ define("game/Game", [
 		 */
 		addPlayer(player) {
 			if (!this.letterBag)
-				throw Error("Cannot addPlayer() before create()");
+				throw Error('Cannot addPlayer() before create()');
 			this.players.push(player);
 			player.joinGame(
 				this.letterBag,
@@ -146,11 +146,11 @@ define("game/Game", [
 			console.log(`autoplay ${player.name}`);
 			return Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
-					if (typeof data === "string")
+					if (typeof data === 'string')
 						console.log(data);
 					else {
 						bestPlay = data;
-						console.log("Best", bestPlay.toString());
+						console.log('Best', bestPlay.toString());
 					}
 				})
 			.then(() => {
@@ -173,7 +173,7 @@ define("game/Game", [
 		 * Simple summary of the game, for console output
 		 */
 		toString() {
-			return `${this.key} game of ${this.players.length} players edition ${this.edition} dictionary ${this.dictionary}\n` + this.players;
+			return `Game ${this.key} edition "${this.edition}" dictionary "${this.dictionary}" players [ ${this.players.map(p => p.toString()).join(', ')} ]`;
 		}
 
 		/**
@@ -191,10 +191,9 @@ define("game/Game", [
 		 * send the message to one socket.
 		 */
 		notifyPlayer(player, message, data) {
-			for (let connection of this._connections) {
-				if (connection.player === player)
-					connection.socket.emit(message, data);
-			}
+			const socket = this.getConnection(player);
+			if (socket)
+				socket.emit(message, data);
 		}
 
 		/**
@@ -202,7 +201,7 @@ define("game/Game", [
 		 */
 		notifyPlayers(message, data) {
 			this._connections.forEach(
-				connection => connection.socket.emit(message, data));
+				socket => socket.emit(message, data));
 		}
 
 		/**
@@ -259,15 +258,15 @@ define("game/Game", [
 
 			return this.save()
 			.then(() => {
-				//console.log("Notify turn", turn);
+				//console.log('Notify turn', turn);
 				this.notifyPlayers('turn', turn);
 
 				// if the game has ended, send extra notification with
 				// final scores
 				if (this.ended) {
-					console.log("Game over", this.ended);
+					console.log('Game over', this.ended);
 					this.notifyPlayers('gameEnded', this.ended);
-					return;
+					return Promise.resolve();
 				}
 				console.log(`Player ${this.whosTurn}'s turn`);
 				const nextPlayer = this.players[this.whosTurn];
@@ -276,12 +275,12 @@ define("game/Game", [
 					return this.autoplay(nextPlayer)
 					// May recurse if the player after is also a robot
 					.then(turn => this.finishTurn(turn));
-				} else if (!this.ended) {
-					nextPlayer.startTimer(
-						this.time_limit * 60 * 1000,
-						() => this.pass('timeout')
-						.then(turn => this.finishTurn(turn)));
 				}
+				nextPlayer.startTimer(
+					this.time_limit * 60 * 1000,
+					() => this.pass('timeout')
+					.then(turn => this.finishTurn(turn)));
+				return Promise.resolve();
 			});
 		}
 
@@ -298,11 +297,11 @@ define("game/Game", [
 			const length = names.length;
 			switch (length) {
 			case 0:
-				return "";
+				return '';
 			case 1:
 				return names[0];
 			default:
-				return names.slice(0, length - 1).join(", ")
+				return names.slice(0, length - 1).join(', ')
 				+ ` and ${names[length - 1]}`;
 			}
 		}
@@ -316,7 +315,7 @@ define("game/Game", [
 					if (!player.email)
 						return;
 					player.sendInvitation(
-						"You have been invited to play with "
+						'You have been invited to play with '
 						+ this.emailJoinProse(player),
 						config);
 				});
@@ -344,21 +343,21 @@ define("game/Game", [
 			const player = this.players[this.whosTurn];
 			if (player.email)
 				player.sendInvitation(
-					"It is your turn in your game with "
+					'It is your turn in your game with '
 					+ this.emailJoinProse(player),
 					config);
 		}
 
 		/**
 		 * Does player have an active connection to this game?
-		 * @return a connection, or null if not connected.
+		 * @return a decorated socket, or null if not connected.
 		 */
 		getConnection(player) {
 			if (!this._connections)
 				return null;
-			for (let connection of this._connections) {
-				if (connection.player == player)
-					return connection;
+			for (let socket of this._connections) {
+				if (socket.player == player)
+					return socket;
 			}
 			return null;
 		}
@@ -370,7 +369,7 @@ define("game/Game", [
 		updateConnections() {
 			this.notifyPlayers(
 				'connections',
-				this._connections.map(connection => connection.player.key));
+				this._connections.map(socket => socket.player.key));
 		}
 
 		/**
@@ -414,38 +413,32 @@ define("game/Game", [
 		 */
 		connect(socket, playerKey) {
 
-			// Right now we refuse to reconnect if the player has an open
-			// connection. An alternative would be to dump the previous
-			// connection, if it's still live?
-			for (let connection of this._connections) {
-				if (connection.player.key === playerKey) {
-					console.log(`WARNING: player ${playerKey} already connected, cannot reconnect`);
-					return;
-				}
-			}
-
 			// Make sure this is a valid (known) player
 			const player = this.players.find(p => p.key === playerKey);
 			if (!player) {
-				console.log(`WARNING: player key ${playerKey} not found in game ${this.key}`);
+				console.log(`WARNING: player key ${playerKey} not found in game ${this.key}, cannot connect()`);
 				return;
 			}
 
-			// Player is connected.
-			this._connections.push({
-				socket: socket,
-				game: this,
-				player: player
-			});
-
-			if (this.getConnection(player) !== null)
-				console.log(`WARNING: ${player.name} ${player.key} already connected`);
-			else if (player.index == this.whosTurn && !this.ended)
+			// If the player has an open connection, we bump it and
+			// accept the new connection. The logic is if they are changing
+			// device due to some issue (e.g. poor comms)
+			const knownSocket = this.getConnection(player);
+			if (knownSocket !== null) {
+				console.log('WARNING:', player, 'already connected to', this);
+			} else if (player.index == this.whosTurn && !this.ended)
 				player.startTimer(this.time_limit * 60 * 1000,
 								  () => this.pass('timeout')
 								  .then(turn => this.finishTurn(turn)));
 
-			console.log(`Player ${player.index} ${player.name} ${player.key} connected`);
+			// Player is connected. Decorate the socket. It may seem
+			// rather cavalier, writing over the socket this way, but
+			// it does simplify the code quite a bit.
+			socket.game = this;
+			socket.player = player;
+			this._connections.push(socket);
+			console.log(`${player} connected`);
+
 			// Tell players that the player is connected
 			this.updateConnections();
 
@@ -459,19 +452,18 @@ define("game/Game", [
 						timeout: 0
 					});
 
+			// Add disconnect listener
 			const game = this;
 			socket.on('disconnect', () => {
-				const conn = this._connections.find(
-					connection => connection.socket === socket);
-				console.log(`${conn.player.toString()} disconnected`);
+				console.log(`${socket.player.toString()} disconnected`);
 				this._connections = this._connections.filter(
-					connection => connection.socket != socket);
+					sock => sock !== socket);
 				game.updateConnections();
 			});
 		}
 
 		/**
-		 * Return true if the game is "live" - all players connected
+		 * Return true if the game is 'live' - all players connected
 		 */
 		allPlayersReady() {
 			for (let player of this.players) {
@@ -499,7 +491,7 @@ define("game/Game", [
 							});
 					}
 				}, 1000);
-				console.log("Started tick timer", this._intervalTimer);
+				console.log('Started tick timer', this._intervalTimer);
 			}
 		}
 
@@ -508,7 +500,7 @@ define("game/Game", [
 		 */
 		stopTheClock() {
 			if (this._intervalTimer) {
-				console.log("Stopping timer");
+				console.log('Stopping timer');
 				clearInterval(this._intervalTimer);
 				this._intervalTimer = null;
 			}
@@ -556,7 +548,7 @@ define("game/Game", [
 					pointsRemainingOnRacks += rackScore;
 				} else {
 					if (playerWithNoTiles)
-						throw Error("Found more than one player with no tiles when finishing game");
+						throw Error('Found more than one player with no tiles when finishing game');
 					playerWithNoTiles = player;
 				}
 			});
@@ -582,8 +574,6 @@ define("game/Game", [
 					};
 				})
 			};
-
-			return null;
 		}
 
 		/**
@@ -595,7 +585,7 @@ define("game/Game", [
 
 			let bestPlay = null;
 			Platform.findBestPlay(this, player.rack.tiles(), data => {
-				if (typeof data === "string")
+				if (typeof data === 'string')
 					console.log(data);
 				else
 					bestPlay = data;
@@ -645,7 +635,7 @@ define("game/Game", [
 
 			let bestPlay = null;
 			return Platform.findBestPlay(this, player.rack.tiles(), data => {
-				if (typeof data === "string")
+				if (typeof data === 'string')
 					console.log(data);
 				else
 					bestPlay = data;
@@ -707,13 +697,13 @@ define("game/Game", [
 				}
 			}
 
-			console.log("New rack", player.rack.toString());
+			console.log('New rack', player.rack.toString());
 
-			console.log("words ", move.words);
+			console.log('words ', move.words);
 			this.getDictionary()
 			.then(dict => {
 				for (let w of move.words) {
-					console.log("Checking ",w);
+					console.log('Checking ',w);
 					if (!dict.hasWord(w.word)) {
 						// Only want to notify the player
 						this.notifyPlayer(
@@ -727,7 +717,7 @@ define("game/Game", [
 				}
 			})
 			.catch((e) => {
-				console.log("Dictionary load failed", e);
+				console.log('Dictionary load failed', e);
 			});
 
 			this.previousMove = {
@@ -837,7 +827,7 @@ define("game/Game", [
 
 			return this.getDictionary()
 			.catch(() => {
-				console.log("No dictionary, so challenge always succeeds");
+				console.log('No dictionary, so challenge always succeeds');
 				return this.takeBack('challenge-won');
 			})
 			.then(dict => {

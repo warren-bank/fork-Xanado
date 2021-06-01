@@ -6,7 +6,7 @@
  * A tile in a LetterBag, on a Board, or on a Rack, or during best move
  * computation.
  */
-define("game/Tile", () => {
+define('game/Tile', () => {
 	class Tile {
 
 		/**
@@ -26,9 +26,9 @@ define("game/Tile", () => {
 			this.letter = letter || ' ';
 			this.score = score || 0;
 			this.isBlank = isBlank || false;
-			if (typeof col !== "undefined")
+			if (typeof col !== 'undefined')
 				this.col = col;
-			if (typeof row !== "undefined")
+			if (typeof row !== 'undefined')
 				this.row = row;
 		}
 

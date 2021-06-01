@@ -5,7 +5,7 @@
 /**
  * Base class of a tile holder (Rack or Board)
  */
-define("game/Surface", ["game/Square"], Square => {
+define('game/Surface', ['game/Square'], Square => {
 
 	class Surface {
 

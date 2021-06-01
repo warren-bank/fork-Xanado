@@ -5,40 +5,40 @@
 const requirejs = require('requirejs');
 
 requirejs.config({
-	baseUrl: "..",
+	baseUrl: '..',
     nodeRequire: require,
 	paths: {
-		game: "js/game",
-		dawg: "js/dawg",
-		platform: "js/server"
+		game: 'js/game',
+		dawg: 'js/dawg',
+		platform: 'js/server'
 	}
 });
 
-requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Player", "game/Game", "game/Move", "game/findBestPlay"], (TestRunner, Edition, Tile, Rack, Player, Game, Move, findBestPlay) => {
-    let tr = new TestRunner("best move from complex boards");
+requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Player', 'game/Game', 'game/Move', 'game/findBestPlay'], (TestRunner, Edition, Tile, Rack, Player, Game, Move, findBestPlay) => {
+    let tr = new TestRunner('best move from complex boards');
     let assert = tr.assert;
 
-	tr.addTest("blanks", () => {
+	tr.addTest('blanks', () => {
 		let bestMoves = [];
-		return new Game("English_WWF", "Oxford_5000").create()
+		return new Game('English_WWF', 'Oxford_5000').create()
 		.then(game => {
-			game.addPlayer(new Player("test", true));
+			game.addPlayer(new Player('test', true));
 			return game.loadBoard(
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| |S|E|N|S|O|R|Y| | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n");
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| |S|E|N|S|O|R|Y| | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n');
 		})
 		.then(game => findBestPlay(
 			game, [
@@ -59,32 +59,32 @@ requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Pl
 		.then(() => {
 			assert.equal(bestMoves.length, 8);
 			assert.equal(bestMoves[7].words.length, 1);
-			assert.equal(bestMoves[7].words[0].word, "HAIRIEST");
+			assert.equal(bestMoves[7].words[0].word, 'HAIRIEST');
 			assert.equal(bestMoves[7].score, 47);
 		});
 	});
 
-	tr.addTest("actor", () => {
+	tr.addTest('actor', () => {
 		let bestMoves = [];
-		return new Game("English_WWF", "SOWPODS_English").create()
+		return new Game('English_WWF', 'SOWPODS_English').create()
 		.then(game => {
-			game.addPlayer(new Player("test", true));
+			game.addPlayer(new Player('test', true));
 			return game.loadBoard(
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | |G| | | | | | | | | | |\n" +
-				"| | | |C|R|A| | | | | | | | | |\n" +
-				"| | | |T|O| | | | | | | | | | |\n" +
-				"| | | |S|T|E|P| | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n");
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | |G| | | | | | | | | | |\n' +
+				'| | | |C|R|A| | | | | | | | | |\n' +
+				'| | | |T|O| | | | | | | | | | |\n' +
+				'| | | |S|T|E|P| | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n');
 		})
 		.then(game => findBestPlay(
 			game, new Rack([
@@ -102,9 +102,9 @@ requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Pl
 			assert.equal(bestMoves.length, 3);
 			const last = bestMoves[2];
 			assert.equal(last.words.length, 2);
-			assert.equal(last.words[0].word, "ACTS");
+			assert.equal(last.words[0].word, 'ACTS');
 			assert.equal(last.words[0].score, 8);
-			assert.equal(last.words[1].word, "CRAG");
+			assert.equal(last.words[1].word, 'CRAG');
 			assert.equal(last.words[1].score, 9);
 			assert.equal(last.score, 17);
 			assert.equal(last.placements.length, 3);
@@ -124,27 +124,27 @@ requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Pl
 		});
 	});
 
-	tr.addTest("noe", () => {
+	tr.addTest('noe', () => {
 		let bestMoves = [];
-		return new Game("English_Scrabble", "SOWPODS_English").create()
+		return new Game('English_Scrabble', 'SOWPODS_English').create()
 		.then(game => {
-			game.addPlayer(new Player("test", true));
+			game.addPlayer(new Player('test', true));
 			return game.loadBoard(
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | |P| | | | | | | | | |\n" +
-				"| | | | |T|A|X|I| | | | | | | |\n" +
-				"| | | | |O|N| | | | | | | | | |\n" +
-				"| | | | |W| | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n");
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | |P| | | | | | | | | |\n' +
+				'| | | | |T|A|X|I| | | | | | | |\n' +
+				'| | | | |O|N| | | | | | | | | |\n' +
+				'| | | | |W| | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n');
 		})
 		
 		.then(game => findBestPlay(
@@ -167,42 +167,42 @@ requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Pl
 			assert.equal(bestMoves.length, 6);
 			
 			assert.equal(bestMoves[0].words.length, 1);
-			assert.equal(bestMoves[0].words[0].word, "ATAXIA");
+			assert.equal(bestMoves[0].words[0].word, 'ATAXIA');
 			assert.equal(bestMoves[0].words[0].score, 13);
 
 			assert.equal(bestMoves[1].words.length, 1);
-			assert.equal(bestMoves[1].words[0].word, "TOWABLE");
+			assert.equal(bestMoves[1].words[0].word, 'TOWABLE');
 			assert.equal(bestMoves[1].words[0].score, 14);
 
 			assert.equal(bestMoves[5].words.length, 3);
 			assert.equal(bestMoves[5].score, 27);
-			assert.equal(bestMoves[5].words[0].word, "EX");
+			assert.equal(bestMoves[5].words[0].word, 'EX');
 			assert.equal(bestMoves[5].words[0].score, 9);
 		});
 	});
 	
-	tr.addTest("town", () => {
+	tr.addTest('town', () => {
 		let bestMoves = [];
-		return new Game("English_Scrabble", "Oxford_5000").create()
+		return new Game('English_Scrabble', 'Oxford_5000').create()
 		.then(game => {
-			game.addPlayer(new Player("test", true));
+			game.addPlayer(new Player('test', true));
 			return game.loadBoard(
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | |B|E|L|O|W| | | | | |\n" +
-				"| | | | | | | |A| | | | | | | |\n" +
-				"| | | | |A|T|A|X|I|C| | | | | |\n" +
-				"| | | | | |O| | | | | | | | | |\n" +
-				"| | | | | |W|H|I|P|S| | | | | |\n" +
-				"| | | | | | | |T| |O| | | | | |\n" +
-				"| | | | | | | |A| |U| | | | | |\n" +
-				"| | | | | | | |L| |N| | | | | |\n" +
-				"| | | | | | | |I| |D| | | | | |\n" +
-				"| | | | | | | |C| | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n");
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | |B|E|L|O|W| | | | | |\n' +
+				'| | | | | | | |A| | | | | | | |\n' +
+				'| | | | |A|T|A|X|I|C| | | | | |\n' +
+				'| | | | | |O| | | | | | | | | |\n' +
+				'| | | | | |W|H|I|P|S| | | | | |\n' +
+				'| | | | | | | |T| |O| | | | | |\n' +
+				'| | | | | | | |A| |U| | | | | |\n' +
+				'| | | | | | | |L| |N| | | | | |\n' +
+				'| | | | | | | |I| |D| | | | | |\n' +
+				'| | | | | | | |C| | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n');
 		})
 		.then(game => findBestPlay(
 			game, new Rack([
@@ -222,7 +222,7 @@ requirejs(["test/TestRunner", "game/Edition", "game/Tile", "game/Rack", "game/Pl
 		.then(() => {
 			const last = bestMoves[bestMoves.length - 1];
 			assert.equal(last.words.length, 1);
-			assert.equal(last.words[0].word, "TRICK");
+			assert.equal(last.words[0].word, 'TRICK');
 			assert.equal(last.words[0].score, 33);
 		});
 	});

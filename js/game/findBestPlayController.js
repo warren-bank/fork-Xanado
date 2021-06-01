@@ -5,7 +5,7 @@
  * This is the controller side of a best play thread. It provides 
  * the same API as findBestPlay(). See also findBestPlayWorker.js
  */
-define("game/findBestPlayController", ["worker_threads", "game/Fridge"], (threads, Fridge) => {
+define('game/findBestPlayController', ['worker_threads', 'game/Fridge'], (threads, Fridge) => {
 
 	/**
 	 * Interface should be the same as for findBestMove.js so they
@@ -29,7 +29,7 @@ define("game/findBestPlayController", ["worker_threads", "game/Fridge"], (thread
 			let timer;
 			if (game.time_limit > 0) {
 				timer = setTimeout(() => {
-					console.log("findBestPlay timed out");
+					console.log('findBestPlay timed out');
 					worker.terminate();
 				}, game.time_limit * 60 * 1000);
 			}

@@ -10,7 +10,7 @@
  * it separately as a stand-alone function lets us both run it directly
  * or in the worker by simply changing a dependency.
  */
-define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dictionary"], (Edition, Tile, Move, Dictionary) => {
+define('game/findBestPlay', ['game/Edition', 'game/Tile', 'game/Move', 'dawg/Dictionary'], (Edition, Tile, Move, Dictionary) => {
 
 	/**
 	 * The entry point to this module is the 'findBestPlay' function only.
@@ -60,8 +60,8 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	 * This lets us see how/if blanks have been used.
 	 */
 	function pack(tiles) {
-		let word = tiles.map(l => l.letter).join("");
-		const blanks = tiles.map(l => l.isBlank ? ' ' : l.letter).join("");
+		let word = tiles.map(l => l.letter).join('');
+		const blanks = tiles.map(l => l.isBlank ? ' ' : l.letter).join('');
 		if (blanks != word)
 			word += `/${blanks}`;
 		return word;
@@ -185,7 +185,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		const ecol = col + dcol;
 		const erow = row + drow;
 
-		//console.log(`forward '${pack(wordSoFar)}' ${col}:${dcol} ${row}:${drow} [${dNode.postLetters.join("")}]`);
+		//console.log(`forward '${pack(wordSoFar)}' ${col}:${dcol} ${row}:${drow} [${dNode.postLetters.join('')}]`);
 
 		// Tail recurse; report words as soon as we find them
 		// Are we sitting at the end of a scoring word?
@@ -286,7 +286,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		let available; // the set of possible candidate letters
 		let playedTile = 0;
 
-		//console.log(`back '${pack(wordSoFar)}' ${col}:${dcol} ${row}:${drow} [${dNode.preLetters.join("")}]`);
+		//console.log(`back '${pack(wordSoFar)}' ${col}:${dcol} ${row}:${drow} [${dNode.preLetters.join('')}]`);
 
 		// Do we have an adjacent empty cell we can back up into?
         if (ecol >= 0 && erow >= 0) {
@@ -361,7 +361,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 	 * rack, and find the highest scoring position for each possible word.
 	 */
 	function bestOpeningPlay(rackTiles) {
-		const ruck = rackTiles.map(l => l.letter).join("");
+		const ruck = rackTiles.map(l => l.letter).join('');
 		const choices = dict.findAnagrams(ruck);
 		// Random whether it is played across or down
 		const drow = Math.round(Math.random());
@@ -372,12 +372,12 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 			// Keep track of the rack and played letters
 			const placements = [];
 			let shrunkRack = rackTiles;
-			for (let c of choice.split("")) {
+			for (let c of choice.split('')) {
 				const rackTile = shrunkRack.find(t => t.letter == c)
 					  || shrunkRack.find(t => t.isBlank);
 				if (!rackTile) {
 					// Can't do this with the available tiles
-					choice = "";
+					choice = '';
 					break;
 				}
 				placements.push(new Tile(c, rackTile.isBlank, rackTile.score));
@@ -423,13 +423,13 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 		report = listener;
 
 		if (!game.edition) {
-			report("Error: Game has no edition", game);
+			report('Error: Game has no edition', game);
 			// Terminal, no point in translating
 			return Promise.reject('Game has no edition');
 		}
 
 		if (!game.dictionary) {
-			report("Error: Cannot find moves with no dictionary");
+			report('Error: Cannot find moves with no dictionary');
 			// Terminal, no point in translating
 			return Promise.reject('Game has no dictionary');
 		}
@@ -442,7 +442,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 			return a.letter < b.letter ? -1	: a.score > b.score ? 1 : 0;
 		}).reverse();
 
-		report("Finding best play for rack " + rackTiles);
+		report('Finding best play for rack ' + rackTiles);
 
 		board = game.board;
 		report(`on ${board}` );
@@ -457,7 +457,7 @@ define("game/findBestPlay", ["game/Edition", "game/Tile", "game/Move", "dawg/Dic
 			dict = de[0];
 			edition = de[1];
 
-			report("Starting computation");
+			report('Starting computation');
 			bestScore = 0;
 
 			// Has at least one anchor been explored? If there are

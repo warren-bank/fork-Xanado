@@ -30,20 +30,20 @@ function compare(na, a, nb, b, verbose) {
 	}
 }
 
-requirejs(["node-getopt", "fs-extra"], (Getopt, Fs) => {
+requirejs(['node-getopt', 'fs-extra'], (Getopt, Fs) => {
 
 	const i18n = `${__dirname}/../../i18n`;
 
 	const DESCRIPTION = [
-		"USAGE",
-		`node ${process.argv[1].replace(/.*\//, "")} <language>`,
-		"Check that the translations file for <language> is consistent",
-		" with en.json. For example:",
-		`node ${process.argv[1].replace(/.*\//, "")} fr`
+		'USAGE',
+		`node ${process.argv[1].replace(/.*\//, '')} <language>`,
+		'Check that the translations file for <language> is consistent',
+		' with en.json. For example:',
+		`node ${process.argv[1].replace(/.*\//, '')} fr`
 	];
 
 	const opt = Getopt.create([
-		[ "v", "verbose", "Shout about it" ]
+		[ 'v', 'verbose', 'Shout about it' ]
 	])
 		.bindHelp()
 		.setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
@@ -51,7 +51,7 @@ requirejs(["node-getopt", "fs-extra"], (Getopt, Fs) => {
 
     if (opt.argv.length == 0) {
         opt.showHelp();
-        throw "No word language given";
+        throw 'No word language given';
     }
 
 	const language = opt.argv.shift();
@@ -64,11 +64,11 @@ requirejs(["node-getopt", "fs-extra"], (Getopt, Fs) => {
 	.then(() => console.log(`Reading ${enf}`))
 	.then(() => Fs.readFile(enf))
 	.then(data => en = JSON.parse(data.toString()))
-	.then(() => compare("en", en, language, tx, opt.options.verbose))
-	.then(() => compare(language, tx, "en", en, opt.options.verbose))
+	.then(() => compare('en', en, language, tx, opt.options.verbose))
+	.then(() => compare(language, tx, 'en', en, opt.options.verbose))
 	.catch(e => {
 		console.log(e);
-		console.log(DESCRIPTION.join("\n"));		
+		console.log(DESCRIPTION.join('\n'));		
 	});
 });
 

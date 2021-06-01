@@ -7,49 +7,49 @@
 requirejs.config({
 	paths: {
 		jquery:
-		"//cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min",
+		'//cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min',
 		
 		jqueryui:
-		"//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min",
+		'//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min',
 		
 		i18n:
-		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.min",
+		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.min',
 		
 		i18n_emitter:
-		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.emitter.min",
+		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.emitter.min',
 
 		i18n_fallbacks:
-		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.fallbacks.min",
+		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.fallbacks.min',
 
 		i18n_language:
-		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.language.min",
+		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.language.min',
 
 		i18n_messagestore:
-		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.messagestore.min",
+		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.messagestore.min',
 		
 		i18n_parser:
-		"//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.parser.min",
+		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.parser.min',
 		
 		touchpunch:
-		"//cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min",
+		'//cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min',
 		
-		"socket.io": "//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io",
-		cookie: "//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min",
+		'socket.io': '//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io',
+		cookie: '//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min',
 
 
-		browser: "js/browser",
-		game: "js/game",
-		dawg: "js/dawg",
-		platform: "js/browser"
+		browser: 'js/browser',
+		game: 'js/game',
+		dawg: 'js/dawg',
+		platform: 'js/browser'
 	},
 	
 	shim: {
-		jqueryui: ["jquery"],
-		i18n: ["jquery"],
-		i18n_emitter: ["i18n"],
-		i18n_fallbacks: ["i18n"],
-		i18n_language: ["i18n"],
-		i18n_messagestore: ["i18n"],
-		i18n_parser: ["i18n"]
+		jqueryui: ['jquery'],
+		i18n: ['jquery'],
+		i18n_emitter: ['i18n'],
+		i18n_fallbacks: ['i18n'],
+		i18n_language: ['i18n'],
+		i18n_messagestore: ['i18n'],
+		i18n_parser: ['i18n']
 	}
 });

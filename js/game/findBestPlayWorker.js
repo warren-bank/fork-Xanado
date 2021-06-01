@@ -18,7 +18,7 @@ requirejs.config({
  * found asynchronously, without blocking the main thread, so we can
  * time it out if necessary. See also findBestPlayController.js
  */
-requirejs(["worker_threads", "game/Fridge", "game/Game", "game/findBestPlay"], (threads, Fridge, Game, findBestPlay) => {
+requirejs(['worker_threads', 'game/Fridge', 'game/Game', 'game/findBestPlay'], (threads, Fridge, Game, findBestPlay) => {
 
 	const info = Fridge.thaw(threads.workerData, Game.classes);
 
@@ -30,11 +30,11 @@ requirejs(["worker_threads", "game/Fridge", "game/Game", "game/findBestPlay"], (
 			 bestPlay => threads.parentPort.postMessage(bestPlay))
 
 	.then(() => {
-		threads.parentPort.postMessage("findBestPlayWorker is exiting");
+		threads.parentPort.postMessage('findBestPlayWorker is exiting');
 	})
 
 	.catch(e => {
-		threads.parentPort.postMessage("findBestPlayWorker error", e);
+		threads.parentPort.postMessage('findBestPlayWorker error', e);
 		throw e;
 	});
 });

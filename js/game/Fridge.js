@@ -10,11 +10,11 @@
  * module. Note also that fields who's names start with _ will not be
  * serialised.
  */
-define("game/Fridge", () => {
+define('game/Fridge', () => {
 
 	/**
-	 * Note that the objects being frozen are "interfered with" by the
-	 * addition of an _IB_ID field that indicates their "frozen ID".
+	 * Note that the objects being frozen are 'interfered with' by the
+	 * addition of an _IB_ID field that indicates their 'frozen ID'.
 	 * This is a (clumsy) solution to the lack of ES7 value objects in ES6.
 	 * The frozen version (JSONified) version of objects are decorated
 	 * with fields as follows:
@@ -32,7 +32,7 @@ define("game/Fridge", () => {
 
 			function _freeze(unfrozen) {
 				// Can't/don't want to serialise functions
-				if (typeof unfrozen === "function")
+				if (typeof unfrozen === 'function')
 					return undefined;
 
 				if (!unfrozen || typeof unfrozen !== 'object')

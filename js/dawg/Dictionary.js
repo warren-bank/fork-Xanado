@@ -13,7 +13,7 @@
  * alphabet of code points sorted in the same order as that used to
  * generate the DAWG.
  */
-define("dawg/Dictionary", [ "platform/Platform", "dawg/LetterNode" ], (Platform, LetterNode) => {
+define('dawg/Dictionary', [ 'platform/Platform', 'dawg/LetterNode' ], (Platform, LetterNode) => {
 
 	// Constants used in interpreting the integer encoding of the DAWG
 	const END_OF_WORD_BIT_MASK = 0x1;
@@ -52,9 +52,9 @@ define("dawg/Dictionary", [ "platform/Platform", "dawg/LetterNode" ], (Platform,
 			// Convert node indices to pointers
 			for (let i = 0; i < nodes.length; i++) {
 				const node = nodes[i];
-				if (typeof node.next === "number")
+				if (typeof node.next === 'number')
 					node.next = nodes[node.next];
-				if (typeof node.child === "number")
+				if (typeof node.child === 'number')
 					node.child = nodes[node.child];
 			}
 			this.root = nodes[0];
@@ -125,11 +125,11 @@ define("dawg/Dictionary", [ "platform/Platform", "dawg/LetterNode" ], (Platform,
 
 			// Sort the list of characters. Not strictly needed,
 			// just easier to debug.
-			const sortedChars = theChars.split("").sort();
+			const sortedChars = theChars.split('').sort();
 
-			//console.log("Sorted chars", sortedChars);
+			//console.log('Sorted chars', sortedChars);
 			const foundWords = {};
-			this.root.findAnagrams('', '', sortedChars, foundWords)
+			this.root.findAnagrams('', '', sortedChars, foundWords);
 			return foundWords;
 		}
 

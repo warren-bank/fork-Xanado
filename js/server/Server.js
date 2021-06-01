@@ -6,7 +6,7 @@
  * Main program for Crossword Game server.
  */
 define(
-	"server/Server",
+	'server/Server',
 	[
 		'fs-extra', 'node-getopt', 'events',
 		'socket.io', 'http', 'nodemailer',
@@ -14,8 +14,8 @@ define(
 		'platform/Platform',
 		'game/Fridge', 'game/Game', 'game/Player', 'game/Edition',
 
-		//"game/findBestPlay"]; // when debugging, use this (unthreaded)
-		"game/findBestPlayController"
+		//'game/findBestPlay']; // when debugging, use this (unthreaded)
+		'game/findBestPlayController'
 	],
 	(
 		Fs, Getopt, Events,
@@ -29,34 +29,32 @@ define(
 		
 		constructor(config) {
 			this.config = config;
-
-			const app = new Express();
-
 			this.db = new Platform.Database('games', 'game');
-
 			// Live games; map from game key to Game
 			this.games = {};
-
 			// Status-monitoring sockets (game pages)
 			this.monitors = [];
 
+			const server = new Express();
+			
 			// Parse incoming requests with url-encoded payloads
-			app.use(Express.urlencoded({ extended: true }));
+			server.use(Express.urlencoded({ extended: true }));
 
 			// Parse incoming requests with a JSON body
-			app.use(Express.json());
+			server.use(Express.json());
 
 			// Grab unsigned cookies from the Cookie header
-			app.use(CookieParser());
+			server.use(CookieParser());
 
 			// Grab all static files relative to the project root
 			// html, images, css etc. The Content-type should be set
 			// based on the file mime type (extension) but it doesn't
 			// always get it right.....
 			console.log(`static files from ${requirejs.toUrl('')}`);
-			app.use(Express.static(requirejs.toUrl('')));
+			server.use(Express.static(requirejs.toUrl('')));
+			server.use(Express.static(requirejs.toUrl('js')));
 
-			app.use((err, req, res, next) => {
+			server.use((err, req, res, next) => {
 				if (res.headersSent) {
 					return next(err);
 				}
@@ -64,13 +62,13 @@ define(
 				return res.status(err.status || 500).render('500');
 			});
 
-			app.use(ErrorHandler({
+			server.use(ErrorHandler({
 				dumpExceptions: true,
 				showStack: true
 			}));
 
 			process.on('unhandledRejection', reason => {
-				console.log("Command rejected", reason, reason.stack);
+				console.log('Command rejected', reason, reason.stack);
 			});
 
 			// TODO: use OAuth
@@ -81,67 +79,69 @@ define(
 				} else {
 					return true;
 				}
-			}, "Enter game list access login");
+			}, 'Enter game list access login');
 
 			// HTML page for main interface
-			app.get("/", (req, res) =>
+			server.get('/', (req, res) =>
 					res.sendFile(requirejs.toUrl('html/games.html')));
 
 			// AJAX request to send email reminders about active games
-			app.post("/send-game-reminders", () =>
+			server.post('/send-game-reminders', () =>
 					 this.handle_sendGameReminders());
 
 			// AJAX request for available games
-			app.get("/games",
+			server.get('/games',
 					 config.gameListLogin ? gameListAuth
 					 : (req, res, next) => next(),
 					 (req, res) => this.handle_games(req, res)
 					);
 
-			app.get("/locales",
+			server.get('/locales',
 					(req, res) => this.handle_locales(req, res));
 
 			// Construct a new game
-			app.post("/newGame",
+			server.post('/newGame',
 					  (req, res) => this.handle_newGame(req, res));
 
-			app.post("/deleteGame/:gameKey",
+			server.post('/deleteGame/:gameKey',
 					  (req, res) => this.handle_deleteGame(req, res));
 
-			app.post("/anotherGame/:gameKey",
+			server.post('/anotherGame/:gameKey',
 					  (req, res) => this.handle_anotherGame(req, res));
 
-			app.get('/editions',
+			server.get('/editions',
 					 (req, res) => this.handle_editions(req, res));
 
-			app.get('/dictionaries',
+			server.get('/dictionaries',
 					 (req, res) => this.handle_dictionaries(req, res));
 			
-			app.get("/defaults", (req, res) =>
+			server.get('/defaults', (req, res) =>
 					 res.send({
 						 edition: config.defaultEdition,
 						 dictionary: config.defaultDictionary
 					 }));
 
 			// Handler for player joining a game
-			app.get("/game/:gameKey/:playerKey",
+			server.get('/game/:gameKey/:playerKey',
 					 (req, res) => this.handle_enterGame(req, res));
 
 			// Request handler for game interface / info
-			app.get("/game/:gameKey",
+			server.get('/game/:gameKey',
 					 (req, res) => this.handle_gameGET(req, res));
 
 			// Request handler for best play. Debug, allows us to pass in
 			// any player key
-			app.get("/bestPlay/:gameKey/:playerKey",
+			server.get('/bestPlay/:gameKey/:playerKey',
 					 (req, res) => this.handle_bestPlay(req, res));
 
 			// Request handler for game command
-			app.post("/game/:gameKey",
+			server.post('/game/:gameKey',
 					  (req, res) => this.handle_gamePOST(req, res));
 
-			const http = Http.Server(app);
-			const io = SocketIO(http);
+			const http = Http.Server(server);
+			http.listen(config.port);
+
+			const io = new SocketIO.Server(http);
 
 			io.sockets.on('connection', socket => {
 				// The server socket only listens to these messages.
@@ -152,7 +152,7 @@ define(
 				.on('monitor', () => {
 					// Games monitor has joined
 					this.monitors.push(socket);
-					console.log("Monitor joined");
+					console.log('Monitor joined');
 				})
 
 				.on('disconnect', () => {
@@ -164,17 +164,17 @@ define(
 					const i = this.monitors.indexOf(socket);
 					if (i >= 0) {
 						// Game monitor has disconnected
-						console.log("Monitor disconnected");
+						console.log('Monitor disconnected');
 						this.monitors.slice(i, 1);
 					} else {
-						console.log("Anonymous disconnect");
+						console.log('Anonymous disconnect');
 						this.updateMonitors();
 					}
 				})
 
 				.on('join', async params => {
-					// Player has joined
-					console.log("Player joining");
+					// Player joining
+					console.log(`Player ${params.playerKey} joining ${params.gameKey}`);
 					this.loadGame(params.gameKey)
 					.then(game => {
 						game.connect(socket, params.playerKey);
@@ -193,7 +193,7 @@ define(
 						socket.game.notifyPlayer(
 							socket.player, 'message',
 							{
-								sender: "chat-advisor",
+								sender: 'chat-advisor',
 								text: 'chat-'
 								+ (socket.player.wantsAdvice
 								   ? 'enabled' : 'disabled')
@@ -202,8 +202,6 @@ define(
 						socket.game.notifyPlayers('message', message);
 				});
 			});
-
-			http.listen(config.port);
 		}
 
 		/**
@@ -261,7 +259,7 @@ define(
 		 * Generic catch for response handlers
 		 */
 		trap(e, res) {
-			console.log("Trapped", e);
+			console.log('Trapped', e);
 			res.status(500).send(e.toString());
 		}
 
@@ -304,7 +302,7 @@ define(
 		 * assumption about Platform.Database here
 		 */
 		handle_editions(req, res) {
-			const db = new Platform.Database('editions', "js");
+			const db = new Platform.Database('editions', 'js');
 			db.keys()
 			.then(editions => res.send(
 				editions
@@ -344,11 +342,11 @@ define(
 			.then(edition => {
 				let dictionary = null;
 				if (req.body.dictionary
-					&& req.body.dictionary != "none") {
+					&& req.body.dictionary != 'none') {
 					console.log(`\twith dictionary ${req.body.dictionary}`);
 					dictionary = req.body.dictionary;
 				} else
-					console.log("\twith no dictionary");
+					console.log('\twith no dictionary');
 
 				return new Game(edition.name, dictionary)
 				.create();
@@ -359,7 +357,7 @@ define(
 
 				let haveHuman = false;
 				for (let p of req.body.players) {
-					const player = new Player(p.name, p.isRobot == "true");
+					const player = new Player(p.name, p.isRobot == 'true');
 					if (!player.isRobot) {
 						haveHuman = true;
 						if (p.email)
@@ -378,7 +376,7 @@ define(
 				if (game.time_limit > 0)
 					console.log(`\t${game.time_limit} minute time limit`);
 				else
-					console.log("\twith no time limit");
+					console.log('\twith no time limit');
 
 				console.log(game.toString());
 
@@ -389,7 +387,7 @@ define(
 				game.emailInvitations(this.config);
 
 				// Redirect back to control panel
-				res.redirect("/html/games.html");
+				res.redirect('/html/games.html');
 			})
 			.catch(e => this.trap(e, res));
 		}
@@ -545,11 +543,11 @@ define(
 
 		// Command-line arguments
 		const cliopt = Getopt.create([
-			["h", "help", "Show this help"],
-			["c", "config=ARG", "Path to config file (default config.json)"]
+			['h', 'help', 'Show this help'],
+			['c', 'config=ARG', 'Path to config file (default config.json)']
 		])
 			.bindHelp()
-			.setHelp("Crossword game server\n[[OPTIONS]]")
+			.setHelp('Crossword game server\n[[OPTIONS]]')
 			.parseSystem()
 			.options;
 

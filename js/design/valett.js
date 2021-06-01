@@ -13,7 +13,7 @@ requirejs.config({
 	baseUrl: `${__dirname}/..`
 });
 
-requirejs(["node-getopt", "fs-extra", 'design/Valett'], (Getopt, Fs, Valett) => {
+requirejs(['node-getopt', 'fs-extra', 'design/Valett'], (Getopt, Fs, Valett) => {
 	const config = { // default config for Scrabble(R)
 		weights: {
 			frequency: .34,
@@ -30,37 +30,37 @@ requirejs(["node-getopt", "fs-extra", 'design/Valett'], (Getopt, Fs, Valett) => 
 	};
 	
 	const DESCRIPTION = [
-		"USAGE",
-		`node ${process.argv[1].replace(/.*\//, "")} [options] <wordfile>`,
-		"Analyse a set of words. Output is in the form of a bag definition",
-		"for use in an Edition.",
-		"Optional config is a JSON file allowing you to override the following:",
-		"{",
-		"minPoints: minimum point value for a tile.",
+		'USAGE',
+		`node ${process.argv[1].replace(/.*\//, '')} [options] <wordfile>`,
+		'Analyse a set of words. Output is in the form of a bag definition',
+		'for use in an Edition.',
+		'Optional config is a JSON file allowing you to override the following:',
+		'{',
+		'minPoints: minimum point value for a tile.',
 		`\tDefault: ${config.minPoints}`,
-		"maxPoints: maximum point value for a tile.",
+		'maxPoints: maximum point value for a tile.',
 		`\tDefault: ${config.maxPoints}`,
-		"tileCount: number of tiles in the initial bag, not including blanks.",
+		'tileCount: number of tiles in the initial bag, not including blanks.',
 		`\tDefault: ${config.tileCount}`,
-		"weights: relative weighting of frequency, frequency by length, and",
-		"\tentropy when calculating letter values. Fields should sum to 1.",
+		'weights: relative weighting of frequency, frequency by length, and',
+		'\tentropy when calculating letter values. Fields should sum to 1.',
 		`\tDefault: ${JSON.stringify(config.weights)}`,
-		"frequencyByLengthWeights: relative value of a letter's occurrence",
-		"\tin words of different length. For example, in Scrabble",
-		"\tit is particularly valuable for a letter to appear in 2,",
-		"\t3, 7 and 8 tile words.",
+		'frequencyByLengthWeights: relative value of a letter\'s occurrence',
+		'\tin words of different length. For example, in Scrabble',
+		'\tit is particularly valuable for a letter to appear in 2,',
+		'\t3, 7 and 8 tile words.',
 		`\tDefault: ${JSON.stringify(config.frequencyByLengthWeights)}`,
-		"entropyWeights: relative value of the ease of transitioning into",
-		"\ta letter (how evenly the transition probabilities toward",
-		"\ta letter are distributed) and out of a letter. For example,",
-		"\tQ has a low entropy out since its transition probability",
-		"\tdistribution is highly peaked at U.",
+		'entropyWeights: relative value of the ease of transitioning into',
+		'\ta letter (how evenly the transition probabilities toward',
+		'\ta letter are distributed) and out of a letter. For example,',
+		'\tQ has a low entropy out since its transition probability',
+		'\tdistribution is highly peaked at U.',
 		`\tDefault: [${config.entropyWeights}]`,
-		"}"
-	].join("\n");
+		'}'
+	].join('\n');
 
 	const opt = Getopt.create([
-		["c", "config", "Config file (JSON) - see above"]
+		['c', 'config', 'Config file (JSON) - see above']
 	])
         .bindHelp()
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
@@ -79,7 +79,7 @@ requirejs(["node-getopt", "fs-extra", 'design/Valett'], (Getopt, Fs, Valett) => 
 	console.log(opt);
     if (opt.argv.length == 0) {
         opt.showHelp();
-        throw "No word corpus filename given";
+        throw 'No word corpus filename given';
     }
 	const infile = opt.argv.shift();
 
@@ -92,7 +92,7 @@ requirejs(["node-getopt", "fs-extra", 'design/Valett'], (Getopt, Fs, Valett) => 
 		// Extract the alphabet from the corpus
 		const chars = {};
 		words.forEach(
-			w => w.split("").forEach(
+			w => w.split('').forEach(
 				c => chars[c] = true));
 		const letters = Object.keys(chars);
 		letters.sort();
@@ -125,13 +125,13 @@ requirejs(["node-getopt", "fs-extra", 'design/Valett'], (Getopt, Fs, Valett) => 
 			const score = values[v.hash[letter]].score + config.minPoints;
 			const num = count[letter];
 			sum += num;
-			console.log(`{ letter: "${letter}", score: ${score}, count: ${num} }`);
+			console.log(`{ letter: '${letter}', score: ${score}, count: ${num} }`);
 		}
 		console.log(`Total ${sum} tiles`);
 
 	})
 	.catch(e => {
 		console.log(e);
-		console.log(DESCRIPTION.join("\n"));
+		console.log(DESCRIPTION.join('\n'));
 	});
 });

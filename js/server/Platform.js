@@ -5,10 +5,10 @@
 /**
  * node.js implementation of Platform
  */
-define("platform/Platform",
+define('platform/Platform',
 	   [
-		   "events", "fs-extra", "node-gzip",
-		   "game/Fridge", "game/findBestPlayController"
+		   'events', 'fs-extra', 'node-gzip',
+		   'game/Fridge', 'game/findBestPlayController'
 	   ],
 	   (
 		   Events, Fs, Gzip,
@@ -44,7 +44,7 @@ define("platform/Platform",
 			return Fs.readdir(this.directory)
 			.then(list =>
 				  list.filter(f => this.re.test(f))
-				  .map(fn => fn.replace(this.re, "")));
+				  .map(fn => fn.replace(this.re, '')));
 		}
 
 		/**

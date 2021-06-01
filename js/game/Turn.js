@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd */
 
-define("game/Turn", () => {
+define('game/Turn', () => {
 	/**
 	 * Communicating the result of a move from server back to client
 	 */

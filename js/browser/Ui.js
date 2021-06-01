@@ -4,17 +4,17 @@
  * User interface to a game in a browser
  */
 const uideps = [
-	"socket.io",
-	"game/Fridge",
-	"game/Tile",
-	"game/Bag",
-	"game/Rack",
-	"game/Game",
-	"jqueryui",
-	"cookie",
-	"browser/icon_button" ];
+	'socket.io',
+	'game/Fridge',
+	'game/Tile',
+	'game/Bag',
+	'game/Rack',
+	'game/Game',
+	'jqueryui',
+	'cookie',
+	'browser/icon_button' ];
 
-define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
+define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 	class Ui {
 
@@ -92,10 +92,10 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			catch(e) {
 				const currentTime = () => {
 					audio.currentTime = 0;
-					audio.removeEventListener("canplay", currentTime, true);
+					audio.removeEventListener('canplay', currentTime, true);
 					audio.play();
 				};
-				audio.addEventListener("canplay", currentTime, true);
+				audio.addEventListener('canplay', currentTime, true);
 			}
 		}
 
@@ -105,14 +105,14 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 */
 		appendTurnToLog(turn) {
 			const player = this.game.players[turn.player];
-			const $scorediv = $("<div class='score'></div>");
+			const $scorediv = $('<div class="score"></div>');
 			const pn = `<span class='playerName'>${player.name}</span>`;
 			$scorediv.append($.i18n('log-turn', pn));
 
-			const $div = $("<div class='moveScore'></div>");
+			const $div = $('<div class="moveScore"></div>');
 			$div.append($scorediv);
 
-			const $detail = $("<div class='moveDetail'></div>");
+			const $detail = $('<div class="moveDetail"></div>');
 
 			switch (turn.type) {
 			case 'move':
@@ -152,16 +152,16 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * Append a formatted "next game" message to the log
+		 * Append a formatted 'next game' message to the log
 		 */
 		logNextGameMessage(nextGameKey) {
-			const $but = $("<button></button>");
+			const $but = $('<button></button>');
 			if (nextGameKey) {
 				$but.addClass('nextGame')
 				.text($.i18n('button-next-game'));
-				const $a = $("<a></a>");
+				const $a = $('<a></a>');
 				$a.attr(
-					"href", `/game/${nextGameKey}/${$.cookie(this.game.key)}`);
+					'href', `/game/${nextGameKey}/${$.cookie(this.game.key)}`);
 				$a.append($but);
 				$('#logMessages').append($a);
 				$('#makeNextGame').remove();
@@ -169,9 +169,9 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				$but.text($.i18n('button-another-game'));
 				$but.on('click',
 						() => $.post(`/anotherGame/${this.game.key}`));
-				const $ngb = $("<div id='makeNextGame'></div>")
+				const $ngb = $('<div id="makeNextGame"></div>')
 					.append($but)
-					.append(" ")
+					.append(' ')
 					.append($.i18n('log-same-players'));
 				$('#logMessages').append($ngb);
 			}
@@ -179,7 +179,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * Append a formatted "end of game" message to the log
+		 * Append a formatted 'end of game' message to the log
 		 */
 		logEndMessage(info, cheer) {
 			const winners = [];
@@ -190,7 +190,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				if (playerState.score === info.winningScore) {
 					if (isme) {
 						if (cheer)
-							this.playAudio("endCheer");
+							this.playAudio('endCheer');
 						youWon = true;
 						winners.push($.i18n('you'));
 					} else {
@@ -202,14 +202,14 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				const player = this.game.players[playerState.player];
 				player.score = playerState.score;
 
-				const $gsd = $("<div class='gameEndScore'></div>");
-				const name = isme ? $.i18n("You") : player.name;
+				const $gsd = $('<div class="gameEndScore"></div>');
+				const name = isme ? $.i18n('You') : player.name;
 				if (playerState.tally > 0) {
 					$gsd.text($.i18n('log-gained-from-racks',
 									 name, playerState.tally));
 				} else if (playerState.tally < 0) {
 					$gsd.text($.i18n(
-						"log-lost-for-rack",
+						'log-lost-for-rack',
 						name,
 						-playerState.tally,
 						playerState.tilesLeft.join(',')));
@@ -219,22 +219,22 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			});
 
 			if (cheer && !youWon)
-				this.playAudio("lost");
+				this.playAudio('lost');
 
-			$("#whosturn").text($.i18n('notify-game-over'));
+			$('#whosturn').text($.i18n('notify-game-over'));
 
 			let who;
 			if (winners.length == 0)
-				who = "";
+				who = '';
 			else if (winners.length == 1)
 				who = winners[0];
 			else
 				who = $.i18n('log-name-name',
-							 winners.slice(0, length - 1).join(", "),
+							 winners.slice(0, length - 1).join(', '),
 							 winners[winners.length - 1]);
 
 			const has = (winners.length == 1 && !youWon) ? 1 : 2;
-			const $div = $("<div class='gameEnded'></div>");
+			const $div = $('<div class="gameEnded"></div>');
 			$div.text($.i18n(info.reason, $.i18n('log-winner', who, has)));
 
 			$('#logMessages').append($div);
@@ -249,7 +249,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 */
 		chatMessage(message) {
 			let args = [ message.text ];
-			if (typeof message.args === "string")
+			if (typeof message.args === 'string')
 				args.push(message.args);
 			else if (message.args instanceof Array)
 				args = args.concat(message.args);
@@ -304,8 +304,8 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 * Show who's turn it is
 		 */
 		updateWhosTurn(whosTurn) {
-			$("tr.whosTurn").removeClass("whosTurn");
-			$(`#player${whosTurn}`).addClass("whosTurn");
+			$('tr.whosTurn').removeClass('whosTurn');
+			$(`#player${whosTurn}`).addClass('whosTurn');
 			$('#yourPlayBlock').css(
 				'display', this.isPlayer(whosTurn) ? 'block' : 'none');
 		}
@@ -339,7 +339,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 * @param game the Game being played
 		 */
 		loadGame(game) {
-			console.log("Loading UI for", game.toString());
+			console.log('Loading UI for', game.toString());
 
 			this.game = game;
 
@@ -353,7 +353,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			this.thisPlayer = this.game.getPlayerFromKey(playerKey);
 
 			const $players = this.game.createPlayerTableDOM(this.thisPlayer);
-			$("#playerTable").append($players);
+			$('#playerTable').append($players);
 
 			const $board = this.game.board.createDOM();
 			$('#board').append($board);
@@ -393,35 +393,32 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			$('#shuffleButton').button({
 				showLabel: false,
 				icon: 'shuffle-icon',
-				title: $.i18n("button-shuffle"),
+				title: $.i18n('button-shuffle'),
 				classes: {
 					'ui-button-icon': 'crossword-icon'
 				}
 			})
 			.on('click', () => this.shuffleRack());
 			
-			$("#takeBackButton").button({
+			$('#takeBackButton').button({
 				showLabel: false,
 				icon: 'take-back-icon',
-				title: $.i18n("button-take-back"),
+				title: $.i18n('button-take-back'),
 				classes: {
 					'ui-button-icon': 'crossword-icon'
 				}				
 			})
 			.on('click', () => this.takeBackTiles());
 
-			$("#turnButton").on('click', () => this.makeMove());
+			$('#turnButton').on('click', () => this.makeMove());
 		}
 
 		/**
 		 * Attach socket and event listeners
 		 */
 		attachListeners() {
-			const transports = [
-				'websocket', 'htmlfile',
-				'xhr-multipart', 'xhr-polling', 'jsonp-polling'];
 
-			this.socket = socket_io.connect(null, { transports: transports });
+			this.socket = socket_io.connect(null);
 
 			let $reconnectDialog = null;
 
@@ -429,13 +426,12 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			.on('connect', () => {
 				if ($reconnectDialog) {
-					$reconnectDialog.dialog("close");
+					$reconnectDialog.dialog('close');
 					$reconnectDialog = null;
 				}
 				console.debug('Server: Socket connected');
 				if (this.wasConnected) {
 					this.cancelNotification();
-					//window.location = window.location;
 				} else {
 					this.wasConnected = true;
 					this.socket.emit('join', {
@@ -446,7 +442,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			})
 
 			.on('disconnect', () => {
-				console.debug('Server: Socket disconnected');
+				console.debug('Socket disconnected');
 				$reconnectDialog = $('#problemDialog')
 				.text($.i18n('warn-server-disconnected'))
 				.dialog({ modal: true });
@@ -466,7 +462,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			.on('tick', tick => this.processTick(tick))
 
 			.on('gameEnded', end => {
-				console.debug("Received gameEnded");
+				console.debug('Received gameEnded');
 				this.logEndMessage(end, true);
 				this.notify($.i18n('notify-game-over'),
 							$.i18n('notify-body-game-over'));
@@ -546,7 +542,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		// been dropped on a square.
 		dropSquare(source, square) {
 			this.moveTile(source, square);
-			this.playAudio("tiledown");
+			this.playAudio('tiledown');
 			this.selectSquare(null);
 		}
 
@@ -570,7 +566,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 					&& toSquare.owner == this.game.board) {
 
 					const $dlg = $('#blankDialog');
-					const $tab = $("#blankLetterTable");
+					const $tab = $('#blankLetterTable');
 					$tab.empty();
 					const ll = this.game.letterBag.legalLetters.slice();
 					const dim = Math.ceil(Math.sqrt(ll.length));
@@ -581,7 +577,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 						if (rowlength == dim) {
 							if ($row)
 								$tab.append($row);
-							$row = $("<tr></tr>");
+							$row = $('<tr></tr>');
 							rowlength = 0;
 						}
 						const $td = $(`<td>${letter}</td>`);
@@ -589,7 +585,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 							// Horrible hack
 							tile.letter = letter;
 							toSquare.refreshDOM();
-							$dlg.dialog("close");
+							$dlg.dialog('close');
 						});
 						$row.append($td);
 						rowlength++;
@@ -600,7 +596,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 					$dlg.dialog({
 						modal: true,
 						closeOnEscape: false,
-						closeText: "hide"
+						closeText: 'hide'
 					});
 
 				} else if (toSquare.owner == this.thisPlayer.rack
@@ -622,7 +618,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				// (tileCount > 0), move action is to make the move
 				this.setMoveAction('commitMove', 'Make move');
 				const move = this.game.board.analyseMove();
-				if (typeof move === "string") {
+				if (typeof move === 'string') {
 					$('#move').append($.i18n(move));
 					$('#turnButton').attr('disabled', 'disabled');
 				} else {
@@ -633,7 +629,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 						.append(`<span class="wordScore">${word.score}</span>`)
 						.append(') ');
 					}
-					const total = $.i18n("log-total", move.score);
+					const total = $.i18n('log-total', move.score);
 					$('#move').append(`<span class="totalScore">${total}</span>`);
 					$('#turnButton').removeAttr('disabled');
 				}
@@ -683,7 +679,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			const player = this.game.players[turn.player];
 			player.score += turn.deltaScore;
 			player.refreshDOM();
-			$(".lastPlacement").removeClass("lastPlacement");
+			$('.lastPlacement').removeClass('lastPlacement');
 
 			switch (turn.type) {
 			case 'challenge-won':
@@ -708,7 +704,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				if (this.isPlayer(turn.player)) {
 					player.rack.refreshDOM();
 					if (turn.type === 'challenge-won') {
-						this.playAudio("oops");
+						this.playAudio('oops');
 						this.notify(
 							$.i18n('notify-title-challenged'),
 							$.i18n('notify-body-challenged',
@@ -727,12 +723,12 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			case 'challenge-failed':
 				if (this.isPlayer(turn.player)) {
-					this.playAudio("oops");
+					this.playAudio('oops');
 					this.notify(
 						$.i18n('notify-title-you-failed'),
 						$.i18n('notify-body-you-failed'));
 				} else {
-					this.playAudio("oops");
+					this.playAudio('oops');
 					this.notify(
 						$.i18n('notify-title-they-failed'),
 						$.i18n('notify-body-they-failed', player.name));
@@ -749,7 +745,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 						square.placeTile(placement, true); // lock it down
 						// Highlight it as just placed
 						const $div = $(`#Board_${placement.col}x${placement.row}`);
-						$div.addClass("lastPlacement");
+						$div.addClass('lastPlacement');
 					}
 				}
 
@@ -769,7 +765,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			}
 
 			if (this.isPlayer(turn.nextToGo)) {
-				this.playAudio("yourturn");
+				this.playAudio('yourturn');
 				this.lockBoard(false);
 			} else
 				this.lockBoard(true);
@@ -819,7 +815,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * Add a "Challenge" button to the log pane to challenge the last
+		 * Add a 'Challenge' button to the log pane to challenge the last
 		 * player's move (if it wasn't us)
 		 */
 		addChallengePreviousButton(turn) {
@@ -830,7 +826,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * Add a "Take back" button to the log pane to take back
+		 * Add a 'Take back' button to the log pane to take back
 		 * (this player's) previous move.
 		 */
 		addTakeBackPreviousButton(turn) {
@@ -848,7 +844,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * Action on "Challenge" button clicked
+		 * Action on 'Challenge' button clicked
 		 */
 		challenge() {
 			this.takeBackTiles();
@@ -857,11 +853,11 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * Handler for the "Make Move" button. Invoked via 'makeMove'.
+		 * Handler for the 'Make Move' button. Invoked via 'makeMove'.
 		 */
 		commitMove() {
 			const move = this.game.board.analyseMove();
-			if (typeof move === "string") {
+			if (typeof move === 'string') {
 				// fatal - should never get here
 				$('#problemDialog')
 				.text($.i18n(move))
@@ -870,7 +866,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			}
 			this.afterMove();
 			if (move.bonus > 0)
-				this.playAudio("bonusCheer");
+				this.playAudio('bonusCheer');
 
 			for (let i = 0; i < move.placements.length; i++) {
 				const tilePlaced = move.placements[i];
@@ -885,7 +881,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * Handler for the "Take back" button clicked. Invoked via 'makeMove'.
+		 * Handler for the 'Take back' button clicked. Invoked via 'makeMove'.
 		 */
 		takeBackMove() {
 			this.takeBackTiles();
@@ -894,7 +890,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * Handler for the "Pass" button clicked. Invoked via 'makeMove'.
+		 * Handler for the 'Pass' button clicked. Invoked via 'makeMove'.
 		 */
 		pass() {
 			this.takeBackTiles();
@@ -903,7 +899,7 @@ define("browser/Ui", uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * Handler for the "Swap" button clicked. Invoked via 'makeMove'.
+		 * Handler for the 'Swap' button clicked. Invoked via 'makeMove'.
 		 */
 		swap() {
 			this.afterMove();

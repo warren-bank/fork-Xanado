@@ -7,38 +7,38 @@
 /**
  * Browser app for game creation
  */
-requirejs(["browser/browserApp"], browserApp => {
+requirejs(['browser/browserApp'], browserApp => {
 
 	const TOOLTIPS = {
-		position: { at: "right center"},
-		items: "[data-tooltip]",
+		position: { at: 'right center'},
+		items: '[data-tooltip]',
 		content: function() {
-			return $.i18n($(this).data("tooltip"));
+			return $.i18n($(this).data('tooltip'));
 		}
 	};
 
 	const MORETIPS = {
-		position: { at: "right center"}
+		position: { at: 'right center'}
 	};
 
 	let addressBook;
 
 	function haveRobots() {
-		return $(".isRobot:checked").length > 0;
+		return $('.isRobot:checked').length > 0;
 	}
 
 	// Validate fields to determine if Create Game can be enabled
 	function validate() {
-		console.log(`Validate edition ${$("#edition").val()} dictionary ${$("#dictionary").val()}`);
+		console.log(`Validate edition ${$('#edition').val()} dictionary ${$('#dictionary').val()}`);
 
 		let playerNamesUnique = true;
-		$(".duplicate").removeClass("duplicate");
+		$('.duplicate').removeClass('duplicate');
 		const playerNames = [];
-		$("#players > div").each(function() {
+		$('#players > div').each(function() {
 			const $name = $(this).find('input.name');
 			const name = $name.val();
 			if (playerNames.indexOf(name) >= 0) {
-				$name.addClass("duplicate");
+				$name.addClass('duplicate');
 				playerNamesUnique = false;
 			}
 			playerNames.push(name);
@@ -50,10 +50,10 @@ requirejs(["browser/browserApp"], browserApp => {
 			.dialog();
 
 		$('#createGameButton').prop(
-			"disabled",
+			'disabled',
 			!playerNamesUnique
-			|| $("#dictionary").val() === "none" && haveRobots()
-			|| !$("#edition").val());
+			|| $('#dictionary').val() === 'none' && haveRobots()
+			|| !$('#edition').val());
 	}
 
 	function loadAddressBook() {
@@ -94,36 +94,36 @@ requirejs(["browser/browserApp"], browserApp => {
 	function createPlayerDOM(name, isRobot, email) {
 		const $div = $('<div class="player"></div>');
 		const $isRobot = $('<input type="checkbox" class="isRobot"/>');
-		$isRobot.on("change", function() {
-			$(this).closest(".player").find(".email").toggle();
+		$isRobot.on('change', function() {
+			$(this).closest('.player').find('.email').toggle();
 			validate();
 		})
-		.attr("title", $.i18n('tooltip-isrobot'))
+		.attr('title', $.i18n('tooltip-isrobot'))
 		.tooltip(MORETIPS)
-		.prop("checked", isRobot);
+		.prop('checked', isRobot);
 
 		const $remove = $('<button type="button" class="removeButton">Remove</button>');
-		$remove.on("click", function() {
-			if ($("#players > div").length < 3) {
+		$remove.on('click', function() {
+			if ($('#players > div').length < 3) {
 				$('#problemDialog')
 				.text($.i18n('error-need-2-players'))
 				.dialog();
 			} else
-				$(this).closest(".player").remove();
+				$(this).closest('.player').remove();
 		});
 
 		const $email = $('<span class="email"></span>');
 		const $emb = $('<button type="button" class="emailInvite"></button>');
 		$emb.append($.i18n('button-email'));
-		$emb.attr("title", $.i18n('tooltip-email'));
+		$emb.attr('title', $.i18n('tooltip-email'));
 		$emb.tooltip(MORETIPS);
-		const $emv = $(`<input type="email" size="30" value="${email||''}"/>`);
-		$emb.on("click", function() {
+		const $emv = $(`<input type='email' size='30' value='${email||''}'/>`);
+		$emb.on('click', function() {
 			$emb.hide(); $emv.show();
 			return false;
 		});
-		$emv.on("change", function() {
-			if ($(this).val() == "") {
+		$emv.on('change', function() {
+			if ($(this).val() == '') {
 				$emb.show(); $emv.hide();
 			}
 			return false;
@@ -135,9 +135,9 @@ requirejs(["browser/browserApp"], browserApp => {
 			$emb.show(); $emv.hide();
 		}
 
-		const $input = $(`<input type="text" class="name" size="10" value="${name}"/>`);
+		const $input = $(`<input type='text' class='name' size='10' value='${name}'/>`);
 		$input
-		.attr("title", $.i18n('tooltip-name'))
+		.attr('title', $.i18n('tooltip-name'))
 		.tooltip(MORETIPS)
 		.autocomplete({
 			source: addressBook.map(entry => entry.name)
@@ -161,13 +161,13 @@ requirejs(["browser/browserApp"], browserApp => {
 
 		if (isRobot) $email.toggle();
 
-		$("#players").append($div);
+		$('#players').append($div);
 	}
 
-	// Handle a click on "Add Player"
+	// Handle a click on 'Add Player'
 	function inventPlayer() {
 		const playerNames = [];
-		$("#players > div").each(function() {
+		$('#players > div').each(function() {
 			playerNames.push($(this).find('input.name').val());
 		});
 
@@ -188,12 +188,12 @@ requirejs(["browser/browserApp"], browserApp => {
 		$.i18n();
 
 		// Translate data-i18n in the HTML
-		$("body").i18n();
+		$('body').i18n();
 
 		// Set the editions and dictionaries from config.json
 		$.getJSON('/defaults', defaults => {
 			$.getJSON('/editions', editions => {
-				const $eds = $("#edition");
+				const $eds = $('#edition');
 				editions.forEach(e => $eds.append(`<option>${e}</option>`));
 				if (defaults.edition)
 					$eds.val(defaults.edition);
@@ -202,7 +202,7 @@ requirejs(["browser/browserApp"], browserApp => {
 			});
 
 			$.getJSON('/dictionaries', dictionaries => {
-				const $dics = $("#dictionary");
+				const $dics = $('#dictionary');
 				dictionaries.forEach(d => $dics.append(`<option>${d}</option>`));
 				if (defaults.dictionary)
 					$dics.val(defaults.dictionary);
@@ -217,6 +217,7 @@ requirejs(["browser/browserApp"], browserApp => {
 				e.preventDefault();
 				return false;
 			}
+			return true;
 		});
 
 		// Create default players, Human and Robot
@@ -224,7 +225,7 @@ requirejs(["browser/browserApp"], browserApp => {
 		createPlayerDOM($.i18n('name-robot-player'), true);
 
 		// Button to add additional players
-		$("#addPlayer").on("click", () => inventPlayer());
+		$('#addPlayer').on('click', () => inventPlayer());
 
 		// Using tooltips with a selectmenu is horrible. Applying
 		// tooltip() to the select is useless, you have to apply it to
@@ -233,37 +234,37 @@ requirejs(["browser/browserApp"], browserApp => {
 		// there is no event triggered.  The alternative is to create
 		// the selectmenu now, but doing so blows away the browser's
 		// memory of previous selections, which we want. Instead, we
-		// have to brute-force initialise the "title" attribute from
+		// have to brute-force initialise the 'title' attribute from
 		// the data-tooltip...
-		$("select").each(function() {
-			$(this).attr("title", $.i18n($(this).data('tooltip')));
+		$('select').each(function() {
+			$(this).attr('title', $.i18n($(this).data('tooltip')));
 		});
 
 		// ... and later, when the selectmenus have (hopefully) been created,
 		// map them to jquery tooltips.
 		setTimeout(() => {
-			$(".ui-selectmenu-button").tooltip(MORETIPS);
+			$('.ui-selectmenu-button').tooltip(MORETIPS);
 			// By now the select values should have been assigned, and we can
 			// validate
 			validate();
 		}, 100);
 
-		$("#dictionary").on("selectmenuchange", validate)
-		$("#edition").on("selectmenuchange", validate);
+		$('#dictionary').on('selectmenuchange', validate);
+		$('#edition').on('selectmenuchange', validate);
 
 		// Create the game
 		$('#createGameButton')
 		.on('click', function() {
 			const data = {
-				edition: $("#edition").val(),
-				dictionary: $("#dictionary").val(),
-				time_limit: $("#time_limit").val(),
+				edition: $('#edition').val(),
+				dictionary: $('#dictionary').val(),
+				time_limit: $('#time_limit').val(),
 				players: []
 			};
 			const playerNames = [];
-			$("#players > div").each(function() {
+			$('#players > div').each(function() {
 				const name = $(this).find('input.name').val();
-				const isRobot = $(this).find('input.isRobot').prop("checked");
+				const isRobot = $(this).find('input.isRobot').prop('checked');
 				const email = $(this).find(`.email input`).val();
 
 				playerNames.push(name);
@@ -284,9 +285,9 @@ requirejs(["browser/browserApp"], browserApp => {
 				data.players[j] = temp;
 			}
 			saveAddressBook(addressBook);
-			$.post("newGame", data)
+			$.post('newGame', data)
 			.done(() => {
-				window.location.replace("/html/games.html");
+				window.location.replace('/html/games.html');
 			})
 			.fail(e => {
 				$('#problemDialog')

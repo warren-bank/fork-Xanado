@@ -6,15 +6,15 @@
  * Common dependency handling for all browser apps (games, game, invite-game)
  * Returns a promise that resolves to a list of supported locales
  */
-define("browser/browserApp", [
-	"jquery",
-	"jqueryui",
-	"i18n",
-	"i18n_emitter",
-	"i18n_fallbacks",
-	"i18n_language",
-	"i18n_messagestore",
-	"i18n_parser"
+define('browser/browserApp', [
+	'jquery',
+	'jqueryui',
+	'i18n',
+	'i18n_emitter',
+	'i18n_fallbacks',
+	'i18n_language',
+	'i18n_messagestore',
+	'i18n_parser'
 ], () => {
 	return new Promise(resolve => {
 		$.getJSON('/locales', function(locales) {
@@ -26,7 +26,7 @@ define("browser/browserApp", [
 			// already in the browser - which is fine by us!
 			$.i18n().load(params)
 			.done(() => {
-				console.log("Locale is ready");
+				console.log('Locale is ready');
 				resolve(Object.keys(params));
 			});
 		});
@@ -35,8 +35,8 @@ define("browser/browserApp", [
 		// Expand/translate strings in the HTML
 		return new Promise(resolve => {
 			$(document).ready(() => {
-				console.log("Translating HTML to",$.i18n().locale);
-				$("body").i18n();
+				console.log('Translating HTML to',$.i18n().locale);
+				$('body').i18n();
 				resolve(locales);
 			});
 		});

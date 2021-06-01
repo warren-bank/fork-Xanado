@@ -8,18 +8,18 @@
  * dictates the score multipliers that apply.  The owner will be a
  * Rack or a Board.
  */
-define("game/Square", ["platform/Platform"], Platform => {
+define('game/Square', ['platform/Platform'], Platform => {
 
 	// Map the characters in the board template to CSS classes
 	const CSS_CLASS =  {
-		M: "Middle",
-		Q: "QuadWord",
-		q: "QuadLetter",
-		T: "TripleWord",
-		t: "TripleLetter",
-		D: "DoubleWord",
-		d: "DoubleLetter",
-		_: "Normal"
+		M: 'Middle',
+		Q: 'QuadWord',
+		q: 'QuadLetter',
+		T: 'TripleWord',
+		t: 'TripleLetter',
+		D: 'DoubleWord',
+		d: 'DoubleLetter',
+		_: 'Normal'
 	};
 
 	/**
@@ -71,13 +71,13 @@ define("game/Square", ["platform/Platform"], Platform => {
 		 */
 		placeTile(tile, locked) {
 			if (tile && this.tile && tile !== this.tile) {
-				console.log("Tile ", tile, " over ", this.tile);
+				console.log('Tile ', tile, ' over ', this.tile);
 				throw Error(`Square already occupied: ${this}`);
 			}
 
 			if (tile) {
 				tile.col = this.col;
-				if (typeof this.row !== "undefined")
+				if (typeof this.row !== 'undefined')
 					tile.row = this.row;
 				this.tile = tile;
 				this.tileLocked = locked;
@@ -116,7 +116,7 @@ define("game/Square", ["platform/Platform"], Platform => {
 			$td.addClass(CSS_CLASS[this.type]);
 
 			let id = `${idbase}_${col}`;
-			if (typeof row !== "undefined")
+			if (typeof row !== 'undefined')
 				id += `x${row}`;
 			this.id = id;
 			const $div = $(`<div id='${id}'><a></a></div>`);
@@ -128,9 +128,9 @@ define("game/Square", ["platform/Platform"], Platform => {
 
 		refreshDOM() {
 			const $div = $(`#${this.id}`)
-				.removeClass("Selected")
-				.removeClass("Temp")
-				.off("click");
+				.removeClass('Selected')
+				.removeClass('Temp')
+				.off('click');
 
 			if (this.tile)
 				this.refreshOccupied($div);
@@ -156,30 +156,30 @@ define("game/Square", ["platform/Platform"], Platform => {
 		 * @param $div the <div> for the square
 		 */
 		refreshOccupied($div) {
-			if ($div.hasClass("ui-droppable"))
-				$div.droppable("destroy");
+			if ($div.hasClass('ui-droppable'))
+				$div.droppable('destroy');
 
 			$div
-			.removeClass("Empty")
-			.addClass("Tile");
+			.removeClass('Empty')
+			.addClass('Tile');
 
 			if (this.tile.isBlank)
 				$div.addClass('BlankLetter');
 
 			if (this.tileLocked) {
 				$div.addClass('Locked');
-				if ($div.hasClass("ui-draggable"))
-					$div.draggable("destroy");
+				if ($div.hasClass('ui-draggable'))
+					$div.draggable('destroy');
 			} else {
 				// tile isn't locked, valid drag source
 				$div
 				.addClass('Temp')
-				.on("click", () => Platform.trigger('SelectSquare', [ this ]));
+				.on('click', () => Platform.trigger('SelectSquare', [ this ]));
 
 				$div.draggable({
-					revert: "invalid",
+					revert: 'invalid',
 					opacity: 1,
-					helper: "clone",
+					helper: 'clone',
 
 					start: (event, jui) => {
 						$div.css({ opacity: 0.5 });
@@ -188,10 +188,10 @@ define("game/Square", ["platform/Platform"], Platform => {
 						// Configure drag helper
 						$(jui.helper)
 						.animate({'font-size' : '120%'}, 300)
-						.addClass("dragBorder");
+						.addClass('dragBorder');
 					},
 
-					drag: (event, jui) => $(jui.helper).addClass("dragBorder"),
+					drag: (event, jui) => $(jui.helper).addClass('dragBorder'),
 
 					stop: () => $div.css({ opacity: 1 })
 				});
@@ -199,7 +199,7 @@ define("game/Square", ["platform/Platform"], Platform => {
 
 			const letter = this.tile.letter;
 			const score = this.tile.score;
-			const $a = $("<a></a>");
+			const $a = $('<a></a>');
 			$a.append(`<span class='Letter'>${letter}</span>`);
 			$a.append(`<span class='Score'>${score}</span>`);
 			$div.html($a);
@@ -214,22 +214,22 @@ define("game/Square", ["platform/Platform"], Platform => {
 		refreshEmpty($div) {
 
 			// Not draggable
-			if ($div.hasClass("ui-draggable"))
-				$div.draggable("destroy");
+			if ($div.hasClass('ui-draggable'))
+				$div.draggable('destroy');
 
 			// no tile on the square, valid drop target
 			$div
-			.removeClass("Tile")
-			.addClass("Empty");
+			.removeClass('Tile')
+			.addClass('Empty');
 
-			$div.on("click", () => Platform.trigger("SelectSquare", [ this ]))
+			$div.on('click', () => Platform.trigger('SelectSquare', [ this ]))
 			// Handle something dropping on us
 			.droppable({
-				hoverClass: "dropActive",
+				hoverClass: 'dropActive',
 				drop: (event, jui) => {
-					const source = $(jui.draggable).data("square");
+					const source = $(jui.draggable).data('square');
 					// Tell the main UI about it
-					Platform.trigger("DropSquare", [ source, this ]);
+					Platform.trigger('DropSquare', [ source, this ]);
 				}
 			});
 

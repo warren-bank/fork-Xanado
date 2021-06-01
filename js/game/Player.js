@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd, jquery */
 
-define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
+define('game/Player', ['game/GenKey', 'game/Rack'], (GenKey, Rack) => {
 
 	// Unicode characters
 	const BLACK_CIRCLE = '\u25cf';
@@ -37,7 +37,7 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 			// Set true to advise player of better plays than the one
 			// they used
 			this.wantsAdvice = false;
-			//console.log("Created",this);
+			//console.log('Created',this);
 		}
 
 		/**
@@ -105,12 +105,11 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 		}
 
 		toString() {
-			let s = `${this.isRobot ? "Robot" : "Human"} player `;
-			if (this.index >= 0)
-				s += `${this.index} `;
-			s += `'${this.name}' `;
+			let s = `Player${this.index} '${this.name}'`;
+			if (this.isRobot)
+				s += ' (Robot)';
 			if (this.key)
-				s += `key ${this.key} `;
+				s += ` key ${this.key}`;
 			return s;
 		}
 
@@ -129,7 +128,7 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 					  to:  this.email,
 					  subject: subject,
 					  text: `Join the game by following this link: ${url}`,
-					  html: `Click <a href="${url}">here</a> to join the game.`
+					  html: `Click <a href='${url}'>here</a> to join the game.`
 					});
 				console.log('mail sent', mailResult.response);
 			}
@@ -145,7 +144,7 @@ define("game/Player", ["game/GenKey", "game/Rack"], (GenKey, Rack) => {
 				? $.i18n('You')
 				: this.name;
 			$tr.append(`<td class='playerName'>${who}</td>`);
-			$tr.append("<td class='remainingTiles'></td>");
+			$tr.append('<td class="remainingTiles"></td>');
 			this.$status = $(`<td class='status offline'>${BLACK_CIRCLE}</td>`);
 			$tr.append(this.$status);
 			this.$score = $(`<td class='score'>${this.score}</td>`);

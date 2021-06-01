@@ -3,10 +3,10 @@
 /* eslint-env amd, node */
 
 /**
- * Structure built during dictionary compression. Is not used in a "live"
- * dictionary; that uses the richer "LetterNode".
+ !* Structure built during dictionary compression. Is not used in a 'live'
+ * dictionary; that uses the richer 'LetterNode'.
  */
-define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
+define('dawg/Trie', ['dawg/TrieNode'], TrieNode => {
 	/**
 	 * A Trie - a tree of nodes, each of which has a next pointer to another
 	 * node, and a child pointer to another node.
@@ -17,7 +17,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 * Construct a Trie from a simple word list
 		 */
 		constructor(lexicon) {
-			console.log("\nConstruct Trie and fill from lexicon");
+			console.log('\nConstruct Trie and fill from lexicon');
 
 			this.numberOfWords = 0;
 			this.numberOfNodes = 0;
@@ -79,7 +79,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 * @return the structure
 		 */
 		createReductionStructure() {
-			console.log("\nCreate reduction structure");
+			console.log('\nCreate reduction structure');
 
 			const counts = [];
 			for (let x = this.minWordLen; x < this.maxWordLen; x++)
@@ -121,17 +121,17 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 * Flag all of the redundant nodes in the Trie
 		 * Flagging requires the node comparison function that will take a
 		 * very long time for a big dictionary.  This is especially true
-		 * when comparing the nodes with small "maxChildDepth"'s because
+		 * when comparing the nodes with small 'maxChildDepth''s because
 		 * there are so many of them.  It is faster to start with nodes of
-		 * the largest "maxChildDepth" to recursively reduce as many lower
+		 * the largest 'maxChildDepth' to recursively reduce as many lower
 		 * nodes as possible.
 		 */
 		findPrunedNodes(red) {
-			console.log("\nMark redundant nodes as pruned");
+			console.log('\nMark redundant nodes as pruned');
 
 			// Use recursion because only direct children are considered for
 			// elimination to keep the remaining lists intact. Start at
-			// the largest "maxChildDepth" and work down from there for
+			// the largest 'maxChildDepth' and work down from there for
 			// recursive reduction to take place early on to reduce the work
 			// load for the shallow nodes.
 			let totalPruned = 0;
@@ -148,10 +148,10 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 						// The Node is already pruned.  Note that this node need
 						// not be the first in a child list, it could have been
 						// pruned recursively.  In order to eliminate the need
-						// for the "next" index, the nodes at the root of
+						// for the 'next' index, the nodes at the root of
 						// elimination must be the first in a list, in other
-						// words, "isFirstChild". The node that we replace the
-						// "isFirstChild" node with can be located at any position.
+						// words, 'isFirstChild'. The node that we replace the
+						// 'isFirstChild' node with can be located at any position.
 						continue;
 
 					// Traverse the rest of the list looking for equivalent
@@ -182,7 +182,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 */
 		assignIndices() {
 
-			console.log("\nAssign node indices");
+			console.log('\nAssign node indices');
 			let current = this.first.child;
 			const queue = [];
 			const nodeList = [];
@@ -239,7 +239,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 * @return array of integers
 		 */
 		encodeDAWG() {
-			console.log("\nGenerate the unsigned integer array");
+			console.log('\nGenerate the unsigned integer array');
 
 			const nodelist = this.assignIndices();
 

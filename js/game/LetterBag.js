@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd */
 
-define("game/LetterBag", ["game/Tile"], (Tile) => {
+define('game/LetterBag', ['game/Tile'], (Tile) => {
 
 	class LetterBag {
 
@@ -73,7 +73,7 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 		getRandomTiles(count) {
 			const tiles = [];
 			if (count < 0)
-				throw Error("Negative count");
+				throw Error('Negative count');
 			for (let i = 0; this.tiles.length > 0 && i < count; i++)
 				tiles.push(this.tiles.pop());
 			return tiles;

@@ -12,7 +12,7 @@
  * are serialised using the above structure but are then rebuilt using
  * LetterNodes at the sharp end.
  */
-define("dawg/TrieNode", () => {
+define('dawg/TrieNode', () => {
 
 	// Second integer of node tuple is encoded
 	const END_OF_WORD_BIT_MASK = 0x1;
@@ -54,11 +54,11 @@ define("dawg/TrieNode", () => {
 			let simpler = `{${this.id} ${this.letter}`;
 
 			if (this.isEndOfWord)
-				simpler += ".";
+				simpler += '.';
 			if (this.child)
-				simpler += "+";
+				simpler += '+';
 			if (this.next)
-				simpler += "-";
+				simpler += '-';
 
 			return `${simpler}}`;
 		}
@@ -190,7 +190,7 @@ define("dawg/TrieNode", () => {
 
 		/**
 		 * Returns the first node in the red[maxChildDepth], that is
-		 * identical to "this". If the function returns 'this'
+		 * identical to 'this'. If the function returns 'this'
 		 * then it is the first of its kind in the
 		 * Trie.
 		 */
@@ -201,7 +201,7 @@ define("dawg/TrieNode", () => {
 				if (this.sameSubtrie(red[this.maxChildDepth][x]))
 					break;
 			if (red[this.maxChildDepth][x].isPruned)
-				throw Error("Same subtrie equivalent is pruned!");
+				throw Error('Same subtrie equivalent is pruned!');
 			return red[this.maxChildDepth][x];
 		}
 
@@ -225,15 +225,15 @@ define("dawg/TrieNode", () => {
 					// equivalent which isn't tagged.
 					this.child = this.child.findSameSubtrie(red);
 					if (this.child === null)
-						throw Error("Something horrible");
+						throw Error('Something horrible');
 					trimmed++;
 				} else
 					trimmed += this.child.replaceRedundantNodes(red);
 			}
 
-			// Traverse the rest of the "Trie", but a "TrieNode" that is
+			// Traverse the rest of the 'Trie', but a 'TrieNode' that is
 			// not a direct child will never be directly replaced.
-			// This will allow the resulting "Dawg" to fit into a
+			// This will allow the resulting 'Dawg' to fit into a
 			// contiguous array of node lists.
 			if (this.next)
 				trimmed += this.next.replaceRedundantNodes(red);

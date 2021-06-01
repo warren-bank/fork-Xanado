@@ -8,7 +8,7 @@
  * used to send a human player's play to the server, which then responds
  * with a turn (or several, if robots are playing)
  */
-define("game/Move", () => {
+define('game/Move', () => {
 
 	class Move {
 

@@ -1,14 +1,14 @@
 /**
- * Javascript port of Joshua Lewis' "Valett" program. Ported because I
+ * Javascript port of Joshua Lewis' 'Valett' program. Ported because I
  * couldn't get my head round CoffeeScript, and the code is pretty
  * simple.
  * Copyright and license as described at https://github.com/jmlewis/valett
  */
-define("design/Valett", () => {
+define('design/Valett', () => {
 
 	function norm(vector) {
-		let sum = 0
-		const normedVector = []
+		let sum = 0;
+		const normedVector = [];
 		
 		for (let num of vector)
 			sum += num;
@@ -34,7 +34,7 @@ define("design/Valett", () => {
 
 	
 	function transposeMatrix(matrix) {
-		const transposedMatrix = []
+		const transposedMatrix = [];
 		for (let i = 0; i < matrix.length; i++)
 			transposedMatrix[i] = [];
 		
@@ -67,7 +67,7 @@ define("design/Valett", () => {
 			for (let i = 0; i < this.letters.length; i++)
 				this.frequency[i] = 0;
 			for (let word of this.words)
-				for (let letter of word.split(""))
+				for (let letter of word.split(''))
 					this.frequency[this.hash[letter]]++;
 
 			// frequencyByLength
@@ -83,7 +83,7 @@ define("design/Valett", () => {
 		
 			for (let word of words) {
 				this.totalFrequencyByLength[word.length - 1] += word.length;
-				for (let letter of word.split("")) {
+				for (let letter of word.split('')) {
 					this.frequencyByLength[this.hash[letter]][word.length - 1]++;
 				}
 			}
@@ -102,10 +102,10 @@ define("design/Valett", () => {
 		analyze(maxValue, weights, frequencyByLengthWeights, entropyWeights) {
 			while (frequencyByLengthWeights.length < this.maxLength)
 				frequencyByLengthWeights.push(0);
-			const normedFrequencyByLengthWeights = norm(frequencyByLengthWeights)
+			const normedFrequencyByLengthWeights = norm(frequencyByLengthWeights);
 			const normedEntropyWeights = norm(entropyWeights);
 		
-			const entropyValues = []
+			const entropyValues = [];
 
 			const frequencyValues = norm(this.frequency);
 			const frequencyByLengthValues = transposeMatrix(normMatrix(transposeMatrix(this.frequencyByLength)));
@@ -156,11 +156,11 @@ define("design/Valett", () => {
 			
 			for (let word of this.words) {
 				let i = 0;
-				const wl = word.split("");
+				const wl = word.split('');
 				for (let letter of wl) {
-					let prevLetter = null
-					let nextLetter = null
-					let curLetter = null
+					let prevLetter = null;
+					let nextLetter = null;
+					let curLetter = null;
 				
 					if (i == 0) // Start of word
 						prevLetter = this.letters.length;

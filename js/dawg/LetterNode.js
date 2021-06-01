@@ -6,7 +6,7 @@
  * Letter node in a Dictionary. Each node has multiple links and helpers
  * that trade off space for performance during word searches.
  */
-define("dawg/LetterNode", () => {
+define('dawg/LetterNode', () => {
 
 	class LetterNode {
 		constructor(letter) {
@@ -92,7 +92,7 @@ define("dawg/LetterNode", () => {
 		 * @param index the start index within partialWord
 		 */
 		match(chars, index) {
-			if (typeof index === "undefined")
+			if (typeof index === 'undefined')
 				index = 0;
 			let node = this;
 			while (node) {
