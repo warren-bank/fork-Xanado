@@ -244,8 +244,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 		/**
 		 * Add a message to the chat pane. Message test that matches
-		 * an i18n message identifier will be automatically translated
-		 * with supplied message args
+		 * an i18n message identifier will be automatically
+		 * translated with supplied message args.
 		 */
 		chatMessage(message) {
 			let args = [ message.text ];
@@ -259,7 +259,6 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 
 			const sender = /^chat-/.test(message.sender)
 				  ? $.i18n(message.sender) : message.sender;
-
 			const pn = `<span class='playerName'>${sender}</span>`;
 
 			const $mess = $(`<div>${pn}: ${msg}</div>`);
@@ -269,8 +268,12 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				scrollTop: $('#chatMessages').prop('scrollHeight')
 			}, 100);
 
-			if (message.name != this.thisPlayer.name)
-				this.notify(message.name, msg);
+			// Special handling for chat-hint, highlight square
+			if (message.sender === 'chat-advisor'
+				&& args[0] === 'chat-hint') {
+				let row = args[2] - 1, col = args[3] - 1;
+				$(`#Board_${col}x${row}`).addClass('hintPlacement');
+			}
 		}
 
 		/**
@@ -856,6 +859,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		 * Handler for the 'Make Move' button. Invoked via 'makeMove'.
 		 */
 		commitMove() {
+			$('.hintPlacement').removeClass('hintPlacement');
+
 			const move = this.game.board.analyseMove();
 			if (typeof move === 'string') {
 				// fatal - should never get here

@@ -627,6 +627,10 @@ div.tableDivWrap td.ValidButWrongPlacement {
 	background-color: #E2E298!important;
 }
 
+.hintPlacement {
+	background-color: #E2FF98!important;
+}
+
 .playerName {
 	font-weight: bold;
 }
