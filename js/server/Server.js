@@ -531,6 +531,7 @@ define(
 						// and makeMove, and other info (such as robot
 						// tile states) is sent using messaging.
 						// TODO: this is messy; mixed messaging.
+						console.log("Sending new tiles", turn.newTiles);
 						res.send(Fridge.freeze(turn.newTiles || []));
 					});
 				});

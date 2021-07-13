@@ -60,7 +60,7 @@ requirejs(['node-getopt', 'fs-extra', 'design/Valett'], (Getopt, Fs, Valett) => 
 	].join('\n');
 
 	const opt = Getopt.create([
-		['c', 'config', 'Config file (JSON) - see above']
+		['c', 'config=ARG', 'Config file (JSON) - see above']
 	])
         .bindHelp()
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
@@ -70,7 +70,8 @@ requirejs(['node-getopt', 'fs-extra', 'design/Valett'], (Getopt, Fs, Valett) => 
 		// Read config from file (JSON)
 		Fs.readFile(opt.options.config)
 		.then(data => {
-			const reconfig = JSON.parse(data.toString());
+			let reconfig;
+			eval(`reconfig=${data.toString()}`);
 			console.log(`Config from ${opt.options.config}`);
 			for (let key of Object.keys(reconfig))
 				config[key] = reconfig[key];

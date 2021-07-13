@@ -751,19 +751,22 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 						$div.addClass('lastPlacement');
 					}
 				}
+				// Shrink the bag by the number of placed tiles. This is purely
+				// to keep the counts in synch, we never use tiles taken
+				// from the bag on the client side.
+				this.game.letterBag.getRandomTiles(
+					this.game.letterBag.remainingTileCount() - turn.leftInBag);
 
-				// Add new tiles to the rack once board placements are done
+				// Deliberate fall-through to 'swap'
+
+			case 'swap':
+				// Add new tiles to the rack
 				for (let newTile of turn.newTiles)
 					player.rack.addTile(newTile);
 
 				if (this.isPlayer(turn.player))
 					player.rack.refreshDOM();
 
-				// Shrink the bag by the number of placed tiles. This is purely
-				// to keep the counts in synch, we never use tiles taken
-				// from the bag on the client side.
-				this.game.letterBag.getRandomTiles(
-					this.game.letterBag.remainingTileCount() - turn.leftInBag);
 				break;
 			}
 
@@ -910,10 +913,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			this.afterMove();
 			const tiles = this.swapRack.tiles();
 			this.swapRack.empty();
-			this.sendCommand(
-				'swap',
-				tiles,
-				data => this.handleMoveResponse(data));
+			this.sendCommand('swap', tiles);
 		}
 
 		/**

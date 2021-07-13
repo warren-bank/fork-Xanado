@@ -15,7 +15,7 @@ requirejs.config({
 	}
 });
 
-const DESCRIPTION = 'USAGE\n  node dict.js [options] <dictionary> <words>\n'
+const DESCRIPTION = 'USAGE\n  node explore.js [options] <dictionary> <words>\n'
 	  + 'Explore a DAWG dictionary.';
 
 requirejs(['node-getopt', 'platform/Platform', 'dawg/Dictionary'], (Getopt, Platform, Dictionary) => {
@@ -35,11 +35,6 @@ requirejs(['node-getopt', 'platform/Platform', 'dawg/Dictionary'], (Getopt, Plat
 				
 				console.log(list.join('\n'));
 			}
-		}
-		else if (opt.options.anagrams) {
-			console.log(`\nAnagrams of '${root.word}'`);
-			const anag = dict.findAnagrams(root.word);
-			console.log(anag);
 		} else if (root.node && root.node.isEndOfWord)
 			console.log(`'${root.word}' was found`,
 						root.node.child ? '& is a root' : '');
@@ -63,10 +58,22 @@ requirejs(['node-getopt', 'platform/Platform', 'dawg/Dictionary'], (Getopt, Plat
 			if (opt.options.sequence)
 				for (let w of words)
 					checkSequence(w, dict);
+			else if (opt.options.anagrams) {
+				if (words.length === 0)
+					throw 'Need letters to find anagrams of';
+
+				for (let w of words) {
+					const word = w.toUpperCase();
+					console.log(`\nAnagrams of '${word}'`);
+					const anag = dict.findAnagrams(word);
+					console.log(anag);
+				}
+			}
 			else {
 				const roots = [];
 
 				if (words.length === 0) {
+					// Dump of entire dawg
 					let letter = dict.root.child;
 					while (letter) {
 						roots.push({ word: letter.letter, node: dict.root });
@@ -93,7 +100,7 @@ requirejs(['node-getopt', 'platform/Platform', 'dawg/Dictionary'], (Getopt, Plat
 
 	const opt = Getopt.create([
         ['h', 'help', 'Show this help'],
-		['l', 'list', 'Without paramaters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root'],
+		['l', 'list', 'Without parameters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root'],
 		['f', 'file=ARG', 'Check all words read from file'],
 		['a', 'anagrams', 'Find anagrams of the words and any sub-words'],
 		['s', 'sequence', 'Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. "UZZL" is a valid sub-sequence in an English dictionary as it is found in "PUZZLE", but "UZZZL" isn\'t']
