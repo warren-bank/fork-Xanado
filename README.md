@@ -1,6 +1,6 @@
 # Multiplayer word grid game server and interface
 
-While there are a number of public servers out there offering clones of the classic SCRABBLE® game, they are limited in a number of ways:
+While there are a number of public servers out there offering clones of the classic SCRABBLE® game (and derivatives), they are limited in a number of ways:
 * Their source code is not public, and setting up your own server is not an option.
 * They are generally limited to a single version of the game.
 * Their dictionaries are usually based on the standard Scrabble SOWPODS dictionary, which is stuffed full of obscure words that only a Scrabble aficionado will know. This makes the game inaccessible for casual players, and those wishing to play in non-English languages.
@@ -10,7 +10,13 @@ I wanted a game I could host on my own server, and experiment with different
 dictionaries, board layouts, tile sets, and rule combinations. And I wanted it
 to be completely free.
 
-A further application that has emerged is as an entertaining teaching aid
+Out of the box, this version lets you play games according to the
+rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, and Lexulous,
+and has tile sets for English, French, German, Dutch, Estonian and
+Hungarian. It has dictionaries in British English and German, including an unofficial
+SOWPODS (tournament) english dictionary.
+
+An interesting application that has emerged is as an entertaining teaching aid
 for language learners. Included is a dictionary based on the Oxford 5000 most
 important words to learn in English. By playing the game against the robot,
 learners are exposed to new words that they can then seek the definition of.
@@ -60,7 +66,8 @@ join the game. The game interface is fairly self explanatory if you
 know the [rules of Scrabble](https://www.officialgamerules.org/scrabble).
 The game starts with a randomly selected player.
 
-As many players as you like can be robots, but you need at least one human player (otherwise, what's the point?)
+As many players as you like can be robots, but you need at least one
+human player (otherwise, what's the point?)
 
 The installation comes with emulations of a number of commercially available
 games - SCRABBLE®, Super SCRABBLE®, Lexulous, and Words With Friends.
@@ -68,8 +75,8 @@ Guidance for creating your own custom game is given below.
 
 ## Learning
 To assist learners, there are two special 'chat' messages that can be entered.
-* `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, after your play.
-* `hint` tells you the highest scoring play the computer can find for you. Everyone in the game is told when you send this message (to prevent cheating.)
+* `hint` tells you the highest scoring play the computer can find for you, before your play. Everyone in the game is told when you send this message (to prevent cheating.)
+* `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played.
 
 # Dictionaries
 The `/dictionaries` directory contains all the

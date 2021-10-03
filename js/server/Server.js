@@ -48,7 +48,7 @@ define(
 
 			// Grab all static files relative to the project root
 			// html, images, css etc. The Content-type should be set
-			// based on the file mime type (extension) but it doesn't
+			// based on the file mime type (extension) but Express doesn't
 			// always get it right.....
 			console.log(`static files from ${requirejs.toUrl('')}`);
 			server.use(Express.static(requirejs.toUrl('')));
@@ -81,21 +81,22 @@ define(
 				}
 			}, 'Enter game list access login');
 
-			// HTML page for main interface
+			// HTML page for main interface (the "games" page)
 			server.get('/', (req, res) =>
 					res.sendFile(requirejs.toUrl('html/games.html')));
 
-			// AJAX request to send email reminders about active games
+			// send email reminders about active games
 			server.post('/send-game-reminders', () =>
 					 this.handle_sendGameReminders());
 
-			// AJAX request for available games
+			// get a JSON list of available games
 			server.get('/games',
 					 config.gameListLogin ? gameListAuth
 					 : (req, res, next) => next(),
 					 (req, res) => this.handle_games(req, res)
 					);
 
+			// Get a list of available locales
 			server.get('/locales',
 					(req, res) => this.handle_locales(req, res));
 
@@ -103,18 +104,23 @@ define(
 			server.post('/newGame',
 					  (req, res) => this.handle_newGame(req, res));
 
+			// Delete an active or old game
 			server.post('/deleteGame/:gameKey',
 					  (req, res) => this.handle_deleteGame(req, res));
 
+			// Request another game in a series
 			server.post('/anotherGame/:gameKey',
 					  (req, res) => this.handle_anotherGame(req, res));
 
+			// Get a JSON description of available editions
 			server.get('/editions',
 					 (req, res) => this.handle_editions(req, res));
 
+			// Get a JSON description of available dictionaries
 			server.get('/dictionaries',
 					 (req, res) => this.handle_dictionaries(req, res));
-			
+
+			// Get a JSON description of defaults
 			server.get('/defaults', (req, res) =>
 					 res.send({
 						 edition: config.defaultEdition,
@@ -125,16 +131,16 @@ define(
 			server.get('/game/:gameKey/:playerKey',
 					 (req, res) => this.handle_enterGame(req, res));
 
-			// Request handler for game interface / info
+			// Handler for game interface / info
 			server.get('/game/:gameKey',
 					 (req, res) => this.handle_gameGET(req, res));
 
-			// Request handler for best play. Debug, allows us to pass in
+			// Request handler for best play hint. Debug, allows us to pass in
 			// any player key
 			server.get('/bestPlay/:gameKey/:playerKey',
 					 (req, res) => this.handle_bestPlay(req, res));
 
-			// Request handler for game command
+			// Request handler for a turn (or other game command)
 			server.post('/game/:gameKey',
 					  (req, res) => this.handle_gamePOST(req, res));
 
