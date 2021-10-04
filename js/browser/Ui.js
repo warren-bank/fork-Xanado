@@ -395,12 +395,18 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				this.pass();
 				break;
 
-			case '<':
-				this.takeBackMove();
-				break;
-
 			case '!': // Challenge
-				this.challenge();
+				{
+					const lastTurn = this.game.turns.length && this.game.turns[this.game.turns.length - 1];
+					if (lastTurn && lastTurn.type == 'move') {
+						if (this.isPlayer(this.game.whosTurn))
+							// Challenge last move
+							this.challenge();
+						else
+							// Still us
+							this.takeBackMove();
+					}
+				}
 				break;
 
 			case '2': case '"': // and type until return
@@ -548,6 +554,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			$('#turnButton').on('click', () => this.makeMove());
 
 			this.$typingCursor = $('#typingCursor');
+			this.$typingCursor.hide(0);
 		}
 
 		/**
@@ -1076,26 +1083,18 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		}
 
 		/**
-		 * Add an action button that affects a previous move to the log
-		 * pane.
-		 */
-		addLastMoveActionButton(action, label) {
-			const $button =
-				$(`<div><button class='moveAction'>${label}</button></div>`);
-			$button.click(() => this[action]());
-			$('#logMessages div.moveScore').last().append($button);
-			this.scrollLogToEnd(300);
-		}
-
-		/**
 		 * Add a 'Challenge' button to the log pane to challenge the last
 		 * player's move (if it wasn't us)
 		 */
 		addChallengePreviousButton(turn) {
 			if (this.isPlayer(turn.player))
 				return;
-			this.addLastMoveActionButton(
-				'challenge', $.i18n('button-challenge'));
+			// It wasn't us
+			const $button =
+				$(`<div><button class='moveAction'>${$.i18n('button-challenge')}</button></div>`);
+			$button.click(() => this.challenge());
+			$('#logMessages div.moveScore').last().append($button);
+			this.scrollLogToEnd(300);
 		}
 
 		/**
@@ -1103,10 +1102,14 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		 * (this player's) previous move.
 		 */
 		addTakeBackPreviousButton(turn) {
-			if (this.isPlayer(turn.player))
-				// It's us!
-				this.addLastMoveActionButton(
-					'takeBackMove', $.i18n('button-take-back'));
+			if (!this.isPlayer(turn.player))
+				return;
+			// It's us!
+			const $button =
+				  $(`<div><button class='moveAction'>${$.i18n('button-take-back')}</button></div>`);
+			$button.click(() => this.takeBackMove());
+			$('#logMessages div.moveScore').last().append($button);
+			this.scrollLogToEnd(300);
 		}
 
 		/**

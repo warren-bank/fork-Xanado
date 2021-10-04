@@ -91,7 +91,7 @@ There are also a number of other keyboard shortcuts for the various buttons:
 * The `Home` key will take back placed tiles
 * `@` will shuffle the rack
 * `?` will pass the current turn
-* `!` will challenge the last player's move
+* `!` will take back your move, or challenge the last player's move, depending on what the log says
 
 ## Learning
 To assist learners, there are two special 'chat' messages that can be entered.
