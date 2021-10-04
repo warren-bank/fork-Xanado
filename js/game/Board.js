@@ -4,7 +4,7 @@
 
 define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile, Move) => {
 
-	class Board extends Surface{
+	class Board extends Surface {
 
 		/**
 		 * @param edition the Edition defining the board layout
@@ -140,7 +140,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 						score: wordScore
 					});
 				}
-			}
+			};
 
 			for (row = 0; row < this.rows; row++)
 				for (col = 0; col < this.cols - 1; col++)

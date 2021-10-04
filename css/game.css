@@ -428,6 +428,18 @@ div.tableDivWrap td.Middle div.Empty a {
     font-size: 1.3em;
 }
 
+#typingCursor {
+	font-family: symbol;
+	font-size: 1.5em;
+	font-weight: bold;
+	color: green;
+	width: 80%;
+	height: 80%;
+	text-align: center;
+	position: relative;
+	z-index: 2;
+}
+
 div.tableDivWrap td div.Tile {
     cursor: move;
     background-color: #F7F7E3;

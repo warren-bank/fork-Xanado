@@ -52,6 +52,7 @@ define('game/Rack', ['game/Surface'], Surface => {
 					col = square.col;
 					return true;
 				}
+				return false;
 			});
 			return col;
 		}

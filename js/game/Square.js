@@ -139,7 +139,7 @@ define('game/Square', ['platform/Platform'], Platform => {
 		}
 
 		setSelected(sel) {
-			if (sel)
+			if (sel && this.tile)
 				$(`#${this.id}`).addClass('Selected');
 			else
 				$(`#${this.id}`).removeClass('Selected');

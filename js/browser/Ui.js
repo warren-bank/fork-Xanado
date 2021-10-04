@@ -2,6 +2,27 @@
 
 /**
  * User interface to a game in a browser
+
+html-scrabble keyboard UI
+* Single mouse click on a tiled square makes it selected - WORKS
+* Second mouse click on another square moves the tile there - WORKS
+* Single mouse click on an empty square places the typing cursor - WORKS
+* Cursor keys will move typing cursor - WORKS
+* Direction arrow indicates next cell to fill after this one  (font size error on score tiles) - WORKS
+* Repeated mouse clicks cycle none - across - down - WORKS
+* Spacebar also cycles direction - WORKS
+* Backspace & Delete - undo last placement - WORKS
+* Type any letter - letter ignored if not on rack, or blank used if available - WORKS
+
+IDEAS
+* Make move - END
+* Take back - HOME
+* Shuffle - =/+
+* Pass - PAGE DN
+* Challenge - PAGE UP
+* Chat - 2/" and type until return
+* Type - 8/* to place typing cursor in centre
+
  */
 const uideps = [
 	'socket.io',
@@ -9,12 +30,13 @@ const uideps = [
 	'game/Tile',
 	'game/Bag',
 	'game/Rack',
+	'game/Board',
 	'game/Game',
 	'jqueryui',
 	'cookie',
 	'browser/icon_button' ];
 
-define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
+define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) => {
 
 	class Ui {
 
@@ -25,8 +47,35 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				throw Error(`cannot parse url ${document.URL}`);
 			const gameKey = splitUrl[1];
 
+			/**
+			 * Currently selected Square
+			 * @member
+			 */
 			this.selectedSquare = null;
-			this.thisPlayer = null; // lateinit in loadGame
+
+			/**
+			 * Quick reference to typing cursor DOM object
+			 * lateinit in loadGame
+			 * @member
+			 */
+			this.$typingCursor = null;
+			
+			/**
+			 * Typing is across if true, down if false
+			 * @member
+			 */
+			this.typeAcross = true;
+
+			/**
+			 * lateinit in loadGame
+			 * @member
+			 */
+			this.thisPlayer = null;
+
+			/**
+			 * Board lock status, private
+			 * @member
+			 */
 			this.boardLocked = false;
 
 			// This will GET application/json
@@ -304,6 +353,89 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
+		 * Handle a keydown. These are captured in the root of the UI and dispatched here.
+		 */
+		handleKeydown(event) {
+			switch (event.key) {
+
+            case "ArrowUp": case "Up":
+                this.moveTypingCursor(0, -1);
+                break;
+
+            case "ArrowDown": case "Down":
+                this.moveTypingCursor(0, 1);
+                break;
+
+            case "ArrowLeft": case "Left":
+                this.moveTypingCursor(-1, 0);
+                break;
+
+            case "ArrowRight": case "Right":
+                this.moveTypingCursor(1, 0);
+                break;
+
+            case "Backspace":
+            case "Delete": // Remove placement behind typing cursor
+                this.unplaceLastTyped();
+                break;
+
+			case "Home": // Take back letters onto the rack
+				this.takeBackTiles();
+				break;
+
+			case "End": // Commit to move
+				this.commitMove();
+				break;
+
+			case '@': // Shuffle rack
+				this.shuffleRack();
+				break;
+
+			case '?': // Pass
+				this.pass();
+				break;
+
+			case '<':
+				this.takeBackMove();
+				break;
+
+			case '!': // Challenge
+				this.challenge();
+				break;
+
+			case '2': case '"': // and type until return
+				break;
+
+			case '8': case '*': // to place typing cursor in centre (or first empty cell)
+				{
+					const mr = Math.floor(this.game.board.rows / 2);
+					const mc = Math.floor(this.game.board.cols / 2);
+					let sq = this.game.board.at(mc, mr);
+					if (!sq.isEmpty()) {
+						this.game.board.forEachSquare(
+							boardSquare => {
+								if (boardSquare.isEmpty()) {
+									sq = boardSquare;
+									return true;
+								}
+								return false;
+							});
+					}
+					this.selectSquare(sq);
+				}
+				break;
+
+			case ' ':
+				this.rotateTypingCursor();
+				break;
+	
+			default:
+				this.manuallyPlaceLetter(event.key.toUpperCase());
+				break;
+			}
+		}
+
+		/**
 		 * Show who's turn it is
 		 */
 		updateWhosTurn(whosTurn) {
@@ -414,6 +546,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			.on('click', () => this.takeBackTiles());
 
 			$('#turnButton').on('click', () => this.makeMove());
+
+			this.$typingCursor = $('#typingCursor');
 		}
 
 		/**
@@ -520,33 +654,146 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 				() => this.thisPlayer.rack.refreshDOM())
 
 			.on('RefreshBoard',
-				() => this.game.board.refreshDOM());
+				() => this.game.board.refreshDOM())
+
+			// Keydown anywhere in the game
+			.on('keydown', event => this.handleKeydown(event));
 		}
 
-		// Square selection is used for click-click moves when dragging
-		// isn't available
+		// Handle a letter being typed when the typing cursor is active
+		manuallyPlaceLetter(letter) {
+			if (!this.selectedSquare || !this.selectedSquare.isEmpty())
+				return;
+			
+			if (this.game.letterBag.legalLetters.indexOf(letter) < 0) // check it's supported
+				return;
+
+			// Find the letter in the rack
+			const rackSquare = this.thisPlayer.rack.findSquare(letter);
+			if (rackSquare) {
+				// moveTile will use a blank if the letter isn't found
+				this.moveTile(rackSquare, this.selectedSquare, letter);
+				this.playAudio('tiledown');
+				if (this.typeAcross)
+					this.moveTypingCursor(1, 0);
+				else
+					this.moveTypingCursor(0, 1);
+			} else
+				$('#logMessages').append($.i18n('log-letter-not-on-rack', letter));
+		}
+
+		/**
+		 * When a letter has been typed, move the cursor skipping over tiles. If the
+		 * edge of the board is reached, ignore the move.
+		 */
+		moveTypingCursor(col, row) {
+			if (!this.selectedSquare)
+				return;
+			do {
+				try {
+					const nusq = this.game.board.at(
+						this.selectedSquare.col + col, this.selectedSquare.row + row);
+					this.selectedSquare = nusq;
+				} catch (e) {
+					// off the board
+					this.selectedSquare = undefined;
+				}
+			} while (this.selectedSquare && !this.selectedSquare.isEmpty());
+			if (this.selectedSquare)
+				this.selectedSquare.setSelected(true);
+			this.updateTypingCursor();
+		}
+
+		/**
+		 * Square selection is used for click-click moves when dragging
+		 * isn't available
+		 */
 		selectSquare(square) {
-			if (square)
+			if (square) {
 				console.log(`select ${square.id}`);
+			}
+
 			if (this.selectedSquare) {
-				if (this.selectedSquare.tile && square
-					&& square !== this.selectedSquare)
-					// A square has previously been clicked, and we
-					// are clicking a different square
-					this.moveTile(this.selectedSquare, square);
+				// Is a square already selected?
+				if (!this.selectedSquare.isEmpty()) {
+					// The the destination available for a move?
+					if (square && square.isEmpty() && square !== this.selectedSquare) {
+						this.moveTile(this.selectedSquare, square);
+					}
+				} else if (square === this.selectedSquare) {
+					this.rotateTypingCursor();
+				}
 				this.selectedSquare.setSelected(false);
 			}
 			this.selectedSquare = square;
-			if (square)
+			if (square) {
 				this.selectedSquare.setSelected(true);
+			}
+			this.updateTypingCursor();
 		}
 
-		// Handler for 'DropSquare' event, invoked when a draggable has
-		// been dropped on a square.
+		/**
+		 * Swap the typing cursor between across and down
+		 */
+		rotateTypingCursor() {
+			if (this.typeAcross) {
+				this.$typingCursor.html('&#8659;'); // Down arrow
+				this.typeAcross = false;
+			} else {
+				this.$typingCursor.html('&#8658;'); // Right arrow
+				this.typeAcross = true;
+			}
+		}
+
+		/**
+		 *  Update the typing cursor DOM to sit over the selectedSquare
+		 */
+		updateTypingCursor() {
+			if (this.selectedSquare && this.selectedSquare.isEmpty()) {
+				const $dom = $(`#${this.selectedSquare.id}`);
+				$dom.prepend(this.$typingCursor);
+				this.$typingCursor.show();
+			} else
+				this.$typingCursor.hide();
+		}
+
+		/**
+		 *  If the typing cursor is active, move back in the direction
+		 * it is set to an unplace the next unlocked tile encountered
+		 */
+		unplaceLastTyped() {
+			if (!this.selectedSquare || this.$typingCursor.is(":hidden"))
+				return;
+			let row = 0, col = 0;
+			if (this.typeAcross)
+				col = -1;
+			else
+				row = -1;
+			let sq = this.selectedSquare;
+			do {
+				try {
+					sq = this.game.board.at(sq.col + col, sq.row + row);
+				} catch (e) {
+					// off the board
+					sq = undefined;
+				}
+			} while (sq && sq.tileLocked);
+			if (sq && sq.tile) {
+				// Unplace the tile, returning it to the rack
+				this.takeBackTile(sq);
+				this.selectSquare(sq);
+				this.updateTypingCursor();
+			}
+		}
+
+		/**
+		 *  Handler for 'DropSquare' event, invoked when a draggable has
+		 * been dropped on a square.
+		 */
 		dropSquare(source, square) {
 			this.moveTile(source, square);
-			this.playAudio('tiledown');
 			this.selectSquare(null);
+			this.playAudio('tiledown');
 		}
 
 		refresh() {
@@ -554,58 +801,78 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 			this.game.board.refreshDOM();
 		}
 
-		moveTile(fromSquare, toSquare) {
+		/**
+		 * Promise to prompt for a letter for a blank
+		 */
+		promptForLetter() {
+			return new Promise(resolve => {
+				const $dlg = $('#blankDialog');
+				const $tab = $('#blankLetterTable');
+				$tab.empty();
+				const ll = this.game.letterBag.legalLetters.slice().sort();
+				const dim = Math.ceil(Math.sqrt(ll.length));
+				let rowlength = dim;
+				let $row = null;
+				while (ll.length > 0) {
+					const letter = ll.shift();
+					if (rowlength == dim) {
+						if ($row)
+							$tab.append($row);
+						$row = $('<tr></tr>');
+						rowlength = 0;
+					}
+					const $td = $(`<td>${letter}</td>`);
+					$td.on('click', () => {
+						$dlg.dialog('close');
+						resolve(letter);
+					});
+					$row.append($td);
+					rowlength++;
+				}
+				if ($row)
+					$tab.append($row);
+
+				$dlg.dialog({
+					modal: true,
+					closeOnEscape: false,
+					closeText: 'hide'
+				});
+			});
+		}
+
+		/**
+		 * Move a tile from one surface to another e.g. from the
+		 * rack to the board
+		 * @param fromSquare the square the tile is coming from
+		 * @param toSquare the square the tile is moving to
+		 * @param ifBlank (optional) if the tile is blank and we are
+		 * moving it to the board, then assign it this letter. Otherwise
+		 * a dialog will prompt for the letter.
+		 */
+		moveTile(fromSquare, toSquare, ifBlank) {
 			const tile = fromSquare.tile;
 
-			if (fromSquare.owner === this.game.board) {
-				if (toSquare.owner !== this.game.board)
+			if (fromSquare.owner instanceof Board) {
+				if (!(toSquare.owner instanceof Board))
 					this.placedCount--;
-			} else if (toSquare.owner === this.game.board)
+			} else if (toSquare.owner instanceof Board)
 				this.placedCount++;
 
 			fromSquare.placeTile(null);
 			if (tile.isBlank) {			
-				if (fromSquare.owner != this.game.board
-					&& toSquare.owner == this.game.board) {
-
-					const $dlg = $('#blankDialog');
-					const $tab = $('#blankLetterTable');
-					$tab.empty();
-					const ll = this.game.letterBag.legalLetters.slice();
-					const dim = Math.ceil(Math.sqrt(ll.length));
-					let rowlength = dim;
-					let $row = null;
-					while (ll.length > 0) {
-						const letter = ll.shift();
-						if (rowlength == dim) {
-							if ($row)
-								$tab.append($row);
-							$row = $('<tr></tr>');
-							rowlength = 0;
-						}
-						const $td = $(`<td>${letter}</td>`);
-						$td.on('click', () => {
-							// Horrible hack
-							tile.letter = letter;
-							toSquare.refreshDOM();
-							$dlg.dialog('close');
-						});
-						$row.append($td);
-						rowlength++;
-					}
-					if ($row)
-						$tab.append($row);
-
-					$dlg.dialog({
-						modal: true,
-						closeOnEscape: false,
-						closeText: 'hide'
-					});
-
-				} else if (toSquare.owner == this.thisPlayer.rack
-						   || toSquare.owner == this.swapRack) {
+				if (!(toSquare.owner instanceof Board)) {
+					// blanks are permitted
 					tile.letter = ' ';
 					toSquare.refreshDOM();
+				} else if (ifBlank) {
+					tile.letter = ifBlank;
+					toSquare.refreshDOM();
+				} else {
+					this.promptForLetter()
+					.then(letter => {
+						tile.letter = letter;
+						toSquare.refreshDOM();
+					});
 				}
 			}
 			toSquare.placeTile(tile);
@@ -944,40 +1211,46 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Game) => {
 		}
 
 		/**
-		 * Handler for a click on the 'Take Back' button
+		 * Handler for a click on the 'Take Back' button, to pull back tiles from
+		 * the board and swap rack
 		 */
 		takeBackTiles() {
-			const freeRackSquares = [];
-			this.thisPlayer.rack.forEachSquare(square => {
-				if (!square.tile)
-					freeRackSquares.push(square);
-			});
-
-			function putBackToRack(tile) {
-				const square = freeRackSquares.pop();
-				square.tile = tile;
-				if (tile.isBlank)
-					tile.letter = ' ';
-				square.refreshDOM();
-			}
-
-			this.game.board.forEachSquare(boardSquare => {
-				if (boardSquare.tile && !boardSquare.tileLocked) {
-					putBackToRack(boardSquare.tile);
-					boardSquare.tile = null;
-					this.placedCount--;
-					boardSquare.refreshDOM();
-				}
-			});
-
-			this.swapRack.forEachSquare(square => {
-				if (square.tile) {
-					putBackToRack(square.tile);
-					square.tile = null;
-					square.refreshDOM();
-				}
-			});
+			this.game.board.forEachSquare(
+				boardSquare => {
+					if (this.takeBackTile(boardSquare))
+						this.placedCount--;
+				});
+			this.swapRack.forEachSquare(
+				swapSquare => this.takeBackTile(swapSquare));
 			this.updateGameStatus();
+		}
+
+		/**
+		 * Take back a single tile from the given square
+		 * @return {boolean} true if a tile was returned
+		 */
+		takeBackTile(square) {
+			if (!square.tile || square.tileLocked)
+				return false;
+
+			// Find a space on the rack for it
+			let freesquare = undefined;
+			this.thisPlayer.rack.forEachSquare(square => {
+				if (!square.tile) {
+					freesquare = square;
+					return true;
+				}
+				return false;
+			});
+
+			// Move the tile back to the rack
+			freesquare.tile = square.tile;
+			if (square.tile.isBlank)
+				square.tile.letter = ' ';
+			freesquare.refreshDOM();
+			square.tile = null;
+			square.refreshDOM();
+			return true;
 		}
 
 		/**

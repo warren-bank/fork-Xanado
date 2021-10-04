@@ -69,6 +69,7 @@
 	"letterbag-remaining": "$1 {{PLURAL:$1|tile|tiles}} left in the bag",
 	"letterbag-empty": "The letter bag is empty",
 	"log-turn": "$1's turn",
+	"log-letter-not-on-rack": "'$1' is not on the rack",
 	"log-move": "$1 ($2)",
 	"log-total": " total $1",
 	"log-pass": "Passed",

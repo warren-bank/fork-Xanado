@@ -15,9 +15,22 @@ define('game/Surface', ['game/Square'], Square => {
 		 * @param type function(col, row) returning the square type
 		 */
 		constructor(cols, rows, type) {
+			/**
+			 * Number of columns on the surface
+			 * @member
+			 */
 			this.cols = cols;
+			/**
+			 * Number of rows on the surface
+			 * @member
+			 */
 			this.rows = rows;
+			/**
+			 * rowsXcols array of Square
+			 * @member
+			 */
 			this.squares = [];
+
 			for (let i = 0; i < cols; i++) {
 				const row = [];
 				for (let j = 0; j < rows; j++)

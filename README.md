@@ -73,6 +73,26 @@ The installation comes with emulations of a number of commercially available
 games - SCRABBLE®, Super SCRABBLE®, Lexulous, and Words With Friends.
 Guidance for creating your own custom game is given below.
 
+## Interface
+
+The user interface uses the mouse, or screen touches on mobile devices. Click the mouse on a letter in the rack and drag it to the board position where you want to drop it.
+
+You can also use the keyboard for rapid word entry.
+* Click on any empty square on the board (or type `*`) and a "typing cursor" will appear, pointing right.
+* Click again (or hit the spacebar) and it will turn to point down.
+* Each letter from the rack that you type on the keyboard will be picked and placed, and the typing cursor moved right or down depending on the direction of the typing cursor.
+* If you type a letter that isn't on the rack, but you have a blank tile, then the blank will be used for that letter.
+* Use Backspace or Delete to replace the last letter on the rack.
+* When the typing cursor is displayed, you can also use the arrow keys to move it around the board.
+* You can still use the mouse while the typing cursor is visible.
+
+There are also a number of other keyboard shortcuts for the various buttons:
+* The `End` key will make the current move
+* The `Home` key will take back placed tiles
+* `@` will shuffle the rack
+* `?` will pass the current turn
+* `!` will challenge the last player's move
+
 ## Learning
 To assist learners, there are two special 'chat' messages that can be entered.
 * `hint` tells you the highest scoring play the computer can find for you, before your play. Everyone in the game is told when you send this message (to prevent cheating.)
