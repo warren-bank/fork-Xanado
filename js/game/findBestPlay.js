@@ -499,7 +499,7 @@ define('game/findBestPlay', ['game/Edition', 'game/Tile', 'game/Move', 'dawg/Dic
 								0, 1,
 								rackTiles, 0,
 								anchorNode, anchorNode,
-								[ anchorTile ])
+								[ anchorTile ]);
 						}
 					}
 				}

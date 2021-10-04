@@ -116,7 +116,8 @@ can be difficult to get right. Included is a version of
 [Joshua Lewis' Valett program](https://github.com/jmlewis/valett)
 which analyses a word corpus and recommends tile values and counts for the
 letter combinations encountered in the corpus based on probability (the corpus
-can be any big list of words, or it can simply be a lexicon).
+can be any big list of words, or it can simply be a lexicon). Run the program
+`node js/design/valett.js` for help.
 
 ## Challenges
 Currently only [double challenge](https://en.wikipedia.org/wiki/Challenge_(Scrabble)) is supported. An extension would be to support other challenge types.

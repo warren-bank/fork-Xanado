@@ -4,8 +4,15 @@
 /* eslint-env node */
 
 /**
- * Command-line invocation of the Valett word corpus analyser
- * Based on code from https://github.com/jmlewis/valett
+ * Check that the translations file for <language> is consistent
+ * with en.json. For example:
+ * ~/CrosswordGame$ node js/i18n/checkTranslation.js fr
+ * Reading ~/CrosswordGame/js/i18n/../../i18n/fr.json
+ * Reading ~/CrosswordGame/js/i18n/../../i18n/en.json
+ * fr log-winner is missing $2
+ * log-timeout is in en but not in fr
+ * tick-you is in en but not in fr
+ * tick-them is in en but not in fr
  */
 const requirejs = require('requirejs');
 

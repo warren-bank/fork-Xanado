@@ -3,16 +3,17 @@
 /* eslint-env amd, node */
 
 /**
- * node.js implementation of Platform
+ * This is the node.js implementation of game/Platform. There is an implementation
+ * for the browser, too, in js/browser/Platform.js
  */
 define('platform/Platform',
 	   [
 		   'events', 'fs-extra', 'node-gzip',
-		   'game/Fridge', 'game/findBestPlayController'
+		   'game/Fridge', 'game/findBestPlayController', 'game/Platform'
 	   ],
 	   (
 		   Events, Fs, Gzip,
-		   Fridge, findBestPlay
+		   Fridge, findBestPlay, Platform
 	   ) => {
 
 	const emitter = new Events.EventEmitter();
@@ -24,22 +25,17 @@ define('platform/Platform',
 	 * 2. Keys starting with . are forbidden
 	 * 3. Key names must be valid file names
 	 */
-	class Database {
-		/**
-		 * @param id will be used as the name of a directory under the
-		 * requirejs root
-		 * @param type identifier used to distinguish keys relevant to this
-		 * DB from other data that may be co-located
-		 */
+	class FileDatabase extends Platform.Database {
+
+		// id will be used as the name of a directory under the requirejs root
+		// to store game files in.
 		constructor(id, type) {
+			super(id, type);
 			this.directory = requirejs.toUrl(id);
 			this.type = type;
 			this.re = new RegExp(`\\.${type}$`);
 		}
 
-		/**
-		 * Promise to get a list of keys in the DB
-		 */
 		keys() {
 			return Fs.readdir(this.directory)
 			.then(list =>
@@ -47,13 +43,7 @@ define('platform/Platform',
 				  .map(fn => fn.replace(this.re, '')));
 		}
 
-		/**
-		 * Promise to set a key value
-		 * @param key the entry key
-		 * @param data the data to store
-		 */
 		set(key, data) {
-		
 			if (/^\./.test(key))
 				throw Error(`Invalid DB key ${key}`);
 			return Fs.writeFile(
@@ -61,11 +51,6 @@ define('platform/Platform',
 				JSON.stringify(Fridge.freeze(data)));
 		}
 
-		/**
-		 * Promise to get a key value
-		 * @param key the entry key
-		 * @param classes list of classes passed to Fridge.thaw
-		 */
 		get(key, classes) {
 			return Fs.readFile(`${this.directory}/${key}.${this.type}`)
 			.then(data => Fridge.thaw(JSON.parse(data), classes));
@@ -76,7 +61,7 @@ define('platform/Platform',
 		}
 	}
 	
-	class Platform {
+	class ServerPlatform extends Platform {
 		static trigger(e, args) {
 			emitter.emit(e, args);
 		}
@@ -103,7 +88,7 @@ define('platform/Platform',
 		}
 	}
 
-	Platform.Database = Database;
+    ServerPlatform.Database = FileDatabase;
 
-	return Platform;
+	return ServerPlatform;
 });

@@ -13,7 +13,7 @@ requirejs.config({
 	baseUrl: `${__dirname}/..`
 });
 
-requirejs(['node-getopt', 'fs-extra', 'design/Valett'], (Getopt, Fs, Valett) => {
+requirejs(['node-getopt', 'fs-extra', 'design/ValettCore'], (Getopt, Fs, Valett) => {
 	const config = { // default config for Scrabble(R)
 		weights: {
 			frequency: .34,
