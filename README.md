@@ -3,7 +3,7 @@
 While there are a number of public servers out there offering clones of the classic SCRABBLE® game (and derivatives), they are limited in a number of ways:
 * Their source code is not public, and setting up your own server is not an option.
 * They are generally limited to a single version of the game.
-* Their dictionaries are usually based on the standard Scrabble SOWPODS dictionary, which is stuffed full of obscure words that only a Scrabble aficionado will know. This makes the game inaccessible for casual players, and those wishing to play in non-English languages.
+* Their dictionaries are usually based on the standard Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, and those wishing to play in non-English languages.
 * They plague you with tedious advertisements.
 
 I wanted a game I could host on my own server, and experiment with different
@@ -78,8 +78,8 @@ Guidance for creating your own custom game is given below.
 The user interface uses the mouse, or screen touches on mobile devices. Click the mouse on a letter in the rack and drag it to the board position where you want to drop it.
 
 You can also use the keyboard for rapid word entry.
-* Click on any empty square on the board (or type `*`) and a "typing cursor" will appear, pointing right.
-* Click again (or hit the spacebar) and it will turn to point down.
+* Click on any empty square on the board (or type `*`) and a "typing cursor" will appear, pointing right ⇒.
+* Click again (or hit the spacebar) and it will turn to point down ⇓.
 * Each letter from the rack that you type on the keyboard will be picked and placed, and the typing cursor moved right or down depending on the direction of the typing cursor.
 * If you type a letter that isn't on the rack, but you have a blank tile, then the blank will be used for that letter.
 * Use Backspace or Delete to replace the last letter on the rack.
@@ -143,7 +143,7 @@ can be any big list of words, or it can simply be a lexicon). Run the program
 Currently only [double challenge](https://en.wikipedia.org/wiki/Challenge_(Scrabble)) is supported. An extension would be to support other challenge types.
 
 # Internationalisation
-The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English and (a poor translation to) French. To generate your own translation, copy `/i18n/en.json` to a file using your language code (e.g. `de` for German) and edit the new file to provide the translation. You can use the `js/i18n/checkTranslation.js` program to check the completeness of your translations.
+The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English and (une très mauvaise traduction en) French. To generate your own translation, copy `/i18n/en.json` to a file using your language code (e.g. `de` for German) and edit the new file to provide the translation. You can use the `js/i18n/checkTranslation.js` program to check the completeness of your translations.
 
 If you do create a translation, please feel free to issue a pull request to get it into the source code.
 
