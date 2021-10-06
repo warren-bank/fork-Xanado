@@ -20,7 +20,12 @@
   <body>
 	<script type="text/javascript">requirejs(["js/browser/games"]);</script>
 	<h1 data-i18n="h1-crossword-games"></h1>
-	<div id="active_games">
+	<div id="player_list">
+	  <h2 data-i18n="h2-cumulative"></h2>
+	  <div id="player-table"></div>
+	</div>
+	<input id="showall" type="checkbox"><span data-i18n="input-showall"></span></input>
+	<div id="games_list">
 	  <h2 data-i18n="h2-active-games"></h2>
 	  <div id="game-table"></div>
 	  <span data-i18n="game-select-player"></span>

@@ -87,14 +87,18 @@ define(
 
 			// send email reminders about active games
 			server.post('/send-game-reminders', () =>
-					 this.handle_sendGameReminders());
+						config.gameListLogin ? gameListAuth
+						: (req, res, next) => next(),
+						(req, res) => this.handle_sendGameReminders());
 
-			// get a JSON list of available games
+			// get a JSON list of available games (optionally including
+			// completed games)
 			server.get('/games',
-					 config.gameListLogin ? gameListAuth
-					 : (req, res, next) => next(),
-					 (req, res) => this.handle_games(req, res)
-					);
+					   (req, res) => this.handle_games(req, res));
+
+			// get a JSON of the game history
+			server.get('/history',
+					 (req, res) => this.handle_history(req, res));
 
 			// Get a list of available locales
 			server.get('/locales',
@@ -102,11 +106,15 @@ define(
 
 			// Construct a new game
 			server.post('/newGame',
-					  (req, res) => this.handle_newGame(req, res));
+						config.gameListLogin ? gameListAuth
+						: (req, res, next) => next(),
+						(req, res) => this.handle_newGame(req, res));
 
 			// Delete an active or old game
 			server.post('/deleteGame/:gameKey',
-					  (req, res) => this.handle_deleteGame(req, res));
+						config.gameListLogin ? gameListAuth
+						: (req, res, next) => next(),
+						(req, res) => this.handle_deleteGame(req, res));
 
 			// Request another game in a series
 			server.post('/anotherGame/:gameKey',
@@ -142,7 +150,9 @@ define(
 
 			// Request handler for a turn (or other game command)
 			server.post('/game/:gameKey',
-					  (req, res) => this.handle_gamePOST(req, res));
+						config.gameListLogin ? gameListAuth
+						: (req, res, next) => next(),
+						(req, res) => this.handle_gamePOST(req, res));
 
 			const http = Http.Server(server);
 			http.listen(config.port);
@@ -271,20 +281,50 @@ define(
 
 		/**
 		 * Handler for GET /games
-		 * Sends a list of active games
+		 * Sends a list of active games (optionally with completed games)
+		 * pass ?active to get only active games
 		 * @return a Promise
 		 */
 		handle_games(req, res) {
 			const server = this;
+			const all = (typeof req.query.active === "undefined");
 			return this.db.keys()
 			.then(keys => keys.map(
 				key => server.games[key] || this.db.get(key, Game.classes)))
 			.then(promises => Promise.all(promises))
-			.then(games => games.map(
-				game => game.catalogue())
-				.sort((a, b) =>	a.timestamp > b.timestamp ? 1
-					  : a.timestamp < b.timestamp ? -1 : 0))
+			.then(games => games
+				  .filter(game => (all || !game.ended))
+				  .map(game => game.catalogue())
+				  .sort((a, b) => a.timestamp > b.timestamp ? 1
+						: a.timestamp < b.timestamp ? -1 : 0))
 			.then(data => res.send(data))
+			.catch(e => this.trap(e, res));
+		}
+
+		/**
+		 * Handler for GET /history
+		 * Sends a summary of cumulative player scores to date, for all
+		 * unique players.
+		 * @return a Promise
+		 */
+		handle_history(req, res) {
+			const server = this;
+			const players = {};
+
+			return this.db.keys()
+			.then(keys => keys.map(
+				key => server.games[key] || this.db.get(key, Game.classes)))
+			.then(promises => Promise.all(promises))
+			.then(games => games
+				  .filter(game => game.ended)
+				  .map(game => game.players.map(
+					  player => {
+						  if (players[player.name])
+							  players[player.name] += player.score;
+						  else
+							  players[player.name] = player.score;
+					  })))
+			.then(() => res.send(players))
 			.catch(e => this.trap(e, res));
 		}
 

@@ -62,9 +62,12 @@
 	"h1-create-game": "Create a new game",
 	"h2-players": "Players",
 	"h2-active-games": "Active games",
+	"h2-cumulative": "Cumulative scores",
 	"h3-game": "Game",
 	"h3-dictionary": "Dictionary",
 	"h3-time-limit": "Time limit",
+
+	"input-showall": "Show all games",
 
 	"letterbag-remaining": "$1 {{PLURAL:$1|tile|tiles}} left in the bag",
 	"letterbag-empty": "The letter bag is empty",

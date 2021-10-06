@@ -28,9 +28,9 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 		return $but;
 	}
 
-	// Format an active game
+	// Format a game
 	function formatGame(game) {
-		const $p = $(`<div></div>`)
+		const $p = $(`<div></div>`);
 
 		const msg = [ $.i18n('game-description',
 						   game.players.length, game.edition) ];
@@ -74,27 +74,44 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 		return $p;
 	}
 
-	function handle_refresh(data) {
-		console.log('Refreshing');
-		if (data.length == 0) {
-			$('#active_games').hide();
+	function handle_games_list(data) {
+		if (data.length === 0) {
+			$('#games_list').hide();
 			return;
 		}
-		$('#active_games').show();
+		$('#games_list').show();
 		const $gt = $('#game-table');
 		$gt.empty();
 		data.forEach(game => $gt.append(formatGame(game)));
 	}
 
+	function handle_history(data) {
+		const ps = Object.getOwnPropertyNames(data);
+		if (ps.length === 0) {
+			$('#player_list').hide();
+			return;
+		}
+		$('#player_list').show();
+		const $gt = $('#player-table');
+		$gt.empty();
+		ps.forEach(name => $gt.append(`<p><em>${name}</em>: ${data[name]}</p>`));
+	}
+
+	function refresh_games() {
+		$.getJSON(`/games${$('#showall').is(':checked') ? '' : '?active'}`,
+				  data => handle_games_list(data));
+	}
+	
 	function refresh() {
-		console.log('Refreshing');
-		$.getJSON('/games', data => handle_refresh(data));
+		refresh_games();
+		$.getJSON('/history', data => handle_history(data));
 	}
 
 	browserApp.then(() => {
 
 		const socket = io.connect(null);
 
+		$("#showall").on('change', refresh_games);
 		refresh();
 
 		socket
