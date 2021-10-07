@@ -57,6 +57,7 @@
 	"game-ended": " (ended)",
 	"game-delete": "Delete",
 	"game-select-player": "Select your player above, or ",
+	"games-login": "Game management login",
 
 	"h1-crossword-games": "Crossword Games",
 	"h1-create-game": "Create a new game",
@@ -67,7 +68,7 @@
 	"h3-dictionary": "Dictionary",
 	"h3-time-limit": "Time limit",
 
-	"input-showall": "Show all games",
+	"input-showall": "Show finished games",
 
 	"letterbag-remaining": "$1 {{PLURAL:$1|tile|tiles}} left in the bag",
 	"letterbag-empty": "The letter bag is empty",

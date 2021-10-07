@@ -76,6 +76,13 @@ define('game/Platform', () => {
 		 * @return {Promise} resolves when all best moves have been tried
 		 */
 		static findBestPlay() {}
+
+		/**
+		 * Platform-independent interface to i18n translation.
+		 * This is modelled on jQuery i18n, so you can simply use
+		 * Platform.i18n in the same way as you'd used $.i18n
+		 */
+		static i18n() {}
 	}
 
 	Platform.Database = Database;

@@ -24,5 +24,7 @@ define('platform/Platform', [ "game/Platform" ], (Platform) => {
 		}
 	}
 
+	BrowserPlatform.i18n = $.i18n;
+
 	return BrowserPlatform;
 });

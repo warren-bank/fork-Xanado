@@ -6,15 +6,7 @@
  * This is the node.js implementation of game/Platform. There is an implementation
  * for the browser, too, in js/browser/Platform.js
  */
-define('platform/Platform',
-	   [
-		   'events', 'fs-extra', 'node-gzip',
-		   'game/Fridge', 'game/findBestPlayController', 'game/Platform'
-	   ],
-	   (
-		   Events, Fs, Gzip,
-		   Fridge, findBestPlay, Platform
-	   ) => {
+define('platform/Platform', [ 'events', 'fs-extra', 'node-gzip', 'game/Fridge', 'game/findBestPlayController', 'game/Platform' ], (Events, Fs, Gzip,Fridge, findBestPlay, Platform) => {
 
 	const emitter = new Events.EventEmitter();
 
@@ -88,6 +80,8 @@ define('platform/Platform',
 		}
 	}
 
+	ServerPlatform.i18n = () => { return `FUCKITY ${arguments}`; };
+	
     ServerPlatform.Database = FileDatabase;
 
 	return ServerPlatform;

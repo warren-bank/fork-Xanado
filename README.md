@@ -78,20 +78,20 @@ Guidance for creating your own custom game is given below.
 The user interface uses the mouse, or screen touches on mobile devices. Click the mouse on a letter in the rack and drag it to the board position where you want to drop it.
 
 You can also use the keyboard for rapid word entry.
-* Click on any empty square on the board (or type `*`) and a "typing cursor" will appear, pointing right ⇒.
-* Click again (or hit the spacebar) and it will turn to point down ⇓.
+* Click on any empty square on the board (or type `*`) and a "typing cursor" will appear, pointing right ⇒
+* Click again (or hit the spacebar) and it will turn to point down ⇓
 * Each letter from the rack that you type on the keyboard will be picked and placed, and the typing cursor moved right or down depending on the direction of the typing cursor.
 * If you type a letter that isn't on the rack, but you have a blank tile, then the blank will be used for that letter.
-* Use Backspace or Delete to replace the last letter on the rack.
+* Use Backspace or Delete to put the letter behind the typing cursor back on the rack.
 * When the typing cursor is displayed, you can also use the arrow keys to move it around the board.
 * You can still use the mouse while the typing cursor is visible.
 
 There are also a number of other keyboard shortcuts for the various buttons:
-* The `End` key will make the current move
-* The `Home` key will take back placed tiles
-* `@` will shuffle the rack
-* `?` will pass the current turn
-* `!` will take back your move, or challenge the last player's move, depending on what the log says
+* The `End` key will make the current move.
+* The `Home` key will take back placed tiles.
+* `@` will shuffle the rack.
+* `?` will pass the current turn.
+* `!` will take back your last move, or challenge the last player's move, depending on what the log says.
 
 ## Learning
 To assist learners, there are two special 'chat' messages that can be entered.

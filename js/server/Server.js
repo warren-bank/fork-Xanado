@@ -10,7 +10,7 @@ define(
 	[
 		'fs-extra', 'node-getopt', 'events',
 		'socket.io', 'http', 'nodemailer',
-		'express', 'express-negotiate', 'cookie-parser', 'errorhandler', 'basic-auth-connect',   
+		'express', 'express-negotiate', 'cookie-parser', 'errorhandler', 'express-basic-auth',   
 		'platform/Platform',
 		'game/Fridge', 'game/Game', 'game/Player', 'game/Edition',
 
@@ -26,7 +26,7 @@ define(
 	) => {
 
 	class Server {
-		
+
 		constructor(config) {
 			this.config = config;
 			this.db = new Platform.Database('games', 'game');
@@ -36,7 +36,25 @@ define(
 			this.monitors = [];
 
 			const server = new Express();
-			
+
+			const router = Express.Router();
+
+			// Create a router that supports basic authentication
+			// if the config requires it. Otherwise the default
+			// router will be used.
+			let auth_router;
+			if (config.auth) {
+				auth_router = Express.Router();
+				auth_router.use(BasicAuth({
+					authorizer: (u, p) =>
+					BasicAuth.safeCompare(u, config.auth.username) &&
+					BasicAuth.safeCompare(p, config.auth.password),
+					challenge: true,
+					realm: Platform.i18n('games-login')
+				}));
+			} else
+				auth_router = router;
+
 			// Parse incoming requests with url-encoded payloads
 			server.use(Express.urlencoded({ extended: true }));
 
@@ -71,34 +89,27 @@ define(
 				console.log('Command rejected', reason, reason.stack);
 			});
 
-			// TODO: use OAuth
-			const gameListAuth = BasicAuth((username, password) => {
-				if (config.gameListLogin) {
-					return username == config.gameListLogin.username
-					&& password == config.gameListLogin.password;
-				} else {
-					return true;
-				}
-			}, 'Enter game list access login');
-
 			// HTML page for main interface (the "games" page)
-			server.get('/', (req, res) =>
-					res.sendFile(requirejs.toUrl('html/games.html')));
+			server.get('/',
+					   auth_router,
+					   (req, res) => res.sendFile(
+						   requirejs.toUrl('html/games.html')));
 
 			// send email reminders about active games
-			server.post('/send-game-reminders', () =>
-						config.gameListLogin ? gameListAuth
-						: (req, res, next) => next(),
+			server.post('/send-game-reminders',
+						auth_router,
 						(req, res) => this.handle_sendGameReminders());
 
 			// get a JSON list of available games (optionally including
 			// completed games)
 			server.get('/games',
+					   auth_router,
 					   (req, res) => this.handle_games(req, res));
 
 			// get a JSON of the game history
 			server.get('/history',
-					 (req, res) => this.handle_history(req, res));
+					   auth_router,
+					   (req, res) => this.handle_history(req, res));
 
 			// Get a list of available locales
 			server.get('/locales',
@@ -106,14 +117,12 @@ define(
 
 			// Construct a new game
 			server.post('/newGame',
-						config.gameListLogin ? gameListAuth
-						: (req, res, next) => next(),
+						auth_router,
 						(req, res) => this.handle_newGame(req, res));
 
 			// Delete an active or old game
 			server.post('/deleteGame/:gameKey',
-						config.gameListLogin ? gameListAuth
-						: (req, res, next) => next(),
+						auth_router,
 						(req, res) => this.handle_deleteGame(req, res));
 
 			// Request another game in a series
@@ -150,8 +159,6 @@ define(
 
 			// Request handler for a turn (or other game command)
 			server.post('/game/:gameKey',
-						config.gameListLogin ? gameListAuth
-						: (req, res, next) => next(),
 						(req, res) => this.handle_gamePOST(req, res));
 
 			const http = Http.Server(server);
@@ -622,6 +629,10 @@ define(
 			} else {
 				console.log('email sending not configured');
 			}
+
+			if (config.gameListLogin && !config.auth)
+				config.auth = config.gameListLogin;
+
 			return new Server(config);
 		});
 	}

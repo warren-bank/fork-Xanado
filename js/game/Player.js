@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd, jquery */
 
-define('game/Player', ['game/GenKey', 'game/Rack'], (GenKey, Rack) => {
+define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platform, GenKey, Rack) => {
 
 	// Unicode characters
 	const BLACK_CIRCLE = '\u25cf';
@@ -12,7 +12,7 @@ define('game/Player', ['game/GenKey', 'game/Rack'], (GenKey, Rack) => {
 		/**
 		 * @param name String name of the player, or a Player object to copy
 		 * @param isRobot if name is a string and true then it's a robot. If
-		 * name is a PLyer, ignored.
+		 * name is a Player object, ignored.
 		 */
 		constructor(name, isRobot) {
 			if (name instanceof Player) {
@@ -104,6 +104,9 @@ define('game/Player', ['game/GenKey', 'game/Rack'], (GenKey, Rack) => {
 			}
 		}
 
+		/**
+		 * Generate a simple string representation of the player
+		 */
 		toString() {
 			let s = `Player${this.index} '${this.name}'`;
 			if (this.isRobot)
@@ -137,11 +140,15 @@ define('game/Player', ['game/GenKey', 'game/Rack'], (GenKey, Rack) => {
 			}
 		}
 
+		/**
+		 * Create score table representation of the player
+		 * Only useful browser-side
+		 */
 		createScoreDOM(thisPlayer) {
 			const $tr = $(`<tr id='player${this.index}'></tr>`);
 			$tr.append(`<td class='myTurn'>&#10148;</td>`);
 			const who = thisPlayer.key === this.key
-				? $.i18n('You')
+				? Platform.i18n('You')
 				: this.name;
 			$tr.append(`<td class='playerName'>${who}</td>`);
 			$tr.append('<td class="remainingTiles"></td>');
@@ -152,10 +159,18 @@ define('game/Player', ['game/GenKey', 'game/Rack'], (GenKey, Rack) => {
 			return $tr;
 		}
 
+		/**
+		 * Refresh score table representation of the player
+		 * Only useful browser-side
+		 */
 		refreshDOM() {
 			this.$score.text(this.score);
 		}
 
+		/**
+		 * Set 'online' status of player in UI
+		 * Only useful browser-side
+		 */
 		online(tf) {
 			if (tf)
 				this.$status.removeClass('offline').addClass('online');
