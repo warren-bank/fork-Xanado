@@ -1282,7 +1282,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			if (window.webkitNotifications) {
 				this.cancelNotification();
 				const notification = window.webkitNotifications
-					.createNotification('favicon.ico', title, text);
+					.createNotification('../images/favicon.ico', title, text);
 				this.notification = notification;
 				$(notification)
 				.on('click', function () {

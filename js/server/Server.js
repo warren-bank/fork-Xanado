@@ -37,19 +37,19 @@ define(
 
 			const server = new Express();
 
+			// Use a Router for clear separation of concerns
 			const router = Express.Router();
 
 			// Create a router that supports basic authentication
-			// if the config requires it. Otherwise the default
-			// router will be used.
-			let auth_router;
+			// if the route requires it.
+			const auth_router = Express.Router();
 			if (config.auth) {
-				auth_router = Express.Router();
 				auth_router.use(BasicAuth({
-					authorizer: (u, p) =>
-					BasicAuth.safeCompare(u, config.auth.username) &&
-					BasicAuth.safeCompare(p, config.auth.password),
+					// Map from username to password
+					users: config.auth,
+					// Required to prompt
 					challenge: true,
+					// Realm for 401 response
 					realm: Platform.i18n('games-login')
 				}));
 			} else
@@ -72,6 +72,8 @@ define(
 			server.use(Express.static(requirejs.toUrl('')));
 			server.use(Express.static(requirejs.toUrl('js')));
 
+			server.use(router);
+
 			server.use((err, req, res, next) => {
 				if (res.headersSent) {
 					return next(err);
@@ -89,76 +91,77 @@ define(
 				console.log('Command rejected', reason, reason.stack);
 			});
 
-			// HTML page for main interface (the "games" page)
-			server.get('/',
-					   auth_router,
+			// get the HTML page for main interface (the "games" page)
+			router.get('/',
 					   (req, res) => res.sendFile(
 						   requirejs.toUrl('html/games.html')));
 
 			// send email reminders about active games
-			server.post('/send-game-reminders',
-						auth_router,
+			router.post('/send-game-reminders',
 						(req, res) => this.handle_sendGameReminders());
 
 			// get a JSON list of available games (optionally including
 			// completed games)
-			server.get('/games',
-					   auth_router,
+			router.get('/games',
 					   (req, res) => this.handle_games(req, res));
 
 			// get a JSON of the game history
-			server.get('/history',
-					   auth_router,
+			router.get('/history',
 					   (req, res) => this.handle_history(req, res));
 
-			// Get a list of available locales
-			server.get('/locales',
+			// Get a JSON list of available locales
+			router.get('/locales',
 					(req, res) => this.handle_locales(req, res));
 
-			// Construct a new game
-			server.post('/newGame',
-						auth_router,
-						(req, res) => this.handle_newGame(req, res));
-
-			// Delete an active or old game
-			server.post('/deleteGame/:gameKey',
-						auth_router,
-						(req, res) => this.handle_deleteGame(req, res));
-
-			// Request another game in a series
-			server.post('/anotherGame/:gameKey',
-					  (req, res) => this.handle_anotherGame(req, res));
-
 			// Get a JSON description of available editions
-			server.get('/editions',
+			router.get('/editions',
 					 (req, res) => this.handle_editions(req, res));
 
 			// Get a JSON description of available dictionaries
-			server.get('/dictionaries',
+			router.get('/dictionaries',
 					 (req, res) => this.handle_dictionaries(req, res));
 
 			// Get a JSON description of defaults
-			server.get('/defaults', (req, res) =>
+			router.get('/defaults', (req, res) =>
 					 res.send({
 						 edition: config.defaultEdition,
 						 dictionary: config.defaultDictionary
 					 }));
 
+			// Construct a new game. Invoked from createGame.js
+			router.post('/newGame',
+						auth_router,
+						(req, res) => this.handle_newGame(req, res));
+
+			// Delete an active or old game. Invoked from games.js
+			router.post('/deleteGame/:gameKey',
+						auth_router,
+						(req, res) => this.handle_deleteGame(req, res));
+
+			// Request another game in a series
+			// Note this is NOT auth-protected, it is invoked
+			// from the game interface to create a follow-on game
+			router.post('/anotherGame/:gameKey',
+					  (req, res) => this.handle_anotherGame(req, res));
+
 			// Handler for player joining a game
-			server.get('/game/:gameKey/:playerKey',
+			router.get('/game/:gameKey/:playerKey',
 					 (req, res) => this.handle_enterGame(req, res));
 
-			// Handler for game interface / info
-			server.get('/game/:gameKey',
+			// Get the game interface or JSON game summary
+			router.get('/game/:gameKey',
 					 (req, res) => this.handle_gameGET(req, res));
 
-			// Request handler for best play hint. Debug, allows us to pass in
-			// any player key
-			server.get('/bestPlay/:gameKey/:playerKey',
+			// Request handler for best play hint. Allows us to pass in
+			// any player key, which is useful for debug (though could
+			// be used to cheat)
+			router.get('/bestPlay/:gameKey/:playerKey',
 					 (req, res) => this.handle_bestPlay(req, res));
 
 			// Request handler for a turn (or other game command)
-			server.post('/game/:gameKey',
+			// NOT auth protected, security hole that could allow
+			// someone to screw up games
+			router.post('/game/:gameKey',
 						(req, res) => this.handle_gamePOST(req, res));
 
 			const http = Http.Server(server);
@@ -471,7 +474,7 @@ define(
 		 * Handler for GET /game/:gameKey
 		 * If the accept: in the request is asking for 'application/json'
 		 * then respond with JSON with the current game state, if it's
-		 * asking for HTML with the HTML page for the game.
+		 * asking for HTML respond with the HTML page for the game.
 		 */
 		handle_gameGET(req, res) {
 			const gameKey = req.params.gameKey;

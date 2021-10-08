@@ -147,6 +147,14 @@ The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/j
 
 If you do create a translation, please feel free to issue a pull request to get it into the source code.
 
+# Security
+The assumption is that you will be running the game on a private server with a
+limited, trustworthy audience. As such the security options are minimal; access
+to the game play is not protected. There is an option to apply basic
+authentication to the games management interface that will prevent
+unauthorized deletion or creation of games - see the example config.json for
+more.
+
 ## IMPORTANT NOTICES:
 
 [SCRABBLE®](http://www.scrabble.com/) is a registered trademark. All

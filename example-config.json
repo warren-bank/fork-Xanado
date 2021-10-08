@@ -23,7 +23,7 @@
     "defaultDictionary": "SOWPODS_English",
 
 	// Optional Basic Auth credentials used to control access to the
-	// games list.
+	// create and delete functions of the games list.
 	"auth": {
 		"user": "pass"
 	}
