@@ -961,6 +961,13 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		 */
 		processTurn(turn) {
 			console.debug('Turn ', turn);
+			// Take back any locally placed tiles
+			this.game.board.forEachSquare(
+				boardSquare => {
+					if (this.takeBackTile(boardSquare))
+						this.placedCount--;
+				});
+
 			this.appendTurnToLog(turn);
 			this.scrollLogToEnd(300);
             this.removeMoveActionButtons();
