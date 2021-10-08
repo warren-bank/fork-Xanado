@@ -155,6 +155,12 @@ authentication to the games management interface that will prevent
 unauthorized deletion or creation of games - see the example config.json for
 more.
 
+The server can be configure to use HTTPS, see the example config.json for
+how. HTTPS is required for notifications to work, and is recommended.
+
+To use HTTPS you require an SSL certificate. You can generate one using the
+instructions in https://linuxize.com/post/creating-a-self-signed-ssl-certificate/
+
 ## IMPORTANT NOTICES:
 
 [SCRABBLE®](http://www.scrabble.com/) is a registered trademark. All

@@ -1,6 +1,7 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env amd, node */
+/* global process, requirejs */
 
 /**
  * Main program for Crossword Game server.
@@ -9,7 +10,7 @@ define(
 	'server/Server',
 	[
 		'fs-extra', 'node-getopt', 'events',
-		'socket.io', 'http', 'nodemailer',
+		'socket.io', 'http', 'https', 'nodemailer',
 		'express', 'express-negotiate', 'cookie-parser', 'errorhandler', 'express-basic-auth',   
 		'platform/Platform',
 		'game/Fridge', 'game/Game', 'game/Player', 'game/Edition',
@@ -19,7 +20,7 @@ define(
 	],
 	(
 		Fs, Getopt, Events,
-		SocketIO, Http, NodeMailer,
+		SocketIO, Http, Https, NodeMailer,
 		Express, negotiate, CookieParser, ErrorHandler, BasicAuth,
 		Platform,
 		Fridge, Game, Player, Edition, findBestPlay
@@ -35,7 +36,7 @@ define(
 			// Status-monitoring sockets (game pages)
 			this.monitors = [];
 
-			const server = new Express();
+			const express = new Express();
 
 			// Use a Router for clear separation of concerns
 			const router = Express.Router();
@@ -56,25 +57,25 @@ define(
 				auth_router = router;
 
 			// Parse incoming requests with url-encoded payloads
-			server.use(Express.urlencoded({ extended: true }));
+			express.use(Express.urlencoded({ extended: true }));
 
 			// Parse incoming requests with a JSON body
-			server.use(Express.json());
+			express.use(Express.json());
 
 			// Grab unsigned cookies from the Cookie header
-			server.use(CookieParser());
+			express.use(CookieParser());
 
 			// Grab all static files relative to the project root
 			// html, images, css etc. The Content-type should be set
 			// based on the file mime type (extension) but Express doesn't
 			// always get it right.....
 			console.log(`static files from ${requirejs.toUrl('')}`);
-			server.use(Express.static(requirejs.toUrl('')));
-			server.use(Express.static(requirejs.toUrl('js')));
+			express.use(Express.static(requirejs.toUrl('')));
+			express.use(Express.static(requirejs.toUrl('js')));
 
-			server.use(router);
+			express.use(router);
 
-			server.use((err, req, res, next) => {
+			express.use((err, req, res, next) => {
 				if (res.headersSent) {
 					return next(err);
 				}
@@ -82,7 +83,7 @@ define(
 				return res.status(err.status || 500).render('500');
 			});
 
-			server.use(ErrorHandler({
+			express.use(ErrorHandler({
 				dumpExceptions: true,
 				showStack: true
 			}));
@@ -164,7 +165,10 @@ define(
 			router.post('/game/:gameKey',
 						(req, res) => this.handle_gamePOST(req, res));
 
-			const http = Http.Server(server);
+			const http = config.https
+				  ? Https.Server(config.https, express)
+				  : Http.Server(express);
+
 			http.listen(config.port);
 
 			const io = new SocketIO.Server(http);
@@ -595,7 +599,7 @@ define(
 			.catch(e => this.trap(e, res));
 		}
 	}
-
+		
 	function mainProgram() {
 
 		// Command-line arguments
@@ -633,10 +637,17 @@ define(
 				console.log('email sending not configured');
 			}
 
-			if (config.gameListLogin && !config.auth)
-				config.auth = config.gameListLogin;
-
-			return new Server(config);
+			const promises = [];
+			if (config.https) {
+				promises.push(
+					Fs.readFile(config.https.key)
+					.then(k => { config.https.key = k; }));
+				promises.push(
+					Fs.readFile(config.https.cert)
+					.then(c => { config.https.cert = c; }));
+			}
+			return Promise.all(promises)
+			.then(() => new Server(config));
 		});
 	}
 

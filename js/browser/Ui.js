@@ -83,8 +83,13 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				  frozen => {
 					  console.log(`Loading game ${gameKey}`);
 					  const game = Fridge.thaw(frozen, Game.classes);
-					  this.loadGame(game);
-					  this.attachListeners();
+					  this.loadGame(game)
+					  .then(() => this.attachListeners())
+					  .catch(e => {
+						  $('#problemDialog')
+						  .text(e)
+						  .dialog({ modal: true });
+					  });
 				  });
 		}
 
@@ -478,6 +483,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		/**
 		 * A game has been read; load it into the UI
 		 * @param game the Game being played
+		 * @return Promise to load the game
 		 */
 		loadGame(game) {
 			console.log('Loading UI for', game.toString());
@@ -492,6 +498,9 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 			const playerKey = $.cookie(this.game.key);
 			this.thisPlayer = this.game.getPlayerFromKey(playerKey);
+
+			if (!this.thisPlayer)
+				return Promise.reject(`Cannot find game cookie ${this.game.key}. Please rejoin the game.`);
 
 			const $players = this.game.createPlayerTableDOM(this.thisPlayer);
 			$('#playerTable').append($players);
@@ -555,6 +564,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 			this.$typingCursor = $('#typingCursor');
 			this.$typingCursor.hide(0);
+
+			return Promise.resolve();
 		}
 
 		/**
@@ -1154,8 +1165,6 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			}
 			this.placedCount = 0;
 			this.sendCommand('makeMove', move);
-
-			this.enableNotifications();
 		}
 
 		/**
@@ -1263,26 +1272,19 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			this.thisPlayer.rack.shuffle().refreshDOM();
 		}
 
-		// TODO: look at HTML5 notifications API
-		enableNotifications() {
-			// must be called in response to user action
-			if (window.webkitNotifications) {
-				console.debug('notification permission:',
-							  window.webkitNotifications.checkPermission());
-				if (window.webkitNotifications.checkPermission() != 0) {
-					console.debug('requesting notification permission');
-					window.webkitNotifications.requestPermission();
-				}
-			}
-		}
-
-		// TODO: either use HTML5 Notification API, or
-		// provide this feedback some other way
+		/**
+		 * Generate a notification using the HTML5 notifications API
+		 */
 		notify(title, text) {
-			if (window.webkitNotifications) {
-				this.cancelNotification();
-				const notification = window.webkitNotifications
-					.createNotification('../images/favicon.ico', title, text);
+			this.canNotify()
+			.then(() => {
+			this.cancelNotification();
+				const notification = new Notification(
+					title,
+					{
+						icon: '/images/favicon.ico',
+						body: text
+					});
 				this.notification = notification;
 				$(notification)
 				.on('click', function () {
@@ -1291,13 +1293,41 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				.on('close', () => {
 					delete this.notification;
 				});
-				notification.show();
+			})
+			.catch(() => console.error("Notifications disabled"));
+		}
+
+		/**
+		 * Promise to check if we have been granted permission to
+		 * create Notifications.
+		 */
+		canNotify() {
+			if (!('Notification' in window))
+				return Promise.reject();
+			switch (Notification.permission) {
+			case 'denied':
+				return Promise.reject();
+			case 'granted':
+				return Promise.resolve();
+			default:
+				return new Promise((resolve, reject) => {
+					return Notification.requestPermission()
+					.then(result => {
+						if (result === 'granted')
+							resolve();
+						else
+							reject();
+					});
+				});
 			}
 		}
 
+		/**
+		 * Cancel any outstanding Notification
+		 */
 		cancelNotification() {
 			if (this.notification) {
-				this.notification.cancel();
+				this.notification.close();
 				delete this.notification;
 			}
 		}

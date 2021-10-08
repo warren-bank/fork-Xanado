@@ -147,7 +147,7 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 		createScoreDOM(thisPlayer) {
 			const $tr = $(`<tr id='player${this.index}'></tr>`);
 			$tr.append(`<td class='myTurn'>&#10148;</td>`);
-			const who = thisPlayer.key === this.key
+			const who = thisPlayer && thisPlayer.key === this.key
 				? Platform.i18n('You')
 				: this.name;
 			$tr.append(`<td class='playerName'>${who}</td>`);
