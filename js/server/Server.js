@@ -323,7 +323,8 @@ define(
 		 */
 		handle_history(req, res) {
 			const server = this;
-			const players = {};
+			const scores = {};
+			const wins = {};
 
 			return this.db.keys()
 			.then(keys => keys.map(
@@ -331,14 +332,22 @@ define(
 			.then(promises => Promise.all(promises))
 			.then(games => games
 				  .filter(game => game.ended)
-				  .map(game => game.players.map(
-					  player => {
-						  if (players[player.name])
-							  players[player.name] += player.score;
-						  else
-							  players[player.name] = player.score;
-					  })))
-			.then(() => res.send(players))
+				  .map(game => {
+					  const winner = game.getWinner();
+					  console.log(`${winner.name} won ${game.key}`);
+					  if (wins[winner.name])
+						  wins[winner.name]++;
+					  else
+						  wins[winner.name] = 1;
+					  game.players.map(
+						  player => {
+							  if (scores[player.name])
+								  scores[player.name] += player.score;
+							  else
+								  scores[player.name] = player.score;
+						  });
+				  }))
+			.then(() => res.send({ scores: scores, wins: wins }))
 			.catch(e => this.trap(e, res));
 		}
 

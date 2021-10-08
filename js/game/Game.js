@@ -125,6 +125,18 @@ define('game/Game', [
 		}
 
 		/**
+		 * Get the winner of the game, if it has ended
+		 * @return the winner of the game, or undefined if the
+		 * game has not ended
+		 */
+		getWinner() {
+			let winningScore = -10000;
+			this.players.forEach(
+				player => winningScore = Math.max(winningScore, player.score));
+			return this.players.find(p => p.score === winningScore);
+		}
+
+		/**
 		 * Determine when the last activity on the game happened. This
 		 * is either the last time a turn was processed, or the creation time.
 		 * @return a time in epoch ms

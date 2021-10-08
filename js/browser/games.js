@@ -86,7 +86,7 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 	}
 
 	function handle_history(data) {
-		const ps = Object.getOwnPropertyNames(data);
+		const ps = Object.getOwnPropertyNames(data.scores);
 		if (ps.length === 0) {
 			$('#player_list').hide();
 			return;
@@ -94,7 +94,9 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 		$('#player_list').show();
 		const $gt = $('#player-table');
 		$gt.empty();
-		ps.forEach(name => $gt.append(`<p><em>${name}</em>: ${data[name]}</p>`));
+		ps.forEach(name => $gt.append(
+			$.i18n('games-scores', name, data.scores[name],
+				   data.wins[name] || 0)));
 	}
 
 	function refresh_games() {

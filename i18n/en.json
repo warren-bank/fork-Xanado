@@ -58,6 +58,7 @@
 	"game-delete": "Delete",
 	"game-select-player": "Select your player above, or ",
 	"games-login": "Game management login",
+	"games-scores": "<p><em>$1</em>: $2 ($3 {{PLURAL:$3|win|wins}})</p>",
 
 	"h1-crossword-games": "Crossword Games",
 	"h1-create-game": "Create a new game",
