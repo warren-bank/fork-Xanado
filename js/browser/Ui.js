@@ -2,27 +2,6 @@
 
 /**
  * User interface to a game in a browser
-
-html-scrabble keyboard UI
-* Single mouse click on a tiled square makes it selected - WORKS
-* Second mouse click on another square moves the tile there - WORKS
-* Single mouse click on an empty square places the typing cursor - WORKS
-* Cursor keys will move typing cursor - WORKS
-* Direction arrow indicates next cell to fill after this one  (font size error on score tiles) - WORKS
-* Repeated mouse clicks cycle none - across - down - WORKS
-* Spacebar also cycles direction - WORKS
-* Backspace & Delete - undo last placement - WORKS
-* Type any letter - letter ignored if not on rack, or blank used if available - WORKS
-
-IDEAS
-* Make move - END
-* Take back - HOME
-* Shuffle - =/+
-* Pass - PAGE DN
-* Challenge - PAGE UP
-* Chat - 2/" and type until return
-* Type - 8/* to place typing cursor in centre
-
  */
 const uideps = [
 	'socket.io',
@@ -38,9 +17,22 @@ const uideps = [
 
 define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) => {
 
+	const SETTINGS_COOKIE = 'crossword_settings';
+
 	class Ui {
 
 		constructor() {
+
+			// Are we using https?
+			this.https = document.URL.indexOf('https:') === 0;
+
+			this.settings = {
+				turn_alert: true,
+				cheers: true,
+				tile_click: true,
+				warnings: true,
+				notification: this.https
+			};
 
 			const splitUrl = document.URL.match(/.*\/([0-9a-f]+)$/);
 			if (!splitUrl)
@@ -243,7 +235,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				const isme = this.isPlayer(playerState.player);
 				if (playerState.score === info.winningScore) {
 					if (isme) {
-						if (cheer)
+						if (cheer && this.settings.cheers)
 							this.playAudio('endCheer');
 						youWon = true;
 						winners.push($.i18n('you'));
@@ -272,7 +264,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				player.refreshDOM();
 			});
 
-			if (cheer && !youWon)
+			if (cheer && !youWon && this.settings.cheers)
 				this.playAudio('lost');
 
 			let who;
@@ -340,7 +332,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			let stick = '';
 			if (this.isPlayer(tick.player)) {
 				stick = $.i18n('tick-you', deltasecs);
-				if (deltasecs < 10)
+				if (deltasecs < 10 && this.settings.warnings)
 					this.playAudio('tick');
 				if (deltasecs < 15)
 					$to.fadeOut(100).addClass('tick-alert-high');
@@ -651,6 +643,34 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				$(this).val('');
 			});
 
+			const sets = $.cookie(SETTINGS_COOKIE);
+			if (sets)
+				sets.split(";").map(
+					s => {
+						const v = s.split('=');
+						this.settings[v[0]] = this.settings[v[1]];
+					});
+
+			$('#settings')
+			.on('click', () => $('#settingsDialog')
+				.dialog({ modal: true }));
+
+			$('input.setting')
+			.each(function() {
+				$(this).prop('checked', ui.settings[$(this).data('set')]);
+			})
+			.on('change', function() {
+				ui.settings[$(this).data('set')] = $(this).prop('checked');
+				$.cookie(SETTINGS_COOKIE,
+						 Object.getOwnPropertyNames(ui.settings)
+						 .map(k => {
+							 return `${k}=${ui.settings[k]}`;
+						 }).join(';'));
+			});
+
+			if (!this.https)
+				$("input.setting[data-set='notification']").prop('disabled', true);
+				
 			// Events raised by game components. The Refresh events are
 			// not currently used.
 			$(document)
@@ -689,7 +709,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			if (rackSquare) {
 				// moveTile will use a blank if the letter isn't found
 				this.moveTile(rackSquare, this.selectedSquare, letter);
-				this.playAudio('tiledown');
+				if (this.settings.tile_click)
+					this.playAudio('tiledown');
 				if (this.typeAcross)
 					this.moveTypingCursor(1, 0);
 				else
@@ -809,7 +830,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		dropSquare(source, square) {
 			this.moveTile(source, square);
 			this.selectSquare(null);
-			this.playAudio('tiledown');
+			if (this.settings.tile_click)
+				this.playAudio('tiledown');
 		}
 
 		refresh() {
@@ -997,7 +1019,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				if (this.isPlayer(turn.player)) {
 					player.rack.refreshDOM();
 					if (turn.type === 'challenge-won') {
-						this.playAudio('oops');
+						if (this.settings.warnings)
+							this.playAudio('oops');
 						this.notify(
 							$.i18n('notify-title-challenged'),
 							$.i18n('notify-body-challenged',
@@ -1016,12 +1039,14 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 			case 'challenge-failed':
 				if (this.isPlayer(turn.player)) {
-					this.playAudio('oops');
+					if (this.settings.warnings)
+						this.playAudio('oops');
 					this.notify(
 						$.i18n('notify-title-you-failed'),
 						$.i18n('notify-body-you-failed'));
 				} else {
-					this.playAudio('oops');
+					if (this.settings.warnings)
+						this.playAudio('oops');
 					this.notify(
 						$.i18n('notify-title-they-failed'),
 						$.i18n('notify-body-they-failed', player.name));
@@ -1061,7 +1086,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			}
 
 			if (this.isPlayer(turn.nextToGo)) {
-				this.playAudio('yourturn');
+				if (this.settings.turn_alert)
+					this.playAudio('yourturn');
 				this.lockBoard(false);
 			} else
 				this.lockBoard(true);
@@ -1159,7 +1185,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				return;
 			}
 			this.afterMove();
-			if (move.bonus > 0)
+			if (move.bonus > 0 && this.settings.cheers)
 				this.playAudio('bonusCheer');
 
 			for (let i = 0; i < move.placements.length; i++) {
@@ -1307,7 +1333,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		 * create Notifications.
 		 */
 		canNotify() {
-			if (!('Notification' in window))
+			if (!this.settings.notification
+				|| !('Notification' in window))
 				return Promise.reject();
 			switch (Notification.permission) {
 			case 'denied':

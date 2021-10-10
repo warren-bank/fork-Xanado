@@ -28,6 +28,7 @@
 	<audio id="teehee" src="/audio/teehee.mp3" preload="auto" type="audio/mp3"></audio>
 	<audio id="lost" src="/audio/lost.mp3" preload="auto" type="audio/mp3"></audio>
 	<script type="text/javascript">requirejs(["js/browser/game"]);</script>
+	<div id="settings">&#9881;</div>
     <div class="container">
       <div class="boardWrap">
         <div id="board" class="tableDivWrap surroundShade"></div>
@@ -73,6 +74,15 @@
       <div id="blankDialog" class="hidden">
 		<span data-i18n="prompt-select-blank"></span>
 		<table id="blankLetterTable"></table>
+      </div>
+	  <!-- Settings dialog -->
+      <div id="settingsDialog" class="hidden">
+		<span data-i18n="set-options"></span>
+		<div><input type="checkbox" class="setting" data-set="turn_alert" /><span data-i18n="set-turn-alert"><span></div>
+		<div><input type="checkbox" class="setting" data-set="cheers"><span data-i18n="set-cheers"></span></div>
+		<div><input type="checkbox" class="setting" data-set="tile_click"><span data-i18n="set-tile-click"></span></div>
+		<div><input type="checkbox" class="setting" data-set="warnings"><span data-i18n="set-warnings"></span></div>
+		<div><input type="checkbox" class="setting" data-set="notification"><span data-i18n="set-notification"></span></div>
       </div>
 	  <div id="problemDialog" class="hidden">
 	  </div>

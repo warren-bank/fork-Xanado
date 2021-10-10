@@ -122,6 +122,13 @@
 
 	"reminder": "$1 at $2",
 
+	"set-options": "Options",
+	"set-notification": "Enable notifications",
+	"set-cheers": "Play cheers or groans",
+	"set-turn-alert": "Play a sound when it's your turn",
+	"set-tile-click": "Play a sound when a tile is placed",
+	"set-warnings": "Play a sound for Warnings",
+
 	"square-DoubleWord": "DOUBLE WORD SCORE",
 	"square-DoubleLetter": "DOUBLE LETTER SCORE",
 	"square-Middle": "\u2605",

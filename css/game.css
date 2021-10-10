@@ -58,6 +58,16 @@ div.container {
     width: 20em;
 }
 
+#settings {
+	float: right;
+	background-color: #0000F0;
+	margin: 0.5em;
+	color: white;
+	font-size: 2em;
+	position: relative;
+	z-index: 2;
+}
+
 #controls > div {
     background-color: #F7F7E3;
     border-color: #DCDCC6;
