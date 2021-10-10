@@ -13,6 +13,8 @@
 	"DoubleLetter": "DOUBLE LETTER SCORE",
 	"Normal": " ",
 
+	"and": "and",
+
 	"block-scores": "Scores",
 	"block-chat": "Chat",
 	"block-your-play": "Your play",
@@ -37,6 +39,10 @@
 	"chat-hint": "Hint: $1 at row $2 column $3 for $4",
 	"chat-advice": "$1 at row $2 column $3 would have scored $4",
 	"chat-no-play": "Can't find a play",
+
+	"email-invite": "You have been invited to play with $1",
+	"email-join-text": "Join the game by following this link: $1",
+	"email-join-html": "Click <a href='$1'>here</a> to join the game.",
 
 	"ended-all-passed-twice": "All players passed twice: $1",
 	"ended-game-over": "Game over: $1",

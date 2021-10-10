@@ -314,22 +314,25 @@ define('game/Game', [
 				return names[0];
 			default:
 				return names.slice(0, length - 1).join(', ')
-				+ ` and ${names[length - 1]}`;
+				+ ` $[Platform.i18n('and')} ${names[length - 1]}`;
 			}
 		}
 
 		/**
 		 * Send email invitations to players due to play in this game
+		 * @param baseUrl server base URL
+		 * @param config configuration object
 		 */
-		emailInvitations(config) {
+		emailInvitations(baseUrl, config) {
+			const gameUrl = `${baseUrl}/game/${this.key}`;
 			this.players.forEach(
 				player => {
 					if (!player.email)
 						return;
 					player.sendInvitation(
-						'You have been invited to play with '
-						+ this.emailJoinProse(player),
-						config);
+						Platform.i18n('email-invite',
+									  this.emailJoinProse(player)),
+						gameUrl, config);
 				});
 		}
 

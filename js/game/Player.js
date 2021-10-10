@@ -117,27 +117,29 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 		}
 
 		/**
-		 * Send an email invitation to a player
+		 * Promise to send an email invitation to a player
 		 * Only useful server-side
+		 * @param subject the subject of the mail
+		 * @param gameUrl the URL of the game
+		 * @param config the global config object
 		 */
-		async sendInvitation(subject, config) {
-			console.log(`Sending email invitation to ${this.name} subject ${subject}`);
-			try {
-				const url = `${config.baseUrl}game/${this.key}`;
-				console.log('link: ', url);
+		sendInvitation(subject, gameUrl, config) {
+			if (!config.mail || !config.mail.transport)
+				return Promise.reject('Mail is not configured');
 
-				const mailResult = await config.smtp.sendMail(
-					{ from: config.mailSender,
-					  to:  this.email,
-					  subject: subject,
-					  text: `Join the game by following this link: ${url}`,
-					  html: `Click <a href='${url}'>here</a> to join the game.`
-					});
-				console.log('mail sent', mailResult.response);
-			}
-			catch (e) {
-				console.log('cannot send mail:', e);
-			}
+			const url = `${gameUrl}/${this.key}`;
+			console.log(`Sending email invitation to ${this.name} subject ${subject} url ${url}`);
+
+			return config.mail.transport.sendMail(
+				{
+					from: config.mail.sender,
+					to:  this.email,
+					subject: subject,
+					text: Platform.i18n('email-join-text', url),
+					html: Platform.i18n('email-join-html', url)
+				})
+			.then(mailResult =>
+				  console.log('mail sent', mailResult.response));
 		}
 
 		/**

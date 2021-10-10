@@ -1,12 +1,13 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env amd, node */
+/* global define, requirejs, __filename */
 
 /**
  * This is the node.js implementation of game/Platform. There is an implementation
  * for the browser, too, in js/browser/Platform.js
  */
-define('platform/Platform', [ 'events', 'fs-extra', 'node-gzip', 'game/Fridge', 'game/findBestPlayController', 'game/Platform' ], (Events, Fs, Gzip,Fridge, findBestPlay, Platform) => {
+define('platform/Platform', [ 'events', 'fs-extra', 'node-gzip', 'get-user-locale', 'game/Fridge', 'game/findBestPlayController', 'game/Platform' ], (Events, Fs, Gzip, Locale, Fridge, findBestPlay, Platform) => {
 
 	const emitter = new Events.EventEmitter();
 
@@ -52,7 +53,37 @@ define('platform/Platform', [ 'events', 'fs-extra', 'node-gzip', 'game/Fridge', 
 			return Fs.remove(`${this.directory}/${key}.${this.type}`);
 		}
 	}
-	
+
+	class I18N {
+		constructor() {
+			let cc = Locale.getUserLocale();
+			const path = process.argv[1].split('/');
+			path.pop();
+			const langdir = path.join('/') + '/i18n';
+			let langfile = `${langdir}/${cc}.json`;
+			Fs.readFile(langfile)
+			.catch(e => {
+				console.log(`Failed to load ${langfile}, falling back to en`);
+				langfile = `${langdir}/en.json`;
+				return Fs.readFile(langfile);
+			})
+			.catch(e => console.log(`Failed to load ${langfile}`))
+			.then(buffer => this.data = JSON.parse(buffer.toString()))
+			.then(() => console.log(`strings from ${langfile}`));
+		}
+		
+		 lookup(args) {
+			 const id = args[0];
+			 if (this.data)
+				 // TODO: support PLURAL
+				 return this.data[id].replace(
+					 /\$(\d+)/g,
+					 (m, index) => args[index]);
+			 else
+				 return id;
+		}
+	}
+
 	class ServerPlatform extends Platform {
 		static trigger(e, args) {
 			emitter.emit(e, args);
@@ -78,9 +109,13 @@ define('platform/Platform', [ 'events', 'fs-extra', 'node-gzip', 'game/Fridge', 
 		static findBestPlay() {
 			return findBestPlay.apply(null, arguments);
 		}
+
+		static i18n() {
+			return ServerPlatform.I18N.lookup(arguments);
+		}
 	}
 
-	ServerPlatform.i18n = () => { return `FUCKITY ${arguments}`; };
+	ServerPlatform.I18N = new I18N();
 	
     ServerPlatform.Database = FileDatabase;
 

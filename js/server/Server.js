@@ -334,7 +334,7 @@ define(
 				  .filter(game => game.ended)
 				  .map(game => {
 					  const winner = game.getWinner();
-					  console.log(`${winner.name} won ${game.key}`);
+					  //console.log(`${winner.name} won ${game.key}`);
 					  if (wins[winner.name])
 						  wins[winner.name]++;
 					  else
@@ -453,7 +453,8 @@ define(
 				// (asynchronous)
 				game.save();
 
-				game.emailInvitations(this.config);
+				const baseUrl = req.protocol + '://' + req.get('Host');
+				game.emailInvitations(baseUrl, this.config);
 
 				// Redirect back to control panel
 				res.redirect('/html/games.html');
@@ -629,21 +630,31 @@ define(
 		.then(config => {
 			console.log('config', config);
 
-			if (config.mailTransportConfig) {
-				config.smtp = NodeMailer.createTransport(config.mailTransportConfig);
-			} else if (process.env.MAILGUN_SMTP_SERVER) {
-				config.mailSender = `wordgame@${process.env.MAILGUN_DOMAIN}`;
-				config.smtp = NodeMailer.createTransport({
-					host: process.env.MAILGUN_SMTP_SERVER,
-					port: process.env.MAILGUN_SMTP_PORT,
-					secure: false,
-					auth: {
-						user: process.env.MAILGUN_SMTP_LOGIN,
-						pass: process.env.MAILGUN_SMTP_PASSWORD
+			if (config.mail) {
+				let transport;
+				if (config.mail.transport === "mailgun") {
+					if (!process.env.MAILGUN_SMTP_SERVER)
+						console.log("mailgun configuration requested, but MAILGUN_SMTP_SERVER not defined");
+					else {
+						if (!config.mail.sender)
+							config.mail.sender = `wordgame@${process.env.MAILGUN_DOMAIN}`;
+						transport = {
+							host: process.env.MAILGUN_SMTP_SERVER,
+							port: process.env.MAILGUN_SMTP_PORT,
+							secure: false,
+							auth: {
+								user: process.env.MAILGUN_SMTP_LOGIN,
+								pass: process.env.MAILGUN_SMTP_PASSWORD
+							}
+						};
 					}
-				});
-			} else {
-				console.log('email sending not configured');
+				} else
+					// Might be SMTP, might be something else
+					transport = config.mail.transport;
+				
+				if (transport)
+					config.mail.transport = NodeMailer.createTransport(
+						transport);
 			}
 
 			const promises = [];

@@ -5,14 +5,22 @@
 	// https://www.speedguide.net/port.php?port=9093
     "port": 9093,
 
-	// Optional mail configuration. Refer to the 'nodemailer' documentation.
-	// Not required unless you are mailing out invitations.
     "baseUrl": "http://localhost:9093/",
-    "mailSender": "Crossword Server <crosswords@example.com>",
-    "mailTransportConfig": {
-        "host": "localhost"
-    },
-	
+
+	// Optional mail configuration.
+	// Not required unless you are mailing out invitations.
+    "mail": {
+        "sender": "Crossword Server <crosswords@example.com>",
+		// You can also set "transport" to the string "mailgun" to use a mailgun
+		// configuration. https://www.mailgun.com/
+		"transport": {
+			// This structure is passed directly to the nodemailer
+			// createTransport function. Refer to the 'nodemailer'
+			// documentation at https://nodemailer.com/about/
+			"host": "localhost"
+		}
+	},
+
 	// The default edition when creating new games. Game editions can
 	// be found in the 'editions' directory.
     "defaultEdition": "English_Scrabble",
