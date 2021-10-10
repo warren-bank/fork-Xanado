@@ -263,7 +263,8 @@ requirejs(['browser/browserApp'], browserApp => {
 				edition: $('#edition').val(),
 				dictionary: $('#dictionary').val(),
 				time_limit: $('#time_limit').val(),
-				players: []
+				players: [],
+				whosTurn: 0
 			};
 			const playerNames = [];
 			$('#players > div').each(function() {
@@ -281,13 +282,7 @@ requirejs(['browser/browserApp'], browserApp => {
 					email: email
 				});
 			});
-			// Randomize player order in-place. Equivalent to picking a tile.
-			for (var i = data.players.length - 1; i > 0; i--) {
-				const j = Math.floor(Math.random() * (i + 1));
-				const temp = data.players[i];
-				data.players[i] = data.players[j];
-				data.players[j] = temp;
-			}
+
 			saveAddressBook(addressBook);
 			$.post('newGame', data)
 			.done(() => {

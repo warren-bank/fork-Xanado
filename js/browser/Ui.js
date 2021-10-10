@@ -150,7 +150,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		 * @param turn a Turn
 		 */
 		appendTurnToLog(turn) {
-			const player = this.game.players[turn.player];
+			const player = this.game.getPlayer(turn.player);
 			const $scorediv = $('<div class="score"></div>');
 			const pn = `<span class='playerName'>${player.name}</span>`;
 			$scorediv.append($.i18n('log-turn', pn));
@@ -233,6 +233,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 			info.players.forEach(playerState => {
 				const isme = this.isPlayer(playerState.player);
+				const player = this.game.getPlayer(playerState.player);
 				if (playerState.score === info.winningScore) {
 					if (isme) {
 						if (cheer && this.settings.cheers)
@@ -240,12 +241,10 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 						youWon = true;
 						winners.push($.i18n('you'));
 					} else {
-						winners.push(
-							this.game.players[playerState.player].name);
+						winners.push(player.name);
 					}
 				}
 
-				const player = this.game.players[playerState.player];
 				player.score = playerState.score;
 
 				const $gsd = $('<div class="gameEndScore"></div>');
@@ -343,7 +342,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			}
 			else
 				stick = $.i18n('tick-them',
-							   this.game.players[tick.player].name, deltasecs);
+							   this.game.getPlayer(tick.player).name, deltasecs);
 			$to.text(stick).fadeIn(200);
 		}
 
@@ -525,8 +524,11 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 			if (lastTurn && lastTurn.type == 'move') {
 				if (this.isPlayer(game.whosTurn))
+					// It's our turn
 					this.addChallengePreviousButton(lastTurn);
 				else
+					// It isn't our turn, but we might still have time to
+					// change our minds on the last move we made
 					this.addTakeBackPreviousButton(lastTurn);
 			}
 
@@ -643,6 +645,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				$(this).val('');
 			});
 
+			// Load settings from the cookie (if it's there)
 			const sets = $.cookie(SETTINGS_COOKIE);
 			if (sets)
 				sets.split(";").map(
@@ -991,7 +994,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			this.appendTurnToLog(turn);
 			this.scrollLogToEnd(300);
             this.removeMoveActionButtons();
-			const player = this.game.players[turn.player];
+			const player = this.game.getPlayer(turn.player);
 			player.score += turn.deltaScore;
 			player.refreshDOM();
 			$('.lastPlacement').removeClass('lastPlacement');
@@ -1024,7 +1027,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 						this.notify(
 							$.i18n('notify-title-challenged'),
 							$.i18n('notify-body-challenged',
-								   this.game.players[turn.challenger].name,
+								   this.game.getPlayer(turn.challenger).name,
 								   -turn.score));
 					}
 				}
@@ -1033,7 +1036,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 					this.notify(
 						$.i18n('notify-title-retracted'),
 						$.i18n('notify-body-retracted',
-							   this.game.players[turn.challenger].name));
+							   this.game.getPlayers(turn.challenger).name));
 				}
 				break;
 
@@ -1104,7 +1107,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 					// It's our turn, and we didn't just take back
 					this.notify($.i18n('notify-title-your-turn'),
 								$.i18n('notify-body-your-turn',
-									   this.game.players[turn.player].name));
+									   this.game.getPlayer(turn.player).name));
 
 					if (turn.type === 'move')
 						this.addChallengePreviousButton(turn);
@@ -1132,8 +1135,11 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			if (this.isPlayer(turn.player))
 				return;
 			// It wasn't us
+			const text = $.i18n(
+				'button-challenge',
+				this.game.getLastPlayer().name);
 			const $button =
-				$(`<div><button class='moveAction'>${$.i18n('button-challenge')}</button></div>`);
+				$(`<div><button class='moveAction'>${text}</button></div>`);
 			$button.click(() => this.challenge());
 			$('#logMessages div.moveScore').last().append($button);
 			this.scrollLogToEnd(300);
@@ -1165,8 +1171,11 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		 * Action on 'Challenge' button clicked
 		 */
 		challenge() {
+			// Take back any tiles we placed
 			this.takeBackTiles();
+			// Remove action buttons and lock board
 			this.afterMove();
+			// Fire photon torpedo
 			this.sendCommand('challenge');
 		}
 

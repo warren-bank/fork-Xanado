@@ -16,7 +16,7 @@
 
 	"button-add-player": "Add Player",
 	"button-another-game": "Another game",
-	"button-challenge": "Challenge last move",
+	"button-challenge": "Challenge $1's move",
 	"button-create-game": "Create Game",
 	"button-create-new-game": "Create a new game",
 	"button-email": "Email",

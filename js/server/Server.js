@@ -270,7 +270,8 @@ define(
 				// May need to trigger several computer players until we
 				// get to a human
 				if (!game.ended) {
-					const nextPlayer = game.players[game.whosTurn];
+					console.log(game);
+					const nextPlayer = game.getNextPlayer();
 					console.log(`Next to play is ${nextPlayer}`);
 					if (nextPlayer.isRobot) {
 						return game.autoplay(nextPlayer)
@@ -460,6 +461,9 @@ define(
 
 				if (!haveHuman)
 					throw Error('error-need-human');
+
+				// Pick a tile from the bag
+				game.whosTurn = Math.floor(Math.random() * game.players.length);
 
 				game.time_limit = req.body.time_limit || 0;
 				if (game.time_limit > 0)

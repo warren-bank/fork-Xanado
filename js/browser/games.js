@@ -12,24 +12,23 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 
 	// Format a player
 	function formatPlayer(game, player, index) {
-		let $but = $(`<button class='player'>${player.name}</button>`);
+		const $but = $(`<button class='player'>${player.name}</button>`);
+		if (game.whosTurn === index)
+			$but.prepend(NEXT_TO_PLAY);
 		if (player.isRobot) {
 			$but.append('<img class="robot" src="/images/robotface.png"></img>');
 			$but.prop('disabled', true);
-		} else {
-			const $spot = $(`<span>${BLACK_CIRCLE}</span>`);
-			if (player.connected)
-				$spot.addClass('online');
-			else
-				$spot.addClass('offline');
-			$but.append($spot);
-			if (game.whosTurn === index)
-				$but.append(NEXT_TO_PLAY);
-			const $a = $(`<a href='/game/${game.key}/${player.key}'></a>`);
-			$a.append($but);
-			$but = $a;
+			return $but;
 		}
-		return $but;
+		const $spot = $(`<span>${BLACK_CIRCLE}</span>`);
+		if (player.connected)
+			$spot.addClass('online');
+		else
+			$spot.addClass('offline');
+		$but.append($spot);
+		const $a = $(`<a href='/game/${game.key}/${player.key}'></a>`);
+		$a.append($but);
+		return $a;
 	}
 
 	// Format a game
@@ -47,7 +46,7 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 			let results;
 			if (info.players) {
 				results = info.players.map(p => {
-					const s = game.players[p.player].name +
+					const s = game.getPlayer(p.player).name +
 						  ':' + p.score;
 					if (p.score === info.winningScore)
 						return `<span class='winner'>${s}</span>`;

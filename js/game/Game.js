@@ -87,6 +87,29 @@ define('game/Game', [
 		}
 
 		/**
+		 * Get the player by index
+		 */
+		getPlayer(index) {
+			if (index < 0 || index >= this.players.length)
+				throw Error(`No such player ${index}`);
+			return this.players[index];
+		}
+
+		/**
+		 * Get the next player
+		 */
+		getNextPlayer() {
+			return this.players[this.whosTurn % this.players.length];
+		}
+
+		/**
+		 * Get the last player
+		 */
+		getLastPlayer() {
+			return this.players[(this.whosTurn - 1) % this.players.length];
+		}
+
+		/**
 		 * Get the player with key
 		 */
 		getPlayerFromKey(key) {
@@ -297,10 +320,11 @@ define('game/Game', [
 		}
 
 		/**
-		 * Generate a game reference string addressed to the given player
-		 * in email (English only, no i18n support)
+		 * Generate a list of players (not including the nominated player)
+		 * @param player player to exclude from the list, optional
+		 * @return a string list of players
 		 */
-		emailJoinProse(player) {
+		playerListText(player) {
 			const names = [];
 			for (let p of this.players) {
 				if (p !== player)
@@ -314,7 +338,7 @@ define('game/Game', [
 				return names[0];
 			default:
 				return names.slice(0, length - 1).join(', ')
-				+ ` $[Platform.i18n('and')} ${names[length - 1]}`;
+				+ ` ${Platform.i18n('and')} ${names[length - 1]}`;
 			}
 		}
 
@@ -334,7 +358,7 @@ define('game/Game', [
 						return;
 					promises.push(player.emailInvitation(
 						Platform.i18n('email-invite',
-									  this.emailJoinProse(player)),
+									  this.playerListText(player)),
 						url,
 						config));
 				});
@@ -362,7 +386,7 @@ define('game/Game', [
 				// Robots can't have an email
 				return player.emailInvitation(
 					Platform.i18n('email-your-turn',
-								  this.emailJoinProse(player)),
+								  this.playerListText(player)),
 					url,
 					config)
 				.then(() => { return {
