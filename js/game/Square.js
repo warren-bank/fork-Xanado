@@ -233,7 +233,7 @@ define('game/Square', ['platform/Platform'], Platform => {
 				}
 			});
 
-			const text = $.i18n(CSS_CLASS[this.type]);
+			const text = $.i18n(`square-${CSS_CLASS[this.type]}`);
 
 			$div.addClass('Empty')
 			.removeClass('Tile')

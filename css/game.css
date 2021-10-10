@@ -74,11 +74,6 @@ div.container {
     padding: 0.4em;
 }
 
-/* The #controls > div with the turn indicator */
-#whosturn {
-    height: 1em;
-}
-
 /* The #controls > div with the scores and letter bag state */
 #scoresBlock {
     min-height: 4em;

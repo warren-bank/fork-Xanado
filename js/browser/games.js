@@ -1,15 +1,17 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env browser, jquery */
+/* global $, requirejs */
 
 /**
  * Browser app for games.html; populate the list of live games
  */
 requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 	const BLACK_CIRCLE = '\u25cf';
+	const NEXT_TO_PLAY = '\u25B6';
 
 	// Format a player
-	function formatPlayer(game, player) {
+	function formatPlayer(game, player, index) {
 		let $but = $(`<button class='player'>${player.name}</button>`);
 		if (player.isRobot) {
 			$but.append('<img class="robot" src="/images/robotface.png"></img>');
@@ -21,6 +23,8 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 			else
 				$spot.addClass('offline');
 			$but.append($spot);
+			if (game.whosTurn === index)
+				$but.append(NEXT_TO_PLAY);
 			const $a = $(`<a href='/game/${game.key}/${player.key}'></a>`);
 			$a.append($but);
 			$but = $a;
@@ -55,7 +59,7 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 			$p.append(msg.join(', '));
 		} else {
 			$p.append(msg.join(', '));
-			game.players.map(player => $p.append(formatPlayer(game, player)));
+			game.players.map((player, index) => $p.append(formatPlayer(game, player, index)));
 		}
 
 		const $but = $(`<button class='deleteGame'>${$.i18n('game-delete')}</button>`);
@@ -83,6 +87,15 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 		const $gt = $('#game-table');
 		$gt.empty();
 		data.forEach(game => $gt.append(formatGame(game)));
+		const ema = data.reduce((em, game) => {
+			if (game.ended)
+				return em;
+			return em || game.players[game.whosTurn].email;
+		}, false);
+		if (ema)
+			$('#reminder-button').show();
+		else
+			$('#reminder-button').hide();
 	}
 
 	function handle_history(data) {
@@ -114,6 +127,24 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 		const socket = io.connect(null);
 
 		$("#showall").on('change', refresh_games);
+		$('#reminder-button').attr(
+			'title', $.i18n('tooltip-email-reminders'))
+		.on('click', () => {
+			$.ajax({
+				type: 'POST',
+				url: `/sendReminders`,
+				success: data => {
+					refresh();
+					let mess = data
+						.map(p => $.i18n('reminder', p.name, p.email))
+						.join(', ');
+					alert($.i18n('alert-reminders', mess));
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.error(`sendReminders returned error: ${textStatus} (${errorThrown})`);
+				}
+			});
+		});
 		refresh();
 
 		socket

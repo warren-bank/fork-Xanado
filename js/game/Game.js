@@ -319,31 +319,64 @@ define('game/Game', [
 		}
 
 		/**
-		 * Send email invitations to players due to play in this game
-		 * @param baseUrl server base URL
+		 * Promise to email invitations to players due to play in this game
+		 * @param serverURL URL of the server for this game
 		 * @param config configuration object
+		 * @return promise that resolves to a list of player names who
+		 * were sent mail
 		 */
-		emailInvitations(baseUrl, config) {
-			const gameUrl = `${baseUrl}/game/${this.key}`;
+		emailInvitations(serverURL, config) {
+			const url = `${serverURL}/game/${this.key}`;
+			const promises = [];
 			this.players.forEach(
 				player => {
 					if (!player.email)
 						return;
-					player.sendInvitation(
+					promises.push(player.emailInvitation(
 						Platform.i18n('email-invite',
 									  this.emailJoinProse(player)),
-						gameUrl, config);
+						url,
+						config));
 				});
+			return Promise.all(promises);
 		}
 
 		/**
-		 * Send email reminders to the next player due to play in this game
+		 * Promise to email reminders to the next player due to
+		 * play in this game
 		 * (English only, no i18n support)
+		 * @param serverURL URL of the server for this game
+		 * @param config configuration object
+		 * @return a promise that resolves to a simple object,
+		 * { name:, email: }, if a mail was sent
 		 */
-		emailTurnReminder(config) {
+		emailReminder(serverURL, config) {
+			this.checkTimeout();
 			if (this.ended)
-				return;
+				return Promise.resolve({});
 
+			const player = this.players[this.whosTurn];
+			const url = `${serverURL}/game/${this.key}`;
+			if (player.email) {
+				console.log("Sending turn reminder to ", player.email);
+				// Robots can't have an email
+				return player.emailInvitation(
+					Platform.i18n('email-your-turn',
+								  this.emailJoinProse(player)),
+					url,
+					config)
+				.then(() => { return {
+					name: player.name, email: player.email }; });
+			} else
+				console.log(`${player} has no email`);
+			return Promise.resolve({});
+		}
+
+		/**
+		 * Check if the game has timed out due to inactivity.
+		 */
+		checkTimeout() {
+			// Take the opportunity to time out old games
 			const ageInDays =
 				  (Date.now() - this.lastActivity())
 				  / 60000 / 60 / 24;
@@ -353,14 +386,9 @@ define('game/Game', [
 
 				this.ended = { reason: 'ended-timed-out' };
 				this.save();
-				return;
+				console.log(`${this.key} has timed out`);
 			}
-			const player = this.players[this.whosTurn];
-			if (player.email)
-				player.sendInvitation(
-					'It is your turn in your game with '
-					+ this.emailJoinProse(player),
-					config);
+
 		}
 
 		/**
@@ -408,6 +436,7 @@ define('game/Game', [
 		 * games interface
 		 */
 		catalogue() {
+			this.checkTimeout();
 			return {
 				key: this.key,
 				edition: this.edition,
@@ -415,7 +444,7 @@ define('game/Game', [
 				dictionary: this.dictionary,
 				time_limit: this.time_limit,
 				players: this.players.map(player => player.catalogue(this)),
-				nextToPlay: this.whosTurn,
+				whosTurn: this.whosTurn,
 				timestamp: this.lastActivity()
 			};
 		}

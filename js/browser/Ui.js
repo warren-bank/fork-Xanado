@@ -275,8 +275,6 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			if (cheer && !youWon)
 				this.playAudio('lost');
 
-			$('#whosturn').text($.i18n('notify-game-over'));
-
 			let who;
 			if (winners.length == 0)
 				who = '';
@@ -619,7 +617,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			.on('gameEnded', end => {
 				console.debug('Received gameEnded');
 				this.logEndMessage(end, true);
-				this.notify($.i18n('notify-game-over'),
+				this.notify($.i18n('notify-title-game-over'),
 							$.i18n('notify-body-game-over'));
 			})
 

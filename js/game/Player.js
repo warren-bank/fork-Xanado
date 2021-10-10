@@ -49,7 +49,8 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 				name: this.name,
 				isRobot: this.isRobot,
 				connected: this.isRobot || (game.getConnection(this) !== null),
-				key: this.key
+				key: this.key,
+				email: this.email ? true : false
 			};
 		}
 
@@ -120,14 +121,15 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 		 * Promise to send an email invitation to a player
 		 * Only useful server-side
 		 * @param subject the subject of the mail
-		 * @param gameUrl the URL of the game
+		 * @param gameURL the URL of the game
 		 * @param config the global config object
+		 * @return a promise that resolves to the player's name
 		 */
-		sendInvitation(subject, gameUrl, config) {
+		emailInvitation(subject, gameURL, config) {
 			if (!config.mail || !config.mail.transport)
 				return Promise.reject('Mail is not configured');
 
-			const url = `${gameUrl}/${this.key}`;
+			const url = `${gameURL}/${this.key}`;
 			console.log(`Sending email invitation to ${this.name} subject ${subject} url ${url}`);
 
 			return config.mail.transport.sendMail(
@@ -138,8 +140,7 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 					text: Platform.i18n('email-join-text', url),
 					html: Platform.i18n('email-join-html', url)
 				})
-			.then(mailResult =>
-				  console.log('mail sent', mailResult.response));
+			.then(() => this.name);
 		}
 
 		/**

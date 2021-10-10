@@ -26,6 +26,15 @@ define(
 		Fridge, Game, Player, Edition, findBestPlay
 	) => {
 
+	/**
+	 * Get the server base URL. This is assumed to be just
+	 * the host and port.
+	 * @param req the request that gives the context for the url
+	 */
+	function getBaseURL(req) {
+		return req.protocol + '://' + req.get('Host');
+	}
+
 	class Server {
 
 		constructor(config) {
@@ -80,7 +89,8 @@ define(
 					return next(err);
 				}
 
-				return res.status(err.status || 500).render('500');
+				return res.status(err.status || 500);
+				res.send(`500 ${err}`);
 			});
 
 			express.use(ErrorHandler({
@@ -96,10 +106,6 @@ define(
 			router.get('/',
 					   (req, res) => res.sendFile(
 						   requirejs.toUrl('html/games.html')));
-
-			// send email reminders about active games
-			router.post('/send-game-reminders',
-						(req, res) => this.handle_sendGameReminders());
 
 			// get a JSON list of available games (optionally including
 			// completed games)
@@ -144,6 +150,11 @@ define(
 			// from the game interface to create a follow-on game
 			router.post('/anotherGame/:gameKey',
 					  (req, res) => this.handle_anotherGame(req, res));
+
+			// send email reminders about active games
+			router.post('/sendReminders',
+						auth_router,
+						(req, res) => this.handle_sendTurnReminders(req, res));
 
 			// Handler for player joining a game
 			router.get('/game/:gameKey/:playerKey',
@@ -390,11 +401,20 @@ define(
 		}
 
 		/**
-		 * Handler for /send-game-reminders
+		 * Handler for /sendTurnReminders
 		 * Email reminders to next human player in each game
 		 */
-		handle_sendGameReminders() {
-			this.db.all((key, game) => game.emailTurnReminder(this.config));
+		handle_sendTurnReminders(req, res) {
+			console.log("Sending turn reminders");
+			const surly = req.protocol + '://' + req.get('Host');
+			this.db.keys()
+			.then(keys => keys.map(
+				key => this.games[key] || this.db.get(key, Game.classes)))
+			.then(promises => Promise.all(promises))
+			.then(games => Promise.all(games.map(
+				game => game.emailReminder(surly,this.config))))
+			.then(data => res.send(data.filter(o => o.name)))
+			.catch(e => this.trap(e, res));
 		}
 
 		/**
@@ -453,8 +473,9 @@ define(
 				// (asynchronous)
 				game.save();
 
-				const baseUrl = req.protocol + '://' + req.get('Host');
-				game.emailInvitations(baseUrl, this.config);
+				game.emailInvitations(
+					req.protocol + '://' + req.get('Host'),
+					this.config);
 
 				// Redirect back to control panel
 				res.redirect('/html/games.html');
@@ -475,7 +496,7 @@ define(
 			.then(() => {
 				console.log(`Player ${playerKey} Entering ${gameKey}`); 
 				res.cookie(gameKey, playerKey, {
-					path: '/',
+					path: '/;SameSite=Strict',
 					maxAge: (30 * 24 * 60 * 60 * 1000) // 30 days
 				});
 				// Redirect to handle_gameGET() for the HTML
