@@ -99,7 +99,7 @@ define('game/Game', [
 		 * Get the next player
 		 */
 		getNextPlayer() {
-			return this.players[this.whosTurn % this.players.length];
+			return this.players[this.whosTurn];
 		}
 
 		/**
