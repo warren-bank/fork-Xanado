@@ -93,7 +93,7 @@ requirejs(['browser/browserApp'], browserApp => {
 	// Add a player to the game
 	function createPlayerDOM(name, isRobot, email) {
 		const $div = $('<div class="player"></div>');
-		const $isRobot = $('<input type="checkbox" class="isRobot"/>');
+		const $isRobot = $(`<input type="checkbox" class="isRobot"/>`);
 		$isRobot.on('change', function() {
 			$(this).closest('.player').find('.email').toggle();
 			validate();
@@ -103,6 +103,7 @@ requirejs(['browser/browserApp'], browserApp => {
 		.prop('checked', isRobot);
 
 		const $remove = $('<button type="button" class="removeButton">Remove</button>');
+		$remove.attr('title', $.i18n('tooltip-remove-player'));
 		$remove.on('click', function() {
 			if ($('#players > div').length < 3) {
 				$('#problemDialog')
@@ -117,7 +118,9 @@ requirejs(['browser/browserApp'], browserApp => {
 		$emb.append($.i18n('button-email'));
 		$emb.attr('title', $.i18n('tooltip-email'));
 		$emb.tooltip(MORETIPS);
-		const $emv = $(`<input type='email' size='30' value='${email||''}'/>`);
+		const $emv = $("<input type='email' size='30'/>");
+		$emv.attr('value', email || '');
+		$emv.attr('title', $.i18n('tooltip-player-email'));
 		$emb.on('click', function() {
 			$emb.hide(); $emv.show();
 			return false;
@@ -135,8 +138,9 @@ requirejs(['browser/browserApp'], browserApp => {
 			$emb.show(); $emv.hide();
 		}
 
-		const $input = $(`<input type='text' class='name' size='10' value='${name}'/>`);
+		const $input = $("<input type='text' class='name' size='10'/>");
 		$input
+		.attr('value', name)
 		.attr('title', $.i18n('tooltip-name'))
 		.tooltip(MORETIPS)
 		.autocomplete({

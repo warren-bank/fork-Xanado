@@ -115,14 +115,18 @@
 
 	"tick-you": "You have $1 seconds remaining to play",
 	"tick-them": "$1 has $2 seconds to play",
+
 	"tooltip-add-player": "Add another player to the game",
 	"tooltip-create-game": "Create the new game. Play will start with a randomly selected player",
 	"tooltip-time-limit": "Maximum time allowed to make a move, in minutes. If a player fails to make a move in this time, they will be forced to pass. Leave blank for no time limit",
 	"tooltip-dictionary": "A dictionary is optional for human player games, but is required for computer players and can be used to automate challenges",
 	"tooltip-edition": "Select the game you want to play",
 	"tooltip-email": "Click to add an email address for this player to receive an invitation",
+	"tooltip-isrobot": "Select to make the computer play this player",
 	"tooltip-name": "Enter the name by which the player will be known. Names must be unique",
-	"tooltip-isrobot": "Make the computer play this player",
+	"tooltip-player-email": "Enter the player's full email address",
+	"tooltip-remove-player": "Remove this player",
+
 	"turn-theirs": "$1's turn",
 	"turn-yours": "Your turn",
 
