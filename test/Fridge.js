@@ -1,7 +1,7 @@
 /*@preserve Copyright (C) 2021 Crawford Currie http://c-dot.co.uk license MIT*/
 /* eslint-env node, mocha */
 
-if (typeof module !== 'undefined') {
+if (typeof requirejs === 'undefined') {
     requirejs = require('requirejs');
     // node.js
 }

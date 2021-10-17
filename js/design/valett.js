@@ -6,6 +6,9 @@
 /**
  * Command-line invocation of the Valett word corpus analyser
  * Based on code from https://github.com/jmlewis/valett
+ *
+* `node js/design/valett.js` will tell you how to use it.
+ * @module
  */
 const requirejs = require('requirejs');
 

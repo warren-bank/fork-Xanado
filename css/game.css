@@ -11,8 +11,22 @@
 }
 
 button {
-    font-size: 1.2em;
-	padding: 0;
+    font-size: 120%;
+	padding: 0.1em 0.2em 0.1em 0.2em;
+	display: block;
+	max-width: 100%;
+	margin: 0 auto 0 auto;
+	overflow: hidden;
+	position: relative;
+	transform: translatez(0);
+	text-decoration: none;
+	box-sizing: border-box;
+	font-weight: normal;
+	box-shadow: 0 0.1em 0.5em rgba(0,0,0,0.2);
+}
+
+.noDecoration {
+	text-decoration: none;
 }
 
 .crossword-icon {
@@ -146,27 +160,34 @@ div.container {
     width: 95%;
 }
 
-/* The #log > div with the game events log */
+/* The div with the game events log */
 #logMessages {
-	font-size: 0.8em;
+	font-size: 80%;
     height: 14em;
     overflow: auto;
 }
 
-#logMessages .score {
+/* The player who just had a turn */
+.turnPlayer {
+    margin-top: 0.4em;
     padding-left: 0.5em;
 }
 
-#logMessages .moveDetail {
+/* Details about the turn */
+.turnDetail {
     margin-left: 2em;
 }
 
-#logMessages > div {
-    margin-top: 0.4em;
+/* Narrative desription of the outcome of the turn */
+.turnNarrative {
+	font-size: 110%;
+	margin-top: 0.3em;
+	color: #950000
 }
 
-#log Messages> div > div {
-    margin-top: 0.2em;
+/* A control placed in the log */
+.turnControl {
+	margin: 0.3em 0 0.3em 0;
 }
 
 /* #rack > div, the rack with buttons used to control it */

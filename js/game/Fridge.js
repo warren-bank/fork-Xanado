@@ -100,8 +100,9 @@ define('game/Fridge', () => {
 		 * thawing, that constructor name has to be mapped to a
 		 * prototype. If a useable constructor is not found, a
 		 * warning will be printed to the console.
-		 * @param classes optional array of classes for objects expected
-		 * within frozen data.
+		 * @param {object} frozen object to thaw
+		 * @param {object[]} classes optional array of classes for
+		 * objects expected within frozen data.
 		 */
 		static thaw(object, classes) {
 			const objectsThawed = [];

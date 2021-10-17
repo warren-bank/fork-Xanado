@@ -2,7 +2,7 @@
    license information */
 
 /* eslint-env node */
-/* global DataView */
+/* global DataView, require, __dirname, process */
 
 /**
  * Program to generate a DAWG (Directed Acyclic Word Graph) from a
@@ -11,7 +11,11 @@
  *
  * Based on Appel & Jacobsen, with ideas from Weck and Toal. Not the
  * fastest, or the most efficient, but who cares? It works.
+ *
+ * `node js/dawg/compressor.js` will tell you how to use it.
+ * @module
  */
+
 const requirejs = require('requirejs');
 
 requirejs.config({

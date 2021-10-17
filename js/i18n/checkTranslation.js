@@ -13,6 +13,9 @@
  * log-timeout is in en but not in fr
  * tick-you is in en but not in fr
  * tick-them is in en but not in fr
+ *
+ * `node js/i18n/checkTranslation.js` will tell you how to use it.
+ * @module
  */
 const requirejs = require('requirejs');
 

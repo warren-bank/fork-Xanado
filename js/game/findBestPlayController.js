@@ -10,9 +10,9 @@ define('game/findBestPlayController', ['worker_threads', 'game/Fridge'], (thread
 	/**
 	 * Interface should be the same as for findBestMove.js so they
 	 * can be switched in and out for debug.
-	 * @param game game to analyse
-	 * @param array of useable letters, ' ' means blank tile
-	 * @param listener fn() taking a string or a best play
+	 * @param {Game} game game to analyse
+	 * @param {string[]} array of useable letters, ' ' means blank tile
+	 * @param {function} listener fn() taking a string or a best play
 	 */
 	function findBestPlayController(game, letters, listener) {
 		return new Promise((resolve, reject) => {

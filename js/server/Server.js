@@ -3,40 +3,33 @@
 /* eslint-env amd, node */
 /* global process, requirejs */
 
-/**
- * Main program for Crossword Game server.
- */
-define(
-	'server/Server',
-	[
-		'fs-extra', 'node-getopt', 'events',
-		'socket.io', 'http', 'https', 'nodemailer',
-		'express', 'express-negotiate', 'cookie-parser', 'errorhandler', 'express-basic-auth',   
-		'platform/Platform',
-		'game/Fridge', 'game/Game', 'game/Player', 'game/Edition',
+const server_deps = [
+	'fs-extra', 'node-getopt', 'events',
+	'socket.io', 'http', 'https', 'nodemailer',
+	'express', 'express-negotiate', 'cookie-parser', 'errorhandler', 'express-basic-auth',   
+	'platform',
+	'game/Fridge', 'game/Game', 'game/Player', 'game/Edition',
 
-		//'game/findBestPlay']; // when debugging, use this (unthreaded)
-		'game/findBestPlayController'
-	],
-	(
-		Fs, Getopt, Events,
-		SocketIO, Http, Https, NodeMailer,
-		Express, negotiate, CookieParser, ErrorHandler, BasicAuth,
-		Platform,
-		Fridge, Game, Player, Edition, findBestPlay
-	) => {
+	//'game/findBestPlay']; // when debugging, use this (unthreaded)
+	'game/findBestPlayController'
+];
+
+define('server/Server', server_deps, (
+	Fs, Getopt, Events,
+	SocketIO, Http, Https, NodeMailer,
+	Express, negotiate, CookieParser, ErrorHandler, BasicAuth,
+	Platform,
+	Fridge, Game, Player, Edition, findBestPlay
+) => {
 
 	/**
-	 * Get the server base URL. This is assumed to be just
-	 * the host and port.
-	 * @param req the request that gives the context for the url
+	 * Main program for Crossword Game server.
 	 */
-	function getBaseURL(req) {
-		return req.protocol + '://' + req.get('Host');
-	}
-
 	class Server {
 
+		/**
+		 * @param {Object} config See example-config.json for content
+		 */
 		constructor(config) {
 			this.config = config;
 			this.db = new Platform.Database('games', 'game');
@@ -62,8 +55,7 @@ define(
 					// Realm for 401 response
 					realm: Platform.i18n('games-login')
 				}));
-			} else
-				auth_router = router;
+			}
 
 			// Parse incoming requests with url-encoded payloads
 			express.use(Express.urlencoded({ extended: true }));
@@ -89,8 +81,8 @@ define(
 					return next(err);
 				}
 
-				return res.status(err.status || 500);
 				res.send(`500 ${err}`);
+				return res.status(err.status || 500);
 			});
 
 			express.use(ErrorHandler({
@@ -229,17 +221,9 @@ define(
 					console.log(message);
 					if (message.text === 'hint')
 						socket.game.hint(socket.player);
-					else if (message.text === 'advise') {
-						socket.player.wantsAdvice = !socket.player.wantsAdvice;
-						socket.game.notifyPlayer(
-							socket.player, 'message',
-							{
-								sender: 'chat-advisor',
-								text: 'chat-'
-								+ (socket.player.wantsAdvice
-								   ? 'enabled' : 'disabled')
-							});
-					} else
+					else if (message.text === 'advise')
+						socket.game.toggleAdvice(socket.player);
+					else
 						socket.game.notifyPlayers('message', message);
 				});
 			});
@@ -247,18 +231,16 @@ define(
 
 		/**
 		 * Load the game from the DB, if not already in server memory
-		 * @param key game key
-		 * @return a Promise that resolves to a loaded Game
+		 * @param {string} key game key
+		 * @return {Promise} Promise that resolves to a {@link Game}
 		 */
 		async loadGame(key) {
 			if (this.games[key])
 				return Promise.resolve(this.games[key]);
 
 			return this.db.get(key, Game.classes)
+			.then(game => game.onLoad(this.db))
 			.then(game => {
-
-				game.setDB(this.db);
-
 				Events.EventEmitter.call(game);
 
 				Object.defineProperty(
@@ -267,20 +249,17 @@ define(
 				this.games[key] = game;
 				console.log(`Loaded game ${game}`);
 
-				// May need to trigger several computer players until we
-				// get to a human
-				if (!game.ended) {
-					console.log(game);
-					const nextPlayer = game.getNextPlayer();
-					console.log(`Next to play is ${nextPlayer}`);
-					if (nextPlayer.isRobot) {
-						return game.autoplay(nextPlayer)
-						// May autoplay next robot recursively
-						.then(turn => game.finishTurn(turn));
-					}
-				}
+				if (game.ended)
+					return game;
 
-				return game;
+				const nextPlayer = game.getActivePlayer();
+				console.log(`Next to play is ${nextPlayer}`);
+				if (nextPlayer.isRobot) {
+					return game.autoplay(nextPlayer)
+					// May autoplay next robot recursively
+					.then(turn => game.finishTurn(turn));
+				} else
+					return game;
 			})
 			.catch(e => {
 				console.log(`Failed to load game ${key}`, e);
@@ -292,9 +271,7 @@ define(
 		 * Notify monitors (/games pages) that something has changed
 		 */
 		updateMonitors() {
-			this.monitors.forEach(socket => {
-				socket.emit('update');
-			});
+			this.monitors.forEach(socket => socket.emit('update'));
 		}
 
 		/**
@@ -307,9 +284,10 @@ define(
 
 		/**
 		 * Handler for GET /games
-		 * Sends a list of active games (optionally with completed games)
-		 * pass ?active to get only active games
-		 * @return a Promise
+		 * Sends a catalogue of active games (optionally with completed games)
+		 * pass ?active to get only active games. Note: does NOT send game
+		 * onjects, rather a simple catalogue of Objects.
+		 * @return {Promise} Promise to send a catalogue of games
 		 */
 		handle_games(req, res) {
 			const server = this;
@@ -331,7 +309,7 @@ define(
 		 * Handler for GET /history
 		 * Sends a summary of cumulative player scores to date, for all
 		 * unique players.
-		 * @return a Promise
+		 * @return {Promise}
 		 */
 		handle_history(req, res) {
 			const server = this;
@@ -346,7 +324,6 @@ define(
 				  .filter(game => game.ended)
 				  .map(game => {
 					  const winner = game.getWinner();
-					  //console.log(`${winner.name} won ${game.key}`);
 					  if (wins[winner.name])
 						  wins[winner.name]++;
 					  else
@@ -364,9 +341,10 @@ define(
 		}
 
 		/**
-		 * Handler for GET /locales; sends a list of available locales.
-		 * Used when selecting a presentation language for the UI.
-		 * @return a Promise
+		 * Handler for GET /locales
+		 * Sends a list of available locales.  Used when selecting a
+		 * presentation language for the UI.
+		 * @return {Promise} Promise to list locales
 		 */
 		handle_locales(req, res) {
 			const db = new Platform.Database('i18n', 'json');
@@ -378,13 +356,13 @@ define(
 		}
 
 		/**
-		 * Promise to get an index of available editions. Note that
-		 * editions are loaded using requirejs, so there's an implicit
-		 * assumption about Platform.Database here
+		 * Handler for GET /editions
+		 * Promise to get an index of available editions.
+		 * return {Promise} Promise to index available editions
 		 */
 		handle_editions(req, res) {
 			const db = new Platform.Database('editions', 'js');
-			db.keys()
+			return db.keys()
 			.then(editions => res.send(
 				editions
 				.filter(e => !/^_/.test(e))))
@@ -392,22 +370,23 @@ define(
 		}
 
 		/**
-		 * Promise to Index available dictionaries
+		 * Handler for GET /dictionaries
+		 * return {Promise} Promise to index available dictionaries
 		 */
 		handle_dictionaries(req, res) {
 			const db = new Platform.Database('dictionaries', 'dict');
-			db.keys()
+			return db.keys()
 			.then(keys => res.send(keys))
 			.catch(e => this.trap(e, res));
 		}
 
 		/**
-		 * Handler for /sendTurnReminders
+		 * Handler for POST /sendTurnReminders
 		 * Email reminders to next human player in each game
 		 */
 		handle_sendTurnReminders(req, res) {
 			console.log("Sending turn reminders");
-			const surly = req.protocol + '://' + req.get('Host');
+			const surly = `${req.protocol}://${req.get('Host')}`;
 			this.db.keys()
 			.then(keys => keys.map(
 				key => this.games[key] || this.db.get(key, Game.classes)))
@@ -419,8 +398,8 @@ define(
 		}
 
 		/**
-		 * Handler for POST /newGame. 
-		 * @return a Promise
+		 * Handler for POST /newGame
+		 * @return {Promise}
 		 */
 		handle_newGame(req, res) {
 			console.log(`Constructing new game ${req.body.edition}`);
@@ -441,10 +420,8 @@ define(
 				return new Game(edition.name, dictionary)
 				.create();
 			})
+			.then(game => game.onLoad(this.db))
 			.then(game => {
-
-				game.setDB(this.db);
-
 				let haveHuman = false;
 				for (let p of req.body.players) {
 					const player = new Player(p.name, p.isRobot == 'true');
@@ -462,7 +439,7 @@ define(
 				if (!haveHuman)
 					throw Error('error-need-human');
 
-				// Pick a tile from the bag
+				// Pick a random tile from the bag
 				game.whosTurn = Math.floor(Math.random() * game.players.length);
 
 				game.time_limit = req.body.time_limit || 0;
@@ -474,11 +451,11 @@ define(
 				console.log(game.toString());
 
 				// Save the game when everything has been initialised
-				// (asynchronous)
+				// (asynchronously)
 				game.save();
 
 				game.emailInvitations(
-					req.protocol + '://' + req.get('Host'),
+					`${req.protocol}://${req.get('Host')}`,
 					this.config);
 
 				// Redirect back to control panel
@@ -491,7 +468,8 @@ define(
 		 * Handler for /game/:gameKey/:playerKey, player joining a game.
 		 * Sets a cookie in the response with the player key so future
 		 * requests can be handled correctly.
-		 * @return Promise
+		 * TODO: re-route to /join/:gameKey/:playerKey
+		 * @return {Promise}
 		 */
 		handle_enterGame(req, res) {
 			const gameKey = req.params.gameKey;
@@ -514,6 +492,9 @@ define(
 		 * If the accept: in the request is asking for 'application/json'
 		 * then respond with JSON with the current game state, if it's
 		 * asking for HTML respond with the HTML page for the game.
+		 * TODO: split these into separate routes /gameJSON/:gameKey
+		 * and /gameHTML/:gameKey, or simply route the HTML request to
+		 * the static HTML
 		 */
 		handle_gameGET(req, res) {
 			const gameKey = req.params.gameKey;
@@ -527,23 +508,26 @@ define(
 		}
 
 		/**
-		 * Handler for GET /bestPlay
-		 * @return Promise
+		 * Handler for GET /bestPlay/:gameKey/:playerKey
+		 * Find the best play for the player, given the current board
+		 * state. Note that it may not be their turn, that's OK, this is debug
+		 * @return {Promise}
 		 */
 		handle_bestPlay(req, res) {
 			const gameKey = req.params.gameKey;
 			const playerKey = req.params.playerKey;
 			return this.loadGame(gameKey)
-			.then(game => game.lookupPlayer(playerKey))
-			// Find the best play for the player, given the current board
-			// state. Note that it may not be their turn, that's OK, this is debug
-			.then(info => findBestPlay(info.game, info.player.rack.tiles()))
+			.then(game => {
+				const player = game.getPlayerFromKey(playerKey);
+				return findBestPlay(game, player.rack.tiles());
+			})
 			.then(play => res.send(Fridge.freeze(play)))
 			.catch(e => this.trap(e, res));
 		}
 
 		/**
-		 * Handler for POST /deleteGame
+		 * Handler for POST /deleteGame/:gameKey
+		 * Delete the game.
 		 */
 		handle_deleteGame(req, res) {
 			const gameKey = req.params.gameKey;
@@ -553,6 +537,10 @@ define(
 			.catch(e => this.trap(e, res));
 		}
 
+		/**
+		 * Handler for POST /anotherGame/:gameKey
+		 * Create another game with the same players.
+		 */
 		handle_anotherGame(req, res) {
 			return this.loadGame(req.params.gameKey)
 			.then(game => game.anotherGame())
@@ -560,31 +548,31 @@ define(
 		}
 
 		/**
-		 * Handler for POST /game
+		 * Handler for POST /game/:gameKey
 		 * Result is always a Turn object, though the actual content
 		 * varies according to the command sent.
-		 * @return Promise
+		 * TODO: split these commands into separate routes
+		 * @return {Promise} Promise that resolves to undefined.
 		 */
 		handle_gamePOST(req, res) {
 			const gameKey = req.params.gameKey;
 			// Get cookie set by handle_enterGame that identifies the player
 			const playerKey = req.cookies[gameKey];
 			return this.loadGame(gameKey)
-			.then(game => game.lookupPlayer(playerKey))
-			.then(info => {
-				const game = info.game;
+			.then(game => {
+				const player = game.getPlayerFromKey(playerKey);
 
 				if (game.ended)
 					return Promise.resolve();
 
 				// Who the request is coming from
-				const player = info.player;
 				const command = req.body.command;
 				const args = req.body.args ? JSON.parse(req.body.args) : null;
 				
 				console.log(`COMMAND ${command} player ${player.name} game ${game.key}`, args);
 
 				let promise;
+				// TODO: create individual routes rather than using this switch
 				switch (command) {
 
 				case 'makeMove':
@@ -611,13 +599,16 @@ define(
 					promise = game.takeBack('took-back');
 					break;
 
+				case 'confirmGameOver':
+					promise = game.confirmGameOver('ended-game-over');
+					break;
+
 				default:
-					// Terminal, no point in translating
 					throw Error(`unrecognized command: ${command}`);
 				}
 
 				return promise.then(turn => {
-					game.finishTurn(turn)
+					return game.finishTurn(turn)
 					.then(() => {
 						// Notify non-game monitors (games pages)
 						this.updateMonitors();

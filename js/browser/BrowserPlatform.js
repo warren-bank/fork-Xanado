@@ -7,14 +7,20 @@
  * for the abstract base class.  Note there is no Platform.Database
  * implementation for the browser.
  */
-define('platform/Platform', [ "game/Platform" ], (Platform) => {
+define('platform', [ "game/Platform" ], (Platform) => {
 
+	/**
+	 * Implementation of game/Platform
+	 * @implements Platform
+	 */
 	class BrowserPlatform extends Platform {
+		/** See {@link Platform#trigger} for documentation */
 		static trigger(e, args) {
 			// Pass events straight to the document
 			return $(document).trigger(e, args);
 		}
 
+		/** See {@link Platform#getResource} for documentation */
 		static getResource(path) {
 			return $.get(path);
 		}
@@ -22,9 +28,12 @@ define('platform/Platform', [ "game/Platform" ], (Platform) => {
 		static findBestPlay() {
 			// NOP, not available in browser
 		}
-	}
 
-	BrowserPlatform.i18n = $.i18n;
+		/** See {@link Platform#i18n} for documentation */
+		static i18n() {
+			return $.i18n.apply(null, arguments);
+		}
+	}
 
 	return BrowserPlatform;
 });

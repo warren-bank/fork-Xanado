@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd, jquery */
 
-define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platform, GenKey, Rack) => {
+define('game/Player', ["platform", 'game/GenKey', 'game/Rack'], (Platform, GenKey, Rack) => {
 
 	// Unicode characters
 	const BLACK_CIRCLE = '\u25cf';
@@ -10,9 +10,10 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 	class Player {
 
 		/**
-		 * @param name String name of the player, or a Player object to copy
-		 * @param isRobot if name is a string and true then it's a robot. If
-		 * name is a Player object, ignored.
+		 * @param {(string|Player)} name name of the player, or
+		 * a Player object to copy
+		 * @param {boolean} isRobot if name is a string and true then
+		 * it's a robot. If name is a Player object, ignored.
 		 */
 		constructor(name, isRobot) {
 			if (name instanceof Player) {
@@ -24,25 +25,51 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 				this.key = GenKey();
 				this.isRobot = isRobot;
 			}
+
+			/**
+			 * Player name
+			 * @member {string}
+			 */
 			this.name = name;
-			this.score = 0;
-			// Index of the player in the game, assigned when they
-			// join a game
+
+			/**
+			 * Index of the player in the game, assigned when they
+			 * join a game
+			 * @member {number}
+			 */
 			this.index = -1;
-			// Player doesn't have a rack until they join a game, as
-			// it's only then we know how big it has to be.
+
+			/**
+			 * Player doesn't have a rack until they join a game, as
+			 * it's only then we know how big it has to be.
+			 * @member {Rack}
+			 */
 			this.rack = null;
-			// Number of times this player has passed (or swapped)
+
+			/**
+			 * Number of times this player has passed (or swapped)
+			 * @member {number}
+			 */
 			this.passes = 0;
-			// Set true to advise player of better plays than the one
-			// they used
+
+			/**
+			 * Set true to advise player of better plays than the one
+			 * they used
+			 * @member {boolean}
+			 */
 			this.wantsAdvice = false;
-			//console.log('Created',this);
+
+			/**
+			 * Player's current score
+			 * @member {number}
+			 */
+			this.score = 0;
 		}
 
 		/**
-		 * Create simple structure describing the player, for use in the
-		 * games interface
+		 * Create simple structure describing a subset of the player
+		 * state, for sending to the 'games' interface
+		 * @param {Game} game the game the player is participating in
 		 */
 		catalogue(game) {
 			return {
@@ -50,15 +77,16 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 				isRobot: this.isRobot,
 				connected: this.isRobot || (game.getConnection(this) !== null),
 				key: this.key,
+				score: this.score,
 				email: this.email ? true : false
 			};
 		}
 
 		/**
 		 * Join a game by drawing an initial rack from the letter bag.
-		 * @param letterBag LetterBag to draw tiles from
-		 * @param rackSize size of racks in this game
-		 * @param index 'Player N'
+		 * @param {LetterBag} letterBag LetterBag to draw tiles from
+		 * @param {number} rackSize size of racks in this game
+		 * @param {number} index 'Player N'
 		 */
 		joinGame(letterBag, rackSize, index) {
 			// +1 to allow space for tile sorting in the UI
@@ -73,8 +101,8 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 		/**
 		 * Set a play timeout for the player if they haven't player before
 		 * time has elapsed
-		 * @param time number of ms before elapse, or 0 for no timeout
-		 * @param timedOut a function invoked if the timer expires
+		 * @param {number} time number of ms before elapse, or 0 for no timeout
+		 * @param {function} timedOut a function() invoked if the timer expires
 		 */
 		startTimer(time, timedOut) {
 			this.stopTimer();
@@ -118,12 +146,19 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 		}
 
 		/**
-		 * Promise to send an email invitation to a player
-		 * Only useful server-side
-		 * @param subject the subject of the mail
-		 * @param gameURL the URL of the game
-		 * @param config the global config object
-		 * @return a promise that resolves to the player's name
+		 * Toggle wantsAdvice on/off
+		 */
+		toggleAdvice() {
+			this.wantsAdvice = !this.wantsAdvice;
+		}
+
+		/**
+		 * Promise to send an email invitation to a player on
+		 * the server side only.
+		 * @param {string} subject the subject of the mail
+		 * @param {string} gameURL the URL of the game
+		 * @param {object} config the global config object
+		 * @return {Promise} Promise that resolves to the player's name
 		 */
 		emailInvitation(subject, gameURL, config) {
 			if (!config.mail || !config.mail.transport)
@@ -144,8 +179,11 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 		}
 
 		/**
-		 * Create score table representation of the player
-		 * Only useful browser-side
+		 * Create score table representation of the player on the browser
+		 * side only.
+		 * @param {Player} thisPlayer the player for whom the DOM is
+		 * being generated
+		 * @return {jQuery}
 		 */
 		createScoreDOM(thisPlayer) {
 			const $tr = $(`<tr id='player${this.index}'></tr>`);
@@ -155,24 +193,37 @@ define('game/Player', ["platform/Platform", 'game/GenKey', 'game/Rack'], (Platfo
 				: this.name;
 			$tr.append(`<td class='playerName'>${who}</td>`);
 			$tr.append('<td class="remainingTiles"></td>');
+			/**
+			 * Jquery object that contains this player's online status on
+			 * the browser side only.
+			 * @private
+			 * @member {jQuery}
+			 */
 			this.$status = $(`<td class='status offline'>${BLACK_CIRCLE}</td>`);
 			$tr.append(this.$status);
+			/**
+			 * Jquery object that contains this player's score on
+			 * the browser side only.
+			 * @private
+			 * @member {jQuery}
+			 */
 			this.$score = $(`<td class='score'>${this.score}</td>`);
 			$tr.append(this.$score);
 			return $tr;
 		}
 
 		/**
-		 * Refresh score table representation of the player
-		 * Only useful browser-side
+		 * Refresh score table representation of the player on the browser
+		 * side only.
 		 */
 		refreshDOM() {
 			this.$score.text(this.score);
 		}
 
 		/**
-		 * Set 'online' status of player in UI
-		 * Only useful browser-side
+		 * Set 'online' status of player in UI on the browser
+		 * side only.
+		 * @param {boolean} tf true/false
 		 */
 		online(tf) {
 			if (tf)

@@ -2,13 +2,7 @@
    license information */
 /* eslint-env amd, jquery */
 
-/**
- * A square on the game board or rack. A Tile holder with some
- * underlying attributes; a position, an owner, and a type that
- * dictates the score multipliers that apply.  The owner will be a
- * Rack or a Board.
- */
-define('game/Square', ['platform/Platform'], Platform => {
+define('game/Square', ['platform'], Platform => {
 
 	// Map the characters in the board template to CSS classes
 	const CSS_CLASS =  {
@@ -23,12 +17,18 @@ define('game/Square', ['platform/Platform'], Platform => {
 	};
 
 	/**
-	 * @param type  /^[QqTtSs_]$/ see Board.js
-	 * @param owner Board or Rack
-	 * @param col column where the square is
-	 * @param row row where the square is (undefined on a rack)
+	 * A square on the game board or rack. A Tile holder with some
+	 * underlying attributes; a position, an owner, and a type that
+	 * dictates the score multipliers that apply. The owner will be a
+	 * subclass of {@link Surface} (a {@link Rack} or a {@link Board})
 	 */
 	class Square {
+		/**
+		 * @param {string} type /^[QqTtSs_]$/ see {@link Board}
+		 * @param {Surface} owner the container this is in
+		 * @param {number} col 0-based column where the square is
+		 * @param {number} row 0-based row where the square is (undefined on a rack)
+		 */
 		constructor(type, owner, col, row) {
 			this.type = type;
 			this.owner = owner; // Rack or Board
@@ -65,8 +65,8 @@ define('game/Square', ['platform/Platform'], Platform => {
 
 		/**
 		 * Place a tile on this square
-		 * @param tile the Tile to place
-		 * @param lockedwhether the tile is to be locekd to the square
+		 * @param {Tile} tile the Tile to place
+		 * @param {boolean} lockedwhether the tile is to be locekd to the square
 		 * (fixed on the board)
 		 */
 		placeTile(tile, locked) {
@@ -138,6 +138,10 @@ define('game/Square', ['platform/Platform'], Platform => {
 				this.refreshEmpty($div);
 		}
 
+		/**
+		 * Set the square as (un)selected; UI
+		 * @param {boolean} sel 
+		 */
 		setSelected(sel) {
 			if (sel && this.tile)
 				$(`#${this.id}`).addClass('Selected');
@@ -150,10 +154,9 @@ define('game/Square', ['platform/Platform'], Platform => {
 		}
 
 		/**
-		 * @private
 		 * Update a square that has a Tile dropped on it
-		 * @param square the square to update
-		 * @param $div the <div> for the square
+		 * @param {jQuery} $div the <div> for the square
+		 * @private
 		 */
 		refreshOccupied($div) {
 			if ($div.hasClass('ui-droppable'))
@@ -206,10 +209,9 @@ define('game/Square', ['platform/Platform'], Platform => {
 		}
 
 		/**
-		 * @private
 		 * Update a square that doesn't have a Tile dropped on it
-		 * @param square the square to update
-		 * @param $div the <div> for the square
+		 * @param {jQuery} $div the <div> for the square
+		 * @private
 		 */
 		refreshEmpty($div) {
 

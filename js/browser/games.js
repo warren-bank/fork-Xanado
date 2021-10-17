@@ -42,19 +42,17 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 		if (game.time_limit > 0)
 			msg.push($.i18n('game-time-limit', game.time_limit));
 		if (game.ended) {
-			const info = game.ended;
-			let results;
-			if (info.players) {
-				results = info.players.map(p => {
-					const s = game.getPlayer(p.player).name +
-						  ':' + p.score;
-					if (p.score === info.winningScore)
-						return `<span class='winner'>${s}</span>`;
-					else
-						return s;
-				}).join(', ');
-			}
-			msg.push($.i18n(info.reason, results));
+			const winningScore = game.players.reduce(
+				(max, p) =>
+				Math.max(max, p.score), 0);
+			const results = game.players.map(p => {
+				const s = `${p.name}:${p.score}`;
+				if (p.score === winningScore)
+					return `<span class='winner'>${s}</span>`;
+				else
+					return s;
+			}).join(', ');
+			msg.push($.i18n(game.ended, results));
 			$p.append(msg.join(', '));
 		} else {
 			$p.append(msg.join(', '));

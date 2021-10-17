@@ -6,6 +6,11 @@
 
 	"NOTE": "PLEASE KEEP THIS SORTED ALPHABETICALLY",
 
+	"action-commitMove": "Finished Turn",
+	"action-confirmGameOver": "Accept last move",
+	"action-swap": "Swap tiles",
+	"action-pass": "Pass",
+
 	"alert-reminders": "Reminder emailed to $1",
 	"and": "and",
 
@@ -16,7 +21,7 @@
 
 	"button-add-player": "Add Player",
 	"button-another-game": "Another game",
-	"button-challenge": "Challenge $1's move",
+	"button-challenge": "Challenge $1's turn",
 	"button-create-game": "Create Game",
 	"button-create-new-game": "Create a new game",
 	"button-email": "Email",
@@ -24,7 +29,7 @@
 	"button-next-game": "Next game",
 	"button-pass": "Pass",
 	"button-shuffle": "Shuffle",
-	"button-take-back": "Take back move",
+	"button-take-back": "Take back last turn",
 	"button-turn-reminders": "Email turn reminders",
 	
 	"chat-advice": "$1 at row $2 column $3 would have scored $4",
@@ -42,7 +47,7 @@
 	"email-your-turn": "It is your turn in your game with $1",
 
 	"ended-all-passed-twice": "All players passed twice: $1",
-	"ended-game-over": "Game over: $1",
+	"ended-game-over": "Game over, $1",
 	"ended-timed-out": "Timed out",
 
 	"error-create-failed": "Failed to create game: $1",
@@ -80,7 +85,7 @@
 	"letterbag-remaining": "$1 {{PLURAL:$1|tile|tiles}} left in the bag",
 
 	"log-challenge-failed": "Challenge failed! All words are OK",
-	"log-challenge-won": "Previous move challenged successfully!",
+	"log-challenge-won": "Previous turn challenged successfully!",
 	"log-gained-from-racks": "$1 gained $2 {{PLURAL:$2|point|points}} from the racks of the other players",
 	"log-game-started": "Game started",
 	"log-letter-not-on-rack": "'$1' is not on the rack",
@@ -91,21 +96,23 @@
 	"log-same-players": "if you want another game with the same players",
 	"log-swap": "Swapped $1 {{PLURAL:$1|tile|tiles}}",
 	"log-timeout": "Timed out",
-	"log-took-back": "Took back previous move",
+	"log-they-no-more-tiles": "$1 has no more tiles, game will be over unless you challenge",
+	"log-took-back": "Took back previous turn",
 	"log-total": " total $1",
-	"log-turn": "$1's turn",
+	"log-turn-player": "<span class='playerName'>$1</span>'s turn",
 	"log-winner": "$1 {{PLURAL:$2|has|have}} won",
+	"log-you-no-more-tiles":  "You have no more tiles, game will be over if $1 doesn't challenge your play",
 
 	"name-human-player": "Human",
 	"name-new-player": "Player $1",
 	"name-robot-player": "Robot",
 
-	"notify-body-challenged": "$1 has successfully challenged your move. You have lost the $2 points you scored, and the tiles you played are back on your rack",
+	"notify-body-challenged": "$1 has successfully challenged your turn. You have lost the $2 points you scored, and the tiles you played are back on your rack",
 	"notify-body-game-over": "Your game is over...",
-	"notify-body-retracted": "$1 has taken back their move",
-	"notify-body-they-failed": "$1 challenged your move, but the dictionary backed you up",
+	"notify-body-retracted": "$1 has taken back their turn",
+	"notify-body-they-failed": "$1 challenged your turn, but the dictionary backed you up",
 	"notify-body-you-failed": "Your challenge failed, you have lost your turn",
-	"notify-body-your-turn": "$1 has made a move and now it is your turn",
+	"notify-body-your-turn": "$1 has taken their turn and now it is your turn",
 
 	"notify-title-challenged": "Challenged!",
 	"notify-title-game-over": "Game over",
@@ -138,6 +145,8 @@
 	"square-TripleLetter": "TRIPLE LETTER SCORE",
 	"square-TripleWord": "TRIPLE WORD SCORE",
 
+	"strings-from": "Strings from $1",
+
 	"tick-you": "You have $1 seconds remaining to play",
 	"tick-them": "$1 has $2 seconds to play",
 
@@ -151,7 +160,7 @@
 	"tooltip-name": "Enter the name by which the player will be known. Names must be unique",
 	"tooltip-player-email": "Enter the player's full email address",
 	"tooltip-remove-player": "Remove this player",
-	"tooltip-time-limit": "Maximum time allowed to make a move, in minutes. If a player fails to make a move in this time, they will be forced to pass. Leave blank for no time limit",
+	"tooltip-time-limit": "Maximum time allowed to take a turn, in minutes. If a player fails to take a turn in this time, they will be forced to pass. Leave blank for no time limit",
 
 	"turn-theirs": "$1's turn",
 	"turn-yours": "Your turn",

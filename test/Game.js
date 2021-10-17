@@ -10,7 +10,7 @@ requirejs.config({
 	paths: {
 		game: 'js/game',
 		dawg: 'js/dawg',
-		platform: 'js/server'
+		platform: 'js/server/ServerPlatform'
 	}
 });
 
@@ -25,8 +25,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			game.addPlayer(player);
 			// Override the random rack
 			player.rack.empty();
-			player.rack.addTile(new Tile('I', false, 1));
-			player.rack.addTile(new Tile(null, true, 0));
+			player.rack.addTile(new Tile({letter:'I', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:null, isBlank:true, score:0}));
 			return game.autoplay(player);
 		})
 
@@ -35,10 +35,10 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			let player = new Player('test', true);
 			game.addPlayer(player);
 			player.rack.empty();
-			player.rack.addTile(new Tile('A', false, 1));
-			player.rack.addTile(new Tile('B', false, 1));
-			player.rack.addTile(new Tile('C', false, 1));
-			player.rack.addTile(new Tile('D', false, 1));
+			player.rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'B', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'C', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'D', isBlank:false, score:1}));
 			return game.autoplay(player);
 		})
 
@@ -47,9 +47,9 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			let player = new Player('test', true);
 			game.addPlayer(player);
 			player.rack.empty();
-			player.rack.addTile(new Tile(' ', true, 1));
-			player.rack.addTile(new Tile(undefined, true, 1));
-			player.rack.addTile(new Tile(null, true, 1));
+			player.rack.addTile(new Tile({letter:' ', isBlank:true, score:1}));
+			player.rack.addTile(new Tile({letter:undefined, isBlank:true, score:1}));
+			player.rack.addTile(new Tile({letter:null, isBlank:true, score:1}));
 			return game.autoplay(player);
 		});
 	});
@@ -60,11 +60,11 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			const player = new Player('test1', false);
 			game.addPlayer(player);
 			player.rack.empty();
-			player.rack.addTile(new Tile('A', false, 1));
-			player.rack.addTile(new Tile('B', false, 1));
-			player.rack.addTile(new Tile('C', false, 1));
-			player.rack.addTile(new Tile('D', false, 1));
-			player.rack.addTile(new Tile('E', false, 1));
+			player.rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'B', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'C', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'D', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'E', isBlank:false, score:1}));
 			game.addPlayer(new Player('test2', false));
 			// Leave 5 tiles in the bag - enough to swap
 			game.letterBag.getRandomTiles(
@@ -79,52 +79,52 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 								  '| | | | | | | | | | | |\n' +
 								  '| | | | | | | | | | | |\n' +
 								  '| | | | | | | | | | | |\n' +
-								  '| | | | | | | | | | | |\n');
+								  '| | | | | | | | | | | |\n')
+			.then(game => game.checkTurn(player));
 		})
 		.then(game => game.swap([
-			new Tile('A', false, 1),
-			new Tile('C', false, 1),
-			new Tile('E', false, 1)
+			new Tile({letter:'A', isBlank:false, score:1}),
+			new Tile({letter:'C', isBlank:false, score:1}),
+			new Tile({letter:'E', isBlank:false, score:1})
 		]))
 		.then(turn => {
 			//console.log('TURN', turn);
 			assert(turn instanceof Turn);
 			assert.equal(turn.type, 'swap');
 			assert.equal(turn.player, 0);
-			assert.equal(turn.deltaScore, 0);
 			assert.equal(turn.nextToGo, 1);
 			assert.equal(turn.leftInBag, 5);
-			assert.equal(turn.onRacks[0], 5);
-			assert.equal(turn.onRacks[1], 5);
+			console.log(turn);
 			let newt = turn.newTiles;
 			assert.equal(3, newt.length);
 		});
 	});
 
 	tr.addTest('makeMove', () => {
+		const W = new Tile({letter:'W', isBlank:false, score:1, col: 7, row: 7});
+		const O = new Tile({letter:'O', isBlank:false, score:1, col: 8, row: 7});
+		const R = new Tile({letter:'R', isBlank:false, score:1, col: 9, row: 7});
+		const D = new Tile({letter:'D', isBlank:false, score:1, col: 10, row: 7});
+		const move = new Move({
+			placements: [ W, O, R, D ],
+			words: [ { word: 'WORD', score: 99 }],
+			score: 99
+		});
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
 			const player = new Player('test1', false);
 			game.addPlayer(player);
 			player.rack.empty();
-			player.rack.addTile(new Tile('W', false, 1));
-			player.rack.addTile(new Tile('O', false, 1));
-			player.rack.addTile(new Tile('R', false, 1));
-			player.rack.addTile(new Tile('D', false, 1));
-			player.rack.addTile(new Tile('X', false, 1));
+			player.rack.addTile(new Tile({letter:'W', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'O', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'R', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'D', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
 			game.addPlayer(new Player('test2', false));
 			// Leave 3 tiles in the bag - not enough to refill the rack
 			game.letterBag.getRandomTiles(
 				game.letterBag.remainingTileCount() - 3);
-			return game.makeMove(
-				new Move(
-					[
-						new Tile('W', false, 1, 7, 7),
-						new Tile('O', false, 1, 8, 7),
-						new Tile('R', false, 1, 9, 7),
-						new Tile('D', false, 1, 10, 7) ],
-					[ { word: 'WORD', score: 99 }],
-					99));
+			return game.makeMove(move);
 		})
 		.then(turn => {
 			console.log(turn);
@@ -134,11 +134,79 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert.equal(turn.deltaScore, 99);
 			assert.equal(turn.nextToGo, 1);
 			assert.equal(turn.leftInBag, 0);
-			assert.equal(turn.onRacks[0], 4);
-			assert.equal(turn.onRacks[1], 5);
-			assert(turn.move instanceof Move);
+			assert.deepEqual(turn.move, move);
 			let newt = turn.newTiles;
 			assert.equal(3, newt.length);
+		});
+	});
+
+	tr.addTest('lastMove', () => {
+		return new Game('Tiny', 'Oxford_5000').create()
+		.then(game => {
+			const player = new Player('test1', false);
+			game.addPlayer(player);
+			player.rack.empty();
+			player.rack.addTile(new Tile({letter:'W', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'O', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'R', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'D', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
+			game.addPlayer(new Player('test2', false));
+			// Empty the bag
+			game.letterBag.getRandomTiles(
+				game.letterBag.remainingTileCount());
+			return game.makeMove(
+				new Move({
+					placements: [
+						new Tile({letter:'X', isBlank:false, score:1, col: 6, row: 7}),
+						new Tile({letter:'W', isBlank:false, score:1, col: 7, row: 7}),
+						new Tile({letter:'O', isBlank:false, score:1, col: 8, row: 7}),
+						new Tile({letter:'R', isBlank:false, score:1, col: 9, row: 7}),
+						new Tile({letter:'D', isBlank:false, score:1, col: 10, row: 7})
+					],
+					words: [ { word: 'XWORD', score: 99 }],
+					score: 99
+				}));
+		})
+		.then(turn => {
+			console.log(turn);
+			assert(turn instanceof Turn);
+			assert.equal(turn.type, 'move');
+			assert.equal(turn.player, 0);
+			assert.equal(turn.deltaScore, 99);
+			assert.equal(turn.nextToGo, 1);
+			assert.equal(turn.leftInBag, 0);
+			assert(turn.move instanceof Move);
+			let newt = turn.newTiles;
+			assert.equal(0, newt.length);
+		});
+	});
+
+	tr.addTest('confirm', () => {
+		return new Game('Tiny', 'Oxford_5000').create()
+		.then(game => {
+			const player = new Player('test1', false);
+			game.addPlayer(player);
+			player.rack.empty();
+			player.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
+			const player2 = new Player('test2', false);
+			game.addPlayer(player2);
+			player2.rack.empty();
+			// Empty the bag
+			game.letterBag.getRandomTiles(
+				game.letterBag.remainingTileCount());
+			return game.confirmGameOver('ended-game-over');
+		})
+		.then(turn => {
+			console.log(turn);
+			assert(turn instanceof Turn);
+			assert.equal(turn.type, 'end-game');
+			assert.equal(turn.player, 0);
+			assert.equal(turn.deltaScore[0], -3);
+			assert.equal(turn.deltaScore[1], 3);
+			assert.equal(turn.leftInBag, 0);
 		});
 	});
 
@@ -157,7 +225,6 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert(turn instanceof Turn);
 			assert.equal(turn.type, 'challenge-failed');
 			assert.equal(turn.player, 1);
-			assert.equal(turn.deltaScore, 0);
 			assert.equal(turn.nextToGo, 0);
 		});
 	});
@@ -170,21 +237,22 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			const player = new Player('test1', true);
 			game.addPlayer(player);
 			player.rack.empty();
-			player.rack.addTile(new Tile('X', false, 1));
-			player.rack.addTile(new Tile('Y', false, 1));
-			player.rack.addTile(new Tile('Z', false, 1));
-			player.rack.addTile(new Tile('Z', false, 1));
-			player.rack.addTile(new Tile('Y', false, 1));
+			player.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
 			game.addPlayer(new Player('test2', true));
 			return game.makeMove(
-				new Move(
-					[
-						new Tile('X', false, 1, 7, 7),
-						new Tile('Y', false, 1, 8, 7),
-						new Tile('Z', false, 1, 9, 7),
-						new Tile('Z', false, 1, 10, 7) ],
-					[ { word: 'XYZZ', score: 99 }],
-					99));
+				new Move({
+					placements: [
+						new Tile({letter:'X', isBlank:false, score:1, col: 7, row: 7}),
+						new Tile({letter:'Y', isBlank:false, score:1, col: 8, row: 7}),
+						new Tile({letter:'Z', isBlank:false, score:1, col: 9, row: 7}),
+						new Tile({letter:'Z', isBlank:false, score:1, col: 10, row: 7}) ],
+					words: [ { word: 'XYZZ', score: 99 }],
+					score: 99
+				}));
 		})
 		.then(() => game.challenge())
 		.then(turn => {
@@ -197,6 +265,95 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert.equal(turn.nextToGo, 1);
 		});
 	});
+
+	tr.addTest('challengeLastMoveGood', () => {
+		const game = new Game('Tiny', 'Oxford_5000');
+		const player1 = new Player('test1', false);
+		const player2 = new Player('test2', false);
+
+		return game.create()
+		.then(game => {
+			game.addPlayer(player1);
+			player1.rack.empty();
+			player1.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
+			player1.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
+			player1.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
+			game.addPlayer(player2);
+
+			// Empty the bag
+			game.letterBag.getRandomTiles(
+				game.letterBag.remainingTileCount());
+
+			return game.makeMove(
+				new Move({
+					placements: [
+						new Tile({letter:'X', isBlank:false, score:1, col: 6, row: 7}),
+						new Tile({letter:'Y', isBlank:false, score:1, col: 7, row: 7}),
+						new Tile({letter:'Z', isBlank:false, score:1, col: 8, row: 7}),
+					],
+					words: [ { word: 'XYZ', score: 3 }],
+					score: 3
+				}));
+		})
+		// Player 0 has played, so issue a challenge on behalf of player 2
+		.then(() => game.challenge())
+		.then(turn => {
+			console.log(turn);
+			assert(turn instanceof Turn);
+			assert.equal(turn.type, 'challenge-won');
+			assert.equal(turn.player, 0);
+			assert.equal(turn.leftInBag, 0);
+			assert.equal(turn.nextToGo, 1);
+			assert.equal(turn.deltaScore, -3);
+			assert.equal(0, turn.newTiles.length);
+			assert.equal(1, turn.challenger);
+			assert(!turn.emptyPlayer);
+		});
+	});
+
+	tr.addTest('challengeLastMoveBad', () => {
+		const game = new Game('Tiny', 'Oxford_5000');
+		const player1 = new Player('test1', false);
+		const player2 = new Player('test2', false);
+
+		return game.create()
+		.then(game => {
+			game.addPlayer(player1);
+			player1.rack.empty();
+			player1.rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
+			player1.rack.addTile(new Tile({letter:'R', isBlank:false, score:1}));
+			player1.rack.addTile(new Tile({letter:'T', isBlank:false, score:1}));
+			game.addPlayer(player2);
+
+			// Empty the bag
+			game.letterBag.getRandomTiles(
+				game.letterBag.remainingTileCount());
+
+			return game.makeMove(
+				new Move({
+					placements: [
+						new Tile({letter:'A', isBlank:false, score:1, col: 6, row: 7}),
+						new Tile({letter:'R', isBlank:false, score:1, col: 7, row: 7}),
+						new Tile({letter:'T', isBlank:false, score:1, col: 8, row: 7}),
+					],
+					words: [ { word: 'ART', score: 3 }],
+					score: 3
+				}));
+		})
+		// Player 0 has played, so issue a challenge on behalf of player 1
+		.then(() => game.challenge())
+		.then(turn => {
+			console.log(turn);
+			assert(turn instanceof Turn);
+			assert.equal(turn.type, 'challenge-failed');
+			assert.equal(turn.player, 1);
+			assert.equal(turn.leftInBag, 0);
+			assert.equal(turn.nextToGo, 0);
+			// Still empty!
+			assert.equal(turn.emptyPlayer, 0);
+		});
+	});
+
 
 	tr.run();
 });

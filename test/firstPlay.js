@@ -13,7 +13,7 @@ requirejs.config({
 	paths: {
 		game: 'js/game',
 		dawg: 'js/dawg',
-		platform: 'js/server'
+		platform: 'js/server/ServerPlatform'
 	}
 });
 
@@ -48,13 +48,13 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Player', 'game/
 		.then(game => findBestPlay(
 			game, new Rack(
 				[
-					new Tile('A', false, 1),
-					new Tile('E', false, 1),
-					new Tile('I', false, 1),
-					new Tile('O', false, 1),
-					new Tile('U', false, 1),
-					new Tile(' ', true, 0),
-					new Tile(' ', true, 0)
+					new Tile({letter:'A', isBlank:false, score:1}),
+					new Tile({letter:'E', isBlank:false, score:1}),
+					new Tile({letter:'I', isBlank:false, score:1}),
+					new Tile({letter:'O', isBlank:false, score:1}),
+					new Tile({letter:'U', isBlank:false, score:1}),
+					new Tile({letter:' ', isBlank:true, score:0}),
+					new Tile({letter:' ', isBlank:true, score:0})
 				]).tiles(),
 			play => {
 				console.log(play);
@@ -69,12 +69,6 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Player', 'game/
 			assert.equal(tile.letter, 'D');
 			assert.equal(tile.score, 0);
 			assert(tile.isBlank);
-			if (tile.col === 1)
-				assert.equal(tile.row, 7);
-			else {
-				assert.equal(tile.col, 7);
-				assert.equal(tile.row, 1);
-			}
 		});
 	});
 
@@ -104,10 +98,10 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Player', 'game/
 
 		.then(game => findBestPlay(
 			game, new Rack([
-				new Tile('Z', false, 1),
-				new Tile('E', false, 1),
-				new Tile('B', false, 1),
-				new Tile('U', false, 1)
+				new Tile({letter:'Z', isBlank:false, score:1}),
+				new Tile({letter:'E', isBlank:false, score:1}),
+				new Tile({letter:'B', isBlank:false, score:1}),
+				new Tile({letter:'U', isBlank:false, score:1})
 			]).tiles(),
 			play => bestPlay = play))
 

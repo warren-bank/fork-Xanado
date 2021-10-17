@@ -9,7 +9,7 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 		/**
 		 * Construct a new letter bag using the distribution for the
 		 * given bag definition (@see game/Edition)
-		 * @param edition the Edition defining the bag contents
+		 * @param {Edition} edition the Edition defining the bag contents
 		 */
 		constructor(edition) {
 			// Tiles in the bag
@@ -24,10 +24,11 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 
 				const count = Math.floor(letter.count);
 				for (let n = 0; n < count; ++n) {
-					const tile = new Tile(
-						letter.letter,
-						letter.isBlank,
-						letter.score);
+					const tile = new Tile({
+						letter:	letter.letter,
+						isBlank: letter.isBlank,
+						score: letter.score
+					});
 					this.tiles.push(tile);
 				}
 			}
@@ -55,7 +56,7 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 		 * Get a single random tile from the bag. Assumes the bag is
 		 * already randomised, and there is no need to shuffle it
 		 * again.
-		 * @return a Tile, or null if there are no tiles left
+		 * @return {Tile} or null if there are no tiles left
 		 */
 		getRandomTile() {
 			if (this.tiles.length > 0)
@@ -67,7 +68,7 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 		 * Remove count random tiles from the bag. Assumes the bag is
 		 * already randomised, and there is no need to shuffle it
 		 * again.
-		 * @return an array of 'count' Tile. If there aren't enough
+		 * @return {Tile[]} 'count' Tile. If there aren't enough
 		 * tiles in the bag, may return a shorter array.
 		 */
 		getRandomTiles(count) {

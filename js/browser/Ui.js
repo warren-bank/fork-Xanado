@@ -1,8 +1,6 @@
 /* eslint-env browser, jquery */
+/* global $, define, Notification */
 
-/**
- * User interface to a game in a browser
- */
 const uideps = [
 	'socket.io',
 	'game/Fridge',
@@ -19,6 +17,11 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 	const SETTINGS_COOKIE = 'crossword_settings';
 
+	/**
+	 * User interface to a game in a browser. The Ui reflects the game state as
+	 * communicated from the server, through the exchange of various messages.
+	 * See `FlowOfControl.md` at the root of this distribution for an overview.
+	 */
 	class Ui {
 
 		constructor() {
@@ -70,13 +73,15 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			 */
 			this.boardLocked = false;
 
+			this.attachHandlers();
+
 			// This will GET application/json
 			$.get(`/game/${gameKey}`,
 				  frozen => {
 					  console.log(`Loading game ${gameKey}`);
 					  const game = Fridge.thaw(frozen, Game.classes);
 					  this.loadGame(game)
-					  .then(() => this.attachListeners())
+					  .then(() => this.attachSocketListeners())
 					  .catch(e => {
 						  $('#problemDialog')
 						  .text(e)
@@ -85,6 +90,9 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				  });
 		}
 
+		/**
+		 * True if the current player is the player at the given index
+		 */
 		isPlayer(index) {
 			return this.thisPlayer.index === index;
 		}
@@ -109,8 +117,24 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		}
 
 		/**
+		 * Append to the log pane. Messages are wrapped in a div, which
+		 * may have the optional css class.
+		 * @param {(jQuery|string)} mess thing to add
+		 * @param {string} optional css class name
+		 * @return {jQuery} the div created
+		 */
+		log(mess, css) {
+			const $div = $('<div></div>');
+			if (css)
+				$div.addClass(css);
+			$div.append(mess);
+			$('#logMessages').append($div);
+			return $div;
+		}
+
+		/**
 		 * Scroll to end of log.
-		 * @param speed animation duration in ms
+		 * @param {number} speed animation duration in ms
 		 */
 		scrollLogToEnd(speed) {
 			$('#logMessages').animate({
@@ -119,8 +143,10 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		}
 
 		/**
-		 * Play an audio clip, identified by id. Clips must be
-		 * pre-loaded in the HTML.
+		 * Play an audio clip, identified by #id. Clips must be
+		 * pre-loaded in the HTML. Note that most (all?) browsers require
+		 * some sort of user interaction before they will play audio
+		 * embedded in the page.
 		 */
 		playAudio(id) {
 			const audio = document.getElementById(id);
@@ -146,20 +172,17 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		}
 
 		/**
-		 * Append information a turn it is to the log.
-		 * @param turn a Turn
+		 * Append information on a turn to the log.
+		 * @param {Turn} turn a Turn
+		 * @param {boolean} latestTurn set true if this is the most recent turn
 		 */
-		appendTurnToLog(turn) {
+		appendTurnToLog(turn, latestTurn) {
+			// Who's turn was it?
 			const player = this.game.getPlayer(turn.player);
-			const $scorediv = $('<div class="score"></div>');
-			const pn = `<span class='playerName'>${player.name}</span>`;
-			$scorediv.append($.i18n('log-turn', pn));
+			this.log($.i18n('log-turn-player', player.name), 'turnPlayer');
 
-			const $div = $('<div class="moveScore"></div>');
-			$div.append($scorediv);
-
-			const $detail = $('<div class="moveDetail"></div>');
-
+			// What did they do?
+			const $turnDetail = $('<div></div>');
 			switch (turn.type) {
 			case 'move':
 				{
@@ -167,7 +190,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 					let ws = 0;
 					let sum = 0;
 					for (let word of turn.move.words) {
-						$detail
+						$turnDetail
 						.append(`<span class="word">${word.word}</span>`)
 						.append(' (')
 						.append(`<span class="wordScore">${word.score}</span>`)
@@ -175,66 +198,70 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 						ws++;
 						sum += word.score;
 					}
+					// deltaScore will always be a number after a move
 					if (ws > 1 || turn.deltaScore > sum)
-						$detail.append($.i18n('log-total', turn.deltaScore));
+						$turnDetail.append($.i18n('log-total', turn.deltaScore));
 				}
 				break;
 			case 'swap':
-				$detail.text($.i18n('log-swap', turn.newTiles.length));
+				$turnDetail.append($.i18n('log-swap', turn.newTiles.length));
 				break;
 			case 'timeout':
 			case 'pass':
 			case 'challenge-won':
 			case 'challenge-failed':
 			case 'took-back':
-				$detail.text($.i18n(`log-${turn.type}`));
+				$turnDetail.append($.i18n(`log-${turn.type}`));
+			case 'end-game':
 				break;
 			default:
 				// Terminal, no point in translating
 				throw Error(`Unknown move type ${turn.type}`);
 			}
-			$div.append($detail);
-			$('#logMessages').append($div);
-		}
+			this.log($turnDetail, 'turnDetail');
 
-		/**
-		 * Append a formatted 'next game' message to the log
-		 */
-		logNextGameMessage(nextGameKey) {
-			const $but = $('<button></button>');
-			if (nextGameKey) {
-				$but.addClass('nextGame')
-				.text($.i18n('button-next-game'));
-				const $a = $('<a></a>');
-				$a.attr(
-					'href', `/game/${nextGameKey}/${$.cookie(this.game.key)}`);
-				$a.append($but);
-				$('#logMessages').append($a);
-				$('#makeNextGame').remove();
-			} else {
-				$but.text($.i18n('button-another-game'));
-				$but.on('click',
-						() => $.post(`/anotherGame/${this.game.key}`));
-				const $ngb = $('<div id="makeNextGame"></div>')
-					.append($but)
-					.append(' ')
-					.append($.i18n('log-same-players'));
-				$('#logMessages').append($ngb);
+			if (latestTurn
+				&& typeof turn.emptyPlayer === "number"
+				&& turn.emptyPlayer >= 0
+				&& !this.game.ended
+				&& turn.type !== 'challenge-failed'
+				&& turn.type !== 'end-game') {
+				if (this.isPlayer(turn.emptyPlayer)) {
+					if (typeof turn.nextToGo !== "number")
+						turn.nextToGo = this.game.whosTurn;
+					this.log(
+						$.i18n(`log-you-no-more-tiles`,
+							   this.game.getPlayer(turn.nextToGo).name),
+						'turnNarrative');
+				} else
+					this.log(
+						$.i18n(`log-they-no-more-tiles`,
+							   this.game.getPlayer(turn.emptyPlayer).name),
+					'turnNarrative');
 			}
-			this.scrollLogToEnd(300);
 		}
 
 		/**
 		 * Append a formatted 'end of game' message to the log
 		 */
-		logEndMessage(info, cheer) {
+		logEndMessage(cheer) {
 			const winners = [];
 			let youWon = false;
+			const winningScore = this.game.getWinningScore();
 
-			info.players.forEach(playerState => {
-				const isme = this.isPlayer(playerState.player);
-				const player = this.game.getPlayer(playerState.player);
-				if (playerState.score === info.winningScore) {
+			// Total lost from all losing player's racks
+			const extras = this.game.players.reduce(
+				(sum, player) => sum + player.rack.score(), 0);
+
+			const $narrative = $('<div></div>');
+			this.game.players.forEach(player => {
+				const isme = this.isPlayer(player.index);
+				const iswinner = (player.score === winningScore);
+
+				const $gsd = $('<div class="gameEndScore"></div>');
+				const name = isme ? $.i18n('You') : player.name;
+
+				if (iswinner) {
 					if (isme) {
 						if (cheer && this.settings.cheers)
 							this.playAudio('endCheer');
@@ -243,23 +270,24 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 					} else {
 						winners.push(player.name);
 					}
+					if (extras > 0)
+						$gsd.text($.i18n('log-gained-from-racks',
+										 name, extras));
+				} else {
+					const waste = player.rack.score();
+					if (waste > 0) {
+						const tilesLeft = [];
+						player.rack.forEachTiledSquare(square => {
+							if (!square.tile.isBlank)
+								tilesLeft.push(square.tile.letter);
+							return false;
+						});
+						$gsd.text($.i18n(
+							'log-lost-for-rack',
+							name, waste, tilesLeft.join(',')));
+					}
 				}
-
-				player.score = playerState.score;
-
-				const $gsd = $('<div class="gameEndScore"></div>');
-				const name = isme ? $.i18n('You') : player.name;
-				if (playerState.tally > 0) {
-					$gsd.text($.i18n('log-gained-from-racks',
-									 name, playerState.tally));
-				} else if (playerState.tally < 0) {
-					$gsd.text($.i18n(
-						'log-lost-for-rack',
-						name,
-						-playerState.tally,
-						playerState.tilesLeft.join(',')));
-				}
-				$('#logMessages').append($gsd);
+				$narrative.append($gsd);
 				player.refreshDOM();
 			});
 
@@ -273,24 +301,27 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				who = winners[0];
 			else
 				who = $.i18n('log-name-name',
-							 winners.slice(0, length - 1).join(', '),
+							 winners.slice(0, winners.length - 1).join(', '),
 							 winners[winners.length - 1]);
 
 			const has = (winners.length == 1 && !youWon) ? 1 : 2;
-			const $div = $('<div class="gameEnded"></div>');
-			$div.text($.i18n(info.reason, $.i18n('log-winner', who, has)));
+			this.log($.i18n(this.game.ended, $.i18n('log-winner', who, has)),
+					 'gameOverConfirmed');
 
-			$('#logMessages').append($div);
+			this.log($narrative);
 
-			this.logNextGameMessage(info.nextGameKey);
+			this.addContinuationGameButton(this.game.nextGameKey);
 		}
 
 		/**
-		 * Add a message to the chat pane. Message test that matches
-		 * an i18n message identifier will be automatically
-		 * translated with supplied message args.
+		 * Process an incoming socket event to add a message to the
+		 * chat pane. Message text that matches an i18n message
+		 * identifier will be automatically translated with supplied
+		 * message args.
+		 * @param {object} message message object { sender: string,
+		 * text: i18n message identifier or plain text, args[]: i18n arguments
 		 */
-		chatMessage(message) {
+		processMessage(message) {
 			let args = [ message.text ];
 			if (typeof message.args === 'string')
 				args.push(message.args);
@@ -321,12 +352,13 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 		/**
 		 * Process a tick from the server. Does nothing in an untimed game.
+		 * @param {object} tick {player: number, timeout: number }
 		 */
 		processTick(tick) {
 			if (tick.timeout === 0)
 				return;
 			const $to = $('#timeout')
-				.removeClass('tick-alert-high tick-alert-medium tick-alert-low');
+				  .removeClass('tick-alert-high tick-alert-medium tick-alert-low');
 			const deltasecs = Math.floor((tick.timeout - Date.now()) / 1000);
 			let stick = '';
 			if (this.isPlayer(tick.player)) {
@@ -344,6 +376,21 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				stick = $.i18n('tick-them',
 							   this.game.getPlayer(tick.player).name, deltasecs);
 			$to.text(stick).fadeIn(200);
+		}
+
+		/**
+		 * Handle game-ended confirmation. This confirmation will come after
+		 * a player confirms that the previous player's turn is acceptable
+		 * and they don't intend to challenge.
+		 * @param {string} ended i18n message identifier indicating reason
+		 * game ending.
+		 */
+		processGameOverConfirmed(ended) {
+			this.game.ended = ended;
+			this.takeBackTiles();
+			this.logEndMessage(true);
+			this.notify($.i18n('notify-title-game-over'),
+						$.i18n('notify-body-game-over'));
 		}
 
 		/**
@@ -428,7 +475,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			case ' ':
 				this.rotateTypingCursor();
 				break;
-	
+
 			default:
 				this.manuallyPlaceLetter(event.key.toUpperCase());
 				break;
@@ -471,8 +518,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 		/**
 		 * A game has been read; load it into the UI
-		 * @param game the Game being played
-		 * @return Promise to load the game
+		 * @param {Game} game the Game being played
+		 * @return {Promise} to load the game
 		 */
 		loadGame(game) {
 			console.log('Loading UI for', game.toString());
@@ -507,26 +554,30 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			const gs = $.i18n('log-game-started');
 			$('#logMessages').append(`<p class='gameStart'>${gs}</p>`);
 
-			for (let turn of game.turns)
-				this.appendTurnToLog(turn);
+			game.turns.forEach(
+				(turn, i) => this.appendTurnToLog(turn, i === game.turns.length - 1));
 
 			if (game.ended)
-				this.logEndMessage(game.ended, false);
+				this.logEndMessage(false);
 
 			this.scrollLogToEnd(0);
 
 			this.updateWhosTurn(game.whosTurn);
-			this.lockBoard(!this.isPlayer(game.whosTurn));
+			const myGo = this.isPlayer(game.whosTurn);
+			this.lockBoard(!myGo);
+			this.enableTurnButton(myGo);
 
 			this.updateGameStatus();
 
-			const lastTurn = game.turns.length && game.turns[game.turns.length - 1];
+			const lastTurn = game.turns.length
+				  && game.turns[game.turns.length - 1];
 
-			if (lastTurn && lastTurn.type == 'move') {
-				if (this.isPlayer(game.whosTurn))
+			if (lastTurn && (lastTurn.type === 'move'
+							 || lastTurn.type === 'challenge-failed')) {
+				if (this.isPlayer(game.whosTurn)) {
 					// It's our turn
 					this.addChallengePreviousButton(lastTurn);
-				else
+				} else
 					// It isn't our turn, but we might still have time to
 					// change our minds on the last move we made
 					this.addTakeBackPreviousButton(lastTurn);
@@ -561,9 +612,9 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		}
 
 		/**
-		 * Attach socket and event listeners
+		 * Attach socket communications listeners
 		 */
-		attachListeners() {
+		attachSocketListeners() {
 
 			this.socket = socket_io.connect(null);
 
@@ -604,22 +655,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 			})
 
-			.on('turn', turn => this.processTurn(turn))
-
-			.on('tick', tick => this.processTick(tick))
-
-			.on('gameEnded', end => {
-				console.debug('Received gameEnded');
-				this.logEndMessage(end, true);
-				this.notify($.i18n('notify-title-game-over'),
-							$.i18n('notify-body-game-over'));
-			})
-
-			.on('nextGame', nextGameKey =>
-				this.logNextGameMessage(nextGameKey))
-
-			.on('message', message =>
-				this.chatMessage(message))
+			// Custom events
 
 			.on('connections', info => {
 				// Update active connections
@@ -630,9 +666,28 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 					if (player)
 						player.online(true);
 				}
-			});
+			})
 
+			.on('turn', turn => this.processTurn(turn))
+
+			.on('tick', tick => this.processTick(tick))
+
+			.on('gameOverConfirmed', ended =>
+				this.processGameOverConfirmed(ended))
+
+			.on('nextGame',	nextGameKey =>
+				this.addContinuationGameButton(nextGameKey))
+
+			.on('message', message => this.processMessage(message));
+		}
+
+		/**
+		 * Attach listeners for jquery and game events
+		 */
+		attachHandlers() {
 			const ui = this;
+
+			// Configure chat input
 			$('#chatInput input')
 			.on('change', function() {
 				// Send chat
@@ -645,7 +700,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				$(this).val('');
 			});
 
-			// Load settings from the cookie (if it's there)
+			// Load settings from the cookie (if it's there) and
+			// configure the gear button
 			const sets = $.cookie(SETTINGS_COOKIE);
 			if (sets)
 				sets.split(";").map(
@@ -671,11 +727,13 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 						 }).join(';'));
 			});
 
-			if (!this.https)
-				$("input.setting[data-set='notification']").prop('disabled', true);
-				
-			// Events raised by game components. The Refresh events are
-			// not currently used.
+			if (!this.https) {
+				// Notification requires https
+				$("input.setting[data-set='notification']")
+				.prop('disabled', true);
+			}
+			
+			// Events raised by game components
 			$(document)
 			.on('SquareChanged',
 				(e, square) => square.refreshDOM())
@@ -685,15 +743,6 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 			.on('DropSquare',
 				(e, source, square) => this.dropSquare(source, square))
-
-			.on('Refresh',
-				() => this.refresh())
-
-			.on('RefreshRack',
-				() => this.thisPlayer.rack.refreshDOM())
-
-			.on('RefreshBoard',
-				() => this.game.board.refreshDOM())
 
 			// Keydown anywhere in the game
 			.on('keydown', event => this.handleKeydown(event));
@@ -884,13 +933,16 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		/**
 		 * Move a tile from one surface to another e.g. from the
 		 * rack to the board
-		 * @param fromSquare the square the tile is coming from
-		 * @param toSquare the square the tile is moving to
-		 * @param ifBlank (optional) if the tile is blank and we are
+		 * @param {Square} fromSquare the square the tile is coming from
+		 * @param {Square} toSquare the square the tile is moving to
+		 * @param {string} ifBlank (optional) if the tile is blank and we are
 		 * moving it to the board, then assign it this letter. Otherwise
 		 * a dialog will prompt for the letter.
 		 */
 		moveTile(fromSquare, toSquare, ifBlank) {
+			if (this.boardLocked)
+				return;
+
 			const tile = fromSquare.tile;
 
 			if (fromSquare.owner instanceof Board) {
@@ -917,17 +969,22 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				}
 			}
 			toSquare.placeTile(tile);
-			if (!this.boardLocked)
-				window.setTimeout(() => this.updateGameStatus(), 500);
+			window.setTimeout(() => this.updateGameStatus(), 500);
 		}
 
 		updateGameStatus() {
 			$('#move').empty();
 			this.updateTileCounts();
-			if (this.placedCount > 0) {
+
+			// if the last player's rack is empty, it couldn't be refilled
+			// and the game might be over.
+			if (!this.game.ended && this.game.getLastPlayer().rack.isEmpty()) {
+				this.lockBoard(true);
+				this.setMoveAction('confirmGameOver');
+			} else if (this.placedCount > 0) {
 				// Player has dropped some tiles on the board
 				// (tileCount > 0), move action is to make the move
-				this.setMoveAction('commitMove', 'Make move');
+				this.setMoveAction('commitMove');
 				const move = this.game.board.analyseMove();
 				if (typeof move === 'string') {
 					$('#move').append($.i18n(move));
@@ -951,13 +1008,13 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			} else if (this.swapRack.squaresUsed() > 0) {
 				// Swaprack has tiles on it, change the move action
 				// to swap
-				this.setMoveAction('swap', 'Swap tiles');
+				this.setMoveAction('swap');
 				$('#board .ui-droppable').droppable('disable');
 				$('#turnButton').removeAttr('disabled');
 				$('#takeBackButton').css('visibility', 'inherit');
 			} else {
 				// Otherwise turn action is a pass
-				this.setMoveAction('pass', 'Pass');
+				this.setMoveAction('pass');
 				$('#board .ui-droppable').droppable('enable');
 				$('#turnButton').removeAttr('disabled');
 				$('#takeBackButton').css('visibility', 'hidden');
@@ -967,20 +1024,29 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		/**
 		 * Set board locked status. The board is locked when it's
 		 * not this player's turn.
+		 * @param {boolean} newVal new setting of "locked"
 		 */
 		lockBoard(newVal) {
-			if (newVal)
-				$('#turnButton').attr('disabled', 'disabled');
-			else
-				$('#turnButton').removeAttr('disabled');
 			this.boardLocked = newVal;
 			this.game.board.refreshDOM();
 		}
 
 		/**
-		 * Process a Turn object received to show the result of a
-		 * command.
-		 * @param turn a Turn
+		 * Enable/disable the turn button
+		 * @param {boolean} enable true to enable, disable otherwise
+		 */
+		enableTurnButton(enable) {
+			if (enable)
+				$('#turnButton').removeAttr('disabled');
+			else
+				$('#turnButton').attr('disabled', 'disabled');
+		}
+
+		/**
+		 * Process a Turn object received from the server. 'turn' events
+		 * are sent by the server when an action by any player has
+		 * modified the game state.
+		 * @param {Turn} turn a Turn object
 		 */
 		processTurn(turn) {
 			console.debug('Turn ', turn);
@@ -991,11 +1057,16 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 						this.placedCount--;
 				});
 
-			this.appendTurnToLog(turn);
+			this.appendTurnToLog(turn, true);
 			this.scrollLogToEnd(300);
             this.removeMoveActionButtons();
 			const player = this.game.getPlayer(turn.player);
-			player.score += turn.deltaScore;
+			if (typeof turn.deltaScore ==="number")
+				player.score += turn.deltaScore;
+			else
+				turn.deltaScore.forEach(
+					(d, i) => this.game.players[i].score += d);
+
 			player.refreshDOM();
 			$('.lastPlacement').removeClass('lastPlacement');
 
@@ -1018,8 +1089,9 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 					player.rack.addTile(recoveredTile);
 				}
 
-				// Refresh rack, if it's us
+				// Was it us?
 				if (this.isPlayer(turn.player)) {
+					// Only really needed for took-back
 					player.rack.refreshDOM();
 					if (turn.type === 'challenge-won') {
 						if (this.settings.warnings)
@@ -1042,6 +1114,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 			case 'challenge-failed':
 				if (this.isPlayer(turn.player)) {
+					// Our challenge failed
 					if (this.settings.warnings)
 						this.playAudio('oops');
 					this.notify(
@@ -1059,7 +1132,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			case 'move':
 				if (!this.isPlayer(turn.player)) {
 					// Put the tiles placed in a turn into place on
-					// the board for a player who is not this player.
+					// the board for a player who is not this player (they
+					// are already there for this player)
 					for (let placement of turn.move.placements) {
 						const square = this.game.at(placement.col, placement.row);
 						player.rack.removeTile(placement);
@@ -1086,14 +1160,20 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 					player.rack.refreshDOM();
 
 				break;
+
+			case 'game-ended':
+				break;
 			}
 
 			if (this.isPlayer(turn.nextToGo)) {
 				if (this.settings.turn_alert)
 					this.playAudio('yourturn');
 				this.lockBoard(false);
-			} else
+				this.enableTurnButton(true);
+			} else {
 				this.lockBoard(true);
+				this.enableTurnButton(false);
+			}
 
 			if (typeof turn.nextToGo === 'number'
 				&& turn.type !== 'challenge-won') {
@@ -1112,8 +1192,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 					if (turn.type === 'move')
 						this.addChallengePreviousButton(turn);
 				}
+				this.game.whosTurn = turn.nextToGo;
 			}
-			this.game.whosTurn = turn.nextToGo;
 			this.updateGameStatus();
 		}
 
@@ -1125,6 +1205,34 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			this.removeMoveActionButtons();
 			$('#move').empty();
 			this.lockBoard(true);
+			this.enableTurnButton(false);
+		}
+
+		/**
+		 * Append a formatted 'next game' message and button to the log
+		 * @param {string} nextGameKey key for next game
+		 */
+		addContinuationGameButton(nextGameKey) {
+			const $but = $('<button></button>');
+			if (nextGameKey) {
+				$but.text($.i18n('button-next-game'));
+				const $a = $('<a></a>')
+					  .addClass('noDecoration')
+					  .append($but);
+				$a.attr(
+					'href',
+					`/game/${nextGameKey}/${$.cookie(this.game.key)}`);
+				this.log($a);
+				$('.anotherGame').remove();
+			} else {
+				$but.addClass('anotherGame');
+				$but.text($.i18n('button-another-game'));
+				$but.on('click',
+						() => $.post(`/anotherGame/${this.game.key}`));
+				this.log($but, 'turnControl');
+				this.log($.i18n('log-same-players'));
+			}
+			this.scrollLogToEnd(300);
 		}
 
 		/**
@@ -1137,11 +1245,11 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			// It wasn't us
 			const text = $.i18n(
 				'button-challenge',
-				this.game.getLastPlayer().name);
+				this.game.getPlayer(turn.player).name);
 			const $button =
-				$(`<div><button class='moveAction'>${text}</button></div>`);
+				  $(`<button class='moveAction'>${text}</button>`);
 			$button.click(() => this.challenge());
-			$('#logMessages div.moveScore').last().append($button);
+			this.log($button, 'turnControl');
 			this.scrollLogToEnd(300);
 		}
 
@@ -1154,9 +1262,9 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				return;
 			// It's us!
 			const $button =
-				  $(`<div><button class='moveAction'>${$.i18n('button-take-back')}</button></div>`);
+				  $(`<button class='moveAction'>${$.i18n('button-take-back')}</button>`);
 			$button.click(() => this.takeBackMove());
-			$('#logMessages div.moveScore').last().append($button);
+			this.log($button, 'turnControl');
 			this.scrollLogToEnd(300);
 		}
 
@@ -1226,6 +1334,16 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		}
 
 		/**
+		 * Handler for the 'Confirm move' button clicked. Invoked
+		 *  via 'makeMove'. The response may contain a score adjustment.
+		 */
+		confirmGameOver() {
+			this.takeBackTiles();
+			this.afterMove();
+			this.sendCommand('confirmGameOver');
+		}
+
+		/**
 		 * Handler for the 'Swap' button clicked. Invoked via 'makeMove'.
 		 */
 		swap() {
@@ -1237,14 +1355,14 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 		/**
 		 * Set the action when the turn button is pressed.
-		 * @param action function name e.g. commitMove
-		 * @param title button text
+		 * @param {string} action function name e.g. commitMove
+		 * @private
 		 */
-		setMoveAction(action, title) {
+		setMoveAction(action) {
 			$('#turnButton')
 			.data('action', action)
 			.empty()
-			.append(title);
+			.append($.i18n(`action-${action}`));
 		}
 
 		/**
@@ -1263,8 +1381,8 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		}
 
 		/**
-		 * Handler for a click on the 'Take Back' button, to pull back tiles from
-		 * the board and swap rack
+		 * Handler for a click on the 'Take Back' button, to pull
+		 * back tiles from the board and swap rack
 		 */
 		takeBackTiles() {
 			this.game.board.forEachSquare(

@@ -7,7 +7,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 	class Board extends Surface {
 
 		/**
-		 * @param edition the Edition defining the board layout
+		 * @param {Edition} edition the edition defining the board layout
 		 */
 		constructor(edition) {
 			super(edition.cols, edition.rows,
@@ -25,6 +25,8 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		/**
 		 * Load the board from the string representation output by
 		 * toString. This is for use in tests.
+		 * @param {string} sboard string representation of the board
+		 * @param {Edition} edition the edition defining the board layout
 		 */
 		parse(sboard, edition) {
 			const rows = sboard.split('\n');
@@ -38,10 +40,11 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 						// Treat lower-case letters as cast blanks.
 						// May not work in non-latin languages.
 						const isBlank = letter.toUpperCase() != letter;
-						const tile = new Tile(
-							letter.toUpperCase(),
-							isBlank,
-							isBlank ? 0	: edition.letterScore(letter));
+						const tile = new Tile({
+							letter: letter.toUpperCase(),
+							isBlank: isBlank,
+							score: isBlank ? 0	: edition.letterScore(letter)
+						});
 						this.at(col, row).placeTile(tile, true);
 					}
 					col++;
@@ -85,6 +88,8 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		/**
 		 * True if one of the neighbours of [col, row] is already occupied by
 		 * a tile that was placed in a previous move
+		 * @param {number} col 0-based row
+		 * @param {number} row 0-based row
 		 */
 		touchingOld(col, row) {
 			return (
@@ -99,14 +104,12 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		}
 
 		/**
-		 * @private
 		 * Calculate score for all words that involve new tiles.
 		 * This is used on the UI side, when the placement may be fragmented
-		 * and difficult to analyse. It works on one axis, as given
-		 * by dcol and drow
-		 * @param dcol, drow axis to operate on
-		 * @param words list {score:N word:''} to update
-		 * @return the total score
+		 * and difficult to analyse.
+		 * @param {Move.wordSpec[]} words list to update
+		 * @return {number} the total score
+		 * @private
 		 */
 		scoreNewWords(words) {
 			let totalScore = 0;
@@ -157,14 +160,14 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 
 		/**
 		 * Given a play at col, row, compute its score.
-		 * @param col, row the coordinates of the LAST letter
-		 * @param dcol, drow 1/0 depending if the word is being played across
-		 * or down
-		 * @param tiles a list of Tiles that have been newly placed
-		 * @param words optional list to be populated with words that
-		 * have been created
-		 * by the play
-		 * @return the score of the play. Side effect is to update words.
+		 * @param {number} col the col of the LAST letter
+		 * @param {number} row the row of the LAST letter
+		 * @param {number} dcol 1 if the word being played across
+		 * @param {number} drow 1 if the word is being played down
+		 * @param {Tile[]} tiles a list of Tiles that have been newly placed
+		 * @param {string[]} words optional list to be populated with
+		 * words that have been created by the play
+		 * @return {number} the score of the play.
 		 */
 		scorePlay(col, row, dcol, drow, tiles, words) {
 
@@ -259,6 +262,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		 * Calculate the bonus if tilesPlaced tiles are placed
 		 * Really belongs in Edition, but here because Edition is
 		 * not sent to the client.
+		 * @param {number} tilesPlaced
 		 */
 		calculateBonus(tilesPlaced) {
 			if (typeof this.bonuses[tilesPlaced] === 'number')
@@ -267,8 +271,8 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		}
 
 		/**
-		 * UI-side move calculation.
-		 * @return a Move, or a string if there is a problem
+		 * UI-side move calculation. Constructs a {@link Move}
+		 * @return {(Move|string)} Move or a string if there is a problem
 		 */
 		analyseMove() {
 			// Check that the start field is occupied
@@ -280,12 +284,13 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 
 			// Find top-leftmost placed tile
 			let topLeftX, topLeftY, tile;
-			this.forEachSquare((square, col, row) => {
-				if (!tile && square.tile && !square.tileLocked) {
-					tile = square.tile;
-					topLeftX = col;
-					topLeftY = row;
-				}
+			this.forEachTiledSquare((square, col, row) => {
+				if (square.tileLocked)
+					return false;
+				tile = square.tile;
+				topLeftX = col;
+				topLeftY = row;
+				return true;
 			});
 			if (!tile)
 				// Move can't be made. Should never happen
@@ -330,11 +335,9 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 			// Check whether there are any unconnected placements
 			let totalTiles = 0;
 			let disco = false;
-			this.forEachSquare((square, col, row) => {
-				if (square.tile) {
-					totalTiles++;
-					disco = disco || (!square.tileLocked && !legalPlacements[col][row]);
-				}
+			this.forEachTiledSquare((square, col, row) => {
+				totalTiles++;
+				disco = disco || (!square.tileLocked && !legalPlacements[col][row]);
 			});
 			
 			if (disco)
@@ -343,27 +346,28 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 			if (totalTiles < 2)
 				return 'warn-at-least-two';
 
-			const move = new Move();
-
-			// Calculate scores
-			move.score = this.scoreNewWords(move.words);
-
-			// Calculate bonus
-			let placed = 0;						   
-			this.forEachSquare(square => {
-				if (square.tile && !square.tileLocked) {
-					move.addPlacement(square.tile);
-					placed++;
+			const placements = [];
+			this.forEachTiledSquare(square => {
+				if (!square.tileLocked) {
+					placements.push(square.tile);
 				}
 			});
-			move.bonus = this.calculateBonus(placed);
-			move.score += move.bonus;
-
-			return move;
+	
+			const bonus = this.calculateBonus(placements.length);
+			const words = [];
+			const score = this.scoreNewWords(words) + bonus;
+			return new Move(
+				{
+					placements: placements,
+					score: score,
+					bonus: bonus,
+					words: words
+				});
 		}
 
 		/**
 		 * Create the DOM representation
+		 * @return {jQuery}
 		 */
 		createDOM() {
 			const $table = $('<table></table>');

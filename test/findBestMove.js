@@ -10,7 +10,7 @@ requirejs.config({
 	paths: {
 		game: 'js/game',
 		dawg: 'js/dawg',
-		platform: 'js/server'
+		platform: 'js/server/ServerPlatform'
 	}
 });
 
@@ -42,14 +42,14 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		})
 		.then(game => findBestPlay(
 			game, [
-				new Tile('E', false, 1),
-				new Tile('I', false, 1),
-				new Tile('I', false, 1),
-				new Tile('Y', false, 1),
-				new Tile('A', false, 1),
-				new Tile('H', false, 1),
-				new Tile(' ', true, 0),
-				new Tile(' ', true, 0)
+				new Tile({letter:'E', isBlank:false, score:1}),
+				new Tile({letter:'I', isBlank:false, score:1}),
+				new Tile({letter:'I', isBlank:false, score:1}),
+				new Tile({letter:'Y', isBlank:false, score:1}),
+				new Tile({letter:'A', isBlank:false, score:1}),
+				new Tile({letter:'H', isBlank:false, score:1}),
+				new Tile({letter:' ', isBlank:true, score:0}),
+				new Tile({letter:' ', isBlank:true, score:0})
 			],
 			move => {
 				//console.log(move);
@@ -88,9 +88,9 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		})
 		.then(game => findBestPlay(
 			game, new Rack([
-				new Tile('A', false, 1),
-				new Tile('C', false, 3),
-				new Tile('R', false, 1)
+				new Tile({letter:'A', isBlank:false, score:1}),
+				new Tile({letter:'C', isBlank:false, score:3}),
+				new Tile({letter:'R', isBlank:false, score:1})
 			]).tiles(),
 			move => {
 				//console.log(move);
@@ -149,13 +149,13 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		
 		.then(game => findBestPlay(
 			game, new Rack([
-				new Tile('L', false, 1),
-				new Tile('I', false, 1),
-				new Tile('G', false, 2),
-				new Tile('E', false, 1),
-				new Tile('B', false, 3),
-				new Tile('A', false, 1),
-				new Tile('A', false, 1)
+				new Tile({letter:'L', isBlank:false, score:1}),
+				new Tile({letter:'I', isBlank:false, score:1}),
+				new Tile({letter:'G', isBlank:false, score:2}),
+				new Tile({letter:'E', isBlank:false, score:1}),
+				new Tile({letter:'B', isBlank:false, score:3}),
+				new Tile({letter:'A', isBlank:false, score:1}),
+				new Tile({letter:'A', isBlank:false, score:1})
 			]).tiles(),
 			move => {
 				//console.log(move);
@@ -206,13 +206,13 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		})
 		.then(game => findBestPlay(
 			game, new Rack([
-				new Tile('U', false, 1),
-				new Tile('T', false, 1),
-				new Tile('R', false, 1),
-				new Tile('N', false, 1),
-				new Tile('M', false, 3),
-				new Tile('K', false, 5),
-				new Tile('I', false, 1)
+				new Tile({letter:'U', isBlank:false, score:1}),
+				new Tile({letter:'T', isBlank:false, score:1}),
+				new Tile({letter:'R', isBlank:false, score:1}),
+				new Tile({letter:'N', isBlank:false, score:1}),
+				new Tile({letter:'M', isBlank:false, score:3}),
+				new Tile({letter:'K', isBlank:false, score:5}),
+				new Tile({letter:'I', isBlank:false, score:1})
 			]).tiles(),
 			move => {
 				//console.log(move);

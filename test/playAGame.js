@@ -17,11 +17,11 @@ requirejs.config({
 		server: 'js/server',
 		dawg: 'js/dawg',
 
-		platform: 'js/server'
+		platform: 'js/server/ServerPlatform'
 	}
 });
 
-requirejs(['platform/Platform', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Square', 'game/Player', 'game/Game', 'game/LetterBag', 'game/Board', 'game/Move'], (Platform, Edition, Tile, Rack, Square, Player, Game, LetterBag, Board, Move) => {
+requirejs(['platform', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Square', 'game/Player', 'game/Game', 'game/LetterBag', 'game/Board', 'game/Move'], (Platform, Edition, Tile, Rack, Square, Player, Game, LetterBag, Board, Move) => {
 
 	let db = new Platform.Database('test', 'testgame');
 	let game = new Game('Tiny', 'SOWPODS_English');
@@ -34,26 +34,24 @@ requirejs(['platform/Platform', 'game/Edition', 'game/Tile', 'game/Rack', 'game/
 		game.addPlayer(player1);
 		let player2 = new Player('player two', true);
 		game.addPlayer(player2);
-		game.setDB(db);
-		console.log(player1.toString());
-		return game.save();
+		return game.onLoad(db);
 	})
+	.then(game => game.save())
 	.then(async game => {
 		let finished = false;
 		while (!finished) {
 			await db.get(gameKey, Game.classes)
+			.then(game => game.onLoad(db))
 			.then(game => {
-				game.setDB(db);
 				return game.autoplay(game.players[player])
-				.then(() => game);
-			})
-			.then(game => {
-				if (game.ended) {
-					console.log(game.ended);
-					finished = true;
-				}
-				player = (player + 1) % 2;
-				return game.save();
+				.then(turn => {
+					if (game.ended) {
+						console.log(game.ended);
+						finished = true;
+					}
+					player = (player + 1) % game.players.length;
+					return game.save();
+				});
 			});
 		}
 		console.log('Game over');
