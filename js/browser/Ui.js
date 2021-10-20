@@ -101,16 +101,17 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		 * Send a game command to the server. Game commands are recognised
 		 * by being sent using POST. Moves are 'makeMove', 'challenge',
 		 * 'swap', 'takeBack', and 'pass'
+		 * @param {string} command command name
+		 * @param {object} args arguments for the request body
 		 */
-		sendCommand(command, args, success) {
+		sendCommand(command, args) {
 			this.cancelNotification();
-			$.post(`/game/${this.game.key}`, {
+			$.post(`/command/${this.game.key}`, {
 				command: command,
 				// Note we JSON.stringify because $.post will
 				// otherwise convert all numbers to strings. PITA!
 				args: JSON.stringify(args)
 			})
-			.done(success)
 			.fail((jqXHR, textStatus, errorThrown) => {
 				console.error(`${command} returned error: ${textStatus} (${errorThrown})`);
 			});
@@ -212,7 +213,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			case 'challenge-failed':
 			case 'took-back':
 				$turnDetail.append($.i18n(`log-${turn.type}`));
-			case 'end-game':
+			case 'ended-game-over':
 				break;
 			default:
 				// Terminal, no point in translating
@@ -225,7 +226,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				&& turn.emptyPlayer >= 0
 				&& !this.game.ended
 				&& turn.type !== 'challenge-failed'
-				&& turn.type !== 'end-game') {
+				&& turn.type !== 'ended-game-over') {
 				if (this.isPlayer(turn.emptyPlayer)) {
 					if (typeof turn.nextToGo !== "number")
 						turn.nextToGo = this.game.whosTurn;
@@ -1012,7 +1013,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				$('#board .ui-droppable').droppable('disable');
 				$('#turnButton').removeAttr('disabled');
 				$('#takeBackButton').css('visibility', 'inherit');
-			} else {
+			} else if (!this.game.ended) {
 				// Otherwise turn action is a pass
 				this.setMoveAction('pass');
 				$('#board .ui-droppable').droppable('enable');
@@ -1063,7 +1064,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			const player = this.game.getPlayer(turn.player);
 			if (typeof turn.deltaScore ==="number")
 				player.score += turn.deltaScore;
-			else
+			else if (typeof turn.deltaScore !== "undefined")
 				turn.deltaScore.forEach(
 					(d, i) => this.game.players[i].score += d);
 
@@ -1161,7 +1162,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 				break;
 
-			case 'game-ended':
+			case 'ended-game-over':
 				break;
 			}
 
@@ -1283,7 +1284,6 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			this.takeBackTiles();
 			// Remove action buttons and lock board
 			this.afterMove();
-			// Fire photon torpedo
 			this.sendCommand('challenge');
 		}
 
@@ -1312,6 +1312,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				square.refreshDOM();
 			}
 			this.placedCount = 0;
+
 			this.sendCommand('makeMove', move);
 		}
 

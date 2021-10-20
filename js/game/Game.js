@@ -265,6 +265,15 @@ define('game/Game', [
 		}
 
 		/**
+		 * If there is a player with no tiles, return them.
+		 * @return {Player} the player with no tiles, or undefined
+		 */
+		getPlayerWithNoTiles() {
+			return this.players.find(
+				player => (player.rack.tiles().length === 0));
+		}
+
+		/**
 		 * Determine when the last activity on the game happened. This
 		 * is either the last time a turn was processed, or the creation time.
 		 * @return {number} a time in epoch ms
@@ -356,8 +365,8 @@ define('game/Game', [
 		 * whether the game has ended, save state and notify game
 		 * listeners.
 		 * @param {Turn} turn the Turn to finish
-		 * @return {Promise} that resolves to the game when the game has
-		 * been saved and all players have been notified.
+		 * @return {Promise} that resolves to the {@link Turn} when the
+		 * game has been saved and all players have been notified.
 		 */
 		finishTurn(turn) {
 			turn.timestamp = Date.now();
@@ -381,16 +390,28 @@ define('game/Game', [
 				console.log(`Player ${this.whosTurn}'s turn`);
 				const nextPlayer = this.players[this.whosTurn];
 				if (nextPlayer.isRobot) {
+					// Does a player have nothing on their rack? If
+					// so, the game is over because the computer
+					// will never challenge their play.
+					const pwn = this.getPlayerWithNoTiles();
+					if (pwn) {
+						this.ended = 'ended-game-over';
+						this.notifyPlayers('gameOverConfirmed', this.ended);
+						return this.confirmGameOver(this.ended);
+					}
+
 					// Play computer player(s)
 					return this.autoplay(nextPlayer)
 					// May recurse if the player after is also a robot
 					.then(turn => this.finishTurn(turn));
 				}
+
 				nextPlayer.startTimer(
 					this.time_limit * 60 * 1000,
 					() => this.pass('timeout')
 					.then(turn => this.finishTurn(turn)));
-				return this;
+
+				return turn;
 			});
 		}
 
@@ -462,7 +483,7 @@ define('game/Game', [
 			const player = this.players[this.whosTurn];
 			const url = `${serverURL}/game/${this.key}`;
 			if (player.email) {
-				console.log("Sending turn reminder to ", player.email);
+				console.log(`Sending turn reminder email to ${player.email}`);
 				// Robots can't have an email
 				return player.emailInvitation(
 					Platform.i18n('email-your-turn',
@@ -521,14 +542,14 @@ define('game/Game', [
 		}
 
 		/**
-		 * Pass the turn to the given player
+		 * Start the turn of the given player.
 		 * @param {number} playerIndex the index of the player to get the turn
 		 * @param {number} timeout timeout for this turn, if undefined, use
 		 * the Game.time_limit
 		 */
 		startTurn(playerIndex, timeout) {
-			this.whosTurn = playerIndex;
 			console.log(`Starting ${this.players[playerIndex].name}'s turn`);
+			this.whosTurn = playerIndex;
 			if (this.time_limit && !this.ended) {
 				this.players[playerIndex].startTimer(
 					timeout || this.time_limit * 60 * 1000,
@@ -920,7 +941,7 @@ define('game/Game', [
 			if (playerWithNoTiles)
 				deltas[playerWithNoTiles.index] = pointsRemainingOnRacks;
 
-			const turn = new Turn(this, 'end-game', this.whosTurn, {
+			const turn = new Turn(this, 'ended-game-over', this.whosTurn, {
 				deltaScore: deltas
 			});
 			return Promise.resolve(turn);

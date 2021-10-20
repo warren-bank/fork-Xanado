@@ -31,7 +31,7 @@ define('game/Turn', () => {
 			 * The 'type' of the turn. This will be one of
 			 * * `move`: a player has made a move
 			 * * `swap`: a player has execute a tile swap
-			 * * `end-game`: the end of the game has been confirmed
+			 * * `ended-game-over`: the end of the game has been confirmed
 			 * * `challenge-failed`: a challenge was not successful
 			 * * `challenge-won`: a challenge succeeded
 			 * * `took-back`: the last player took back their turn

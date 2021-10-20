@@ -202,7 +202,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		.then(turn => {
 			console.log(turn);
 			assert(turn instanceof Turn);
-			assert.equal(turn.type, 'end-game');
+			assert.equal(turn.type, 'ended-game-over');
 			assert.equal(turn.player, 0);
 			assert.equal(turn.deltaScore[0], -3);
 			assert.equal(turn.deltaScore[1], 3);

@@ -165,8 +165,8 @@ define('server/Server', server_deps, (
 			// Request handler for a turn (or other game command)
 			// NOT auth protected, security hole that could allow
 			// someone to screw up games
-			router.post('/game/:gameKey',
-						(req, res) => this.handle_gamePOST(req, res));
+			router.post('/command/:gameKey',
+						(req, res) => this.handle_command(req, res));
 
 			const http = config.https
 				  ? Https.Server(config.https, express)
@@ -257,9 +257,10 @@ define('server/Server', server_deps, (
 				if (nextPlayer.isRobot) {
 					return game.autoplay(nextPlayer)
 					// May autoplay next robot recursively
-					.then(turn => game.finishTurn(turn));
-				} else
-					return game;
+					.then(turn => game.finishTurn(turn))
+					.then(() => game);
+				}
+				return game;
 			})
 			.catch(e => {
 				console.log(`Failed to load game ${key}`, e);
@@ -291,7 +292,7 @@ define('server/Server', server_deps, (
 		 */
 		handle_games(req, res) {
 			const server = this;
-			const all = (typeof req.query.active === "undefined");
+			const all = (req.query.all === "true");
 			return this.db.keys()
 			.then(keys => keys.map(
 				key => server.games[key] || this.db.get(key, Game.classes)))
@@ -385,7 +386,7 @@ define('server/Server', server_deps, (
 		 * Email reminders to next human player in each game
 		 */
 		handle_sendTurnReminders(req, res) {
-			console.log("Sending turn reminders");
+			console.log('Sending turn reminders');
 			const surly = `${req.protocol}://${req.get('Host')}`;
 			this.db.keys()
 			.then(keys => keys.map(
@@ -548,13 +549,12 @@ define('server/Server', server_deps, (
 		}
 
 		/**
-		 * Handler for POST /game/:gameKey
+		 * Handler for POST /command/:gameKey/:command
 		 * Result is always a Turn object, though the actual content
 		 * varies according to the command sent.
-		 * TODO: split these commands into separate routes
 		 * @return {Promise} Promise that resolves to undefined.
 		 */
-		handle_gamePOST(req, res) {
+		handle_command(req, res) {
 			const gameKey = req.params.gameKey;
 			// Get cookie set by handle_enterGame that identifies the player
 			const playerKey = req.cookies[gameKey];
@@ -565,14 +565,13 @@ define('server/Server', server_deps, (
 				if (game.ended)
 					return Promise.resolve();
 
-				// Who the request is coming from
+				// The command name and arguments
 				const command = req.body.command;
 				const args = req.body.args ? JSON.parse(req.body.args) : null;
 				
 				console.log(`COMMAND ${command} player ${player.name} game ${game.key}`, args);
 
 				let promise;
-				// TODO: create individual routes rather than using this switch
 				switch (command) {
 
 				case 'makeMove':
@@ -607,19 +606,20 @@ define('server/Server', server_deps, (
 					throw Error(`unrecognized command: ${command}`);
 				}
 
-				return promise.then(turn => {
-					return game.finishTurn(turn)
-					.then(() => {
-						// Notify non-game monitors (games pages)
-						this.updateMonitors();
+				return promise.then(turn => game.finishTurn(turn))
+				.then(turn => {
+					// Notify non-game monitors (games pages)
+					this.updateMonitors();
+
+					if (turn) {
 						// Respond with the new tile list for the
 						// human player. This is only used for swap
 						// and makeMove, and other info (such as robot
 						// tile states) is sent using messaging.
-						// TODO: this is messy; mixed messaging.
-						console.log("Sending new tiles", turn.newTiles);
+						console.log('Sending new tiles', turn.newTiles);
 						res.send(Fridge.freeze(turn.newTiles || []));
-					});
+					} else
+						res.send([]);
 				});
 			})
 			.catch(e => this.trap(e, res));
@@ -650,7 +650,7 @@ define('server/Server', server_deps, (
 				let transport;
 				if (config.mail.transport === "mailgun") {
 					if (!process.env.MAILGUN_SMTP_SERVER)
-						console.log("mailgun configuration requested, but MAILGUN_SMTP_SERVER not defined");
+						console.error('mailgun configuration requested, but MAILGUN_SMTP_SERVER not defined');
 					else {
 						if (!config.mail.sender)
 							config.mail.sender = `wordgame@${process.env.MAILGUN_DOMAIN}`;

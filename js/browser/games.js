@@ -75,7 +75,7 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 		return $p;
 	}
 
-	function handle_games_list(data) {
+	function handle_listGames(data) {
 		if (data.length === 0) {
 			$('#games_list').hide();
 			return;
@@ -110,8 +110,9 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 	}
 
 	function refresh_games() {
-		$.getJSON(`/games${$('#showall').is(':checked') ? '' : '?active'}`,
-				  data => handle_games_list(data));
+		$.getJSON(`/games`,
+				  { all: $('#showall').is(':checked') },
+				  data => handle_listGames(data));
 	}
 	
 	function refresh() {
