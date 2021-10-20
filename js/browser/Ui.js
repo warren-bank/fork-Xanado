@@ -1453,7 +1453,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 					delete this.notification;
 				});
 			})
-			.catch(() => console.error("Notifications disabled"));
+			.catch(() => {});
 		}
 
 		/**
