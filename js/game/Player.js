@@ -7,6 +7,10 @@ define('game/Player', ["platform", 'game/GenKey', 'game/Rack'], (Platform, GenKe
 	// Unicode characters
 	const BLACK_CIRCLE = '\u25cf';
 
+	/**
+	 * A player in a {@link Game}. Player objects are specific to
+	 * a single game, and are used on both browser and server sides.
+	 */
 	class Player {
 
 		/**
@@ -70,6 +74,7 @@ define('game/Player', ["platform", 'game/GenKey', 'game/Rack'], (Platform, GenKe
 		 * Create simple structure describing a subset of the player
 		 * state, for sending to the 'games' interface
 		 * @param {Game} game the game the player is participating in
+		 * @return a simple structure describing the player
 		 */
 		catalogue(game) {
 			return {
@@ -183,7 +188,7 @@ define('game/Player', ["platform", 'game/GenKey', 'game/Rack'], (Platform, GenKe
 		 * side only.
 		 * @param {Player} thisPlayer the player for whom the DOM is
 		 * being generated
-		 * @return {jQuery}
+		 * @return {jQuery} DOM object for the score table
 		 */
 		createScoreDOM(thisPlayer) {
 			const $tr = $(`<tr id='player${this.index}'></tr>`);

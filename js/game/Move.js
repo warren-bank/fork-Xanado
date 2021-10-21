@@ -2,14 +2,14 @@
    license information */
 /* eslint-env amd */
 
-/**
- * A Move is a collection of tile placements, and the total score achieved
- * for the move. We also record the words created by the move. It is
- * used to send a human player's play to the server, which then responds
- * with a turn (or several, if robots are playing)
- */
 define('game/Move', () => {
 
+	/**
+	 * A Move is a collection of tile placements, and the total score
+	 * achieved for the move. We also record the words created by the
+	 * move. It is used to send a human player's play to the server,
+	 * which then sends a matching {@link Turn} to every player.
+	 */
 	class Move {
 
 		/**

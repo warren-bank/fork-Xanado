@@ -4,11 +4,14 @@
 
 define('game/LetterBag', ['game/Tile'], (Tile) => {
 
+	/**
+	 * The bag of letters during a game.
+	 */
 	class LetterBag {
 
 		/**
 		 * Construct a new letter bag using the distribution for the
-		 * given bag definition (@see game/Edition)
+		 * given edition
 		 * @param {Edition} edition the Edition defining the bag contents
 		 */
 		constructor(edition) {
@@ -56,7 +59,7 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 		 * Get a single random tile from the bag. Assumes the bag is
 		 * already randomised, and there is no need to shuffle it
 		 * again.
-		 * @return {Tile} or null if there are no tiles left
+		 * @return {Tile} a Tile or null if there are no tiles left
 		 */
 		getRandomTile() {
 			if (this.tiles.length > 0)
@@ -83,6 +86,7 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 		/**
 		 * Return a tile to the bag, and give it a shoogle so the same
 		 * tile doesn't re-emerge.
+		 * @param {Tile} tile tile to return to bag
 		 */
 		returnTile(tile) {
 			delete tile.row;
@@ -94,6 +98,7 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 		/**
 		 * Return a set of tiles to the bag, and give it a shoogle so
 		 * the tiles don't re-emerge in the same order.
+		 * @param {Tile[]} tiles tiles to return to bag
 		 */
 		returnTiles(tiles) {
 			tiles.forEach(tile => {
@@ -106,6 +111,7 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 
 		/**
 		 * How many tiles remain?
+		 * @return {number} number of tiles still in the bag
 		 */
 		remainingTileCount() {
 			return this.tiles.length;

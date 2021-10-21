@@ -2,11 +2,11 @@
    license information */
 /* eslint-env amd, node, jquery */
 
-/**
- * Base class of a tile holder (Rack or Board)
- */
 define('game/Surface', ['game/Square'], Square => {
 
+	/**
+	 * Base class of a tile holder (Rack or Board)
+	 */
 	class Surface {
 
 		/**
@@ -48,20 +48,23 @@ define('game/Surface', ['game/Square'], Square => {
 
 		/**
 		 * Call fn(square, col, row) on every square, column major.
-		 * Iteration will stop if fn returns true.
 		 * @param {function} fn function(Square, col, row)
+		 * Iteration will stop if fn returns true.
+		 * @return {boolean} true if fn() returns true, false otherwise
 		 */
 		forEachSquare(fn) {
 			for (let c = 0; c < this.cols; c++)
 				for (let r = 0; r < this.rows; r++)
 					if (fn(this.squares[c][r], c, r))
-						return;
+						return true;
+			return false;
 		}
 
 		/**
 		 * Call fn(square, col, row) on every square that has a tile
 		 * @param {function} fn function(Square, col, row)
 		 * Iteration will stop if the function returns true.
+		 * @return {boolean} true if fn() returns true, false otherwise
 		 */
 		forEachTiledSquare(fn) {
 			return this.forEachSquare((square, c, r) => {
@@ -75,6 +78,7 @@ define('game/Surface', ['game/Square'], Square => {
 		 * Call fn(square, col, row) on every square that has no tile.
 		 * @param {function} fn function(Square, col, row)
 		 * Iteration will stop if the function returns true.
+		 * @return {boolean} true if fn() returns true, false otherwise
 		 */
 		forEachEmptySquare(fn) {
 			return this.forEachSquare((square, c, r) => {
@@ -86,6 +90,7 @@ define('game/Surface', ['game/Square'], Square => {
 
 		/**
 		 * Get the number of squares currently occupied by a tile
+		 * @return {number} number of occupied squares
 		 */
 		squaresUsed() {
 			let count = 0;
@@ -98,7 +103,7 @@ define('game/Surface', ['game/Square'], Square => {
 
 		/**
 		 * Get a list of the tiles placed on the surface
-		 * @return {Tile[]}
+		 * @return {Tile[]} list of placed tiles
 		 */
 		tiles() {
 			const tiles = [];
@@ -125,7 +130,7 @@ define('game/Surface', ['game/Square'], Square => {
 		/**
 		 * Get the total of the scoring tiles placed on the
 		 * surface
-		 * @return {number}
+		 * @return {number} total score
 		 */
 		score() {
 			return this.tiles().reduce((s, tile) => s + tile.score, 0);
@@ -133,6 +138,7 @@ define('game/Surface', ['game/Square'], Square => {
 
 		/**
 		 * Determine if the surface is empty of tiles
+		 * @return {boolean} true if surface is empty
 		 */
 		isEmpty() {
 			return this.tiles().length === 0;

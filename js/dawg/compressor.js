@@ -5,7 +5,7 @@
 /* global DataView, require, __dirname, process */
 
 /**
- * Program to generate a DAWG (Directed Acyclic Word Graph) from a
+ * Command-line program to generate a DAWG (Directed Acyclic Word Graph) from a
  * word lexicon. Generates a somewhat optimised Trie, encodes it in
  * an integer array, which it then gzips.
  *

@@ -20,7 +20,6 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 	/**
 	 * User interface to a game in a browser. The Ui reflects the game state as
 	 * communicated from the server, through the exchange of various messages.
-	 * See `FlowOfControl.md` at the root of this distribution for an overview.
 	 */
 	class Ui {
 
@@ -44,32 +43,32 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 			/**
 			 * Currently selected Square
-			 * @member
+			 * @member {Square}
 			 */
 			this.selectedSquare = null;
 
 			/**
 			 * Quick reference to typing cursor DOM object
 			 * lateinit in loadGame
-			 * @member
+			 * @member {jQuery}
 			 */
 			this.$typingCursor = null;
 			
 			/**
 			 * Typing is across if true, down if false
-			 * @member
+			 * @member {boolean}
 			 */
 			this.typeAcross = true;
 
 			/**
 			 * lateinit in loadGame
-			 * @member
+			 * @member {Player}
 			 */
 			this.thisPlayer = null;
 
 			/**
 			 * Board lock status, private
-			 * @member
+			 * @member {boolean}
 			 */
 			this.boardLocked = false;
 
@@ -520,7 +519,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		/**
 		 * A game has been read; load it into the UI
 		 * @param {Game} game the Game being played
-		 * @return {Promise} to load the game
+		 * @return {Promise} Promise that resolves to a game
 		 */
 		loadGame(game) {
 			console.log('Loading UI for', game.toString());
@@ -894,6 +893,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 		/**
 		 * Promise to prompt for a letter for a blank
+		 * @return {Promise} Promise that resolves to the chosen letter
 		 */
 		promptForLetter() {
 			return new Promise(resolve => {
@@ -1370,9 +1370,11 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		 * Handler for a click on the 'Make Move' button. This button
 		 * may be associated with different actions depending on the
 		 * state, through the 'data-action' attribute.
-		 * 'commitMove' will send the current tile placements to the server
-		 * 'swap' will sawp the tiles currently on the swap rack
-		 * 'pass' will pass the current move (set when no tiles are placed)
+		 * 
+		 * * 'commitMove' will send the current tile placements to the server
+		 * * 'swap' will sawp the tiles currently on the swap rack
+		 * * 'pass' will pass the current move (set when no tiles are placed)
+		 *
 		 * This action will map to the matching function in 'this'.
 		 */
 		makeMove() {
@@ -1459,6 +1461,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		/**
 		 * Promise to check if we have been granted permission to
 		 * create Notifications.
+		 * @return {Promise} Promise that resolves to undefined if we can notify
 		 */
 		canNotify() {
 			if (!this.settings.notification

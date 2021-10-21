@@ -4,6 +4,9 @@
 
 define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile, Move) => {
 
+	/**
+	 * The square game board
+	 */
 	class Board extends Surface {
 
 		/**

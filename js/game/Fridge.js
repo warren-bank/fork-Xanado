@@ -2,17 +2,17 @@
    license information */
 /* eslint-env browser, node */
 
-/**
- * Simple selecting serialisation/deserialisation of a JS object graph
- * to stand-alone JSON. Does not handle function references. Full restoration
- * of objects requires class prototypes to be passed in to thaw().
- * Note that the object property prefix '_IB_' is reserved for use by this
- * module. Note also that fields who's names start with _ will not be
- * serialised.
- */
 define('game/Fridge', () => {
 
 	/**
+	 * Simple selecting serialisation/deserialisation of a JS object
+	 * graph to stand-alone JSON. Does not handle function
+	 * references. Full restoration of objects requires class
+	 * prototypes to be passed in to thaw().
+	 * The object property prefix '_IB_' is reserved for use by this
+	 * module, and note also that fields who's names start with _ will
+	 * not be serialised.
+	 *
 	 * Note that the objects being frozen are 'interfered with' by the
 	 * addition of an _IB_ID field that indicates their 'frozen ID'.
 	 * This is a (clumsy) solution to the lack of ES7 value objects in ES6.
@@ -26,6 +26,8 @@ define('game/Fridge', () => {
 
 		/**
 		 * Convert an object graph to stand-alone JSON.
+		 * @param {object} object - object to freeze
+		 * @return {object} the frozen version of the object
 		 */
 		static freeze(object) {
 			const objectsFrozen = [];
