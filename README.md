@@ -144,7 +144,7 @@ can be any big list of words, or it can simply be a lexicon). Run the program
 Currently only [double challenge](https://en.wikipedia.org/wiki/Challenge_(Scrabble)) is supported. An extension would be to support other challenge types.
 
 # Internationalisation
-The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English and (une très mauvaise traduction en) French. To generate your own translation, copy `/i18n/en.json` to a file using your language code (e.g. `de` for German) and edit the new file to provide the translation. You can use the `js/i18n/checkTranslation.js` program to check the completeness of your translations.
+The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English, (une très mauvaise traduction en) French, and (eine schlechte Übersetzung ins) German. To generate your own translation, copy `/i18n/en.json` to a file using your language code (e.g. `it` for Italian) and edit the new file to provide the translation. You can use the `js/i18n/checkTranslation.js` program to check the completeness of your translations.
 
 If you do create a translation, please feel free to issue a pull request to get it into the source code.
 
