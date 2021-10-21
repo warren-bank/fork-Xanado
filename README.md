@@ -38,7 +38,7 @@ This version has some major differences:
 
 # Installation
 
-The server code is written in Javascript ES6 and tested using `node.js` version 11.15.0. You will require this or a more recent version of `node.js`. The client runs in a browser and works on all the browsers I tested (Chrome, Firefox, Android.)
+The server code is written in Javascript ES6 and tested using `node.js` version 11.15.0. You will require this or a more recent version of `node.js`. The client runs in a browser and works on all the browsers I tested (Chrome, Firefox, Android, Opera.)
 
 First use `git clone` to clone the repository to your local machine. Then in
 the root directory of the distribution
@@ -101,9 +101,10 @@ To assist learners, there are two special 'chat' messages that can be entered.
 # Dictionaries
 The `/dictionaries` directory contains all the
 dictionaries. Included with the installation are 4 pre-built dictionaries:
-* SOWPODS_English - 409K words from an [unofficial version](https://www.wordgamedictionary.com/sowpods/download/sowpods.txt) of the standard European English SCRABBLE® dictionary.
-* German - the word list from the [germandict project on Sourceforge](https://sourceforge.net/projects/germandict/files/). 404K words.
-* British_English - a custom British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American word spellings are also included, to reflect the flexible nature of our shared language. 66K words.
+* SOWPODS_English - 409K words from an [unofficial version](https://www.wordgamedictionary.com/sowpods/download/sowpods.txt) of the standard European English SCRABBLE® competition dictionary.
+* German - 404k word list from the [germandict project on Sourceforge](https://sourceforge.net/projects/germandict/files/).
+* British_English - a custom 66k word British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American word spellings are also included, to reflect the flexible nature of our shared language.
+* ODS8_French - 411k word French SCRABBLE® competition dictionary.
 * Oxford_5000 - 28K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
 
 ## Building your own dictionary
@@ -160,6 +161,9 @@ how. HTTPS is required for notifications to work, and is recommended.
 
 To use HTTPS you require an SSL certificate. You can generate one using the
 instructions in https://linuxize.com/post/creating-a-self-signed-ssl-certificate/
+
+# Development
+Further development is welcome, especially interface translations and keeping dependencies up to date. See [DEVELOPER](DEVELOPER.md) for more.
 
 ## IMPORTANT NOTICES:
 

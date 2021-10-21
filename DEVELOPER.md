@@ -1,3 +1,22 @@
+# Code structure
+
+The installation has subdirectories as follows:
+* `audio` contains audio samples
+* `css` contains style sheets
+* `dictionaries` contains all the dictionaries
+* `editions` contains the edition specifications
+* `games` contains the database of games
+* `html` has the html for the user interfaces, `games.html` for the control panel, `createGame.html` for the new game page, and `game.html` for the game itself.
+* `i18n` contains the master English `en.json` and any other contributed translations of the interface.
+* `images` contains images used by the game
+* `js` has all the source code
+	* `js/browser` is the browser code
+	* `js/dawg` is generation and management of DAWGs
+	* `design` is the valett program
+	* `game` has the platform-independent game engine
+	* `i18n` has the translations checker
+	* `server` has the node.js server code
+
 # Flow of Control
 
 A game is joined by opening a server URI which identifies the game
@@ -28,3 +47,10 @@ for events coming from the user. At points it will POST messages to the
 server to reflect user actions: `makeMove`, `challenge`,
 `swap`, `takeBack`, and `pass`. The server will pass these on to
 `js/game/Game.js` for handling.
+
+# Documentation
+
+The code is documented using `jsdoc`. The `Makefile` at the root has a
+`doc` target that will generate the documentation in the `doc` subdirectory.
+You can read the doc in a browser by opening `file:///..../doc/index.html`
+or, if the game server is running, by loading `http://localhost:9093/doc/index.html` (adjust URL to suit your install)
