@@ -396,6 +396,7 @@ define('game/Game', [
 					const pwn = this.getPlayerWithNoTiles();
 					if (pwn) {
 						this.ended = 'ended-game-over';
+						this.stopTimers();
 						this.notifyPlayers('gameOverConfirmed', this.ended);
 						return this.confirmGameOver(this.ended);
 					}
@@ -510,6 +511,7 @@ define('game/Game', [
 				console.log('Game timed out:',
 							this.players.map(({ name }) => name));
 
+				this.stopTimers();
 				this.ended = 'ended-timed-out';
 				this.save();
 				console.log(`${this.key} has timed out`);
@@ -615,15 +617,17 @@ define('game/Game', [
 			// Tell players that the player is connected
 			this.updateConnections();
 
-			if (this.allPlayersReady() && !this.ended)
-				this.startTheClock();
-			else
-				this.notifyPlayers(
-					'tick',
-					{
-						player: this.whosTurn,
-						timeout: 0
-					});
+			if (!this.ended) {
+				if (this.allPlayersReady())
+					this.startTheClock();
+				else
+					this.notifyPlayers(
+						'tick',
+						{
+							player: this.whosTurn,
+							timeout: 0
+						});
+			}
 
 			// Add disconnect listener
 			const game = this;
@@ -669,14 +673,15 @@ define('game/Game', [
 		}
 
 		/**
-		 * Stop the clock timer, if it is running.
+		 * Stop timers (game timeout timer and player timers)
 		 */
-		stopTheClock() {
+		stopTimers() {
 			if (this._intervalTimer) {
 				console.log('Stopping timer');
 				clearInterval(this._intervalTimer);
 				this._intervalTimer = null;
 			}
+			this.players.forEach(player => player.stopTimer());
 		}
 
 		/**
@@ -866,9 +871,10 @@ define('game/Game', [
 			player.passes = 0;
 
 			if (!this.ended) {
-				if (this.allPassedTwice())
+				if (this.allPassedTwice()) {
+					this.stopTimers();
 					this.ended = 'ended-all-passed-twice';
-				else
+				} else
 					this.startTurn((this.whosTurn + 1) % this.players.length);
 			}
 			
@@ -920,8 +926,7 @@ define('game/Game', [
 			this.ended = reason;
 			console.log(`Finishing because ${reason}`);
 
-			this.stopTheClock();
-			this.players.forEach(player => player.stopTimer());
+			this.stopTimers();
 
 			// Adjust scores for tiles left on racks
 			let playerWithNoTiles;
@@ -1021,6 +1026,7 @@ define('game/Game', [
 			player.passes++;
 
 			if (this.allPassedTwice()) {
+				this.stopTimers();
 				this.ended = 'ended-all-passed-twice';
 			} else {
 				const nextPlayer = (thisPlayer + 1) % this.players.length;
