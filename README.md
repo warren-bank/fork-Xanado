@@ -13,8 +13,7 @@ to be completely free.
 Out of the box, this version lets you play games according to the
 rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, and Lexulous,
 and has tile sets for English, French, German, Dutch, Estonian and
-Hungarian. It has dictionaries in British English and German, including an unofficial
-SOWPODS (tournament) english dictionary.
+Hungarian. It has dictionaries in English, French, and German, and it's easy to add more.
 
 An interesting application that has emerged is as an entertaining teaching aid
 for language learners. Included is a dictionary based on the Oxford 5000 most
