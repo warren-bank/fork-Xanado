@@ -1,7 +1,6 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env amd, node */
-/* global process, requirejs */
 
 const server_deps = [
 	'fs-extra', 'node-getopt', 'events',

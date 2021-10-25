@@ -1,7 +1,6 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env amd */
-/* global requirejs */
 
 define('game/Edition', () => {
 	// Static DB of loaded Editions, indexed by name

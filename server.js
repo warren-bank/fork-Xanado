@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* global require, __dirname */
 
 /**
  * This is the requirejs configuration and top level invocation for the server

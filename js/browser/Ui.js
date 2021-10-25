@@ -1,5 +1,4 @@
 /* eslint-env browser, jquery */
-/* global $, define, Notification */
 
 const uideps = [
 	'socket.io',
@@ -247,16 +246,22 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		logEndMessage(cheer) {
 			const winners = [];
 			let youWon = false;
-			const winningScore = this.game.getWinningScore();
+			// The player who emptied their rack first gained points
+			// from the racks of other players, though they may not
+			// be a winner
+			const ender = this.game.getPlayerWithNoTiles();
+			const winner = this.game.getWinner();
 
 			// Total lost from all losing player's racks
 			const extras = this.game.players.reduce(
-				(sum, player) => sum + player.rack.score(), 0);
+				(sum, player) => sum
+				+ (player === ender ? 0 : player.rack.score()), 0);
 
 			const $narrative = $('<div></div>');
 			this.game.players.forEach(player => {
 				const isme = this.isPlayer(player.index);
-				const iswinner = (player.score === winningScore);
+				const iswinner = (player.score === winner.score);
+				const isender = (player === ender);
 
 				const $gsd = $('<div class="gameEndScore"></div>');
 				const name = isme ? $.i18n('You') : player.name;
@@ -270,10 +275,15 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 					} else {
 						winners.push(player.name);
 					}
+				}
+
+				if (isender) {
+					// Player's rack is empty
 					if (extras > 0)
 						$gsd.text($.i18n('log-gained-from-racks',
 										 name, extras));
 				} else {
+					// Player still has tiles on their rack
 					const waste = player.rack.score();
 					if (waste > 0) {
 						const tilesLeft = [];

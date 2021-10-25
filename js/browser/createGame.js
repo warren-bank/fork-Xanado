@@ -2,8 +2,6 @@
    license information */
 /* eslint-env browser, jquery */
 
-/* global localStorage */
-
 /**
  * Browser app for game creation
  */

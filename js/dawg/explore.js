@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* global require, __dirname */
 
 /**
  * Command-line program to explore the words encoded in a DAWG

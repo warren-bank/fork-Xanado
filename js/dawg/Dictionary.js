@@ -2,8 +2,6 @@
    license information */
 /* eslint-env amd, node */
 
-/* global DataView, define, requirejs */
-
 define('dawg/Dictionary', [ 'platform', 'dawg/LetterNode' ], (Platform, LetterNode) => {
 
 	// Constants used in interpreting the integer encoding of the DAWG

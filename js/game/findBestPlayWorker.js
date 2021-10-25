@@ -1,7 +1,6 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env amd, node */
-/* global require, __dirname */
 const requirejs = require('requirejs');
 
 requirejs.config({

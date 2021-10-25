@@ -107,14 +107,6 @@ define('game/Game', [
 			 * @member {LetterBag}
 			 */
 			this.letterBag = null;
-
-			/**
-			 * Undefined during play, will be set to an i18n message
-			 * key at end of play. Key refers to a message that describes
-			 * reason for end of play.
-			 * @member {string}
-			 */
-			this.ended = undefined;
 		}
 
 		/**

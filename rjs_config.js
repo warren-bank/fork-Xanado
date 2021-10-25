@@ -3,7 +3,6 @@
 // way requirejs works, that means this file also has to be in the root of the
 // distribution.
 // See https://coderwall.com/p/qbh0_w/share-requirejs-configuration-among-multiple-pages
-/* global requirejs */
 
 requirejs.config({
 	paths: {

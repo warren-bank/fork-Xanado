@@ -1,7 +1,7 @@
 {
 	"name": "html-scrabble",
 	"description": "Multi user Scrabble game",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"author": {
 		"name": "Crawford Currie",
 		"url": "https://github.com/cdot"
@@ -33,6 +33,7 @@
 	},
 	"devDependencies": {
 		"chai": "^4.3.4",
+		"eslint": "^8.1.0",
 		"jsdoc": "^3.6.7",
 		"mocha": "^8.3.2"
 	},
@@ -55,25 +56,26 @@
 			"Mocha": "writable"
 		},
 		"rules": {
-			"strict": 0,
-			"no-underscore-dangle": 0,
-			"curly": 0,
 			"camelcase": 0,
-			"no-unused-vars": 1,
+			"curly": 0,
+			"dot-notation": 1,
+			"new-cap": 0,
+			"no-alert": 0,
 			"no-console": 0,
 			"no-debugger": 0,
-			"no-alert": 0,
-			"no-fallthrough": 1,
+			"no-eval": 0,
+			"no-fallthrough": 0,
+			"no-loop-func": 1,
+			"no-mixed-spaces-and-tabs": 0,
 			"no-new": 0,
-			"new-cap": 0,
-			"dot-notation": 1,
+			"no-redeclare": ["error", { "builtinGlobals": true }],
 			"no-trailing-spaces": 0,
+			"no-underscore-dangle": 0,
+			"no-unused-vars": 0,
 			"no-useless-escape": 1,
 			"no-use-before-define": 0,
-			"no-loop-func": 1,
-			"no-eval": 1,
 			"quotes": 0,
-			"no-mixed-spaces-and-tabs": 0
+			"strict": 0
 		}
 	}
 }

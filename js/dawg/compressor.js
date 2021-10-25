@@ -2,7 +2,6 @@
    license information */
 
 /* eslint-env node */
-/* global DataView, require, __dirname, process */
 
 /**
  * Command-line program to generate a DAWG (Directed Acyclic Word Graph) from a

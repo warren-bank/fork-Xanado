@@ -41,7 +41,7 @@ define('game/Fridge', () => {
 					return unfrozen;
 
 				try {
-					if (unfrozen.hasOwnProperty('_IB_ID')) {
+					if (Object.prototype.hasOwnProperty.call(unfrozen, '_IB_ID')) {
 						// ref to a previously frozen object
 						if (unfrozen.constructor) {
 							//console.log(`Ref to ${unfrozen._IB_ID} ${unfrozen.constructor.name}`);
@@ -118,7 +118,7 @@ define('game/Fridge', () => {
 				if (!object || typeof object !== 'object')
 					return object;
 
-				if (object.hasOwnProperty('_IB_REF')) {
+				if (Object.prototype.hasOwnProperty.call(object, '_IB_REF')) {
 					// Reference to another object, that must already have
 					// been thawed
 					if (objectsThawed[object._IB_REF])
@@ -149,7 +149,7 @@ define('game/Fridge', () => {
 					thawProps = true;
 				}
 
-				if (object.hasOwnProperty('_IB_ID'))
+				if (Object.prototype.hasOwnProperty.call(object, '_IB_ID'))
 					objectsThawed[object._IB_ID] = thawed;
 
 				if (thawProps)

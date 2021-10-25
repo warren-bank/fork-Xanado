@@ -1,7 +1,6 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env browser, jquery */
-/* global $, requirejs */
 
 /**
  * Browser app for games.html; populate the list of live games
