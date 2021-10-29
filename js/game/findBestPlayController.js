@@ -5,10 +5,10 @@
  * This is the controller side of a best play thread. It provides 
  * the same API as findBestPlay(). See also findBestPlayWorker.js
  */
-define('game/findBestPlayController', ['worker_threads', 'game/Fridge'], (threads, Fridge) => {
+define('game/findBestPlayController', ['worker_threads', 'game/Square', 'game/Fridge', "game/Game"], (threads, Square, Fridge, Game) => {
 
 	/**
-	 * Interface should be the same as for findBestMove.js so they
+	 * Interface should be the same as for findBestPlay.js so they
 	 * can be switched in and out for debug.
 	 * @param {Game} game game to analyse
 	 * @param {string[]} array of useable letters, ' ' means blank tile
@@ -36,7 +36,7 @@ define('game/findBestPlayController', ['worker_threads', 'game/Fridge'], (thread
 
 			// Pass worker messages on to listener
 			worker.on('message', data => {
-				listener(data);
+				listener(Fridge.thaw(data, Game.classes));
 			});
 
 			worker.on('error', e => {

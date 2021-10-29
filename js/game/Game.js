@@ -13,7 +13,8 @@ define('game/Game', [
 	Dictionary,
 	GenKey, Board, Bag, LetterBag, Edition,
 	Player, Square, Tile, Rack, Move,
-	Turn) => {
+	Turn
+) => {
 
 	/**
 	 * The Game object may be used server or browser side.
@@ -329,27 +330,6 @@ define('game/Game', [
 		 */
 		notifyPlayers(message, data) {
 			this._connections.forEach(socket => socket.emit(message, data));
-		}
-
-		/**
-		 * Before processing a Move instruction (pass or play) check that
-		 * the given player is in this game, and it's their turn.
-		 * @param {Player} player to check
-		 * @return {Promise} resolving to this game, rejected if it isn't
-		 * the players turn
-		 */
-		checkTurn(player) {
-			if (this.ended) {
-				console.log(`Game ${this.key} has ended`);
-				return Promise.reject('error-game-has-ended');
-			}
-
-			// determine if it is this player's turn
-			if (player === this.players[this.whosTurn])
-				return Promise.resolve(this);
-
-			console.log(`not ${player.name}'s turn`);
-			return Promise.reject('error-not-your-turn');
 		}
 
 		/**
@@ -689,9 +669,9 @@ define('game/Game', [
 		}
 
 		/**
-		 * Handler for 'hint' message. This is NOT a turn handler
-		 * Calculate a play for the given player, and notify all
-		 * players that they requested a hint.
+		 * Handler for 'hint' request. This is NOT a turn handler.
+		 * Asynchronously calculate a play for the given player, and
+		 * notify all players that they requested a hint.
 		 * @param {Player} player to get a hint for
 		 */
 		hint(player) {
@@ -719,10 +699,11 @@ define('game/Game', [
 						words, start.row + 1, start.col + 1, bestPlay.score
 					];
 				}
-				// Tell the player the hint
+
+				// Tell the requesting player the hint
 				this.notifyPlayer(player, 'message', hint);
 				
-				// Tell *everyone* who asked for a hint
+				// Tell *everyone* that they asked for a hint
 				this.notifyPlayers('message', {
 					sender: 'chat-advisor',
 					text: 'chat-hinted',
@@ -793,18 +774,24 @@ define('game/Game', [
 
 		/**
 		 * Handler for 'makeMove' command.
-		 * @param {Move} move a Move
+		 * @param {Move} move a Move (or the spec of a Move)
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		async makeMove(move) {
+			if (!(move instanceof Move))
+				move = new Move(move);
+
 			const thisPlayer = this.whosTurn;
 			const player = this.players[thisPlayer];
 			player.stopTimer();
 
-			console.log(`makeMove player ${thisPlayer} `, move.toString());
+			console.log(`makeMove ${player.name}`, move);
 			console.log(`Player's rack is ${player.rack}`);
 
-			// Fire up a thread to generate advice
+			// Fire up a thread to generate advice and wait for it
+			// to complete. We can't do this asynchronously because
+			// the advice depends on the board state, which the move is
+			// going to update.
 			if (player.wantsAdvice)
 				await this.advise(player, move.score);
 
@@ -813,25 +800,27 @@ define('game/Game', [
 			// Move tiles from the rack to the board
 			move.placements.forEach(placement => {
 				const tile = player.rack.removeTile(placement);
-				game.board.at(placement.col, placement.row)
-				.placeTile(tile, true);
+				const square = game.board.at(placement.col, placement.row);
+				square.placeTile(tile, true);
 			});
 
 			player.score += move.score;
 
-			// get new tiles to replace those placed
-			const newTiles = [];
+			// Get new tiles to replace those placed
 			for (let i = 0; i < move.placements.length; i++) {
 				const tile = this.letterBag.getRandomTile();
 				if (tile) {
 					player.rack.addTile(tile);
-					newTiles.push(tile);
+					move.addReplacement(tile);
 				}
 			}
 
 			console.log('New rack', player.rack.toString());
 
 			console.log('words ', move.words);
+
+			// Asynchronously check word and notify player if it
+			// isn't found.
 			this.getDictionary()
 			.then(dict => {
 				for (let w of move.words) {
@@ -852,14 +841,11 @@ define('game/Game', [
 				console.log('Dictionary load failed', e);
 			});
 
-			this.previousMove = {
-				placements: move.placements,
-				newTiles: newTiles,
-				score: move.score,
-				player: thisPlayer,
-				remainingTime: player.remainingTime,
-				words: move.words.map(w => w.word)
-			};
+			// Record the move
+			move.playerIndex = thisPlayer;
+			move.remainingTime = player.remainingTime;
+			this.previousMove = move;
+
 			player.passes = 0;
 
 			if (!this.ended) {
@@ -867,15 +853,16 @@ define('game/Game', [
 					this.stopTimers();
 					this.ended = 'ended-all-passed-twice';
 				} else
-					this.startTurn((this.whosTurn + 1) % this.players.length);
+					this.startTurn((thisPlayer + 1) % this.players.length);
 			}
 			
 			// Report the result of the turn
-			const turn = new Turn(this, 'move', thisPlayer, {
+			const turn = new Turn(this, {
+				type: 'move',
+				player: thisPlayer,
 				nextToGo: this.whosTurn,
 				deltaScore: move.score,
-				move: move,
-				newTiles: newTiles
+				move: move
 			});
 
 			return Promise.resolve(turn);
@@ -889,14 +876,14 @@ define('game/Game', [
 		autoplay(player) {
 			let bestPlay = null;
 
-			console.log(`autoplay ${player.name}`);
+			console.log(`Autoplaying ${player.name}`);
 			return Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
 					if (typeof data === 'string')
 						console.log(data);
 					else {
 						bestPlay = data;
-						console.log('Best', bestPlay.toString());
+						console.log('Best', bestPlay);
 					}
 				})
 			.then(() => {
@@ -938,7 +925,9 @@ define('game/Game', [
 			if (playerWithNoTiles)
 				deltas[playerWithNoTiles.index] = pointsRemainingOnRacks;
 
-			const turn = new Turn(this, 'ended-game-over', this.whosTurn, {
+			const turn = new Turn(this, {
+				type: 'ended-game-over',
+				player: this.whosTurn,
 				deltaScore: deltas
 			});
 			return Promise.resolve(turn);
@@ -949,7 +938,7 @@ define('game/Game', [
 		 * or the result of a challenge.
 		 * @param {string} type the type of the takeBack; 'took-back'
 		 * or 'challenge-won'
-		 * @return {Promise} resolving to a {@link Turn}
+		 * @return {Promise} Promise resolving to a {@link Turn}
 		 */
 		takeBack(type) {
 			// The UI ensures that 'took-back' can only be issued by the
@@ -957,13 +946,13 @@ define('game/Game', [
 			// SMELL: Might a comms race result in it being issued by
 			// someone else?
 			const previousMove = this.previousMove;
-			const prevPlayer = this.players[previousMove.player];
+			const prevPlayer = this.players[previousMove.playerIndex];
 
 			delete this.previousMove;
 
 			// Move tiles that were added to the rack as a consequence
 			// of the previous move, back to the letter bag
-			for (let newTile of previousMove.newTiles) {
+			for (let newTile of previousMove.replacements) {
 				const tile = prevPlayer.rack.removeTile(newTile);
 				this.letterBag.returnTile(tile);
 			}
@@ -981,7 +970,8 @@ define('game/Game', [
 			if (type === 'took-back') {
 				// A takeBack, not a challenge. Let that player go again,
 				// but with just the remaining time from their move.
-				this.startTurn(previousMove.player, previousMove.remainingTime);
+				this.startTurn(previousMove.playerIndex,
+							   previousMove.remainingTime);
 			}
 			// else a successful challenge, does not move the player on.
 			// Timer was cancelled during the challenge, and needs to be
@@ -992,11 +982,12 @@ define('game/Game', [
 				this.startTurn(challenger, this.time_limit * 60 * 1000);
 			}
 
-			const turn = new Turn(this, type, prevPlayer.index, {
+			const turn = new Turn(this, {
+				type: type,
+				player: previousMove.playerIndex,
 				nextToGo: this.whosTurn,
 				deltaScore: -previousMove.score,
 				move: previousMove,
-				newTiles: previousMove.newTiles,
 				challenger: challenger
 			});
 
@@ -1011,21 +1002,25 @@ define('game/Game', [
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		pass(type) {
-			const thisPlayer = this.whosTurn;
-			const player = this.players[thisPlayer];
-			player.stopTimer();
+			const passingIndex = this.whosTurn;
+			const passingPlayer = this.players[passingIndex];
+			passingPlayer.stopTimer();
 			delete this.previousMove;
-			player.passes++;
+			passingPlayer.passes++;
 
 			if (this.allPassedTwice()) {
 				this.stopTimers();
 				this.ended = 'ended-all-passed-twice';
 			} else {
-				const nextPlayer = (thisPlayer + 1) % this.players.length;
+				const nextPlayer = (passingIndex + 1) % this.players.length;
 				this.startTurn(nextPlayer);
 			}
 			return Promise.resolve(new Turn(
-				this, type, thisPlayer, { nextToGo: this.whosTurn }));
+				this, {
+					type: type,
+					player: passingIndex,
+					nextToGo: this.whosTurn
+				}));
 		}
 
 		/**
@@ -1044,7 +1039,7 @@ define('game/Game', [
 			})
 			.then(dict => {
 				const bad = this.previousMove.words
-					  .filter(word => !dict.hasWord(word));
+					  .filter(word => !dict.hasWord(word.word));
 
 				if (bad.length > 0) {
 					// Challenge succeeded
@@ -1065,26 +1060,33 @@ define('game/Game', [
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		swap(tiles) {
-			const thisPlayer = this.whosTurn;
-			const player = this.players[thisPlayer];
-			player.stopTimer();
+			const swappingIndex = this.whosTurn;
+			const swappingPlayer = this.players[swappingIndex];
+			swappingPlayer.stopTimer();
 
 			if (this.letterBag.remainingTileCount() < tiles.length)
 				// Terminal, no point in translating
 				throw Error(`Cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
 
 			delete this.previousMove;
-			player.passes++;
+			swappingPlayer.passes++;
+
+			// Construct a move to record the results of the swap
+			const move = new Move();
 
 			// First get some new tiles
-			const newTiles = [];
+			// Scrabble Rule #7: You may use a turn to exchange all,
+			// some, or none of the letters. To do this, place your
+			// discarded letter(s) facedown. Draw the same number of
+			// letters from the pool, then mix your discarded
+			// letter(s) into the pool.
 			let tile;
 			for (tile of tiles)
-				newTiles.push(this.letterBag.getRandomTile());
+				move.addReplacement(this.letterBag.getRandomTile());
 
-			// Return selected tiles to the letter bag
+			// Return discarded tiles to the letter bag
 			for (tile of tiles) {
-				const removed = player.rack.removeTile(tile);
+				const removed = swappingPlayer.rack.removeTile(tile);
 				if (!removed)
 					// Terminal, no point in translating
 					throw Error(`Cannot swap, player rack does not contain letter ${tile.letter}`);
@@ -1092,16 +1094,20 @@ define('game/Game', [
 			}
 
 			// Place new tiles on the rack
-			for (tile of newTiles)
-				player.rack.addTile(tile);
+			for (tile of move.replacements)
+				swappingPlayer.rack.addTile(tile);
 
-			const nextPlayer = (thisPlayer + 1) % this.players.length;
-			this.startTurn(nextPlayer);
+			const nextIndex = (swappingIndex + 1) % this.players.length;
+			this.startTurn(nextIndex);
 
-			return Promise.resolve(new Turn(this, 'swap', thisPlayer, {
-				nextToGo: nextPlayer,
-				newTiles: newTiles
-			}));
+			return Promise.resolve(
+				new Turn(this,
+						 {
+							 type: 'swap',
+							 player: swappingIndex,
+							 nextToGo: nextIndex,
+							 move: move
+						 }));
 		}
 
 		/**

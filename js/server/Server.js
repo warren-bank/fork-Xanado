@@ -2,23 +2,20 @@
    license information */
 /* eslint-env amd, node */
 
-const server_deps = [
+define('server/Server', [
 	'fs-extra', 'node-getopt', 'events',
 	'socket.io', 'http', 'https', 'nodemailer',
-	'express', 'express-negotiate', 'cookie-parser', 'errorhandler', 'express-basic-auth',   
+	'express', 'express-negotiate', 'cookie-parser', 'errorhandler',
+	'express-basic-auth',   
 	'platform',
-	'game/Fridge', 'game/Game', 'game/Player', 'game/Edition',
-
-	//'game/findBestPlay']; // when debugging, use this (unthreaded)
-	'game/findBestPlayController'
-];
-
-define('server/Server', server_deps, (
+	'game/Fridge', 'game/Game', 'game/Player', 'game/Edition'
+], (
 	Fs, Getopt, Events,
 	SocketIO, Http, Https, NodeMailer,
-	Express, negotiate, CookieParser, ErrorHandler, BasicAuth,
+	Express, negotiate, CookieParser, ErrorHandler,
+	BasicAuth,
 	Platform,
-	Fridge, Game, Player, Edition, findBestPlay
+	Fridge, Game, Player, Edition
 ) => {
 
 	/**
@@ -275,6 +272,25 @@ define('server/Server', server_deps, (
 		}
 
 		/**
+		 * Before processing a Move instruction (pass or play) check that
+		 * the game is ready to accept a Turn from the given player.
+		 * @param {Player} player - Player to check
+		 * @param {Game} game - Game to check
+		 */
+		checkTurn(player, game) {
+			if (game.ended) {
+				console.log(`Game ${game.key} has ended`);
+				throw new Error('error-game-has-ended');
+			}
+
+			// determine if it is this player's turn
+			if (player.index !== game.whosTurn) {
+				console.log(`not ${player.name}'s turn`);
+				throw new Error('error-not-your-turn');
+			}
+		}
+
+		/**
 		 * Generic catch for response handlers
 		 */
 		trap(e, res) {
@@ -519,7 +535,7 @@ define('server/Server', server_deps, (
 			return this.loadGame(gameKey)
 			.then(game => {
 				const player = game.getPlayerFromKey(playerKey);
-				return findBestPlay(game, player.rack.tiles());
+				return Platform.findBestPlay(game, player.rack.tiles());
 			})
 			.then(play => res.send(Fridge.freeze(play)))
 			.catch(e => this.trap(e, res));
@@ -574,22 +590,22 @@ define('server/Server', server_deps, (
 				switch (command) {
 
 				case 'makeMove':
-					promise = game.checkTurn(player)
-					.then(game => game.makeMove(args));
+					this.checkTurn(player, game);
+					promise = game.makeMove(args);
 					break;
 
 				case 'pass':
-					promise = game.checkTurn(player)
-					.then(game => game.pass('pass'));
+					this.checkTurn(player, game);
+					promise = game.pass('pass');
 					break;
 
 				case 'swap':
-					promise = game.checkTurn(player)
-					.then(game => game.swap(args));
+					this.checkTurn(player, game);
+					promise = game.swap(args);
 					break;
 
 				case 'challenge':
-					// Check the last move in the dictionary
+					this.checkTurn(player);
 					promise = game.challenge();
 					break;
 
@@ -610,13 +626,13 @@ define('server/Server', server_deps, (
 					// Notify non-game monitors (games pages)
 					this.updateMonitors();
 
-					if (turn) {
+					if (turn && turn.move) {
 						// Respond with the new tile list for the
 						// human player. This is only used for swap
 						// and makeMove, and other info (such as robot
 						// tile states) is sent using messaging.
-						console.log('Sending new tiles', turn.newTiles);
-						res.send(Fridge.freeze(turn.newTiles || []));
+						console.log('Sending new tiles', turn.move.replacements);
+						res.send(Fridge.freeze(turn.move.replacements || []));
 					} else
 						res.send([]);
 				});

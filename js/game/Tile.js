@@ -9,7 +9,7 @@ define('game/Tile', () => {
 	class Tile {
 
 		/**
-		 * @param spec optional spec of tile
+		 * @param {Tile|object} spec optional Tile to copy or spec of tile
 		 * @param {string} spec.letter character(s) represented by this tile
 		 * @param {boolean} spec.isBlank true if this tile is a blank (irresepective of letter)
 		 * @param {number} spec.score value of this tile

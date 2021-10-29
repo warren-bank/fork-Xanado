@@ -6,7 +6,7 @@
  * This is the node.js implementation of game/Platform. There is an
  * implementation for the browser, too, in js/browser/Platform.js
  */
-define('platform', [ 'events', 'fs-extra', 'node-gzip', 'get-user-locale', 'path', 'game/Fridge', 'game/findBestPlayController', 'game/Platform' ], (Events, Fs, Gzip, Locale, Path, Fridge, findBestPlay, Platform) => {
+define('platform', [ 'events', 'fs-extra', 'node-gzip', 'get-user-locale', 'path', 'game/Platform', 'game/Fridge', 'game/Platform' ], (Events, Fs, Gzip, Locale, Path, Platform, Fridge) => {
 
 	const emitter = new Events.EventEmitter();
 
@@ -170,7 +170,15 @@ define('platform', [ 'events', 'fs-extra', 'node-gzip', 'get-user-locale', 'path
 
 		/** See {@link Platform#findBestPlay} for documentation */
 		static findBestPlay() {
-			return findBestPlay.apply(null, arguments);
+			return new Promise(resolve => {
+				// game/findBestPlay will findBestPlay in this thread
+				// game/findBestPlayController will findBestPlay in
+				// a worker thread
+				requirejs(['game/findBestPlayController'], findBestPlay => {
+					findBestPlay.apply(null, arguments)
+					.then(() => resolve());
+				});
+			});
 		}
 
 		/** See {@link Platform#i18n} for documentation */

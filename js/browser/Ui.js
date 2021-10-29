@@ -1,18 +1,14 @@
 /* eslint-env browser, jquery */
 
-const uideps = [
+define('browser/Ui', [
 	'socket.io',
 	'game/Fridge',
-	'game/Tile',
-	'game/Bag',
-	'game/Rack',
-	'game/Board',
-	'game/Game',
-	'jqueryui',
-	'cookie',
-	'browser/icon_button' ];
-
-define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) => {
+	'game/Tile', 'game/Bag', 'game/Rack', 'game/Board', 'game/Game',
+	'jqueryui', 'cookie', 'browser/icon_button'
+], (
+	socket_io, Fridge,
+	Tile, Bag, Rack, Board, Game
+) => {
 
 	const SETTINGS_COOKIE = 'crossword_settings';
 
@@ -25,14 +21,14 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 		constructor() {
 
 			// Are we using https?
-			this.https = document.URL.indexOf('https:') === 0;
+			this.usingHttps = document.URL.indexOf('https:') === 0;
 
 			this.settings = {
 				turn_alert: true,
 				cheers: true,
 				tile_click: true,
 				warnings: true,
-				notification: this.https
+				notification: this.usingHttps
 			};
 
 			const splitUrl = document.URL.match(/.*\/([0-9a-f]+)$/);
@@ -203,7 +199,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 				}
 				break;
 			case 'swap':
-				$turnDetail.append($.i18n('log-swap', turn.newTiles.length));
+				$turnDetail.append($.i18n('log-swap', turn.move.replacements.length));
 				break;
 			case 'timeout':
 			case 'pass':
@@ -737,7 +733,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 						 }).join(';'));
 			});
 
-			if (!this.https) {
+			if (!this.usingHttps) {
 				// Notification requires https
 				$("input.setting[data-set='notification']")
 				.prop('disabled', true);
@@ -1086,7 +1082,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 			case 'took-back':
 				// Move new tiles out of challenged player's rack
 				// into the bag
-				for (let newTile of turn.newTiles) {
+				for (let newTile of turn.move.replacments) {
 					const tile = player.rack.removeTile(newTile);
 					this.game.letterBag.returnTile(tile);
 				}
@@ -1164,7 +1160,7 @@ define('browser/Ui', uideps, (socket_io, Fridge, Tile, Bag, Rack, Board, Game) =
 
 			case 'swap':
 				// Add new tiles to the rack
-				for (let newTile of turn.newTiles)
+				for (let newTile of turn.move.replacements)
 					player.rack.addTile(newTile);
 
 				if (this.isPlayer(turn.player))

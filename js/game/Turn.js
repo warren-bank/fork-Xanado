@@ -10,40 +10,32 @@ define('game/Turn', () => {
 	class Turn {
 		/**
 		 * @param {Game} game the Game
-		 * @param {string} type type of turn
-		 * @param {number} player index of the player who initiated the action
-		 * @param {Object} extras optional type-specific field values
-		 * @param {number} extras.nextToGo Index of the next player to play
-		 * @param {number|number[]} extras.deltaScore If a number,
+		 * @param {Object} members object fields (members)
+		 * @param {string} members.type The 'type' of the turn. This
+		 * will be one of
+		 * * `move`: a player has made a move
+		 * * `swap`: a player has execute a tile swap
+		 * * `ended-game-over`: the end of the game has been confirmed
+		 * * `challenge-failed`: a challenge was not successful
+		 * * `challenge-won`: a challenge succeeded
+		 * * `took-back`: the last player took back their turn
+		 * @param {number} members.player Index of the player who moved
+		 * @param {number} members.nextToGo Index of the next player to play
+		 * @param {number|number[]} members.deltaScore If a number,
 		 * change in score for player as a result of this turn. If an
 		 * array, change in score for each player.
-		 * @param {Move} extras.move For `move` it indicates the
-		 * move. For `took-back` and `challenge-won` it is the
-		 * move just taken back/challenged.
-		 * @param {Tile[]} extras.newTiles For move, took-back,
-		 * challenge-won, swap, indicates the tiles to be taken
-		 * onto the rack.
-		 * @param {number} extras.challenger For 'took-back', 'challenge-won',
+		 * @param {Move} members.move For `move` it indicates the
+		 * Move. For `took-back` and `challenge-won` it is the
+		 * Move just taken back/challenged.
+		 * @param {number} members.challenger For 'took-back', 'challenge-won',
 		 * index of the player who initiated the action
 		 */
-		constructor(game, type, player, extras) {		
-			/**
-			 * The 'type' of the turn. This will be one of
-			 * * `move`: a player has made a move
-			 * * `swap`: a player has execute a tile swap
-			 * * `ended-game-over`: the end of the game has been confirmed
-			 * * `challenge-failed`: a challenge was not successful
-			 * * `challenge-won`: a challenge succeeded
-			 * * `took-back`: the last player took back their turn
-			 * @member {string}
-			 */
-			this.type = type;
-
+		constructor(game, members) {		
 			/**
 			 * Index of the player who's turn it was
 			 * @member {number}
 			 */
-			this.player = player;
+			this.player = undefined;
 
 			/**
 			 * Count of tiles left in bag and on player racks after play
@@ -61,9 +53,9 @@ define('game/Turn', () => {
 			if (ep)
 				this.emptyPlayer = ep.index;
 
-			if (extras)
-				Object.getOwnPropertyNames(extras).forEach(
-					prop => this[prop] = extras[prop]);
+			if (members)
+				Object.getOwnPropertyNames(members).forEach(
+					prop => this[prop] = members[prop]);
 		}
 	}
 

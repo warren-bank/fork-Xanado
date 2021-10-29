@@ -445,8 +445,9 @@ define('game/findBestPlay', ['game/Edition', 'game/Tile', 'game/Move', 'dawg/Dic
 	 * @function game/findBestPlay
 	 * @param {Game} game the Game
 	 * @param {Tile[]} rack rack in the form of a simple list of Tile
-	 * @param {function} listener fn() that accepts a best play whenever a new
-	 * one is found, or a string containing a message
+	 * @param {function} listener Function that is called with a Move each time
+	 * a new best play is found, or a string containing a progress or error
+	 * message.
 	 * @return {Promise} Promise that resolves when all best moves have been
 	 * identified
      * @alias module:game/findBestPlay
@@ -477,7 +478,7 @@ define('game/findBestPlay', ['game/Edition', 'game/Tile', 'game/Move', 'dawg/Dic
 		report('Finding best play for rack ' + rackTiles);
 
 		board = game.board;
-		report(`on ${board}` );
+		report(`on ${board}`);
 
 		const preamble = [
 			Dictionary.load(game.dictionary),

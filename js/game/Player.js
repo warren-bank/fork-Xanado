@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd, jquery */
 
-define('game/Player', ["platform", 'game/GenKey', 'game/Rack'], (Platform, GenKey, Rack) => {
+define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKey, Rack) => {
 
 	// Unicode characters
 	const BLACK_CIRCLE = '\u25cf';

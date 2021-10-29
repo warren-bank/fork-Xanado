@@ -79,8 +79,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 								  '| | | | | | | | | | | |\n' +
 								  '| | | | | | | | | | | |\n' +
 								  '| | | | | | | | | | | |\n' +
-								  '| | | | | | | | | | | |\n')
-			.then(game => game.checkTurn(player));
+								  '| | | | | | | | | | | |\n');
 		})
 		.then(game => game.swap([
 			new Tile({letter:'A', isBlank:false, score:1}),
@@ -92,10 +91,9 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert(turn instanceof Turn);
 			assert.equal(turn.type, 'swap');
 			assert.equal(turn.player, 0);
-			assert.equal(turn.nextToGo, 1);
 			assert.equal(turn.leftInBag, 5);
 			console.log(turn);
-			let newt = turn.newTiles;
+			let newt = turn.move.replacements;
 			assert.equal(3, newt.length);
 		});
 	});
@@ -131,11 +129,11 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert(turn instanceof Turn);
 			assert.equal(turn.type, 'move');
 			assert.equal(turn.player, 0);
-			assert.equal(turn.deltaScore, 99);
 			assert.equal(turn.nextToGo, 1);
+			assert.equal(turn.deltaScore, 99);
 			assert.equal(turn.leftInBag, 0);
 			assert.deepEqual(turn.move, move);
-			let newt = turn.newTiles;
+			let newt = turn.move.replacements;
 			assert.equal(3, newt.length);
 		});
 	});
@@ -173,11 +171,11 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert(turn instanceof Turn);
 			assert.equal(turn.type, 'move');
 			assert.equal(turn.player, 0);
-			assert.equal(turn.deltaScore, 99);
 			assert.equal(turn.nextToGo, 1);
+			assert.equal(turn.deltaScore, 99);
 			assert.equal(turn.leftInBag, 0);
 			assert(turn.move instanceof Move);
-			let newt = turn.newTiles;
+			let newt = turn.move.replacements;
 			assert.equal(0, newt.length);
 		});
 	});
@@ -230,7 +228,6 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 	});
 
 	tr.addTest('goodChallenge', () => {
-		// Implicitly tests takeBack
 		const game = new Game('Tiny', 'Oxford_5000');
 		return game.create()
 		.then(() => {
@@ -260,9 +257,46 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert(turn instanceof Turn);
 			assert.equal(turn.type, 'challenge-won');
 			assert.equal(turn.player, 0);
+			assert.equal(turn.nextToGo, 1);
 			assert.equal(turn.challenger, 1);
 			assert.equal(turn.deltaScore, -99);
-			assert.equal(turn.nextToGo, 1);
+		});
+	});
+
+	tr.addTest('takeBack', () => {
+		const game = new Game('Tiny', 'Oxford_5000');
+		return game.create()
+		.then(() => {
+			const player = new Player('test1', true);
+			game.addPlayer(player);
+			player.rack.empty();
+			player.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
+			game.addPlayer(new Player('test2', true));
+			// Player 0 makes a move
+			return game.makeMove(
+				new Move({
+					placements: [
+						new Tile({letter:'X', isBlank:false, score:1, col: 7, row: 7}),
+						new Tile({letter:'Y', isBlank:false, score:1, col: 8, row: 7}),
+						new Tile({letter:'Z', isBlank:false, score:1, col: 10, row: 7}) ],
+					words: [ { word: 'XYZ', score: 3 }],
+					score: 3
+				}));
+		})
+		// Player 0 takes their move back
+		.then(() => game.takeBack('took-back'))
+		.then(turn => {
+			//console.log(turn);
+			assert(turn instanceof Turn);
+			assert.equal(turn.type, 'take-back');
+			assert.equal(turn.player, 0);
+			assert.equal(turn.nextToGo, 0);
+			assert.equal(turn.challenger, 1);
+			assert.equal(turn.deltaScore, -99);
 		});
 	});
 
@@ -302,10 +336,10 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert(turn instanceof Turn);
 			assert.equal(turn.type, 'challenge-won');
 			assert.equal(turn.player, 0);
-			assert.equal(turn.leftInBag, 0);
 			assert.equal(turn.nextToGo, 1);
+			assert.equal(turn.leftInBag, 0);
 			assert.equal(turn.deltaScore, -3);
-			assert.equal(0, turn.newTiles.length);
+			assert.equal(0, turn.move.replacements.length);
 			assert.equal(1, turn.challenger);
 			assert(!turn.emptyPlayer);
 		});
@@ -347,8 +381,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert(turn instanceof Turn);
 			assert.equal(turn.type, 'challenge-failed');
 			assert.equal(turn.player, 1);
-			assert.equal(turn.leftInBag, 0);
 			assert.equal(turn.nextToGo, 0);
+			assert.equal(turn.leftInBag, 0);
 			// Still empty!
 			assert.equal(turn.emptyPlayer, 0);
 		});

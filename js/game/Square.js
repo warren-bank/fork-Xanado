@@ -2,7 +2,7 @@
    license information */
 /* eslint-env amd, jquery */
 
-define('game/Square', ['platform'], Platform => {
+define('game/Square', ['platform'], (Platform) => {
 
 	// Map the characters in the board template to CSS classes
 	const CSS_CLASS =  {

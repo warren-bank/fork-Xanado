@@ -164,6 +164,15 @@ instructions in https://linuxize.com/post/creating-a-self-signed-ssl-certificate
 # Development
 Further development is welcome, especially interface translations and keeping dependencies up to date. See [DEVELOPER](DEVELOPER.md) for more.
 
+## Docker
+`Dockerfile` and `.dockerignore` are included for building docker images.
+```
+$ docker build . --tag xword
+# will build an image using Dockerfile e.g a92457e96633
+$ docker run -p9093:9093 xword
+# will run the image, mapping localhost port 9093 to port 9093 on the docker image
+```
+
 ## IMPORTANT NOTICES:
 
 [SCRABBLE®](http://www.scrabble.com/) is a registered trademark. All

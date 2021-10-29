@@ -24,3 +24,4 @@ requirejs.config({
 // Server exports the mainProgam function, so simply require it and
 // run it.
 requirejs(['server/Server'], main => main(__dirname));
+
