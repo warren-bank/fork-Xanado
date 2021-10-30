@@ -13,3 +13,6 @@ doc/index.html: $(JS)
 
 lint:
 	node node_modules/.bin/eslint $(JS)
+
+docekr:
+	docker build . --tag xword
