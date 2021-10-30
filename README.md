@@ -1,19 +1,17 @@
 # Multiplayer word grid game server and interface
 
-While there are a number of public servers out there offering clones of the classic SCRABBLE® game (and derivatives), they are limited in a number of ways:
+Host your own server to play crossword games according to the rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, and Lexulous. Or invent your own!
+Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian, and has dictionaries in English, French, and German, and it's easy to add more.
+
+While there are a number of public servers out there offering clones of the classic SCRABBLE® game, they are limited in a number of ways:
 * Their source code is not public, and setting up your own server is not an option.
 * They are generally limited to a single version of the game.
-* Their dictionaries are usually based on the standard Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, and those wishing to play in non-English languages.
+* Their (english) dictionaries are usually based on the standard American Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, as a computer player will beat them every time.
 * They plague you with tedious advertisements.
 
 I wanted a game I could host on my own server, and experiment with different
 dictionaries, board layouts, tile sets, and rule combinations. And I wanted it
 to be completely free.
-
-Out of the box, this version lets you play games according to the
-rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, and Lexulous,
-and has tile sets for English, French, German, Dutch, Estonian and
-Hungarian. It has dictionaries in English, French, and German, and it's easy to add more.
 
 An interesting application that has emerged is as an entertaining teaching aid
 for language learners. Included is a dictionary based on the Oxford 5000 most
@@ -21,23 +19,28 @@ important words to learn in English. By playing the game against the robot,
 learners are exposed to new words that they can then seek the definition of.
 
 ## History
-This is a fork of [Hans Hübner's
-html-scrabble](https://github.com/hanshuebner/html-scrabble). I
+This is a fork of [Hans Hübner's html-scrabble](https://github.com/hanshuebner/html-scrabble). I
 started working on their code but rapidly realised the scope and
 number of changes I intended required a fork, rather than bothering
 them with hundreds of pull requests.
 
 This version has some major differences:
-* It has been rewritten to use Javascript ES6 and updated dependencies.
+* It has been rewritten to use Javascript ES6 and the latest dependencies.
 * It supports different board layouts and tile sets, and makes it easy to define your own.
 * It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui). Dictionaries have been moved server-side and made optional, and integrated into game play. New dictionaries are easy to generate from word lists.
 * It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players.
 * You can optionally play against the clock.
 * The UI has been fixed and massaged to make it more mobile device friendly.
+* Lots of bug fixes.
 
 # Installation
 
-The server code is written in Javascript ES6 and tested using `node.js` version 11.15.0. You will require this or a more recent version of `node.js`. The client runs in a browser and works on all the browsers I tested (Chrome, Firefox, Android, Opera.)
+## Using Docker
+The simplest way to install the game is to use the latest Docker image, which you can find at https://github.com/cdot/CrosswordGame/pkgs/container/crosswordgame.
+The Docker image takes care of all dependencies etc. for you.
+
+## The Hard Way
+The server code is written in Javascript ES6 and tested using `node.js` version 12.0.0. It may work in earlier versions of `node.js`, but is untested. The client runs in a browser and works on all the browsers I tested (Chrome, Firefox, Android, Opera.)
 
 First use `git clone` to clone the repository to your local machine. Then in
 the root directory of the distribution
@@ -46,7 +49,8 @@ $ npm install
 ```
 to install dependencies.
 
-You must create a configuration file named `config.json` and place it in the root directory. A template configuration file is included in `example-config.json`. It can be copied to `config.json` and edited as described in the file.
+You must create a configuration file named `config.json` and place it in the root directory.
+A template configuration file is included in `example-config.json`. It can be copied to `config.json` and edited as described in the file.
 
 Once you have a suitable configuration, run the server using:
 ```
@@ -55,6 +59,13 @@ $ node server.js
 You can then visit the games page at `http://localhost:9093`.
 
 If you want the server to send out email invitations, you should refer to the `nodemailer` documentation for information on how to configure it.
+
+## Playing with other people
+
+If you want other internet users to access your game server, they have to be able to access a port on the server. If your server is already public
+on the internet that's no problem, but if it is hidden away on your local area network, you may need to make it visible. Fortunately that's fairly
+easy to do, and does not compromise security if it's done properly.
+[This article](https://medium.com/botfuel/how-to-expose-a-local-development-server-to-the-internet-c31532d741cc) describes how.
 
 # Usage
 
@@ -100,11 +111,11 @@ To assist learners, there are two special 'chat' messages that can be entered.
 # Dictionaries
 The `/dictionaries` directory contains all the
 dictionaries. Included with the installation are 4 pre-built dictionaries:
-* SOWPODS_English - 409K words from an [unofficial version](https://www.wordgamedictionary.com/sowpods/download/sowpods.txt) of the standard European English SCRABBLE® competition dictionary.
-* German - 404k word list from the [germandict project on Sourceforge](https://sourceforge.net/projects/germandict/files/).
-* British_English - a custom 66k word British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American word spellings are also included, to reflect the flexible nature of our shared language.
-* ODS8_French - 411k word French SCRABBLE® competition dictionary.
-* Oxford_5000 - 28K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
+* `SOWPODS_English` - 409K words from an [unofficial version](https://www.wordgamedictionary.com/sowpods/download/sowpods.txt) of the standard European English SCRABBLE® competition dictionary.
+* `German` - 404k word list from the [germandict project on Sourceforge](https://sourceforge.net/projects/germandict/files/).
+* `British_English` - a custom 66k word British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American word spellings are also included, to reflect the flexible nature of our shared language.
+* `ODS8_French` - 411k word French SCRABBLE® competition dictionary.
+* `Oxford_5000` - 28K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
 
 ## Building your own dictionary
 
@@ -165,13 +176,15 @@ instructions in https://linuxize.com/post/creating-a-self-signed-ssl-certificate
 Further development is welcome, especially interface translations and keeping dependencies up to date. See [DEVELOPER](DEVELOPER.md) for more.
 
 ## Docker
-`Dockerfile` and `.dockerignore` are included for building docker images.
+`Dockerfile` and `.dockerignore` are included for building local docker images. For example,
 ```
 $ docker build . --tag xword
-# will build an image using Dockerfile e.g a92457e96633
-$ docker run -p9093:9093 xword
-# will run the image, mapping localhost port 9093 to port 9093 on the docker image
 ```
+will build an image using `Dockerfile`
+```
+$ docker run -p9093:9093 xword
+```
+will run the image, mapping `localhost` port 9093 to port 9093 on the docker image
 
 ## IMPORTANT NOTICES:
 
