@@ -1,4 +1,4 @@
-name: Create and publish a Docker image
+name: Crossword Game
 
 # Configure the "docker" workflow to run every time a change
 # is pushed
@@ -7,7 +7,7 @@ on: [push]
 env:
   # Container registry domain (Github packages)
   REGISTRY: ghcr.io
-  IMAGE_NAME: xword
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push-image:

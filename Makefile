@@ -14,5 +14,11 @@ doc/index.html: $(JS)
 lint:
 	node node_modules/.bin/eslint $(JS)
 
-docekr:
+# Make docker image, test
+docker:
 	docker build . --tag xword
+
+# Update package.json with latest packages
+# using npm-check-update (npm install -g npm-check-updates)
+update:
+	ncu -u
