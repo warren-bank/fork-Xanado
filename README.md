@@ -5,15 +5,13 @@ Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian
 
 <img src="/images/splash.png" width="265" height="300" alt="Board">
 
-While there are a number of public servers out there offering clones of the classic SCRABBLE® game, they are limited in a number of ways:
+While there are a number of public servers out there offering clones of the classic SCRABBLE® game, I wanted a game I could host on my own server, and experiment with different
+dictionaries, board layouts, tile sets, and rule combinations. And I wanted it
+to be completely free. The public servers I found didn't work for me because:
 * Their source code is not public, and setting up your own server is not an option.
 * They are generally limited to a single version of the game.
 * Their (english) dictionaries are usually based on the standard American Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, as a computer player will beat them every time.
 * They plague you with tedious advertisements.
-
-I wanted a game I could host on my own server, and experiment with different
-dictionaries, board layouts, tile sets, and rule combinations. And I wanted it
-to be completely free.
 
 An interesting application that has emerged is as an entertaining teaching aid
 for language learners. Included is a dictionary based on the Oxford 5000 most
@@ -21,6 +19,7 @@ important words to learn in English. By playing the game against the robot,
 learners are exposed to new words that they can then seek the definition of.
 
 ## History
+
 This is a fork of [Hans Hübner's html-scrabble](https://github.com/hanshuebner/html-scrabble). I
 started working on their code but rapidly realised the scope and
 number of changes I intended required a fork, rather than bothering
@@ -188,7 +187,7 @@ $ docker run -p9093:9093 xword
 ```
 will run the image, mapping `localhost` port 9093 to port 9093 on the docker image
 
-## IMPORTANT NOTICES:
+# IMPORTANT NOTICES:
 
 [SCRABBLE®](http://www.scrabble.com/) is a registered trademark. All
 intellectual property rights in and to the game are owned in the U.S.A
