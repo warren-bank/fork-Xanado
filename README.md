@@ -2,7 +2,7 @@
 
 Host your own server to play crossword games according to the rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, and Lexulous. Or invent your own!
 Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian, and has dictionaries in English, French, and German, and it's easy to add more.
-
+![Board](/images/splash.png)
 While there are a number of public servers out there offering clones of the classic SCRABBLE® game, they are limited in a number of ways:
 * Their source code is not public, and setting up your own server is not an option.
 * They are generally limited to a single version of the game.
