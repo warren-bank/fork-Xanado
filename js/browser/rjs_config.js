@@ -5,6 +5,7 @@
 // See https://coderwall.com/p/qbh0_w/share-requirejs-configuration-among-multiple-pages
 
 requirejs.config({
+	baseUrl: '../..',
 	paths: {
 		jquery:
 		'//cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min',

@@ -10,7 +10,7 @@ dictionaries, board layouts, tile sets, and rule combinations. And I wanted it
 to be completely free. The public servers I found didn't work for me because:
 * Their source code is not public, and setting up your own server is not an option.
 * They are generally limited to a single version of the game.
-* Their (english) dictionaries are usually based on the standard American Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, as a computer player will beat them every time.
+* Their (English) dictionaries are usually based on the standard American Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, as a computer player will beat them every time.
 * They plague you with tedious advertisements.
 
 An interesting application that has emerged is as an entertaining teaching aid
@@ -31,7 +31,7 @@ This version has some major differences:
 * It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui). Dictionaries have been moved server-side and made optional, and integrated into game play. New dictionaries are easy to generate from word lists.
 * It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players.
 * You can optionally play against the clock.
-* The UI has been fixed and massaged to make it more mobile device friendly.
+* The UI has been massaged to make it more mobile device friendly.
 * Lots of bug fixes.
 
 # Installation
@@ -51,7 +51,7 @@ $ npm install
 to install dependencies.
 
 You must create a configuration file named `config.json` and place it in the root directory.
-A template configuration file is included in `example-config.json`. It can be copied to `config.json` and edited as described in the file.
+A template configuration file is included in ['example-config.json'](example-config.json). It can be copied to `config.json` and edited as described in the file.
 
 Once you have a suitable configuration, run the server using:
 ```
@@ -155,7 +155,7 @@ can be any big list of words, or it can simply be a lexicon). Run the program
 Currently only [double challenge](https://en.wikipedia.org/wiki/Challenge_(Scrabble)) is supported. An extension would be to support other challenge types.
 
 # Internationalisation
-The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English, (une très mauvaise traduction en) French, and (eine schlechte Übersetzung ins) German. To generate your own translation, copy `/i18n/en.json` to a file using your language code (e.g. `it` for Italian) and edit the new file to provide the translation. You can use the `js/i18n/checkTranslation.js` program to check the completeness of your translations.
+The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English, (une très mauvaise traduction en) French, and (eine schlechte Übersetzung ins) German. To generate your own translation (or improve on Google's), copy `/i18n/en.json` to a file using your language code (e.g. `it` for Italian) and edit the new file to provide the translation. You can use the `js/i18n/checkTranslation.js` program to check the completeness of your translations.
 
 If you do create a translation, please feel free to issue a pull request to get it into the source code.
 
@@ -174,18 +174,7 @@ To use HTTPS you require an SSL certificate. You can generate one using the
 instructions in https://linuxize.com/post/creating-a-self-signed-ssl-certificate/
 
 # Development
-Further development is welcome, especially interface translations and keeping dependencies up to date. See [DEVELOPER](DEVELOPER.md) for more.
-
-## Docker
-`Dockerfile` and `.dockerignore` are included for building local docker images. For example,
-```
-$ docker build . --tag xword
-```
-will build an image using `Dockerfile`
-```
-$ docker run -p9093:9093 xword
-```
-will run the image, mapping `localhost` port 9093 to port 9093 on the docker image
+Further development is welcome, especially interface translations and keeping dependencies up to date. See [DEVELOPER](doc/DEVELOPER.md) for more.
 
 # IMPORTANT NOTICES:
 

@@ -47,7 +47,7 @@ jobs:
         with:
           source_dir: ./js
           recurse: true
-          config_file: config_jsdoc.json
+          config_file: ./doc/config.json
           output_dir: ./doc
 
       - name: Deploy to Github Pages

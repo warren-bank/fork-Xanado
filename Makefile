@@ -8,8 +8,8 @@ all:
 doc: doc/index.html
 
 
-doc/index.html: $(JS)
-	node_modules/.bin/jsdoc -c config_jsdoc.json -d doc $(JS)
+doc/index.html: $(JS) doc/README.md
+	node_modules/.bin/jsdoc -c doc/config.json -d doc $(JS)
 
 lint:
 	node node_modules/.bin/eslint $(JS)
