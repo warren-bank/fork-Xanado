@@ -184,7 +184,7 @@ define('browser/Ui', [
 					// Compose a description of the words created
 					let ws = 0;
 					let sum = 0;
-					for (let word of turn.move.words) {
+					for (let word of turn.words) {
 						$turnDetail
 						.append(`<span class="word">${word.word}</span>`)
 						.append(' (')
@@ -199,7 +199,7 @@ define('browser/Ui', [
 				}
 				break;
 			case 'swap':
-				$turnDetail.append($.i18n('log-swap', turn.move.replacements.length));
+				$turnDetail.append($.i18n('log-swap', turn.replacements.length));
 				break;
 			case 'timeout':
 			case 'pass':
@@ -216,13 +216,13 @@ define('browser/Ui', [
 			this.log($turnDetail, 'turnDetail');
 
 			if (latestTurn
-				&& typeof turn.emptyPlayer === "number"
+				&& typeof turn.emptyPlayer === 'number'
 				&& turn.emptyPlayer >= 0
 				&& !this.game.ended
 				&& turn.type !== 'challenge-failed'
 				&& turn.type !== 'ended-game-over') {
 				if (this.isPlayer(turn.emptyPlayer)) {
-					if (typeof turn.nextToGo !== "number")
+					if (typeof turn.nextToGo !== 'number')
 						turn.nextToGo = this.game.whosTurn;
 					this.log(
 						$.i18n(`log-you-no-more-tiles`,
@@ -238,67 +238,53 @@ define('browser/Ui', [
 
 		/**
 		 * Append a formatted 'end of game' message to the log
+		 * @param {boolean} cheer true if a cheer is to be played
 		 */
 		logEndMessage(cheer) {
+			const game = this.game;
+			const adjustments = [];
+			const winningScore = game.winningScore();
 			const winners = [];
-			let youWon = false;
-			// The player who emptied their rack first gained points
-			// from the racks of other players, though they may not
-			// be a winner
-			const ender = this.game.getPlayerWithNoTiles();
-			const winner = this.game.getWinner();
+			let iWon = false;
 
-			// Total lost from all losing player's racks
-			const extras = this.game.players.reduce(
-				(sum, player) => sum
-				+ (player === ender ? 0 : player.rack.score()), 0);
-
+			// When the game ends, each player's score is reduced by
+			// the sum of their unplayed letters. If a player has used
+			// all of his or her letters, the sum of the other players'
+			// unplayed letters is added to that player's score. The
+			// score adjustments are already done, on the server side,
+			// we just need to present the results.
+			const unplayed = game.players.reduce(
+				(sum, player) => sum + player.rack.score(), 0);
 			const $narrative = $('<div></div>');
-			this.game.players.forEach(player => {
-				const isme = this.isPlayer(player.index);
-				const iswinner = (player.score === winner.score);
-				const isender = (player === ender);
-
+			game.players.forEach(player => {
+				const isMe = this.isPlayer(player.index);
+				const name = isMe ? $.i18n('You') : player.name;
 				const $gsd = $('<div class="gameEndScore"></div>');
-				const name = isme ? $.i18n('You') : player.name;
 
-				if (iswinner) {
-					if (isme) {
-						if (cheer && this.settings.cheers)
+				if (player.score === winningScore) {
+					if (isMe) {
+						iWon = true;
+						if (cheer)
 							this.playAudio('endCheer');
-						youWon = true;
-						winners.push($.i18n('you'));
-					} else {
-						winners.push(player.name);
 					}
-				}
+					winners.push(name);
+				} else if (isMe && cheer)
+					this.playAudio('lost');
 
-				if (isender) {
-					// Player's rack is empty
-					if (extras > 0)
+				if (player.rack.isEmpty()) {
+					if (unplayed > 0)
 						$gsd.text($.i18n('log-gained-from-racks',
-										 name, extras));
-				} else {
-					// Player still has tiles on their rack
-					const waste = player.rack.score();
-					if (waste > 0) {
-						const tilesLeft = [];
-						player.rack.forEachTiledSquare(square => {
-							if (!square.tile.isBlank)
-								tilesLeft.push(square.tile.letter);
-							return false;
-						});
-						$gsd.text($.i18n(
-							'log-lost-for-rack',
-							name, waste, tilesLeft.join(',')));
-					}
+										 name, unplayed));
+				} else if (player.rack.score() > 0) {
+					// Lost sum of unplayed letters
+					$gsd.text($.i18n(
+						'log-lost-for-rack',
+						name, player.rack.score(),
+						player.rack.lettersLeft().join(',')));
 				}
-				$narrative.append($gsd);
-				player.refreshDOM();
-			});
 
-			if (cheer && !youWon && this.settings.cheers)
-				this.playAudio('lost');
+				$narrative.append($gsd);
+			});
 
 			let who;
 			if (winners.length == 0)
@@ -310,13 +296,15 @@ define('browser/Ui', [
 							 winners.slice(0, winners.length - 1).join(', '),
 							 winners[winners.length - 1]);
 
-			const has = (winners.length == 1 && !youWon) ? 1 : 2;
-			this.log($.i18n(this.game.ended, $.i18n('log-winner', who, has)),
-					 'gameOverConfirmed');
+			this.log($.i18n(game.ended));
+			if (iWon && winners.length === 1) 
+				this.log($.i18n('log-winner-you'));
+			else
+				this.log($.i18n('log-winner', who, winners.length));
 
 			this.log($narrative);
 
-			this.addContinuationGameButton(this.game.nextGameKey);
+			this.addContinuationGameButton(game.nextGameKey);
 		}
 
 		/**
@@ -388,13 +376,13 @@ define('browser/Ui', [
 		 * Handle game-ended confirmation. This confirmation will come after
 		 * a player confirms that the previous player's turn is acceptable
 		 * and they don't intend to challenge.
-		 * @param {string} ended i18n message identifier indicating reason
-		 * game ending.
+		 * @param {string} ended reason why game ended (i18n message id)
 		 */
 		processGameOverConfirmed(ended) {
 			this.game.ended = ended;
+			// unplace any pending move
 			this.takeBackTiles();
-			this.logEndMessage(true);
+			this.logEndMessage(ended, this.settings.cheers);
 			this.notify($.i18n('notify-title-game-over'),
 						$.i18n('notify-body-game-over'));
 		}
@@ -985,7 +973,9 @@ define('browser/Ui', [
 
 			// if the last player's rack is empty, it couldn't be refilled
 			// and the game might be over.
-			if (!this.game.ended && this.game.getLastPlayer().rack.isEmpty()) {
+			const lastPlayer = this.game.previousPlayer();
+			if (!this.game.ended
+				&& this.game.getPlayer(lastPlayer).rack.isEmpty()) {
 				this.lockBoard(true);
 				this.setMoveAction('confirmGameOver');
 			} else if (this.placedCount > 0) {
@@ -1068,9 +1058,9 @@ define('browser/Ui', [
 			this.scrollLogToEnd(300);
             this.removeMoveActionButtons();
 			const player = this.game.getPlayer(turn.player);
-			if (typeof turn.deltaScore ==="number")
+			if (typeof turn.deltaScore === 'number')
 				player.score += turn.deltaScore;
-			else if (typeof turn.deltaScore !== "undefined")
+			else if (typeof turn.deltaScore !== 'undefined')
 				turn.deltaScore.forEach(
 					(d, i) => this.game.players[i].score += d);
 
@@ -1082,14 +1072,14 @@ define('browser/Ui', [
 			case 'took-back':
 				// Move new tiles out of challenged player's rack
 				// into the bag
-				for (let newTile of turn.move.replacments) {
+				for (let newTile of turn.replacments) {
 					const tile = player.rack.removeTile(newTile);
 					this.game.letterBag.returnTile(tile);
 				}
 
 				// Take back the placements from the board into the
 				// challenged player's rack
-				for (const placement of turn.move.placements) {
+				for (const placement of turn.placements) {
 					const square = this.game.at(placement.col, placement.row);
 					const recoveredTile = square.tile;
 					square.placeTile(null);
@@ -1141,7 +1131,7 @@ define('browser/Ui', [
 					// Put the tiles placed in a turn into place on
 					// the board for a player who is not this player (they
 					// are already there for this player)
-					for (let placement of turn.move.placements) {
+					for (let placement of turn.placements) {
 						const square = this.game.at(placement.col, placement.row);
 						player.rack.removeTile(placement);
 						square.placeTile(placement, true); // lock it down
@@ -1160,7 +1150,7 @@ define('browser/Ui', [
 
 			case 'swap':
 				// Add new tiles to the rack
-				for (let newTile of turn.move.replacements)
+				for (let newTile of turn.replacements)
 					player.rack.addTile(newTile);
 
 				if (this.isPlayer(turn.player))
@@ -1318,6 +1308,8 @@ define('browser/Ui', [
 				square.refreshDOM();
 			}
 			this.placedCount = 0;
+
+			move.player = this.thisPlayer.index;
 
 			this.sendCommand('makeMove', move);
 		}

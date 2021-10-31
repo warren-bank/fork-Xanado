@@ -107,7 +107,12 @@ define('game/Game', [
 			 * LetterBag object
 			 * @member {LetterBag}
 			 */
-			this.letterBag = null;
+			this.letterBag = undefined;
+
+			/**
+			 * An i18n message identifier, assigned when a game is finished
+			 */
+			this.ended = undefined;
 		}
 
 		/**
@@ -172,30 +177,40 @@ define('game/Game', [
 
 		/**
 		 * Get the player by index. Will throw if index is out of range.
-		 * @param {number} index
+		 * @param {number} index index of player to get. If undefined, will
+		 * return the current player
 		 * @return {Player} player
 		 */
 		getPlayer(index) {
-			if (index < 0 || index >= this.players.length)
+			if (typeof index === 'undefined')
+				index = this.whosTurn;
+			else if (index < 0 || index >= this.players.length)
 				throw Error(`No such player ${index}`);
 			return this.players[index];
 		}
 
 		/**
-		 * Get the the current player
-		 * @return {Player} player
+		 * Get the index of the last player before the given player index
+		 * @param {number} index the current player if undefined, or the index
+		 * of the player to get the previous player of
+		 * @return {number} index of previous player
 		 */
-		getActivePlayer() {
-			return this.getPlayer(this.whosTurn);
+		previousPlayer(index) {
+			if (typeof index === 'undefined')
+				index = this.whosTurn;
+			return (index + this.players.length - 1) % this.players.length;
 		}
 
 		/**
-		 * Get the last player before the current player
-		 * @return {Player} player
+		 * Get the index of the next player after the given player index
+		 * @param {number} index the current player if undefined, or the index
+		 * of the player to get the next player to
+		 * @return {number} index of next player
 		 */
-		getLastPlayer() {
-			return this.getPlayer((this.whosTurn + this.players.length - 1)
-								  % this.players.length);
+		nextPlayer(index) {
+			if (typeof index === 'undefined')
+				index = this.whosTurn;
+			return (index + 1) % this.players.length;
 		}
 
 		/**
@@ -242,19 +257,9 @@ define('game/Game', [
 		 * Get the current winning score
 		 * @return {number} points
 		 */
-		getWinningScore() {
+		winningScore() {
 			return this.players.reduce(
 				(max, player) => Math.max(max, player.score), 0);
-		}
-		
-		/**
-		 * Get the current winner of the game. The game need not have
-		 * ended.
-		 * @return {Player} the current winner of the game
-		 */
-		getWinner() {
-			const winningScore = this.getWinningScore();
-			return this.players.find(p => p.score === winningScore);
 		}
 
 		/**
@@ -337,8 +342,8 @@ define('game/Game', [
 		 * whether the game has ended, save state and notify game
 		 * listeners.
 		 * @param {Turn} turn the Turn to finish
-		 * @return {Promise} that resolves to the {@link Turn} when the
-		 * game has been saved and all players have been notified.
+		 * @return {Promise} that resolves when the game has been saved
+		 * and players have been notified.
 		 */
 		finishTurn(turn) {
 			turn.timestamp = Date.now();
@@ -348,11 +353,10 @@ define('game/Game', [
 
 			return this.save()
 			.then(() => {
-				//console.log('Notify turn', turn);
+				console.log('Sending turn', turn);
 				this.notifyPlayers('turn', turn);
 
 				// if the game has ended, send notification.
-				// The Turn structure doesn't signal this
 				if (this.ended) {
 					console.log('Game over', this.ended);
 					this.notifyPlayers('gameOverConfirmed', this.ended);
@@ -360,23 +364,18 @@ define('game/Game', [
 				}
 
 				console.log(`Player ${this.whosTurn}'s turn`);
-				const nextPlayer = this.players[this.whosTurn];
+				const nextPlayer = this.getPlayer();
 				if (nextPlayer.isRobot) {
 					// Does a player have nothing on their rack? If
 					// so, the game is over because the computer
 					// will never challenge their play.
-					const pwn = this.getPlayerWithNoTiles();
-					if (pwn) {
-						this.ended = 'ended-game-over';
-						this.stopTimers();
-						this.notifyPlayers('gameOverConfirmed', this.ended);
-						return this.confirmGameOver(this.ended);
-					}
-
-					// Play computer player(s)
-					return this.autoplay(nextPlayer)
-					// May recurse if the player after is also a robot
-					.then(turn => this.finishTurn(turn));
+					const promise = this.getPlayerWithNoTiles()
+						  ? this.confirmGameOver('ended-game-over')
+						  : this.autoplay(nextPlayer);
+					// May recurse if the player after is also a robot, but
+					// the recursion will always stop when a human player
+					// is reached, so never deep.
+					return promise.then(turn => this.finishTurn(turn));
 				}
 
 				nextPlayer.startTimer(
@@ -384,7 +383,7 @@ define('game/Game', [
 					() => this.pass('timeout')
 					.then(turn => this.finishTurn(turn)));
 
-				return turn;
+				return Promise.resolve();
 			});
 		}
 
@@ -781,8 +780,7 @@ define('game/Game', [
 			if (!(move instanceof Move))
 				move = new Move(move);
 
-			const thisPlayer = this.whosTurn;
-			const player = this.players[thisPlayer];
+			const player = this.getPlayer();
 			player.stopTimer();
 
 			console.log(`makeMove ${player.name}`, move);
@@ -842,7 +840,7 @@ define('game/Game', [
 			});
 
 			// Record the move
-			move.playerIndex = thisPlayer;
+			move.playerIndex = player.index;
 			move.remainingTime = player.remainingTime;
 			this.previousMove = move;
 
@@ -853,16 +851,18 @@ define('game/Game', [
 					this.stopTimers();
 					this.ended = 'ended-all-passed-twice';
 				} else
-					this.startTurn((thisPlayer + 1) % this.players.length);
+					this.startTurn(this.nextPlayer());
 			}
 			
 			// Report the result of the turn
 			const turn = new Turn(this, {
 				type: 'move',
-				player: thisPlayer,
+				player: player.index,
 				nextToGo: this.whosTurn,
 				deltaScore: move.score,
-				move: move
+				placements: move.placements,
+				replacements: move.replacements,
+				words: move.words
 			});
 
 			return Promise.resolve(turn);
@@ -899,31 +899,43 @@ define('game/Game', [
 		 * Called when the game has been confirmed as over - the player
 		 * following the player who just emptied their rack has confirmed
 		 * they don't want to challenge.
+		 * @param {string} reason reason why game ended (i18n message id)
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		confirmGameOver(reason) {
 			this.ended = reason;
-			console.log(`Finishing because ${reason}`);
+
+			console.log(`Confirming game over because ${reason}`);
 
 			this.stopTimers();
 
-			// Adjust scores for tiles left on racks
+			// When the game ends, each player's score is reduced by
+			// the sum of their unplayed letters. If a player has used
+			// all of his or her letters, the sum of the other players'
+			// unplayed letters is added to that player's score.
 			let playerWithNoTiles;
 			let pointsRemainingOnRacks = 0;
 			const deltas = Array(this.players.length).fill(0);
 			this.players.forEach(player => {
-				const rackScore = player.rack.score();
-				if (player.rack.tiles().length > 0) {
+				if (player.rack.isEmpty()) {
+					if (playerWithNoTiles)
+						throw Error('Found more than one player with no tiles when finishing game');
+					playerWithNoTiles = player;
+				}
+				else {
+					const rackScore = player.rack.score();
+					player.score -= rackScore;
 					deltas[player.index] -= rackScore;
 					pointsRemainingOnRacks += rackScore;
-				} else if (playerWithNoTiles)
-					throw Error('Found more than one player with no tiles when finishing game');
-				else
-					playerWithNoTiles = player;
+					console.log(`${player.name} has ${rackScore} left`);
+				} 
 			});
 
-			if (playerWithNoTiles)
+			if (playerWithNoTiles) {
+				playerWithNoTiles.score += pointsRemainingOnRacks;
 				deltas[playerWithNoTiles.index] = pointsRemainingOnRacks;
+				console.log(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
+			}
 
 			const turn = new Turn(this, {
 				type: 'ended-game-over',
@@ -987,7 +999,8 @@ define('game/Game', [
 				player: previousMove.playerIndex,
 				nextToGo: this.whosTurn,
 				deltaScore: -previousMove.score,
-				move: previousMove,
+				placements: previousMove.placements,
+				replacements: previousMove.replacements,
 				challenger: challenger
 			});
 
@@ -1002,23 +1015,21 @@ define('game/Game', [
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		pass(type) {
-			const passingIndex = this.whosTurn;
-			const passingPlayer = this.players[passingIndex];
+			const passingPlayer = this.getPlayer();
 			passingPlayer.stopTimer();
 			delete this.previousMove;
 			passingPlayer.passes++;
 
 			if (this.allPassedTwice()) {
 				this.stopTimers();
-				this.ended = 'ended-all-passed-twice';
-			} else {
-				const nextPlayer = (passingIndex + 1) % this.players.length;
-				this.startTurn(nextPlayer);
-			}
+				return this.confirmGameOver('ended-all-passed-twice');
+			} else
+				this.startTurn(this.nextPlayer());
+
 			return Promise.resolve(new Turn(
 				this, {
 					type: type,
-					player: passingIndex,
+					player: passingPlayer.index,
 					nextToGo: this.whosTurn
 				}));
 		}
@@ -1106,7 +1117,7 @@ define('game/Game', [
 							 type: 'swap',
 							 player: swappingIndex,
 							 nextToGo: nextIndex,
-							 move: move
+							 replacements: move.replacements
 						 }));
 		}
 

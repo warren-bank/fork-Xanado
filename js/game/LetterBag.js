@@ -29,9 +29,10 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 				for (let n = 0; n < count; ++n) {
 					const tile = new Tile({
 						letter:	letter.letter,
-						isBlank: letter.isBlank,
 						score: letter.score
 					});
+					if (letter.isBlank)
+						tile.isBlank = true;
 					this.tiles.push(tile);
 				}
 			}

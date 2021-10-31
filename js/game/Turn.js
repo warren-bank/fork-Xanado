@@ -24,9 +24,13 @@ define('game/Turn', () => {
 		 * @param {number|number[]} members.deltaScore If a number,
 		 * change in score for player as a result of this turn. If an
 		 * array, change in score for each player.
-		 * @param {Move} members.move For `move` it indicates the
-		 * Move. For `took-back` and `challenge-won` it is the
-		 * Move just taken back/challenged.
+		 * @param {Tile[]} members.placements For `move` it indicates the
+		 * move. For `took-back` and `challenge-won` it is the
+		 * move just taken back/challenged.
+		 * @param {object[]} members.words words just played, each
+		 * {word: string, score: number}
+		 * @param {Tile[]} members.replacements Tiles replacing those just
+		 * played.
 		 * @param {number} members.challenger For 'took-back', 'challenge-won',
 		 * index of the player who initiated the action
 		 */

@@ -92,8 +92,8 @@ define('game/Rack', ['game/Surface'], Surface => {
 		removeTile(remove) {
 			const square = this.findSquare(remove.letter);
 			if (!square)
-				throw Error('Cannot find a tile on the rack for '
-							+ remove.letter);
+				throw Error("Cannot find '"
+							+ remove.letter + "' on " + this);
 			const tile = square.tile;
 			tile.letter = remove.letter; // TODO: huh?
 			square.placeTile(null);
@@ -117,6 +117,14 @@ define('game/Rack', ['game/Surface'], Surface => {
 				to.tile = tmp;
 			}
 			return this;
+		}
+
+		/**
+		 * Get a list of tiles that are not blanks
+		 */
+		lettersLeft() {
+			return this.tiles().filter(tile => !tile.isBlank)
+			.map(tile => tile.letter);
 		}
 
 		/**

@@ -248,10 +248,10 @@ define('server/Server', [
 				if (game.ended)
 					return game;
 
-				const nextPlayer = game.getActivePlayer();
-				console.log(`Next to play is ${nextPlayer}`);
-				if (nextPlayer.isRobot) {
-					return game.autoplay(nextPlayer)
+				const player = game.getPlayer();
+				console.log(`Next to play is ${player.name}`);
+				if (player.isRobot) {
+					return game.autoplay(player)
 					// May autoplay next robot recursively
 					.then(turn => game.finishTurn(turn))
 					.then(() => game);
@@ -337,19 +337,19 @@ define('server/Server', [
 				key => server.games[key] || this.db.get(key, Game.classes)))
 			.then(promises => Promise.all(promises))
 			.then(games => games
-				  .filter(game => game.ended)
+				  .filter(game => (
+					  game.ended
+					  && typeof game.ended.winningPlayer !== 'undefined'))
 				  .map(game => {
-					  const winner = game.getWinner();
+					  const winner = game.getPlayer(game.ended.winningPlayer);
 					  if (wins[winner.name])
 						  wins[winner.name]++;
 					  else
 						  wins[winner.name] = 1;
 					  game.players.map(
 						  player => {
-							  if (scores[player.name])
-								  scores[player.name] += player.score;
-							  else
-								  scores[player.name] = player.score;
+							  const s = scores[player.name] || 0;
+							  scores[player.name] = s + player.score;
 						  });
 				  }))
 			.then(() => res.send({ scores: scores, wins: wins }))
@@ -584,7 +584,7 @@ define('server/Server', [
 				const command = req.body.command;
 				const args = req.body.args ? JSON.parse(req.body.args) : null;
 				
-				console.log(`COMMAND ${command} player ${player.name} game ${game.key}`, args);
+				console.log(`COMMAND ${command} player ${player.name} game ${game.key}`);
 
 				let promise;
 				switch (command) {
@@ -622,19 +622,10 @@ define('server/Server', [
 				}
 
 				return promise.then(turn => game.finishTurn(turn))
-				.then(turn => {
+				.then(() => {
 					// Notify non-game monitors (games pages)
 					this.updateMonitors();
-
-					if (turn && turn.move) {
-						// Respond with the new tile list for the
-						// human player. This is only used for swap
-						// and makeMove, and other info (such as robot
-						// tile states) is sent using messaging.
-						console.log('Sending new tiles', turn.move.replacements);
-						res.send(Fridge.freeze(turn.move.replacements || []));
-					} else
-						res.send([]);
+					res.send('OK');
 				});
 			})
 			.catch(e => this.trap(e, res));

@@ -46,8 +46,8 @@
 	"email-join-html": "Click <a href='$1'>here</a> to join the game.",
 	"email-your-turn": "It is your turn in your game with $1",
 
-	"ended-all-passed-twice": "All players passed twice: $1",
-	"ended-game-over": "Game over, $1",
+	"ended-all-passed-twice": "All players passed twice",
+	"ended-game-over": "Game over",
 	"ended-timed-out": "Timed out",
 
 	"error-create-failed": "Failed to create game: $1",
@@ -101,6 +101,7 @@
 	"log-total": " total $1",
 	"log-turn-player": "<span class='playerName'>$1</span>'s turn",
 	"log-winner": "$1 {{PLURAL:$2|has|have}} won",
+	"log-winner-you": "You have won",
 	"log-you-no-more-tiles":  "You have no more tiles, game will be over if $1 doesn't challenge your play",
 
 	"name-human-player": "Human",

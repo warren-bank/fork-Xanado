@@ -51,7 +51,8 @@ requirejs(['browser/browserApp', 'socket.io'], (browserApp, io) => {
 				else
 					return s;
 			}).join(', ');
-			msg.push($.i18n(game.ended, results));
+			msg.push($.i18n(game.ended));
+			msg.push(results);
 			$p.append(msg.join(', '));
 		} else {
 			$p.append(msg.join(', '));

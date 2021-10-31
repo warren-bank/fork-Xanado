@@ -18,6 +18,34 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
     let tr = new TestRunner('Game');
     let assert = tr.assert;
 
+	tr.addTest('basics', () => {
+		return new Game('English_Scrabble', 'Oxford_5000').create()
+		.then(game => {
+			const player1 = new Player('player1', true);
+			game.addPlayer(player1);
+			const player2 = new Player('player2', false);
+			game.addPlayer(player2);
+			const player3 = new Player('player3', false);
+			game.addPlayer(player3);
+
+			player3.rack.empty();
+			player1.score = 1;
+			player2.score = 2;
+			player3.score = 3;
+
+			let player = game.getPlayer();
+			assert.equal(player.index, 0);
+			player = game.getPlayer(1);
+			assert.equal(player.index, 1);
+			assert.equal(game.nextPlayer(2), 0);
+			assert.equal(game.previousPlayer(0), 2);
+			assert.equal(game.nextPlayer(), 1);
+			assert.equal(game.previousPlayer(), 2);
+			assert.equal(game.winningScore(), 3);
+			assert.equal(game.getPlayerWithNoTiles().index, 2);
+		});
+	});
+
 	tr.addTest('autoplay', () => {
 		return new Game('English_Scrabble', 'Oxford_5000').create()
 		.then(game => {

@@ -42,7 +42,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 					if (letter != ' ') {
 						// Treat lower-case letters as cast blanks.
 						// May not work in non-latin languages.
-						const isBlank = letter.toUpperCase() != letter;
+						const isBlank = (letter.toUpperCase() != letter);
 						const tile = new Tile({
 							letter: letter.toUpperCase(),
 							isBlank: isBlank,
