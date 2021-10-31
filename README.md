@@ -174,7 +174,7 @@ To use HTTPS you require an SSL certificate. You can generate one using the
 instructions in https://linuxize.com/post/creating-a-self-signed-ssl-certificate/
 
 # Development
-Further development is welcome, especially interface translations and keeping dependencies up to date. See [DEVELOPER](doc/DEVELOPER.md) for more.
+Further development is welcome, especially interface translations and keeping dependencies up to date. See [DEVELOPER](doc/README.md) for more.
 
 # IMPORTANT NOTICES:
 
