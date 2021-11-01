@@ -382,7 +382,7 @@ define('browser/Ui', [
 			this.game.ended = ended;
 			// unplace any pending move
 			this.takeBackTiles();
-			this.logEndMessage(ended, this.settings.cheers);
+			this.logEndMessage(this.settings.cheers);
 			this.notify($.i18n('notify-title-game-over'),
 						$.i18n('notify-body-game-over'));
 		}
@@ -701,7 +701,7 @@ define('browser/Ui', [
 				sets.split(";").map(
 					s => {
 						const v = s.split('=');
-						this.settings[v[0]] = this.settings[v[1]];
+						this.settings[v[0]] = (v[1] === 'true');
 					});
 
 			$('#settings')
