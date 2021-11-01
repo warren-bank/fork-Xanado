@@ -1,4 +1,4 @@
-## Code structure
+## File structure
 
 The installation has subdirectories as follows:
 * `audio` contains audio samples
@@ -16,6 +16,45 @@ The installation has subdirectories as follows:
 	* `game` has the platform-independent game engine
 	* `i18n` has the translations checker
 	* `server` has the node.js server code
+
+## Building your own dictionary
+
+Dictionaries are stored in the `dictionaries` directory in the form of
+a DAWG (Directed Acyclic Word Graph), which is generated from a
+lexicon (list of words) using a processor based on [Daniel Weck's
+DAWG_Compressor program](https://github.com/danielweck/scrabble-html-ui). To build a new dictionary, follow the
+instructions given when you run:
+```
+$ node js/dawg/compressor.js
+```
+`js/dawg/explore.js` can be used to explore the generated DAWG(s) e.g.
+```
+$ node js/dawg/explore.js SOWPODS_English --anagrams scrabble
+```
+Run it with no parameters for help.
+
+## Internationalisation
+The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English, (une très mauvaise traduction en) French, and (eine schlechte Übersetzung ins) German. To generate your own translation (or improve on Google's), copy `/i18n/en.json` to a file using your language code (e.g. `it` for Italian) and edit the new file to provide the translation. You can use the `js/i18n/checkTranslation.js` program to check the completeness of your translations.
+
+## Designing your own game
+Game definitions can be found in the `/editions` directory. Each
+definition describes the layout of the lower-right quadrant of the
+board (it is assumed to be mirrored), the contents of the bag, the
+number of tiles on the rack, the number of tiles that can be swapped
+in a play, and the bonuses for playing certain numbers of tiles in one
+play.
+
+### Valett
+Choosing point values for tiles, and the number of tiles of each letter,
+can be difficult to get right. Included is a version of
+[Joshua Lewis' Valett program](https://github.com/jmlewis/valett)
+which analyses a word corpus and recommends tile values and counts for the
+letter combinations encountered in the corpus based on probability (the corpus
+can be any big list of words, or it can simply be a lexicon). Run the program
+`node js/design/valett.js` for help.
+
+## Challenges
+Currently only [double challenge](https://en.wikipedia.org/wiki/Challenge_(Scrabble)) is supported. An extension would be to support other challenge types.
 
 ## Flow of Control
 
@@ -47,6 +86,14 @@ for events coming from the user. At points it will POST messages to the
 server to reflect user actions: `makeMove`, `challenge`,
 `swap`, `takeBack`, and `pass`. The server will pass these on to
 `js/game/Game.js` for handling.
+
+## Testing
+The `test` subdirectoy contains a number of simple tests. They are all run in that directory using `node`.
+* `Game.js` is a set of unit tests for the game logic
+* `findBestMove.js` is unit tests for the robot player
+* `firstPlay.js` is unit tests for the first play by a robot player
+* `Fridge.js` is unit tests for the freeze/thaw code
+* `playARobotGame.js` will play a (random) game between two robots
 
 ## Documentation
 
