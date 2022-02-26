@@ -1,45 +1,46 @@
 # Multiplayer word grid game server and interface
 
-Host your own server to play crossword games according to the rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, and Lexulous. Or invent your own!
+Host your own server to play crossword games according to most of the rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, or Lexulous. Or invent your own!
 Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian, and has dictionaries in English, French, and German, and it's easy to add more.
 <p style="text-align:center">
-	<img src="/images/splash.png" width="265" height="300" alt="Board">
+	<img src="/images/splash.png" width="265" height="300" alt="Board" />
 </p>
-While there are a number of public servers out there offering clones of the classic SCRABBLE® game, I wanted a game I could host on my own server, and experiment with different
+While there are a number of freely accessible servers out there offering clones of the classic SCRABBLE® game, I wanted a game I could host on my own server, and experiment with different
 dictionaries, board layouts, tile sets, and rule combinations. And I wanted it
 to be completely free. The public servers I found didn't work for me because:
-* Their source code is not public, and setting up your own server is not an option.
-* They are generally limited to a single version of the game.
-* Their (English) dictionaries are usually based on the standard American Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, as a computer player will beat them every time.
-* They plague you with tedious advertisements.
+- Their code is not public, and setting up your own server is not an option.
+- They are generally limited to a single version of the game.
+- Their (English) dictionaries are usually based on the standard American Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, as a computer player will beat them every time.
+- They plague you with tedious advertisements.
 
 An interesting application that has emerged is as an entertaining teaching aid
 for language learners. Included is a dictionary based on the Oxford 5000 most
 important words to learn in English. By playing the game against the robot,
 learners are exposed to new words that they can then seek the definition of.
 
-The server code is written in Javascript ES6 and tested using `node.js` version 12.0.0. It may work in earlier versions of `node.js`, but is untested. The client works in all the browsers I tested (Chrome, Firefox, Android, Opera.)
+The server code is written in Javascript ES6 and tested using `node.js` version 12.0.0. It may work in earlier versions of `node.js`, but is untested. The client is also written in Javascript and works in all the browsers I tested (Chrome, Firefox, Android, Opera.)
 
 ## History
 
-This is a fork of [Hans Hübner's html-scrabble](https://github.com/hanshuebner/html-scrabble). I
-started working on their code but rapidly realised the scope and
+This started out as a fork of [Hans Hübner's html-scrabble](https://github.com/hanshuebner/html-scrabble).
+I started working on their code but rapidly realised the scope and
 number of changes I intended required a fork, rather than bothering
 them with hundreds of pull requests.
 
 This version has some major differences:
-* It has been rewritten to use Javascript ES6 and the latest dependencies.
-* It supports different board layouts and tile sets, and makes it easy to define your own.
-* It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui). Dictionaries have been moved server-side and made optional, and integrated into game play. New dictionaries are easy to generate from word lists.
-* It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players.
-* You can optionally play against the clock.
-* The UI has been massaged to make it more mobile device friendly.
-* Lots of bug fixes.
+- It has been rewritten to use Javascript ES6 and the latest dependencies.
+- It supports different board layouts and tile sets, and makes it easy to define your own.
+- It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui). Dictionaries have been moved server-side and made optional, and integrated into game play. New dictionaries are easy to generate from word lists.
+- It supports logins, which helps you to set up tournaments and record long-term player performance.
+- It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players.
+- You can optionally play against the clock.
+- The UI has been massaged to make it more mobile device friendly.
+- Lots of bug fixes.
 
 # Installation
 
 ## Using Docker
-The simplest way to install the game is to use the latest Docker image, which you can find at https://github.com/cdot/CrosswordGame/pkgs/container/crosswordgame.
+The simplest way to install the game is to use the latest Docker image, which you can find at https://github.com/cdot/Xanado/pkgs/container/crosswordgame.
 The Docker image takes care of all dependencies etc. for you.
 
 ## The Hard Way
@@ -70,15 +71,26 @@ If you want the server to send out email invitations, you should refer to the `n
 
 # Usage
 
-Normally one player will act as the host, and create a new game
-on the games page. Once a game has been created, other players either
-follow the link in email or click on their name in the games page to
-join the game. The game interface is fairly self explanatory if you
-know the [rules of Scrabble](https://www.officialgamerules.org/scrabble).
+Players will normally start on the games page. This shows a leader board and a list of games. You can select "Show finished games" to view games that have ended.
+
+To see more you have to sign in (or register). 
+
+Signed-in users can see a down arrow next to each active game. By clicking on the down arrow, you can see a list of players in the game, join or leave it, or open a game you have previously joined.
+
+Any signed-in user can delete a game or create a new game.
+
+Normally one player will act as the host, and create a new game on the
+games page. Once a game has been created, other players click on their
+name in the games page to join the game, or you can send out an email
+invitation. The game interface is fairly self explanatory if you know
+the [rules of Scrabble](https://www.officialgamerules.org/scrabble).
 The game starts with a randomly selected player.
 
-As many players as you like can be robots, but you need at least one
-human player (otherwise, what's the point?)
+You can only have one robot in any one game, and you need at least one human player
+(otherwise, what's the point?)
+
+When you create a game you can select the edition, the dictionary, and whether
+there is to be a time limit or a limit to the number of players who can join.
 
 The installation comes with emulations of a number of commercially available
 games - SCRABBLE®, Super SCRABBLE®, Lexulous, and Words With Friends.
@@ -106,24 +118,24 @@ There are also a number of other keyboard shortcuts for the various buttons:
 
 ## Learning
 To assist learners, there are two special 'chat' messages that can be entered.
-* `hint` tells you the highest scoring play the computer can find for you, before your play. Everyone in the game is told when you send this message (to prevent cheating.)
-* `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played.
+- `hint` tells you the highest scoring play the computer can find for you, before your play. Everyone in the game is told when you send this message (to prevent cheating.)
+- `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played.
 
 # Dictionaries
 The `/dictionaries` directory contains all the
 dictionaries. Included with the installation are 4 pre-built dictionaries:
-* `SOWPODS_English` - 409K words from an [unofficial version](https://www.wordgamedictionary.com/sowpods/download/sowpods.txt) of the standard European English SCRABBLE® competition dictionary.
-* `German` - 404k word list from the [germandict project on Sourceforge](https://sourceforge.net/projects/germandict/files/).
-* `British_English` - a custom 66k word British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American word spellings are also included, to reflect the flexible nature of our shared language.
-* `ODS8_French` - 411k word French SCRABBLE® competition dictionary.
-* `Oxford_5000` - 28K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
+- `SOWPODS_English` - 409K words from an [unofficial version](https://www.wordgamedictionary.com/sowpods/download/sowpods.txt) of the standard European English SCRABBLE® competition dictionary.
+- `German` - 404k word list from the [germandict project on Sourceforge](https://sourceforge.net/projects/germandict/files/).
+- `British_English` - a custom 70k word British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American word spellings are also included, to reflect the flexible nature of our shared language.
+- `ODS8_French` - 411k word French SCRABBLE® competition dictionary.
+- `Oxford_5000` - 28K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
 
 # Security
 The assumption is that you will be running the game on a private server with a
 limited, trustworthy audience. As such the security options are minimal; access
 to the game play is not protected. There is an option to apply basic
 authentication to the games management interface that will prevent
-unauthorized deletion or creation of games - see the example config.json for
+unauthorized deletion or creation of games - see the `example-config.json` for
 more.
 
 The server can be configure to use HTTPS, see the example config.json for
@@ -134,40 +146,33 @@ instructions in https://linuxize.com/post/creating-a-self-signed-ssl-certificate
 
 # Development
 Further development is welcome, especially:
-* User interface translations
-* Dictionaries and tile sets for new languages
-* Keeping dependencies up to date
+- User interface translations
+- Dictionaries and tile sets for new languages
+- Keeping dependencies up to date
 See [DEVELOPER](doc/README.md) for more.
 
-# IMPORTANT NOTICES:
+# IMPORTANT NOTICES
 
-[SCRABBLE®](http://www.scrabble.com/) is a registered trademark. All
+- [SCRABBLE®](http://www.scrabble.com/) is a registered trademark. All
 intellectual property rights in and to the game are owned in the U.S.A
 and Canada by Hasbro Inc., and throughout the rest of the world by
 J.W. Spear & Sons Limited of Maidenhead, Berkshire, England, a
-subsidiary of Mattel Inc.
-
-This not-for-profit project is not associated with any of the owners
-of the SCRABBLE® brand. If you don't already have a SCRABBLE board,
-please go out and buy one!
-
-["Words With Friends"](https://www.zynga.com/games/words-with-friends-2/)
+subsidiary of Mattel Inc. If you don't already own a SCRABBLE board,
+buy one today!
+- There is an offical computer version of [SCRABBLE® published by Ubisoft](https://www.ubisoft.com/en-gb/game/scrabble), which you are encouraged to purchase.
+- ["Words With Friends"](https://www.zynga.com/games/words-with-friends-2/)
 is the name of an online game produced by Zynga Inc. To
 the best of our knowledge this is not a registered trademark.
-
-This not-for-profit project is not associated with any of the owners
-of the Zynga brand.
-
-"Lexulous" is the name of an online game hosted at
+- "Lexulous" is the name of an online game hosted at
 http://lexulous.com. To the best of our knowledge this is not a
 registered trademark.
 
 This not-for-profit project is not associated with any of the owners
-of the Lexulous brand.
+of the aforementioned brands.
 
-## COPYRIGHT AND LICENSE
+## CODE COPYRIGHT AND LICENSE
 
-The code is Copyright &copy; 2021 C-Dot Consultants. However it is
+The code is Copyright &copy; 2021-2022 C-Dot Consultants. However it is
 built on the work of many people, most notably Hans Hübner, Daniel
 Weck, Elijah Sawyers, Andrew Appel, Guy Jacobsen, and Joshua Lewis, and
 the many people who they in turn based their work on. All these individuals

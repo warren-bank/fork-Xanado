@@ -6,14 +6,14 @@ define('game/Square', ['platform'], (Platform) => {
 
 	// Map the characters in the board template to CSS classes
 	const CSS_CLASS =  {
-		M: 'Middle',
-		Q: 'QuadWord',
-		q: 'QuadLetter',
-		T: 'TripleWord',
-		t: 'TripleLetter',
-		D: 'DoubleWord',
-		d: 'DoubleLetter',
-		_: 'Normal'
+		M: /*i18n square-*/'Middle',
+		Q: /*i18n square-*/'QuadWord',
+		q: /*i18n square-*/'QuadLetter',
+		T: /*i18n square-*/'TripleWord',
+		t: /*i18n square-*/'TripleLetter',
+		D: /*i18n square-*/'DoubleWord',
+		d: /*i18n square-*/'DoubleLetter',
+		_: /*i18n square-*/'Normal'
 	};
 
 	/**

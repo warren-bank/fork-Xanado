@@ -1,10 +1,6 @@
 /**
 * Game board only
 */
-.hidden {
-	display: none;
-}
-
 .error {
 	color: red;
 	font-size: 1em;
@@ -74,12 +70,7 @@ div.container {
 
 #settings {
 	float: right;
-	background-color: #0000F0;
-	margin: 0.5em;
-	color: white;
-	font-size: 2em;
-	position: relative;
-	z-index: 2;
+	font-size: 1.3em;
 }
 
 #controls > div {
@@ -280,6 +271,7 @@ div.tableDivWrap table {
 .rackTable {
     border-width: 0.2em;
     padding: 0.2em;
+	margin-bottom: 0.5em;
 }
 
 div.tableDivWrap tr {
@@ -681,19 +673,23 @@ div.tableDivWrap td.ValidButWrongPlacement {
 	font-size: 0.75em;
 }
 
-#timeout {
+#timeout[name=message] {
 	font-size: 1.5em;
 	color: grey;
 }
 
-#timeout.tick-alert-low {
+.tick-alert-low {
 	color: white;
 }
 
-#timeout.tick-alert-medium {
+.tick-alert-medium {
 	color:orange;
 }
 
-#timeout.tick-alert-high {
+.tick-alert-high {
 	color: red;
+}
+
+.no-close .ui-dialog-titlebar-close {
+  display: none;
 }

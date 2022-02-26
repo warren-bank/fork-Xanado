@@ -33,12 +33,10 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		 */
 		parse(sboard, edition) {
 			const rows = sboard.split('\n');
-			let row = 0;
-			while (row < this.rows && row < rows.length) {
+			for (let row = 0; row < this.rows; row++) {
 				const r = rows[row].split('|');
-				let col = 1;
-				while (col < this.cols && col < r.length) {
-					const letter = r[col];
+				for (let col = 0; col < this.cols; col++) {
+					const letter = r[col + 1];
 					if (letter != ' ') {
 						// Treat lower-case letters as cast blanks.
 						// May not work in non-latin languages.
@@ -50,9 +48,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 						});
 						this.at(col, row).placeTile(tile, true);
 					}
-					col++;
 				}
-				row++;
 			}
 		}
 
@@ -185,14 +181,12 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 
 			// Number of tiles being placed, for calculating bonus
 			let tilesPlaced = 0;
-
 			for (let tile of tiles) {
 				const c = tile.col;
 				const r = tile.row;
 
 				let letterScore = tile.score;
 				const square = this.at(c, r);
-
 				if (square.tileLocked) {
 					wordScore += letterScore;
 					continue; // pre-existing tile, no bonuses
@@ -281,7 +275,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 			// Check that the start field is occupied
 
 			if (!this.at(this.midcol, this.midrow).tile)
-				return 'warn-centre-must-be-used';
+				return /*i18n*/'warn-centre-must-be-used';
 
 			// Determine that the placement of the Tile(s) is legal
 
@@ -333,7 +327,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 			}
 
 			if (!isTouchingOld && !legalPlacements[this.midcol][this.midrow])
-				return 'warn-disconnected';
+				return /*i18n*/'warn-disconnected';
 
 			// Check whether there are any unconnected placements
 			let totalTiles = 0;
@@ -344,10 +338,10 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 			});
 			
 			if (disco)
-				return 'warn-disconnected';
+				return /*i18n*/'warn-disconnected';
 
 			if (totalTiles < 2)
-				return 'warn-at-least-two';
+				return /*i18n*/'warn-at-least-two';
 
 			const placements = [];
 			this.forEachTiledSquare(square => {

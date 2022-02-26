@@ -30,9 +30,9 @@ requirejs(['platform', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Square', 
 
 	game.create()
 	.then(game => {
-		let player1 = new Player('player one', true);
+		let player1 = new Player('player one', "flay", true);
 		game.addPlayer(player1);
-		let player2 = new Player('player two', true);
+		let player2 = new Player('player two', "swelter", true);
 		game.addPlayer(player2);
 		return game.onLoad(db);
 	})
@@ -45,8 +45,8 @@ requirejs(['platform', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Square', 
 			.then(game => {
 				return game.autoplay(game.players[player])
 				.then(turn => {
-					if (game.ended) {
-						console.log(game.ended);
+					if (game.hasEnded()) {
+						console.log(game.state);
 						finished = true;
 					}
 					player = (player + 1) % game.players.length;

@@ -16,17 +16,19 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 		/**
 		 * @param {(string|Player)} name name of the player, or
 		 * a Player object to copy
+		 * @param {boolean} key unique key identifying the player. Names
+		 * may be duplicated, but keys never are.
 		 * @param {boolean} isRobot if name is a string and true then
 		 * it's a robot. If name is a Player object, ignored.
 		 */
-		constructor(name, isRobot) {
+		constructor(name, key, isRobot) {
 			if (name instanceof Player) {
 				// Copying an existing player
 				this.isRobot = name.isRobot;
 				this.key = name.key; // re-use
 				name = name.name;
 			} else {
-				this.key = GenKey();
+				this.key = key;
 				this.isRobot = isRobot;
 			}
 
@@ -68,23 +70,34 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 			 * @member {number}
 			 */
 			this.score = 0;
+
+			/**
+			 * Seconds remaining before play times out
+			 * @member {number}
+			 */
+			this.timeRemaining = 0;
 		}
 
 		/**
 		 * Create simple structure describing a subset of the player
 		 * state, for sending to the 'games' interface
 		 * @param {Game} game the game the player is participating in
-		 * @return a simple structure describing the player
+		 * @param {UserManager} um user manager for getting emails
+		 * @return {Promise} resolving to a simple structure describing the player
 		 */
-		catalogue(game) {
-			return {
-				name: this.name,
-				isRobot: this.isRobot,
-				connected: this.isRobot || (game.getConnection(this) !== null),
-				key: this.key,
-				score: this.score,
-				email: this.email ? true : false
-			};
+		catalogue(game, um) {
+			return (this.isRobot ? Promise.resolve({}) : um.getUserByKey(this.key))
+			.then(ump => {
+				return {
+					name: this.name,
+					isRobot: this.isRobot,
+					connected: this.isRobot || (game.getConnection(this) !== null),
+					key: this.key,
+					score: this.score,
+					email: ump.email ? true : false,
+					timeRemaining: this.timeRemaining
+				};
+			});
 		}
 
 		/**
@@ -104,28 +117,49 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 		}
 
 		/**
+		 * Return all tiles to the letter bag
+		 */
+		returnTiles(letterBag) {
+			for (let tile of this.rack.tiles())
+				letterBag.returnTile(this.rack.removeTile(tile));
+		}
+
+		/**
 		 * Set a play timeout for the player if they haven't player before
 		 * time has elapsed
-		 * @param {number} time number of ms before elapse, or 0 for no timeout
-		 * @param {function} timedOut a function() invoked if the timer expires
+		 * @param {number} time number of seconds before elapse, or
+		 * 0 for no timeout.
+		 * If undefined, will restart a timer by stopTimer.
+		 * @param {function} onTimeout a function() invoked if the
+		 * timer expires
 		 */
-		startTimer(time, timedOut) {
-			this.stopTimer();
-
-			if (time === 0)
-				// No timeout, nothing to do
+		startTimer(time, onTimeout) {
+			if (typeof time !== 'undefined') {
+				this.stopTimer();
+				// Timer is being reset
+				if (time === 0)
+					// No timeout, nothing to do
+					return;
+				this._onTimeout = onTimeout;
+			} else if (!this._timeoutTimer && this.timeRemaining > 0) {
+				// Timer was stopped in stopTimer with time remaining
+				time = this.timeRemaining;
+			} else {
+				this.stopTimer();
 				return;
+			}
 
-			this.timeoutAt = Date.now() + time;
-			console.log(`${this.name}'s go will time out in ${time/1000}s at ${new Date(this.timeoutAt)}`);
+			console.log(`${this.name}'s go will time out in ${time}s at ${new Date(Date.now() + time * 1000)}`);
 
 			// Set an overriding timeout
+			this.timeRemaining = time;
+			this._timeoutAt = Date.now() + time * 1000;
 			this._timeoutTimer = setTimeout(() => {
 				this._timeoutTimer = null;
 				console.log(`${this.name} has timed out at ${Date.now()}`);
 				// Invoke the timeout function
-				timedOut();
-			}, time);
+				this._onTimeout();
+			}, time * 1000);
 		}
 
 		/**
@@ -133,6 +167,8 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 		 */
 		stopTimer() {
 			if (this._timeoutTimer) {
+				this.timeRemaining = (this._timeoutAt - Date.now()) / 1000;
+				console.log(`${this.name} stopped timer with ${this.timeRemaining}s remaining`);
 				clearTimeout(this._timeoutTimer);
 				this._timeoutTimer = null;
 			}
@@ -163,24 +199,38 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 		 * @param {string} subject the subject of the mail
 		 * @param {string} gameURL the URL of the game
 		 * @param {object} config the global config object
+		 * @param {UserManager} um user manager for getting emails
+		 * @param {string} senderKey user key  for the sender, will default to
+		 ( config.email.sender if undefined
 		 * @return {Promise} Promise that resolves to the player's name
 		 */
-		emailInvitation(subject, gameURL, config) {
+		emailInvitation(subject, gameURL, config, um, senderKey) {
 			if (!config.mail || !config.mail.transport)
 				return Promise.reject('Mail is not configured');
-
 			const url = `${gameURL}/${this.key}`;
-			console.log(`Sending email invitation to ${this.name} subject ${subject} url ${url}`);
+			return new Promise(
+				resolve =>
+				um.getUserByKey(senderKey)
+				.then(sender => resolve(`${sender.name}<${sender.email}>`))
+				.catch(e => resolve(config.email.sender)))
+			.then(sender => {
+				return um.getUserByKey(this.key)
+				.then(ump => {
+					if (!ump.email)
+						return Promise.reject();
 
-			return config.mail.transport.sendMail(
-				{
-					from: config.mail.sender,
-					to:  this.email,
+					console.log(`Sending invitation to ${this.name}<${ump.email}> subject ${subject} from ${sender} url ${url}`);
+					return ump.email;
+				})
+				.then(email => config.mail.transport.sendMail({
+					from: sender,
+					to:  email,
 					subject: subject,
 					text: Platform.i18n('email-join-text', url),
 					html: Platform.i18n('email-join-html', url)
-				})
-			.then(() => this.name);
+				}))
+				.then(() => this.name);
+			});
 		}
 
 		/**

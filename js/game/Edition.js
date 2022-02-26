@@ -40,6 +40,7 @@ define('game/Edition', () => {
 		 * _ = normal
 		 * @param {number} spec.rackCount the number of tiles on a players rack
 		 * @param {number} spec.swapCount number of tiles swappable in a turn
+		 * @param {number} spec.maxPlayers maximum number of players
 		 * @param {Object.<number, number>} spec.bonuses maps number of tiles
 		 * played in a turn to a bonus
 		 */

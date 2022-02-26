@@ -1,16 +1,36 @@
 /* eslint-env browser, jquery */
 
 define('browser/Ui', [
-	'socket.io',
+	'socket.io', 'browser/Dialog',
 	'game/Fridge',
 	'game/Tile', 'game/Bag', 'game/Rack', 'game/Board', 'game/Game',
-	'jqueryui', 'cookie', 'browser/icon_button'
+	'jquery', 'jqueryui', 'cookie', 'browser/icon_button'
 ], (
-	socket_io, Fridge,
+	Socket, Dialog,
+	Fridge,
 	Tile, Bag, Rack, Board, Game
 ) => {
 
 	const SETTINGS_COOKIE = 'crossword_settings';
+
+	/**
+	 * Report an error returned from an ajax request.
+	 * @param {string|array} args This will either be a
+	 * simple i18n string ID, or an array containing an i18n ID and a
+	 * series of arguments.
+	 */
+	function report(args) {
+		let message;
+		if (typeof(args) === 'string')
+			message = $.i18n(args);
+		else if (typeof args === 'object') {
+			args[0] = $.i18n(args[0]);
+			message = args.join(" ");
+		}
+		$('#alertDialog')
+		.text(message)
+		.dialog({ modal: true });
+	}
 
 	/**
 	 * User interface to a game in a browser. The Ui reflects the game state as
@@ -19,6 +39,8 @@ define('browser/Ui', [
 	class Ui {
 
 		constructor() {
+
+			console.log("Starting game UI");
 
 			// Are we using https?
 			this.usingHttps = document.URL.indexOf('https:') === 0;
@@ -31,10 +53,13 @@ define('browser/Ui', [
 				notification: this.usingHttps
 			};
 
-			const splitUrl = document.URL.match(/.*\/([0-9a-f]+)$/);
-			if (!splitUrl)
-				throw Error(`cannot parse url ${document.URL}`);
-			const gameKey = splitUrl[1];
+			let m = document.URL.match(/[?;&]game=([^;&]+)/);
+			if (!m) {
+				const mess = `no game in ${document.URL}`;
+				console.log(mess);
+				throw new Error(mess);
+			}
+			const gameKey = m[1];
 
 			/**
 			 * Currently selected Square
@@ -59,7 +84,7 @@ define('browser/Ui', [
 			 * lateinit in loadGame
 			 * @member {Player}
 			 */
-			this.thisPlayer = null;
+			this.player = null;
 
 			/**
 			 * Board lock status, private
@@ -69,46 +94,42 @@ define('browser/Ui', [
 
 			this.attachHandlers();
 
-			// This will GET application/json
-			$.get(`/game/${gameKey}`,
-				  frozen => {
-					  console.log(`Loading game ${gameKey}`);
-					  const game = Fridge.thaw(frozen, Game.classes);
-					  this.loadGame(game)
-					  .then(() => this.attachSocketListeners())
-					  .catch(e => {
-						  $('#problemDialog')
-						  .text(e)
-						  .dialog({ modal: true });
-					  });
-				  });
+			console.log(`GET /game/${gameKey}`);
+			$.get(`/game/${gameKey}`)
+			.then(frozen => {
+				console.log(`Received game ${gameKey}`);
+				const game = Fridge.thaw(frozen, Game.classes);
+				return this.identifyPlayer(game)
+				.then (playerKey => this.loadGame(game, playerKey))
+				.then(() => this.attachSocketListeners())
+				.catch(report);
+			});
 		}
 
 		/**
 		 * True if the current player is the player at the given index
 		 */
 		isPlayer(index) {
-			return this.thisPlayer.index === index;
+			return this.player && this.player.index === index;
 		}
 
 		/**
-		 * Send a game command to the server. Game commands are recognised
-		 * by being sent using POST. Moves are 'makeMove', 'challenge',
-		 * 'swap', 'takeBack', and 'pass'
+		 * Send a game command to the server. Game commands are
+		 * 'swap', 'takeBack', 'pass', and 'pause'
 		 * @param {string} command command name
 		 * @param {object} args arguments for the request body
 		 */
 		sendCommand(command, args) {
+			console.log(`Send ${command}`);
 			this.cancelNotification();
-			$.post(`/command/${this.game.key}`, {
-				command: command,
-				// Note we JSON.stringify because $.post will
-				// otherwise convert all numbers to strings. PITA!
-				args: JSON.stringify(args)
-			})
-			.fail((jqXHR, textStatus, errorThrown) => {
-				console.error(`${command} returned error: ${textStatus} (${errorThrown})`);
-			});
+			$.post(
+				`/command/${command}/${this.game.key}/${this.player.key}`,
+				// Pass data as a JSON string. If given an object,
+				// jQuery will serialise it using $.param, which will
+				// convert all numbers to strings. Which is a PITA.
+				{ args: JSON.stringify(args) })
+			.then(r => console.log(`${command} OK`, r))
+			.catch(console.error);
 		}
 
 		/**
@@ -174,7 +195,7 @@ define('browser/Ui', [
 		appendTurnToLog(turn, latestTurn) {
 			// Who's turn was it?
 			const player = this.game.getPlayer(turn.player);
-			this.log($.i18n('log-turn-player', player.name), 'turnPlayer');
+			this.log($.i18n('ui-log-turn-player', player.name), 'turnPlayer');
 
 			// What did they do?
 			const $turnDetail = $('<div></div>');
@@ -195,19 +216,19 @@ define('browser/Ui', [
 					}
 					// deltaScore will always be a number after a move
 					if (ws > 1 || turn.deltaScore > sum)
-						$turnDetail.append($.i18n('log-total', turn.deltaScore));
+						$turnDetail.append($.i18n('ui-log-total', turn.deltaScore));
 				}
 				break;
 			case 'swap':
-				$turnDetail.append($.i18n('log-swap', turn.replacements.length));
+				$turnDetail.append($.i18n('ui-log-swap', turn.replacements.length));
 				break;
-			case 'timeout':
-			case 'pass':
-			case 'challenge-won':
-			case 'challenge-failed':
-			case 'took-back':
-				$turnDetail.append($.i18n(`log-${turn.type}`));
-			case 'ended-game-over':
+			case /*i18n ui-log-*/'timeout':
+			case /*i18n ui-log-*/'pass':
+			case /*i18n ui-log-*/'challenge-won':
+			case /*i18n ui-log-*/'challenge-failed':
+			case /*i18n ui-log-*/'took-back':
+				$turnDetail.append($.i18n(`ui-log-${turn.type}`));
+			case 'Game over':
 				break;
 			default:
 				// Terminal, no point in translating
@@ -218,19 +239,19 @@ define('browser/Ui', [
 			if (latestTurn
 				&& typeof turn.emptyPlayer === 'number'
 				&& turn.emptyPlayer >= 0
-				&& !this.game.ended
+				&& !this.game.hasEnded()
 				&& turn.type !== 'challenge-failed'
-				&& turn.type !== 'ended-game-over') {
+				&& turn.type !== 'Game over') {
 				if (this.isPlayer(turn.emptyPlayer)) {
 					if (typeof turn.nextToGo !== 'number')
 						turn.nextToGo = this.game.whosTurn;
 					this.log(
-						$.i18n(`log-you-no-more-tiles`,
+						$.i18n('ui-log-you-no-more-tiles',
 							   this.game.getPlayer(turn.nextToGo).name),
 						'turnNarrative');
 				} else
 					this.log(
-						$.i18n(`log-they-no-more-tiles`,
+						$.i18n('ui-log-they-no-more-tiles',
 							   this.game.getPlayer(turn.emptyPlayer).name),
 					'turnNarrative');
 			}
@@ -273,12 +294,12 @@ define('browser/Ui', [
 
 				if (player.rack.isEmpty()) {
 					if (unplayed > 0)
-						$gsd.text($.i18n('log-gained-from-racks',
+						$gsd.text($.i18n('ui-log-gained-from-racks',
 										 name, unplayed));
 				} else if (player.rack.score() > 0) {
 					// Lost sum of unplayed letters
 					$gsd.text($.i18n(
-						'log-lost-for-rack',
+						'ui-log-lost-for-rack',
 						name, player.rack.score(),
 						player.rack.lettersLeft().join(',')));
 				}
@@ -292,15 +313,15 @@ define('browser/Ui', [
 			else if (winners.length == 1)
 				who = winners[0];
 			else
-				who = $.i18n('log-name-name',
+				who = $.i18n('ui-log-name-name',
 							 winners.slice(0, winners.length - 1).join(', '),
 							 winners[winners.length - 1]);
 
-			this.log($.i18n(game.ended));
+			this.log($.i18n(game.state));
 			if (iWon && winners.length === 1) 
-				this.log($.i18n('log-winner-you'));
+				this.log($.i18n('ui-log-winner-you'));
 			else
-				this.log($.i18n('log-winner', who, winners.length));
+				this.log($.i18n('ui-log-winner', who, winners.length));
 
 			this.log($narrative);
 
@@ -336,9 +357,9 @@ define('browser/Ui', [
 				scrollTop: $('#chatMessages').prop('scrollHeight')
 			}, 100);
 
-			// Special handling for chat-hint, highlight square
-			if (message.sender === 'chat-advisor'
-				&& args[0] === 'chat-hint') {
+			// Special handling for Hint, highlight square
+			if (message.sender === 'Advisor'
+				&& args[0] === 'Hint') {
 				let row = args[2] - 1, col = args[3] - 1;
 				$(`#Board_${col}x${row}`).addClass('hintPlacement');
 			}
@@ -349,26 +370,29 @@ define('browser/Ui', [
 		 * @param {object} tick {player: number, timeout: number }
 		 */
 		processTick(tick) {
-			if (tick.timeout === 0)
-				return;
 			const $to = $('#timeout')
 				  .removeClass('tick-alert-high tick-alert-medium tick-alert-low');
-			const deltasecs = Math.floor((tick.timeout - Date.now()) / 1000);
+			if (tick.timeRemaining <= 0) {
+				$to.hide();
+				return;
+			}
 			let stick = '';
 			if (this.isPlayer(tick.player)) {
-				stick = $.i18n('tick-you', deltasecs);
-				if (deltasecs < 10 && this.settings.warnings)
+				this.player.timeRemaining = tick.timeRemaining;
+				stick = $.i18n('ui-tick-you', Math.floor(tick.timeRemaining));
+				if (tick.timeRemaining < 10 && this.settings.warnings)
 					this.playAudio('tick');
-				if (deltasecs < 15)
+				if (tick.timeRemaining < 15)
 					$to.fadeOut(100).addClass('tick-alert-high');
-				else if (deltasecs < 45)
+				else if (tick.timeRemaining < 45)
 					$to.fadeOut(100).addClass('tick-alert-medium');
-				else if (deltasecs < 90)
+				else if (tick.timeRemaining < 90)
 					$to.fadeOut(100).addClass('tick-alert-low');
 			}
 			else
-				stick = $.i18n('tick-them',
-							   this.game.getPlayer(tick.player).name, deltasecs);
+				stick = $.i18n('ui-tick-them',
+							   this.game.getPlayer(tick.player).name,
+							   tick.timeRemaining);
 			$to.text(stick).fadeIn(200);
 		}
 
@@ -376,15 +400,15 @@ define('browser/Ui', [
 		 * Handle game-ended confirmation. This confirmation will come after
 		 * a player confirms that the previous player's turn is acceptable
 		 * and they don't intend to challenge.
-		 * @param {string} ended reason why game ended (i18n message id)
+		 * @param {string} endState reason why game ended (i18n message id)
 		 */
-		processGameOverConfirmed(ended) {
-			this.game.ended = ended;
+		processGameOverConfirmed(endState) {
+			this.game.state = endState;
 			// unplace any pending move
 			this.takeBackTiles();
 			this.logEndMessage(this.settings.cheers);
-			this.notify($.i18n('notify-title-game-over'),
-						$.i18n('notify-body-game-over'));
+			this.notify($.i18n('ui-notify-title-game-over'),
+						$.i18n('ui-notify-body-game-over'));
 		}
 
 		/**
@@ -494,11 +518,11 @@ define('browser/Ui', [
 		updateTileCounts() {
 			const remains = this.game.letterBag.remainingTileCount();
 			if (remains > 0) {
-				const mess = $.i18n('letterbag-remaining', remains);
+				const mess = $.i18n('ui-bag-remaining', remains);
 				$('#letterbagStatus').html(`<div>${mess}</div>`);
 				$('#scoresBlock td.remainingTiles').empty();
 			} else {
-				$('#letterbagStatus').text($.i18n('letterbag-empty'));
+				$('#letterbagStatus').text($.i18n('ui-bag-empty'));
 				const countElements = $('#scoresBlock td.remainingTiles');
 				this.game.players.forEach(
 					(player, i) =>
@@ -511,11 +535,56 @@ define('browser/Ui', [
 		}
 
 		/**
+		 * Identify the logged-in user, and make sure they are playing
+		 * in this game.
+		 * @param {Game} game the game
+		 * @return {Promise} a promise that resolves to the player key
+		 * or undefined if the player is not logged in or is not in the game
+		 */
+		identifyPlayer(game) {
+			$(".login-state").hide();
+			return $.get("/session")
+			.then(user => {
+				console.log("Signed in as", user.name);
+				const pks = game.players.map(p=>p.key);
+				if (pks.indexOf(user.key) >= 0) {
+					$("#logged-in")
+					.show()
+					.find("#whoami")
+					.text($.i18n('um-logged-in-as', user.name));
+					return user.key;
+				}
+				$("#bad-user>span")
+				.text($.i18n("Not playing", user.name));
+				$("#bad-user>button")
+				.on("click", () => {
+					$.post("/logout")
+					.then(() => location.replace(location));
+				});
+				$("#bad-user").show();
+				return undefined;
+			})
+			.catch(e => {
+				console.log(e);
+				$("#not-logged-in")
+				.show()
+				.find("button")
+				.on("click", () => 	Dialog.open("LoginDialog", {
+					done: () => location.replace(location),
+					error: report
+				}));
+				return Promise.resolve();
+			});
+		}
+
+		/**
 		 * A game has been read; load it into the UI
 		 * @param {Game} game the Game being played
+		 * @param {string?} playerKey player key, if player is in this game
+		 * undefined if not
 		 * @return {Promise} Promise that resolves to a game
 		 */
-		loadGame(game) {
+		loadGame(game, playerKey) {
 			console.log('Loading UI for', game.toString());
 
 			this.game = game;
@@ -526,32 +595,31 @@ define('browser/Ui', [
 			// Can swap up to swapCount tiles
 			this.swapRack = new Rack(this.game.board.swapCount);
 
-			const playerKey = $.cookie(this.game.key);
-			this.thisPlayer = this.game.getPlayerFromKey(playerKey);
-
-			if (!this.thisPlayer)
-				return Promise.reject(`Cannot find game cookie ${this.game.key}. Please rejoin the game.`);
-
-			const $players = this.game.createPlayerTableDOM(this.thisPlayer);
+			this.player = this.game.getPlayerWithKey(playerKey);
+			const $players = this.game.createPlayerTableDOM(this.player);
 			$('#playerTable').append($players);
+
+			if (this.player) {
+				$('#tileRack').append(this.player.rack.createDOM('Rack'));
+
+				$('#swapRack').append(this.swapRack.createDOM('Swap', 'SWAP'));
+				this.swapRack.refreshDOM();
+			}
 
 			const $board = this.game.board.createDOM();
 			$('#board').append($board);
-			this.game.board.refreshDOM();
 
-			$('#tileRack').append(this.thisPlayer.rack.createDOM('Rack'));
-			this.thisPlayer.rack.refreshDOM();
-
-			$('#swapRack').append(this.swapRack.createDOM('Swap', 'SWAP'));
-			this.swapRack.refreshDOM();
-
-			const gs = $.i18n('log-game-started');
+			const gs = $.i18n('Game started');
 			$('#logMessages').append(`<p class='gameStart'>${gs}</p>`);
+			if (game.time_limit > 0)
+				$("#timeout").show();
+			else 
+				$("#timeout").hide();
 
 			game.turns.forEach(
 				(turn, i) => this.appendTurnToLog(turn, i === game.turns.length - 1));
 
-			if (game.ended)
+			if (game.hasEnded())
 				this.logEndMessage(false);
 
 			this.scrollLogToEnd(0);
@@ -577,30 +645,37 @@ define('browser/Ui', [
 					this.addTakeBackPreviousButton(lastTurn);
 			}
 
-			$('#shuffleButton').button({
-				showLabel: false,
-				icon: 'shuffle-icon',
-				title: $.i18n('button-shuffle'),
-				classes: {
-					'ui-button-icon': 'crossword-icon'
-				}
-			})
-			.on('click', () => this.shuffleRack());
+			if (this.player) {
+				$('#shuffleButton').button({
+					showLabel: false,
+					icon: 'shuffle-icon',
+					title: $.i18n("Shuffle"),
+					classes: {
+						'ui-button-icon': 'crossword-icon'
+					}
+				})
+				.on('click', () => this.shuffleRack());
 			
-			$('#takeBackButton').button({
-				showLabel: false,
-				icon: 'take-back-icon',
-				title: $.i18n('button-take-back'),
-				classes: {
-					'ui-button-icon': 'crossword-icon'
-				}				
-			})
-			.on('click', () => this.takeBackTiles());
+				$('#takeBackButton').button({
+					showLabel: false,
+					icon: 'take-back-icon',
+					title: $.i18n('Take back'),
+					classes: {
+						'ui-button-icon': 'crossword-icon'
+					}				
+				})
+				.on('click', () => this.takeBackTiles());
 
-			$('#turnButton').on('click', () => this.makeMove());
-
+				$('#turnButton').on('click', () => this.makeMove());
+			} else {
+				$('#shuffleButton').hide();
+				$('#turnButton').hide();
+			}
+			
 			this.$typingCursor = $('#typingCursor');
 			this.$typingCursor.hide(0);
+
+			this.refresh();
 
 			return Promise.resolve();
 		}
@@ -610,7 +685,7 @@ define('browser/Ui', [
 		 */
 		attachSocketListeners() {
 
-			this.socket = socket_io.connect(null);
+			this.socket = Socket.connect(null);
 
 			let $reconnectDialog = null;
 
@@ -628,24 +703,24 @@ define('browser/Ui', [
 					this.wasConnected = true;
 					this.socket.emit('join', {
 						gameKey: this.game.key,
-						playerKey: this.thisPlayer.key
+						playerKey: this.player ? this.player.key : undefined
 					});
 				}
 			})
 
 			.on('disconnect', () => {
 				console.debug('Socket disconnected');
-				$reconnectDialog = $('#problemDialog')
-				.text($.i18n('warn-server-disconnected'))
+				$reconnectDialog = $('#alertDialog')
+				.text($.i18n('ui-server-disconnected'))
 				.dialog({ modal: true });
 				const ui = this;
 				setTimeout(() => {
-					// Try and rejoin after a timeout
+					// Try and rejoin after a 3s timeout
 					ui.socket.emit('join', {
 						gameKey: this.game.key,
-						playerKey: this.thisPlayer.key
+						playerKey: this.player ? this.player.key : undefined
 					});
-				}, 1000);
+				}, 3000);
 
 			})
 
@@ -656,7 +731,7 @@ define('browser/Ui', [
 				for (let player of this.game.players)
 					player.online(false);
 				for (let key of info) {
-					const player = this.game.getPlayerFromKey(key);
+					const player = this.game.getPlayerWithKey(key);
 					if (player)
 						player.online(true);
 				}
@@ -666,13 +741,55 @@ define('browser/Ui', [
 
 			.on('tick', tick => this.processTick(tick))
 
-			.on('gameOverConfirmed', ended =>
-				this.processGameOverConfirmed(ended))
+			.on('gameOverConfirmed', endState =>
+				this.processGameOverConfirmed(endState))
 
 			.on('nextGame',	nextGameKey =>
 				this.addContinuationGameButton(nextGameKey))
 
-			.on('message', message => this.processMessage(message));
+			.on('message', message => this.processMessage(message))
+
+			.on('pause', player => this.pause(player, true))
+
+			.on('unpause', player => this.pause(player, false));
+		}
+
+		/**
+		 * By using a modal dialog to report the pause, we block further
+		 * interaction until the pause is released.
+		 * @param {string} player name of player who paused/released
+		 * @param {boolean} isPaused whether the game is to be paused/released
+		 * @private
+		 */
+		pause(player, isPaused) {
+			console.log(`${player} has ${isPaused?"":"un"}paused`);
+			if (isPaused) {
+				$(".Letter").addClass("hidden");
+				$(".Score").addClass("hidden");
+				$('#pauseDialog')
+				.find("[name=banner]")
+				.text($.i18n('ui-unpause-text', player));
+				$('#pauseDialog')
+				.dialog({
+					dialogClass: "no-close",
+					modal: true,
+					buttons: [
+						{
+							text: $.i18n('Continue game'),
+							click: () => {
+								this.sendCommand('unpause');
+								$('#pauseDialog').dialog("close");
+							}
+						}
+					]});
+			} else {
+				$(".Letter").removeClass("hidden");
+				$(".Score").removeClass("hidden");
+				$("#pauseButton")
+				.button("option", "label", $.i18n('Pause game'));
+				$('#pauseDialog')
+				.dialog("close");
+			}
 		}
 
 		/**
@@ -688,7 +805,7 @@ define('browser/Ui', [
 				ui.socket.emit(
 					'message',
 					{
-						sender: ui.thisPlayer.name,
+						sender: ui.player.name,
 						text: $(this).val()
 					});
 				$(this).val('');
@@ -705,8 +822,14 @@ define('browser/Ui', [
 					});
 
 			$('#settings')
-			.on('click', () => $('#settingsDialog')
-				.dialog({ modal: true }));
+			.on('click', () => {
+				$("#pauseButton").toggle(this.game.time_limit > 0);
+				$('#settingsDialog')
+				.dialog({
+					title: $.i18n('Options'),
+					modal: true
+				});
+			});
 
 			$('input.setting')
 			.each(function() {
@@ -718,8 +841,14 @@ define('browser/Ui', [
 						 Object.getOwnPropertyNames(ui.settings)
 						 .map(k => {
 							 return `${k}=${ui.settings[k]}`;
-						 }).join(';'));
+						 }).join(';'),
+						 {
+							 SameSite: "Strict"
+						 });
 			});
+
+			$("#pauseButton").button({})
+			.on('click', () => this.sendCommand("pause"));
 
 			if (!this.usingHttps) {
 				// Notification requires https
@@ -751,7 +880,7 @@ define('browser/Ui', [
 				return;
 
 			// Find the letter in the rack
-			const rackSquare = this.thisPlayer.rack.findSquare(letter);
+			const rackSquare = this.player.rack.findSquare(letter);
 			if (rackSquare) {
 				// moveTile will use a blank if the letter isn't found
 				this.moveTile(rackSquare, this.selectedSquare, letter);
@@ -762,7 +891,7 @@ define('browser/Ui', [
 				else
 					this.moveTypingCursor(0, 1);
 			} else
-				$('#logMessages').append($.i18n('log-letter-not-on-rack', letter));
+				$('#logMessages').append($.i18n('ui-log-letter-not-on-rack', letter));
 		}
 
 		/**
@@ -881,8 +1010,11 @@ define('browser/Ui', [
 		}
 
 		refresh() {
-			this.thisPlayer.rack.refreshDOM();
+			if (this.player)
+				this.player.rack.refreshDOM();
 			this.game.board.refreshDOM();
+			if (this.game.pausedBy)
+				this.pause(this.game.pausedBy, true);
 		}
 
 		/**
@@ -974,14 +1106,14 @@ define('browser/Ui', [
 			// if the last player's rack is empty, it couldn't be refilled
 			// and the game might be over.
 			const lastPlayer = this.game.previousPlayer();
-			if (!this.game.ended
+			if (!this.game.hasEnded()
 				&& this.game.getPlayer(lastPlayer).rack.isEmpty()) {
 				this.lockBoard(true);
-				this.setMoveAction('confirmGameOver');
+				this.setMoveAction(/*i18n ui-*/'confirmGameOver');
 			} else if (this.placedCount > 0) {
 				// Player has dropped some tiles on the board
 				// (tileCount > 0), move action is to make the move
-				this.setMoveAction('commitMove');
+				this.setMoveAction(/*i18n ui-*/'commitMove');
 				const move = this.game.board.analyseMove();
 				if (typeof move === 'string') {
 					$('#move').append($.i18n(move));
@@ -994,7 +1126,7 @@ define('browser/Ui', [
 						.append(`<span class="wordScore">${word.score}</span>`)
 						.append(') ');
 					}
-					const total = $.i18n('log-total', move.score);
+					const total = $.i18n('ui-log-total', move.score);
 					$('#move').append(`<span class="totalScore">${total}</span>`);
 					$('#turnButton').removeAttr('disabled');
 				}
@@ -1003,15 +1135,14 @@ define('browser/Ui', [
 				$('#takeBackButton').css('visibility', 'inherit');
 				$('#swapRack').hide();
 			} else if (this.swapRack.squaresUsed() > 0) {
-				// Swaprack has tiles on it, change the move action
-				// to swap
-				this.setMoveAction('swap');
+				// Swaprack has tiles on it, change the move action to swap
+				this.setMoveAction(/*i18n ui-*/'swap');
 				$('#board .ui-droppable').droppable('disable');
 				$('#turnButton').removeAttr('disabled');
 				$('#takeBackButton').css('visibility', 'inherit');
-			} else if (!this.game.ended) {
+			} else if (!this.game.hasEnded()) {
 				// Otherwise turn action is a pass
-				this.setMoveAction('pass');
+				this.setMoveAction(/*i18n ui-*/'pass');
 				$('#board .ui-droppable').droppable('enable');
 				$('#turnButton').removeAttr('disabled');
 				$('#takeBackButton').css('visibility', 'hidden');
@@ -1094,8 +1225,8 @@ define('browser/Ui', [
 						if (this.settings.warnings)
 							this.playAudio('oops');
 						this.notify(
-							$.i18n('notify-title-challenged'),
-							$.i18n('notify-body-challenged',
+							$.i18n('ui-notify-title-challenged'),
+							$.i18n('ui-notify-body-challenged',
 								   this.game.getPlayer(turn.challenger).name,
 								   -turn.score));
 					}
@@ -1103,8 +1234,8 @@ define('browser/Ui', [
 
 				if (turn.type == 'took-back') {
 					this.notify(
-						$.i18n('notify-title-retracted'),
-						$.i18n('notify-body-retracted',
+						$.i18n('ui-notify-title-retracted'),
+						$.i18n('ui-notify-body-retracted',
 							   this.game.getPlayers(turn.challenger).name));
 				}
 				break;
@@ -1115,14 +1246,14 @@ define('browser/Ui', [
 					if (this.settings.warnings)
 						this.playAudio('oops');
 					this.notify(
-						$.i18n('notify-title-you-failed'),
-						$.i18n('notify-body-you-failed'));
+						$.i18n('ui-notify-title-you-failed'),
+						$.i18n('ui-notify-body-you-failed'));
 				} else {
 					if (this.settings.warnings)
 						this.playAudio('oops');
 					this.notify(
-						$.i18n('notify-title-they-failed'),
-						$.i18n('notify-body-they-failed', player.name));
+						$.i18n('ui-notify-title-they-failed'),
+						$.i18n('ui-notify-body-they-failed', player.name));
 				}
 				break;
 
@@ -1158,7 +1289,7 @@ define('browser/Ui', [
 
 				break;
 
-			case 'ended-game-over':
+			case 'Game over':
 				break;
 			}
 
@@ -1182,8 +1313,8 @@ define('browser/Ui', [
 				if (this.isPlayer(turn.nextToGo)
 					&& turn.type !== 'took-back') {
 					// It's our turn, and we didn't just take back
-					this.notify($.i18n('notify-title-your-turn'),
-								$.i18n('notify-body-your-turn',
+					this.notify($.i18n('ui-notify-title-your-turn'),
+								$.i18n('ui-notify-body-your-turn',
 									   this.game.getPlayer(turn.player).name));
 
 					if (turn.type === 'move')
@@ -1212,22 +1343,24 @@ define('browser/Ui', [
 		addContinuationGameButton(nextGameKey) {
 			const $but = $('<button></button>');
 			if (nextGameKey) {
-				$but.text($.i18n('button-next-game'));
-				const $a = $('<a></a>')
-					  .addClass('noDecoration')
-					  .append($but);
-				$a.attr(
-					'href',
-					`/game/${nextGameKey}/${$.cookie(this.game.key)}`);
-				this.log($a);
 				$('.anotherGame').remove();
+				$but
+				.text($.i18n("Next game"))
+				.on('click',
+					() => $.post(`/join/${nextGameKey}/${this.player.key}`)
+					.then(info => {
+						location.replace(
+							`/html/game.html?game=${nextGameKey}&player=${this.player.key}`);
+					}));
+				this.log($but);
 			} else {
-				$but.addClass('anotherGame');
-				$but.text($.i18n('button-another-game'));
-				$but.on('click',
-						() => $.post(`/anotherGame/${this.game.key}`));
+				$but
+				.addClass('anotherGame')
+				.text($.i18n('Another game'))
+				.on('click',
+					() => $.post(`/anotherGame/${this.game.key}`));
 				this.log($but, 'turnControl');
-				this.log($.i18n('log-same-players'));
+				this.log($.i18n('ui-log-same-players'));
 			}
 			this.scrollLogToEnd(300);
 		}
@@ -1241,7 +1374,7 @@ define('browser/Ui', [
 				return;
 			// It wasn't us
 			const text = $.i18n(
-				'button-challenge',
+				'ui-challenge',
 				this.game.getPlayer(turn.player).name);
 			const $button =
 				  $(`<button class='moveAction'>${text}</button>`);
@@ -1259,7 +1392,7 @@ define('browser/Ui', [
 				return;
 			// It's us!
 			const $button =
-				  $(`<button class='moveAction'>${$.i18n('button-take-back')}</button>`);
+				  $(`<button class='moveAction'>${$.i18n('Take back')}</button>`);
 			$button.click(() => this.takeBackMove());
 			this.log($button, 'turnControl');
 			this.scrollLogToEnd(300);
@@ -1292,9 +1425,7 @@ define('browser/Ui', [
 			const move = this.game.board.analyseMove();
 			if (typeof move === 'string') {
 				// fatal - should never get here
-				$('#problemDialog')
-				.text($.i18n(move))
-				.dialog();
+				report(move);
 				return;
 			}
 			this.afterMove();
@@ -1309,7 +1440,7 @@ define('browser/Ui', [
 			}
 			this.placedCount = 0;
 
-			move.player = this.thisPlayer.index;
+			move.player = this.player.index;
 
 			this.sendCommand('makeMove', move);
 		}
@@ -1361,7 +1492,7 @@ define('browser/Ui', [
 			$('#turnButton')
 			.data('action', action)
 			.empty()
-			.append($.i18n(`action-${action}`));
+			.append($.i18n(`ui-${action}`));
 		}
 
 		/**
@@ -1406,7 +1537,7 @@ define('browser/Ui', [
 
 			// Find a space on the rack for it
 			let freesquare = undefined;
-			this.thisPlayer.rack.forEachSquare(square => {
+			this.player.rack.forEachSquare(square => {
 				if (!square.tile) {
 					freesquare = square;
 					return true;
@@ -1428,7 +1559,7 @@ define('browser/Ui', [
 		 * Handler for click on the 'Shuffle' button
 		 */
 		shuffleRack() {
-			this.thisPlayer.rack.shuffle().refreshDOM();
+			this.player.rack.shuffle().refreshDOM();
 		}
 
 		/**

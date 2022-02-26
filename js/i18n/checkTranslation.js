@@ -41,8 +41,8 @@ function compare(na, a, nb, b, verbose) {
 	}
 }
 
-requirejs(['node-getopt', 'fs-extra'], (Getopt, Fs) => {
-
+requirejs(['node-getopt', 'fs'], (Getopt, fs) => {
+	const Fs = fs.promises;
 	const i18n = `${__dirname}/../../i18n`;
 
 	const DESCRIPTION = [

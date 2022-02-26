@@ -26,7 +26,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Player', 'game/
 
 		return new Game('English_Scrabble', 'SOWPODS_English').create()
 		.then(game => {
-			game.addPlayer(new Player('test'));
+			game.addPlayer(new Player('test', "anonymous", false));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -77,7 +77,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Player', 'game/
 
 		return new Game('English_WWF', 'SOWPODS_English').create()
 		.then(game => {
-			game.addPlayer(new Player('test'));
+			game.addPlayer(new Player('test', "slight", false));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +

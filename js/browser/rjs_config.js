@@ -3,6 +3,7 @@
 // way requirejs works, that means this file also has to be in the root of the
 // distribution.
 // See https://coderwall.com/p/qbh0_w/share-requirejs-configuration-among-multiple-pages
+/*global rjs_main*/
 
 requirejs.config({
 	baseUrl: '../..',
@@ -37,11 +38,10 @@ requirejs.config({
 		'socket.io': '//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io',
 		cookie: '//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min',
 
-
-		browser: 'js/browser',
-		game: 'js/game',
-		dawg: 'js/dawg',
-		platform: 'js/browser/BrowserPlatform'
+		browser: '/js/browser',
+		game: '/js/game',
+		dawg: '/js/dawg',
+		platform: '/js/browser/BrowserPlatform'
 	},
 	
 	shim: {
@@ -54,3 +54,6 @@ requirejs.config({
 		i18n_parser: ['i18n']
 	}
 });
+
+if (typeof rjs_main !== "undefined")
+	requirejs([rjs_main]);

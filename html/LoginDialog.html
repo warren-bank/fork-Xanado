@@ -1,0 +1,57 @@
+<!-- login/register dialog -->
+<div id="tabs">
+  <ul>
+	<li><a href="#login-tab" data-i18n="Sign in"></a></li>
+	<li><a href="#register-tab" data-i18n='Sign up'></a></li>
+	<li class="hidden"><a href="#reset-password-tab" data-i18n='Forgotten password'></a></li>
+  </ul>
+  <div id="login-tab">
+	<div class="dialog-row">
+	  <input id="login_username" data-i18n-placeholder="Name">
+	</div>
+	
+	<div class="dialog-row">
+	  <input class="is-password" id="login_password" type="password" data-i18n-placeholder="Password">
+	  <button class="ui-button ui-widget hide-password"></button>
+	</div>
+	
+	<div>
+	  <button class="submit" data-i18n="Sign in">
+	  </button>
+	</div>
+	
+	<div class="forgotten-password">
+	  <a data-i18n="Forgotten password"></a>
+	</div>
+  </div>
+  
+  <div id="register-tab">
+	<div class="dialog-row">
+	  <input class="full-width" id="register_username" type="text" data-i18n-placeholder="Name">
+	</div>
+	
+	<div class="dialog-row">
+	  <input class="full-width" id="register_email" type="email" data-i18n-placeholder="Email">
+	</div>
+	
+	<div class="dialog-row">
+	  <input class="is-password" id="register_password" data-i18n-placeholder="Password">
+	  <button class="ui-button ui-widget hide-password"></button>
+	</div>
+	
+	<div>
+	  <button class="submit" data-i18n="Sign up"></button>
+	</div>
+  </div>
+  
+  <div id="reset-password-tab">
+	<div data-i18n="login-forgot"></div>
+	<div class="dialog-row">
+	  <input id="reset_email" type="email" data-i18n-placeholder="Email">
+	</div>
+	<div>
+	  <button class="submit" data-i18n="Send email"></button>
+	</div>
+  </div>
+</div>
+

@@ -7,7 +7,6 @@ all:
 # Make HTML source-code documentation
 doc: doc/index.html
 
-
 doc/index.html: $(JS) doc/README.md
 	node_modules/.bin/jsdoc -c doc/config.json -d doc $(JS)
 

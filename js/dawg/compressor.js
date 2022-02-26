@@ -24,7 +24,9 @@ requirejs.config({
 	}
 });
 
-requirejs(['fs-extra', 'node-gzip', 'dawg/Trie'], (Fs, Gzip, Trie) => {
+requirejs(['fs', 'node-gzip', 'dawg/Trie'], (fs, Gzip, Trie) => {
+	const Fs = fs.promises;
+
 	const DESCRIPTION = [
 		'USAGE',
 		`node ${process.argv[1].replace(/.*\//, '')} <lexicon> <outfile>`,

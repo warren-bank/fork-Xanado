@@ -3,39 +3,53 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta charset="utf-8" />
-	<base href="/" />
 	<link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
     <title>Create/Join Game</title>
 
-    <style type="text/css" media="all">
-      @import "/css/common.css";
-    </style>
-    <style type="text/css" media="all">
-      @import "/css/games.css";
-    </style>
-    <link href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet">
-
-	<script data-main="js/browser/rjs_config.js" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script>
+	<link href="//cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" rel="stylesheet" type="text/css">
+    <link href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css">
+    <link href="/css/common.css" rel="stylesheet" type="text/css">
+    <link href="/css/games.css" rel="stylesheet" type="text/css">
+	<script>
+	  var rjs_main = "browser/games";
+	</script>
+	<script data-main="/js/browser/rjs_config.js" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script>
   </head>
   <body>
-	<script type="text/javascript">requirejs(["games"]);</script>
-	<h1 data-i18n="h1-crossword-games"></h1>
-	<div id="player_list">
-	  <h2 data-i18n="h2-cumulative"></h2>
-	  <div id="player-table"></div>
+	<img src="/images/logo.svg" style="margin-top: 0.5em"/>
+	<div id="heading">
+	  <span id="games-for" data-i18n="Games"></span>
+	  <span class="not-logged-in">
+		<button id="login-button" class="game-button" data-i18n="Sign in"></button>
+	  </span>
+	  <span class="logged-in">
+		<button id="logout-button" class="game-button" data-i18n="Sign out"></button>
+		<button id="chpw_button" class="game-button" data-i18n="Change password"></button>
+	  </span>
 	</div>
-	<input id="showall" type="checkbox"><span data-i18n="games-showall"></span></input>
-	<div id="games_list">
-	  <h2 data-i18n="h2-active-games"></h2>
-	  <div id="game-table"></div>
-	  <span data-i18n="game-select-player"></span>
+
+	<div id="games-cumulative">
+	  <h2 data-i18n="Leader board"></h2>
+	  <div id="player-list">
+	  </div>
+	</div>
+
+	<div>
+	  <h2 data-i18n="Games"></h2>
+	  <label for="showall" data-i18n="Show finished"></label>
+	  <input id="showall" type="checkbox" />
+	  <div id="games_list">
+		<div id="game-table"></div>
+	  </div>
 	</div>
 	<div>
-	  <a href="/html/createGame.html">
-		<button data-i18n="button-create-new-game"></button>
-	  </a>
-	  <button id="reminder-button" data-i18n="button-turn-reminders"></button>
+	  <button id="create-game" class="game-button hidden" data-i18n="Create new game"></button>
+	  <button id="reminder-button" class="game-button hidden" data-i18n="Email turn reminders" data-i18n-tooltip="tooltip-email-reminders"></button>
+	</div>
+
+	<div id="alertDialog" class="dialog">
 	</div>
   </body>
 </html>

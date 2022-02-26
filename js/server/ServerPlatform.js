@@ -6,8 +6,14 @@
  * This is the node.js implementation of game/Platform. There is an
  * implementation for the browser, too, in js/browser/Platform.js
  */
-define('platform', [ 'events', 'fs-extra', 'node-gzip', 'get-user-locale', 'path', 'game/Platform', 'game/Fridge', 'game/Platform' ], (Events, Fs, Gzip, Locale, Path, Platform, Fridge) => {
+define('platform', [
+	'events', 'fs', 'proper-lockfile', 'node-gzip', 'get-user-locale', 'path',
+	'game/Platform', 'game/Fridge', 'game/Platform'
+], (
+	Events, fs, Lock, Gzip, Locale, Path, Platform, Fridge
+) => {
 
+	const Fs = fs.promises;
 	const emitter = new Events.EventEmitter();
 
 	/**
@@ -30,6 +36,7 @@ define('platform', [ 'events', 'fs-extra', 'node-gzip', 'get-user-locale', 'path
 			this.directory = requirejs.toUrl(id);
 			this.type = type;
 			this.re = new RegExp(`\\.${type}$`);
+			this.locks = {};
 		}
 
 		/** See {@link Database#keys} for documentation */
@@ -44,20 +51,32 @@ define('platform', [ 'events', 'fs-extra', 'node-gzip', 'get-user-locale', 'path
 		set(key, data) {
 			if (/^\./.test(key))
 				throw Error(`Invalid DB key ${key}`);
-			return Fs.writeFile(
-				Path.join(this.directory, `${key}.${this.type}`),
-				JSON.stringify(Fridge.freeze(data)));
+			const fn = Path.join(this.directory, `${key}.${this.type}`);
+			const s = JSON.stringify(Fridge.freeze(data)/*, null, 1*/);
+			return Fs.access(fn)
+			.then(acc => {
+				return Lock.lock(fn) // file exists
+				.then(release => Fs.writeFile(fn, s)
+					  .then(() => release()));
+			})
+			.catch(e => Fs.writeFile(fn, s)); // file does not exist
 		}
 
 		/** See {@link Database#get} for documentation */
 		get(key, classes) {
-			return Fs.readFile(Path.join(this.directory, `${key}.${this.type}`))
-			.then(data => Fridge.thaw(JSON.parse(data), classes));
+			const fn = Path.join(this.directory, `${key}.${this.type}`);
+			return Lock.lock(fn)
+			.then(release => Fs.readFile(fn)
+				  .then(data => release()
+						.then(() => {
+							console.log(`Unlocked ${fn}`);
+							return Fridge.thaw(JSON.parse(data), classes);
+						})));
 		}
 
 		/** See {@link Database#rm} for documentation */
 		rm(key) {
-			return Fs.remove(Path.join(this.directory, `${key}.${this.type}`));
+			return Fs.unlink(Path.join(this.directory, `${key}.${this.type}`));
 		}
 	}
 
@@ -115,7 +134,7 @@ define('platform', [ 'events', 'fs-extra', 'node-gzip', 'get-user-locale', 'path
 			.then(buffer => {
 				this.data = JSON.parse(buffer.toString());
 				// Use lookup() to make sure it works
-				console.log(this.lookup(['strings-from', langfile]));
+				console.log(this.lookup([/*i18n*/'Strings from $1', langfile]));
 			});
 		}
 

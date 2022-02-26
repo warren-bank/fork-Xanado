@@ -12,10 +12,10 @@ The installation has subdirectories as follows:
 * `js` has all the source code
 	* `js/browser` is the browser code
 	* `js/dawg` is generation and management of DAWGs
-	* `design` is the valett program
-	* `game` has the platform-independent game engine
-	* `i18n` has the translations checker
-	* `server` has the node.js server code
+	* `js/design` is the valett program
+	* `js/game` has the platform-independent game engine
+	* `js/i18n` has the translations checker
+	* `js/server` has the node.js server code
 
 ## Building your own dictionary
 

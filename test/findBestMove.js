@@ -5,7 +5,7 @@
 const requirejs = require('requirejs');
 
 requirejs.config({
-	baseUrl: '..',
+	baseUrl: `${__dirname}/..`,
     nodeRequire: require,
 	paths: {
 		game: 'js/game',
@@ -22,7 +22,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		let bestMoves = [];
 		return new Game('English_WWF', 'Oxford_5000').create()
 		.then(game => {
-			game.addPlayer(new Player('test', true));
+			game.addPlayer(new Player('test', "creep", true));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -57,10 +57,10 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 					bestMoves.push(move);
 			}))
 		.then(() => {
-			assert.equal(bestMoves.length, 8);
-			assert.equal(bestMoves[7].words.length, 1);
-			assert.equal(bestMoves[7].words[0].word, 'HAIRIEST');
-			assert.equal(bestMoves[7].score, 47);
+			assert.equal(bestMoves[5].words[0].word, 'HAIRIEST');
+			assert.equal(bestMoves.length, 6);
+			assert.equal(bestMoves[5].words.length, 1);
+			assert.equal(bestMoves[5].score, 42);
 		});
 	});
 
@@ -68,7 +68,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		let bestMoves = [];
 		return new Game('English_WWF', 'SOWPODS_English').create()
 		.then(game => {
-			game.addPlayer(new Player('test', true));
+			game.addPlayer(new Player('test', "toast", true));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -103,23 +103,23 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			const last = bestMoves[2];
 			assert.equal(last.words.length, 2);
 			assert.equal(last.words[0].word, 'ACTS');
-			assert.equal(last.words[0].score, 8);
+			assert.equal(last.words[0].score, 7);
 			assert.equal(last.words[1].word, 'CRAG');
-			assert.equal(last.words[1].score, 9);
-			assert.equal(last.score, 17);
+			assert.equal(last.words[1].score, 8);
+			assert.equal(last.score, 15);
 			assert.equal(last.placements.length, 3);
 			assert(last.placements[0] instanceof Tile);
 			assert.equal(last.placements[0].letter, 'C');
 			assert.equal(last.placements[0].score, 3);
-			assert.equal(last.placements[0].col, 2);
+			assert.equal(last.placements[0].col, 1);
 			assert.equal(last.placements[0].row, 6);
 			assert.equal(last.placements[1].letter, 'R');
 			assert.equal(last.placements[1].score, 1);
-			assert.equal(last.placements[1].col, 3);
+			assert.equal(last.placements[1].col, 2);
 			assert.equal(last.placements[1].row, 6);			
 			assert.equal(last.placements[2].letter, 'A');
 			assert.equal(last.placements[2].score, 1);
-			assert.equal(last.placements[2].col, 4);
+			assert.equal(last.placements[2].col, 3);
 			assert.equal(last.placements[2].row, 6);			
 		});
 	});
@@ -128,7 +128,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		let bestMoves = [];
 		return new Game('English_Scrabble', 'SOWPODS_English').create()
 		.then(game => {
-			game.addPlayer(new Player('test', true));
+			game.addPlayer(new Player('test', "slime", true));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -164,20 +164,15 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			}))
 
 		.then(() => {
-			assert.equal(bestMoves.length, 6);
+			assert.equal(bestMoves.length, 2);
 			
 			assert.equal(bestMoves[0].words.length, 1);
 			assert.equal(bestMoves[0].words[0].word, 'ATAXIA');
-			assert.equal(bestMoves[0].words[0].score, 13);
+			assert.equal(bestMoves[0].words[0].score, 14);
 
 			assert.equal(bestMoves[1].words.length, 1);
 			assert.equal(bestMoves[1].words[0].word, 'TOWABLE');
-			assert.equal(bestMoves[1].words[0].score, 14);
-
-			assert.equal(bestMoves[5].words.length, 3);
-			assert.equal(bestMoves[5].score, 27);
-			assert.equal(bestMoves[5].words[0].word, 'EX');
-			assert.equal(bestMoves[5].words[0].score, 9);
+			assert.equal(bestMoves[1].words[0].score, 24);
 		});
 	});
 	
@@ -185,7 +180,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		let bestMoves = [];
 		return new Game('English_Scrabble', 'Oxford_5000').create()
 		.then(game => {
-			game.addPlayer(new Player('test', true));
+			game.addPlayer(new Player('test', "crisp", true));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -221,9 +216,51 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			}))
 		.then(() => {
 			const last = bestMoves[bestMoves.length - 1];
-			assert.equal(last.words.length, 1);
-			assert.equal(last.words[0].word, 'TRICK');
-			assert.equal(last.words[0].score, 33);
+			assert.equal(last.words.length, 3);
+			assert.equal(last.words[0].word, 'TOWN');
+			assert.equal(last.words[0].score, 7);
+		});
+	});
+
+	tr.addTest('obliques', () => {
+		let bestMoves = [];
+		return new Game('English_WWF', 'British_English').create()
+		.then(game => {
+			game.addPlayer(new Player('test', "turntable", true));
+			return game.loadBoard(
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | |G| | | | | | | | | |\n' +
+				'| | | | | |Y| | | | | | | | | |\n' +
+				'| | | | | |B| | | | | | | | | |\n' +
+				'| | | | |I|B|E|X| | | | | | | |\n' +
+				'| | | |F| |E|M|I|T| | | | | | |\n' +
+				'| |H|O|A|R|D|S| |O|V|A|L| | | |\n' +
+				'| | | |W| | | |T| | | | | | | |\n' +
+				'|G|L|E|N| | | |O| | | | | | | |\n' +
+				'| | |W|E| | | |A| | | | | | | |\n' +
+				'| | |E|R|R|A|N|D| | | | | | | |\n' +
+				'| | | | | | | |Y| | | | | | | |\n');
+		})
+		.then(game => findBestPlay(
+			game, [
+				new Tile({letter:'O', isBlank:false, score:1}),
+				new Tile({letter:'I', isBlank:false, score:1}),
+				new Tile({letter:'Q', isBlank:false, score:10}),
+				new Tile({letter:'U', isBlank:false, score:2}),
+				new Tile({letter:'E', isBlank:false, score:1}),
+				new Tile({letter:'S', isBlank:false, score:1}),
+				new Tile({letter:' ', isBlank:true, score:0})
+			],
+			move => {
+				//console.log(move);
+				if (move instanceof Move)
+					bestMoves.push(move);
+			}))
+		.then(() => {
+			//console.log(bestMoves[bestMoves.length-1]);
 		});
 	});
 

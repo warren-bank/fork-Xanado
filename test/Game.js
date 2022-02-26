@@ -21,11 +21,11 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 	tr.addTest('basics', () => {
 		return new Game('English_Scrabble', 'Oxford_5000').create()
 		.then(game => {
-			const player1 = new Player('player1', true);
+			const player1 = new Player('player1', "rhino", true);
 			game.addPlayer(player1);
-			const player2 = new Player('player2', false);
+			const player2 = new Player('player2', "soffit", false);
 			game.addPlayer(player2);
-			const player3 = new Player('player3', false);
+			const player3 = new Player('player3', "clean", false);
 			game.addPlayer(player3);
 
 			player3.rack.empty();
@@ -49,7 +49,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 	tr.addTest('autoplay', () => {
 		return new Game('English_Scrabble', 'Oxford_5000').create()
 		.then(game => {
-			let player = new Player('test', true);
+			let player = new Player('test', "cheese", true);
 			game.addPlayer(player);
 			// Override the random rack
 			player.rack.empty();
@@ -60,7 +60,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 
 		.then(() => new Game('Tiny', 'Oxford_5000').create())
 		.then(game => {
-			let player = new Player('test', true);
+			let player = new Player('test', "zebra", true);
 			game.addPlayer(player);
 			player.rack.empty();
 			player.rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
@@ -72,7 +72,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 
 		.then(() => new Game('Tiny', 'SOWPODS_English').create())
 		.then(game => {
-			let player = new Player('test', true);
+			let player = new Player('test', "isolate", true);
 			game.addPlayer(player);
 			player.rack.empty();
 			player.rack.addTile(new Tile({letter:' ', isBlank:true, score:1}));
@@ -85,7 +85,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 	tr.addTest('swap', () => {
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
-			const player = new Player('test1', false);
+			const player = new Player('test1', "tree", false);
 			game.addPlayer(player);
 			player.rack.empty();
 			player.rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
@@ -93,7 +93,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			player.rack.addTile(new Tile({letter:'C', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'D', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'E', isBlank:false, score:1}));
-			game.addPlayer(new Player('test2', false));
+			game.addPlayer(new Player('test2', "van", false));
 			// Leave 5 tiles in the bag - enough to swap
 			game.letterBag.getRandomTiles(
 				game.letterBag.remainingTileCount() - 5);
@@ -138,7 +138,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
-			const player = new Player('test1', false);
+			const player = new Player('test1', "ambulance", false);
 			game.addPlayer(player);
 			player.rack.empty();
 			player.rack.addTile(new Tile({letter:'W', isBlank:false, score:1}));
@@ -146,7 +146,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			player.rack.addTile(new Tile({letter:'R', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'D', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
-			game.addPlayer(new Player('test2', false));
+			game.addPlayer(new Player('test2', "felt", false));
 			// Leave 3 tiles in the bag - not enough to refill the rack
 			game.letterBag.getRandomTiles(
 				game.letterBag.remainingTileCount() - 3);
@@ -169,7 +169,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 	tr.addTest('lastMove', () => {
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
-			const player = new Player('test1', false);
+			const player = new Player('test1', "mud", false);
 			game.addPlayer(player);
 			player.rack.empty();
 			player.rack.addTile(new Tile({letter:'W', isBlank:false, score:1}));
@@ -177,7 +177,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			player.rack.addTile(new Tile({letter:'R', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'D', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
-			game.addPlayer(new Player('test2', false));
+			game.addPlayer(new Player('test2', "climax", false));
 			// Empty the bag
 			game.letterBag.getRandomTiles(
 				game.letterBag.remainingTileCount());
@@ -211,24 +211,24 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 	tr.addTest('confirm', () => {
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
-			const player = new Player('test1', false);
+			const player = new Player('test1', "cloud", false);
 			game.addPlayer(player);
 			player.rack.empty();
 			player.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
-			const player2 = new Player('test2', false);
+			const player2 = new Player('test2', "squirrel", false);
 			game.addPlayer(player2);
 			player2.rack.empty();
 			// Empty the bag
 			game.letterBag.getRandomTiles(
 				game.letterBag.remainingTileCount());
-			return game.confirmGameOver('ended-game-over');
+			return game.confirmGameOver('Game over');
 		})
 		.then(turn => {
 			console.log(turn);
 			assert(turn instanceof Turn);
-			assert.equal(turn.type, 'ended-game-over');
+			assert.equal(turn.type, 'Game over');
 			assert.equal(turn.player, 0);
 			assert.equal(turn.deltaScore[0], -3);
 			assert.equal(turn.deltaScore[1], 3);
@@ -241,8 +241,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		const game = new Game('Tiny', 'Oxford_5000');
 		return game.create()
 		.then(game => {
-			game.addPlayer(new Player('test1', true));
-			game.addPlayer(new Player('test2', true));
+			game.addPlayer(new Player('test1', "river", true));
+			game.addPlayer(new Player('test2', "footpad", true));
 			return game.autoplay(game.players[game.whosTurn]);
 		})
 		.then(() => game.challenge())
@@ -259,7 +259,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		const game = new Game('Tiny', 'Oxford_5000');
 		return game.create()
 		.then(() => {
-			const player = new Player('test1', true);
+			const player = new Player('test1', "cavalier", true);
 			game.addPlayer(player);
 			player.rack.empty();
 			player.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
@@ -267,7 +267,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			player.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
-			game.addPlayer(new Player('test2', true));
+			game.addPlayer(new Player('test2', "roundhead", true));
 			return game.makeMove(
 				new Move({
 					placements: [
@@ -295,7 +295,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		const game = new Game('Tiny', 'Oxford_5000');
 		return game.create()
 		.then(() => {
-			const player = new Player('test1', true);
+			const player = new Player('test1', "psychologist", true);
 			game.addPlayer(player);
 			player.rack.empty();
 			player.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
@@ -303,7 +303,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			player.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
 			player.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
-			game.addPlayer(new Player('test2', true));
+			game.addPlayer(new Player('test2', "chatter", true));
 			// Player 0 makes a move
 			return game.makeMove(
 				new Move({
@@ -330,8 +330,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 
 	tr.addTest('challengeLastMoveGood', () => {
 		const game = new Game('Tiny', 'Oxford_5000');
-		const player1 = new Player('test1', false);
-		const player2 = new Player('test2', false);
+		const player1 = new Player('test1', "sheep", false);
+		const player2 = new Player('test2', "wolf", false);
 
 		return game.create()
 		.then(game => {
@@ -375,8 +375,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 
 	tr.addTest('challengeLastMoveBad', () => {
 		const game = new Game('Tiny', 'Oxford_5000');
-		const player1 = new Player('test1', false);
-		const player2 = new Player('test2', false);
+		const player1 = new Player('test1', "crime", false);
+		const player2 = new Player('test2', "punishment", false);
 
 		return game.create()
 		.then(game => {

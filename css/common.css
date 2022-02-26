@@ -9,8 +9,9 @@ body
 
     border: none;
 
-    background: #333333;
-    background: url('../images/wood.jpg');
+    /* background: url('../images/wood.jpg'); */
+    background: url('../images/baize.jpg');
+    /* background: url('../images/leather.jpg'); */
 
     -webkit-touch-callout: none;
 
@@ -19,4 +20,58 @@ body
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+/* A row in a tab pane in a dialog box */
+.dialog-row {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	position: relative;
+	box-sizing: border-box;
+}
+
+.dialog-row input {
+	width: 100%;
+}
+
+.icon-robot {
+    background-image: url('/images/robot-face.svg') !important;
+	background-size: 16px 16px;
+}
+
+.hidden {
+	display: none;
+}
+
+/* This took a lot of faffing around to get right! */
+button.hide-password {
+	position: absolute; /* within containing block */
+	height: 100%; /* of containing block */
+	width: 25px;
+	right: -8px; /* right edge of containing block */
+	top: 0;
+	bottom: auto;
+	font-size: 0.5em;
+	margin-right: 0;
+	padding: 0;
+}
+
+.icon-eye-open {
+    background-image: url('/images/eye-open.svg') !important;
+	background-size: 16px 16px;
+}
+
+.icon-eye-closed {
+    background-image: url('/images/eye-closed.svg') !important;
+	background-size: 16px 16px;
+}
+
+.forgotten-password {
+	margin-top: 1em;
+	width: 100%;
+	text-align: center;
+	font-size: 0.875rem;
+}
+
+#alertDialog {
 }

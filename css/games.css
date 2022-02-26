@@ -14,49 +14,75 @@ legend {
     background-color:rgba(255,255,255,0.5);
 }
 
-label, input, button {
-    font-size: 1.2em;
-}
-
 th, td {
 	vertical-align: top;
 	padding-top: 1em;
-}
-
-button.player {
-	margin-left: 0.5em;
-	margin-right: 0.5em;
 }
 
 #game-table {
 	margin-bottom: 1.5em;
 }
 
-.deleteGame {
-	color: white;
-	background-color: seagreen;
+.game {
+	border: 1px solid;
+	padding: 0.2em;
 }
 
-.robot {
-	margin-left: 0.5em;
-	width: 1em;
-	height: 1em;
+.game-button {
+	color: white;
+	background-color: seagreen;
+	border-radius: 5px;
+	margin: 0.25em;
+	padding: 0.25em;
+}
+
+.game-button.risky {
+	background-color: darkred;
+}
+
+.no-padding {
+	padding: 0;
 }
 
 .online {
-	margin-left: 0.5em;
-	color: seagreen;
+	color: #00ff00;
 }
 
 .offline {
-	margin-left: 0.5em;
-	color: darkred;
+	color: red;
 }
 
 .winner {
-	color: #00FF00;
+	color: green;
 }
 
-.hidden {
+.logged-in {
 	display: none;
 }
+
+#heading {
+	margin-top: 1em;
+}
+
+#games-for {
+	font-weight: bold;
+	font-size: 2em;
+}
+
+#games-cumulative, #games_list, .dialog {
+	display: none;
+}
+
+.player {
+	border: solid white 1px;
+	padding: 0.1em;
+	padding-top: 0.4em;
+	background-color: darkblue;
+	margin-left: 0.5em;
+	margin-right: 0.5em;
+}
+
+.ui-selectmenu-menu {
+	z-index: 3000;/* in front of dialog*/
+}
+
