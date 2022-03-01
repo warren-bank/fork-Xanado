@@ -4,16 +4,22 @@
 
 define('server/UserManager', [
 	'fs', 'proper-lockfile',
-	'express-session', 'passport', 'passport-strategy',
+	'passport', 'passport-strategy',
+	'passport-facebook',
 	'platform'
 ], (
 	fs, Lock,
-	ExpressSession, Passport, Strategy,
+	Passport, Strategy,
 	Platform
 ) => {
 
 	const Fs = fs.promises;
 
+	/**
+	 * This a Passport strategy, radically cut-down from passport-local.
+	 * It is required because passport-local logins fail on null password,
+	 * and we specifically want to support this.
+	 */
 	class XanadoPass extends Strategy {
 		constructor(verify) {
 			super();
@@ -22,7 +28,6 @@ define('server/UserManager', [
 		}
 
 		authenticate(req) {
-			console.log("authenticate");
 			const user = req.body.login_username;
 			const pass = req.body.login_password;
 			return this._verify(user, pass)
@@ -50,6 +55,137 @@ define('server/UserManager', [
 	class UserManager {
 
 		/**
+		 * Construct, adding relevant routes to the given router (which
+		 * can be the app)
+		 * @param {object} config system configuration object
+		 * @param {object} config.auth authentication options
+		 * @param {string} config.auth.sessionSecret secret to use with express
+		 * sessions
+		 * @param {string} config.auth.db_file path to json file that
+		 * stores user information
+		 * @param {object} config.auth.oauth2 OAuth2 providers
+		 * @param {object} config.mail mail configuration for use with
+		 * @param {express.Router} router Express router object to add routes to
+		 * nodemailer
+		 */
+		constructor(config, router) {
+			this.config = config;
+			this.db = undefined;
+			
+			router.use(Passport.initialize());
+
+			// Same as app.use(passport.authenticate('session')); 
+			router.use(Passport.session());
+
+			Passport.serializeUser((userObject, done) => {
+				// Decide what info from the user object loaded from
+				// the DB needs to be shadowed in the session as
+				// req.user
+				//console.log("serializeUser", userObject);
+				done(null, userObject);
+			});
+
+			Passport.deserializeUser((userObject, done) => {
+				// Session active, look it up to get user
+				//console.log("deserializeUser",userObject);
+				// attach user object as req.user
+				done(null, userObject);
+			});
+
+			Passport.use(new XanadoPass(
+				(user, pass) => this.getUser({ name: user, pass: pass })));
+
+			// Load and configure oauth2 strategies
+			const strategies = [];
+			for (let provider in this.config.auth.oauth2) {
+				const cfg = this.config.auth.oauth2[provider];
+				strategies.push(new Promise(resolve => {
+					// .module is used to override the strategy name
+					// needed because passport-google-oauth20 declares
+					// strategy "google"
+					const module = cfg.module || `passport-${provider}`;
+					requirejs([module], strategy => {
+						Passport.use(new strategy(
+							cfg,
+							(accessToken, refreshToken, profile, done) => {
+								console.log("Logging in", profile);
+								// Pull the required fields out of the profile
+								const name = eval(cfg.profile.name);
+								const email = eval(cfg.profile.email);
+								const id = eval(cfg.profile.id);
+
+								const key = `${provider}-${id}`;
+								this.getUser({ key: key })
+								.catch(() => this.addUser({
+									name: name, email: email, key: key }))
+								.then(uo => {
+									if (uo.email == email)
+										return uo;
+									uo.email = email;
+									return this.writeDB();
+								})
+								.then(uo => done(null, uo));
+							}));
+						resolve();
+					});
+				}));
+			}
+
+			Promise.all(strategies);
+
+			// See if there is a current session
+			router.get(
+				'/session',
+				(req, res) => this.handle_session(req, res));
+
+			// Register a new user
+			router.post(
+				'/register',
+				(req, res, next) => this.handle_register(req, res, next));
+
+			// Log in a user
+			router.post(
+				'/login',
+				(req, res, next) => this.handle_login(req, res, next));
+
+			router.get("/oauth2-providers",
+					   (req, res) => this.handle_oauth2_providers(req, res));
+			
+			// Log out the current signed-in user
+			router.post(
+				'/logout',
+				(req, res) => this.handle_logout(req, res));
+
+			// Send a password reset email to the user with the given email
+			router.post(
+				'/reset-password',
+				(req, res) => this.handle_reset_password(req, res));
+
+			// Receive a password reset from a link in email
+			router.get(
+				'/reset-password/:token',
+				(req, res) => this.handle_password_reset(req, res));
+
+			// Change the password for the current user
+			router.post(
+				'/change-password',
+				(req, res) => this.handle_change_password(req, res));
+
+			// Login using oauth2 service
+			// Note: this route MUST be a GET and MUST come from an href and
+			// not an AJAX request, or CORS will foul up.
+			router.get(
+				`/oauth2/login/:provider`,
+				(req, res, next) => this.handle_oauth2_login(req, res, next));
+
+			// oauth2 redirect target
+			router.get(
+				`/oauth2/callback/:provider`,
+				(req, res, next) =>
+				this.handle_oauth2_redirect(req, res, next));
+		}
+
+		/**
 		 * Call req.login to complete the login process
 		 * @param {object} uo user object
 		 * @private
@@ -73,8 +209,8 @@ define('server/UserManager', [
 			if (this.db)
 				return Promise.resolve(this.db);
 			
-			return Lock.lock(this.options.db_file)
-			.then(release => Fs.readFile(this.options.db_file)
+			return Lock.lock(this.config.auth.db_file)
+			.then(release => Fs.readFile(this.config.auth.db_file)
 				  .then(data => release()
 						.then(() => JSON.parse(data))))
 			.then(db => {
@@ -90,73 +226,54 @@ define('server/UserManager', [
 		 */
 		writeDB() {
 			const s = JSON.stringify(this.db, null, 1);
-			return Fs.access(this.options.db_file)
-			.then(acc => Lock.lock(this.options.db_file)
+			return Fs.access(this.config.auth.db_file)
+			.then(acc => Lock.lock(this.config.auth.db_file)
 				  .then(release => Fs.writeFile(
-					  this.options.db_file, s)
+					  this.config.auth.db_file, s)
 						.then(() => release())))
-			.catch(e => Fs.writeFile(this.options.db_file, s)); // file does not exist
+			.catch(e => Fs.writeFile(this.config.auth.db_file, s)); // file does not exist
 		}
 
 		/**
-		 * Promise to get the user object for the named user
-		 * @param {string} user user name
+		 * Promise to get the user object for the described user
+		 * @param {object} desc user descriptor
+		 * @param {string?} user user name
+		 * @param {string?} pass user password, requires user.
+		 * Will be ignored if undefined.
+		 * @param {string?} email user email
+		 * @param {string?} key optionally force the key to this
 		 * @return {Promise} resolve to user object, or throw
 		 * @private
 		 */
-		getUser(user, pass) {
+		getUser(desc) {
 			return this.getDB()
 			.then(db => {
+
 				let sawUser = false;
 				for (let uo of db) {
-					if (uo.name === user) {
+					if (typeof desc.key !== 'undefined' && uo.key === desc.key)
+						return uo;
+					if (typeof desc.token !== 'undefined' && uo.token === desc.token) {
+						delete uo.token;
+						return this.writeDB()
+						.then(() => uo);
+					}
+					if (typeof desc.name !== 'undefined' && uo.name === desc.name) {
 						sawUser = true;
-						if (uo.pass === pass) {
-							console.log("getUser --> ", uo);
+						if (typeof uo.pass !== 'undefined'
+							&& uo.pass === desc.pass) {
 							return uo;
 						}
 					}
+					if (typeof desc.email !== 'undefined' && uo.email === desc.email)
+						return uo;
 				}
-				console.log(`getUser ${user}/${pass} failed`);
+				console.log("getUser", desc,"failed");
 				throw new Error(sawUser ? /*i18n*/'um-bad-pass'
 								: /*i18n*/'um-no-such-user');
 			});
 		}
 
-		/**
-		 * Promise to get the user object for the given email
-		 * @param {string} email user email
-		 * @return {Promise} resolve to user object, or throw
-		 * @private
-		 */
-		getUserByEmail(email) {
-			return this.getDB()
-			.then(db => {
-				for (let f of db) {
-					if (f.email === email)
-						return f;
-				}
-				throw new Error(/*i18n*/'um-unknown-email');
-			});
-		}
-
-		/**
-		 * Promise to get the user object for the given key
-		 * @param {string} email user email
-		 * @return {Promise} resolve to user object, or throw
-		 * @private
-		 */
-		getUserByKey(key) {
-			return this.getDB()
-			.then(db => {
-				for (let f of db) {
-					if (f.key === key)
-						return f;
-				}
-				throw new Error(/*i18n*/'um-unknown-key');
-			});
-		}
-		
 		/**
 		 * Generate a unique key not already in the user DB. Assumes
 		 * the DB is loaded.
@@ -166,17 +283,14 @@ define('server/UserManager', [
 		genKey() {
 			let key, unique;
 			do {
-				key = Math.floor(1e16 + Math.random() * 9e15)
-					  .toString(36).substr(0, 10);
+				do {
+					key = Math.floor(1e16 + Math.random() * 9e15)
+					.toString(36).substr(0, 10);
+				} while (key === UserManager.ROBOT_KEY);
+
 				unique = true;
 				for (let f of this.db) {
 					if (key === f.key) {
-						unique = false;
-						break;
-					}
-				}
-				for (let k of this.options.reservedKeys) {
-					if (key === k) {
 						unique = false;
 						break;
 					}
@@ -186,92 +300,41 @@ define('server/UserManager', [
 		}
 
 		/**
-		 * Add a new user to the DB
-		 * @param {string} user user name
-		 * @param {string} email user email
-		 * @param {string} pass user password
-		 * @return {Promise} resolve to user object, or reject if duplicate
-		 * @private
-		 */
-		addUser(user, email, pass) {
-			console.log(`Add user '${user}' '${email}' '${pass}'`);
-			return this.getUser(user, pass)
-			.then(userObject => {
-				return Promise.reject(`${userObject} already registered`);
-			})
-			.catch(e => {
-				const userObject = {
-					name: user,
-					email: email,
-					pass: pass,
-					key: this.genKey()
-				};
-				console.log("Pushing ", userObject);
-				this.db.push(userObject);
-				return this.writeDB()
-				.then(() => userObject);
-			});
-		}
-
-		/**
 		 * Make a one-time token for use in password resets
 		 * @param {Object} user user object
 		 * @private
 		 */
-		makeOneTimeToken(user) {
+		setToken(user) {
 			const token = Math.floor(1e16 + Math.random() * 9e15)
 				  .toString(36).substr(0, 10);
-			user.oneTimeToken = token;
+			user.token = token;
 			return this.writeDB()
 			.then(() => token);
 		}
 
 		/**
-		 * Retrieve a user by their one-time token
+		 * Add a new user to the DB
+		 * @param {object} desc user descriptor
+		 * @param {string} user user name
+		 * @param {string?} email user email
+		 * @param {string?} pass user password
+		 * @param {string?} key optionally force the key to this
+		 * @return {Promise} resolve to user object, or reject if duplicate
 		 * @private
 		 */
-		getUserByOneTimeToken(token) {
-			return this.getDB()
-			.then(db => {
-				for (let f of db) {
-					if (f.oneTimeToken === token)  {
-						delete f.oneTimeToken; // one time
-						return this.writeDB()
-						.then(() => f);
-					}
-				}
-				throw new Error(`Invalid token ${token}`);
+		addUser(desc) {
+			console.log("Add user", desc);
+			return this.getUser(desc)
+			.then(userObject => {
+				return Promise.reject(`${userObject} already registered`);
+			})
+			.catch(e => {
+				if (!desc.key)
+					desc.key = this.genKey();
+				this.db.push(desc);
+				return this.writeDB()
+				.then(() => desc);
 			});
-		}
-
-		/**
-		 * @private
-		 */
-		setUpPassport(express) {
-			
-			// Initialise Passport
-			express.use(Passport.initialize());
-
-			// Same as app.use(passport.authenticate('session')); 
-			express.use(Passport.session());
-
-			Passport.serializeUser((userObject, done) => {
-				// Decide what info from the user object loaded from
-				// the DB needs to be shadowed in the session as
-				// req.user
-				//console.log("serializeUser", userObject);
-				done(null, userObject);
-			});
-
-			Passport.deserializeUser((userObject, done) => {
-				// Session active, look it up to get user
-				//console.log("deserializeUser",userObject);
-				// attach user object as req.user
-				done(null, userObject);
-			});
-
-			Passport.use(new XanadoPass(
-				(user, pass) => this.getUser(user, pass)));
 		}
 
 		/**
@@ -279,8 +342,7 @@ define('server/UserManager', [
 		 */
 		sendResult(res, status, info) {
 			console.log(`<-- ${status}`, info);
-			res.status(status);
-			res.send(info);
+			res.status(status).send(info);
 		}
 
 		/**
@@ -295,7 +357,7 @@ define('server/UserManager', [
 				return this.sendResult(
 					res, 500, [ /*i18n*/'um-bad-user', username ]);
 
-			return this.addUser(username, email, pass)
+			return this.addUser({ name: username, email: email, pass: pass })
 			.then(userObject => this.passportLogin(req, res, userObject)
 				  .then(() => this.sendResult(res, 200, [])))
 			.catch(e => {
@@ -330,6 +392,54 @@ define('server/UserManager', [
 				});
 
 			auth(req, res, next);
+		}
+
+		/**
+		 * Get a list of oauth2 providers
+		 */
+		handle_oauth2_providers(req, res) {
+			const list = [];
+			for (let name in this.config.auth.oauth2) {
+				const data = this.config.auth.oauth2[name];
+				list.push({
+					name: name,
+					logo: data.logo || `/images/${name}.svg`
+				});
+			}
+			this.sendResult(res, 200, list);
+		}
+
+		/**
+		 * Handle a login request for an oauth2 prvider. Note: this route
+		 * MUST be a GET and MUST come from an href and not an AJAX request,
+		 * or CORS will foul up.
+		 */
+		handle_oauth2_login(req, res, next) {
+			const provider = req.params.provider;
+			// Remember where we came from
+			req.session.origin = decodeURI(
+				req.url.replace(/^.*[?&;]origin=([^&;]*).*$/,"$1"));
+			const fn = Passport.authenticate(provider);
+			return fn(req, res, next);
+		}
+
+		/**
+		 * Handle the redirect from the oauth2 provider after a login
+		 */
+		handle_oauth2_redirect(req, res, next) {
+			console.log("Handling redirect from", req.params.provider);
+			debugger;
+			const fn = Passport.authenticate(
+				req.params.provider, {
+					assignProperty: "federatedUser",
+					failureRedirect: "/loginFailure.html" });
+			return fn(req, res, () => {
+				req.login(req.federatedUser, () => {
+					console.log("Logged in", req.federatedUser);
+					// Back to where we came from
+					res.redirect(req.session.origin);
+				});
+			});
 		}
 
 		/**
@@ -379,9 +489,9 @@ define('server/UserManager', [
 				return this.sendResult(
 					res, 500, [ /*i18n*/'um-unknown-email' ]);
 			const surly = `${req.protocol}://${req.get('Host')}`;
-			return this.getUserByEmail(email)
+			return this.getUser({email: email})
 			.then(user => {
-				return this.makeOneTimeToken(user)
+				return this.setToken(user)
 				.then(token => {
 					const url = `${surly}/reset-password/${token}`;
 					console.log(`Send password reset ${url} to ${user.email}`);
@@ -412,7 +522,7 @@ define('server/UserManager', [
 		 */
 		handle_password_reset(req, res) {
 			console.log(`Password reset ${req.params.token}`);
-			return this.getUserByOneTimeToken(req.params.token)
+			return this.getUser({token: req.params.token})
 			.then(userObject => this.passportLogin(req, res, userObject))
 			.then(() => res.redirect('/'))
 			.catch(e => this.sendResult(res, 500, [	e.message ]));
@@ -426,12 +536,12 @@ define('server/UserManager', [
 		handle_session(req, res) {
 			if (req.user)
 				// Return redacted user object
-				return res.status(200).send({
+				return this.sendResult(res, 200, {
 					name: req.user.name,
 					key: req.user.key
 				});
 
-			return res.status(401).send('not-logged-in');
+			return this.sendResult(res, 401, [	'not-logged-in' ]);
 		}
 
 		/**
@@ -442,71 +552,11 @@ define('server/UserManager', [
 		checkLoggedIn(req, res, next) {
 			if (req.isAuthenticated())
 				return next();
-
-			console.log("<-- 401 Not signed in");
-			return res.status(401).send([ /*i18n*/'um-not-logged-in' ]);
-		}
-
-		/**
-		 * Construct on an express instance, adding relevant routes.
-		 * @param {Express} express Express object
-		 * @param {object} options configuration options
-		 * @param {string} options.sessionSecret secret to use with express
-		 * sessions
-		 * @param {string} options.db_file path to json file that stores
-		 * passwords
-		 * @param {object} options.mail mail configuration for use with
-		 * nodemailer
-		 */
-		constructor(express, options) {
-			this.options = options;
-			this.db = undefined;
-
-			// UserManager requires ExpressSession to be configured
-			express.use(ExpressSession({
-				secret: options.sessionSecret,
-				resave: false,
-				saveUninitialized: false
-			}));
-
-			this.setUpPassport(express);
-
-			// See if there is a current session
-			express.get(
-				'/session',
-				(req, res) => this.handle_session(req, res));
-
-			// Register a new user
-			express.post(
-				'/register',
-				(req, res, next) => this.handle_register(req, res, next));
-
-			// Log in a user
-			express.post(
-				'/login',
-				(req, res, next) => this.handle_login(req, res, next));
-
-			// Log out the current signed-in user
-			express.post(
-				'/logout',
-				(req, res) => this.handle_logout(req, res));
-
-			// Send a password reset email to the user with the given email
-			express.post(
-				'/reset-password',
-				(req, res) => this.handle_reset_password(req, res));
-
-			// Receive a password reset from a link in email
-			express.get(
-				'/reset-password/:token',
-				(req, res) => this.handle_password_reset(req, res));
-
-			// Change the password for the current user
-			express.post(
-				'/change-password',
-				(req, res) => this.handle_change_password(req, res));
+			return this.sendResult(res, 401, [ /*i18n*/'um-not-logged-in' ]);
 		}
 	}
+
+	UserManager.ROBOT_KEY = 'babefacebabeface';
 
 	return UserManager;
 });

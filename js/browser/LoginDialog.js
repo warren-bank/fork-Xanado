@@ -28,8 +28,31 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 		createDialog() {
 			const $tabs = this.$dlg.find("#tabs");
 			$tabs.tabs();
+
 			this.$dlg.find(".forgotten-password")
 			.on("click", () => $tabs.tabs("option", "active", 2));
+
+			$.get("/oauth2-providers")
+			.then(list => {
+				if (!list || list.length === 0)
+					return;
+				const $table = $("<table width='100%'></table>");
+				for (let provider of list) {
+					const $td = $("<td></td>")
+						  .addClass("provider-logo");
+					const $logo = $(`<img src="${provider.logo}" />`);
+					// Note: this MUST be done using from an href and
+					// not an AJAX request, or CORS will foul up.
+					const $a = $("<a></a>");
+					$a.attr("href", `/oauth2/login/${provider.name}?origin=${encodeURI(window.location)}`);
+					$a.append($logo);
+					$td.append($a);
+					$table.append($td);
+				}
+				$("#login-tab")
+				.append($table);
+			});
+
 			super.createDialog();
 		}
 

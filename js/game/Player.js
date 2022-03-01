@@ -86,7 +86,7 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 		 * @return {Promise} resolving to a simple structure describing the player
 		 */
 		catalogue(game, um) {
-			return (this.isRobot ? Promise.resolve({}) : um.getUserByKey(this.key))
+			return (this.isRobot ? Promise.resolve({}) : um.getUser({key: this.key}))
 			.then(ump => {
 				return {
 					name: this.name,
@@ -210,11 +210,11 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 			const url = `${gameURL}/${this.key}`;
 			return new Promise(
 				resolve =>
-				um.getUserByKey(senderKey)
+				um.getUser({key: senderKey})
 				.then(sender => resolve(`${sender.name}<${sender.email}>`))
 				.catch(e => resolve(config.email.sender)))
 			.then(sender => {
-				return um.getUserByKey(this.key)
+				return um.getUser({key: this.key})
 				.then(ump => {
 					if (!ump.email)
 						return Promise.reject();

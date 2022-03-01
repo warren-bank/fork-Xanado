@@ -73,5 +73,14 @@ button.hide-password {
 	font-size: 0.875rem;
 }
 
+.provider-logo {
+	text-align: center;
+}
+
+.provider-logo img {
+	width: 1.5em;
+	height: 1.5em;
+}
+
 #alertDialog {
 }

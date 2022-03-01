@@ -123,23 +123,20 @@ To assist learners, there are two special 'chat' messages that can be entered.
 
 # Dictionaries
 The `/dictionaries` directory contains all the
-dictionaries. Included with the installation are 4 pre-built dictionaries:
+dictionaries. Included with the installation are a number of pre-built dictionaries:
+- `CSW2019_English` - 280K words from the Collins Scrabble Words 2019 dictionary
 - `SOWPODS_English` - 409K words from an [unofficial version](https://www.wordgamedictionary.com/sowpods/download/sowpods.txt) of the standard European English SCRABBLE® competition dictionary.
 - `German` - 404k word list from the [germandict project on Sourceforge](https://sourceforge.net/projects/germandict/files/).
-- `British_English` - a custom 70k word British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American word spellings are also included, to reflect the flexible nature of our shared language.
+- `British_English` - a custom 68k word British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American spellings are also included, to reflect the flexible nature of our shared language.
 - `ODS8_French` - 411k word French SCRABBLE® competition dictionary.
-- `Oxford_5000` - 28K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
+- `Oxford_5000` - 29K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
 
 # Security
 The assumption is that you will be running the game on a private server with a
-limited, trustworthy audience. As such the security options are minimal; access
-to the game play is not protected. There is an option to apply basic
-authentication to the games management interface that will prevent
-unauthorized deletion or creation of games - see the `example-config.json` for
-more.
-
-The server can be configure to use HTTPS, see the example config.json for
-how. HTTPS is required for notifications to work, and is recommended.
+limited, trustworthy audience. The server can be configured to use HTTPS, see
+the example config.json for how. HTTPS is required for notifications to work,
+and is highly recommended when using default logins (c.f.
+[BasicAuth](https://en.wikipedia.org/wiki/Basic_access_authentication)).
 
 To use HTTPS you require an SSL certificate. You can generate one using the
 instructions in https://linuxize.com/post/creating-a-self-signed-ssl-certificate/

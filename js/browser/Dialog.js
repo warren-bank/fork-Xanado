@@ -167,6 +167,10 @@ define("browser/Dialog", () => {
 			.each(function() {
 				p[$(this).attr("id")] = $(this).val();
 			});
+			// Note that password fields are sent as plain text. This is
+			// not a problem so long as the comms are protected by HTTPS,
+			// and is simpler/cleaner than using BasicAuth.
+			// Some day we may implement OpenAuth, but there's no hurry.
 			$.post(`/${action}`, p)
 			.then(data => {
 				this.$dlg.dialog("close");

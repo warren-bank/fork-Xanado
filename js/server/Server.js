@@ -4,20 +4,19 @@
 
 define('server/Server', [
 	'fs', 'node-getopt', 'events',
-	'socket.io', 'http', 'https', 'nodemailer',
-	'express', 'express-negotiate', 'errorhandler',
+	'socket.io', 'http', 'https', 'nodemailer', "cors",
+	'express', 'express-negotiate', 'errorhandler','express-session', 
 	'platform', 'server/UserManager',
 	'game/Fridge', 'game/Game', 'game/Player', 'game/Edition'
 ], (
 	fs, Getopt, Events,
-	SocketIO, Http, Https, NodeMailer,
-	Express, ExpressNegotiate, ErrorHandler,
+	SocketIO, Http, Https, NodeMailer, cors,
+	Express, ExpressNegotiate, ErrorHandler, ExpressSession, 
 	Platform, UserManager,
 	Fridge, Game, Player, Edition
 ) => {
 
 	const Fs = fs.promises;
-	const ROBOT_KEY = 'babefacebabeface';
 
 	/**
 	 * Web server for crossword game.
@@ -40,19 +39,20 @@ define('server/Server', [
 			});
 
 			const express = new Express();
-			express.use(Express.urlencoded({ extended: true }));
 
-			this.userManager = new UserManager(
-				express,
-				{
-					db_file: config.passwd,
-					sessionSecret: 'cross words',
-					mail: config.mail,
-					reservedKeys: [ ROBOT_KEY ]
-				});
+			// Headers not added by passport?
+			express.use(cors());
 
 			// Parse incoming requests with url-encoded payloads
 			express.use(Express.urlencoded({ extended: true }));
+
+			// UserManager requires ExpressSession to be configured
+			express.use(ExpressSession({
+				secret: this.config.auth.sessionSecret,
+				resave: false,
+				saveUninitialized: false
+			}));
+
 
 			// Parse incoming requests with a JSON body
 			express.use(Express.json());
@@ -75,8 +75,110 @@ define('server/Server', [
 				next();
 			});
 
-			const router = Express.Router();
-			express.use(router);
+			this.userManager = new UserManager(config, express);
+			
+			const cmdRouter = Express.Router();
+			// get the HTML page for main interface (the "games" page)
+			cmdRouter.get('/',
+					   (req, res) => res.sendFile(
+						   requirejs.toUrl('html/games.html')));
+
+			// completed games)
+			cmdRouter.get('/games',
+					   (req, res) => this.handle_games(req, res));
+
+			// get a JSON of the game history
+			cmdRouter.get('/history',
+					   (req, res) => this.handle_history(req, res));
+
+			// Get a JSON list of available locales
+			cmdRouter.get('/locales',
+					(req, res) => this.handle_locales(req, res));
+
+			// Get a JSON description of available editions
+			cmdRouter.get('/editions',
+					 (req, res) => this.handle_editions(req, res));
+
+			// Get a JSON description of available dictionaries
+			cmdRouter.get('/dictionaries',
+					 (req, res) => this.handle_dictionaries(req, res));
+
+			// Get a JSON description of defaults
+			cmdRouter.get('/defaults', (req, res) =>
+					 res.send({
+						 edition: config.defaultEdition,
+						 dictionary: config.defaultDictionary
+					 }));
+
+			// Get the JSON game summary
+			cmdRouter.get('/game/:gameKey',
+					 (req, res) => this.handle_game(req, res));
+
+			// Request handler for best play hint. Allows us to pass in
+			// any player key, which is useful for debug (though could
+			// be used to cheat)
+			cmdRouter.get('/bestPlay/:gameKey/:playerKey',
+						(req, res, next) =>
+						this.userManager.checkLoggedIn(req, res, next),
+					   (req, res) => this.handle_bestPlay(req, res));
+
+			// Construct a new game
+			cmdRouter.post('/createGame',
+						(req, res, next) =>
+						this.userManager.checkLoggedIn(req, res, next),
+						(req, res) => this.handle_createGame(req, res));
+
+			// Start a new game
+			cmdRouter.post('/startGame/:gameKey',
+						(req, res, next) =>
+						this.userManager.checkLoggedIn(req, res, next),
+						(req, res) => this.handle_startGame(req, res));
+
+			// Delete an active or old game. Invoked from games.js
+			cmdRouter.post('/deleteGame/:gameKey',
+						(req, res, next) =>
+						this.userManager.checkLoggedIn(req, res, next),
+						(req, res) => this.handle_deleteGame(req, res));
+
+			// Request another game in a series
+			// Note this is NOT auth-protected, it is invoked
+			// from the game interface to create a follow-on game
+			cmdRouter.post('/anotherGame/:gameKey',
+						(req, res, next) =>
+						this.userManager.checkLoggedIn(req, res, next),
+						(req, res) => this.handle_anotherGame(req, res));
+
+			// send email reminders about active games
+			cmdRouter.post('/sendReminder/:gameKey',
+						(req, res, next) =>
+						this.userManager.checkLoggedIn(req, res, next),
+						(req, res) => this.handle_sendReminder(req, res));
+
+			// Handler for player joining a game
+			cmdRouter.post('/join/:gameKey/:playerKey',
+					   (req, res, next) =>
+					   this.userManager.checkLoggedIn(req, res, next),
+					   (req, res) => this.handle_join(req, res));
+
+			// Handler for player leaving a game
+			cmdRouter.post('/leave/:gameKey/:playerKey',
+					   (req, res, next) =>
+					   this.userManager.checkLoggedIn(req, res, next),
+					   (req, res) => this.handle_leave(req, res));
+
+			// Handler for adding a robot to a game
+			cmdRouter.post('/addRobot/:gameKey',
+					   (req, res, next) =>
+					   this.userManager.checkLoggedIn(req, res, next),
+					   (req, res) => this.handle_addRobot(req, res));
+
+			// Request handler for a turn (or other game command)
+			cmdRouter.post('/command/:command/:gameKey/:playerKey',
+						(req, res, next) =>
+						this.userManager.checkLoggedIn(req, res, next),
+						(req, res) => this.handle_command(req, res));
+
+			express.use(cmdRouter);
 
 			express.use((err, req, res, next) => {
 				if (res.headersSent) {
@@ -91,106 +193,6 @@ define('server/Server', [
 				dumpExceptions: true,
 				showStack: true
 			}));
-
-			// get the HTML page for main interface (the "games" page)
-			router.get('/',
-					   (req, res) => res.sendFile(
-						   requirejs.toUrl('html/games.html')));
-
-			// completed games)
-			router.get('/games',
-					   (req, res) => this.handle_games(req, res));
-
-			// get a JSON of the game history
-			router.get('/history',
-					   (req, res) => this.handle_history(req, res));
-
-			// Get a JSON list of available locales
-			router.get('/locales',
-					(req, res) => this.handle_locales(req, res));
-
-			// Get a JSON description of available editions
-			router.get('/editions',
-					 (req, res) => this.handle_editions(req, res));
-
-			// Get a JSON description of available dictionaries
-			router.get('/dictionaries',
-					 (req, res) => this.handle_dictionaries(req, res));
-
-			// Get a JSON description of defaults
-			router.get('/defaults', (req, res) =>
-					 res.send({
-						 edition: config.defaultEdition,
-						 dictionary: config.defaultDictionary
-					 }));
-
-			// Get the JSON game summary
-			router.get('/game/:gameKey',
-					 (req, res) => this.handle_game(req, res));
-
-			// Request handler for best play hint. Allows us to pass in
-			// any player key, which is useful for debug (though could
-			// be used to cheat)
-			router.get('/bestPlay/:gameKey/:playerKey',
-						(req, res, next) =>
-						this.userManager.checkLoggedIn(req, res, next),
-					   (req, res) => this.handle_bestPlay(req, res));
-
-			// Construct a new game
-			router.post('/createGame',
-						(req, res, next) =>
-						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_createGame(req, res));
-
-			// Start a new game
-			router.post('/startGame/:gameKey',
-						(req, res, next) =>
-						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_startGame(req, res));
-
-			// Delete an active or old game. Invoked from games.js
-			router.post('/deleteGame/:gameKey',
-						(req, res, next) =>
-						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_deleteGame(req, res));
-
-			// Request another game in a series
-			// Note this is NOT auth-protected, it is invoked
-			// from the game interface to create a follow-on game
-			router.post('/anotherGame/:gameKey',
-						(req, res, next) =>
-						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_anotherGame(req, res));
-
-			// send email reminders about active games
-			router.post('/sendReminder/:gameKey',
-						(req, res, next) =>
-						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_sendReminder(req, res));
-
-			// Handler for player joining a game
-			router.post('/join/:gameKey/:playerKey',
-					   (req, res, next) =>
-					   this.userManager.checkLoggedIn(req, res, next),
-					   (req, res) => this.handle_join(req, res));
-
-			// Handler for player leaving a game
-			router.post('/leave/:gameKey/:playerKey',
-					   (req, res, next) =>
-					   this.userManager.checkLoggedIn(req, res, next),
-					   (req, res) => this.handle_leave(req, res));
-
-			// Handler for adding a robot to a game
-			router.post('/addRobot/:gameKey',
-					   (req, res, next) =>
-					   this.userManager.checkLoggedIn(req, res, next),
-					   (req, res) => this.handle_addRobot(req, res));
-
-			// Request handler for a turn (or other game command)
-			router.post('/command/:command/:gameKey/:playerKey',
-						(req, res, next) =>
-						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_command(req, res));
 
 			const http = config.https
 				  ? Https.Server(config.https, express)
@@ -562,7 +564,8 @@ define('server/Server', [
 					return res.status(500).send("Game already has a robot");
 				console.log(`Robot joining ${gameKey}`);
 				// Robot always has the same player key
-				const robot = new Player('Robot', ROBOT_KEY, true);
+				const robot = new Player(
+					'Robot', UserManager.ROBOT_KEY, true);
 				game.addPlayer(robot);
 				return game.save()
 				// Game may now be ready to start

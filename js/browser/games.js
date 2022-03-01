@@ -132,7 +132,9 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 				(player, index) =>
 				$twist.append($player(game, player, index)));
 
-			if (loggedInAs && game.players.length < game.maxPlayers) {
+			if (loggedInAs
+				&& (game.maxPlayers ===0 || game.players.length < game.maxPlayers)) {
+
 				if (!game.players.find(p => p.key === loggedInAs.key)) {
 					// Can join game
 					$twist.append(
