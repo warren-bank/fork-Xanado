@@ -21,6 +21,7 @@
 	"Continue game": "Continue the game",
 	"Create game": "Create game",
 	"Create new game": "Create a new game",
+	"Create XANADO user": "Create XANADO user",
 
 	"Delete": "Delete",
 	"dictionary $1": "dictionary $1",
@@ -32,7 +33,7 @@
 	"email-invite": "You have been invited to play with $1",
 	"email-join-html": "Click <a href='$1'>here</a> to join the game.",
 	"email-join-text": "Join the game by following this link: $1",
-	"email-your-turn": "Xanado: It is your turn in your game with $1",
+	"email-your-turn": "XANADO: It is your turn in your game with $1",
 	"Enabled": "Enabled",
 	"Enable notifications": "Enable notifications",
 
@@ -76,6 +77,7 @@
 
 	"Open": "Open",
 	"Options": "Options",
+	"or sign in as XANADO user:": "or sign in as XANADO user:",
 
 	"Password": "Password",
 	"Pause game": "Pause the game",
@@ -91,6 +93,7 @@
 	"Shuffle": "Shuffle",
 	"Signed in as": "Signed in as",
 	"Sign in": "Sign in",
+	"Sign in using $1": "Sign in using $1",
 	"Sign out": "Sign out",
 	"Sign up": "Sign up",
 	"square-DoubleLetter": "DOUBLE LETTER SCORE",
@@ -111,7 +114,11 @@
 	"tooltip-dictionary": "A dictionary is optional for human player games, but is required for computer players and can be used to automate challenges",
 	"tooltip-email-reminder": "Email a reminder to player whose turn it is",
 	"tooltip-email-reminders": "Email reminders to players whose turn it is",
+	"tooltip-login-name": "Name of an existing Xanado user",
 	"tooltip-max-players": "Limit the total number of players who can join this game",
+	"tooltip-register-name": "Name you want to be known as in games",
+	"tooltip-register-email": "Leave blank if you don't want to get emails from XANADO. Emails only relate to gameplay, and addresses are never shared with anyone else.",
+	"tooltip-register-password": "Use something you can easily remember. <b>Never</b> re-use a password you use on another site",
 	"tooltip-time-limit": "Maximum time allowed to take a turn, in minutes. If a player fails to take a turn in this time, they will be forced to pass. Leave blank for no time limit",
 	"Turn alert": "Play a sound when it's your turn",
 

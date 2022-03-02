@@ -60,7 +60,8 @@ define("browser/Dialog", () => {
 					$(this).data("i18n-placeholder")));
 			});
 
-			this.$dlg.tooltip({
+			this.$dlg
+			.tooltip({
 				items: '[data-i18n-tooltip]',
 				content: function() {
 					return $.i18n($(this).data('i18n-tooltip'));

@@ -3,17 +3,32 @@
 /* eslint-env amd, node */
 
 define('server/UserManager', [
-	'fs', 'proper-lockfile',
+	'fs', 'proper-lockfile', 'bcrypt',
+	'express-session',
 	'passport', 'passport-strategy',
-	'passport-facebook',
 	'platform'
 ], (
-	fs, Lock,
+	fs, Lock, BCrypt,
+	ExpressSession,
 	Passport, Strategy,
 	Platform
 ) => {
 
 	const Fs = fs.promises;
+
+	function pw_hash(pw) {
+		if (typeof pw === 'undefined')
+			return Promise.resolve(pw);
+		else
+			return BCrypt.hash(pw, 10);
+	}
+
+	function pw_compare(pw, hash) {
+		if (typeof pw === 'undefined')
+			return Promise.resolve(typeof hash === 'undefined');
+		else
+			return BCrypt.compare(pw, hash);
+	}
 
 	/**
 	 * This a Passport strategy, radically cut-down from passport-local.
@@ -55,8 +70,7 @@ define('server/UserManager', [
 	class UserManager {
 
 		/**
-		 * Construct, adding relevant routes to the given router (which
-		 * can be the app)
+		 * Construct, adding relevant routes to the given Express application
 		 * @param {object} config system configuration object
 		 * @param {object} config.auth authentication options
 		 * @param {string} config.auth.sessionSecret secret to use with express
@@ -65,17 +79,23 @@ define('server/UserManager', [
 		 * stores user information
 		 * @param {object} config.auth.oauth2 OAuth2 providers
 		 * @param {object} config.mail mail configuration for use with
-		 * @param {express.Router} router Express router object to add routes to
-		 * nodemailer
+		 * @param {Express} app Express application object
 		 */
-		constructor(config, router) {
+		constructor(config, app) {
 			this.config = config;
 			this.db = undefined;
 			
-			router.use(Passport.initialize());
+			// Passport requires ExpressSession to be configured
+			app.use(ExpressSession({
+				secret: this.config.auth.sessionSecret,
+				resave: false,
+				saveUninitialized: false
+			}));
+
+			app.use(Passport.initialize());
 
 			// Same as app.use(passport.authenticate('session')); 
-			router.use(Passport.session());
+			app.use(Passport.session());
 
 			Passport.serializeUser((userObject, done) => {
 				// Decide what info from the user object loaded from
@@ -98,91 +118,71 @@ define('server/UserManager', [
 			// Load and configure oauth2 strategies
 			const strategies = [];
 			for (let provider in this.config.auth.oauth2) {
-				const cfg = this.config.auth.oauth2[provider];
 				strategies.push(new Promise(resolve => {
+					const cfg = this.config.auth.oauth2[provider];
 					// .module is used to override the strategy name
 					// needed because passport-google-oauth20 declares
 					// strategy "google"
 					const module = cfg.module || `passport-${provider}`;
 					requirejs([module], strategy => {
-						Passport.use(new strategy(
-							cfg,
-							(accessToken, refreshToken, profile, done) => {
-								console.log("Logging in", profile);
-								// Pull the required fields out of the profile
-								const name = eval(cfg.profile.name);
-								const email = eval(cfg.profile.email);
-								const id = eval(cfg.profile.id);
-
-								const key = `${provider}-${id}`;
-								this.getUser({ key: key })
-								.catch(() => this.addUser({
-									name: name, email: email, key: key }))
-								.then(uo => {
-									if (uo.email == email)
-										return uo;
-									uo.email = email;
-									return this.writeDB();
-								})
-								.then(uo => done(null, uo));
-							}));
+						this.setUpOAuth2Strategy(strategy, provider, cfg, app);
 						resolve();
 					});
 				}));
 			}
-
 			Promise.all(strategies);
 
 			// See if there is a current session
-			router.get(
+			app.get(
 				'/session',
 				(req, res) => this.handle_session(req, res));
 
+			// Remember where we came from
+			app.use((req, res, next) => {
+				if (/(^|[?&;])origin=/.test(req.url))
+					req.session.origin = decodeURI(
+						req.url.replace(/^.*[?&;]origin=([^&;]*).*$/,"$1"));
+				//console.log("Remembering origin", req.session.origin);
+				next();
+			});
+
 			// Register a new user
-			router.post(
+			app.post(
 				'/register',
-				(req, res, next) => this.handle_register(req, res, next));
+				(req, res, next) => this.handle_xanado_register(req, res, next));
 
 			// Log in a user
-			router.post(
+			app.post(
 				'/login',
-				(req, res, next) => this.handle_login(req, res, next));
-
-			router.get("/oauth2-providers",
+				Passport.authenticate("xanado", { assignProperty: "userObject" }),
+				(req, res) => {
+					// error will -> 401
+					return this.passportLogin(req, res, req.userObject)
+					.then(() => this.sendResult(res, 200, []));
+				});
+			
+			app.get("/oauth2-providers",
 					   (req, res) => this.handle_oauth2_providers(req, res));
 			
 			// Log out the current signed-in user
-			router.post(
+			app.post(
 				'/logout',
 				(req, res) => this.handle_logout(req, res));
 
 			// Send a password reset email to the user with the given email
-			router.post(
+			app.post(
 				'/reset-password',
-				(req, res) => this.handle_reset_password(req, res));
+				(req, res) => this.handle_xanado_reset_password(req, res));
 
 			// Receive a password reset from a link in email
-			router.get(
+			app.get(
 				'/reset-password/:token',
-				(req, res) => this.handle_password_reset(req, res));
+				(req, res) => this.handle_xanado_password_reset(req, res));
 
 			// Change the password for the current user
-			router.post(
+			app.post(
 				'/change-password',
-				(req, res) => this.handle_change_password(req, res));
-
-			// Login using oauth2 service
-			// Note: this route MUST be a GET and MUST come from an href and
-			// not an AJAX request, or CORS will foul up.
-			router.get(
-				`/oauth2/login/:provider`,
-				(req, res, next) => this.handle_oauth2_login(req, res, next));
-
-			// oauth2 redirect target
-			router.get(
-				`/oauth2/callback/:provider`,
-				(req, res, next) =>
-				this.handle_oauth2_redirect(req, res, next));
+				(req, res) => this.handle_xanado_change_password(req, res));
 		}
 
 		/**
@@ -191,7 +191,7 @@ define('server/UserManager', [
 		 * @private
 		 */
 		passportLogin(req, res, uo) {
-			console.log(`passportLogin in ${uo}`);
+			console.log("passportLogin in", uo);
 			return new Promise(resolve => {
 				req.login(uo, () => {
 					console.log(uo, "logged in");
@@ -235,21 +235,22 @@ define('server/UserManager', [
 		}
 
 		/**
-		 * Promise to get the user object for the described user
+		 * Promise to get the user object for the described user.
+		 * You can lookup a user without name if you have email or key.
+		 * But if you give name you also have to give password - unless
+		 * ignorePass is explicitly set
 		 * @param {object} desc user descriptor
 		 * @param {string?} user user name
 		 * @param {string?} pass user password, requires user.
-		 * Will be ignored if undefined.
 		 * @param {string?} email user email
 		 * @param {string?} key optionally force the key to this
+		 * @param {boolean} ignorePass truw will ignore passwords
 		 * @return {Promise} resolve to user object, or throw
 		 * @private
 		 */
-		getUser(desc) {
+		getUser(desc, ignorePass) {
 			return this.getDB()
 			.then(db => {
-
-				let sawUser = false;
 				for (let uo of db) {
 					if (typeof desc.key !== 'undefined' && uo.key === desc.key)
 						return uo;
@@ -259,19 +260,83 @@ define('server/UserManager', [
 						.then(() => uo);
 					}
 					if (typeof desc.name !== 'undefined' && uo.name === desc.name) {
-						sawUser = true;
-						if (typeof uo.pass !== 'undefined'
-							&& uo.pass === desc.pass) {
+						if (ignorePass)
 							return uo;
+						if (typeof uo.pass === 'undefined') {
+							if (desc.pass === uo.pass)
+								return uo;
+							throw new Error(/*i18n*/'um-bad-pass');
 						}
+						return pw_compare(desc.pass, uo.pass)
+						.then(ok => {
+							if (ok)
+								return uo;
+							throw new Error(/*i18n*/'um-bad-pass');
+						})
+						.catch(e => {
+							console.log("getUser", desc, "failed; bad pass", e);
+							throw new Error(/*i18n*/'um-bad-pass');
+						});
 					}
 					if (typeof desc.email !== 'undefined' && uo.email === desc.email)
 						return uo;
 				}
-				console.log("getUser", desc,"failed");
-				throw new Error(sawUser ? /*i18n*/'um-bad-pass'
-								: /*i18n*/'um-no-such-user');
+				console.log("getUser", desc, "failed; no such user");
+				throw new Error(/*i18n*/'um-no-such-user');
 			});
+		}
+
+		/**
+		 * @private
+		 */
+		setUpOAuth2Strategy(strategy, provider, cfg, app) {
+			if (!cfg.clientID || !cfg.clientSecret || !cfg.callbackURL)
+				throw new Error("Misconfiguration", cfg);
+			Passport.use(new strategy(
+				cfg,
+				(accessToken, refreshToken, profile, done) => {
+					console.log("Logging in", profile);
+					if (profile.emails && profile.emails.length > 0)
+						profile.email = profile.emails[0].value;
+					if (!profile.id || !profile.displayName)
+						throw new Error("Misconfiguration .reprofile", profile);
+					const key = `${provider}-${profile.id}`;
+					this.getUser({ key: key })
+					.catch(() => {
+						// New user
+						return this.addUser({
+							name: profile.displayName, email: profile.email, key: key });
+					})
+					.then(uo => {
+						if (!profile.email || uo.email === profile.email)
+							return uo;
+						uo.email = profile.email;
+						return this.writeDB();
+					})
+					.then(uo => done(null, uo));
+					// uo will end up in userObject
+				}));
+
+			// Login using oauth2 service
+			// Note: this route MUST be a GET and MUST come from an href and
+			// not an AJAX request, or CORS will foul up.
+			app.get(
+				`/oauth2/login/${provider}`,
+				Passport.authenticate(provider));
+
+			// oauth2 redirect target
+			app.get(
+				`/oauth2/callback/${provider}`,
+				Passport.authenticate(provider, { assignProperty: "userObject" }),
+				(req, res) => {
+					// error will -> 401
+					//console.log("OAuth2 user is", req.userObject);
+					req.login(req.userObject, () => {
+						// Back to where we came from
+						console.log("Redirect to",req.session.origin);
+						res.redirect(req.session.origin);
+					});
+				});
 		}
 
 		/**
@@ -313,24 +378,24 @@ define('server/UserManager', [
 		}
 
 		/**
-		 * Add a new user to the DB
+		 * Add a new user to the DB, if they are not already there
 		 * @param {object} desc user descriptor
-		 * @param {string} user user name
+		 * @param {string?} user user name
+		 * @param {string?} pass user password, requires user.
+		 * Will be encrypted if defined before saving.
 		 * @param {string?} email user email
-		 * @param {string?} pass user password
 		 * @param {string?} key optionally force the key to this
 		 * @return {Promise} resolve to user object, or reject if duplicate
 		 * @private
 		 */
 		addUser(desc) {
-			console.log("Add user", desc);
-			return this.getUser(desc)
-			.then(userObject => {
-				return Promise.reject(`${userObject} already registered`);
-			})
-			.catch(e => {
-				if (!desc.key)
-					desc.key = this.genKey();
+			if (!desc.key)
+				desc.key = this.genKey();
+			return pw_hash(desc.pass)
+			.then(pw => {
+				if (typeof pw !== 'undefined')
+					desc.pass = pw;
+				console.log("Add user", desc);
 				this.db.push(desc);
 				return this.writeDB()
 				.then(() => desc);
@@ -348,48 +413,30 @@ define('server/UserManager', [
 		/**
 		 * @private
 		 */
-		handle_register(req, res, next) {
+		handle_xanado_register(req, res, next) {
 			const username = req.body.register_username;
 			const email = req.body.register_email;
 			const pass = req.body.register_password;
-			console.log(`/register ${username} ${email} ${pass}`);
 			if (!username)
 				return this.sendResult(
 					res, 500, [ /*i18n*/'um-bad-user', username ]);
-
-			return this.addUser({ name: username, email: email, pass: pass })
-			.then(userObject => this.passportLogin(req, res, userObject)
-				  .then(() => this.sendResult(res, 200, [])))
-			.catch(e => {
-				console.error(e);
-				return this.sendResult(
+			return this.getUser({name: username }, true)
+			.then(() => {
+				this.sendResult(
 					res, 403, [ /*i18n*/'um-user-exists', username ]);
+			})
+			.catch(() => {
+				// New user
+				this.addUser({ name: username, email: email, pass: pass })
+				.then(userObject => this.passportLogin(req, res, userObject)
+					  .then(() => this.sendResult(res, 200, [])));
 			});
 		}
 
 		/**
 		 * @private
 		 */
-		handle_login(req, res, next) {
-			console.log(`/login`);
-			const auth = Passport.authenticate(
-				'xanado',
-				(err, userObject) => {
-					if (err) {
-						console.error(err);
-						return this.sendResult(res, 403, err);
-					}
-
-					if (!userObject) {
-						console.error("No user object", err);
-						return this.sendResult(res, 403, [
-							/*i18n*/'um-bad-pass' ]);
-					}
-
-					// req.login should set req.user
-					return this.passportLogin(req, res, userObject)
-					.then(() => this.sendResult(res, 200, []));
-				});
+		handle_xanado_login(req, res, next) {
 
 			auth(req, res, next);
 		}
@@ -400,49 +447,14 @@ define('server/UserManager', [
 		handle_oauth2_providers(req, res) {
 			const list = [];
 			for (let name in this.config.auth.oauth2) {
-				const data = this.config.auth.oauth2[name];
-				list.push({
-					name: name,
-					logo: data.logo || `/images/${name}.svg`
-				});
+				const cfg = this.config.auth.oauth2[name];
+				list.push({ name: name, logo: cfg.logo });
 			}
 			this.sendResult(res, 200, list);
 		}
 
 		/**
-		 * Handle a login request for an oauth2 prvider. Note: this route
-		 * MUST be a GET and MUST come from an href and not an AJAX request,
-		 * or CORS will foul up.
-		 */
-		handle_oauth2_login(req, res, next) {
-			const provider = req.params.provider;
-			// Remember where we came from
-			req.session.origin = decodeURI(
-				req.url.replace(/^.*[?&;]origin=([^&;]*).*$/,"$1"));
-			const fn = Passport.authenticate(provider);
-			return fn(req, res, next);
-		}
-
-		/**
-		 * Handle the redirect from the oauth2 provider after a login
-		 */
-		handle_oauth2_redirect(req, res, next) {
-			console.log("Handling redirect from", req.params.provider);
-			debugger;
-			const fn = Passport.authenticate(
-				req.params.provider, {
-					assignProperty: "federatedUser",
-					failureRedirect: "/loginFailure.html" });
-			return fn(req, res, () => {
-				req.login(req.federatedUser, () => {
-					console.log("Logged in", req.federatedUser);
-					// Back to where we came from
-					res.redirect(req.session.origin);
-				});
-			});
-		}
-
-		/**
+		 * Simply forgets the user, doesn't log OAuth2 users out from the provider.
 		 * @private
 		 */
 		handle_logout(req, res, next) {
@@ -463,7 +475,7 @@ define('server/UserManager', [
 		/**
 		 * @private
 		 */
-		handle_change_password(req, res) {
+		handle_xanado_change_password(req, res) {
 			if (req.session
 				&& req.session.passport
 				&& req.session.passport.user) {
@@ -482,7 +494,7 @@ define('server/UserManager', [
 		/**
 		 * @private
 		 */
-		handle_reset_password(req, res) {
+		handle_xanado_reset_password(req, res) {
 			const email = req.body.reset_email;
 			console.log(`/reset-password for ${email}`);
 			if (!email)

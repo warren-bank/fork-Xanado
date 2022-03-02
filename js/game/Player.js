@@ -97,6 +97,16 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 					email: ump.email ? true : false,
 					timeRemaining: this.timeRemaining
 				};
+			})
+			.catch(e => {
+				// User key not found in the db, for some reason. Not fatal.
+				return {
+					isRobot: this.isRobot,
+					connected: this.isRobot || (game.getConnection(this) !== null),
+					key: this.key,
+					score: this.score,
+					timeRemaining: this.timeRemaining
+				};
 			});
 		}
 

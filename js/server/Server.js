@@ -5,13 +5,13 @@
 define('server/Server', [
 	'fs', 'node-getopt', 'events',
 	'socket.io', 'http', 'https', 'nodemailer', "cors",
-	'express', 'express-negotiate', 'errorhandler','express-session', 
+	'express', 'express-negotiate', 'errorhandler',
 	'platform', 'server/UserManager',
 	'game/Fridge', 'game/Game', 'game/Player', 'game/Edition'
 ], (
 	fs, Getopt, Events,
 	SocketIO, Http, Https, NodeMailer, cors,
-	Express, ExpressNegotiate, ErrorHandler, ExpressSession, 
+	Express, ExpressNegotiate, ErrorHandler,
 	Platform, UserManager,
 	Fridge, Game, Player, Edition
 ) => {
@@ -45,14 +45,6 @@ define('server/Server', [
 
 			// Parse incoming requests with url-encoded payloads
 			express.use(Express.urlencoded({ extended: true }));
-
-			// UserManager requires ExpressSession to be configured
-			express.use(ExpressSession({
-				secret: this.config.auth.sessionSecret,
-				resave: false,
-				saveUninitialized: false
-			}));
-
 
 			// Parse incoming requests with a JSON body
 			express.use(Express.json());

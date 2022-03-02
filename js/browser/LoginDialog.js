@@ -39,7 +39,8 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 				const $table = $("<table width='100%'></table>");
 				for (let provider of list) {
 					const $td = $("<td></td>")
-						  .addClass("provider-logo");
+						  .addClass("provider-logo")
+						  .attr("title", $.i18n("Sign in using $1", provider.name));
 					const $logo = $(`<img src="${provider.logo}" />`);
 					// Note: this MUST be done using from an href and
 					// not an AJAX request, or CORS will foul up.
@@ -47,10 +48,13 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 					$a.attr("href", `/oauth2/login/${provider.name}?origin=${encodeURI(window.location)}`);
 					$a.append($logo);
 					$td.append($a);
+					$td.tooltip();
 					$table.append($td);
 				}
 				$("#login-tab")
-				.append($table);
+				.prepend($(`<div>${$.i18n("Sign in using:")}</div>`)
+						 .append($table)
+						 .append(`<br /><div>${$.i18n("or sign in as Xanado user:")}</div>`));
 			});
 
 			super.createDialog();
