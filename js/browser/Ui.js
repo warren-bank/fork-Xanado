@@ -545,17 +545,17 @@ define('browser/Ui', [
 			$(".login-state").hide();
 			return $.get("/session")
 			.then(session => {
-				console.log("Signed in as", session.user.name);
+				console.log("Signed in as", session.name);
 				const pks = game.players.map(p=>p.key);
-				if (pks.indexOf(session.user.key) >= 0) {
+				if (pks.indexOf(session.key) >= 0) {
 					$("#logged-in")
 					.show()
 					.find("#whoami")
-					.text($.i18n('um-logged-in-as', session.user.name));
-					return session.user.key;
+					.text($.i18n('um-logged-in-as', session.name));
+					return session.key;
 				}
 				$("#bad-user>span")
-				.text($.i18n("Not playing", session.user.name));
+				.text($.i18n("Not playing", session.name));
 				$("#bad-user>button")
 				.on("click", () => {
 					$.post("/logout")

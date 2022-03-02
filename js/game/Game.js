@@ -696,7 +696,7 @@ define('game/Game', [
 		 */
 		tick() {
 			const player = this.players[this.whosTurn];
-			console.log(`Tick ${this.players[this.whosTurn].name} ${player.timeRemaining}`);
+			//console.log(`Tick ${this.players[this.whosTurn].name} ${player.timeRemaining}`);
 			player.timeRemaining--;
 			this.notifyPlayers(
 				'tick',
