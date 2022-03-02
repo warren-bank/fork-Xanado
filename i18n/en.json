@@ -55,11 +55,11 @@
 	"Hint": "Hint: $1 at row $2 column $3 for $4",
 
 	"infinity": "\u221e",
-
-	"Join": "Join",
+	"introduction": "To play in a game, have to sign in first. You may be able to sign in using a public service, such as Google or Facebook, or you can create your own XANADO user.",
+	"Join": "Join game",
 
 	"Leader board": "Leader Board",
-	"Leave": "Leave",
+	"Leave": "Leave game",
 	"Login with": "Or you can login with:",
 	"login-forgot": "Lost your password? Please enter the email you registered with, and I'll send you a reset link.",
 	"Log": "Log",
@@ -75,7 +75,7 @@
 	"Not playing": "You ($1) are not playing in this game",
 	"Not your turn": "Not your turn",
 
-	"Open": "Open",
+	"Open": "Open game",
 	"Options": "Options",
 	"or sign in as XANADO user:": "or sign in as XANADO user:",
 

@@ -60,10 +60,11 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 				}));
 		} else {
 			if (player.isRobot) {
-				$box.append('<div class="ui-icon icon-robot"></div>');
+				$box.prepend('<div class="ui-icon icon-robot"></div>');
 				$box.prop('disabled', true);
 			} else {
-				const $spot = $(`<span>${BLACK_CIRCLE}</span>`);
+				$box.prepend('<div class="ui-icon icon-person"></div>');
+				const $spot = $(`<span class="player-icon">${BLACK_CIRCLE}</span>`);
 				if (player.connected)
 					$spot.addClass('online');
 				else
@@ -123,8 +124,7 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 					  .button("option", "label",
 							  isOpen ? TWIST_CLOSE : TWIST_OPEN);
 				  });
-			if (loggedInAs)
-				$box.append($twistButton);
+			$box.append($twistButton);
 			$box.append(msg.join(', '));
 			$box.append($twist);
 
@@ -235,17 +235,17 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 	function refresh() {
 		return Promise.all([
 			$.get("/session")
-			.then(user => {
-				loggedInAs = user;
-				console.log("Signed in as", user.name);
-				$("#games-for").text($.i18n('Games for $1', user.name));
+			.then(session => {
+				loggedInAs = session;
+				console.log("Signed in as", session.name);
 				$(".not-logged-in").hide();
-				$(".logged-in").show();
+				$(".logged-in").show()
+				.find("span").first().text(session.name);
 				$("#create-game").show();
+				$("#chpw_button").toggle(session.provider === 'xanado');
 			})
 			.catch(e => {
 				console.log(e);
-				$("#games-for").text($.i18n('Games'));
 				$(".logged-in").hide();
 				$(".not-logged-in").show();
 				$("#create-game").hide();

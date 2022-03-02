@@ -34,11 +34,6 @@ body
 	width: 100%;
 }
 
-.icon-robot {
-    background-image: url('/images/robot-face.svg') !important;
-	background-size: 16px 16px;
-}
-
 .hidden {
 	display: none;
 }
@@ -54,6 +49,16 @@ button.hide-password {
 	font-size: 0.5em;
 	margin-right: 0;
 	padding: 0;
+}
+
+.icon-robot {
+    background-image: url('/images/robot-face.svg') !important;
+	background-size: 16px 16px;
+}
+
+.icon-person {
+    background-image: url('/images/person.svg') !important;
+	background-size: 16px 16px;
 }
 
 .icon-eye-open {

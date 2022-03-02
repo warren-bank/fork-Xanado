@@ -157,6 +157,7 @@ define('server/UserManager', [
 				Passport.authenticate("xanado", { assignProperty: "userObject" }),
 				(req, res) => {
 					// error will -> 401
+					req.userObject.provider = 'xanado';
 					return this.passportLogin(req, res, req.userObject)
 					.then(() => this.sendResult(res, 200, []));
 				});
@@ -311,6 +312,7 @@ define('server/UserManager', [
 						if (!profile.email || uo.email === profile.email)
 							return uo;
 						uo.email = profile.email;
+						uo.provider = provider;
 						return this.writeDB();
 					})
 					.then(uo => done(null, uo));
@@ -434,14 +436,6 @@ define('server/UserManager', [
 		}
 
 		/**
-		 * @private
-		 */
-		handle_xanado_login(req, res, next) {
-
-			auth(req, res, next);
-		}
-
-		/**
 		 * Get a list of oauth2 providers
 		 */
 		handle_oauth2_providers(req, res) {
@@ -550,6 +544,7 @@ define('server/UserManager', [
 				// Return redacted user object
 				return this.sendResult(res, 200, {
 					name: req.user.name,
+					provider: req.user.provider,
 					key: req.user.key
 				});
 

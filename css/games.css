@@ -82,6 +82,10 @@ th, td {
 	margin-right: 0.5em;
 }
 
+.player-icon {
+	margin-left: 0.5em;
+}
+
 .ui-selectmenu-menu {
 	z-index: 3000;/* in front of dialog*/
 }

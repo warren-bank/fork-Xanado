@@ -40,8 +40,10 @@ This version has some major differences:
 # Installation
 
 ## Using Docker
-The simplest way to install the game is to use the latest Docker image, which you can find at https://github.com/cdot/Xanado/pkgs/container/crosswordgame.
-The Docker image takes care of all dependencies etc. for you.
+The simplest way to install the game is to use the latest Docker
+image, which you can find at
+https://github.com/cdot/Xanado/pkgs/container/crosswordgame.  The
+Docker image takes care of all dependencies etc. for you.
 
 ## The Hard Way
 First use `git clone` to clone the repository to your local machine. Then in
@@ -51,8 +53,10 @@ $ npm install
 ```
 to install dependencies.
 
-You must create a configuration file named `config.json` and place it in the root directory.
-A template configuration file is included in ['example-config.json'](example-config.json). It can be copied to `config.json` and edited as described in the file.
+You must create a configuration file named `config.json` and place it
+in the root directory.  A template configuration file is included in
+['example-config.json'](example-config.json). It can be copied to
+`config.json` and edited as described in the file.
 
 Once you have a suitable configuration, run the server using:
 ```
@@ -62,9 +66,12 @@ You can then visit the games page at `http://localhost:9093`.
 
 ## Playing with other people
 
-If you want other internet users to access your game server, they have to be able to access a port on the server. If your server is already public
-on the internet that's no problem, but if it is hidden away on your local area network, you may need to make it visible. Fortunately that's fairly
-easy to do, and does not compromise security if it's done properly.
+If you want other internet users to access your game server, they have
+to be able to access a port on the server. If your server is already
+public on the internet that's no problem, but if it is hidden away on
+your local area network, you may need to make it visible. Fortunately
+that's fairly easy to do, and does not compromise security if it's
+done properly.
 [This article](https://medium.com/botfuel/how-to-expose-a-local-development-server-to-the-internet-c31532d741cc) describes how.
 
 If you want the server to send out email invitations, you should refer to the `nodemailer` documentation for information on how to configure it.
@@ -132,11 +139,11 @@ dictionaries. Included with the installation are a number of pre-built dictionar
 - `Oxford_5000` - 29K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
 
 # Security
-The assumption is that you will be running the game on a private server with a
-limited, trustworthy audience. The server can be configured to use HTTPS, see
-the example config.json for how. HTTPS is required for notifications to work,
-and is highly recommended when using default logins (c.f.
-[BasicAuth](https://en.wikipedia.org/wiki/Basic_access_authentication)).
+The assumption is that you will be running the game on a private
+server with a limited, trustworthy audience. The server can be
+configured to use HTTPS, see the example config.json for how. HTTPS is
+required for notifications to work, and is highly recommended when
+using default logins.
 
 To use HTTPS you require an SSL certificate. You can generate one using the
 instructions in https://linuxize.com/post/creating-a-self-signed-ssl-certificate/

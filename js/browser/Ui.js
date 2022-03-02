@@ -544,18 +544,18 @@ define('browser/Ui', [
 		identifyPlayer(game) {
 			$(".login-state").hide();
 			return $.get("/session")
-			.then(user => {
-				console.log("Signed in as", user.name);
+			.then(session => {
+				console.log("Signed in as", session.user.name);
 				const pks = game.players.map(p=>p.key);
-				if (pks.indexOf(user.key) >= 0) {
+				if (pks.indexOf(session.user.key) >= 0) {
 					$("#logged-in")
 					.show()
 					.find("#whoami")
-					.text($.i18n('um-logged-in-as', user.name));
-					return user.key;
+					.text($.i18n('um-logged-in-as', session.user.name));
+					return session.user.key;
 				}
 				$("#bad-user>span")
-				.text($.i18n("Not playing", user.name));
+				.text($.i18n("Not playing", session.user.name));
 				$("#bad-user>button")
 				.on("click", () => {
 					$.post("/logout")
