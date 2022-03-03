@@ -32,8 +32,10 @@ define('game/Game', [
 		 * ```
 		 * @param {string} edition edition *name*
 		 * @param {string?} dictionary dictionary *name* (may be null)
+		 * @param {string?} robot_dictionary robot_dictionary *name*
+		 * (may be null)
 		 */
-		constructor(edition, dictionary) {
+		constructor(edition, dictionary, robot_dictionary) {
 			/**
 			 * The name of the ediiton.
 			 * We don't keep a pointer to the Edition object so we can
@@ -43,12 +45,21 @@ define('game/Game', [
 			this.edition = edition;
 
 			/**
-			 * We don't keep a pointer to the dictionary object so we can
+			 * We don't keep a pointer to the dictionary objects so we can
 			 * cheaply serialise and send to the games interface. We just
 			 * keep the name of the relevant object.
 			 * @member {string}
 			 */
 			this.dictionary = dictionary;
+
+			/**
+			 * We don't keep a pointer to the dictionary objects so we can
+			 * cheaply serialise and send to the games interface. We just
+			 * keep the name of the relevant object. It defaults to the main
+			 * dictionary.
+			 * @member {string}
+			 */
+			this.robot_dictionary = robot_dictionary || dictionary;
 
 			/**
 			 * List of Player, in order of player.index
@@ -275,6 +286,21 @@ define('game/Game', [
 		getDictionary() {
 			if (this.dictionary)
 				return Dictionary.load(this.dictionary);
+
+			// Terminal, no point in translating
+			return Promise.reject('Game has no dictionary');
+		}
+
+		/**
+		 * Get the dictionary for this game, lazy-loading as necessary
+		 * @return {Promise} resolving to a {@link Dictionary}
+		 */
+		getRobotDictionary() {
+			if (this.robot_dictionary)
+				return Dictionary.load(this.robot_dictionary);
+
+			if (this.dictionary)
+				return this.getDictionary();
 
 			// Terminal, no point in translating
 			return Promise.reject('Game has no dictionary');
@@ -618,6 +644,7 @@ define('game/Game', [
 					pausedBy: this.pausedBy,
 					ended: this.hasEnded() ? this.state : false,
 					dictionary: this.dictionary,
+					robot_dictionary: this.robot_dictionary,
 					time_limit: this.time_limit,
 					players: ps,
 					maxPlayers: this.maxPlayers,
@@ -1270,7 +1297,7 @@ define('game/Game', [
 			}
 
 			console.log(`Create game to follow ${this.key}`);
-			return new Game(this.edition, this.dictionary)
+			return new Game(this.edition, this.dictionary, this.robot_dictionary)
 			.create()
 			.then(newGame => newGame.onLoad(this._db))
 			.then(newGame => {

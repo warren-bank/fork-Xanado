@@ -61,6 +61,11 @@ button.hide-password {
 	background-size: 16px 16px;
 }
 
+.icon-winner {
+    background-image: url('/images/winner.svg') !important;
+	background-size: 16px 16px;
+}
+
 .icon-eye-open {
     background-image: url('/images/eye-open.svg') !important;
 	background-size: 16px 16px;

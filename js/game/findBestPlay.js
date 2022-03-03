@@ -461,10 +461,10 @@ define('game/findBestPlay', ['game/Edition', 'game/Tile', 'game/Move', 'dawg/Dic
 			return Promise.reject('Game has no edition');
 		}
 
-		if (!game.dictionary) {
-			report('Error: Cannot find moves with no dictionary');
+		if (!game.robot_dictionary) {
+			report('Error: Cannot find moves with no robot dictionary');
 			// Terminal, no point in translating
-			return Promise.reject('Game has no dictionary');
+			return Promise.reject('Game has no robot dictionary');
 		}
 
 		// sort and reverse to make sure high value letters come
@@ -481,7 +481,7 @@ define('game/findBestPlay', ['game/Edition', 'game/Tile', 'game/Move', 'dawg/Dic
 		report(`on ${board}`);
 
 		const preamble = [
-			Dictionary.load(game.dictionary),
+			Dictionary.load(game.robot_dictionary),
 			Edition.load(game.edition)
 		];
 

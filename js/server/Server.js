@@ -54,13 +54,7 @@ define('server/Server', [
 			// based on the file mime type (extension) but Express doesn't
 			// always get it right.....
 			console.log(`static files from ${requirejs.toUrl('')}`);
-			express.use(Express.static(
-				requirejs.toUrl(''),
-				{
-					setHeaders: (res, path, stat) => {
-						console.log(`Sending ${path}`);
-					}
-				}));
+			express.use(Express.static(requirejs.toUrl('')));
 
 			express.use((req, res, next) => {
 				console.log(req.method, req.url);
@@ -335,8 +329,8 @@ define('server/Server', [
 				games
 				.filter(game => (all || !game.hasEnded()))
 				.map(game => game.catalogue(this.userManager))))
-			.then(gs => gs.sort((a, b) => a.timestamp > b.timestamp ? 1
-								: a.timestamp < b.timestamp ? -1 : 0))
+			.then(gs => gs.sort((a, b) => a.timestamp < b.timestamp ? 1
+								: a.timestamp > b.timestamp ? -1 : 0))
 			.then(data => res.status(200).send(data))
 			.catch(e => this.trap(e, res));
 		}
@@ -349,35 +343,41 @@ define('server/Server', [
 		 */
 		handle_history(req, res) {
 			const server = this;
-			const scores = {};
-			const wins = {};
-			const names = {};
 
 			return this.db.keys()
 			.then(keys => keys.map(key => this.loadGame(key)))
 			.then(promises => Promise.all(promises))
-			.then(games => games
-				  .filter(game => game.hasEnded())
-				  .map(game => {
-					  const winScore = game.winningScore();
-					  game.players.map(
-						  player => {
-							  names[player.key] = player.name;
-							  if (player.score === winScore) {
-								  if (typeof wins[player.key] === 'undefined')
-									  wins[player.key] = 1;
-								  else
-									  wins[player.key]++;
-							  }
-							  const s = scores[player.key] || 0;
-							  scores[player.key] = s + player.score;
-						  });
-				  }))
-			.then(() => res.status(200).send({
-				names: names,
-				scores: scores,
-				wins: wins
-			}))
+			.then(games => {
+				const results = {};
+				games
+				.filter(game => game.hasEnded())
+				.map(game => {
+					const winScore = game.winningScore();
+					game.players.map(
+						player => {
+							let result = results[player.key];
+							if (!result) {
+								results[player.key] =
+								result = {
+									key: player.key,
+									name: player.name,
+									score: 0,
+									wins: 0
+								};
+							}
+							if (player.score === winScore)
+								result.wins++;
+							result.score += player.score;
+						});
+				});
+				const list = [];
+				for (let name in results)
+					list.push(results[name]);
+				return list;
+			})
+			.then(list => list.sort((a, b) => a.score < b.score ? 1
+									: (a.score > b.score ? -1 : 0)))
+			.then(list => res.status(200).send(list))
 			.catch(e => this.trap(e, res));
 		}
 
@@ -459,7 +459,15 @@ define('server/Server', [
 				} else
 					console.log('\twith no dictionary');
 
-				return new Game(edition.name, dictionary)
+				let robot_dictionary = null;
+				if (req.body.robot_dictionary
+					&& req.body.robot_dictionary != 'none') {
+					console.log(`\twith dictionary ${req.body.dictionary}`);
+					robot_dictionary = req.body.robot_dictionary;
+				} else
+					console.log('\twith no robot dictionary');
+
+				return new Game(edition.name, dictionary, robot_dictionary)
 				.create();
 			})
 			.then(game => game.onLoad(this.db))

@@ -13,7 +13,7 @@ define("browser/CreateGameDialog", ["browser/Dialog"], (Dialog) => {
 		 * @override
 		 */
 		canSubmit() {
-			console.log(`Validate edition ${this.$dlg.find('#edition').val()} dictionary ${this.$dlg.find('#dictionary').val()}`);
+			console.log(`Validate edition ${this.$dlg.find('#edition').val()} play dictionary ${this.$dlg.find('#dictionary').val()}`);
 
 			return (this.$dlg.find('#edition').val() !== 'none');
 		}
@@ -38,10 +38,11 @@ define("browser/CreateGameDialog", ["browser/Dialog"], (Dialog) => {
 				}),
 				$.get("/dictionaries")
 				.then(dictionaries => {
-					const $dics = this.$dlg.find('#dictionary');
-					dictionaries.forEach(d => $dics.append(`<option>${d}</option>`));
+					const $dics = this.$dlg.find('.dictionary');
+					dictionaries
+					.forEach(d => $dics.append(`<option>${d}</option>`));
 					if (defaults.dictionary)
-						$dics.val(defaults.dictionary);
+						$("#dictionary").val(defaults.dictionary);
 					$dics.selectmenu();
 					$dics.on('selectmenuchange', () => this.validate());
 					this.validate();
