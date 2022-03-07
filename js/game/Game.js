@@ -1304,10 +1304,26 @@ define('game/Game', [
 				this.nextGameKey = newGame.key;
 				return this.save()
 				.then(() => {
+					// Re-order players in random order. Everyone should
+					// get an equal chance to start a game.
+					const picked = [];
+					this.players.forEach(p => picked.push(p));
+					for (let i = picked.length - 1; i > 0; i--) {
+						const j = Math.floor(Math.random() * (i + 1));
+						const temp = picked[i];
+						picked[i] = picked[j];
+						picked[j] = temp;
+					}
+					picked
+
 					// re-order players so they play in score order
-					this.players.slice().sort((a, b) => {
-						return a.score > b.score ? -1 : a.score < b.score ? 1 : 0;
-					}).forEach(p => newGame.addPlayer(new Player(p)));
+					//this.players.slice().sort((a, b) => {
+					//	return a.score > b.score
+					//             ? -1 : a.score < b.score ? 1 : 0;
+					//})
+
+					.forEach(p => newGame.addPlayer(new Player(p)));
+
 					newGame.whosTurn = 0;
 					newGame.time_limit = this.time_limit;
 					console.log(`Created follow-on game ${newGame.key}`);
