@@ -13,7 +13,9 @@
  * @module game/findBestPlay
  * @exports game/findBestPlay
  */
-define('game/findBestPlay', ['game/Edition', 'game/Tile', 'game/Move', 'dawg/Dictionary'], (Edition, Tile, Move, Dictionary) => {
+define('game/findBestPlay', [
+	'game/Edition', 'game/Tile', 'game/Move', 'dawg/Dictionary'
+], (Edition, Tile, Move, Dictionary) => {
 
 	// Shortcuts to game information during move computation
 	let board;       // class Board
@@ -445,6 +447,7 @@ define('game/findBestPlay', ['game/Edition', 'game/Tile', 'game/Move', 'dawg/Dic
 	 * @function game/findBestPlay
 	 * @param {Game} game the Game
 	 * @param {Tile[]} rack rack in the form of a simple list of Tile
+	 * @param {string} dictionary name of dictionary to use
 	 * @param {function} listener Function that is called with a Move each time
 	 * a new best play is found, or a string containing a progress or error
 	 * message.
@@ -452,19 +455,13 @@ define('game/findBestPlay', ['game/Edition', 'game/Tile', 'game/Move', 'dawg/Dic
 	 * identified
      * @alias module:game/findBestPlay
 	 */
-    function findBestPlay(game, rack, listener) {
+    function findBestPlay(game, rack, listener, dictionary) {
 		report = listener;
 
 		if (!game.edition) {
 			report('Error: Game has no edition', game);
 			// Terminal, no point in translating
 			return Promise.reject('Game has no edition');
-		}
-
-		if (!game.robot_dictionary) {
-			report('Error: Cannot find moves with no robot dictionary');
-			// Terminal, no point in translating
-			return Promise.reject('Game has no robot dictionary');
 		}
 
 		// sort and reverse to make sure high value letters come
@@ -481,7 +478,7 @@ define('game/findBestPlay', ['game/Edition', 'game/Tile', 'game/Move', 'dawg/Dic
 		report(`on ${board}`);
 
 		const preamble = [
-			Dictionary.load(game.robot_dictionary),
+			Dictionary.load(dictionary || game.dictionary),
 			Edition.load(game.edition)
 		];
 

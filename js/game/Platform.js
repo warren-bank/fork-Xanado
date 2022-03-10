@@ -89,13 +89,15 @@ define('game/Platform', () => {
 		 * should be a NOP on a browser.
 		 * @param {Game} game the Game
 		 * @param {Tile[]} rack rack in the form of a simple list of Tile
+		 * @param {string?} dictionary name of dictionary to override the
+		 * game dictionary
 		 * @param {Platform~bestMoveCallback} cb accepts a best play whenever a new
 		 * one is found, or a string containing a message
 		 * @return {Promise} Promise that resolves when all best moves
 		 * have been tried
 		 * @abstract
 		 */
-		static findBestPlay(game, rack, cb) {}
+		static findBestPlay(game, rack, cb, dictionary) {}
 
 		/**
 		 * Platform-independent interface to i18n translation.

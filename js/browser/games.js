@@ -42,7 +42,11 @@ requirejs([
 		const $tr = Player.prototype.createScoreDOM.call(
 			player, loggedInAs.key);
 		
-		if (game.state !== 'playing') {
+		if (game.state === 'playing') {
+			if (player.dictionary && player.dictionary !== game.dictionary)
+			$tr.append($.i18n("robot dictionary $1", player.dictionary));
+
+		} else {
 			const winningScore = game.players.reduce(
 				(max, p) =>
 				Math.max(max, p.score), 0);
@@ -105,10 +109,9 @@ requirejs([
 						.catch(report);
 					}));
 			}
-			return $tr;
 		}
 
-		return $box;
+		return $tr;
 	}
 
 	/**
@@ -124,9 +127,6 @@ requirejs([
 		];
 		if (game.dictionary)
 			msg.push($.i18n("dictionary $1", game.dictionary));
-
-		if (game.robot_dictionary && game.robot_dictionary !== game.dictionary)
-			msg.push($.i18n("robot dictionary $1", game.robot_dictionary));
 
 		if (game.maxPlayers > 1)
 			msg.push($.i18n("up to $1 players", game.maxPlayers));
@@ -188,12 +188,8 @@ requirejs([
 					$(`<button></button>`)
 					.text($.i18n("Add robot"))
 					.button()
-					.on('click', () => {
-						console.log(`Add robot to game ${game.key}`);
-						$.post(`/addRobot/${game.key}`)
-						.then(refresh)
-						.catch(report);
-					}));
+					.on('click', () =>
+						openDialog("AddRobotDialog", { gameKey: game.key })));
 			}
 		}
 			
@@ -296,11 +292,11 @@ requirejs([
 		]);
 	}
 
-	function openDialog(dlg) {
-		Dialog.open(dlg, {
+	function openDialog(dlg, options) {
+		Dialog.open(dlg, $.extend(options || {}, {
 			done: refresh,
 			error: report
-		});
+		}));
 	}
 
 	browserApp.then(() => {

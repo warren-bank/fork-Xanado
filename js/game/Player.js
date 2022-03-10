@@ -73,6 +73,15 @@ define('game/Player', [
 			 * @member {number}
 			 */
 			this.timeRemaining = 0;
+
+			/**
+			 * We don't keep a pointer to the dictionary objects so we can
+			 * cheaply serialise and send to the games interface. We just
+			 * keep the name of the relevant object. This dictionary will
+			 * only be used for findBestPlay for robot players.
+			 * @member {string}
+			 */
+			this.dictionary = undefined;
 		}
 
 		/**
@@ -89,6 +98,7 @@ define('game/Player', [
 					name: this.name,
 					isRobot: this.isRobot,
 					connected: this.isRobot || (game.getConnection(this) !== null),
+					dictionary: this.dictionary,
 					key: this.key,
 					score: this.score,
 					email: ump.email ? true : false,

@@ -33,6 +33,8 @@ define("browser/Dialog", () => {
 					this.$dlg.dialog({
 						title: options.title,
 						minWidth: 400,
+						modal: true,
+						open: () => this.openDialog(),
 						create: () => this.createDialog()
 					});
 				});
@@ -40,6 +42,8 @@ define("browser/Dialog", () => {
 				this.$dlg.dialog({
 					title: options.title,
 					minWidth: 400,
+					modal: true,
+					open: () => this.openDialog(),
 					create: () => this.createDialog()
 				});
 			}
@@ -130,6 +134,12 @@ define("browser/Dialog", () => {
 			.on('click', () => this.submit());
 
 			this.validate();
+		}
+
+		/**
+		 * Override to set any dynamic values from context
+		 */
+		openDialog() {
 		}
 
 		/**

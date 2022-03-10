@@ -153,7 +153,7 @@ define('server/Server', [
 					   (req, res) => this.handle_leave(req, res));
 
 			// Handler for adding a robot to a game
-			cmdRouter.post('/addRobot/:gameKey',
+			cmdRouter.post('/addRobot',
 					   (req, res, next) =>
 					   this.userManager.checkLoggedIn(req, res, next),
 					   (req, res) => this.handle_addRobot(req, res));
@@ -459,15 +459,7 @@ define('server/Server', [
 				} else
 					console.log('\twith no dictionary');
 
-				let robot_dictionary = null;
-				if (req.body.robot_dictionary
-					&& req.body.robot_dictionary != 'none') {
-					console.log(`\twith dictionary ${req.body.dictionary}`);
-					robot_dictionary = req.body.robot_dictionary;
-				} else
-					console.log('\twith no robot dictionary');
-
-				return new Game(edition.name, dictionary, robot_dictionary)
+				return new Game(edition.name, dictionary)
 				.create();
 			})
 			.then(game => game.onLoad(this.db))
@@ -558,15 +550,19 @@ define('server/Server', [
 		 * @return {Promise}
 		 */
 		handle_addRobot(req, res) {
-			const gameKey = req.params.gameKey;
+			const gameKey = req.body.gameKey;
+			const dic = req.body.dictionary;
+			console.log("Add robot",req.body);
 			return this.loadGame(gameKey)
 			.then(game => {
 				if (game.hasRobot())
 					return res.status(500).send("Game already has a robot");
-				console.log(`Robot joining ${gameKey}`);
+				console.log(`Robot joining ${gameKey} with ${dic}`);
 				// Robot always has the same player key
 				const robot = new Player(
 					'Robot', UserManager.ROBOT_KEY, true);
+				if (dic && dic !== 'none')
+					robot.dictionary = dic;
 				game.addPlayer(robot);
 				return game.save()
 				// Game may now be ready to start
@@ -622,7 +618,7 @@ define('server/Server', [
 			return this.loadGame(gameKey)
 			.then(game => {
 				const player = game.getPlayerWithKey(playerKey);
-				return Platform.findBestPlay(game, player.rack.tiles());
+				return Platform.findBestPlay(game, player.rack.tiles);
 			})
 			.then(play => res.status(200).send(Fridge.freeze(play)))
 			.catch(e => this.trap(e, res));

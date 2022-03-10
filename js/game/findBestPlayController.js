@@ -14,14 +14,15 @@ define('game/findBestPlayController', ['worker_threads', 'game/Square', 'game/Fr
 	 * @param {string[]} array of useable letters, ' ' means blank tile
 	 * @param {function} listener fn() taking a string or a best play
 	 */
-	function findBestPlayController(game, letters, listener) {
+	function findBestPlayController(game, letters, listener, dictionary) {
 		return new Promise((resolve, reject) => {
 			const worker = new threads.Worker(
 				requirejs.toUrl('js/game/findBestPlayWorker.js'),
 				{
 					workerData: Fridge.freeze({
 						game: game,
-						rack: letters
+						rack: letters,
+						dictionary: dictionary
 					})
 				});
 

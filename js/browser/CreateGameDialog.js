@@ -22,7 +22,10 @@ define("browser/CreateGameDialog", ["browser/Dialog"], (Dialog) => {
 			super("CreateGameDialog", $.extend({
 				title: $.i18n("Create game")
 			}, options));
+		}
 
+		createDialog() {
+			super.createDialog();
 			let promise;
 			$.get("/defaults")
 			.then(defaults => Promise.all([

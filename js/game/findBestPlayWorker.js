@@ -27,7 +27,9 @@ requirejs(['worker_threads', 'game/Fridge', 'game/Game', 'game/findBestPlay'], (
 	 * need to be called on it, then game/Fridge can be used to freeze-thaw.
 	 */
 	findBestPlay(info.game, info.rack,
-				 bestPlay => threads.parentPort.postMessage(Fridge.freeze(bestPlay)))
+				 bestPlay => threads.parentPort.postMessage(
+					 Fridge.freeze(bestPlay)),
+				info.dictionary)
 
 	.then(() => {
 		threads.parentPort.postMessage('findBestPlayWorker is exiting');

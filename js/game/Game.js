@@ -32,10 +32,9 @@ define('game/Game', [
 		 * ```
 		 * @param {string} edition edition *name*
 		 * @param {string?} dictionary dictionary *name* (may be null)
-		 * @param {string?} robot_dictionary robot_dictionary *name*
 		 * (may be null)
 		 */
-		constructor(edition, dictionary, robot_dictionary) {
+		constructor(edition, dictionary) {
 			/**
 			 * Key that uniquely identifies this game
 			 * @member {string}
@@ -64,15 +63,6 @@ define('game/Game', [
 			 * @member {string}
 			 */
 			this.dictionary = dictionary;
-
-			/**
-			 * We don't keep a pointer to the dictionary objects so we can
-			 * cheaply serialise and send to the games interface. We just
-			 * keep the name of the relevant object. It defaults to the main
-			 * dictionary.
-			 * @member {string}
-			 */
-			this.robot_dictionary = robot_dictionary || dictionary;
 
 			/**
 			 * An i18n message identifier, 'playing' until the game is finished
@@ -304,21 +294,6 @@ define('game/Game', [
 		getDictionary() {
 			if (this.dictionary)
 				return Dictionary.load(this.dictionary);
-
-			// Terminal, no point in translating
-			return Promise.reject('Game has no dictionary');
-		}
-
-		/**
-		 * Get the dictionary for this game, lazy-loading as necessary
-		 * @return {Promise} resolving to a {@link Dictionary}
-		 */
-		getRobotDictionary() {
-			if (this.robot_dictionary)
-				return Dictionary.load(this.robot_dictionary);
-
-			if (this.dictionary)
-				return this.getDictionary();
 
 			// Terminal, no point in translating
 			return Promise.reject('Game has no dictionary');
@@ -662,7 +637,6 @@ define('game/Game', [
 					creationTimestamp: this.creationTimestamp,
 					edition: this.edition,
 					dictionary: this.dictionary,
-					robot_dictionary: this.robot_dictionary,
 					state: this.state,
 					players: ps,					
 					turns: this.turns.length, // just the length
@@ -838,7 +812,8 @@ define('game/Game', [
 			console.log(`Player ${player.name} asked for a hint`);
 
 			let bestPlay = null;
-			Platform.findBestPlay(this, player.rack.tiles(), data => {
+			Platform.findBestPlay(
+				this, player.rack.tiles(), data => {
 				if (typeof data === 'string')
 					console.log(data);
 				else
@@ -906,7 +881,8 @@ define('game/Game', [
 			console.log(`Computing advice for ${player.name} > ${theirScore}`);
 
 			let bestPlay = null;
-			return Platform.findBestPlay(this, player.rack.tiles(), data => {
+			return Platform.findBestPlay(
+				this, player.rack.tiles(), data => {
 				if (typeof data === 'string')
 					console.log(data);
 				else
@@ -1042,14 +1018,15 @@ define('game/Game', [
 
 			console.log(`Autoplaying ${player.name}`);
 			return Platform.findBestPlay(
-				this, player.rack.tiles(), data => {
+				this, player.rack.tiles(),
+				data => {
 					if (typeof data === 'string')
 						console.log(data);
 					else {
 						bestPlay = data;
 						console.log('Best', bestPlay);
 					}
-				})
+				}, player.dictionary)
 			.then(() => {
 				if (bestPlay)
 					return this.makeMove(bestPlay);
@@ -1320,7 +1297,7 @@ define('game/Game', [
 			}
 
 			console.log(`Create game to follow ${this.key}`);
-			return new Game(this.edition, this.dictionary, this.robot_dictionary)
+			return new Game(this.edition, this.dictionary)
 			.create()
 			.then(newGame => newGame.onLoad(this._db))
 			.then(newGame => {
