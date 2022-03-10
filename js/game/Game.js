@@ -37,6 +37,19 @@ define('game/Game', [
 		 */
 		constructor(edition, dictionary, robot_dictionary) {
 			/**
+			 * Key that uniquely identifies this game
+			 * @member {string}
+			 */
+			this.key = GenKey();
+
+			/**
+			 * Epoch ms when this game was created
+			 * @member {number}
+			 * @private
+			 */
+			this.creationTimestamp = Date.now();
+
+			/**
 			 * The name of the ediiton.
 			 * We don't keep a pointer to the Edition object so we can
 			 * cheaply serialise and send to the games interface. 
@@ -62,24 +75,17 @@ define('game/Game', [
 			this.robot_dictionary = robot_dictionary || dictionary;
 
 			/**
-			 * List of Player, in order of player.index
+			 * An i18n message identifier, 'playing' until the game is finished
+			 * @member {string}
+			 */
+			this.state = 'playing';
+
+			/**
+			 * List of Player
 			 * @member {Player[]}
 			 * @private
 			 */
 			this.players = [];
-
-			/**
-			 * Key that uniquely identifies this game
-			 * @member {string}
-			 */
-			this.key = GenKey();
-
-			/**
-			 * Epoch ms when this game was created
-			 * @member {number}
-			 * @private
-			 */
-			this.creationTimestamp = Date.now();
 
 			/**
 			 * Complete list of the turn history of this game
@@ -89,10 +95,10 @@ define('game/Game', [
 			this.turns = [];
 
 			/**
-			 * Index of next player to play in this game
-			 * @member {number}
+			 * Key of next player to play in this game
+			 * @member {string}
 			 */
-			this.whosTurn = -1;
+			this.whosTurnKey = undefined;
 
 			/**
 			 * Time limit for a play in this game.
@@ -109,7 +115,7 @@ define('game/Game', [
 
 			/**
 			 * Size of rack. Always the same as Edition.rackCount,
-			 * kept because we don't hold a pointer to the Edition
+			 * cached because we don't hold a pointer to the Edition
 			 * @member {number}
 			 */
 			this.rackSize = 0;
@@ -119,12 +125,6 @@ define('game/Game', [
 			 * @member {LetterBag}
 			 */
 			this.letterBag = undefined;
-
-			/**
-			 * An i18n message identifier, assigned when a game is finished
-			 * @member {string}
-			 */
-			this.state = 'playing';
 
 			/**
 			 * Who paused the game (if it's paused)
@@ -137,6 +137,13 @@ define('game/Game', [
 			 * @member {number}
 			 */
 			this.maxPlayers = 0;
+
+			/**
+			 * When a game is ended, nextGameKey is the key for the
+			 * continuation game
+			 * @member {string}
+			 */
+			this.nextGameKey = undefined;
 		}
 
 		/**
@@ -195,10 +202,9 @@ define('game/Game', [
 			if (this.maxPlayers > 1 && this.players.length === this.maxPlayers)
 				throw Error('Cannot addPlayer() to a full game');			
 			this.players.push(player);
-			player.joinGame(
+			player.fillRack(
 				this.letterBag,
-				this.rackSize,
-				this.players.length - 1);
+				this.rackSize);
 		}
 
 		/**
@@ -208,47 +214,59 @@ define('game/Game', [
 		 */
 		removePlayer(player) {
 			player.returnTiles(this.letterBag);
-			this.players.splice(player.index, 1);
-			player.index = -1;
+			const index = this.players.findIndex(p => p.key === player.key);
+			if (index < 0)
+				throw Error(`No such player ${player.key} in ${this.key}`);
+			this.players.splice(index, 1);
 			console.log(`${player.key} left ${this.key}`);
 		}
 
 		/**
-		 * Get the player by index. Will throw if index is out of range.
-		 * @param {number} index index of player to get. If undefined, will
+		 * Get the player by key.
+		 * @param {string} key key of player to get. If undefined, will
 		 * return the current player
-		 * @return {Player} player
+		 * @return {Player} player, or undefined if not found
 		 */
-		getPlayer(index) {
-			if (typeof index === 'undefined')
-				index = this.whosTurn;
-			else if (index < 0 || index >= this.players.length)
-				throw Error(`No such player ${index}`);
-			return this.players[index];
+		getPlayer(key) {
+			if (typeof key === 'undefined')
+				key = this.whosTurnKey;
+			return this.players.find(p => p.key === key);
 		}
 
 		/**
-		 * Get the index of the last player before the given player index
-		 * @param {number} index the current player if undefined, or the index
-		 * of the player to get the previous player of
-		 * @return {number} index of previous player
+		 * Get the last player before the given player, identified by key
+		 * @param {string|Player} player the current player if undefined, or
+		 * the player to get the previous player of
+		 * @return {Player} previous player
 		 */
-		previousPlayer(index) {
-			if (typeof index === 'undefined')
-				index = this.whosTurn;
-			return (index + this.players.length - 1) % this.players.length;
+		previousPlayer(player) {
+			if (typeof player === 'undefined')
+				player = this.getPlayer(this.whosTurnKey);
+			else if (typeof player === 'string')
+				player = this.getPlayer(player);
+			const index = this.players.findIndex(p => p.key === player.key);
+			if (index < 0)
+				throw new Error(`${player.key} not found in ${this.key}`);
+			return this.players[
+				(index + this.players.length - 1) % this.players.length];
 		}
 
 		/**
-		 * Get the index of the next player after the given player index
-		 * @param {number} index the current player if undefined, or the index
+		 * Get the next player after the given player
+		 * @param {string|Player} player the current player if undefined,
+		 * or the key of a player, or the player
 		 * of the player to get the next player to
-		 * @return {number} index of next player
+		 * @return {Player} the next player
 		 */
-		nextPlayer(index) {
-			if (typeof index === 'undefined')
-				index = this.whosTurn;
-			return (index + 1) % this.players.length;
+		nextPlayer(player) {
+			if (typeof player === 'undefined')
+				player = this.getPlayer(this.whosTurnKey);
+			else if (typeof player === 'string')
+				player = this.getPlayer(player);
+			const index = this.players.findIndex(p => p.key === player.key);
+			if (index < 0)
+				throw new Error(`${player.key} not found in ${this.key}`);
+			return this.players[(index + 1) % this.players.length];
 		}
 
 		/**
@@ -357,7 +375,7 @@ define('game/Game', [
 		 */
 		toString() {
 			const ps = this.players.map(p => p.toString()).join(', ');
-			return `Game ${this.key} edition "${this.edition}" dictionary "${this.dictionary}" players [ ${ps} ] next ${this.whosTurn}`;
+			return `Game ${this.key} edition "${this.edition}" dictionary "${this.dictionary}" players [ ${ps} ] next ${this.whosTurnKey}`;
 		}
 
 		/**
@@ -384,7 +402,7 @@ define('game/Game', [
 		 * or undefined if game is playable
 		 */
 		playIfReady() {
-			console.log(`playIfReady ${this.key} ${this.whosTurn}`);
+			console.log(`playIfReady ${this.key} ${this.whosTurnKey}`);
 			if (this.players.length < 2) {
 				console.log("\tnot enough players");
 				return Promise.resolve(/*i18n*/'Need 2 players');
@@ -392,22 +410,23 @@ define('game/Game', [
 
 			let prom;
 
-			if (this.whosTurn < 0) {
+			if (!this.whosTurnKey) {
 				// Pick a random tile from the bag
-				this.whosTurn = Math.floor(Math.random() * this.players.length);
+				this.whosTurnKey = this.players[
+					Math.floor(Math.random() * this.players.length)].key;
 				prom = this.save();
-			} else if (this.whosTurn >= this.players.length) {
+			} else if (!this.getPlayer(this.whosTurnKey)) {
 				// Player who's play it was must have left
-				this.whosTurn = 0;
+				this.whosTurnKey = this.players[0].key;
 				prom = this.save();
 			} else
 				prom = Promise.resolve();
 
-			const player = this.players[this.whosTurn];
+			const player = this.getPlayer();
 			console.log(`\tnext to play is ${player.name}`);
 			if (player.isRobot) {
 				console.log(`\tautoplay ${player.name}`);
-				return prom.then(() => this.autoplay(player))
+				return prom.then(() => this.autoplay())
 				// May autoplay next robot recursively
 				.then(turn => this.finishTurn(turn))
 				.then(() => undefined);
@@ -468,7 +487,7 @@ define('game/Game', [
 					return Promise.resolve();
 				}
 
-				console.log(`Player ${this.whosTurn}'s turn`);
+				console.log(`Player ${this.whosTurnKey}'s turn`);
 				const nextPlayer = this.getPlayer();
 				if (nextPlayer.isRobot) {
 					// Does a player have nothing on their rack? If
@@ -476,7 +495,7 @@ define('game/Game', [
 					// will never challenge their play.
 					const promise = this.getPlayerWithNoTiles()
 						  ? this.confirmGameOver(/*i18n*/'Game over')
-						  : this.autoplay(nextPlayer);
+						  : this.autoplay();
 					// May recurse if the player after is also a robot, but
 					// the recursion will always stop when a human player
 					// is reached, so never deep.
@@ -552,7 +571,7 @@ define('game/Game', [
 			if (this.state !== 'playing')
 				return prom;
 
-			const player = this.players[this.whosTurn];
+			const player = this.getPlayer();
 			console.log(`Sending reminder mail to ${player.key}/${player.name}`);
 			const plt = Platform.i18n(
 				'email-your-turn', this.playerListText(player));
@@ -612,15 +631,15 @@ define('game/Game', [
 
 		/**
 		 * Start the turn of the given player.
-		 * @param {number} playerIndex the index of the player to get the turn
+		 * @param {Player} player the the player to get the turn
 		 * @param {number} timeout timeout for this turn, if undefined, use
 		 * the Game.time_limit
 		 */
-		startTurn(playerIndex, timeout) {
-			console.log(`Starting ${this.players[playerIndex].name}'s turn`);
-			this.whosTurn = playerIndex;
+		startTurn(player, timeout) {
+			console.log(`Starting ${player.name}'s turn`);
+			this.whosTurnKey = player.key;
 			if (this.time_limit && this.state !== 'playing') {
-				this.players[playerIndex].startTimer(
+				player.startTimer(
 					timeout || this.time_limit * 60,
 					() => this.pass('timeout')
 					.then(turn => this.finishTurn(turn)));
@@ -640,17 +659,21 @@ define('game/Game', [
 			.then(ps => {
 				return {
 					key: this.key,
+					creationTimestamp: this.creationTimestamp,
 					edition: this.edition,
-					pausedBy: this.pausedBy,
-					ended: this.hasEnded() ? this.state : false,
 					dictionary: this.dictionary,
 					robot_dictionary: this.robot_dictionary,
+					state: this.state,
+					players: ps,					
+					turns: this.turns.length, // just the length
+					whosTurnKey: this.whosTurnKey,
 					time_limit: this.time_limit,
-					players: ps,
+					// this.board is not sent
+					// rackSize not sent, it's just a cache
+					pausedBy: this.pausedBy,
 					maxPlayers: this.maxPlayers,
-					turns: this.turns.length,
-					whosTurn: this.whosTurn,
-					timestamp: this.lastActivity()
+					nextGameKey: this.nextGameKey,
+					lastActivity: this.lastActivity() // epoch ms
 				};
 			});
 		}
@@ -676,7 +699,7 @@ define('game/Game', [
 			const knownSocket = this.getConnection(player);
 			if (knownSocket !== null) {
 				console.log('WARNING:', player, 'already connected to', this);
-			} else if (player.index === this.whosTurn
+			} else if (player.key === this.whosTurn
 					   && this.state === 'playing') {
 				const to = (player.timeRemaining > 0)
 					  ? player.timeRemaining
@@ -722,13 +745,13 @@ define('game/Game', [
 		 * @private
 		 */
 		tick() {
-			const player = this.players[this.whosTurn];
-			//console.log(`Tick ${this.players[this.whosTurn].name} ${player.timeRemaining}`);
+			const player = this.getPlayer();
+			//console.log(`Tick ${this.getPlayer().name} ${player.timeRemaining}`);
 			player.timeRemaining--;
 			this.notifyPlayers(
 				'tick',
 				{
-					player: this.whosTurn,
+					playerKey: player.key,
 					timeRemaining: player.timeRemaining
 				});
 		}
@@ -753,11 +776,11 @@ define('game/Game', [
 		 */
 		startTheClock() {
 			if (this.time_limit && !this._intervalTimer) {
-				const rem = this.players[this.whosTurn].timeRemaining;
+				const rem = this.getPlayer().timeRemaining;
 				console.log(`Started tick timer with ${rem} on the clock`);
 				// Broadcast a ping every second
 				this._intervalTimer = setInterval(() => {
-					const pnext = this.players[this.whosTurn];
+					const pnext = this.getPlayer();
 					if (pnext.timeRemaining > 0)
 						this.tick();
 				}, 1000);
@@ -980,7 +1003,7 @@ define('game/Game', [
 			}
 
 			// Record the move
-			move.playerIndex = player.index;
+			move.playerKey = player.key;
 			move.remainingTime = player.remainingTime;
 			this.previousMove = move;
 
@@ -998,8 +1021,8 @@ define('game/Game', [
 			// Report the result of the turn
 			const turn = new Turn(this, {
 				type: 'move',
-				player: player.index,
-				nextToGo: this.whosTurn,
+				playerKey: player.key,
+				nextToGoKey: this.whosTurnKey,
 				deltaScore: move.score,
 				placements: move.placements,
 				replacements: move.replacements,
@@ -1010,12 +1033,12 @@ define('game/Game', [
 		}
 		
 		/**
-		 * Robot play for the given player
-		 * @param {Player} player to play
+		 * Robot play for the next player
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
-		autoplay(player) {
+		autoplay() {
 			let bestPlay = null;
+			const player = this.getPlayer();
 
 			console.log(`Autoplaying ${player.name}`);
 			return Platform.findBestPlay(
@@ -1079,8 +1102,9 @@ define('game/Game', [
 			// unplayed letters is added to that player's score.
 			let playerWithNoTiles;
 			let pointsRemainingOnRacks = 0;
-			const deltas = Array(this.players.length).fill(0);
+			const deltas = {};
 			this.players.forEach(player => {
+				deltas[player.key] = 0;
 				if (player.rack.isEmpty()) {
 					if (playerWithNoTiles)
 						throw Error('Found more than one player with no tiles when finishing game');
@@ -1089,7 +1113,7 @@ define('game/Game', [
 				else {
 					const rackScore = player.rack.score();
 					player.score -= rackScore;
-					deltas[player.index] -= rackScore;
+					deltas[player.key] -= rackScore;
 					pointsRemainingOnRacks += rackScore;
 					console.log(`${player.name} has ${rackScore} left`);
 				} 
@@ -1097,13 +1121,13 @@ define('game/Game', [
 
 			if (playerWithNoTiles) {
 				playerWithNoTiles.score += pointsRemainingOnRacks;
-				deltas[playerWithNoTiles.index] = pointsRemainingOnRacks;
+				deltas[playerWithNoTiles.key] = pointsRemainingOnRacks;
 				console.log(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
 			}
 
 			const turn = new Turn(this, {
 				type: /*i18n*/'Game over',
-				player: this.whosTurn,
+				playerKey: this.whosTurnKey,
 				deltaScore: deltas
 			});
 			return Promise.resolve(turn);
@@ -1122,7 +1146,7 @@ define('game/Game', [
 			// SMELL: Might a comms race result in it being issued by
 			// someone else?
 			const previousMove = this.previousMove;
-			const prevPlayer = this.players[previousMove.playerIndex];
+			const prevPlayer = this.getPlayer(previousMove.playerKey);
 
 			delete this.previousMove;
 
@@ -1142,11 +1166,11 @@ define('game/Game', [
 			}
 			prevPlayer.score -= previousMove.score;
 
-			const challenger = this.whosTurn;
+			const challenger = this.whosTurnKey;
 			if (type === 'took-back') {
 				// A takeBack, not a challenge. Let that player go again,
 				// but with just the remaining time from their move.
-				this.startTurn(previousMove.playerIndex,
+				this.startTurn(this.getPlayer(previousMove.playerKey),
 							   previousMove.remainingTime);
 			}
 			// else a successful challenge, does not move the player on.
@@ -1155,17 +1179,17 @@ define('game/Game', [
 			else {
 				// A successful challenge restarts the timer for the challenger
 				// player from the beginning
-				this.startTurn(challenger);
+				this.startTurn(this.getPlayer(challenger));
 			}
 
 			const turn = new Turn(this, {
 				type: type,
-				player: previousMove.playerIndex,
-				nextToGo: this.whosTurn,
+				playerKey: previousMove.playerKey,
+				nextToGoKey: this.whosTurnKey,
 				deltaScore: -previousMove.score,
 				placements: previousMove.placements,
 				replacements: previousMove.replacements,
-				challenger: challenger
+				challengerKey: challenger
 			});
 
 			return Promise.resolve(turn);
@@ -1194,8 +1218,8 @@ define('game/Game', [
 			return Promise.resolve(new Turn(
 				this, {
 					type: type,
-					player: passingPlayer.index,
-					nextToGo: this.whosTurn
+					playerKey: passingPlayer.key,
+					nextToGoKey: this.whosTurnKey
 				}));
 		}
 
@@ -1206,7 +1230,7 @@ define('game/Game', [
 		 */
 		challenge() {
 			// Cancel any outstanding timer until the challenge is resolved
-			this.players[this.whosTurn].stopTimer();
+			this.getPlayer().stopTimer();
 
 			return this.getDictionary()
 			.catch(() => {
@@ -1236,8 +1260,7 @@ define('game/Game', [
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		swap(tiles) {
-			const swappingIndex = this.whosTurn;
-			const swappingPlayer = this.players[swappingIndex];
+			const swappingPlayer = this.getPlayer();
 			swappingPlayer.stopTimer();
 
 			if (this.letterBag.remainingTileCount() < tiles.length)
@@ -1273,27 +1296,27 @@ define('game/Game', [
 			for (tile of move.replacements)
 				swappingPlayer.rack.addTile(tile);
 
-			const nextIndex = (swappingIndex + 1) % this.players.length;
-			this.startTurn(nextIndex);
+			const nextPlayer = this.nextPlayer();
+			this.startTurn(nextPlayer);
 
 			return Promise.resolve(
 				new Turn(this,
 						 {
 							 type: 'swap',
-							 player: swappingIndex,
-							 nextToGo: nextIndex,
+							 playerKey: swappingPlayer.key,
+							 nextToGoKey: nextPlayer.key,
 							 replacements: move.replacements
 						 }));
 		}
 
 		/**
 		 * Handler for 'anotherGame' command
-		 * @return {Promise} resolving to undefined
+		 * @return {Promise} resolving to the key of the new game
 		 */
 		anotherGame() {
 			if (this.nextGameKey) {
 				console.log(`another game already created: old ${this.key} new ${this.nextGameKey}`);
-				return Promise.resolve(); // NOP
+				return Promise.reject("Next game already exists");
 			}
 
 			console.log(`Create game to follow ${this.key}`);
@@ -1324,12 +1347,13 @@ define('game/Game', [
 
 					.forEach(p => newGame.addPlayer(new Player(p)));
 
-					newGame.whosTurn = 0;
+					newGame.whosTurnKey = newGame.players[0].key;
 					newGame.time_limit = this.time_limit;
 					console.log(`Created follow-on game ${newGame.key}`);
 					return newGame.save()
 					.then(() => newGame.playIfReady())
-					.then(() => this.notifyPlayers('nextGame', newGame.key));
+					.then(() => this.notifyPlayers('nextGame', newGame.key))
+					.then(() => newGame.key);
 				});
 			});
 		}
@@ -1342,7 +1366,7 @@ define('game/Game', [
 		createPlayerTableDOM(thisPlayer) {
 			const $tab = $('<table></table>');
 			this.players.forEach(
-				p => $tab.append(p.createScoreDOM(thisPlayer)));
+				p => $tab.append(p.createScoreDOM(thisPlayer.key)));
 			return $tab;
 		}
 	}

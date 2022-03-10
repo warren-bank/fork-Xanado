@@ -12,7 +12,7 @@
 	"Advisor": "Advisor",
 	"All passed twice": "All players passed twice",
 	"and": "and",
-	"Another game": "Another game",
+	"Another game": "Another game like this",
 
 	"Cannot load $1": "Game $1 cannot be loaded",
 	"Change password": "Change password",
@@ -42,13 +42,11 @@
 	"Game": "Game",
 	"Game has ended": "Game has ended",
 	"Game over": "Game over",
-	"game-select-blank": "Select the letter for the blank",
 	"Games for $1": "Games for $1",
 	"Games": "Games",
 	"games-scores": "$1: <b>$2</b>: $3 ($4 win{{PLURAL:$4||s}})",
 	"Game started": "Game started",
-	"Email turn reminder": "Email turn reminder",
-	"Email turn reminders": "Email turn reminders",
+	"Email reminder to $1": "Email reminder to $1",
 	"game-take-back": "Take back last turn",
 	"game-turns": "$1 turn{{PLURAL:$1||s}}",
 
@@ -90,6 +88,7 @@
 	"robot dictionary $1": "robot dictionary $1",
 
 	"Scores": "Scores",
+	"Select blank letter": "Select the letter for the blank",
 	"Send email": "Send email",
 	"Show finished": "Show finished games",
 	"Shuffle": "Shuffle",

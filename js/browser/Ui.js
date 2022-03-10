@@ -94,6 +94,8 @@ define('browser/Ui', [
 
 			this.attachHandlers();
 
+			$("button").button();
+
 			console.log(`GET /game/${gameKey}`);
 			$.get(`/game/${gameKey}`)
 			.then(frozen => {
@@ -109,8 +111,8 @@ define('browser/Ui', [
 		/**
 		 * True if the current player is the player at the given index
 		 */
-		isPlayer(index) {
-			return this.player && this.player.index === index;
+		isPlayer(key) {
+			return this.player && this.player.key === key;
 		}
 
 		/**
@@ -194,7 +196,7 @@ define('browser/Ui', [
 		 */
 		appendTurnToLog(turn, latestTurn) {
 			// Who's turn was it?
-			const player = this.game.getPlayer(turn.player);
+			const player = this.game.getPlayer(turn.playerKey);
 			this.log($.i18n('ui-log-turn-player', player.name), 'turnPlayer');
 
 			// What did they do?
@@ -243,16 +245,16 @@ define('browser/Ui', [
 				&& turn.type !== 'challenge-failed'
 				&& turn.type !== 'Game over') {
 				if (this.isPlayer(turn.emptyPlayer)) {
-					if (typeof turn.nextToGo !== 'number')
-						turn.nextToGo = this.game.whosTurn;
+					if (!turn.nextToGoKey)
+						turn.nextToGoKey = this.game.whosTurnKey;
 					this.log(
 						$.i18n('ui-log-you-no-more-tiles',
-							   this.game.getPlayer(turn.nextToGo).name),
+							   this.game.getPlayer(turn.nextToGoKey).name),
 						'turnNarrative');
 				} else
 					this.log(
 						$.i18n('ui-log-they-no-more-tiles',
-							   this.game.getPlayer(turn.emptyPlayer).name),
+							   this.game.getPlayer(turn.emptyPlayerKey).name),
 					'turnNarrative');
 			}
 		}
@@ -278,7 +280,7 @@ define('browser/Ui', [
 				(sum, player) => sum + player.rack.score(), 0);
 			const $narrative = $('<div></div>');
 			game.players.forEach(player => {
-				const isMe = this.isPlayer(player.index);
+				const isMe = this.isPlayer(player.key);
 				const name = isMe ? $.i18n('You') : player.name;
 				const $gsd = $('<div class="gameEndScore"></div>');
 
@@ -293,9 +295,10 @@ define('browser/Ui', [
 					this.playAudio('lost');
 
 				if (player.rack.isEmpty()) {
-					if (unplayed > 0)
+					if (unplayed > 0) {
 						$gsd.text($.i18n('ui-log-gained-from-racks',
 										 name, unplayed));
+					}
 				} else if (player.rack.score() > 0) {
 					// Lost sum of unplayed letters
 					$gsd.text($.i18n(
@@ -303,7 +306,7 @@ define('browser/Ui', [
 						name, player.rack.score(),
 						player.rack.lettersLeft().join(',')));
 				}
-
+				player.refreshDOM();
 				$narrative.append($gsd);
 			});
 
@@ -377,7 +380,7 @@ define('browser/Ui', [
 				return;
 			}
 			let stick = '';
-			if (this.isPlayer(tick.player)) {
+			if (this.isPlayer(tick.playerKey)) {
 				this.player.timeRemaining = tick.timeRemaining;
 				stick = $.i18n('ui-tick-you', Math.floor(tick.timeRemaining));
 				if (tick.timeRemaining < 10 && this.settings.warnings)
@@ -391,7 +394,7 @@ define('browser/Ui', [
 			}
 			else
 				stick = $.i18n('ui-tick-them',
-							   this.game.getPlayer(tick.player).name,
+							   this.game.getPlayer(tick.playerKey).name,
 							   tick.timeRemaining);
 			$to.text(stick).fadeIn(200);
 		}
@@ -458,7 +461,7 @@ define('browser/Ui', [
 				{
 					const lastTurn = this.game.turns.length && this.game.turns[this.game.turns.length - 1];
 					if (lastTurn && lastTurn.type == 'move') {
-						if (this.isPlayer(this.game.whosTurn))
+						if (this.isPlayer(this.game.whosTurnKey))
 							// Challenge last move
 							this.challenge();
 						else
@@ -503,11 +506,11 @@ define('browser/Ui', [
 		/**
 		 * Show who's turn it is
 		 */
-		updateWhosTurn(whosTurn) {
+		updateWhosTurn(whosTurnKey) {
 			$('tr.whosTurn').removeClass('whosTurn');
-			$(`#player${whosTurn}`).addClass('whosTurn');
+			$(`#player${whosTurnKey}`).addClass('whosTurn');
 			$('#yourPlayBlock').css(
-				'display', this.isPlayer(whosTurn) ? 'block' : 'none');
+				'display', this.isPlayer(whosTurnKey) ? 'block' : 'none');
 		}
 
 		/**
@@ -595,7 +598,7 @@ define('browser/Ui', [
 			// Can swap up to swapCount tiles
 			this.swapRack = new Rack(this.game.board.swapCount);
 
-			this.player = this.game.getPlayerWithKey(playerKey);
+			this.player = this.game.getPlayer(playerKey);
 			const $players = this.game.createPlayerTableDOM(this.player);
 			$('#playerTable').append($players);
 
@@ -624,8 +627,8 @@ define('browser/Ui', [
 
 			this.scrollLogToEnd(0);
 
-			this.updateWhosTurn(game.whosTurn);
-			const myGo = this.isPlayer(game.whosTurn);
+			this.updateWhosTurn(game.whosTurnKey);
+			const myGo = this.isPlayer(game.whosTurnKey);
 			this.lockBoard(!myGo);
 			this.enableTurnButton(myGo);
 
@@ -636,7 +639,7 @@ define('browser/Ui', [
 
 			if (lastTurn && (lastTurn.type === 'move'
 							 || lastTurn.type === 'challenge-failed')) {
-				if (this.isPlayer(game.whosTurn)) {
+				if (this.isPlayer(game.whosTurnKey)) {
 					// It's our turn
 					this.addChallengePreviousButton(lastTurn);
 				} else
@@ -646,12 +649,13 @@ define('browser/Ui', [
 			}
 
 			if (this.player) {
-				$('#shuffleButton').button({
+				$('#shuffleButton')
+				.button({
 					showLabel: false,
 					icon: 'shuffle-icon',
 					title: $.i18n("Shuffle"),
 					classes: {
-						'ui-button-icon': 'crossword-icon'
+						'ui-button-icon': 'fat-icon'
 					}
 				})
 				.on('click', () => this.shuffleRack());
@@ -661,7 +665,7 @@ define('browser/Ui', [
 					icon: 'take-back-icon',
 					title: $.i18n('Take back'),
 					classes: {
-						'ui-button-icon': 'crossword-icon'
+						'ui-button-icon': 'fat-icon'
 					}				
 				})
 				.on('click', () => this.takeBackTiles());
@@ -1050,6 +1054,7 @@ define('browser/Ui', [
 					$tab.append($row);
 
 				$dlg.dialog({
+					dialogClass: 'no-title',
 					modal: true,
 					closeOnEscape: false,
 					closeText: 'hide'
@@ -1107,7 +1112,7 @@ define('browser/Ui', [
 			// and the game might be over.
 			const lastPlayer = this.game.previousPlayer();
 			if (!this.game.hasEnded()
-				&& this.game.getPlayer(lastPlayer).rack.isEmpty()) {
+				&& lastPlayer.rack.isEmpty()) {
 				this.lockBoard(true);
 				this.setMoveAction(/*i18n ui-*/'confirmGameOver');
 			} else if (this.placedCount > 0) {
@@ -1188,12 +1193,13 @@ define('browser/Ui', [
 			this.appendTurnToLog(turn, true);
 			this.scrollLogToEnd(300);
             this.removeMoveActionButtons();
-			const player = this.game.getPlayer(turn.player);
+			const player = this.game.getPlayer(turn.playerKey);
 			if (typeof turn.deltaScore === 'number')
 				player.score += turn.deltaScore;
-			else if (typeof turn.deltaScore !== 'undefined')
-				turn.deltaScore.forEach(
-					(d, i) => this.game.players[i].score += d);
+			else if (typeof turn.deltaScore === 'object')
+				Object.keys(turn.deltaScore).forEach(
+					k => this.game.players
+					.find(p => p.key === k).score += turn.deltaScore[k]);
 
 			player.refreshDOM();
 			$('.lastPlacement').removeClass('lastPlacement');
@@ -1218,7 +1224,7 @@ define('browser/Ui', [
 				}
 
 				// Was it us?
-				if (this.isPlayer(turn.player)) {
+				if (this.isPlayer(turn.playerKey)) {
 					// Only really needed for took-back
 					player.rack.refreshDOM();
 					if (turn.type === 'challenge-won') {
@@ -1227,7 +1233,7 @@ define('browser/Ui', [
 						this.notify(
 							$.i18n('ui-notify-title-challenged'),
 							$.i18n('ui-notify-body-challenged',
-								   this.game.getPlayer(turn.challenger).name,
+								   this.game.getPlayer(turn.challengerKey).name,
 								   -turn.score));
 					}
 				}
@@ -1236,12 +1242,12 @@ define('browser/Ui', [
 					this.notify(
 						$.i18n('ui-notify-title-retracted'),
 						$.i18n('ui-notify-body-retracted',
-							   this.game.getPlayers(turn.challenger).name));
+							   this.game.getPlayer(turn.challengerKey).name));
 				}
 				break;
 
 			case 'challenge-failed':
-				if (this.isPlayer(turn.player)) {
+				if (this.isPlayer(turn.playerKey)) {
 					// Our challenge failed
 					if (this.settings.warnings)
 						this.playAudio('oops');
@@ -1258,7 +1264,7 @@ define('browser/Ui', [
 				break;
 
 			case 'move':
-				if (!this.isPlayer(turn.player)) {
+				if (!this.isPlayer(turn.playerKey)) {
 					// Put the tiles placed in a turn into place on
 					// the board for a player who is not this player (they
 					// are already there for this player)
@@ -1284,7 +1290,7 @@ define('browser/Ui', [
 				for (let newTile of turn.replacements)
 					player.rack.addTile(newTile);
 
-				if (this.isPlayer(turn.player))
+				if (this.isPlayer(turn.playerKey))
 					player.rack.refreshDOM();
 
 				break;
@@ -1293,7 +1299,7 @@ define('browser/Ui', [
 				break;
 			}
 
-			if (this.isPlayer(turn.nextToGo)) {
+			if (this.isPlayer(turn.nextToGoKey)) {
 				if (this.settings.turn_alert)
 					this.playAudio('yourturn');
 				this.lockBoard(false);
@@ -1303,24 +1309,23 @@ define('browser/Ui', [
 				this.enableTurnButton(false);
 			}
 
-			if (typeof turn.nextToGo === 'number'
-				&& turn.type !== 'challenge-won') {
+			if (turn.nextToGoKey && turn.type !== 'challenge-won') {
 
-				this.updateWhosTurn(turn.nextToGo);
+				this.updateWhosTurn(turn.nextToGoKey);
 				if (turn.type == 'move')
 					this.addTakeBackPreviousButton(turn);
 
-				if (this.isPlayer(turn.nextToGo)
+				if (this.isPlayer(turn.nextToGoKey)
 					&& turn.type !== 'took-back') {
 					// It's our turn, and we didn't just take back
 					this.notify($.i18n('ui-notify-title-your-turn'),
 								$.i18n('ui-notify-body-your-turn',
-									   this.game.getPlayer(turn.player).name));
+									   this.game.getPlayer(turn.playerKey).name));
 
 					if (turn.type === 'move')
 						this.addChallengePreviousButton(turn);
 				}
-				this.game.whosTurn = turn.nextToGo;
+				this.game.whosTurnKey = turn.nextToGoKey;
 			}
 			this.updateGameStatus();
 		}
@@ -1341,7 +1346,9 @@ define('browser/Ui', [
 		 * @param {string} nextGameKey key for next game
 		 */
 		addContinuationGameButton(nextGameKey) {
-			const $but = $('<button></button>');
+			const $but = $('<button></button>')
+				  .button();
+
 			if (nextGameKey) {
 				$('.anotherGame').remove();
 				$but
@@ -1355,7 +1362,7 @@ define('browser/Ui', [
 				this.log($but);
 			} else {
 				$but
-				.addClass('anotherGame')
+				.addClass('anotherGame') // so it can be removed
 				.text($.i18n('Another game'))
 				.on('click',
 					() => $.post(`/anotherGame/${this.game.key}`));
@@ -1370,14 +1377,15 @@ define('browser/Ui', [
 		 * player's move (if it wasn't us)
 		 */
 		addChallengePreviousButton(turn) {
-			if (this.isPlayer(turn.player))
+			if (this.isPlayer(turn.playerKey))
 				return;
 			// It wasn't us
 			const text = $.i18n(
 				'ui-challenge',
-				this.game.getPlayer(turn.player).name);
+				this.game.getPlayer(turn.playerKey).name);
 			const $button =
-				  $(`<button class='moveAction'>${text}</button>`);
+				  $(`<button class='moveAction'>${text}</button>`)
+				  .button();
 			$button.click(() => this.challenge());
 			this.log($button, 'turnControl');
 			this.scrollLogToEnd(300);
@@ -1388,11 +1396,13 @@ define('browser/Ui', [
 		 * (this player's) previous move.
 		 */
 		addTakeBackPreviousButton(turn) {
-			if (!this.isPlayer(turn.player))
+			if (!this.isPlayer(turn.playerKey))
 				return;
 			// It's us!
 			const $button =
-				  $(`<button class='moveAction'>${$.i18n('Take back')}</button>`);
+				  $(`<button class='moveAction'></button>`)
+				  .text($.i18n('Take back'))
+				  .button();
 			$button.click(() => this.takeBackMove());
 			this.log($button, 'turnControl');
 			this.scrollLogToEnd(300);
@@ -1440,7 +1450,7 @@ define('browser/Ui', [
 			}
 			this.placedCount = 0;
 
-			move.player = this.player.index;
+			move.playerKey = this.player.key;
 
 			this.sendCommand('makeMove', move);
 		}

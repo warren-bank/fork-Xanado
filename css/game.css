@@ -1,31 +1,19 @@
 /**
-* Game board only
-*/
-.error {
-	color: red;
-	font-size: 1em;
+ * Styling for the "game" interface
+ */
+
+/* Button for making a play */
+#turnButton {
+	font-size: 130%;
 }
 
-button {
-    font-size: 120%;
-	padding: 0.1em 0.2em 0.1em 0.2em;
-	display: block;
-	max-width: 100%;
-	margin: 0 auto 0 auto;
-	overflow: hidden;
-	position: relative;
-	transform: translatez(0);
-	text-decoration: none;
-	box-sizing: border-box;
-	font-weight: normal;
-	box-shadow: 0 0.1em 0.5em rgba(0,0,0,0.2);
+/* Button in the log area; game continuation */
+.turnControl button {
+	font-size: 120%;
 }
 
-.noDecoration {
-	text-decoration: none;
-}
-
-.crossword-icon {
+/* Shuffle and take back fat buttons */
+.fat-icon {
     margin: 2px;
     background-size: 100% 100%;
     background-position: center;
@@ -92,23 +80,6 @@ div.container {
 /* The #controls > div with the scores and letter bag state */
 #scoresBlock {
     min-height: 4em;
-}
-
-#scoresBlock td.online {
-    color: green;
-}
-
-#scoresBlock td.offline {
-    color: #FF0000;
-}
-
-#scoresBlock .myTurn {
-	visibility: hidden;
-	color: green;
-}
-
-#scoresBlock tr.whosTurn td.myTurn {
-	visibility: inherit;
 }
 
 /* The #scoresBlock > div that has the letter bag status */
@@ -661,10 +632,6 @@ div.tableDivWrap td.ValidButWrongPlacement {
 	background-color: #E2FF98!important;
 }
 
-.playerName {
-	font-weight: bold;
-}
-
 .word {
 	font-style: italic
 }
@@ -688,8 +655,4 @@ div.tableDivWrap td.ValidButWrongPlacement {
 
 .tick-alert-high {
 	color: red;
-}
-
-.no-close .ui-dialog-titlebar-close {
-  display: none;
 }

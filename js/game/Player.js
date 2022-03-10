@@ -2,7 +2,11 @@
    license information */
 /* eslint-env amd, jquery */
 
-define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKey, Rack) => {
+define('game/Player', [
+	'platform', 'game/GenKey', 'game/Rack',
+], (
+	Platform, GenKey, Rack
+) => {
 
 	// Unicode characters
 	const BLACK_CIRCLE = '\u25cf';
@@ -37,13 +41,6 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 			 * @member {string}
 			 */
 			this.name = name;
-
-			/**
-			 * Index of the player in the game, assigned when they
-			 * join a game
-			 * @member {number}
-			 */
-			this.index = -1;
 
 			/**
 			 * Player doesn't have a rack until they join a game, as
@@ -111,19 +108,16 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 		}
 
 		/**
-		 * Join a game by drawing an initial rack from the letter bag.
+		 * Draw an initial rack from the letter bag.
 		 * @param {LetterBag} letterBag LetterBag to draw tiles from
-		 * @param {number} rackSize size of racks in this game
-		 * @param {number} index 'Player N'
+		 * @param {number} rackSize size of the rack
 		 */
-		joinGame(letterBag, rackSize, index) {
+		fillRack(letterBag, rackSize) {
 			// +1 to allow space for tile sorting in the UI
 			this.rack = new Rack(rackSize + 1);
 			for (let i = 0; i < rackSize; i++)
 				this.rack.addTile(letterBag.getRandomTile());
-			this.index = index;
 			this.score = 0;
-			console.log(`${this.name} is player ${this.index}`);
 		}
 
 		/**
@@ -245,34 +239,43 @@ define('game/Player', ['platform', 'game/GenKey', 'game/Rack'], (Platform, GenKe
 
 		/**
 		 * Create score table representation of the player on the browser
-		 * side only.
-		 * @param {Player} thisPlayer the player for whom the DOM is
+		 * side only. This is intended to work both on a full Player
+		 * object, but also on a Player.catalogue of the player.
+		 * @param {Player} player the player (or player.catalogue) who's
+		 * row this is
+		 * @param {string} curKey the key of the player for whom the DOM is
 		 * being generated
 		 * @return {jQuery} DOM object for the score table
 		 */
-		createScoreDOM(thisPlayer) {
-			const $tr = $(`<tr id='player${this.index}'></tr>`);
-			$tr.append(`<td class='myTurn'>&#10148;</td>`);
-			const who = thisPlayer && thisPlayer.key === this.key
+		createScoreDOM(curKey) {
+			const $tr = $(`<tr class="playerRow" id='player${this.key}'></tr>`);
+			$tr.append(`<td class='turnPointer'>&#10148;</td>`);
+			const $icon = $('<div class="ui-icon"></div>');
+			$icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
+			$tr.append($("<td></td>").append($icon));
+			const who = this.key === curKey
 				? Platform.i18n('You')
 				: this.name;
 			$tr.append(`<td class='playerName'>${who}</td>`);
 			$tr.append('<td class="remainingTiles"></td>');
+
 			/**
 			 * Jquery object that contains this player's online status on
 			 * the browser side only.
 			 * @private
 			 * @member {jQuery}
 			 */
-			this.$status = $(`<td class='status offline'>${BLACK_CIRCLE}</td>`);
+			this.$status = $(`<td class='connectState'>${BLACK_CIRCLE}</td>`);
 			$tr.append(this.$status);
+			this.$status.addClass(this.connected ? "online" : "offline");
+			
 			/**
 			 * Jquery object that contains this player's score on
 			 * the browser side only.
 			 * @private
 			 * @member {jQuery}
 			 */
-			this.$score = $(`<td class='score'>${this.score}</td>`);
+			this.$score = $(`<td class='playerScore'>${this.score}</td>`);
 			$tr.append(this.$score);
 			return $tr;
 		}

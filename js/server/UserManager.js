@@ -296,7 +296,7 @@ define('server/UserManager', [
 			Passport.use(new strategy(
 				cfg,
 				(accessToken, refreshToken, profile, done) => {
-					console.log("Logging in", profile);
+					console.log("Logging in", profile.displayName);
 					if (profile.emails && profile.emails.length > 0)
 						profile.email = profile.emails[0].value;
 					if (!profile.id || !profile.displayName)

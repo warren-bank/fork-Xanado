@@ -52,7 +52,7 @@ define('platform', [
 			if (/^\./.test(key))
 				throw Error(`Invalid DB key ${key}`);
 			const fn = Path.join(this.directory, `${key}.${this.type}`);
-			const s = JSON.stringify(Fridge.freeze(data)/*, null, 1*/);
+			const s = JSON.stringify(Fridge.freeze(data), null, 1);
 			return Fs.access(fn)
 			.then(acc => {
 				return Lock.lock(fn) // file exists

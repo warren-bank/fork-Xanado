@@ -3,6 +3,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta charset="utf-8" />
+    <!-- base href="/" This breaks $.tabs(), hard, so don't do it /-->
 	<link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
@@ -10,24 +11,28 @@
 
 	<link href="//cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" rel="stylesheet" type="text/css">
     <link href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css">
+
     <link href="/css/common.css" rel="stylesheet" type="text/css">
+    <link href="/css/playerTable.css" rel="stylesheet" type="text/css">
     <link href="/css/games.css" rel="stylesheet" type="text/css">
+
 	<script>
 	  var rjs_main = "browser/games";
 	</script>
 	<script data-main="/js/browser/rjs_config.js" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script>
+
   </head>
   <body>
 	<img src="/images/logo.svg" style="margin-top: 0.5em"/>
 	<div id="heading">
 	  <span class="not-logged-in">
 		<div data-i18n="introduction"></div>
-		<button id="login-button" class="game-button" data-i18n="Sign in"></button>
+		<button id="login-button" data-i18n="Sign in"></button>
 	  </span>
 	  <span class="logged-in">
 		<span id="id"></span>
-		<button id="logout-button" class="game-button" data-i18n="Sign out"></button>
-		<button id="chpw_button" class="game-button" data-i18n="Change password"></button>
+		<button id="logout-button" data-i18n="Sign out"></button>
+		<button id="chpw_button" data-i18n="Change password"></button>
 	  </span>
 	</div>
 
@@ -39,15 +44,15 @@
 
 	<div>
 	  <h2 data-i18n="Games"></h2>
-	  <label for="showall" data-i18n="Show finished"></label>
-	  <input id="showall" type="checkbox" />
+	  <label for="show-all-games" data-i18n="Show finished"></label>
+	  <input id="show-all-games" type="checkbox" />
 	  <div id="games_list">
 		<div id="game-table"></div>
 	  </div>
 	</div>
 	<div>
-	  <button id="create-game" class="game-button hidden" data-i18n="Create new game"></button>
-	  <button id="reminder-button" class="game-button hidden" data-i18n="Email turn reminders" data-i18n-tooltip="tooltip-email-reminders"></button>
+	  <button id="create-game" class="hidden" data-i18n="Create new game"></button>
+	  <button id="reminder-button" class="hidden" data-i18n="Email turn reminders" data-i18n-tooltip="tooltip-email-reminders"></button>
 	</div>
 
 	<div id="alertDialog" class="dialog">

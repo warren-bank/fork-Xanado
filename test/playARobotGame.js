@@ -24,7 +24,7 @@ requirejs.config({
 requirejs(['platform', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Square', 'game/Player', 'game/Game', 'game/LetterBag', 'game/Board', 'game/Move'], (Platform, Edition, Tile, Rack, Square, Player, Game, LetterBag, Board, Move) => {
 
 	let db = new Platform.Database('test', 'testgame');
-	let game = new Game('Tiny', 'SOWPODS_English');
+	let game = new Game('Tiny', 'CSW2019_English');
 	let gameKey = game.key;
 	let player = 0;
 
@@ -34,6 +34,7 @@ requirejs(['platform', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Square', 
 		game.addPlayer(player1);
 		let player2 = new Player('player two', "swelter", true);
 		game.addPlayer(player2);
+		game.whosTurnKey = player1.key;
 		return game.onLoad(db);
 	})
 	.then(game => game.save())

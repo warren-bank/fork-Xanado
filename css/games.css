@@ -1,3 +1,6 @@
+/**
+ * Styling specific to the "games" interface
+ */
 body {
 	color: white;
     margin-left: 3em;
@@ -5,55 +8,14 @@ body {
 	font-size: 1.2em;
 }
 
-fieldset {
-    background-color:rgba(255,255,255,0.5);
-    margin: 1em;
-}
-
-legend {
-    background-color:rgba(255,255,255,0.5);
-}
-
-th, td {
-	vertical-align: top;
-	padding-top: 1em;
-}
-
 #game-table {
 	margin-bottom: 1.5em;
 }
 
+/* A game in the games table */
 .game {
 	border: 1px solid;
 	padding: 0.2em;
-}
-
-.game-button {
-	color: white;
-	background-color: seagreen;
-	border-radius: 5px;
-	margin: 0.25em;
-	padding: 0.25em;
-}
-
-.game-button.risky {
-	background-color: darkred;
-}
-
-.no-padding {
-	padding: 0;
-}
-
-.online {
-	color: #00ff00;
-}
-
-.offline {
-	color: red;
-}
-
-.winner {
-	color: #f3c716ff;
 }
 
 .logged-in {
@@ -61,7 +23,7 @@ th, td {
 }
 
 #heading {
-	margin-top: 1em;
+	float: right;
 }
 
 #games-for {
@@ -69,24 +31,6 @@ th, td {
 	font-size: 2em;
 }
 
-#games-cumulative, #games_list, .dialog {
+#games-cumulative, #games_list {
 	display: none;
 }
-
-.player {
-	border: solid white 1px;
-	padding: 0.1em;
-	padding-top: 0.4em;
-	background-color: darkblue;
-	margin-left: 0.5em;
-	margin-right: 0.5em;
-}
-
-.player-icon {
-	margin-left: 0.5em;
-}
-
-.ui-selectmenu-menu {
-	z-index: 3000;/* in front of dialog*/
-}
-

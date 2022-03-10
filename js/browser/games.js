@@ -5,7 +5,16 @@
 /**
  * Browser app for games.html; populate the list of live games
  */
-requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (browserApp, Dialog, io) => {
+requirejs([
+	'socket.io',
+	'browser/browserApp', 'browser/Dialog',
+	'game/Player',
+	'jquery'
+], (
+	io,
+	browserApp, Dialog,
+	Player
+) => {
 	const BLACK_CIRCLE = '\u25cf';
 	const NEXT_TO_PLAY = '\u25B6';
 	const TWIST_OPEN = '\u25BC';
@@ -28,80 +37,86 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 		.dialog({ modal: true });
 	}
 
-	// Format a player
-	function $player(game, player, index) {
-		let $box = $("<div></div>")
-			.text($.i18n("Player $1", index + 1) + ': ')
-			.append($(`<b>${player.name}</b>`));
-
-		const $icon = $('<div class="ui-icon"></div>');
-		$icon.addClass(player.isRobot ? "icon-robot" : "icon-person");
-		$box.prepend($icon);
-
-		if (game.ended) {
+	// Format a player in a game score table
+	function $player(game, player) {
+		const $tr = Player.prototype.createScoreDOM.call(
+			player, loggedInAs.key);
+		
+		if (game.state !== 'playing') {
 			const winningScore = game.players.reduce(
 				(max, p) =>
 				Math.max(max, p.score), 0);
-			const s = `: ${player.score}`;
-			$box.append(s);
 			
 			if (player.score === winningScore) {
-				$box
-				.addClass("winner")
-				.append('<div class="ui-icon icon-winner"></div>');
+				$tr.append('<td class="ui-icon icon-winner"></td>');
 			}
 
-			return $box;
-
+			return $tr;
 		}
 
-		if (loggedInAs && player.key === loggedInAs.key) {
-			$box.append(
-				$(`<button name="join" class='game-button'></button>`)
-				.text($.i18n('Open', player.name))
-				.button()
-				.on('click', () => {
-					console.log(`Join game ${game.key}/${loggedInAs.key}`);
-					$.post(`/join/${game.key}/${loggedInAs.key}`)
-					.then(info => {
-						window.open(`/html/game.html?game=${game.key}&player=${loggedInAs.key}`, "_blank");
-						refresh();
+		if (loggedInAs) {
+			const $box = $("<td></td>");
+			$tr.append($box);
+
+			if (player.key === loggedInAs.key) {
+				$box.append(
+					$("<button name='join'></button>")
+					.text($.i18n('Open', player.name))
+					.button()
+					.on('click', () => {
+						console.log(`Join game ${game.key}/${loggedInAs.key}`);
+						$.post(`/join/${game.key}/${loggedInAs.key}`)
+						.then(info => {
+							window.open(
+								`/html/game.html?game=${game.key}&player=${loggedInAs.key}`,
+								"_blank");
+							refresh();
+						})
+						.catch(report);
+					}));
+
+				$box.append(
+					$("<button class='risky'></button>")
+					.text($.i18n("Leave"))
+					.button()
+					.on('click', () => {
+						console.log(`Leave game ${game.key}`);
+						$.post(`/leave/${game.key}/${loggedInAs.key}`)
+						.then(refresh)
+						.catch(report);
+					}));
+
+			} else if (!player.isRobot && game.whosTurnKey === player.key) {
+				$box.append(
+					$("<button></button>")
+					.text($.i18n("Email reminder"))
+					.button()
+					.tooltip({
+						content: $.i18n("tooltip-email-reminder")
 					})
-					.catch(report);
-				}));
-
-			$box.append(
-				$(`<button class='game-button risky'></button>`)
-				.text($.i18n("Leave"))
-				.button()
-				.on('click', () => {
-					console.log(`Leave game ${game.key}`);
-					$.post(`/leave/${game.key}/${loggedInAs.key}`)
-					.then(refresh)
-					.catch(report);
-				}));
-
-			return $box;
-		}
-
-		if (!player.isRobot) {
-			const $spot = $(`<span class="player-icon">${BLACK_CIRCLE}</span>`);
-			if (player.connected)
-				$spot.addClass('online');
-			else
-				$spot.addClass('offline');
-			$box.append($spot);
+					.on("click", () => {
+						$.post(`/sendReminder/${game.key}`)
+						.then(info => $('#alertDialog')
+							  .text($.i18n.apply(null, info))
+							  .dialog({
+								  title: $.i18n("Reminded $1", player.name),
+								  modal: true
+							  }))
+						.catch(report);
+					}));
+			}
+			return $tr;
 		}
 
 		return $box;
 	}
 
 	/**
-	 * Construct a div that shows the state of the given game
+	 * Construct a table that shows the state of the given game
 	 * @param {object} game a Game.catalogue() NOT a Game object
 	 */
 	function $game(game) {
-		const $box = $(`<div class="game"></div>`);
+		const $box = $(`<div class="game" id="${game.key}"></div>`);
 
 		const msg = [
 			//game.key, // debug only
@@ -119,13 +134,13 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 		if (game.time_limit > 0)
 			msg.push($.i18n("time limit $1", game.time_limit));
 
-		if (game.ended)
-			msg.push(`<b>${$.i18n(game.ended)}</b>`);
+		if (game.state !== 'playing')
+			msg.push(`<b>${$.i18n(game.state)}</b>`);
 
-		const $twist = $("<div></div>").hide();
 		const $twistButton =
-			  $("<button class='game-button no-padding'></button>")
+			  $("<button></button>")
 			  .button({ label: TWIST_OPEN })
+			  .addClass("no-padding")
 			  .on("click", () => {
 				  $twist.toggle();
 				  const isOpen = $twist.is(":visible");
@@ -135,13 +150,18 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 			  });
 		$box.append($twistButton);
 		$box.append(msg.join(', '));
+
+		const $twist = $("<div></div>").hide();
 		$box.append($twist);
-
+		
+		const $table = $("<table class='playerTable'></table>");
+		$twist.append($table);
 		game.players.map(
-			(player, index) =>
-			$twist.append($player(game, player, index)));
+			(player, index) => $table.append($player(game, player)));
 
-		if (!game.ended
+		$(`#player${game.whosTurnKey}`).addClass('whosTurn');
+
+		if (game.state === 'playing'
 			&& loggedInAs
 			&& (game.maxPlayers === 0
 				|| game.players.length < game.maxPlayers)) {
@@ -149,7 +169,7 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 			if (!game.players.find(p => p.key === loggedInAs.key)) {
 				// Can join game
 				$twist.append(
-					$(`<button class='game-button'></button>`)
+					$(`<button></button>`)
 					.text($.i18n('Join'))
 					.button()
 					.on('click', () => {
@@ -165,7 +185,7 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 
 			if (!game.players.find(p => p.isRobot)) {
 				$twist.append(
-					$(`<button class="game-button"></button>`)
+					$(`<button></button>`)
 					.text($.i18n("Add robot"))
 					.button()
 					.on('click', () => {
@@ -178,57 +198,47 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 		}
 			
 		if (loggedInAs) {
-			if (!game.ended && game.players.find(p => !p.isRobot)) {
+			if (game.state !== 'playing' && !game.nextGameKey) {
 				$twist.append(
-					$("<button class='game-button'></button>")
-					.text($.i18n("Email turn reminder"))
-					.button()
-					.tooltip({
-						content: $.i18n("tooltip-email-reminder")
-					})
-					.on("click", () => {
-						$.post(`/sendReminder/${game.key}`)
-						.then(info => $('#alertDialog')
-							  .text($.i18n.apply(null, info))
-							  .dialog({
-								  title: $.i18n("Email turn reminder"),
-								  modal: true
-							  }))
-						.catch(report);
-					}));
+					$("<button></button>")
+					.text($.i18n('Another game'))
+					.on('click',
+						() => $.post(`/anotherGame/${game.key}`)
+						.then(refresh)
+						.catch(report)));
 			}
 
 			$twist.append(
-				$(`<button class='game-button risky'></button>`)
+				$("<button class='risky'></button>")
 				.text($.i18n("Delete"))
 				.button()
-				.on('click', () => {
-					$.post(`/deleteGame/${game.key}`)
+				.on('click', () => $.post(`/deleteGame/${game.key}`)
 					.then(refresh)
-					.catch(report);
-				}));
-			
+					.catch(report)));
 		}
 			
 		return $box;
 	}
 
-	function showGames(data) {
-		if (data.length === 0) {
+	function showGames(games) {
+		if (games.length === 0) {
 			$('#games_list').hide();
 			return;
 		}
 		$('#games_list').show();
 		const $gt = $('#game-table');
 		$gt.empty();
-		data.forEach(game => $gt.append($game(game)));
-		const ema = data.reduce((em, game) => {
+
+		games.forEach(game => $gt.append($game(game)));
+
+		const ema = games.reduce((em, game) => {
 			// game is Game.catalogue(), not a Game object
-			if (game.ended
+			if (game.state !== 'playing'
 				|| !game.players
-				|| !game.players[game.whosTurn])
+				|| !game.players.find(p => p.key === game.whosTurnKey))
 				return em;
-			return em || game.players[game.whosTurn].email;
+			return em || game.players.find(p => p.key === game.whosTurnKey)
+			.email;
 		}, false);
 		if (ema && loggedInAs)
 			$('#reminder-button').show();
@@ -238,7 +248,7 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 
 	function refresh_games() {
 		return $.get("/games", {
-			all: $('#showall').is(':checked')
+			all: $('#show-all-games').is(':checked')
 		})
 		.then(showGames)
 		.catch(report);
@@ -297,7 +307,10 @@ requirejs(['browser/browserApp', 'browser/Dialog', 'socket.io', 'jquery'], (brow
 
 		const socket = io.connect(null);
 
-		$("#showall")
+		$("button")
+		.button();
+
+		$("#show-all-games")
 		.on('change', refresh_games);
 
 		$('#reminder-button')

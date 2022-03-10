@@ -299,7 +299,7 @@ define('server/Server', [
 			}
 
 			// determine if it is this player's turn
-			if (player.index !== game.whosTurn) {
+			if (player.key !== game.whosTurnKey) {
 				console.log(`not ${player.name}'s turn`);
 				throw new Error(/*i18n*/'Not your turn');
 			}
@@ -329,8 +329,8 @@ define('server/Server', [
 				games
 				.filter(game => (all || !game.hasEnded()))
 				.map(game => game.catalogue(this.userManager))))
-			.then(gs => gs.sort((a, b) => a.timestamp < b.timestamp ? 1
-								: a.timestamp > b.timestamp ? -1 : 0))
+			.then(gs => gs.sort((a, b) => a.lastActivity < b.lastActivity ? 1
+								: a.lastActivity > b.lastActivity ? -1 : 0))
 			.then(data => res.status(200).send(data))
 			.catch(e => this.trap(e, res));
 		}
@@ -504,7 +504,8 @@ define('server/Server', [
 					return res.status(500).send(err);
 				
 				// Pick a random tile from the bag
-				game.whosTurn = Math.floor(Math.random() * game.players.length);
+				game.whosTurnKey = game.players[
+					Math.floor(Math.random() * game.players.length)].key;
 			
 				game.emailInvitations(
 					`${req.protocol}://${req.get('Host')}`,
@@ -647,7 +648,10 @@ define('server/Server', [
 		 */
 		handle_anotherGame(req, res) {
 			return this.loadGame(req.params.gameKey)
-			.then(game => game.anotherGame())
+			.then(game => {
+				return game.anotherGame()
+				.then(() => res.status(200).send(game.nextGameKey));
+			})
 			.catch(e => this.trap(e, res));
 		}
 

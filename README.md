@@ -97,7 +97,7 @@ You can only have one robot in any one game, and you need at least one human pla
 (otherwise, what's the point?)
 
 When you create a game you can select the edition, the dictionary, and whether
-there is to be a time limit or a limit to the number of players who can join.
+there is to be a time limit or a limit to the number of players who can join. You can optionally select a different dictionary that the robot will use to select plays. Limiting the robot a smaller dictionary will give less challenging gameplay, but may be more suitable for younger players.
 
 The installation comes with emulations of a number of commercially available
 games - SCRABBLE®, Super SCRABBLE®, Lexulous, and Words With Friends.
