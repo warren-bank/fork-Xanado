@@ -182,7 +182,7 @@ define('game/Player', [
 		 * Generate a simple string representation of the player
 		 */
 		toString() {
-			let s = `Player${this.index} '${this.name}'`;
+			let s = `Player '${this.name}'`;
 			if (this.isRobot)
 				s += ' (Robot)';
 			if (this.key)

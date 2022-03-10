@@ -327,8 +327,6 @@ define('browser/Ui', [
 				this.log($.i18n('ui-log-winner', who, winners.length));
 
 			this.log($narrative);
-
-			this.addContinuationGameButton(game.nextGameKey);
 		}
 
 		/**
@@ -410,6 +408,11 @@ define('browser/Ui', [
 			// unplace any pending move
 			this.takeBackTiles();
 			this.logEndMessage(this.settings.cheers);
+			if (this.game.nextGameKey)
+				this.setMoveAction(/*i18n ui-*/'nextGame');
+			else
+				this.setMoveAction(/*i18n ui-*/'anotherGame');
+			this.enableTurnButton(true);
 			this.notify($.i18n('ui-notify-title-game-over'),
 						$.i18n('ui-notify-body-game-over'));
 		}
@@ -509,8 +512,6 @@ define('browser/Ui', [
 		updateWhosTurn(whosTurnKey) {
 			$('tr.whosTurn').removeClass('whosTurn');
 			$(`#player${whosTurnKey}`).addClass('whosTurn');
-			$('#yourPlayBlock').css(
-				'display', this.isPlayer(whosTurnKey) ? 'block' : 'none');
 		}
 
 		/**
@@ -599,8 +600,8 @@ define('browser/Ui', [
 			this.swapRack = new Rack(this.game.board.swapCount);
 
 			this.player = this.game.getPlayer(playerKey);
-			const $players = this.game.createPlayerTableDOM(this.player);
-			$('#playerTable').append($players);
+			const $playerTable = this.game.createPlayerTableDOM(this.player);
+			$('#players').append($playerTable);
 
 			if (this.player) {
 				$('#tileRack').append(this.player.rack.createDOM('Rack'));
@@ -622,15 +623,20 @@ define('browser/Ui', [
 			game.turns.forEach(
 				(turn, i) => this.appendTurnToLog(turn, i === game.turns.length - 1));
 
-			if (game.hasEnded())
+			if (game.hasEnded()) {
 				this.logEndMessage(false);
+				if (this.game.nextGameKey)
+					this.setMoveAction(/*i18n ui-*/'nextGame');
+				else
+					this.setMoveAction(/*i18n ui-*/'anotherGame');
+			}
 
 			this.scrollLogToEnd(0);
 
+			let myGo = this.isPlayer(game.whosTurnKey);
 			this.updateWhosTurn(game.whosTurnKey);
-			const myGo = this.isPlayer(game.whosTurnKey);
 			this.lockBoard(!myGo);
-			this.enableTurnButton(myGo);
+			this.enableTurnButton(myGo || game.hasEnded());
 
 			this.updateGameStatus();
 
@@ -670,7 +676,8 @@ define('browser/Ui', [
 				})
 				.on('click', () => this.takeBackTiles());
 
-				$('#turnButton').on('click', () => this.makeMove());
+				$('#turnButton')
+				.on('click', () => this.makeMove());
 			} else {
 				$('#shuffleButton').hide();
 				$('#turnButton').hide();
@@ -748,8 +755,10 @@ define('browser/Ui', [
 			.on('gameOverConfirmed', endState =>
 				this.processGameOverConfirmed(endState))
 
-			.on('nextGame',	nextGameKey =>
-				this.addContinuationGameButton(nextGameKey))
+			.on('nextGame',	nextGameKey => {
+				this.game.nextGameKey = nextGameKey;
+				this.setMoveAction(/*i18n ui-*/'nextGame');
+			})
 
 			.on('message', message => this.processMessage(message))
 
@@ -1122,7 +1131,7 @@ define('browser/Ui', [
 				const move = this.game.board.analyseMove();
 				if (typeof move === 'string') {
 					$('#move').append($.i18n(move));
-					$('#turnButton').attr('disabled', 'disabled');
+					this.enableTurnButton(false);
 				} else {
 					for (const word of move.words) {
 						$('#move')
@@ -1133,7 +1142,7 @@ define('browser/Ui', [
 					}
 					const total = $.i18n('ui-log-total', move.score);
 					$('#move').append(`<span class="totalScore">${total}</span>`);
-					$('#turnButton').removeAttr('disabled');
+					this.enableTurnButton(true);
 				}
 
 				// Use visibility and not display to keep the layout stable
@@ -1143,13 +1152,13 @@ define('browser/Ui', [
 				// Swaprack has tiles on it, change the move action to swap
 				this.setMoveAction(/*i18n ui-*/'swap');
 				$('#board .ui-droppable').droppable('disable');
-				$('#turnButton').removeAttr('disabled');
+				this.enableTurnButton(true);
 				$('#takeBackButton').css('visibility', 'inherit');
 			} else if (!this.game.hasEnded()) {
 				// Otherwise turn action is a pass
 				this.setMoveAction(/*i18n ui-*/'pass');
 				$('#board .ui-droppable').droppable('enable');
-				$('#turnButton').removeAttr('disabled');
+				this.enableTurnButton(true);
 				$('#takeBackButton').css('visibility', 'hidden');
 			}
 		}
@@ -1342,37 +1351,6 @@ define('browser/Ui', [
 		}
 
 		/**
-		 * Append a formatted 'next game' message and button to the log
-		 * @param {string} nextGameKey key for next game
-		 */
-		addContinuationGameButton(nextGameKey) {
-			const $but = $('<button></button>')
-				  .button();
-
-			if (nextGameKey) {
-				$('.anotherGame').remove();
-				$but
-				.text($.i18n("Next game"))
-				.on('click',
-					() => $.post(`/join/${nextGameKey}/${this.player.key}`)
-					.then(info => {
-						location.replace(
-							`/html/game.html?game=${nextGameKey}&player=${this.player.key}`);
-					}));
-				this.log($but);
-			} else {
-				$but
-				.addClass('anotherGame') // so it can be removed
-				.text($.i18n('Another game'))
-				.on('click',
-					() => $.post(`/anotherGame/${this.game.key}`));
-				this.log($but, 'turnControl');
-				this.log($.i18n('ui-log-same-players'));
-			}
-			this.scrollLogToEnd(300);
-		}
-
-		/**
 		 * Add a 'Challenge' button to the log pane to challenge the last
 		 * player's move (if it wasn't us)
 		 */
@@ -1484,6 +1462,32 @@ define('browser/Ui', [
 		}
 
 		/**
+		 * Handler for the 'Another game" button. Invoked via makeMove.
+		 */
+		anotherGame() {
+			$.post(`/anotherGame/${this.game.key}`)
+			.then(nextGameKey => {
+				this.game.nextGameKey = nextGameKey;
+				this.setMoveAction('nextGame');
+				this.enableTurnButton(true);
+			})
+			.catch(console.error);
+		}
+		
+		/**
+		 * Handler for the 'Next game" button. Invoked via makeMove.
+		 */
+		nextGame() {
+			const key = this.game.nextGameKey;
+			$.post(`/join/${key}/${this.player.key}`)
+			.then(info => {
+                location.replace(
+                    `/html/game.html?game=${key}&player=${this.player.key}`);
+            })
+			.catch(console.error);
+		}
+		
+		/**
 		 * Handler for the 'Swap' button clicked. Invoked via 'makeMove'.
 		 */
 		swap() {
@@ -1499,6 +1503,7 @@ define('browser/Ui', [
 		 * @private
 		 */
 		setMoveAction(action) {
+			console.log("setMoveAction", action);
 			$('#turnButton')
 			.data('action', action)
 			.empty()

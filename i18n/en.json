@@ -79,6 +79,7 @@
 
 	"Password": "Password",
 	"Pause game": "Pause the game",
+	"Play": "Play",
 	"Play cheers": "Play cheers",
 	"Player $1": "Player $1",
 
@@ -125,6 +126,7 @@
 	"tooltip-time-limit": "Maximum time allowed to take a turn, in minutes. If a player fails to take a turn in this time, they will be forced to pass. Leave blank for no time limit",
 	"Turn alert": "Play a sound when it's your turn",
 
+	"ui-anotherGame": "Another game?",
 	"ui-bag-empty": "The letter bag is empty",
 	"ui-bag-remaining": "$1 tile{{PLURAL:$1||s}} left in the bag",
 	"ui-challenge": "Challenge $1's turn",
@@ -147,6 +149,7 @@
 	"ui-log-winner": "$1 {{PLURAL:$2|has|have}} won",
 	"ui-log-winner-you": "You have won",
 	"ui-log-you-no-more-tiles":  "You have no more tiles, game will be over if $1 doesn't challenge your play",
+	"ui-nextGame": "Start next game",
 	"ui-notify-body-challenged": "$1 has successfully challenged your turn. You have lost the $2 points you scored, and the tiles you played are back on your rack",
 	"ui-notify-body-game-over": "Your game is over...",
 	"ui-notify-body-retracted": "$1 has taken back their turn",
@@ -187,6 +190,5 @@
 	"warn-centre-must-be-used": "Centre must be used",
 	"warn-disconnected": "Disconnected placement",
 
-	"Your play": "Your play",
 	"You": "You"
 }

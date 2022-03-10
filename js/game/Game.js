@@ -1364,7 +1364,7 @@ define('game/Game', [
 		 * being generated
 		 */
 		createPlayerTableDOM(thisPlayer) {
-			const $tab = $('<table></table>');
+			const $tab = $('<table class="playerTable"></table>');
 			this.players.forEach(
 				p => $tab.append(p.createScoreDOM(thisPlayer.key)));
 			return $tab;

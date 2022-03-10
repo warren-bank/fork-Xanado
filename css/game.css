@@ -92,7 +92,6 @@ div.container {
 
 /* The #controls > div with the swap rack and turn control buttons */
 #yourPlayBlock {
-    display: none;
 }
 
 /* #yourPlayBlock > div showing the proposed move */
