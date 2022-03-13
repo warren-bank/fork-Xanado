@@ -1,23 +1,23 @@
 <div class="dialog-row">
   <label for="edition" data-i18n="Game"></label>
-  <select id="edition"></select>
+  <select id="edition" name="edition"></select>
 </div>
 
 <div class="dialog-row">
   <label for="dictionary" data-i18n="Dictionary"></label>
-  <select id="dictionary" class="dictionary" data-i18n-tooltip="tooltip-dictionary">
+  <select id="dictionary" class="dictionary" data-i18n-tooltip="tooltip-dictionary" name="dictionary">
 	<option value="none" data-i18n="None"></option>
   </select>
 </div>
 
 <div class="dialog-row">
-  <label for="time_limit" data-i18n="Time limit"></label>
-  <input type="number" id="time_limit" step="1" data-i18n-placeholder="minutes" data-i18n-tooltip="tooltip-time-limit"/>
+  <label for="minutesPerPlay" data-i18n="Time limit"></label>
+  <input type="number" id="minutesPerPlay" step="1" data-i18n-placeholder="minutes" data-i18n-tooltip="tooltip-time-limit" name="minutesPerPlay"/>
 </div>
 
 <div class="dialog-row">
-  <label for="max_players" data-i18n="Maximum players"></label>
-  <input type="number" id="max_players" step="1" data-i18n-placeholder="infinity" data-i18n-tooltip="tooltip-max-players"/>
+  <label for="maxPlayers" data-i18n="Maximum players"></label>
+  <input type="number" id="max_players" step="1" data-i18n-placeholder="infinity" data-i18n-tooltip="tooltip-max-players" name="maxPlayers"/>
 </div>
 
 <div class="dialog_row">

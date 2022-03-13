@@ -23,8 +23,8 @@
 
   </head>
   <body>
-	<img src="/images/logo.svg" style="margin-top: 0.5em"/>
-	<div id="heading">
+	<img src="/images/logo.svg" class="logo" />
+	<div id="loginState">
 	  <span class="not-logged-in">
 		<div data-i18n="introduction"></div>
 		<button id="login-button" data-i18n="Sign in"></button>
@@ -36,21 +36,22 @@
 	  </span>
 	</div>
 
-	<div id="games-cumulative">
+	<div id="gamesCumulative">
 	  <h2 data-i18n="Leader board"></h2>
 	  <div id="player-list">
 	  </div>
 	</div>
 
-	<div>
+	<div id="gamesKnown">
 	  <h2 data-i18n="Games"></h2>
-	  <label for="show-all-games" data-i18n="Show finished"></label>
-	  <input id="show-all-games" type="checkbox" />
-	  <div id="games_list">
-		<div id="game-table"></div>
+	  <label for="showAllGames" data-i18n="Show finished"></label>
+	  <input id="showAllGames" type="checkbox" />
+	  <div id="gamesList">
+		<div id="gamesTable"></div>
 	  </div>
 	</div>
-	<div>
+
+	<div class="dialog-row">
 	  <button id="create-game" class="hidden" data-i18n="Create new game"></button>
 	  <button id="reminder-button" class="hidden" data-i18n="Email turn reminders" data-i18n-tooltip="tooltip-email-reminders"></button>
 	</div>

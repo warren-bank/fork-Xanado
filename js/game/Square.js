@@ -6,14 +6,14 @@ define('game/Square', ['platform'], (Platform) => {
 
 	// Map the characters in the board template to CSS classes
 	const CSS_CLASS =  {
-		M: /*i18n square-*/'Middle',
-		Q: /*i18n square-*/'QuadWord',
-		q: /*i18n square-*/'QuadLetter',
-		T: /*i18n square-*/'TripleWord',
-		t: /*i18n square-*/'TripleLetter',
-		D: /*i18n square-*/'DoubleWord',
-		d: /*i18n square-*/'DoubleLetter',
-		_: /*i18n square-*/'Normal'
+		M: /*i18n*/"square-middle",
+		Q: /*i18n*/"square-4W",
+		q: /*i18n*/"square-4L",
+		T: /*i18n*/"square-3W",
+		t: /*i18n*/"square-3L",
+		D: /*i18n*/"square-2W",
+		d: /*i18n*/"square-2L",
+		_: /*i18n*/"square-normal"
 	};
 
 	/**
@@ -71,7 +71,7 @@ define('game/Square', ['platform'], (Platform) => {
 		 */
 		placeTile(tile, locked) {
 			if (tile && this.tile && tile !== this.tile) {
-				console.log('Tile ', tile, ' over ', this.tile);
+				console.log("Tile ", tile, " over ", this.tile);
 				throw Error(`Square already occupied: ${this}`);
 			}
 
@@ -128,8 +128,8 @@ define('game/Square', ['platform'], (Platform) => {
 
 		refreshDOM() {
 			const $div = $(`#${this.id}`)
-				.removeClass('Selected')
-				.removeClass('Temp')
+				.removeClass('selected')
+				.removeClass('temporary')
 				.off('click');
 
 			if (this.tile)
@@ -144,13 +144,9 @@ define('game/Square', ['platform'], (Platform) => {
 		 */
 		setSelected(sel) {
 			if (sel && this.tile)
-				$(`#${this.id}`).addClass('Selected');
+				$(`#${this.id}`).addClass('selected');
 			else
-				$(`#${this.id}`).removeClass('Selected');
-			// Unused
-			//$('#board td').removeClass('Targeted');
-			//if (!this.tile)
-			//	$(`#${this.id}`).addClass('Targeted');
+				$(`#${this.id}`).removeClass('selected');
 		}
 
 		/**
@@ -163,11 +159,11 @@ define('game/Square', ['platform'], (Platform) => {
 				$div.droppable('destroy');
 
 			$div
-			.removeClass('Empty')
-			.addClass('Tile');
+			.removeClass("empty-square")
+			.addClass("tiled-square");
 
 			if (this.tile.isBlank)
-				$div.addClass('BlankLetter');
+				$div.addClass('blank-letter');
 
 			if (this.tileLocked) {
 				$div.addClass('Locked');
@@ -176,7 +172,7 @@ define('game/Square', ['platform'], (Platform) => {
 			} else {
 				// tile isn't locked, valid drag source
 				$div
-				.addClass('Temp')
+				.addClass('temporary')
 				.on('click', () => Platform.trigger('SelectSquare', [ this ]));
 
 				$div.draggable({
@@ -191,10 +187,10 @@ define('game/Square', ['platform'], (Platform) => {
 						// Configure drag helper
 						$(jui.helper)
 						.animate({'font-size' : '120%'}, 300)
-						.addClass('dragBorder');
+						.addClass('drag-border');
 					},
 
-					drag: (event, jui) => $(jui.helper).addClass('dragBorder'),
+					drag: (event, jui) => $(jui.helper).addClass('drag-border'),
 
 					stop: () => $div.css({ opacity: 1 })
 				});
@@ -203,8 +199,8 @@ define('game/Square', ['platform'], (Platform) => {
 			const letter = this.tile.letter;
 			const score = this.tile.score;
 			const $a = $('<a></a>');
-			$a.append(`<span class='Letter'>${letter}</span>`);
-			$a.append(`<span class='Score'>${score}</span>`);
+			$a.append(`<span class='letter'>${letter}</span>`);
+			$a.append(`<span class='score'>${score}</span>`);
 			$div.html($a);
 		}
 
@@ -221,13 +217,13 @@ define('game/Square', ['platform'], (Platform) => {
 
 			// no tile on the square, valid drop target
 			$div
-			.removeClass('Tile')
-			.addClass('Empty');
+			.removeClass("tiled-square")
+			.addClass('empty-square');
 
 			$div.on('click', () => Platform.trigger('SelectSquare', [ this ]))
 			// Handle something dropping on us
 			.droppable({
-				hoverClass: 'dropActive',
+				hoverClass: 'drop-active',
 				drop: (event, jui) => {
 					const source = $(jui.draggable).data('square');
 					// Tell the main UI about it
@@ -235,10 +231,10 @@ define('game/Square', ['platform'], (Platform) => {
 				}
 			});
 
-			const text = $.i18n(`square-${CSS_CLASS[this.type]}`);
+			const text = $.i18n(CSS_CLASS[this.type]);
 
-			$div.addClass('Empty')
-			.removeClass('Tile')
+			$div.addClass('empty-square')
+			.removeClass("tiled-square")
 			.html(`<a>${text}</a>`);
 		}
 	}		

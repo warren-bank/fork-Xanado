@@ -135,15 +135,15 @@ define('game/Rack', ['game/Surface'], Surface => {
 		 * @return {jQuery}
 		 */
 		createDOM(idbase, underlay) {
-			const $table = $('<table class="rackTable"></table>');
+			const $table = $('<table class="Rack"></table>');
 			const $tr = $(`<tr></tr>`);
 			let idx = 0;
 			this.forEachSquare(square => {
 				const $td = square.createDOM(idbase, idx);
 				if (underlay) {
 					const letter = underlay.charAt(idx);
-					$td.addClass('bgLetterContainer');
-					$td.append(`<div class='bgLetter'>${letter}</div>`);
+					$td.addClass('underlay-container');
+					$td.append(`<div class='underlay'>${letter}</div>`);
 				}
 				$tr.append($td);
 				idx++;

@@ -6,6 +6,10 @@ define("browser/Dialog", () => {
 	/**
 	 * Base class of modal dialogs. These are dialogs that support
 	 * a set of fields and a submit button.
+	 * In the HTML, any input or select that has a "name" attribute will
+	 * be used to populate a structure that is posted to the server.
+	 * The URL posted to is '/action' where 'action' is the result of
+	 * a call to getAction on the Dialog.
 	 */
 	class Dialog {
 
@@ -32,7 +36,7 @@ define("browser/Dialog", () => {
 					this.$dlg = $(`#${id}`);
 					this.$dlg.dialog({
 						title: options.title,
-						minWidth: 400,
+						width: 'auto',
 						modal: true,
 						open: () => this.openDialog(),
 						create: () => this.createDialog()
@@ -50,7 +54,8 @@ define("browser/Dialog", () => {
 		}
 
 		/**
-		 * Handle dialog creation once the HTML has been loaded
+		 * Handle dialog creation once the HTML has been loaded.
+		 * Override in subclasses to attach handlers etc.
 		 */
 		createDialog() {
 			this.$dlg
@@ -83,7 +88,7 @@ define("browser/Dialog", () => {
 			// tooltip() to the select is useless, you have to apply it to
 			// the span that covers the select. However this span is not
 			// created until some indeterminate time in the future, and
-			// there is no event triggered.  The alternative is to create
+			// there is no event triggered. The alternative is to create
 			// the selectmenu now, but doing so blows away the browser's
 			// memory of previous selections, which we want. So instead we
 			// have to brute-force initialise the 'title' attribute from
@@ -93,9 +98,10 @@ define("browser/Dialog", () => {
 			this.$dlg.find('select[data-i18n-tooltip]').each(function() {
 				$(this).attr('title', $.i18n($(this).data('i18n-tooltip')));
 			});
-			setTimeout(() => {
-				$('.ui-selectmenu-button').tooltip();
-			}, 100);
+			setTimeout(() => this.$dlg
+					   .find('.ui-selectmenu-button')
+					   .tooltip(),
+					   100);
 
 			// hide or show a password
 			this.$dlg.find('.hide-password')
@@ -123,13 +129,6 @@ define("browser/Dialog", () => {
 					this.submit();
 			});
 
-			const $las = this.$dlg.find("#logged-in-as");
-			if ($las.length > 0) {
-				$.get("/session")
-				.then(user => $las.text(
-					$.i18n('um-logged-in-as', user.name)));
-			}
-			
 			this.$dlg.find('.submit')
 			.on('click', () => this.submit());
 
@@ -159,7 +158,7 @@ define("browser/Dialog", () => {
 		}
 
 		/**
-		 * Enable submit if field values allow it
+		 * Enable submit if field values allow it.
 		 * @protected
 		 */
 		validate() {
@@ -174,9 +173,10 @@ define("browser/Dialog", () => {
 		submit() {
 			const action = this.getAction();
 			const p = {};
-			this.$dlg.find("input, select")
+			this.$dlg
+			.find("input,select")
 			.each(function() {
-				p[$(this).attr("id")] = $(this).val();
+				p[$(this).attr("name")] = $(this).val();
 			});
 			// Note that password fields are sent as plain text. This is
 			// not a problem so long as the comms are protected by HTTPS,
@@ -198,7 +198,8 @@ define("browser/Dialog", () => {
 
 		/**
 		 * Open the named dialog, demand-loading the JS and HTML as
-		 * needed.
+		 * needed. Some day we may demand-load css as well, but there's
+		 * no need right now.
 		 * @param {string} dlg the dialog name
 		 * @param {object} options options
 		 * @param {function} options.done submitted function, passed result

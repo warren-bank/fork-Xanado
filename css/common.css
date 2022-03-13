@@ -86,9 +86,11 @@ button.hide-password {
 	margin-bottom: 0.5em;
 	position: relative;
 	box-sizing: border-box;
+	width: 100%;
 }
 
-.dialog-row input {
+.dialog-row input[type=text],
+.dialog-row input[type=password] {
 	width: 100%;
 }
 

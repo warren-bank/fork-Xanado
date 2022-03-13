@@ -14,7 +14,13 @@ requirejs.config({
 	}
 });
 
-requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Player', 'game/Game', 'game/Move', 'game/findBestPlay'], (TestRunner, Edition, Tile, Rack, Player, Game, Move, findBestPlay) => {
+requirejs([
+	'test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack',
+	'game/Player', 'game/Game', 'game/Move', 'game/findBestPlay'
+], (
+	TestRunner, Edition, Tile, Rack,
+	Player, Game, Move, findBestPlay
+) => {
     let tr = new TestRunner('best move from complex boards');
     let assert = tr.assert;
 

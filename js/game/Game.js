@@ -95,7 +95,7 @@ define('game/Game', [
 			 * Default 0 means never time out.
 			 * @member {number}
 			 */
-			this.time_limit = 0;
+			this.secondsPerPlay = 0;
 
 			/**
 			 * Pointer to Board object
@@ -398,7 +398,8 @@ define('game/Game', [
 				prom = Promise.resolve();
 
 			const player = this.getPlayer();
-			console.log(`\tnext to play is ${player.name}`);
+			console.log(`\tnext to play is ${player.name}`,
+						player.secondsToPlay);
 			if (player.isRobot) {
 				console.log(`\tautoplay ${player.name}`);
 				return prom.then(() => this.autoplay())
@@ -478,7 +479,7 @@ define('game/Game', [
 				}
 
 				nextPlayer.startTimer(
-					this.time_limit * 60,
+					this.secondsPerPlay,
 					() => this.pass('timeout')
 					.then(turn => this.finishTurn(turn)));
 
@@ -608,14 +609,15 @@ define('game/Game', [
 		 * Start the turn of the given player.
 		 * @param {Player} player the the player to get the turn
 		 * @param {number} timeout timeout for this turn, if undefined, use
-		 * the Game.time_limit
+		 * the Game.secondsPerPlay
 		 */
 		startTurn(player, timeout) {
 			console.log(`Starting ${player.name}'s turn`);
 			this.whosTurnKey = player.key;
-			if (this.time_limit && this.state !== 'playing') {
+			if (this.secondsPerPlay && this.state !== 'playing') {
+				console.log(`\ttimeout ${timeout || this.secondsPerPlay}`);
 				player.startTimer(
-					timeout || this.time_limit * 60,
+					timeout || this.secondsPerPlay,
 					() => this.pass('timeout')
 					.then(turn => this.finishTurn(turn)));
 			}
@@ -641,7 +643,7 @@ define('game/Game', [
 					players: ps,					
 					turns: this.turns.length, // just the length
 					whosTurnKey: this.whosTurnKey,
-					time_limit: this.time_limit,
+					secondsPerPlay: this.secondsPerPlay,
 					// this.board is not sent
 					// rackSize not sent, it's just a cache
 					pausedBy: this.pausedBy,
@@ -675,9 +677,11 @@ define('game/Game', [
 				console.log('WARNING:', player, 'already connected to', this);
 			} else if (player.key === this.whosTurn
 					   && this.state === 'playing') {
-				const to = (player.timeRemaining > 0)
-					  ? player.timeRemaining
-					  : this.time_limit * 60;
+				const to = (player.secondsToPlay > 0)
+					  ? player.secondsToPlay
+					  : this.secondsPerPlay;
+				console.log(`${player.name} connected to ${this.key}`,
+						   player.secondsToPlay);
 				player.startTimer(
 					to,
 					() => this.pass('timeout')
@@ -720,13 +724,13 @@ define('game/Game', [
 		 */
 		tick() {
 			const player = this.getPlayer();
-			//console.log(`Tick ${this.getPlayer().name} ${player.timeRemaining}`);
-			player.timeRemaining--;
+			//console.log(`Tick ${this.getPlayer().name} ${player.secondsToPlay}`);
+			player.secondsToPlay--;
 			this.notifyPlayers(
 				'tick',
 				{
 					playerKey: player.key,
-					timeRemaining: player.timeRemaining
+					secondsToPlay: player.secondsToPlay
 				});
 		}
 
@@ -749,13 +753,13 @@ define('game/Game', [
 		 * @private
 		 */
 		startTheClock() {
-			if (this.time_limit && !this._intervalTimer) {
-				const rem = this.getPlayer().timeRemaining;
+			if (this.secondsPerPlay && !this._intervalTimer) {
+				const rem = this.getPlayer().secondsToPlay;
 				console.log(`Started tick timer with ${rem} on the clock`);
 				// Broadcast a ping every second
 				this._intervalTimer = setInterval(() => {
 					const pnext = this.getPlayer();
-					if (pnext.timeRemaining > 0)
+					if (pnext.secondsToPlay > 0)
 						this.tick();
 				}, 1000);
 			}
@@ -778,6 +782,7 @@ define('game/Game', [
 		 * @private
 		 */
 		stopPlayerTimers() {
+			console.log("Stopping player timers");
 			this.players.forEach(player => player.stopTimer());
 		}
 
@@ -787,6 +792,7 @@ define('game/Game', [
 		 * @private
 		 */
 		restartPlayerTimers() {
+			console.log("Restarting player timers");
 			this.players.forEach(player => player.startTimer());
 		}
 
@@ -1069,7 +1075,6 @@ define('game/Game', [
 			this.state = endState;
 
 			console.log(`Confirming game over because ${endState}`);
-
 			this.stopTheClock();
 			this.stopPlayerTimers();
 
@@ -1325,7 +1330,8 @@ define('game/Game', [
 					.forEach(p => newGame.addPlayer(new Player(p)));
 
 					newGame.whosTurnKey = newGame.players[0].key;
-					newGame.time_limit = this.time_limit;
+					newGame.secondsPerPlay = this.secondsPerPlay;
+					newGame.players[0].secondsToPlay = newGame.secondsPerPlay;
 					console.log(`Created follow-on game ${newGame.key}`);
 					return newGame.save()
 					.then(() => newGame.playIfReady())

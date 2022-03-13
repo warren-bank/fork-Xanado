@@ -8,10 +8,6 @@ body {
 	font-size: 1.2em;
 }
 
-#game-table {
-	margin-bottom: 1.5em;
-}
-
 /* A game in the games table */
 .game {
 	border: 1px solid;
@@ -22,15 +18,19 @@ body {
 	display: none;
 }
 
-#heading {
+.logo {
+	margin-top: 1em;
+}
+
+#gamesTable {
+	margin-bottom: 1.5em;
+}
+
+#loginState {
 	float: right;
+	margin-top: 1em;
 }
 
-#games-for {
-	font-weight: bold;
-	font-size: 2em;
-}
-
-#games-cumulative, #games_list {
+#gamesCumulative, #gamesList {
 	display: none;
 }

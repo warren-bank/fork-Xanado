@@ -72,7 +72,7 @@ define('game/Player', [
 			 * Seconds remaining before play times out
 			 * @member {number}
 			 */
-			this.timeRemaining = 0;
+			this.secondsToPlay = 0;
 
 			/**
 			 * We don't keep a pointer to the dictionary objects so we can
@@ -102,7 +102,7 @@ define('game/Player', [
 					key: this.key,
 					score: this.score,
 					email: ump.email ? true : false,
-					timeRemaining: this.timeRemaining
+					secondsToPlay: this.secondsToPlay
 				};
 			})
 			.catch(e => {
@@ -112,7 +112,7 @@ define('game/Player', [
 					connected: this.isRobot || (game.getConnection(this) !== null),
 					key: this.key,
 					score: this.score,
-					timeRemaining: this.timeRemaining
+					secondsToPlay: this.secondsToPlay
 				};
 			});
 		}
@@ -139,11 +139,10 @@ define('game/Player', [
 		}
 
 		/**
-		 * Set a play timeout for the player if they haven't player before
-		 * time has elapsed
+		 * Set a play timeout for the player
 		 * @param {number} time number of seconds before elapse, or
-		 * 0 for no timeout.
-		 * If undefined, will restart a timer by stopTimer.
+		 * 0 to cancel any timeout. If undefined, will restart the timer with
+		 * the time remaining to the player.
 		 * @param {function} onTimeout a function() invoked if the
 		 * timer expires
 		 */
@@ -155,18 +154,19 @@ define('game/Player', [
 					// No timeout, nothing to do
 					return;
 				this._onTimeout = onTimeout;
-			} else if (!this._timeoutTimer && this.timeRemaining > 0) {
-				// Timer was stopped in stopTimer with time remaining
-				time = this.timeRemaining;
+			} else if (!this._timeoutTimer && this.secondsToPlay > 0) {
+				// Timer was previously stopped in stopTimer with
+				// time remaining
+				time = this.secondsToPlay;
 			} else {
 				this.stopTimer();
 				return;
 			}
 
-			console.log(`${this.name}'s go will time out in ${time}s at ${new Date(Date.now() + time * 1000)}`);
+			console.log(`${this.name}'s go will time out in ${time}s`);
 
 			// Set an overriding timeout
-			this.timeRemaining = time;
+			this.secondsToPlay = time;
 			this._timeoutAt = Date.now() + time * 1000;
 			this._timeoutTimer = setTimeout(() => {
 				this._timeoutTimer = null;
@@ -177,12 +177,12 @@ define('game/Player', [
 		}
 
 		/**
-		 * Cancel current timeout
+		 * Cancel current play timeout
 		 */
 		stopTimer() {
 			if (this._timeoutTimer) {
-				this.timeRemaining = (this._timeoutAt - Date.now()) / 1000;
-				console.log(`${this.name} stopped timer with ${this.timeRemaining}s remaining`);
+				this.secondsToPlay = (this._timeoutAt - Date.now()) / 1000;
+				console.log(`${this.name} stopped timer with ${this.secondsToPlay}s remaining`);
 				clearTimeout(this._timeoutTimer);
 				this._timeoutTimer = null;
 			}
@@ -258,16 +258,16 @@ define('game/Player', [
 		 * @return {jQuery} DOM object for the score table
 		 */
 		createScoreDOM(curKey) {
-			const $tr = $(`<tr class="playerRow" id='player${this.key}'></tr>`);
-			$tr.append(`<td class='turnPointer'>&#10148;</td>`);
+			const $tr = $(`<tr class="player-row" id='player${this.key}'></tr>`);
+			$tr.append(`<td class='turn-pointer'>&#10148;</td>`);
 			const $icon = $('<div class="ui-icon"></div>');
 			$icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
 			$tr.append($("<td></td>").append($icon));
 			const who = this.key === curKey
 				? Platform.i18n('You')
 				: this.name;
-			$tr.append(`<td class='playerName'>${who}</td>`);
-			$tr.append('<td class="remainingTiles"></td>');
+			$tr.append(`<td class='name'>${who}</td>`);
+			$tr.append('<td class="remaining-tiles"></td>');
 
 			/**
 			 * Jquery object that contains this player's online status on
@@ -275,7 +275,7 @@ define('game/Player', [
 			 * @private
 			 * @member {jQuery}
 			 */
-			this.$status = $(`<td class='connectState'>${BLACK_CIRCLE}</td>`);
+			this.$status = $(`<td class='connect-state'>${BLACK_CIRCLE}</td>`);
 			$tr.append(this.$status);
 			this.$status.addClass(this.connected ? "online" : "offline");
 			
@@ -285,7 +285,7 @@ define('game/Player', [
 			 * @private
 			 * @member {jQuery}
 			 */
-			this.$score = $(`<td class='playerScore'>${this.score}</td>`);
+			this.$score = $(`<td class='score'>${this.score}</td>`);
 			$tr.append(this.$score);
 			return $tr;
 		}

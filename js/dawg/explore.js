@@ -68,7 +68,9 @@ requirejs(['node-getopt', 'platform', 'dawg/Dictionary'], (Getopt, Platform, Dic
 				for (let w of words) {
 					const word = w.toUpperCase();
 					console.log(`\nAnagrams of '${word}'`);
-					const anag = dict.findAnagrams(word);
+					let anag = Object.keys(dict.findAnagrams(word));
+					if (opt.options.exact)
+						anag = anag.filter(word => word.length === w.length);
 					console.log(anag);
 				}
 			}
@@ -105,7 +107,8 @@ requirejs(['node-getopt', 'platform', 'dawg/Dictionary'], (Getopt, Platform, Dic
         ['h', 'help', 'Show this help'],
 		['l', 'list', 'Without parameters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root'],
 		['f', 'file=ARG', 'Check all words read from file'],
-		['a', 'anagrams', 'Find anagrams of the words and any sub-words'],
+		['a', 'anagrams', 'Find anagrams of the words'],
+		['e', 'exact', 'Only find anagrams that use all the letters'],
 		['s', 'sequence', 'Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. "UZZL" is a valid sub-sequence in an English dictionary as it is found in "PUZZLE", but "UZZZL" isn\'t']
 	])
         .bindHelp()

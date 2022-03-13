@@ -18,36 +18,39 @@
 	color: #f3c716ff;
 }
 
+.playerTable tr.player-row {
+}
+
 .playerTable td {
 	vertical-align: middle;
 }
 
-.playerTable .connectState {}
+.playerTable .connect-state {}
 
-.playerTable .connectState .online {
+.playerTable .connect-state .online {
     color: green;
 }
 
-.playerTable .connectState .offline {
+.playerTable .connect-state .offline {
     color: #FF0000;
 }
 
 /* The pointer */
-.playerTable .turnPointer {
+.playerTable td.turn-pointer {
 	visibility: hidden;
 	color: green;
 }
 
 /* whosTurn is added to the table row when it's the player's turn. This
  * enables the td that contains the pointer */
-.playerTable tr.whosTurn td.turnPointer {
+.playerTable tr.whosTurn td.turn-pointer {
 	visibility: inherit;
 }
 
-.playerTable .playerName {
+.playerTable td.name {
 	font-weight: bold;
 }
 
-.playerTable .remainingTiles {}
+.playerTable td.remaining-tiles {}
 
-.playerTable .playerScore {}
+.playerTable td.score {}

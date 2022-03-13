@@ -196,8 +196,8 @@ define('server/Server', [
 
 				.on('monitor', () => {
 					// Games monitor has joined
+					console.log('Monitor connected');
 					this.monitors.push(socket);
-					console.log('Monitor joined');
 				})
 
 				.on('disconnect', () => {
@@ -464,12 +464,12 @@ define('server/Server', [
 			})
 			.then(game => game.onLoad(this.db))
 			.then(game => {
-				game.time_limit = req.body.time_limit || 0;
-				if (game.time_limit > 0)
-					console.log(`\t${game.time_limit} minute time limit`);
+				game.secondsPerPlay = (req.body.minutesPerPlay || 0) * 60;
+				if (game.secondsPerPlay > 0)
+					console.log(`\t${game.secondsPerPlay} second time limit`);
 
-				if (req.body.max_players > 1) {
-					game.maxPlayers = req.body.max_players;
+				if (req.body.maxPlayers > 1) {
+					game.maxPlayers = req.body.maxPlayers;
 					console.log(`\tat most ${game.maxPlayers} players`);
 				} else
 					game.maxPlayers = 0;

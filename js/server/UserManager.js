@@ -473,7 +473,7 @@ define('server/UserManager', [
 			if (req.session
 				&& req.session.passport
 				&& req.session.passport.user) {
-				const pass = req.body.chpw_password;
+				const pass = req.body.password;
 				const userObject = req.session.passport.user;
 				userObject.pass = pass;
 				return this.writeDB()

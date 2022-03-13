@@ -21,7 +21,15 @@ requirejs.config({
 	}
 });
 
-requirejs(['platform', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Square', 'game/Player', 'game/Game', 'game/LetterBag', 'game/Board', 'game/Move'], (Platform, Edition, Tile, Rack, Square, Player, Game, LetterBag, Board, Move) => {
+requirejs([
+	'platform', 'game/Edition', 'game/Tile', 'game/Rack',
+	'game/Square', 'game/Player', 'game/Game', 'game/LetterBag',
+	'game/Board', 'game/Move'
+], (
+	Platform, Edition, Tile, Rack,
+	Square, Player, Game, LetterBag,
+	Board, Move
+) => {
 
 	let db = new Platform.Database('test', 'testgame');
 	let game = new Game('Tiny', 'CSW2019_English');

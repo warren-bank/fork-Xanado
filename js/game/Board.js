@@ -376,7 +376,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 					if (col == this.midcol && row == this.midrow)
 						$td.addClass('StartField');
 					else if (square.type != '_')
-						$td.addClass('SpecialField'); // score multiplier
+						$td.addClass('score-multiplier'); // score multiplier
 					$tr.append($td);
 				}
 				$table.append($tr);

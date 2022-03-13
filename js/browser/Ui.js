@@ -24,8 +24,12 @@ define('browser/Ui', [
 		if (typeof(args) === 'string')
 			message = $.i18n(args);
 		else if (typeof args === 'object') {
-			args[0] = $.i18n(args[0]);
-			message = args.join(" ");
+			if (args instanceof Error) {
+				message = args;
+			} else {
+				args[0] = $.i18n(args[0]);
+				message = args.join(" ");
+			}
 		}
 		$('#alertDialog')
 		.text(message)
@@ -142,7 +146,7 @@ define('browser/Ui', [
 		 * @return {jQuery} the div created
 		 */
 		log(mess, css) {
-			const $div = $('<div></div>');
+			const $div = $('<div class="logEntry"></div>');
 			if (css)
 				$div.addClass(css);
 			$div.append(mess);
@@ -197,10 +201,10 @@ define('browser/Ui', [
 		appendTurnToLog(turn, latestTurn) {
 			// Who's turn was it?
 			const player = this.game.getPlayer(turn.playerKey);
-			this.log($.i18n('ui-log-turn-player', player.name), 'turnPlayer');
+			this.log($.i18n('ui-log-turn-player', player.name), 'turn-player');
 
 			// What did they do?
-			const $turnDetail = $('<div></div>');
+			const $turnDetail = $('<div class="turn-detail"></div>');
 			switch (turn.type) {
 			case 'move':
 				{
@@ -211,7 +215,7 @@ define('browser/Ui', [
 						$turnDetail
 						.append(`<span class="word">${word.word}</span>`)
 						.append(' (')
-						.append(`<span class="wordScore">${word.score}</span>`)
+						.append(`<span class="word-score">${word.score}</span>`)
 						.append(') ');
 						ws++;
 						sum += word.score;
@@ -236,7 +240,7 @@ define('browser/Ui', [
 				// Terminal, no point in translating
 				throw Error(`Unknown move type ${turn.type}`);
 			}
-			this.log($turnDetail, 'turnDetail');
+			this.log($turnDetail, 'turn-detail');
 
 			if (latestTurn
 				&& typeof turn.emptyPlayer === 'number'
@@ -250,12 +254,12 @@ define('browser/Ui', [
 					this.log(
 						$.i18n('ui-log-you-no-more-tiles',
 							   this.game.getPlayer(turn.nextToGoKey).name),
-						'turnNarrative');
+						'turn-narrative');
 				} else
 					this.log(
 						$.i18n('ui-log-they-no-more-tiles',
 							   this.game.getPlayer(turn.emptyPlayerKey).name),
-					'turnNarrative');
+					'turn-narrative');
 			}
 		}
 
@@ -278,11 +282,11 @@ define('browser/Ui', [
 			// we just need to present the results.
 			const unplayed = game.players.reduce(
 				(sum, player) => sum + player.rack.score(), 0);
-			const $narrative = $('<div></div>');
+			const $narrative = $('<div class="game-outcome"></div>');
 			game.players.forEach(player => {
 				const isMe = this.isPlayer(player.key);
 				const name = isMe ? $.i18n('You') : player.name;
-				const $gsd = $('<div class="gameEndScore"></div>');
+				const $gsd = $('<div class="rack-gains"></div>');
 
 				if (player.score === winningScore) {
 					if (isMe) {
@@ -320,9 +324,9 @@ define('browser/Ui', [
 							 winners.slice(0, winners.length - 1).join(', '),
 							 winners[winners.length - 1]);
 
-			this.log($.i18n(game.state));
+			this.log($.i18n(game.state), 'game-state');
 			if (iWon && winners.length === 1) 
-				this.log($.i18n('ui-log-winner-you'));
+				this.log($.i18n('ui-log-winner', $.i18n('You'), 0));
 			else
 				this.log($.i18n('ui-log-winner', who, winners.length));
 
@@ -349,9 +353,9 @@ define('browser/Ui', [
 
 			const sender = /^chat-/.test(message.sender)
 				  ? $.i18n(message.sender) : message.sender;
-			const pn = `<span class='playerName'>${sender}</span>`;
+			const pn = `<span class='chatSender'>${sender}</span>`;
 
-			const $mess = $(`<div>${pn}: ${msg}</div>`);
+			const $mess = $(`<div class="chatMessage">${pn}: ${msg}</div>`);
 			$('#chatMessages')
 			.append($mess)
 			.animate({
@@ -362,7 +366,7 @@ define('browser/Ui', [
 			if (message.sender === 'Advisor'
 				&& args[0] === 'Hint') {
 				let row = args[2] - 1, col = args[3] - 1;
-				$(`#Board_${col}x${row}`).addClass('hintPlacement');
+				$(`#Board_${col}x${row}`).addClass('hint-placement');
 			}
 		}
 
@@ -373,27 +377,27 @@ define('browser/Ui', [
 		processTick(tick) {
 			const $to = $('#timeout')
 				  .removeClass('tick-alert-high tick-alert-medium tick-alert-low');
-			if (tick.timeRemaining <= 0) {
+			if (tick.secondsToPlay <= 0) {
 				$to.hide();
 				return;
 			}
 			let stick = '';
 			if (this.isPlayer(tick.playerKey)) {
-				this.player.timeRemaining = tick.timeRemaining;
-				stick = $.i18n('ui-tick-you', Math.floor(tick.timeRemaining));
-				if (tick.timeRemaining < 10 && this.settings.warnings)
+				this.player.secondsToPlay = tick.secondsToPlay;
+				stick = $.i18n('ui-tick-you', Math.floor(tick.secondsToPlay));
+				if (tick.secondsToPlay < 10 && this.settings.warnings)
 					this.playAudio('tick');
-				if (tick.timeRemaining < 15)
+				if (tick.secondsToPlay < 15)
 					$to.fadeOut(100).addClass('tick-alert-high');
-				else if (tick.timeRemaining < 45)
+				else if (tick.secondsToPlay < 45)
 					$to.fadeOut(100).addClass('tick-alert-medium');
-				else if (tick.timeRemaining < 90)
+				else if (tick.secondsToPlay < 90)
 					$to.fadeOut(100).addClass('tick-alert-low');
 			}
 			else
 				stick = $.i18n('ui-tick-them',
 							   this.game.getPlayer(tick.playerKey).name,
-							   tick.timeRemaining);
+							   tick.secondsToPlay);
 			$to.text(stick).fadeIn(200);
 		}
 
@@ -523,19 +527,17 @@ define('browser/Ui', [
 			const remains = this.game.letterBag.remainingTileCount();
 			if (remains > 0) {
 				const mess = $.i18n('ui-bag-remaining', remains);
-				$('#letterbagStatus').html(`<div>${mess}</div>`);
-				$('#scoresBlock td.remainingTiles').empty();
+				$('#letterbag').text(mess);
+				$('#scoresBlock td.remaining-tiles').empty();
 			} else {
 				$('#letterbagStatus').text($.i18n('ui-bag-empty'));
-				const countElements = $('#scoresBlock td.remainingTiles');
+				const countElements = $('#scoresBlock td.remaining-tiles');
 				this.game.players.forEach(
 					(player, i) =>
 					$(countElements[i]).text(`(${player.rack.squaresUsed()})`));
 			}
-			if (remains < this.game.board.rackCount)
-				$('#swapRack').hide();
-			else
-				$('#swapRack').show();
+			$('#swapRack')
+			.toggle(remains >= this.game.board.rackCount);
 		}
 
 		/**
@@ -546,13 +548,12 @@ define('browser/Ui', [
 		 * or undefined if the player is not logged in or is not in the game
 		 */
 		identifyPlayer(game) {
-			$(".login-state").hide();
+			$(".logged-in,.not-logged-in,.bad-user").hide();
 			return $.get("/session")
 			.then(session => {
 				console.log("Signed in as", session.name);
-				const pks = game.players.map(p=>p.key);
-				if (pks.indexOf(session.key) >= 0) {
-					$("#logged-in")
+				if (game.players.find(p => p.key === session.key)) {
+					$(".logged-in")
 					.show()
 					.find("#whoami")
 					.text($.i18n('um-logged-in-as', session.name));
@@ -560,17 +561,18 @@ define('browser/Ui', [
 				}
 				$("#bad-user>span")
 				.text($.i18n("Not playing", session.name));
-				$("#bad-user>button")
+				$("#bad-user")
+				.show()
+				.find("button")
 				.on("click", () => {
 					$.post("/logout")
 					.then(() => location.replace(location));
 				});
-				$("#bad-user").show();
 				return undefined;
 			})
 			.catch(e => {
 				console.log(e);
-				$("#not-logged-in")
+				$(".not-logged-in")
 				.show()
 				.find("button")
 				.on("click", () => 	Dialog.open("LoginDialog", {
@@ -601,21 +603,22 @@ define('browser/Ui', [
 
 			this.player = this.game.getPlayer(playerKey);
 			const $playerTable = this.game.createPlayerTableDOM(this.player);
-			$('#players').append($playerTable);
+			$('#playerList').append($playerTable);
 
 			if (this.player) {
-				$('#tileRack').append(this.player.rack.createDOM('Rack'));
+				$('#rackControls').prepend(this.player.rack.createDOM('Rack'));
 
-				$('#swapRack').append(this.swapRack.createDOM('Swap', 'SWAP'));
+				$('#swapRack')
+				.append(this.swapRack.createDOM('Swap', 'SWAP'));
+
 				this.swapRack.refreshDOM();
 			}
 
 			const $board = this.game.board.createDOM();
 			$('#board').append($board);
 
-			const gs = $.i18n('Game started');
-			$('#logMessages').append(`<p class='gameStart'>${gs}</p>`);
-			if (game.time_limit > 0)
+			this.log($.i18n('Game started'), 'game-state');
+			if (game.secondsPerPlay > 0)
 				$("#timeout").show();
 			else 
 				$("#timeout").hide();
@@ -777,10 +780,9 @@ define('browser/Ui', [
 		pause(player, isPaused) {
 			console.log(`${player} has ${isPaused?"":"un"}paused`);
 			if (isPaused) {
-				$(".Letter").addClass("hidden");
-				$(".Score").addClass("hidden");
-				$('#pauseDialog')
-				.find("[name=banner]")
+				$(".Surface .letter").addClass("hidden");
+				$(".Surface .score").addClass("hidden");
+				$('#pauseBanner')
 				.text($.i18n('ui-unpause-text', player));
 				$('#pauseDialog')
 				.dialog({
@@ -796,8 +798,8 @@ define('browser/Ui', [
 						}
 					]});
 			} else {
-				$(".Letter").removeClass("hidden");
-				$(".Score").removeClass("hidden");
+				$(".Surface .letter").removeClass("hidden");
+				$(".Surface .score").removeClass("hidden");
 				$("#pauseButton")
 				.button("option", "label", $.i18n('Pause game'));
 				$('#pauseDialog')
@@ -836,11 +838,12 @@ define('browser/Ui', [
 
 			$('#settings')
 			.on('click', () => {
-				$("#pauseButton").toggle(this.game.time_limit > 0);
+				$("#pauseButton").toggle(this.game.secondsPerPlay > 0);
 				$('#settingsDialog')
 				.dialog({
 					title: $.i18n('Options'),
-					modal: true
+					modal: true,
+					width: 'auto'
 				});
 			});
 
@@ -852,12 +855,8 @@ define('browser/Ui', [
 				ui.settings[$(this).data('set')] = $(this).prop('checked');
 				$.cookie(SETTINGS_COOKIE,
 						 Object.getOwnPropertyNames(ui.settings)
-						 .map(k => {
-							 return `${k}=${ui.settings[k]}`;
-						 }).join(';'),
-						 {
-							 SameSite: "Strict"
-						 });
+						 .map(k => `${k}=${ui.settings[k]}`).join(';'),
+						 { SameSite: "Strict" });
 			});
 
 			$("#pauseButton").button({})
@@ -1114,7 +1113,7 @@ define('browser/Ui', [
 		}
 
 		updateGameStatus() {
-			$('#move').empty();
+			$('#yourMove').empty();
 			this.updateTileCounts();
 
 			// if the last player's rack is empty, it couldn't be refilled
@@ -1129,19 +1128,20 @@ define('browser/Ui', [
 				// (tileCount > 0), move action is to make the move
 				this.setMoveAction(/*i18n ui-*/'commitMove');
 				const move = this.game.board.analyseMove();
+				const $move = $('#yourMove');
 				if (typeof move === 'string') {
-					$('#move').append($.i18n(move));
+					$move.append($.i18n(move));
 					this.enableTurnButton(false);
 				} else {
 					for (const word of move.words) {
-						$('#move')
+						$move
 						.append(`<span class="word">${word.word}</span>`)
 						.append(' (')
-						.append(`<span class="wordScore">${word.score}</span>`)
+						.append(`<span class="word-score">${word.score}</span>`)
 						.append(') ');
 					}
 					const total = $.i18n('ui-log-total', move.score);
-					$('#move').append(`<span class="totalScore">${total}</span>`);
+					$move.append(`<span class="totalScore">${total}</span>`);
 					this.enableTurnButton(true);
 				}
 
@@ -1211,7 +1211,9 @@ define('browser/Ui', [
 					.find(p => p.key === k).score += turn.deltaScore[k]);
 
 			player.refreshDOM();
-			$('.lastPlacement').removeClass('lastPlacement');
+
+			// Unhighlight last placed tiles
+			$('.last-placement').removeClass('last-placement');
 
 			switch (turn.type) {
 			case 'challenge-won':
@@ -1283,7 +1285,7 @@ define('browser/Ui', [
 						square.placeTile(placement, true); // lock it down
 						// Highlight it as just placed
 						const $div = $(`#Board_${placement.col}x${placement.row}`);
-						$div.addClass('lastPlacement');
+						$div.addClass('last-placement');
 					}
 				}
 				// Shrink the bag by the number of placed tiles. This is purely
@@ -1345,7 +1347,7 @@ define('browser/Ui', [
 		 */
 		afterMove() {
 			this.removeMoveActionButtons();
-			$('#move').empty();
+			$('#yourMove').empty();
 			this.lockBoard(true);
 			this.enableTurnButton(false);
 		}
@@ -1362,10 +1364,10 @@ define('browser/Ui', [
 				'ui-challenge',
 				this.game.getPlayer(turn.playerKey).name);
 			const $button =
-				  $(`<button class='moveAction'>${text}</button>`)
+				  $(`<button name='challenge' class='moveAction'>${text}</button>`)
 				  .button();
 			$button.click(() => this.challenge());
-			this.log($button, 'turnControl');
+			this.log($button, 'turn-control');
 			this.scrollLogToEnd(300);
 		}
 
@@ -1378,11 +1380,11 @@ define('browser/Ui', [
 				return;
 			// It's us!
 			const $button =
-				  $(`<button class='moveAction'></button>`)
+				  $(`<button name='takeBack' class='moveAction'></button>`)
 				  .text($.i18n('Take back'))
 				  .button();
 			$button.click(() => this.takeBackMove());
-			this.log($button, 'turnControl');
+			this.log($button, 'turn-control');
 			this.scrollLogToEnd(300);
 		}
 
@@ -1408,7 +1410,7 @@ define('browser/Ui', [
 		 * Handler for the 'Make Move' button. Invoked via 'makeMove'.
 		 */
 		commitMove() {
-			$('.hintPlacement').removeClass('hintPlacement');
+			$('.hint-placement').removeClass('hint-placement');
 
 			const move = this.game.board.analyseMove();
 			if (typeof move === 'string') {

@@ -28,11 +28,11 @@ define('game/findBestPlayController', ['worker_threads', 'game/Square', 'game/Fr
 
 			// Apply the game time limit
 			let timer;
-			if (game.time_limit > 0) {
+			if (game.secondsPerPlay > 0) {
 				timer = setTimeout(() => {
 					console.log('findBestPlay timed out');
 					worker.terminate();
-				}, game.time_limit * 60 * 1000);
+				}, game.secondsPerPlay * 1000);
 			}
 
 			// Pass worker messages on to listener

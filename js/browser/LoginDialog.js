@@ -29,6 +29,13 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 			const $tabs = this.$dlg.find("#tabs");
 			$tabs.tabs();
 
+			const $las = this.$dlg.find("#logged-in-as");
+			if ($las.length > 0) {
+				$.get("/session")
+				.then(user => $las.text(
+					$.i18n('um-logged-in-as', user.name)));
+			}
+			
 			this.$dlg.find(".forgotten-password")
 			.on("click", () => $tabs.tabs("option", "active", 2));
 
@@ -52,9 +59,9 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 					$table.append($td);
 				}
 				$("#login-tab")
-				.prepend($(`<div>${$.i18n("Sign in using:")}</div>`)
+				.prepend($(`<div class="sign-in-using">${$.i18n("Sign in using:")}</div>`)
 						 .append($table)
-						 .append(`<br /><div>${$.i18n("or sign in as Xanado user:")}</div>`));
+						 .append(`<br /><div class="sign-in-using">${$.i18n("or sign in as Xanado user:")}</div>`));
 			});
 
 			super.createDialog();

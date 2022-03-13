@@ -43,9 +43,17 @@ requirejs([
 			player, loggedInAs.key);
 		
 		if (game.state === 'playing') {
-			if (player.dictionary && player.dictionary !== game.dictionary)
-			$tr.append($.i18n("robot dictionary $1", player.dictionary));
+			if (player.dictionary && player.dictionary !== game.dictionary) {
+				const dic = $.i18n("using dictionary $1", player.dictionary);
+				$tr.append(`<td>${dic}</td>`);
+			}
 
+			if (game.secondsPerPlay > 0 && player.secondsToPlay > 0) {
+				const left = $.i18n("$1s left to play",
+									player.secondsToPlay / 1000);
+				$tr.append(`<td>${left}</td>`);
+			}
+			
 		} else {
 			const winningScore = game.players.reduce(
 				(max, p) =>
@@ -80,7 +88,7 @@ requirejs([
 					}));
 
 				$box.append(
-					$("<button class='risky'></button>")
+					$("<button name='leave' class='risky'></button>")
 					.text($.i18n("Leave"))
 					.button()
 					.on('click', () => {
@@ -92,7 +100,7 @@ requirejs([
 
 			} else if (!player.isRobot && game.whosTurnKey === player.key) {
 				$box.append(
-					$("<button></button>")
+					$("<button name='email'></button>")
 					.text($.i18n("Email reminder"))
 					.button()
 					.tooltip({
@@ -131,14 +139,14 @@ requirejs([
 		if (game.maxPlayers > 1)
 			msg.push($.i18n("up to $1 players", game.maxPlayers));
 
-		if (game.time_limit > 0)
-			msg.push($.i18n("time limit $1", game.time_limit));
+		if (game.secondsPerPlay > 0)
+			msg.push($.i18n("time limit $1", game.secondsPerPlay / 60));
 
 		if (game.state !== 'playing')
 			msg.push(`<b>${$.i18n(game.state)}</b>`);
 
 		const $twistButton =
-			  $("<button></button>")
+			  $("<button name='twist'></button>")
 			  .button({ label: TWIST_OPEN })
 			  .addClass("no-padding")
 			  .on("click", () => {
@@ -151,7 +159,7 @@ requirejs([
 		$box.append($twistButton);
 		$box.append(msg.join(', '));
 
-		const $twist = $("<div></div>").hide();
+		const $twist = $("<div class='twist'></div>").hide();
 		$box.append($twist);
 		
 		const $table = $("<table class='playerTable'></table>");
@@ -169,7 +177,7 @@ requirejs([
 			if (!game.players.find(p => p.key === loggedInAs.key)) {
 				// Can join game
 				$twist.append(
-					$(`<button></button>`)
+					$(`<button name='join'></button>`)
 					.text($.i18n('Join'))
 					.button()
 					.on('click', () => {
@@ -185,7 +193,7 @@ requirejs([
 
 			if (!game.players.find(p => p.isRobot)) {
 				$twist.append(
-					$(`<button></button>`)
+					$(`<button name='robot'></button>`)
 					.text($.i18n("Add robot"))
 					.button()
 					.on('click', () =>
@@ -196,7 +204,7 @@ requirejs([
 		if (loggedInAs) {
 			if (game.state !== 'playing' && !game.nextGameKey) {
 				$twist.append(
-					$("<button></button>")
+					$("<button name='another'></button>")
 					.text($.i18n('Another game'))
 					.on('click',
 						() => $.post(`/anotherGame/${game.key}`)
@@ -205,7 +213,7 @@ requirejs([
 			}
 
 			$twist.append(
-				$("<button class='risky'></button>")
+				$("<button name='delete' class='risky'></button>")
 				.text($.i18n("Delete"))
 				.button()
 				.on('click', () => $.post(`/deleteGame/${game.key}`)
@@ -218,11 +226,11 @@ requirejs([
 
 	function showGames(games) {
 		if (games.length === 0) {
-			$('#games_list').hide();
+			$('#gamesList').hide();
 			return;
 		}
-		$('#games_list').show();
-		const $gt = $('#game-table');
+		$('#gamesList').show();
+		const $gt = $('#gamesTable');
 		$gt.empty();
 
 		games.forEach(game => $gt.append($game(game)));
@@ -244,7 +252,7 @@ requirejs([
 
 	function refresh_games() {
 		return $.get("/games", {
-			all: $('#show-all-games').is(':checked')
+			all: $('#showAllGames').is(':checked')
 		})
 		.then(showGames)
 		.catch(report);
@@ -274,18 +282,18 @@ requirejs([
 			$.get("/history")
 			.then(data => {
 				if (data.length === 0) {
-					$('#games-cumulative').hide();
+					$('#gamesCumulative').hide();
 					return;
 				}
 				let n = 1;
-				$('#games-cumulative').show();
+				$('#gamesCumulative').show();
 				const $gt = $('#player-list');
 				$gt.empty();
 				data.forEach(player => {
 					const s = $.i18n(
 						'games-scores', n++, player.name, player.score,
 						player.wins);
-					$gt.append(`<div>${s}</div>`);
+					$gt.append(`<div class="player-cumulative">${s}</div>`);
 				});
 			})
 			.catch(report)
@@ -306,7 +314,7 @@ requirejs([
 		$("button")
 		.button();
 
-		$("#show-all-games")
+		$("#showAllGames")
 		.on('change', refresh_games);
 
 		$('#reminder-button')
