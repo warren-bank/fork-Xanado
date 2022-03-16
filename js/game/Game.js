@@ -234,6 +234,8 @@ define('game/Game', [
 				player = this.getPlayer(this.whosTurnKey);
 			else if (typeof player === 'string')
 				player = this.getPlayer(player);
+			if (!player)
+				return undefined;
 			const index = this.players.findIndex(p => p.key === player.key);
 			if (index < 0)
 				throw new Error(`${player.key} not found in ${this.key}`);
@@ -508,7 +510,7 @@ define('game/Game', [
 			default:
 				return names.slice(0, length - 1).join(', ')
 				// no Oxford comma
-				+ ` ${Platform.i18n('and')} ${names[length - 1]}`;
+				+ ` ${Platform.i18n("and")} ${names[length - 1]}`;
 			}
 		}
 
@@ -830,11 +832,11 @@ define('game/Game', [
 					sender: /*i18n*/'Advisor'
 				};
 				if (!bestPlay)
-					hint.text = /*i18n*/'No play';
+					hint.text = /*i18n*/"Can't find a play";
 				else {
 					console.log(bestPlay);
 					const start = bestPlay.placements[0];
-					hint.text = /*i18n*/'Hint';
+					hint.text = /*i18n*/"Hint";
 					const words = bestPlay.words.map(w => w.word).join(',');
 					hint.args = [
 						words, start.row + 1, start.col + 1, bestPlay.score
@@ -846,8 +848,8 @@ define('game/Game', [
 				
 				// Tell *everyone* that they asked for a hint
 				this.notifyPlayers('message', {
-					sender: /*i18n*/'Advisor',
-					text: /*i18n*/'$1 cheated',
+					sender: /*i18n*/"Advisor",
+					text: /*i18n*/"$1 asked for a hint",
 					args: [ player.name ]
 				});
 			})
@@ -855,7 +857,7 @@ define('game/Game', [
 				console.log('Error', e);
 				this.notifyPlayers(
 					'message', {
-						sender: /*i18n*/'Advisor',
+						sender: /*i18n*/"Advisor",
 						text: e.toString() });
 			});
 		}
@@ -995,7 +997,7 @@ define('game/Game', [
 				if (this.allPassedTwice()) {
 					this.stopTheClock();
 					this.stopPlayerTimers();
-					this.state = /*i18n*/'All passed twice';
+					this.state = /*i18n*/"All players passed twice";
 				} else
 					this.startTurn(this.nextPlayer());
 			}
@@ -1193,7 +1195,7 @@ define('game/Game', [
 			if (this.allPassedTwice()) {
 				this.stopTheClock();
 				this.stopPlayerTimers();
-				return this.confirmGameOver(/*i18n*/'All passed twice');
+				return this.confirmGameOver(/*i18n*/"All players passed twice");
 			} else
 				this.startTurn(this.nextPlayer());
 

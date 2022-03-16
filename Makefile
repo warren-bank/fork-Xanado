@@ -17,6 +17,10 @@ lint:
 docker:
 	docker build . --tag xword
 
+# Check translations
+tx:
+	perl bin/checkStrings.pl
+
 # Update package.json with latest packages
 # using npm-check-update (npm install -g npm-check-updates)
 update:

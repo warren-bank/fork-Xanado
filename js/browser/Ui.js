@@ -285,7 +285,7 @@ define('browser/Ui', [
 			const $narrative = $('<div class="game-outcome"></div>');
 			game.players.forEach(player => {
 				const isMe = this.isPlayer(player.key);
-				const name = isMe ? $.i18n('You') : player.name;
+				const name = isMe ? $.i18n("You") : player.name;
 				const $gsd = $('<div class="rack-gains"></div>');
 
 				if (player.score === winningScore) {
@@ -417,8 +417,8 @@ define('browser/Ui', [
 			else
 				this.setMoveAction(/*i18n ui-*/'anotherGame');
 			this.enableTurnButton(true);
-			this.notify($.i18n('ui-notify-title-game-over'),
-						$.i18n('ui-notify-body-game-over'));
+			this.notify($.i18n("Game over"),
+						$.i18n("Your game is over..."));
 		}
 
 		/**
@@ -526,11 +526,11 @@ define('browser/Ui', [
 		updateTileCounts() {
 			const remains = this.game.letterBag.remainingTileCount();
 			if (remains > 0) {
-				const mess = $.i18n('ui-bag-remaining', remains);
+				const mess = $.i18n("$1 tiles left in bag", remains);
 				$('#letterbag').text(mess);
 				$('#scoresBlock td.remaining-tiles').empty();
 			} else {
-				$('#letterbagStatus').text($.i18n('ui-bag-empty'));
+				$('#letterbag').text($.i18n("The letter bag is empty"));
 				const countElements = $('#scoresBlock td.remaining-tiles');
 				this.game.players.forEach(
 					(player, i) =>
@@ -617,7 +617,7 @@ define('browser/Ui', [
 			const $board = this.game.board.createDOM();
 			$('#board').append($board);
 
-			this.log($.i18n('Game started'), 'game-state');
+			this.log($.i18n("Game started"), 'game-state');
 			if (game.secondsPerPlay > 0)
 				$("#timeout").show();
 			else 
@@ -672,7 +672,7 @@ define('browser/Ui', [
 				$('#takeBackButton').button({
 					showLabel: false,
 					icon: 'take-back-icon',
-					title: $.i18n('Take back'),
+					title: $.i18n("Take back"),
 					classes: {
 						'ui-button-icon': 'fat-icon'
 					}				
@@ -783,14 +783,14 @@ define('browser/Ui', [
 				$(".Surface .letter").addClass("hidden");
 				$(".Surface .score").addClass("hidden");
 				$('#pauseBanner')
-				.text($.i18n('ui-unpause-text', player));
+				.text($.i18n("$1 has paused the game", player));
 				$('#pauseDialog')
 				.dialog({
 					dialogClass: "no-close",
 					modal: true,
 					buttons: [
 						{
-							text: $.i18n('Continue game'),
+							text: $.i18n("Continue the game"),
 							click: () => {
 								this.sendCommand('unpause');
 								$('#pauseDialog').dialog("close");
@@ -801,7 +801,7 @@ define('browser/Ui', [
 				$(".Surface .letter").removeClass("hidden");
 				$(".Surface .score").removeClass("hidden");
 				$("#pauseButton")
-				.button("option", "label", $.i18n('Pause game'));
+				.button("option", "label", $.i18n("Pause game"));
 				$('#pauseDialog')
 				.dialog("close");
 			}
@@ -841,7 +841,7 @@ define('browser/Ui', [
 				$("#pauseButton").toggle(this.game.secondsPerPlay > 0);
 				$('#settingsDialog')
 				.dialog({
-					title: $.i18n('Options'),
+					title: $.i18n("Options"),
 					modal: true,
 					width: 'auto'
 				});
@@ -903,7 +903,8 @@ define('browser/Ui', [
 				else
 					this.moveTypingCursor(0, 1);
 			} else
-				$('#logMessages').append($.i18n('ui-log-letter-not-on-rack', letter));
+				$('#logMessages').append(
+					$.i18n('ui-log-letter-not-on-rack', letter));
 		}
 
 		/**
@@ -1119,6 +1120,8 @@ define('browser/Ui', [
 			// if the last player's rack is empty, it couldn't be refilled
 			// and the game might be over.
 			const lastPlayer = this.game.previousPlayer();
+			if (!lastPlayer)
+				return;
 			if (!this.game.hasEnded()
 				&& lastPlayer.rack.isEmpty()) {
 				this.lockBoard(true);
@@ -1220,7 +1223,7 @@ define('browser/Ui', [
 			case 'took-back':
 				// Move new tiles out of challenged player's rack
 				// into the bag
-				for (let newTile of turn.replacments) {
+				for (let newTile of turn.replacements) {
 					const tile = player.rack.removeTile(newTile);
 					this.game.letterBag.returnTile(tile);
 				}
@@ -1242,7 +1245,7 @@ define('browser/Ui', [
 						if (this.settings.warnings)
 							this.playAudio('oops');
 						this.notify(
-							$.i18n('ui-notify-title-challenged'),
+							$.i18n("Challenged!"),
 							$.i18n('ui-notify-body-challenged',
 								   this.game.getPlayer(turn.challengerKey).name,
 								   -turn.score));
@@ -1251,7 +1254,7 @@ define('browser/Ui', [
 
 				if (turn.type == 'took-back') {
 					this.notify(
-						$.i18n('ui-notify-title-retracted'),
+						$.i18n("Move retracted!"),
 						$.i18n('ui-notify-body-retracted',
 							   this.game.getPlayer(turn.challengerKey).name));
 				}
@@ -1263,13 +1266,13 @@ define('browser/Ui', [
 					if (this.settings.warnings)
 						this.playAudio('oops');
 					this.notify(
-						$.i18n('ui-notify-title-you-failed'),
+						$.i18n("Your challenge failed!"),
 						$.i18n('ui-notify-body-you-failed'));
 				} else {
 					if (this.settings.warnings)
 						this.playAudio('oops');
 					this.notify(
-						$.i18n('ui-notify-title-they-failed'),
+						$.i18n("Failed challenge!"),
 						$.i18n('ui-notify-body-they-failed', player.name));
 				}
 				break;
@@ -1288,16 +1291,18 @@ define('browser/Ui', [
 						$div.addClass('last-placement');
 					}
 				}
-				// Shrink the bag by the number of placed tiles. This is purely
-				// to keep the counts in synch, we never use tiles taken
-				// from the bag on the client side.
+				// Shrink the bag by the number of new
+				// tiles. This is purely to keep the counts in
+				// synch, we never use tiles taken from the bag on
+				// the client side.
 				this.game.letterBag.getRandomTiles(
-					this.game.letterBag.remainingTileCount() - turn.leftInBag);
+					turn.replacements.length);
 
 				// Deliberate fall-through to 'swap'
 
 			case 'swap':
-				// Add new tiles to the rack
+				// Add replacement tiles to the rack. Number of tiles
+				// in letter bag doesn't change.
 				for (let newTile of turn.replacements)
 					player.rack.addTile(newTile);
 
@@ -1329,7 +1334,7 @@ define('browser/Ui', [
 				if (this.isPlayer(turn.nextToGoKey)
 					&& turn.type !== 'took-back') {
 					// It's our turn, and we didn't just take back
-					this.notify($.i18n('ui-notify-title-your-turn'),
+					this.notify($.i18n('Your turn'),
 								$.i18n('ui-notify-body-your-turn',
 									   this.game.getPlayer(turn.playerKey).name));
 
@@ -1464,7 +1469,8 @@ define('browser/Ui', [
 		}
 
 		/**
-		 * Handler for the 'Another game" button. Invoked via makeMove.
+		 * Handler for the 'Another game like this" button.
+		 * Invoked via makeMove.
 		 */
 		anotherGame() {
 			$.post(`/anotherGame/${this.game.key}`)

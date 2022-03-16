@@ -6,14 +6,14 @@ define('game/Square', ['platform'], (Platform) => {
 
 	// Map the characters in the board template to CSS classes
 	const CSS_CLASS =  {
-		M: /*i18n*/"square-middle",
-		Q: /*i18n*/"square-4W",
-		q: /*i18n*/"square-4L",
-		T: /*i18n*/"square-3W",
-		t: /*i18n*/"square-3L",
-		D: /*i18n*/"square-2W",
-		d: /*i18n*/"square-2L",
-		_: /*i18n*/"square-normal"
+		M: /*i18n*/"square-M",
+		Q: /*i18n*/"square-Q",
+		q: /*i18n*/"square-q",
+		T: /*i18n*/"square-T",
+		t: /*i18n*/"square-t",
+		D: /*i18n*/"square-D",
+		d: /*i18n*/"square-d",
+		_: /*i18n*/"square-_"
 	};
 
 	/**
@@ -113,7 +113,7 @@ define('game/Square', ['platform'], (Platform) => {
 		 */
 		createDOM(idbase, col, row) {
 			const $td = $(`<td></td>`);
-			$td.addClass(CSS_CLASS[this.type]);
+			$td.addClass(`square-${this.type}`);
 
 			let id = `${idbase}_${col}`;
 			if (typeof row !== 'undefined')
@@ -231,8 +231,7 @@ define('game/Square', ['platform'], (Platform) => {
 				}
 			});
 
-			const text = $.i18n(CSS_CLASS[this.type]);
-
+			const text = $.i18n(`square-${this.type}`);
 			$div.addClass('empty-square')
 			.removeClass("tiled-square")
 			.html(`<a>${text}</a>`);

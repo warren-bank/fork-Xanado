@@ -38,12 +38,6 @@ define('game/Turn', () => {
 			this.nextToGoKey = undefined;
 			
 			/**
-			 * Count of tiles left in bag and on player racks after play
-			 * @member {number}
-			 */
-			this.leftInBag = game.letterBag.remainingTileCount();
-
-			/**
 			 * At the (possible) end of game, this will be the key of
 			 * the player who has no tiles on their rack (and there are no
 			 * more in the bag), or -1 if no player has an empty rack.

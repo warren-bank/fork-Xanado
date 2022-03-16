@@ -40,7 +40,7 @@ requirejs([
 	// Format a player in a game score table
 	function $player(game, player) {
 		const $tr = Player.prototype.createScoreDOM.call(
-			player, loggedInAs.key);
+			player, loggedInAs ? loggedInAs.key : undefined);
 		
 		if (game.state === 'playing') {
 			if (player.dictionary && player.dictionary !== game.dictionary) {
@@ -73,7 +73,7 @@ requirejs([
 			if (player.key === loggedInAs.key) {
 				$box.append(
 					$("<button name='join'></button>")
-					.text($.i18n('Open', player.name))
+					.text($.i18n("Open game", player.name))
 					.button()
 					.on('click', () => {
 						console.log(`Join game ${game.key}/${loggedInAs.key}`);
@@ -89,7 +89,7 @@ requirejs([
 
 				$box.append(
 					$("<button name='leave' class='risky'></button>")
-					.text($.i18n("Leave"))
+					.text($.i18n("Leave game"))
 					.button()
 					.on('click', () => {
 						console.log(`Leave game ${game.key}`);
@@ -178,7 +178,7 @@ requirejs([
 				// Can join game
 				$twist.append(
 					$(`<button name='join'></button>`)
-					.text($.i18n('Join'))
+					.text($.i18n("Join game"))
 					.button()
 					.on('click', () => {
 						console.log(`Join game ${game.key}`);
@@ -205,7 +205,7 @@ requirejs([
 			if (game.state !== 'playing' && !game.nextGameKey) {
 				$twist.append(
 					$("<button name='another'></button>")
-					.text($.i18n('Another game'))
+					.text($.i18n("Another game like this"))
 					.on('click',
 						() => $.post(`/anotherGame/${game.key}`)
 						.then(refresh)

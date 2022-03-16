@@ -306,13 +306,18 @@ define('server/UserManager', [
 					.catch(() => {
 						// New user
 						return this.addUser({
-							name: profile.displayName, email: profile.email, key: key });
+							name: profile.displayName,
+							email: profile.email,
+							provider: provider,
+							key: key
+						});
 					})
 					.then(uo => {
 						if (!profile.email || uo.email === profile.email)
 							return uo;
 						uo.email = profile.email;
-						uo.provider = provider;
+						if (!uo.provider)
+							throw new Error("Provider expected in user object");
 						return this.writeDB();
 					})
 					.then(uo => done(null, uo));
@@ -382,10 +387,11 @@ define('server/UserManager', [
 		/**
 		 * Add a new user to the DB, if they are not already there
 		 * @param {object} desc user descriptor
-		 * @param {string?} user user name
-		 * @param {string?} pass user password, requires user.
+		 * @param {string} desc.user user name
+		 * @param {string} desc.provider authentication provider e.g. google
+		 * @param {string?} desc.pass user password, requires user.
 		 * Will be encrypted if defined before saving.
-		 * @param {string?} email user email
+		 * @param {string?} desc.email user email
 		 * @param {string?} key optionally force the key to this
 		 * @return {Promise} resolve to user object, or reject if duplicate
 		 * @private
@@ -429,9 +435,14 @@ define('server/UserManager', [
 			})
 			.catch(() => {
 				// New user
-				this.addUser({ name: username, email: email, pass: pass })
-				.then(userObject => this.passportLogin(req, res, userObject)
-					  .then(() => this.sendResult(res, 200, [])));
+				this.addUser({
+					name: username,
+					email: email,
+					provider: 'xanado',
+					pass: pass
+				})
+				.then(userObject => this.passportLogin(req, res, userObject))
+				.then(() => this.handle_session(req, res));
 			});
 		}
 

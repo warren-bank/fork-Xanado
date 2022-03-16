@@ -264,7 +264,7 @@ define('game/Player', [
 			$icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
 			$tr.append($("<td></td>").append($icon));
 			const who = this.key === curKey
-				? Platform.i18n('You')
+				? Platform.i18n("You")
 				: this.name;
 			$tr.append(`<td class='name'>${who}</td>`);
 			$tr.append('<td class="remaining-tiles"></td>');

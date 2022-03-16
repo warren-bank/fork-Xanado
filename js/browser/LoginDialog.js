@@ -10,8 +10,8 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 			if (this.getAction() === "register") {
 				const user = this.$dlg.find('#register_username').val();
 				return (user
-						&& user !== $.i18n('Advisor')
-						&& user !== $.i18n('Robot'));
+						&& user !== $.i18n("Advisor")
+						&& user !== $.i18n("Robot"));
 			}
 			return true;
 		}
@@ -61,13 +61,26 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 				$("#login-tab")
 				.prepend($(`<div class="sign-in-using">${$.i18n("Sign in using:")}</div>`)
 						 .append($table)
-						 .append(`<br /><div class="sign-in-using">${$.i18n("or sign in as Xanado user:")}</div>`));
+						 .append(`<br /><div class="sign-in-using">${$.i18n("or sign in as XANADO user:")}</div>`));
 			});
 
 			super.createDialog();
 		}
 
 		constructor(options) {
+			const ddone = options.done;
+			options.done = data => {
+				if (this.getAction() === 'register') {
+					$('#alertDialog')
+					.text($.i18n("Welcome to XANADO, $1!", data.name))
+					.dialog({
+						modal: true,
+						title: $.i18n("New player registered")
+					});
+				}
+				if (typeof ddone === 'function')
+					ddone(data);
+			};
 			super("LoginDialog", $.extend({
 				title: $.i18n("Sign in")
 			}, options));

@@ -113,33 +113,33 @@ div.Surface th {
     background-color: #BEB9A6;
 }
 
-div.Surface td.square-normal {
+div.Surface td.square-_ {
     border-style: solid;
     border-color: #AAA38E;
 }
 
-div.Surface td.square-2W,
-div.Surface td.square-middle {
+div.Surface td.square-D,
+div.Surface td.square-M {
     border-color: #FBBBB9;
 }
 
-div.Surface td.square-3W {
+div.Surface td.square-T {
     border-color: #F75D59;
 }
 
-div.Surface td.square-4W {
+div.Surface td.square-Q {
 	border-color: #a21505;
 }
 
-div.Surface td.square-2L {
+div.Surface td.square-d {
     border-color: #A0CFEC;
 }
 
-div.Surface td.square-3L {
+div.Surface td.square-t {
     border-color: #157DEC;
 }
 
-div.Surface td.square-4L {
+div.Surface td.square-q {
     border-color: #0e6993;
 }
 
@@ -215,43 +215,43 @@ div.Surface td div a {
     }
 }
 
-div.Surface td.square-2W div,
-div.Surface td.square-middle div {
+div.Surface td.square-D div,
+div.Surface td.square-M div {
     background-color: #FBBBB9;
     border-color: #FBBBB9;
     color: #F75D59;
 }
 
-div.Surface td.square-3W div {
+div.Surface td.square-T div {
     background-color: #F75D59;
     border-color: #F75D59;
     color: #8B0000;
 }
 
-div.Surface td.square-4W div {
+div.Surface td.square-Q div {
 	background-color: #a21505;
 	border-color: #a21505;
     color: #eeeeee;
 }
 
-div.Surface td.square-normal div {
+div.Surface td.square-_ div {
     background-color: #BEB9A6;
     border-color: #BEB9A6;
 }
 
-div.Surface td.square-2L div {
+div.Surface td.square-d div {
     background-color: #A0CFEC;
     border-color: #A0CFEC;
     color: #157DEC;
 }
 
-div.Surface td.square-3L div {
+div.Surface td.square-t div {
     background-color: #157DEC;
     border-color: #157DEC;
     color: #000080;
 }
 
-div.Surface td.square-4L div {
+div.Surface td.square-q div {
     background-color: #0e6993;
     border-color: #0e6993;
 	color: #eeeeee;
@@ -264,8 +264,8 @@ div.Surface td.score-multiplier div.empty-square a {
     letter-spacing: 0.0em;
 }
 
-div.Surface td.square-middle div.empty-square a {
-    font-size: 1.3em;
+div.Surface td.square-M div.empty-square a {
+    font-size: 2em;
 }
 
 #typingCursor {
