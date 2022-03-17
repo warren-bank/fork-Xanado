@@ -26,8 +26,8 @@ define('game/Player', [
 		 * it's a robot. If name is a Player object, ignored.
 		 */
 		constructor(name, key, isRobot) {
-			if (name instanceof Player) {
-				// Copying an existing player
+			if (typeof name === 'object') {
+				// Copying an existing player or catalogue
 				this.isRobot = name.isRobot;
 				this.key = name.key; // re-use
 				name = name.name;
@@ -88,11 +88,13 @@ define('game/Player', [
 		 * Create simple structure describing a subset of the player
 		 * state, for sending to the 'games' interface
 		 * @param {Game} game the game the player is participating in
-		 * @param {UserManager} um user manager for getting emails
+		 * @param {UserManager?} um user manager for getting emails if wanted
 		 * @return {Promise} resolving to a simple structure describing the player
 		 */
 		catalogue(game, um) {
-			return (this.isRobot ? Promise.resolve({}) : um.getUser({key: this.key}))
+			return ((this.isRobot || !um)
+					? Promise.resolve(this)
+					: um.getUser({key: this.key}))
 			.then(ump => {
 				return {
 					name: this.name,
@@ -275,9 +277,9 @@ define('game/Player', [
 			 * @private
 			 * @member {jQuery}
 			 */
-			this.$status = $(`<td class='connect-state'>${BLACK_CIRCLE}</td>`);
-			$tr.append(this.$status);
-			this.$status.addClass(this.connected ? "online" : "offline");
+			const $status = $(`<td class='connect-state'>${BLACK_CIRCLE}</td>`);
+			$tr.append($status);
+			$status.addClass(this.connected ? "online" : "offline");
 			
 			/**
 			 * Jquery object that contains this player's score on
@@ -304,10 +306,11 @@ define('game/Player', [
 		 * @param {boolean} tf true/false
 		 */
 		online(tf) {
-			if (tf)
-				this.$status.removeClass('offline').addClass('online');
-			else
-				this.$status.removeClass('online').addClass('offline');
+			let rem = tf ? 'offline' : 'online';
+			let add = tf ? 'online' : 'offline';
+			$(`#player${this.key} .connect-state`)
+			.removeClass(rem)
+			.addClass(add);
 		}
 	}
 

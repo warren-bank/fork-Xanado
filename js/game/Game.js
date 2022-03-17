@@ -420,13 +420,14 @@ define('game/Game', [
 		 * @param {Object} data to send with message
 		 */
 		notifyPlayer(player, message, data) {
-			if (this._connections)
-				this._connections.forEach(
-					socket => {
-						if (socket.player === player)
-							socket.emit(message, data);
-						return false;
-					});
+			console.log(`<-${player.key}- ${message}`, data);
+			// Player may be connected several times
+			this._connections.forEach(
+				socket => {
+					if (socket.player === player)
+						socket.emit(message, data);
+					return false;
+				});
 		}
 
 		/**
@@ -436,6 +437,7 @@ define('game/Game', [
 		 * @param {Object} data to send with message
 		 */
 		notifyPlayers(message, data) {
+			console.log(`<-*- ${message}`, data);
 			this._connections.forEach(socket => socket.emit(message, data));
 		}
 
@@ -602,9 +604,10 @@ define('game/Game', [
 		 * as identified by their key.
 		 */
 		updateConnections() {
-			this.notifyPlayers(
-				'connections',
-				this._connections.map(socket => socket.player.key));
+			Promise.all(this._connections
+				.filter(socket => socket.player instanceof Player)
+				.map(socket => socket.player.catalogue(this)))
+			.then(res => this.notifyPlayers('connections', res));
 		}
 
 		/**
@@ -676,7 +679,8 @@ define('game/Game', [
 			// device due to some issue (e.g. poor comms)
 			const knownSocket = this.getConnection(player);
 			if (knownSocket !== null) {
-				console.log('WARNING:', player, 'already connected to', this);
+				console.log('WARNING:', player.key, 'already connected to',
+							this.key);
 			} else if (player.key === this.whosTurn
 					   && this.state === 'playing') {
 				const to = (player.secondsToPlay > 0)
@@ -711,12 +715,11 @@ define('game/Game', [
 			}
 
 			// Add disconnect listener
-			const game = this;
 			socket.on('disconnect', () => {
 				console.log(`${socket.player.toString()} disconnected`);
 				this._connections = this._connections.filter(
 					sock => sock !== socket);
-				game.updateConnections();
+				this.updateConnections();
 			});
 		}
 

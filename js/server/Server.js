@@ -57,7 +57,7 @@ define('server/Server', [
 			express.use(Express.static(requirejs.toUrl('')));
 
 			express.use((req, res, next) => {
-				console.log(req.method, req.url);
+				console.log(`--> ${req.method} ${req.url}`);
 				next();
 			});
 

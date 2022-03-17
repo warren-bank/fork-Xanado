@@ -3,12 +3,14 @@
 define('browser/Ui', [
 	'socket.io', 'browser/Dialog',
 	'game/Fridge',
-	'game/Tile', 'game/Bag', 'game/Rack', 'game/Board', 'game/Game',
+	'game/Tile', 'game/Bag', 'game/Rack', 'game/Board',
+	'game/Game', 'game/Player',
 	'jquery', 'jqueryui', 'cookie', 'browser/icon_button'
 ], (
 	Socket, Dialog,
 	Fridge,
-	Tile, Bag, Rack, Board, Game
+	Tile, Bag, Rack, Board,
+	Game, Player
 ) => {
 
 	const SETTINGS_COOKIE = 'crossword_settings';
@@ -342,6 +344,7 @@ define('browser/Ui', [
 		 * text: i18n message identifier or plain text, args[]: i18n arguments
 		 */
 		processMessage(message) {
+			console.debug("--> message");
 			let args = [ message.text ];
 			if (typeof message.args === 'string')
 				args.push(message.args);
@@ -375,29 +378,32 @@ define('browser/Ui', [
 		 * @param {object} tick {player: number, timeout: number }
 		 */
 		processTick(tick) {
+			// console.debug("--> tick");
 			const $to = $('#timeout')
 				  .removeClass('tick-alert-high tick-alert-medium tick-alert-low');
 			if (tick.secondsToPlay <= 0) {
 				$to.hide();
 				return;
 			}
+
 			let stick = '';
 			if (this.isPlayer(tick.playerKey)) {
 				this.player.secondsToPlay = tick.secondsToPlay;
 				stick = $.i18n('ui-tick-you', Math.floor(tick.secondsToPlay));
 				if (tick.secondsToPlay < 10 && this.settings.warnings)
 					this.playAudio('tick');
-				if (tick.secondsToPlay < 15)
-					$to.fadeOut(100).addClass('tick-alert-high');
-				else if (tick.secondsToPlay < 45)
-					$to.fadeOut(100).addClass('tick-alert-medium');
-				else if (tick.secondsToPlay < 90)
-					$to.fadeOut(100).addClass('tick-alert-low');
 			}
 			else
 				stick = $.i18n('ui-tick-them',
 							   this.game.getPlayer(tick.playerKey).name,
 							   tick.secondsToPlay);
+
+			if (tick.secondsToPlay < 15)
+				$to.fadeOut(100).addClass('tick-alert-high');
+			else if (tick.secondsToPlay < 45)
+				$to.fadeOut(100).addClass('tick-alert-medium');
+			else if (tick.secondsToPlay < 90)
+				$to.fadeOut(100).addClass('tick-alert-low');
 			$to.text(stick).fadeIn(200);
 		}
 
@@ -408,6 +414,7 @@ define('browser/Ui', [
 		 * @param {string} endState reason why game ended (i18n message id)
 		 */
 		processGameOverConfirmed(endState) {
+			console.debug("--> gameOverConfirmed");
 			this.game.state = endState;
 			// unplace any pending move
 			this.takeBackTiles();
@@ -510,6 +517,11 @@ define('browser/Ui', [
 			}
 		}
 
+		updatePlayerTable() {
+			const $playerTable = this.game.createPlayerTableDOM(this.player);
+			$('#playerList').html($playerTable);
+		}
+
 		/**
 		 * Show who's turn it is
 		 */
@@ -602,8 +614,7 @@ define('browser/Ui', [
 			this.swapRack = new Rack(this.game.board.swapCount);
 
 			this.player = this.game.getPlayer(playerKey);
-			const $playerTable = this.game.createPlayerTableDOM(this.player);
-			$('#playerList').append($playerTable);
+			this.updatePlayerTable();
 
 			if (this.player) {
 				$('#rackControls').prepend(this.player.rack.createDOM('Rack'));
@@ -706,30 +717,33 @@ define('browser/Ui', [
 			this.socket
 
 			.on('connect', () => {
+				console.debug('--> connect');
 				if ($reconnectDialog) {
 					$reconnectDialog.dialog('close');
 					$reconnectDialog = null;
 				}
-				console.debug('Server: Socket connected');
 				if (this.wasConnected) {
 					this.cancelNotification();
 				} else {
 					this.wasConnected = true;
+					const playerKey = this.player ? this.player.key : undefined;
+					console.debug('<-- join');
 					this.socket.emit('join', {
 						gameKey: this.game.key,
-						playerKey: this.player ? this.player.key : undefined
+						playerKey: playerKey
 					});
 				}
 			})
 
 			.on('disconnect', () => {
-				console.debug('Socket disconnected');
+				console.debug(`--> disconnect`);
 				$reconnectDialog = $('#alertDialog')
 				.text($.i18n('ui-server-disconnected'))
 				.dialog({ modal: true });
 				const ui = this;
 				setTimeout(() => {
 					// Try and rejoin after a 3s timeout
+					console.debug('<-- join (after timeout)');
 					ui.socket.emit('join', {
 						gameKey: this.game.key,
 						playerKey: this.player ? this.player.key : undefined
@@ -741,13 +755,21 @@ define('browser/Ui', [
 			// Custom events
 
 			.on('connections', info => {
+				console.debug("--> connections");
 				// Update active connections
 				for (let player of this.game.players)
 					player.online(false);
-				for (let key of info) {
-					const player = this.game.getPlayerWithKey(key);
+				for (let cat of info) {
+					let player = this.game.getPlayerWithKey(cat.key);
 					if (player)
-						player.online(true);
+						player.connected = cat.connected;
+					else {
+						// New player in game
+						player = new Player(cat);
+						this.game.addPlayer(player);
+						this.updatePlayerTable();
+					}
+					player.online(player.connected);
 				}
 			})
 
@@ -759,15 +781,22 @@ define('browser/Ui', [
 				this.processGameOverConfirmed(endState))
 
 			.on('nextGame',	nextGameKey => {
+				console.debug(`--> nextGame ${nextGameKey}`);
 				this.game.nextGameKey = nextGameKey;
 				this.setMoveAction(/*i18n ui-*/'nextGame');
 			})
 
 			.on('message', message => this.processMessage(message))
 
-			.on('pause', player => this.pause(player, true))
+			.on('pause', player => {
+				console.debug("--> pause");
+				this.pause(player, true);
+			})
 
-			.on('unpause', player => this.pause(player, false));
+			.on('unpause', player => {
+				console.debug("--> unpause");
+				this.pause(player, false);
+			});
 		}
 
 		/**
@@ -778,7 +807,6 @@ define('browser/Ui', [
 		 * @private
 		 */
 		pause(player, isPaused) {
-			console.log(`${player} has ${isPaused?"":"un"}paused`);
 			if (isPaused) {
 				$(".Surface .letter").addClass("hidden");
 				$(".Surface .score").addClass("hidden");
@@ -817,6 +845,7 @@ define('browser/Ui', [
 			$('#chatInput input')
 			.on('change', function() {
 				// Send chat
+				console.debug('<-- message');
 				ui.socket.emit(
 					'message',
 					{
@@ -1125,7 +1154,10 @@ define('browser/Ui', [
 			if (!this.game.hasEnded()
 				&& lastPlayer.rack.isEmpty()) {
 				this.lockBoard(true);
-				this.setMoveAction(/*i18n ui-*/'confirmGameOver');
+				if (this.player.key === lastPlayer.key)
+					$('#turnButton').hide();
+				else
+					this.setMoveAction(/*i18n ui-*/'confirmGameOver');
 			} else if (this.placedCount > 0) {
 				// Player has dropped some tiles on the board
 				// (tileCount > 0), move action is to make the move
@@ -1194,7 +1226,7 @@ define('browser/Ui', [
 		 * @param {Turn} turn a Turn object
 		 */
 		processTurn(turn) {
-			console.debug('Turn ', turn);
+			console.debug('--> turn ', turn);
 			// Take back any locally placed tiles
 			this.game.board.forEachSquare(
 				boardSquare => {

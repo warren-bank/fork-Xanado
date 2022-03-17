@@ -27,11 +27,11 @@
 
 .playerTable .connect-state {}
 
-.playerTable .connect-state .online {
+.playerTable .connect-state.online {
     color: green;
 }
 
-.playerTable .connect-state .offline {
+.playerTable .connect-state.offline {
     color: #FF0000;
 }
 
