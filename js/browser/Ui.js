@@ -13,7 +13,7 @@ define('browser/Ui', [
 	Game, Player
 ) => {
 
-	const SETTINGS_COOKIE = 'crossword_settings';
+	const SETTINGS_COOKIE = 'xanado_settings';
 
 	/**
 	 * Report an error returned from an ajax request.
@@ -48,9 +48,16 @@ define('browser/Ui', [
 
 			console.log("Starting game UI");
 
-			// Are we using https?
+			/**
+			 * Are we using https?
+			 * @member {boolean}
+			 */
 			this.usingHttps = document.URL.indexOf('https:') === 0;
 
+			/**
+			 * Currently user preference settings
+			 * @member {object}
+			 */
 			this.settings = {
 				turn_alert: true,
 				cheers: true,
@@ -105,7 +112,7 @@ define('browser/Ui', [
 			console.log(`GET /game/${gameKey}`);
 			$.get(`/game/${gameKey}`)
 			.then(frozen => {
-				console.log(`Received game ${gameKey}`);
+				console.log(`--> Game ${gameKey}`);
 				const game = Fridge.thaw(frozen, Game.classes);
 				return this.identifyPlayer(game)
 				.then (playerKey => this.loadGame(game, playerKey))
@@ -128,7 +135,7 @@ define('browser/Ui', [
 		 * @param {object} args arguments for the request body
 		 */
 		sendCommand(command, args) {
-			console.log(`Send ${command}`);
+			console.log(`POST /command/${command}`);
 			this.cancelNotification();
 			$.post(
 				`/command/${command}/${this.game.key}/${this.player.key}`,
@@ -791,20 +798,20 @@ define('browser/Ui', [
 
 			// Custom messages
 
-			.on('connections', info => {
-				// Update list of active connections. info is a list of
+			.on('connections', players => {
+				// Update list of active connections. 'players' is a list of
 				// Player.simple
 				console.debug("--> connections");
 				for (let player of this.game.players)
 					player.online(false);
-				for (let cat of info) {
-					if (!cat) continue;
-					let player = this.game.getPlayerWithKey(cat.key);
+				for (let simple of players) {
+					if (!simple) continue;
+					let player = this.game.getPlayerWithKey(simple.key);
 					if (player)
-						player.connected = cat.connected;
+						player.connected = simple.connected;
 					else {
 						// New player in game
-						player = new Player(cat);
+						player = new Player(simple);
 						this.game.addPlayer(player);
 						this.updatePlayerTable();
 					}
@@ -1206,10 +1213,10 @@ define('browser/Ui', [
 			if (!this.game.hasEnded()
 				&& lastPlayer.rack.isEmpty()) {
 				this.lockBoard(true);
-				if (this.player.key === lastPlayer.key)
-					$('#turnButton').hide();
-				else
+				if (this.player.key === this.game.whosTurnKey)
 					this.setMoveAction(/*i18n ui-*/'confirmGameOver');
+				else
+					$('#turnButton').hide();
 			} else if (this.placedCount > 0) {
 				// Player has dropped some tiles on the board
 				// (tileCount > 0), move action is to make the move
