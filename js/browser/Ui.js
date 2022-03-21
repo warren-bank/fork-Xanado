@@ -357,15 +357,19 @@ define('browser/Ui', [
 				args.push(message.args);
 			else if (message.args instanceof Array)
 				args = args.concat(message.args);
-			let msg = $.i18n.apply(null, args);
-			msg = `<span class="chatMessage">${msg}</span>`;
-			console.debug(`Server: Message ${msg}`);
+			
+			const $mess = $('<div class="chatMessage"></div>');
 
 			const sender = /^chat-/.test(message.sender)
 				  ? $.i18n(message.sender) : message.sender;
-			const pn = `<span class='chatSender'>${sender}</span>`;
+			const $pn = $("<span class='chatSender'></span>");
+			$pn.text(sender);
+			$mess.append($pn).append(": ");
 
-			const $mess = $(`<div class="chatMessage">${pn}: ${msg}</div>`);
+			const $msg =  $('<span class="chatMessage"></span>');
+			$msg.text($.i18n.apply(null, args));
+			$mess.append($msg);
+
 			$('#chatMessages')
 			.append($mess)
 			.animate({
