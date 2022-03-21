@@ -61,70 +61,86 @@ define('server/Server', [
 				next();
 			});
 
+			// Add user manager routes (/login, /register etc.
 			this.userManager = new UserManager(config, express);
-			
+
+			//DEBUG
+			//express.use((req, res, next) => {
+			//	if (req.isAuthenticated())
+			//		console.log(`\tuser ${req.user.name}`);
+			//next();
+			//});
+
+			// Create a router for game commands
 			const cmdRouter = Express.Router();
-			// get the HTML page for main interface (the "games" page)
+
+			// Get the HTML for the main interface (the "games" page)
 			cmdRouter.get('/',
 					   (req, res) => res.sendFile(
 						   requirejs.toUrl('html/games.html')));
 
-			// completed games)
-			cmdRouter.get('/games',
-					   (req, res) => this.handle_games(req, res));
+			// Get a simplified version of games list or a single game
+			// (no board, bag etc) for the "games" page. You can request
+			// "active" games (those still in play), "all" games (for
+			// finished games too), or a single game key
+			cmdRouter.get('/simple/:send',
+					   (req, res) => this.request_simple(req, res));
 
-			// get a JSON of the game history
+			// Get a games history. Sends a summary of cumulative player
+			// scores to date, for each unique player.
 			cmdRouter.get('/history',
-					   (req, res) => this.handle_history(req, res));
+					   (req, res) => this.request_history(req, res));
 
-			// Get a JSON list of available locales
+			// Get a list of available locales
 			cmdRouter.get('/locales',
-					(req, res) => this.handle_locales(req, res));
+					(req, res) => this.request_locales(req, res));
 
-			// Get a JSON description of available editions
+			// Get a list of of available editions
 			cmdRouter.get('/editions',
-					 (req, res) => this.handle_editions(req, res));
+					 (req, res) => this.request_editions(req, res));
 
-			// Get a JSON description of available dictionaries
+			// Get a description of the available dictionaries
 			cmdRouter.get('/dictionaries',
-					 (req, res) => this.handle_dictionaries(req, res));
+					 (req, res) => this.request_dictionaries(req, res));
 
-			// Get a JSON description of defaults
+			// Get a description of defaults for new games
 			cmdRouter.get('/defaults', (req, res) =>
 					 res.send({
 						 edition: config.defaultEdition,
 						 dictionary: config.defaultDictionary
 					 }));
 
-			// Get the JSON game summary
+			// Get Game. This is a full description of the game, including
+			// the Board. c.f. /simple which provides a cut-down version
+			// of the same thing.
 			cmdRouter.get('/game/:gameKey',
-					 (req, res) => this.handle_game(req, res));
+					 (req, res) => this.request_game(req, res));
 
 			// Request handler for best play hint. Allows us to pass in
 			// any player key, which is useful for debug (though could
-			// be used to cheat)
+			// be used to silently cheat!)
 			cmdRouter.get('/bestPlay/:gameKey/:playerKey',
 						(req, res, next) =>
 						this.userManager.checkLoggedIn(req, res, next),
-					   (req, res) => this.handle_bestPlay(req, res));
+					   (req, res) => this.request_bestPlay(req, res));
 
-			// Construct a new game
+			// Construct a new game. games.js
 			cmdRouter.post('/createGame',
 						(req, res, next) =>
 						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_createGame(req, res));
+						(req, res) => this.request_createGame(req, res));
 
-			// Start a new game
-			cmdRouter.post('/startGame/:gameKey',
-						(req, res, next) =>
-						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_startGame(req, res));
+			// Start a new game. Not used.
+			//cmdRouter.post('/startGame/:gameKey',
+			//			(req, res, next) =>
+			//			this.userManager.checkLoggedIn(req, res, next),
+			//			(req, res) => this.request_startGame(req, res));
 
 			// Delete an active or old game. Invoked from games.js
 			cmdRouter.post('/deleteGame/:gameKey',
 						(req, res, next) =>
 						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_deleteGame(req, res));
+						(req, res) => this.request_deleteGame(req, res));
 
 			// Request another game in a series
 			// Note this is NOT auth-protected, it is invoked
@@ -132,37 +148,37 @@ define('server/Server', [
 			cmdRouter.post('/anotherGame/:gameKey',
 						(req, res, next) =>
 						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_anotherGame(req, res));
+						(req, res) => this.request_anotherGame(req, res));
 
 			// send email reminders about active games
 			cmdRouter.post('/sendReminder/:gameKey',
 						(req, res, next) =>
 						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_sendReminder(req, res));
+						(req, res) => this.request_sendReminder(req, res));
 
 			// Handler for player joining a game
 			cmdRouter.post('/join/:gameKey/:playerKey',
 					   (req, res, next) =>
 					   this.userManager.checkLoggedIn(req, res, next),
-					   (req, res) => this.handle_join(req, res));
+					   (req, res) => this.request_join(req, res));
 
 			// Handler for player leaving a game
 			cmdRouter.post('/leave/:gameKey/:playerKey',
 					   (req, res, next) =>
 					   this.userManager.checkLoggedIn(req, res, next),
-					   (req, res) => this.handle_leave(req, res));
+					   (req, res) => this.request_leave(req, res));
 
 			// Handler for adding a robot to a game
 			cmdRouter.post('/addRobot',
 					   (req, res, next) =>
 					   this.userManager.checkLoggedIn(req, res, next),
-					   (req, res) => this.handle_addRobot(req, res));
+					   (req, res) => this.request_addRobot(req, res));
 
 			// Request handler for a turn (or other game command)
 			cmdRouter.post('/command/:command/:gameKey/:playerKey',
 						(req, res, next) =>
 						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.handle_command(req, res));
+						(req, res) => this.request_command(req, res));
 
 			express.use(cmdRouter);
 
@@ -187,58 +203,8 @@ define('server/Server', [
 			http.listen(config.port);
 
 			const io = new SocketIO.Server(http);
-
-			io.sockets.on('connection', socket => {
-				// The server socket only listens to these messages.
-				// However it emits a lot more, in 'Game.js'
-
-				socket
-
-				.on('monitor', () => {
-					// Games monitor has joined
-					console.log('Monitor connected');
-					this.monitors.push(socket);
-				})
-
-				.on('disconnect', () => {
-					// Don't need to find the game using this socket, because
-					// each game has a 'disconnect' listener on each of the
-					// sockets being used.
-
-					// Remove any monitor using this socket
-					const i = this.monitors.indexOf(socket);
-					if (i >= 0) {
-						// Game monitor has disconnected
-						console.log('Monitor disconnected');
-						this.monitors.slice(i, 1);
-					} else {
-						console.log('Anonymous disconnect');
-						this.updateMonitors();
-					}
-				})
-
-				.on('join', async params => {
-					// Player joining
-					console.log(`Player ${params.playerKey} joining ${params.gameKey}`);
-					this.loadGame(params.gameKey)
-					.then(game => {
-						game.connect(socket, params.playerKey);
-						this.updateMonitors();
-					});
-				})
-
-				.on('message', message => {
-
-					// Chat message
-					console.log(message);
-					if (message.text === 'hint')
-						socket.game.hint(socket.player);
-					else if (message.text === 'advise')
-						socket.game.toggleAdvice(socket.player);
-					else
-						socket.game.notifyPlayers('message', message);
-				});
-			});
+			io.sockets.on(
+				'connection', socket => this.attachSocketHandlers(socket));
 		}
 
 		/**
@@ -280,7 +246,68 @@ define('server/Server', [
 		}
 
 		/**
-		 * Notify monitors (/games pages) that something has changed
+		 * Attach the handlers for incoming socket messages from the UI
+		 * @param {socket.io} socket the socket to listen to
+		 */
+		attachSocketHandlers(socket) {
+			socket
+
+			.on('monitor', () => {
+				// Games monitor has joined
+				console.log('--> monitor');
+				this.monitors.push(socket);
+			})
+
+			.on('connect', sk => {
+				console.log('--> connect');
+				this.updateMonitors();
+			})
+
+			.on('disconnect', sk => {
+				console.log('--> disconnect');
+
+				// Don't need to find the Game using this socket, because
+				// each Game has a 'disconnect' listener on each of the
+				// sockets being used. However monitors don't.
+
+				// Remove any monitor using this socket
+				const i = this.monitors.indexOf(socket);
+				if (i >= 0) {
+					// Game monitor has disconnected
+					console.log('Monitor disconnected');
+					this.monitors.slice(i, 1);
+				} else {
+					console.log('Anonymous disconnect');
+					this.updateMonitors();
+				}
+			})
+
+			.on('join', params => {
+				// Player joining
+				console.log(`--> join ${params.playerKey} joining ${params.gameKey}`);
+				this.loadGame(params.gameKey)
+				.then(game => {
+					game.connect(socket, params.playerKey);
+					this.updateMonitors();
+				});
+			})
+
+			.on('message', message => {
+
+				// Chat message
+				console.log(message);
+				if (message.text === 'hint')
+					socket.game.hint(socket.player);
+				else if (message.text === 'advise')
+					socket.game.toggleAdvice(socket.player);
+				else
+					socket.game.notifyPlayers('message', message);
+			});
+		}
+
+		/**
+		 * Notify monitors that something has changed.
+		 * The monitors will issue requests to determine what changed.
 		 */
 		updateMonitors() {
 			this.monitors.forEach(socket => socket.emit('update'));
@@ -314,23 +341,32 @@ define('server/Server', [
 		}
 
 		/**
-		 * Sends a catalogue of active games (optionally with completed games)
-		 * pass ?active to get only active games. Note: does NOT send game
-		 * onjects, rather a simple catalogue of Objects.
-		 * @return {Promise} Promise to send a catalogue of games
+		 * Sends a simple description of active games (optionally with
+		 * completed games). Only parameter is 'send' which can be set
+		 * to a single game key to get a single game, 'active' to get
+		 * active games, or 'all' to get all games, including finished
+		 * games. Note: this sends Game.simple objects, not Game objects.
+		 * @return {Promise} Promise to send a list of games as requested
 		 */
-		handle_games(req, res) {
+		request_simple(req, res) {
 			const server = this;
-			const all = (req.query.all === "true");
-			return this.db.keys()
-			.then(keys => keys.map(key => this.loadGame(key)))
-			.then(promises => Promise.all(promises))
+			const send = req.params.send;
+			// Make list of keys we are interested in
+			return ((send === 'all' || send === 'active')
+				? this.db.keys()
+				: Promise.resolve([send]))
+			// Load those games
+			.then(keys => Promise.all(keys.map(key => this.loadGame(key))))
+			// Filter the list and generate simple data
 			.then(games => Promise.all(
 				games
-				.filter(game => (all || !game.hasEnded()))
-				.map(game => game.catalogue(this.userManager))))
+				.filter(game => (send !== 'active' || !game.hasEnded()))
+				.map(game => game.simple(this.userManager))))
+			// Sort the resulting list by last activity, so the most
+			// recently active game bubbles to the top
 			.then(gs => gs.sort((a, b) => a.lastActivity < b.lastActivity ? 1
 								: a.lastActivity > b.lastActivity ? -1 : 0))
+			// Finally send the result
 			.then(data => res.status(200).send(data))
 			.catch(e => this.trap(e, res));
 		}
@@ -341,7 +377,7 @@ define('server/Server', [
 		 * unique players.
 		 * @return {Promise}
 		 */
-		handle_history(req, res) {
+		request_history(req, res) {
 			const server = this;
 
 			return this.db.keys()
@@ -387,7 +423,7 @@ define('server/Server', [
 		 * presentation language for the UI.
 		 * @return {Promise} Promise to list locales
 		 */
-		handle_locales(req, res) {
+		request_locales(req, res) {
 			const db = new Platform.Database('i18n', 'json');
 			return db.keys()
 			.then(keys => {
@@ -401,7 +437,7 @@ define('server/Server', [
 		 * Promise to get an index of available editions.
 		 * return {Promise} Promise to index available editions
 		 */
-		handle_editions(req, res) {
+		request_editions(req, res) {
 			const db = new Platform.Database('editions', 'js');
 			return db.keys()
 			.then(editions => res.status(200).send(
@@ -414,7 +450,7 @@ define('server/Server', [
 		 * Handler for GET /dictionaries
 		 * return {Promise} Promise to index available dictionaries
 		 */
-		handle_dictionaries(req, res) {
+		request_dictionaries(req, res) {
 			const db = new Platform.Database('dictionaries', 'dict');
 			return db.keys()
 			.then(keys => res.status(200).send(keys))
@@ -425,7 +461,7 @@ define('server/Server', [
 		 * Handler for POST /sendReminder
 		 * Email reminders to next human player in (each) game
 		 */
-		handle_sendReminder(req, res) {
+		request_sendReminder(req, res) {
 			const gameKey = req.params.gameKey;
 			console.log('Sending turn reminders');
 			const surly = `${req.protocol}://${req.get('Host')}`;
@@ -445,7 +481,7 @@ define('server/Server', [
 		 * Handler for POST /createGame
 		 * @return {Promise}
 		 */
-		handle_createGame(req, res) {
+		request_createGame(req, res) {
 			console.log(`Constructing new game ${req.body.edition}`);
 			let maxPlayers = req.body.maxPlayers;
 
@@ -482,40 +518,40 @@ define('server/Server', [
 			.then(game => res.status(200).send(game.key));
 		}
 
-		/**
-		 * Handle /startGame/:gameKey
-		 * @return {Promise}
-		 */
-		handle_startGame(req, res) {
-			const gameKey = req.params.gameKey;
-			return this.loadGame(gameKey)
-			.then(game => {
-				// Check the game can be started
-				const err = game.blocked();
-				if (err)
-					return res.status(500).send(err);
-				
-				// Pick a random tile from the bag
-				game.whosTurnKey = game.players[
-					Math.floor(Math.random() * game.players.length)].key;
-			
-				game.emailInvitations(
-					`${req.protocol}://${req.get('Host')}`,
-					this.config, req.session.passport.user.key);
-
-				game.start();
-
-				// Redirect back to control panel
-				return res.redirect('/html/games.html');
-			})
-			.catch(e => this.trap(e, res));
-		}
+//		/**
+//		 * Handle /startGame/:gameKey
+//		 * @return {Promise}
+//		 */
+//		request_startGame(req, res) {
+//			const gameKey = req.params.gameKey;
+//			return this.loadGame(gameKey)
+//			.then(game => {
+//				// Check the game can be started
+//				const err = game.blocked();
+//				if (err)
+//					return res.status(500).send(err);
+//
+//				// Pick a random tile from the bag
+//				game.whosTurnKey = game.players[
+//					Math.floor(Math.random() * game.players.length)].key;
+//
+//				game.emailInvitations(
+//					`${req.protocol}://${req.get('Host')}`,
+//					this.config, req.session.passport.user.key);
+//
+//				game.start();
+//
+//				// Redirect back to control panel
+//				return res.redirect('/html/games.html');
+//			})
+//			.catch(e => this.trap(e, res));
+//		}
 
 		/**
 		 * Handle /join/:gameKey player joining a game.
 		 * @return {Promise}
 		 */
-		handle_join(req, res) {
+		request_join(req, res) {
 			const gameKey = req.params.gameKey;
 			return this.loadGame(gameKey)
 			.then(game => {
@@ -549,7 +585,7 @@ define('server/Server', [
 		 * It's an error to add a robot to a game that already has a robot.
 		 * @return {Promise}
 		 */
-		handle_addRobot(req, res) {
+		request_addRobot(req, res) {
 			const gameKey = req.body.gameKey;
 			const dic = req.body.dictionary;
 			console.log("Add robot",req.body);
@@ -577,7 +613,7 @@ define('server/Server', [
 		 * Handle /leave/:gameKey player leaving a game.
 		 * @return {Promise}
 		 */
-		handle_leave(req, res) {
+		request_leave(req, res) {
 			const gameKey = req.params.gameKey;
 			const playerKey = req.params.playerKey;
 			return this.loadGame(gameKey)
@@ -587,8 +623,11 @@ define('server/Server', [
 				if (player) {
 					game.removePlayer(player);
 					return game.save()
-					.then(() => res.status(200).send(
-						{ gameKey: gameKey, playerKey: playerKey }));
+					.then(() => {
+						this.updateMonitors();
+						return res.status(200).send(
+							{ gameKey: gameKey, playerKey: playerKey });
+					});
 				}
 				return res.status(500).send("Player is not in game");
 			})
@@ -597,9 +636,11 @@ define('server/Server', [
 
 		/**
 		 * Handle /game/:gameKey request for a dump of the game information.
+		 * This sends the entire Game object, including the entire Turn history
+		 * and the Board
 		 * @return {Promise}
 		 */
-		handle_game(req, res) {
+		request_game(req, res) {
 			const gameKey = req.params.gameKey;
 			return this.db.get(gameKey, Game.classes)
 			.then(game => res.status(200).send(Fridge.freeze(game)))
@@ -612,7 +653,7 @@ define('server/Server', [
 		 * state. Note that it may not be their turn, that's OK, this is debug
 		 * @return {Promise}
 		 */
-		handle_bestPlay(req, res) {
+		request_bestPlay(req, res) {
 			const gameKey = req.params.gameKey;
 			const playerKey = req.params.playerKey;
 			return this.loadGame(gameKey)
@@ -629,7 +670,7 @@ define('server/Server', [
 		 * Delete a game.
 		 * @return {Promise}
 		 */
-		handle_deleteGame(req, res) {
+		request_deleteGame(req, res) {
 			const gameKey = req.params.gameKey;
 			console.log("Delete game",gameKey);
 			return this.loadGame(gameKey)
@@ -642,7 +683,7 @@ define('server/Server', [
 		 * Create another game with the same players.
 		 * @return {Promise}
 		 */
-		handle_anotherGame(req, res) {
+		request_anotherGame(req, res) {
 			return this.loadGame(req.params.gameKey)
 			.then(game => {
 				return game.anotherGame()
@@ -656,7 +697,7 @@ define('server/Server', [
 		 * varies according to the command sent.
 		 * @return {Promise}
 		 */
-		handle_command(req, res) {
+		request_command(req, res) {
 			const command = req.params.command;
 			const gameKey = req.params.gameKey;
 			const playerKey = req.params.playerKey;

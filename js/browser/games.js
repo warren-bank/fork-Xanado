@@ -82,7 +82,7 @@ requirejs([
 							window.open(
 								`/html/game.html?game=${game.key}&player=${loggedInAs.key}`,
 								"_blank");
-							refresh();
+							refresh_game(game.key);
 						})
 						.catch(report);
 					}));
@@ -94,7 +94,7 @@ requirejs([
 					.on('click', () => {
 						console.log(`Leave game ${game.key}`);
 						$.post(`/leave/${game.key}/${loggedInAs.key}`)
-						.then(refresh)
+						.then(() => refresh_game(game.key))
 						.catch(report);
 					}));
 
@@ -107,6 +107,7 @@ requirejs([
 						content: $.i18n("tooltip-email-reminder")
 					})
 					.on("click", () => {
+						console.log("Send reminder");
 						$.post(`/sendReminder/${game.key}`)
 						.then(info => $('#alertDialog')
 							  .text($.i18n.apply(null, info))
@@ -124,10 +125,29 @@ requirejs([
 
 	/**
 	 * Construct a table that shows the state of the given game
-	 * @param {object} game a Game.catalogue() NOT a Game object
+	 * @param {Game|object} game a Game or Game.simple
+	 * @param {object} isOpen map from game key to boolean
 	 */
-	function $game(game) {
+	function $game(game, isOpen) {
 		const $box = $(`<div class="game" id="${game.key}"></div>`);
+		const $twist = $("<div class='twist'></div>");
+		const $twistButton =
+			  $("<button name='twist'></button>")
+			  .button({ label: TWIST_OPEN })
+			  .addClass("no-padding")
+			  .on("click", () => showHideTwist(!$twist.is(":visible")));
+
+		function showHideTwist(show) {
+			if (show) {
+				$twist.show();
+				$twistButton.button("option", "label", TWIST_OPEN);
+			} else {
+				$twist.hide();
+				$twistButton.button("option", "label", TWIST_CLOSE);
+			}
+		}
+
+		showHideTwist(isOpen && isOpen[game.key]);
 
 		const msg = [
 			//game.key, // debug only
@@ -145,21 +165,8 @@ requirejs([
 		if (game.state !== 'playing')
 			msg.push(`<b>${$.i18n(game.state)}</b>`);
 
-		const $twistButton =
-			  $("<button name='twist'></button>")
-			  .button({ label: TWIST_OPEN })
-			  .addClass("no-padding")
-			  .on("click", () => {
-				  $twist.toggle();
-				  const isOpen = $twist.is(":visible");
-				  $twistButton
-				  .button("option", "label",
-						  isOpen ? TWIST_CLOSE : TWIST_OPEN);
-			  });
 		$box.append($twistButton);
 		$box.append(msg.join(', '));
-
-		const $twist = $("<div class='twist'></div>").hide();
 		$box.append($twist);
 		
 		const $table = $("<table class='playerTable'></table>");
@@ -176,19 +183,19 @@ requirejs([
 
 			if (!game.players.find(p => p.key === loggedInAs.key)) {
 				// Can join game
-				$twist.append(
-					$(`<button name='join'></button>`)
-					.text($.i18n("Join game"))
-					.button()
-					.on('click', () => {
-						console.log(`Join game ${game.key}`);
-						$.post(`/join/${game.key}/${loggedInAs.key}`)
-						.then(info => {
-							window.open(`/html/game.html?game=${info.gameKey}&player=${info.playerKey}`, "_blank");
-							refresh();
-						})
-						.catch(report);
-					}));
+				const $join = $(`<button name="join"></button>`);
+				$twist.append($join);
+				$join.text($.i18n("Join game"))
+				.button()
+				.on('click', () => {
+					console.log(`Join game ${game.key}`);
+					$.post(`/join/${game.key}/${loggedInAs.key}`)
+					.then(info => {
+						window.open(`/html/game.html?game=${info.gameKey}&player=${info.playerKey}`, "_blank");
+						refresh_game(game.key);
+					})
+					.catch(report);
+				});
 			}
 
 			if (!game.players.find(p => p.isRobot)) {
@@ -197,7 +204,11 @@ requirejs([
 					.text($.i18n("Add robot"))
 					.button()
 					.on('click', () =>
-						openDialog("AddRobotDialog", { gameKey: game.key })));
+						Dialog.open("AddRobotDialog", {
+							gameKey: game.key,
+							done: () => refresh_game(game.key),
+							error: report
+						})));
 			}
 		}
 			
@@ -208,7 +219,7 @@ requirejs([
 					.text($.i18n("Another game like this"))
 					.on('click',
 						() => $.post(`/anotherGame/${game.key}`)
-						.then(refresh)
+						.then(refresh_games)
 						.catch(report)));
 			}
 
@@ -217,26 +228,47 @@ requirejs([
 				.text($.i18n("Delete"))
 				.button()
 				.on('click', () => $.post(`/deleteGame/${game.key}`)
-					.then(refresh)
+					.then(refresh_games)
 					.catch(report)));
 		}
 			
 		return $box;
 	}
 
-	function showGames(games) {
+
+	/**
+	 * Refresh the display of a single game
+	 * @param {Game|object} game a Game or Game.simple
+	 */
+	function show_game(game) {
+		const isOpen = {};
+		isOpen[game.key] = $(`#${game.key} .twist`).is(":visible");
+		console.log(`Reshow ${game.key} ${isOpen[game.key]}`);
+		$(`#${game.key}`).replaceWith($game(game, isOpen));
+	}
+
+	/**
+	 * Refresh the display of all games
+	 * @param {object[]} games array of Game.simple
+	 */
+	function show_games(games) {
 		if (games.length === 0) {
 			$('#gamesList').hide();
 			return;
 		}
-		$('#gamesList').show();
+
+		const isOpen = {};
+		$(".game").each(function() {
+			isOpen[this.id] = $(this).find('.twist').is(":visible");
+		});
 		const $gt = $('#gamesTable');
 		$gt.empty();
 
-		games.forEach(game => $gt.append($game(game)));
+		games.forEach(game => $gt.append($game(game, isOpen)));
 
+		$('#gamesList').show();
 		const ema = games.reduce((em, game) => {
-			// game is Game.catalogue(), not a Game object
+			// game is Game.simple, not a Game object
 			if (game.state !== 'playing'
 				|| !game.players
 				|| !game.players.find(p => p.key === game.whosTurnKey))
@@ -250,15 +282,33 @@ requirejs([
 			$('#reminder-button').hide();
 	}
 
-	function refresh_games() {
-		return $.get("/games", {
-			all: $('#showAllGames').is(':checked')
-		})
-		.then(showGames)
+	/**
+	 * Request an update for a single game (which must exist in the
+	 * games table)
+	 * @param {string} key Game key
+	 */
+	function refresh_game(key) {
+		return $.get(`/simple/${key}`)
+		.then(simple => show_game(simple[0]))
 		.catch(report);
 	}
-	
+
+	/**
+	 * Request an update for all games
+	 */
+	function refresh_games() {
+		console.debug("refresh_games");
+		const what = $('#showAllGames').is(':checked') ? 'all' : 'active';
+		return $.get(`/simple/${what}`)
+		.then(show_games)
+		.catch(report);
+	}
+
+	/**
+	 * Request an update for session status and all games lists
+	 */
 	function refresh() {
+		console.debug("refresh");
 		return Promise.all([
 			$.get("/session")
 			.then(session => {
@@ -271,13 +321,11 @@ requirejs([
 				$("#chpw_button").toggle(session.provider === 'xanado');
 			})
 			.catch(e => {
-				console.log(e);
 				$(".logged-in").hide();
 				$(".not-logged-in").show();
 				$("#create-game").hide();
-			}),
-
-			refresh_games(),
+			})
+			.then(refresh_games),
 
 			$.get("/history")
 			.then(data => {
@@ -300,13 +348,6 @@ requirejs([
 		]);
 	}
 
-	function openDialog(dlg, options) {
-		Dialog.open(dlg, $.extend(options || {}, {
-			done: refresh,
-			error: report
-		}));
-	}
-
 	browserApp.then(() => {
 
 		const socket = io.connect(null);
@@ -319,6 +360,7 @@ requirejs([
 
 		$('#reminder-button')
 		.on('click', () => {
+			console.log("Send reminders");
 			$.post("/sendReminder/*")
 			.then(info => $('#alertDialog')
 				  .text($.i18n.apply(null, info))
@@ -330,10 +372,16 @@ requirejs([
 		});
 
 		$("#create-game")
-		.on("click", () => openDialog("CreateGameDialog"));
+		.on("click", () => Dialog.open("CreateGameDialog", {
+			done: refresh_games,
+			error: report
+		}));
 
 		$("#login-button")
-		.on("click", () => openDialog("LoginDialog"));
+		.on("click", () => Dialog.open("LoginDialog", {
+			done: refresh,
+			error: report
+		}));
 
 		$("#logout-button")
 		.on('click', () => {
@@ -347,14 +395,32 @@ requirejs([
 		});
 
 		$("#chpw_button")
-		.on("click", () => openDialog("ChangePasswordDialog"));
+		.on("click", () => Dialog.open("ChangePasswordDialog", {
+			done: refresh,
+			error: report
+		}));
 	
-		refresh();
+		//refresh(); do this in 'connect' handler
 
 		socket
-		.on('connect', () => console.debug('Server: Socket connected'))
-		.on('update', () => refresh());
 
+		.on('connect', () => {
+			console.debug("--> connect");
+			refresh();
+		})
+
+		.on('disconnect', () => {
+			console.debug("--> disconnect");
+			refresh();
+		})
+
+		// Custom messages
+
+		.on('update', () => {
+			console.debug("--> update");
+			// Can be smarter than this!
+			refresh();
+		});
 		$(document).tooltip({
 			items: '[data-i18n-tooltip]',
 			content: function() {

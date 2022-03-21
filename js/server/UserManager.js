@@ -203,7 +203,7 @@ define('server/UserManager', [
 
 		/**
 		 * Load the user DB
-		 * @return {Promise} promise that resolved to the DB
+		 * @return {Promise} promise that resolves to the DB
 		 * @private
 		 */
 		getDB() {
@@ -215,9 +215,10 @@ define('server/UserManager', [
 				  .then(data => release()
 						.then(() => JSON.parse(data))))
 			.then(db => {
-				this.db = db;
+				this.db = db || [];
 				return db;
-			});
+			})
+			.catch(e => (this.db = []));
 		}
 
 		/**
@@ -361,10 +362,12 @@ define('server/UserManager', [
 				} while (key === UserManager.ROBOT_KEY);
 
 				unique = true;
-				for (let f of this.db) {
-					if (key === f.key) {
-						unique = false;
-						break;
+				if (this.db) {
+					for (let f of this.db) {
+						if (key === f.key) {
+							unique = false;
+							break;
+						}
 					}
 				}
 			} while (!unique);
@@ -435,7 +438,7 @@ define('server/UserManager', [
 			})
 			.catch(() => {
 				// New user
-				this.addUser({
+				return this.addUser({
 					name: username,
 					email: email,
 					provider: 'xanado',

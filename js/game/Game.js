@@ -431,7 +431,7 @@ define('game/Game', [
 		}
 
 		/**
-		 * Broadcast a message to all players. Note that a player
+		 * Broadcast a message to all players and monitors. Note that a player
 		 * may be connected multiple times, through different sockets.
 		 * @param {string} message to send
 		 * @param {Object} data to send with message
@@ -442,9 +442,9 @@ define('game/Game', [
 		}
 
 		/**
-		 * Wrap up after a command handler. Log the command, determine
-		 * whether the game has ended, save state and notify game
-		 * listeners.
+		 * Wrap up after a command handler that is returning a Turn.
+		 * Log the command, determine whether the game has ended,
+		 * save state and notify game listeners.
 		 * @param {Turn} turn the Turn to finish
 		 * @return {Promise} that resolves when the game has been saved
 		 * and players have been notified.
@@ -457,13 +457,17 @@ define('game/Game', [
 
 			return this.save()
 			.then(() => {
-				console.log('Notifying turn', turn);
 				this.notifyPlayers('turn', turn);
 
 				// if the game has ended, send notification.
 				if (this.state !== 'playing') {
-					console.log('Game over', this.state);
-					this.notifyPlayers('gameOverConfirmed', this.state);
+					console.log(`${this.key} '${this.state}'`);
+					this.notifyPlayers(
+						'gameOverConfirmed',
+						{
+							key: this.key,
+							state: this.state
+						});
 					return Promise.resolve();
 				}
 
@@ -516,25 +520,25 @@ define('game/Game', [
 			}
 		}
 
-		/**
-		 * Promise to email invitations to players due to play in this game
-		 * @param {string} serverURL URL of the server for this game
-		 * @param {Object} config configuration object
-		 * @param {UserManager} um user manager for getting emails
-		 * @param {string} senderKey user key for the player sending the mail
-		 * @return {Promise} that resolves to a {string[]} of player names who
-		 * were sent mail
-		 */
-		emailInvitations(serverURL, config, um, senderKey) {
-			if (!config.mail || !config.mail.transport)
-				return Promise.reject('Mail is not configured');
-
-			return Promise.all(this.players.map(
-				player => player.emailInvitation(
-					Platform.i18n('email-invite',
-								  this.playerListText(player)),
-					`${serverURL}/game/${this.key}`, config, um, senderKey)));
-		}
+//		/**
+//		 * Promise to email invitations to players due to play in this game
+//		 * @param {string} serverURL URL of the server for this game
+//		 * @param {Object} config configuration object
+//		 * @param {UserManager} um user manager for getting emails
+//		 * @param {string} senderKey user key for the player sending the mail
+//		 * @return {Promise} that resolves to a {string[]} of player names who
+//		 * were sent mail
+//		 */
+//		emailInvitations(serverURL, config, um, senderKey) {
+//			if (!config.mail || !config.mail.transport)
+//				return Promise.reject('Mail is not configured');
+//
+//			return Promise.all(this.players.map(
+//				player => player.emailInvitation(
+//					Platform.i18n('email-invite',
+//								  this.playerListText(player)),
+//					`${serverURL}/game/${this.key}`, config, um, senderKey)));
+//		}
 
 		/**
 		 * Promise to email reminders to the next player due to
@@ -604,9 +608,14 @@ define('game/Game', [
 		 * as identified by their key.
 		 */
 		updateConnections() {
-			Promise.all(this._connections
+			Promise.all(
+				this._connections
 				.filter(socket => socket.player instanceof Player)
-				.map(socket => socket.player.catalogue(this)))
+				.map(socket => socket.player.simple(this)
+					 .then(cat => {
+						 cat.gameKey = this.key;
+						 return cat;
+					 })))
 			.then(res => this.notifyPlayers('connections', res));
 		}
 
@@ -635,9 +644,9 @@ define('game/Game', [
 		 * works on server side
 		 * @return {Promise} resolving to a simple object with key game data
 		 */
-		catalogue(um) {
+		simple(um) {
 			return Promise.all(
-				this.players.map(player => player.catalogue(this, um)))
+				this.players.map(player => player.simple(this, um)))
 			.then(ps => {
 				return {
 					key: this.key,
@@ -734,6 +743,7 @@ define('game/Game', [
 			this.notifyPlayers(
 				'tick',
 				{
+					gameKey: this.key,
 					playerKey: player.key,
 					secondsToPlay: player.secondsToPlay
 				});
@@ -764,7 +774,7 @@ define('game/Game', [
 				// Broadcast a ping every second
 				this._intervalTimer = setInterval(() => {
 					const pnext = this.getPlayer();
-					if (pnext.secondsToPlay > 0)
+					if (pnext && pnext.secondsToPlay > 0)
 						this.tick();
 				}, 1000);
 			}
@@ -931,8 +941,8 @@ define('game/Game', [
 			const player = this.getPlayer();
 			player.stopTimer();
 
-			console.log(`makeMove ${player.name}`, move);
-			console.log(`Player's rack is ${player.rack}`);
+			console.log(move);
+			//console.log(`Player's rack is ${player.rack}`);
 
 			// Fire up a thread to generate advice and wait for it
 			// to complete. We can't do this asynchronously because
@@ -1057,14 +1067,20 @@ define('game/Game', [
 				console.log(`${player.name} has unpaused game`);
 				this.startTheClock();
 				this.restartPlayerTimers();
-				this.notifyPlayers('unpause', player.name);
+				this.notifyPlayers('unpause', {
+					key: this.key,
+					name: player.name
+				});
 				this.pausedBy = undefined;
 			} else {
 				this.pausedBy = player.name;
 				console.log(`${this.pausedBy} has paused game`);
 				this.stopTheClock();
 				this.stopPlayerTimers();
-				this.notifyPlayers('pause', player.name);
+				this.notifyPlayers('pause', {
+					key: this.key,
+					name: player.name
+				});
 			}
 			return Promise.resolve();
 		}

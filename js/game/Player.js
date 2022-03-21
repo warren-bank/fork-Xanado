@@ -27,7 +27,7 @@ define('game/Player', [
 		 */
 		constructor(name, key, isRobot) {
 			if (typeof name === 'object') {
-				// Copying an existing player or catalogue
+				// Copying an existing Player or Player.simple
 				this.isRobot = name.isRobot;
 				this.key = name.key; // re-use
 				name = name.name;
@@ -85,21 +85,23 @@ define('game/Player', [
 		}
 
 		/**
-		 * Create simple structure describing a subset of the player
-		 * state, for sending to the 'games' interface
+		 * Create simple flat structure describing a subset of the player
+		 * state
 		 * @param {Game} game the game the player is participating in
 		 * @param {UserManager?} um user manager for getting emails if wanted
 		 * @return {Promise} resolving to a simple structure describing the player
 		 */
-		catalogue(game, um) {
+		simple(game, um) {
 			return ((this.isRobot || !um)
 					? Promise.resolve(this)
 					: um.getUser({key: this.key}))
 			.then(ump => {
 				return {
-					name: this.name,
+					name: this.name || 'Unknown Player',
 					isRobot: this.isRobot,
-					connected: this.isRobot || (game.getConnection(this) !== null),
+					// Only in simple, has no analog in Player
+					connected: this.isRobot
+					|| (game.getConnection(this) !== null),
 					dictionary: this.dictionary,
 					key: this.key,
 					score: this.score,
@@ -108,10 +110,13 @@ define('game/Player', [
 				};
 			})
 			.catch(e => {
-				// User key not found in the db, for some reason. Not fatal.
+				// User key not found in the db. Not fatal, just pretend it's
+				// a robot.
 				return {
+					name: 'Unknown',
 					isRobot: this.isRobot,
-					connected: this.isRobot || (game.getConnection(this) !== null),
+					connected: this.isRobot
+					|| (game.getConnection(this) !== null),
 					key: this.key,
 					score: this.score,
 					secondsToPlay: this.secondsToPlay
@@ -252,8 +257,8 @@ define('game/Player', [
 		/**
 		 * Create score table representation of the player on the browser
 		 * side only. This is intended to work both on a full Player
-		 * object, but also on a Player.catalogue of the player.
-		 * @param {Player} player the player (or player.catalogue) who's
+		 * object, but also on a Player.simple of the player.
+		 * @param {Player|object} player the player (or Player.simple) who's
 		 * row this is
 		 * @param {string} curKey the key of the player for whom the DOM is
 		 * being generated

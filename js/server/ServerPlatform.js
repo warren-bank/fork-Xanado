@@ -76,7 +76,6 @@ define('platform', [
 			// restarting after a server shutdown so let's not bother.
 			return Fs.readFile(fn)
 			.then(data => {
-				console.log(`Unlocked ${fn}`);
 				return Fridge.thaw(JSON.parse(data), classes);
 			});
 		}

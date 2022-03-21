@@ -26,6 +26,12 @@ define('game/Turn', () => {
 			this.type = undefined;
 
 			/**
+			 * Key of the game
+			 * @member {string}
+			 */
+			this.gameKey = game.key;
+
+			/**
 			 * Key of the player who's turn it was
 			 * @member {string}
 			 */

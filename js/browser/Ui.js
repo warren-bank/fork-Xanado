@@ -343,7 +343,7 @@ define('browser/Ui', [
 		 * @param {object} message message object { sender: string,
 		 * text: i18n message identifier or plain text, args[]: i18n arguments
 		 */
-		processMessage(message) {
+		handle_message(message) {
 			console.debug("--> message");
 			let args = [ message.text ];
 			if (typeof message.args === 'string')
@@ -375,47 +375,59 @@ define('browser/Ui', [
 
 		/**
 		 * Process a tick from the server. Does nothing in an untimed game.
-		 * @param {object} tick {player: number, timeout: number }
+		 * @param {object} params Parameters
+		 * @param {string} gameKey game key
+		 * @param {string} playerKey player key
+		 * @param {string} secondsToPlay seconds left for this player to play
 		 */
-		processTick(tick) {
+		handle_tick(params) {
 			// console.debug("--> tick");
+			if (params.gameKey !== this.game.key)
+				console.error(`key mismatch ${this.game.key}`);
 			const $to = $('#timeout')
-				  .removeClass('tick-alert-high tick-alert-medium tick-alert-low');
-			if (tick.secondsToPlay <= 0) {
+			.removeClass('tick-alert-high tick-alert-medium tick-alert-low');
+
+			if (params.secondsToPlay <= 0) {
 				$to.hide();
 				return;
 			}
 
 			let stick = '';
-			if (this.isPlayer(tick.playerKey)) {
-				this.player.secondsToPlay = tick.secondsToPlay;
-				stick = $.i18n('ui-tick-you', Math.floor(tick.secondsToPlay));
-				if (tick.secondsToPlay < 10 && this.settings.warnings)
+			if (this.isPlayer(params.playerKey)) {
+				this.player.secondsToPlay = params.secondsToPlay;
+				stick = $.i18n('ui-tick-you', Math.floor(params.secondsToPlay));
+				if (params.secondsToPlay < 10 && this.settings.warnings)
 					this.playAudio('tick');
 			}
 			else
 				stick = $.i18n('ui-tick-them',
-							   this.game.getPlayer(tick.playerKey).name,
-							   tick.secondsToPlay);
+							   this.game.getPlayer(params.playerKey).name,
+							   params.secondsToPlay);
 
-			if (tick.secondsToPlay < 15)
+			if (params.secondsToPlay < 15)
 				$to.fadeOut(100).addClass('tick-alert-high');
-			else if (tick.secondsToPlay < 45)
+			else if (params.secondsToPlay < 45)
 				$to.fadeOut(100).addClass('tick-alert-medium');
-			else if (tick.secondsToPlay < 90)
+			else if (params.secondsToPlay < 90)
 				$to.fadeOut(100).addClass('tick-alert-low');
 			$to.text(stick).fadeIn(200);
 		}
 
 		/**
 		 * Handle game-ended confirmation. This confirmation will come after
-		 * a player confirms that the previous player's turn is acceptable
+		 * a player accepts that the previous player's final turn is OK
 		 * and they don't intend to challenge.
-		 * @param {string} endState reason why game ended (i18n message id)
+		 * @param {object} params parameters
+		 * @param {string} params.key game that is ending (should always
+		 * be this.game.key)
+		 * @param {string} params.state reason why game ended (i18n message id)
 		 */
-		processGameOverConfirmed(endState) {
-			console.debug("--> gameOverConfirmed");
-			this.game.state = endState;
+		handle_gameOverConfirmed(params) {
+			console.debug(
+				`--> gameOverConfirmed ${params.key} ${params.state}`);
+			if (params.key !== this.game.key)
+				console.error(`key mismatch ${this.game.key}`);
+			this.game.state = params.state;
 			// unplace any pending move
 			this.takeBackTiles();
 			this.logEndMessage(this.settings.cheers);
@@ -426,6 +438,23 @@ define('browser/Ui', [
 			this.enableTurnButton(true);
 			this.notify($.i18n("Game over"),
 						$.i18n("Your game is over..."));
+		}
+
+		/**
+		 * Handle nextGame event. This tells the UI that a follow-on
+		 * game is available.
+		 * @param {object} params parameters
+		 * @param {string} params.key game that is ending (should always
+		 * be this.game.key)
+		 * @param {string} params.nextGameKey key for next game
+		 */
+		handle_nextGame(params) {
+			console.debug(
+				`--> nextGame ${params.key} -> ${params.nextGameKey}`);
+			if (params.key !== this.game.key)
+				console.error(`key mismatch ${this.game.key}`);
+			this.game.nextGameKey = params.nextGameKey;
+			this.setMoveAction(/*i18n ui-*/'nextGame');
 		}
 
 		/**
@@ -716,7 +745,9 @@ define('browser/Ui', [
 
 			this.socket
 
-			.on('connect', () => {
+			.on('connect', skt => {
+				// Note: 'connect' is synonymous with 'connection'
+				// Socket has connected to the server
 				console.debug('--> connect');
 				if ($reconnectDialog) {
 					$reconnectDialog.dialog('close');
@@ -727,6 +758,7 @@ define('browser/Ui', [
 				} else {
 					this.wasConnected = true;
 					const playerKey = this.player ? this.player.key : undefined;
+					// Confirm to the server that we're ready to play
 					console.debug('<-- join');
 					this.socket.emit('join', {
 						gameKey: this.game.key,
@@ -735,7 +767,9 @@ define('browser/Ui', [
 				}
 			})
 
-			.on('disconnect', () => {
+			.on('disconnect', skt => {
+				// Socket has disconnected for some reason
+				// (server died, maybe?) Back off and try to reconnect.
 				console.debug(`--> disconnect`);
 				$reconnectDialog = $('#alertDialog')
 				.text($.i18n('ui-server-disconnected'))
@@ -752,14 +786,19 @@ define('browser/Ui', [
 
 			})
 
-			// Custom events
+			// socket.io events 'new_namespace', 'disconnecting',
+			// 'initial_headers', 'headers', 'connection_error' are not handled
+
+			// Custom messages
 
 			.on('connections', info => {
+				// Update list of active connections. info is a list of
+				// Player.simple
 				console.debug("--> connections");
-				// Update active connections
 				for (let player of this.game.players)
 					player.online(false);
 				for (let cat of info) {
+					if (!cat) continue;
 					let player = this.game.getPlayerWithKey(cat.key);
 					if (player)
 						player.connected = cat.connected;
@@ -773,66 +812,79 @@ define('browser/Ui', [
 				}
 			})
 
-			.on('turn', turn => this.processTurn(turn))
+			// A turn has been taken. turn is a Turn
+			.on('turn', turn => this.handle_turn(turn))
 
-			.on('tick', tick => this.processTick(tick))
+			// Server clock tick.
+			.on('tick', params => this.handle_tick(params))
 
-			.on('gameOverConfirmed', endState =>
-				this.processGameOverConfirmed(endState))
+			// Game has finished.
+			.on('gameOverConfirmed', params =>
+				this.handle_gameOverConfirmed(params))
 
-			.on('nextGame',	nextGameKey => {
-				console.debug(`--> nextGame ${nextGameKey}`);
-				this.game.nextGameKey = nextGameKey;
-				this.setMoveAction(/*i18n ui-*/'nextGame');
-			})
+			// A follow-on game is available
+			.on('nextGame',	params => this.handle_nextGame(params))
 
-			.on('message', message => this.processMessage(message))
+			// A message has been sent
+			.on('message', message => this.handle_message(message))
 
-			.on('pause', player => {
-				console.debug("--> pause");
-				this.pause(player, true);
-			})
+			// Game has been paused
+			.on('pause', params => this.handle_pause(params))
 
-			.on('unpause', player => {
-				console.debug("--> unpause");
-				this.pause(player, false);
-			});
+			// Game has been unpaused
+			.on('unpause', params => this.handle_unpause(params))
+
+			.on('join', () => console.log("--> join"));
 		}
 
 		/**
+		 * Handle a pause event.
 		 * By using a modal dialog to report the pause, we block further
 		 * interaction until the pause is released.
-		 * @param {string} player name of player who paused/released
-		 * @param {boolean} isPaused whether the game is to be paused/released
-		 * @private
+		 * @param {object} params Parameters
+		 * @param {string} params.key game key
+		 * @param {string} params.name name of player who paused/released
 		 */
-		pause(player, isPaused) {
-			if (isPaused) {
-				$(".Surface .letter").addClass("hidden");
-				$(".Surface .score").addClass("hidden");
-				$('#pauseBanner')
-				.text($.i18n("$1 has paused the game", player));
-				$('#pauseDialog')
-				.dialog({
-					dialogClass: "no-close",
-					modal: true,
-					buttons: [
-						{
-							text: $.i18n("Continue the game"),
-							click: () => {
-								this.sendCommand('unpause');
-								$('#pauseDialog').dialog("close");
-							}
+		handle_pause(params) {
+			console.debug(`--> pause ${params.name}`);
+			if (params.key !== this.game.key)
+				console.error(`key mismatch ${this.game.key}`);
+			$(".Surface .letter").addClass("hidden");
+			$(".Surface .score").addClass("hidden");
+			$('#pauseBanner')
+			.text($.i18n("$1 has paused the game", params.name));
+			$('#pauseDialog')
+			.dialog({
+				dialogClass: "no-close",
+				modal: true,
+				buttons: [
+					{
+						text: $.i18n("Continue the game"),
+						click: () => {
+							this.sendCommand('unpause');
+							$('#pauseDialog').dialog("close");
 						}
-					]});
-			} else {
-				$(".Surface .letter").removeClass("hidden");
-				$(".Surface .score").removeClass("hidden");
-				$("#pauseButton")
-				.button("option", "label", $.i18n("Pause game"));
-				$('#pauseDialog')
-				.dialog("close");
-			}
+					}
+				]});
+		}
+
+		/**
+		 * Handle an unpause event.
+		 * Close the modal dialog used to report the pause.
+		 * @param {object} params Parameters
+		 * @param {string} params.key game key
+		 * @param {string} params.name name of player who paused/released
+		 */
+		handle_unpause(params) {
+			console.debug(`--> unpause ${params.name}`);
+			if (params.key !== this.game.key)
+				console.error(`key mismatch ${this.game.key}`);
+			$(".Surface .letter").removeClass("hidden");
+			$(".Surface .score").removeClass("hidden");
+			$("#pauseButton")
+			.button("option", "label", $.i18n("Pause game"));
+			$('#pauseDialog')
+			.dialog("close");
 		}
 
 		/**
@@ -1225,7 +1277,7 @@ define('browser/Ui', [
 		 * modified the game state.
 		 * @param {Turn} turn a Turn object
 		 */
-		processTurn(turn) {
+		handle_turn(turn) {
 			console.debug('--> turn ', turn);
 			// Take back any locally placed tiles
 			this.game.board.forEachSquare(
@@ -1547,7 +1599,8 @@ define('browser/Ui', [
 			$('#turnButton')
 			.data('action', action)
 			.empty()
-			.append($.i18n(`ui-${action}`));
+			.append($.i18n(`ui-${action}`))
+			.show();
 		}
 
 		/**
