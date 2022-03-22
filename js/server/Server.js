@@ -19,6 +19,26 @@ define('server/Server', [
 	const Fs = fs.promises;
 
 	/**
+	 * Generic catch for response handlers
+	 * @param {Error} e the error
+	 * @param {Request} req the request object
+	 * @param {Response} res the response object
+	 * @param {string?} context context of the failure
+	 * @private
+	 */
+	function trap(e, req, res) {
+		if (typeof e === 'object' && e.code === 'ENOENT') {
+			// Special case of a database file load failure
+			console.debug(`<-- 404 ${req.url}`);
+			res.status(404).send([
+				/*i18n*/"Load failed", req.url]);
+		} else {
+			console.debug("<-- 500 ", e);
+			res.status(500).send(e);
+		}
+	}
+
+	/**
 	 * Web server for crossword game.
 	 */
 	class Server {
@@ -35,7 +55,7 @@ define('server/Server', [
 			this.monitors = [];
 
 			process.on('unhandledRejection', reason => {
-				console.log('Command rejected', reason, reason.stack);
+				console.error('Command rejected', reason, reason.stack);
 			});
 
 			const express = new Express();
@@ -57,7 +77,7 @@ define('server/Server', [
 			express.use(Express.static(requirejs.toUrl('')));
 
 			express.use((req, res, next) => {
-				console.log(`--> ${req.method} ${req.url}`);
+				console.debug(`--> ${req.method} ${req.url}`);
 				next();
 			});
 
@@ -67,7 +87,7 @@ define('server/Server', [
 			//DEBUG
 			//express.use((req, res, next) => {
 			//	if (req.isAuthenticated())
-			//		console.log(`\tuser ${req.user.name}`);
+			//		console.debug(`\tuser ${req.user.name}`);
 			//next();
 			//});
 
@@ -186,7 +206,7 @@ define('server/Server', [
 				if (res.headersSent) {
 					return next(err);
 				}
-				console.log("<-- 500", err);
+				console.debug("<-- 500 (unhandled)", err);
 				res.status(500).send(err);
 				return res.status(err.status || 500);
 			});
@@ -226,7 +246,6 @@ define('server/Server', [
 					// makes connections non-persistent
 					game, 'connections', { enumerable: false });
 				this.games[key] = game;
-				//console.log(`Loaded game ${game}`);
 
 				if (game.hasEnded())
 					return game;
@@ -235,13 +254,6 @@ define('server/Server', [
 				if (player)
 					game.playIfReady();
 				return game;
-			})
-			.catch(e => {
-				console.log(`Failed to load game ${key}`, e);
-				return Promise.reject([
-					/*i18n*/'Cannot load $1',
-					key, e
-				]);
 			});
 		}
 
@@ -254,17 +266,17 @@ define('server/Server', [
 
 			.on('monitor', () => {
 				// Games monitor has joined
-				console.log('--> monitor');
+				console.debug('-S-> monitor');
 				this.monitors.push(socket);
 			})
 
 			.on('connect', sk => {
-				console.log('--> connect');
+				console.debug('-S-> connect');
 				this.updateMonitors();
 			})
 
 			.on('disconnect', sk => {
-				console.log('--> disconnect');
+				console.debug('-S-> disconnect');
 
 				// Don't need to find the Game using this socket, because
 				// each Game has a 'disconnect' listener on each of the
@@ -274,17 +286,17 @@ define('server/Server', [
 				const i = this.monitors.indexOf(socket);
 				if (i >= 0) {
 					// Game monitor has disconnected
-					console.log('Monitor disconnected');
+					console.debug('Monitor disconnected');
 					this.monitors.slice(i, 1);
 				} else {
-					console.log('Anonymous disconnect');
+					console.debug('Anonymous disconnect');
 					this.updateMonitors();
 				}
 			})
 
 			.on('join', params => {
 				// Player joining
-				console.log(`--> join ${params.playerKey} joining ${params.gameKey}`);
+				console.debug(`-S-> join ${params.playerKey} joining ${params.gameKey}`);
 				this.loadGame(params.gameKey)
 				.then(game => {
 					game.connect(socket, params.playerKey);
@@ -295,7 +307,7 @@ define('server/Server', [
 			.on('message', message => {
 
 				// Chat message
-				console.log(message);
+				console.debug(`-S-> ${message}`);
 				if (message.text === 'hint')
 					socket.game.hint(socket.player);
 				else if (message.text === 'advise')
@@ -321,23 +333,15 @@ define('server/Server', [
 		 */
 		checkTurn(player, game) {
 			if (game.hasEnded()) {
-				console.log(`Game ${game.key} has ended ${game.state}`);
+				console.error(`Game ${game.key} has ended ${game.state}`);
 				throw new Error(/*i18n*/'Game has ended');
 			}
 
 			// determine if it is this player's turn
 			if (player.key !== game.whosTurnKey) {
-				console.log(`not ${player.name}'s turn`);
+				console.error(`not ${player.name}'s turn`);
 				throw new Error(/*i18n*/'Not your turn');
 			}
-		}
-
-		/**
-		 * Generic catch for response handlers
-		 */
-		trap(e, res) {
-			console.log('<-- 500', e);
-			res.status(500).send(e);
 		}
 
 		/**
@@ -367,8 +371,15 @@ define('server/Server', [
 			.then(gs => gs.sort((a, b) => a.lastActivity < b.lastActivity ? 1
 								: a.lastActivity > b.lastActivity ? -1 : 0))
 			// Finally send the result
-			.then(data => res.status(200).send(data))
-			.catch(e => this.trap(e, res));
+			.then(data => {
+				console.debug(`<-- 200 simple ${send}`);
+				res.status(200).send(data);
+			})
+			.catch(e => {
+				console.debug("<-- 500", e);
+				res.status(500).send([
+					/*i18n*/"Game load failed", e.toString()]);
+			});
 		}
 
 		/**
@@ -414,7 +425,7 @@ define('server/Server', [
 			.then(list => list.sort((a, b) => a.score < b.score ? 1
 									: (a.score > b.score ? -1 : 0)))
 			.then(list => res.status(200).send(list))
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -429,7 +440,7 @@ define('server/Server', [
 			.then(keys => {
 				res.status(200).send(keys);
 			})
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -443,7 +454,7 @@ define('server/Server', [
 			.then(editions => res.status(200).send(
 				editions
 				.filter(e => !/^_/.test(e))))
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -454,7 +465,7 @@ define('server/Server', [
 			const db = new Platform.Database('dictionaries', 'dict');
 			return db.keys()
 			.then(keys => res.status(200).send(keys))
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -474,7 +485,7 @@ define('server/Server', [
 					surly, this.config, this.userManager,
 					req.session.passport.user.key)))))
 			.then(data => res.status(200).send([/*i18n*/'Reminded $1', data.join(', ')]))
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -544,7 +555,7 @@ define('server/Server', [
 //				// Redirect back to control panel
 //				return res.redirect('/html/games.html');
 //			})
-//			.catch(e => this.trap(e, res));
+//			.catch(e => trap(e, req, res));
 //		}
 
 		/**
@@ -577,7 +588,7 @@ define('server/Server', [
 				gameKey: gameKey,
 				playerKey: req.user.key
 			}))
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -588,7 +599,7 @@ define('server/Server', [
 		request_addRobot(req, res) {
 			const gameKey = req.body.gameKey;
 			const dic = req.body.dictionary;
-			console.log("Add robot",req.body);
+			console.debug("Add robot",req.body);
 			return this.loadGame(gameKey)
 			.then(game => {
 				if (game.hasRobot())
@@ -606,7 +617,7 @@ define('server/Server', [
 				.then(mess => res.status(200)
 					  .send(mess || 'Robot'));
 			})
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -629,9 +640,11 @@ define('server/Server', [
 							{ gameKey: gameKey, playerKey: playerKey });
 					});
 				}
-				return res.status(500).send("Player is not in game");
+				return res.status(500).send([
+					/*i18n*/"Player is not in game", playerKey, gameKey
+				]);
 			})
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -644,7 +657,7 @@ define('server/Server', [
 			const gameKey = req.params.gameKey;
 			return this.db.get(gameKey, Game.classes)
 			.then(game => res.status(200).send(Fridge.freeze(game)))
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -662,7 +675,7 @@ define('server/Server', [
 				return Platform.findBestPlay(game, player.rack.tiles);
 			})
 			.then(play => res.status(200).send(Fridge.freeze(play)))
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -674,9 +687,10 @@ define('server/Server', [
 			const gameKey = req.params.gameKey;
 			console.log("Delete game",gameKey);
 			return this.loadGame(gameKey)
+			.then(game => game.stopTimers())
 			.then(() => this.db.rm(gameKey))
 			.then(() => res.status(200).send(`${gameKey} deleted`))
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -689,7 +703,7 @@ define('server/Server', [
 				return game.anotherGame()
 				.then(() => res.status(200).send(game.nextGameKey));
 			})
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 
 		/**
@@ -701,7 +715,7 @@ define('server/Server', [
 			const command = req.params.command;
 			const gameKey = req.params.gameKey;
 			const playerKey = req.params.playerKey;
-			console.log(`Handling ${command} ${gameKey} ${playerKey}`);
+			//console.debug(`Handling ${command} ${gameKey} ${playerKey}`);
 			return this.loadGame(gameKey)
 			.then(game => {
 				const player = game.getPlayerWithKey(playerKey);
@@ -712,7 +726,7 @@ define('server/Server', [
 				// The command name and arguments
 				const args = req.body.args ? JSON.parse(req.body.args) : null;
 				
-				console.log(`COMMAND ${command} player ${player.name} game ${game.key}`);
+				console.debug(`COMMAND ${command} player ${player.name} game ${game.key}`);
 
 				let promise;
 				switch (command) {
@@ -764,13 +778,13 @@ define('server/Server', [
 						return game.save(); // simple state change
 					})
 				.then(() => {
-					console.log(`${command} command handled`);
+					//console.debug(`${command} command handled`);
 					// Notify non-game monitors (games pages)
 					this.updateMonitors();
 					res.status(200).send("OK");
 				});
 			})
-			.catch(e => this.trap(e, res));
+			.catch(e => trap(e, req, res));
 		}
 	}
 		

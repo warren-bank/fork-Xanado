@@ -17,25 +17,35 @@ define('browser/Ui', [
 
 	/**
 	 * Report an error returned from an ajax request.
-	 * @param {string|array} args This will either be a
+	 * @param {string|Error|array|jqXHR} args This will either be a
 	 * simple i18n string ID, or an array containing an i18n ID and a
-	 * series of arguments.
+	 * series of arguments, or a jqXHR.
 	 */
 	function report(args) {
-		let message;
-		if (typeof(args) === 'string')
-			message = $.i18n(args);
-		else if (typeof args === 'object') {
-			if (args instanceof Error) {
-				message = args;
-			} else {
-				args[0] = $.i18n(args[0]);
-				message = args.join(" ");
-			}
+		// Handle a jqXHR
+		if (typeof args === 'object') {
+			if (args.responseJSON)
+				args = args.responseJSON;
+			else if (args.responsetext)
+				args = args.responseJSON;
 		}
+
+		let message;
+		if (typeof(args) === 'string') // simpe string
+			message = $.i18n(args);
+		else if (args instanceof Error) // Error object
+			message = args.toString();
+		else if (args instanceof Array) { // First element i18n code
+			args[0] = $.i18n(args[0]);
+			message = args.join(" ");
+		} else // something else
+			message = args.toString();
 		$('#alertDialog')
 		.text(message)
-		.dialog({ modal: true });
+		.dialog({
+			modal: true,
+			title: $.i18n("XANADO problem")
+		});
 	}
 
 	/**
@@ -69,7 +79,7 @@ define('browser/Ui', [
 			let m = document.URL.match(/[?;&]game=([^;&]+)/);
 			if (!m) {
 				const mess = `no game in ${document.URL}`;
-				console.log(mess);
+				console.error(mess);
 				throw new Error(mess);
 			}
 			const gameKey = m[1];
@@ -109,20 +119,23 @@ define('browser/Ui', [
 
 			$("button").button();
 
-			console.log(`GET /game/${gameKey}`);
+			console.debug(`GET /game/${gameKey}`);
 			$.get(`/game/${gameKey}`)
 			.then(frozen => {
-				console.log(`--> Game ${gameKey}`);
+				$(".user-interface").show();
+				console.debug(`--> Game ${gameKey}`);
 				const game = Fridge.thaw(frozen, Game.classes);
 				return this.identifyPlayer(game)
 				.then (playerKey => this.loadGame(game, playerKey))
-				.then(() => this.attachSocketListeners())
-				.catch(report);
-			});
+				.then(() => this.attachSocketListeners());
+			})
+			.catch(report);
 		}
 
 		/**
 		 * True if the current player is the player at the given index
+		 * @param {string} key the player key to check
+		 * @return {boolean} true if we are that player
 		 */
 		isPlayer(key) {
 			return this.player && this.player.key === key;
@@ -135,7 +148,7 @@ define('browser/Ui', [
 		 * @param {object} args arguments for the request body
 		 */
 		sendCommand(command, args) {
-			console.log(`POST /command/${command}`);
+			console.debug(`POST /command/${command}`);
 			this.cancelNotification();
 			$.post(
 				`/command/${command}/${this.game.key}/${this.player.key}`,
@@ -143,7 +156,7 @@ define('browser/Ui', [
 				// jQuery will serialise it using $.param, which will
 				// convert all numbers to strings. Which is a PITA.
 				{ args: JSON.stringify(args) })
-			.then(r => console.log(`${command} OK`, r))
+			.then(r => console.debug(`${command} OK`, r))
 			.catch(console.error);
 		}
 
@@ -603,7 +616,7 @@ define('browser/Ui', [
 			$(".logged-in,.not-logged-in,.bad-user").hide();
 			return $.get("/session")
 			.then(session => {
-				console.log("Signed in as", session.name);
+				console.debug("Signed in as", session.name);
 				if (game.players.find(p => p.key === session.key)) {
 					$(".logged-in")
 					.show()
@@ -623,7 +636,7 @@ define('browser/Ui', [
 				return undefined;
 			})
 			.catch(e => {
-				console.log(e);
+				console.debug(e);
 				$(".not-logged-in")
 				.show()
 				.find("button")
@@ -643,7 +656,7 @@ define('browser/Ui', [
 		 * @return {Promise} Promise that resolves to a game
 		 */
 		loadGame(game, playerKey) {
-			console.log('Loading UI for', game.toString());
+			console.debug('Loading UI for', game.toString());
 
 			this.game = game;
 
@@ -845,7 +858,7 @@ define('browser/Ui', [
 			// Game has been unpaused
 			.on('unpause', params => this.handle_unpause(params))
 
-			.on('join', () => console.log("--> join"));
+			.on('join', () => console.debug("--> join"));
 		}
 
 		/**
@@ -975,7 +988,10 @@ define('browser/Ui', [
 			.on('keydown', event => this.handleKeydown(event));
 		}
 
-		// Handle a letter being typed when the typing cursor is active
+		/**
+		 * Handle a letter being typed when the typing cursor is active
+		 * @param {string} letter character being placed
+		 */
 		manuallyPlaceLetter(letter) {
 			if (!this.selectedSquare || !this.selectedSquare.isEmpty())
 				return;
@@ -1000,8 +1016,11 @@ define('browser/Ui', [
 		}
 
 		/**
-		 * When a letter has been typed, move the cursor skipping over tiles. If the
-		 * edge of the board is reached, ignore the move.
+		 * When a letter has been typed, move the cursor skipping over
+		 * tiles. If the edge of the board is reached, ignore the
+		 * move.
+		 * @param {number} col column deltae
+		 * @param {number} row row delta
 		 */
 		moveTypingCursor(col, row) {
 			if (!this.selectedSquare)
@@ -1009,7 +1028,8 @@ define('browser/Ui', [
 			do {
 				try {
 					const nusq = this.game.board.at(
-						this.selectedSquare.col + col, this.selectedSquare.row + row);
+						this.selectedSquare.col + col,
+						this.selectedSquare.row + row);
 					this.selectedSquare = nusq;
 				} catch (e) {
 					// off the board
@@ -1024,11 +1044,12 @@ define('browser/Ui', [
 		/**
 		 * Square selection is used for click-click moves when dragging
 		 * isn't available
+		 * @param {Square?} square square to select, or null to clear the
+		 * selection
 		 */
 		selectSquare(square) {
-			if (square) {
-				console.log(`select ${square.id}`);
-			}
+			if (square)
+				console.debug(`select ${square.id}`);
 
 			if (this.selectedSquare) {
 				// Is a square already selected?
@@ -1104,16 +1125,21 @@ define('browser/Ui', [
 		}
 
 		/**
-		 *  Handler for 'DropSquare' event, invoked when a draggable has
+		 * Handler for 'DropSquare' event, invoked when a draggable has
 		 * been dropped on a square.
+		 * @param {Square} fromSquare the square the tile is coming from
+		 * @param {Square} toSquare the square the tile is moving to
 		 */
-		dropSquare(source, square) {
-			this.moveTile(source, square);
+		dropSquare(fromSource, toSquare) {
+			this.moveTile(fromSource, toSquare);
 			this.selectSquare(null);
 			if (this.settings.tile_click)
 				this.playAudio('tiledown');
 		}
 
+		/**
+		 * Redraw the interface
+		 */
 		refresh() {
 			if (this.player)
 				this.player.rack.refreshDOM();
@@ -1205,6 +1231,9 @@ define('browser/Ui', [
 			window.setTimeout(() => this.updateGameStatus(), 500);
 		}
 
+		/**
+		 * Update the DOM to reflect the status of the game
+		 */
 		updateGameStatus() {
 			$('#yourMove').empty();
 			this.updateTileCounts();
@@ -1455,6 +1484,7 @@ define('browser/Ui', [
 		/**
 		 * Add a 'Challenge' button to the log pane to challenge the last
 		 * player's move (if it wasn't us)
+		 * @param {Turn} turn the current turn
 		 */
 		addChallengePreviousButton(turn) {
 			if (this.isPlayer(turn.playerKey))
@@ -1474,6 +1504,7 @@ define('browser/Ui', [
 		/**
 		 * Add a 'Take back' button to the log pane to take back
 		 * (this player's) previous move.
+		 * @param {Turn} turn the current turn
 		 */
 		addTakeBackPreviousButton(turn) {
 			if (!this.isPlayer(turn.playerKey))
@@ -1606,7 +1637,7 @@ define('browser/Ui', [
 		 * @private
 		 */
 		setMoveAction(action) {
-			console.log("setMoveAction", action);
+			console.debug("setMoveAction", action);
 			$('#turnButton')
 			.data('action', action)
 			.empty()
@@ -1647,7 +1678,8 @@ define('browser/Ui', [
 		}
 
 		/**
-		 * Take back a single tile from the given square
+		 * Take back a single tile from the given square.
+		 * @param {Square} square the square with the tile being taken back
 		 * @return {boolean} true if a tile was returned
 		 */
 		takeBackTile(square) {
@@ -1683,6 +1715,8 @@ define('browser/Ui', [
 
 		/**
 		 * Generate a notification using the HTML5 notifications API
+		 * @param {string} title notification title
+		 * @param {string} text notification text
 		 */
 		notify(title, text) {
 			this.canNotify()

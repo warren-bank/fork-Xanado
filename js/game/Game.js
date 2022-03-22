@@ -420,7 +420,7 @@ define('game/Game', [
 		 * @param {Object} data to send with message
 		 */
 		notifyPlayer(player, message, data) {
-			console.log(`<-${player.key}- ${message}`, data);
+			console.log(`<-S- ${player.key} ${message}`, data);
 			// Player may be connected several times
 			this._connections.forEach(
 				socket => {
@@ -437,7 +437,7 @@ define('game/Game', [
 		 * @param {Object} data to send with message
 		 */
 		notifyPlayers(message, data) {
-			console.log(`<-*- ${message}`, data);
+			console.log(`<-S- * ${message}`, data);
 			this._connections.forEach(socket => socket.emit(message, data));
 		}
 
@@ -461,7 +461,7 @@ define('game/Game', [
 
 				// if the game has ended, send notification.
 				if (this.state !== 'playing') {
-					console.log(`${this.key} '${this.state}'`);
+					//console.debug(`${this.key} '${this.state}'`);
 					this.notifyPlayers(
 						'gameOverConfirmed',
 						{
@@ -582,8 +582,7 @@ define('game/Game', [
 			console.log('Game timed out:',
 						this.players.map(({ name }) => name));
 
-			this.stopTheClock();
-			this.stopPlayerTimers();
+			this.stopTimers();
 			this.state = /*i18n*/'Timed out';
 			return this.save();
 		}
@@ -679,7 +678,7 @@ define('game/Game', [
 			// Make sure this is a valid (known) player
 			const player = this.players.find(p => p.key === playerKey);
 			if (!player) {
-				console.log(`WARNING: player key ${playerKey} not found in game ${this.key}, cannot connect()`);
+				console.error(`WARNING: player key ${playerKey} not found in game ${this.key}, cannot connect()`);
 				return;
 			}
 
@@ -688,7 +687,7 @@ define('game/Game', [
 			// device due to some issue (e.g. poor comms)
 			const knownSocket = this.getConnection(player);
 			if (knownSocket !== null) {
-				console.log('WARNING:', player.key, 'already connected to',
+				console.error('WARNING:', player.key, 'already connected to',
 							this.key);
 			} else if (player.key === this.whosTurn
 					   && this.state === 'playing') {
@@ -786,28 +785,28 @@ define('game/Game', [
 		 */
 		stopTheClock() {
 			if (this._intervalTimer) {
-				console.log('Stopping interval timer');
+				console.log('Stopping tick timer');
 				clearInterval(this._intervalTimer);
 				this._intervalTimer = null;
 			}
 		}
 
 		/**
-		 * Stop player timers
-		 * @private
+		 * Stop player and game timeout timers
 		 */
-		stopPlayerTimers() {
-			console.log("Stopping player timers");
+		stopTimers() {
+			console.log("Stopping timers");
+			this.stopTheClock();
 			this.players.forEach(player => player.stopTimer());
 		}
 
 		/**
 		 * Restart timers (game timeout timer and player timers) stopped in
-		 * stopPlayerTimers()
-		 * @private
+		 * stopTimers()
 		 */
-		restartPlayerTimers() {
-			console.log("Restarting player timers");
+		restartTimers() {
+			console.log("Restarting timers");
+			this.startTheClock();
 			this.players.forEach(player => player.startTimer());
 		}
 
@@ -867,7 +866,7 @@ define('game/Game', [
 				});
 			})
 			.catch(e => {
-				console.log('Error', e);
+				console.error('Error', e);
 				this.notifyPlayers(
 					'message', {
 						sender: /*i18n*/"Advisor",
@@ -925,7 +924,7 @@ define('game/Game', [
 					console.log(`No better plays found for ${player.name}`);
 			})
 			.catch(e => {
-				console.log('Error', e);
+				console.error('Error', e);
 			});
 		}
 
@@ -973,7 +972,7 @@ define('game/Game', [
 
 			console.log('New rack', player.rack.toString());
 
-			console.log('words ', move.words);
+			//console.debug('words ', move.words);
 
 			if (!player.isRobot) {
 				// Asynchronously check word and notify player if it
@@ -995,7 +994,7 @@ define('game/Game', [
 					}
 				})
 				.catch((e) => {
-					console.log('Dictionary load failed', e);
+					console.error('Dictionary load failed', e);
 				});
 			}
 
@@ -1008,8 +1007,7 @@ define('game/Game', [
 
 			if (this.state === 'playing') {
 				if (this.allPassedTwice()) {
-					this.stopTheClock();
-					this.stopPlayerTimers();
+					this.stopTimers();
 					this.state = /*i18n*/"All players passed twice";
 				} else
 					this.startTurn(this.nextPlayer());
@@ -1065,8 +1063,7 @@ define('game/Game', [
 		togglePause(player) {
 			if (this.pausedBy) {
 				console.log(`${player.name} has unpaused game`);
-				this.startTheClock();
-				this.restartPlayerTimers();
+				this.restartTimers();
 				this.notifyPlayers('unpause', {
 					key: this.key,
 					name: player.name
@@ -1075,8 +1072,7 @@ define('game/Game', [
 			} else {
 				this.pausedBy = player.name;
 				console.log(`${this.pausedBy} has paused game`);
-				this.stopTheClock();
-				this.stopPlayerTimers();
+				this.stopTimers();
 				this.notifyPlayers('pause', {
 					key: this.key,
 					name: player.name
@@ -1096,8 +1092,7 @@ define('game/Game', [
 			this.state = endState;
 
 			console.log(`Confirming game over because ${endState}`);
-			this.stopTheClock();
-			this.stopPlayerTimers();
+			this.stopTimers();
 
 			// When the game ends, each player's score is reduced by
 			// the sum of their unplayed letters. If a player has used
@@ -1212,8 +1207,7 @@ define('game/Game', [
 			passingPlayer.passes++;
 
 			if (this.allPassedTwice()) {
-				this.stopTheClock();
-				this.stopPlayerTimers();
+				this.stopTimers();
 				return this.confirmGameOver(/*i18n*/"All players passed twice");
 			} else
 				this.startTurn(this.nextPlayer());
@@ -1318,7 +1312,7 @@ define('game/Game', [
 		 */
 		anotherGame() {
 			if (this.nextGameKey) {
-				console.log(`another game already created: old ${this.key} new ${this.nextGameKey}`);
+				console.error(`another game already created: old ${this.key} new ${this.nextGameKey}`);
 				return Promise.reject("Next game already exists");
 			}
 

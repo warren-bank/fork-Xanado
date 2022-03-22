@@ -71,7 +71,7 @@ define('game/Square', ['platform'], (Platform) => {
 		 */
 		placeTile(tile, locked) {
 			if (tile && this.tile && tile !== this.tile) {
-				console.log("Tile ", tile, " over ", this.tile);
+				console.error("Tile ", tile, " over ", this.tile);
 				throw Error(`Square already occupied: ${this}`);
 			}
 

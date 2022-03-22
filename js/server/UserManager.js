@@ -101,13 +101,13 @@ define('server/UserManager', [
 				// Decide what info from the user object loaded from
 				// the DB needs to be shadowed in the session as
 				// req.user
-				//console.log("serializeUser", userObject);
+				//console.debug("serializeUser", userObject);
 				done(null, userObject);
 			});
 
 			Passport.deserializeUser((userObject, done) => {
 				// Session active, look it up to get user
-				//console.log("deserializeUser",userObject);
+				//console.debug("deserializeUser",userObject);
 				// attach user object as req.user
 				done(null, userObject);
 			});
@@ -142,7 +142,7 @@ define('server/UserManager', [
 				if (/(^|[?&;])origin=/.test(req.url))
 					req.session.origin = decodeURI(
 						req.url.replace(/^.*[?&;]origin=([^&;]*).*$/,"$1"));
-				//console.log("Remembering origin", req.session.origin);
+				//console.debug("Remembering origin", req.session.origin);
 				next();
 			});
 
@@ -192,7 +192,7 @@ define('server/UserManager', [
 		 * @private
 		 */
 		passportLogin(req, res, uo) {
-			console.log("passportLogin in", uo);
+			console.debug("passportLogin in", uo);
 			return new Promise(resolve => {
 				req.login(uo, () => {
 					console.log(uo, "logged in");
@@ -276,14 +276,14 @@ define('server/UserManager', [
 							throw new Error(/*i18n*/'um-bad-pass');
 						})
 						.catch(e => {
-							console.log("getUser", desc, "failed; bad pass", e);
+							console.error("getUser", desc, "failed; bad pass", e);
 							throw new Error(/*i18n*/'um-bad-pass');
 						});
 					}
 					if (typeof desc.email !== 'undefined' && uo.email === desc.email)
 						return uo;
 				}
-				console.log("getUser", desc, "failed; no such user");
+				console.error("getUser", desc, "failed; no such user");
 				throw new Error(/*i18n*/'um-no-such-user');
 			});
 		}
@@ -297,7 +297,7 @@ define('server/UserManager', [
 			Passport.use(new strategy(
 				cfg,
 				(accessToken, refreshToken, profile, done) => {
-					console.log("Logging in", profile.displayName);
+					//console.debug("Logging in", profile.displayName);
 					if (profile.emails && profile.emails.length > 0)
 						profile.email = profile.emails[0].value;
 					if (!profile.id || !profile.displayName)
@@ -338,10 +338,10 @@ define('server/UserManager', [
 				Passport.authenticate(provider, { assignProperty: "userObject" }),
 				(req, res) => {
 					// error will -> 401
-					//console.log("OAuth2 user is", req.userObject);
+					//console.debug("OAuth2 user is", req.userObject);
 					req.login(req.userObject, () => {
 						// Back to where we came from
-						console.log("Redirect to",req.session.origin);
+						//console.debug("Redirect to",req.session.origin);
 						res.redirect(req.session.origin);
 					});
 				});
@@ -417,7 +417,7 @@ define('server/UserManager', [
 		 * @private
 		 */
 		sendResult(res, status, info) {
-			console.log(`<-- ${status}`, info);
+			console.debug(`<-- ${status}`, info);
 			res.status(status).send(info);
 		}
 
@@ -504,7 +504,7 @@ define('server/UserManager', [
 		 */
 		handle_xanado_reset_password(req, res) {
 			const email = req.body.reset_email;
-			console.log(`/reset-password for ${email}`);
+			//console.debug(`/reset-password for ${email}`);
 			if (!email)
 				return this.sendResult(
 					res, 500, [ /*i18n*/'um-unknown-email' ]);
@@ -528,7 +528,7 @@ define('server/UserManager', [
 					.then(() => this.sendResult(
 						res, 403, [ /*i18n*/'um-reset-sent', user.name ]))
 					.catch(e => {
-						console.log("WARNING: Mail misconfiguration?", e);
+						console.error("WARNING: Mail misconfiguration?", e);
 						return this.sendResult(
 							res, 500, [	/*i18n*/'um-mail-not-configured' ]);
 					});

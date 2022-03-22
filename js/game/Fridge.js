@@ -61,7 +61,7 @@ define('game/Fridge', () => {
 					if (Object.prototype.hasOwnProperty.call(unfrozen, IB_ID)) {
 						// ref to a previously frozen object
 						if (unfrozen.constructor) {
-							//console.log(`Ref to ${unfrozen[IB_ID]} ${unfrozen.constructor.name}`);
+							//console.debug(`Ref to ${unfrozen[IB_ID]} ${unfrozen.constructor.name}`);
 							const ret = {}; ret[IB_REF] = unfrozen[IB_ID];
 							return ret;
 						}
@@ -148,7 +148,6 @@ define('game/Fridge', () => {
 
 				let thawed, thawProps = false;
 				const clzz = typeMap[object[IB_CN]];
-				//console.log(clzz);
 				if (object[IB_CN] === 'Date')
 					// Special handling because we just serialise an integer
 					return new Date(object[IB_DATA]);

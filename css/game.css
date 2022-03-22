@@ -34,8 +34,9 @@ div.bottom-shade table {
 }
 
 /* Wraps everything */
-div.container {
+div.user-interface {
     /*width: 59em;*/
+	display: none;
 }
 
 /* Description of points gained and lost from final racks */
