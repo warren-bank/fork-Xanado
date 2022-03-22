@@ -122,7 +122,6 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 				assert(turn instanceof Turn);
 				assert.equal(turn.type, 'swap');
 				assert.equal(turn.playerKey, player.key);
-				assert.equal(turn.leftInBag, 5);
 				//console.log(turn);
 				let newt = turn.replacements;
 				assert.equal(3, newt.length);
@@ -164,7 +163,6 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 				assert.equal(turn.playerKey, player.key);
 				assert.equal(turn.nextToGoKey, player2.key);
 				assert.equal(turn.deltaScore, move.score);
-				assert.equal(turn.leftInBag, 0);
 				assert.deepEqual(turn.words, move.words);
 				assert.deepEqual(turn.placements, move.placements);
 				let newt = turn.replacements;
@@ -209,7 +207,6 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 				assert.equal(turn.playerKey, player.key);
 				assert.equal(turn.nextToGoKey, player2.key);
 				assert.equal(turn.deltaScore, 99);
-				assert.equal(turn.leftInBag, 0);
 				assert.deepEqual(turn.words, move.words);
 				assert.deepEqual(turn.placements, move.placements);
 				let newt = turn.replacements;
@@ -244,7 +241,6 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 				assert(!turn.nextToGoKey);
 				assert.equal(turn.deltaScore[player.key], -3);
 				assert.equal(turn.deltaScore[player2.key], 3);
-				assert.equal(turn.leftInBag, 0);
 			});
 		});
 	});
@@ -388,7 +384,6 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert.equal(turn.type, 'challenge-won');
 			assert.equal(turn.playerKey, player1.key);
 			assert.equal(turn.nextToGoKey, player2.key);
-			assert.equal(turn.leftInBag, 0);
 			assert.equal(turn.deltaScore, -3);
 			assert.equal(turn.replacements.length, 0);
 			assert.equal(turn.challengerKey, player2.key);
@@ -433,7 +428,6 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 				assert.equal(turn.type, 'challenge-failed');
 				assert.equal(turn.playerKey, player2.key);
 				assert.equal(turn.nextToGoKey, player1.key);
-				assert.equal(turn.leftInBag, 0);
 				// Still empty!
 				assert.equal(turn.emptyPlayerKey, player1.key);
 			});
