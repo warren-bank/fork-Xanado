@@ -42,7 +42,7 @@ This version has some major differences:
 ## Using Docker
 The simplest way to install the game is to use the latest Docker
 image, which you can find at
-https://github.com/cdot/Xanado/pkgs/container/crosswordgame.  The
+https://github.com/cdot/Xanado/pkgs/container/xanado.  The
 Docker image takes care of all dependencies etc. for you.
 
 ## The Hard Way
