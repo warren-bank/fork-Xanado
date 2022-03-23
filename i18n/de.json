@@ -47,7 +47,6 @@
 	"um-password-reset": "Passwort zurücksetzen",
 	"ui-notify-body-they-failed": "$1 hat deinen Zug herausgefordert, aber das Wörterbuch hat dir Recht gegeben",
 	"ui-anotherGame": "Noch ein Spiel?",
-	"Cannot load $1": "Spiel $1 kann nicht geladen werden",
 	"tooltip-register-password": "Verwenden Sie etwas, das Sie sich leicht merken können. Verwenden Sie <b>niemals</b> ein Passwort, das Sie auf einer anderen Website verwenden",
 	"ui-log-name-name": "$1 und $2",
 	"um-reset-sent": "E-Mail zum Zurücksetzen des Passworts wurde gesendet",
@@ -162,5 +161,9 @@
 	"ui-notify-body-retracted": "$1 ist wieder an der Reihe",
 	"Can't find a play": "Kann kein Stück finden",
 	"New player registered": "Neuer Spieler registriert",
-	"Welcome to XANADO, $1!": "Willkommen bei XANADO, $1!"
+	"Welcome to XANADO, $1!": "Willkommen bei XANADO, $1!",
+		"Game load failed": "Spiel konnte nicht geladen werden",
+	"Load failed": "Laden fehlgeschlage",
+	"XANADO problem": "XANADO-Problem",
+	"Player is not in game": "Spieler ist nicht im Spiel"
 }

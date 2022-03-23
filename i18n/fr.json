@@ -159,9 +159,12 @@
 	"ui-log-lost-for-rack": "$1 a perdu $2 point{{PLURAL :$2||s}} pour un rack contenant '$3'",
 	"Name": "Nom",
 	"ui-log-timeout": "Fin du temps",
-	"Cannot load $1": "Le jeu $1 ne peut pas être chargé",
 	"Leader Board": "Classement",
 	"New player registered": "Nouveau joueur inscrit",
 	"Welcome to XANADO, $1!": "Bienvenue à XANADO, $1!",
-	"Your turn": "À ton tour"
+	"Your turn": "À ton tour",
+	"Player is not in game": "Le joueur n'est pas dans le jeu",
+	"Load failed": "Échec du chargement",
+	"Game load failed": "Échec du chargement du jeu",
+	"XANADO problem": "Problème XANADO"
 }

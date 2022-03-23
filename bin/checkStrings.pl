@@ -1,12 +1,12 @@
 #!/usr/bin/perl
-# Check all strings in code and HTML are reflected in en.json
-# This is only for use by developers.
-# Translators should use js/i18n/checkTranslation.js to check
-# the translations match en.json
+# Check all strings in code and HTML are reflected in en.json and translations
 use strict;
 use utf8;
 use Path::Tiny;
 use JSON;
+
+die "Must be run from the root directory\n" unless -d "html";
+
 binmode(STDOUT, ":utf8");
 binmode(STDERR, ":utf8");
 
@@ -95,11 +95,11 @@ foreach my $lang (keys %strings) {
 
 	foreach my $key (keys %{$strings{$lang}}) {
 		next if ($strings{"en"}{$key});
-		print STDERR "$key is in ${lang} but not in en\n";
+		print STDERR "\"$key\" is in ${lang} but not in en\n";
 		$warns++;
 	}
 	if (scalar(@ens) > 0) {
-		print STDERR "###\n";
+		print STDERR "### Corresponding English strings:\n";
 		print STDERR join("\n", map { "\"$_\"" } @ens),"\n";
 	}
 }

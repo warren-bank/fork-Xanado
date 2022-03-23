@@ -12,10 +12,10 @@ The installation has subdirectories as follows:
 * `js` has all the source code
 	* `js/browser` is the browser code
 	* `js/dawg` is generation and management of DAWGs
-	* `js/design` is the valett program
+	* `js/design` is the Valett program
 	* `js/game` has the platform-independent game engine
 	* `js/i18n` has the translations checker
-	* `js/server` has the node.js server code
+	* `js/server` has the server code
 
 ## Building your own dictionary
 
@@ -34,24 +34,7 @@ $ node js/dawg/explore.js SOWPODS_English --anagrams scrabble
 Run it with no parameters for help.
 
 ## Internationalisation
-The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English, (une très mauvaise traduction en) French, and (eine schlechte Übersetzung ins) German. To generate your own translation (or improve on Google's), copy `/i18n/en.json` to a file using your language code (e.g. `it` for Italian) and edit the new file to provide the translation. You can use the `js/i18n/checkTranslation.js` program to check the completeness of your translations.
-
-## Designing your own game
-Game definitions can be found in the `/editions` directory. Each
-definition describes the layout of the lower-right quadrant of the
-board (it is assumed to be mirrored), the contents of the bag, the
-number of tiles on the rack, the number of tiles that can be swapped
-in a play, and the bonuses for playing certain numbers of tiles in one
-play.
-
-### Valett
-Choosing point values for tiles, and the number of tiles of each letter,
-can be difficult to get right. Included is a version of
-[Joshua Lewis' Valett program](https://github.com/jmlewis/valett)
-which analyses a word corpus and recommends tile values and counts for the
-letter combinations encountered in the corpus based on probability (the corpus
-can be any big list of words, or it can simply be a lexicon). Run the program
-`node js/design/valett.js` for help.
+The UI uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English, (une très mauvaise traduction en) French, and (eine schlechte Übersetzung ins) German. To generate your own translation (or improve on Google's), copy `/i18n/en.json` to a file using your language code (e.g. `it` for Italian) and edit the new file to provide the translation. You can use the `bin/checkStrings.pl` Perl program to check the completeness of your translations.
 
 ## Challenges
 Currently only [double challenge](https://en.wikipedia.org/wiki/Challenge_(Scrabble)) is supported. An extension would be to support other challenge types.
@@ -115,3 +98,25 @@ will build an image using `Dockerfile`
 $ docker run -p9093:9093 xword
 ```
 will run the image, mapping `localhost` port 9093 to port 9093 on the docker image
+
+## Ideas
+
+### Designing your own game
+Game definitions can be found in the `/editions` directory. Each
+definition describes the layout of the lower-right quadrant of the
+board (it is assumed to be mirrored), the contents of the bag, the
+number of tiles on the rack, the number of tiles that can be swapped
+in a play, and the bonuses for playing certain numbers of tiles in one
+play.
+
+### Valett
+Choosing point values for tiles, and the number of tiles of each letter,
+can be difficult to get right. Included is a version of
+[Joshua Lewis' Valett program](https://github.com/jmlewis/valett)
+which analyses a word corpus and recommends tile values and counts for the
+letter combinations encountered in the corpus based on probability (the corpus
+can be any big list of words, or it can simply be a lexicon). Run the program
+`node js/design/valett.js` for help.
+
+### DAWG
+The DAWG support is designed to be reusable in other games. It might be fun to implement Wordle, for example, or the word search game often found in newspapers where you try to make as many words as possible from a 9 letter anagram. The `js/dawg/explore.js` is a basic command-line tool for exploring a DAWG.
