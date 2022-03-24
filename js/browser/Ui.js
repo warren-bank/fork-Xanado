@@ -360,8 +360,12 @@ define('browser/Ui', [
 		 * chat pane. Message text that matches an i18n message
 		 * identifier will be automatically translated with supplied
 		 * message args.
-		 * @param {object} message message object { sender: string,
-		 * text: i18n message identifier or plain text, args[]: i18n arguments
+		 * @param {object} message message object
+		 * @param {string} message.sender sender name (or Advisor)
+		 * @param {string} message.text i18n message identifier or plain text
+		 * @param {string} message.classes additional css classes to apply to
+		 * message
+		 * @param {object[]} args i18n arguments
 		 */
 		handle_message(message) {
 			console.debug("--> message");
@@ -372,6 +376,8 @@ define('browser/Ui', [
 				args = args.concat(message.args);
 			
 			const $mess = $('<div class="chatMessage"></div>');
+			if (message.classes)
+				$mess.addClass(message.classes);
 
 			const sender = /^chat-/.test(message.sender)
 				  ? $.i18n(message.sender) : message.sender;
@@ -379,7 +385,7 @@ define('browser/Ui', [
 			$pn.text(sender);
 			$mess.append($pn).append(": ");
 
-			const $msg =  $('<span class="chatMessage"></span>');
+			const $msg =  $('<span class="chatText"></span>');
 			$msg.text($.i18n.apply(null, args));
 			$mess.append($msg);
 

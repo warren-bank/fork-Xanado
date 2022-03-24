@@ -862,15 +862,15 @@ define('game/Game', [
 				this.notifyPlayers('message', {
 					sender: /*i18n*/"Advisor",
 					text: /*i18n*/"$1 asked for a hint",
+					classes: 'warning',
 					args: [ player.name ]
 				});
 			})
 			.catch(e => {
 				console.error('Error', e);
-				this.notifyPlayers(
-					'message', {
-						sender: /*i18n*/"Advisor",
-						text: e.toString() });
+				this.notifyPlayers('message', {
+					sender: /*i18n*/"Advisor",
+					text: e.toString() });
 			});
 		}
 
@@ -887,6 +887,13 @@ define('game/Game', [
 					text: (player.wantsAdvice
 						   ? /*i18n*/'Enabled'
 						   : /*i18n*/'Disabled')
+				});
+			if (player.wantsAdvice)
+				this.notifyPlayers('message', {
+					sender: /*i18n*/"Advisor",
+					text: /*i18n*/"$1 has asked for advice from the robot",
+					classes: 'warning',
+					args: [ player.name ]
 				});
 		}
 
@@ -920,6 +927,12 @@ define('game/Game', [
 								bestPlay.score ]
 					};
 					this.notifyPlayer(player, 'message', advice);
+					this.notifyPlayers('message', {
+						sender: /*i18n*/"Advisor",
+						text: /*i18n*/"$1 has received advice from the robot",
+						classes: 'warning',
+						args: [ player.name ]
+					});
 				} else
 					console.log(`No better plays found for ${player.name}`);
 			})

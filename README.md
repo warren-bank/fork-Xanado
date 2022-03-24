@@ -126,7 +126,7 @@ There are also a number of other keyboard shortcuts for the various buttons:
 ## Learning
 To assist learners, there are two special 'chat' messages that can be entered.
 - `hint` tells you the highest scoring play the computer can find for you, before your play. Everyone in the game is told when you send this message (to prevent cheating.)
-- `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played.
+- `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played. Everyone in the game is told when you enable analysis (to prevent cheating.)
 
 # Dictionaries
 The `/dictionaries` directory contains all the

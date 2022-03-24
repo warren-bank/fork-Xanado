@@ -554,6 +554,10 @@ button.fat-button {
     width: 95%;
 }
 
+.chatMessage.warning {
+	color: #B00;
+}
+
 /* The div with the game events log */
 #logMessages {
 	font-size: 80%;
