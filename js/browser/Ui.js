@@ -585,7 +585,7 @@ define('browser/Ui', [
 		 * Show who's turn it is
 		 */
 		updateWhosTurn(whosTurnKey) {
-			$('tr.whosTurn').removeClass('whosTurn');
+			$('.whosTurn').removeClass('whosTurn');
 			$(`#player${whosTurnKey}`).addClass('whosTurn');
 		}
 

@@ -258,13 +258,12 @@ define('game/Player', [
 		 * Create score table representation of the player on the browser
 		 * side only. This is intended to work both on a full Player
 		 * object, but also on a Player.simple of the player.
-		 * @param {Player|object} player the player (or Player.simple) who's
-		 * row this is
 		 * @param {string} curKey the key of the player for whom the DOM is
 		 * being generated
+		 * @param {boolean} showConnect show the connection status of the player
 		 * @return {jQuery} DOM object for the score table
 		 */
-		createScoreDOM(curKey) {
+		createScoreDOM(curKey, showConnect) {
 			const $tr = $(`<tr class="player-row" id='player${this.key}'></tr>`);
 			$tr.append(`<td class='turn-pointer'>&#10148;</td>`);
 			const $icon = $('<div class="ui-icon"></div>');
@@ -276,24 +275,14 @@ define('game/Player', [
 			$tr.append(`<td class='name'>${who}</td>`);
 			$tr.append('<td class="remaining-tiles"></td>');
 
-			/**
-			 * Jquery object that contains this player's online status on
-			 * the browser side only.
-			 * @private
-			 * @member {jQuery}
-			 */
-			const $status = $(`<td class='connect-state'>${BLACK_CIRCLE}</td>`);
-			$tr.append($status);
-			$status.addClass(this.connected ? "online" : "offline");
+			if (showConnect) {
+				const $status = $(`<td class='connect-state'>${BLACK_CIRCLE}</td>`);
+				$status.addClass(this.connected ? "online" : "offline");
+				$tr.append($status);
+			}
 			
-			/**
-			 * Jquery object that contains this player's score on
-			 * the browser side only.
-			 * @private
-			 * @member {jQuery}
-			 */
-			this.$score = $(`<td class='score'>${this.score}</td>`);
-			$tr.append(this.$score);
+			$tr.append(`<td class='score'>${this.score}</td>`);
+
 			return $tr;
 		}
 
@@ -302,7 +291,7 @@ define('game/Player', [
 		 * side only.
 		 */
 		refreshDOM() {
-			this.$score.text(this.score);
+			$(`#player${this.key} .score`).text(this.score);
 		}
 
 		/**

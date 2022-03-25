@@ -38,11 +38,11 @@ requirejs([
 	}
 
 	// Format a player in a game score table
-	function $player(game, player) {
+	function $player(game, player, isActive) {
 		const $tr = Player.prototype.createScoreDOM.call(
-			player, loggedInAs ? loggedInAs.key : undefined);
+			player, loggedInAs ? loggedInAs.key : undefined, isActive);
 		
-		if (game.state === 'playing') {
+		if (isActive) {
 			if (player.dictionary && player.dictionary !== game.dictionary) {
 				const dic = $.i18n("using dictionary $1", player.dictionary);
 				$tr.append(`<td>${dic}</td>`);
@@ -140,10 +140,10 @@ requirejs([
 		function showHideTwist(show) {
 			if (show) {
 				$twist.show();
-				$twistButton.button("option", "label", TWIST_OPEN);
+				$twistButton.button("option", "label", TWIST_CLOSE);
 			} else {
 				$twist.hide();
-				$twistButton.button("option", "label", TWIST_CLOSE);
+				$twistButton.button("option", "label", TWIST_OPEN);
 			}
 		}
 
@@ -162,7 +162,9 @@ requirejs([
 		if (game.secondsPerPlay > 0)
 			msg.push($.i18n("time limit $1", game.secondsPerPlay / 60));
 
-		if (game.state !== 'playing')
+		const isActive = (game.state === 'playing');
+
+		if (!isActive)
 			msg.push(`<b>${$.i18n(game.state)}</b>`);
 
 		$box.append($twistButton);
@@ -171,12 +173,14 @@ requirejs([
 		
 		const $table = $("<table class='playerTable'></table>");
 		$twist.append($table);
-		game.players.map(
-			(player, index) => $table.append($player(game, player)));
+		game.players.forEach(
+			player => $table.append($player(game, player, isActive)));
 
-		$(`#player${game.whosTurnKey}`).addClass('whosTurn');
+		if (isActive)
+			// .find because it's not in the document yet
+			$table.find(`#player${game.whosTurnKey}`).addClass('whosTurn');
 
-		if (game.state === 'playing'
+		if (isActive
 			&& loggedInAs
 			&& (game.maxPlayers === 0
 				|| game.players.length < game.maxPlayers)) {
@@ -213,7 +217,7 @@ requirejs([
 		}
 			
 		if (loggedInAs) {
-			if (game.state !== 'playing' && !game.nextGameKey) {
+			if (!(isActive || game.nextGameKey)) {
 				$twist.append(
 					$("<button name='another'></button>")
 					.text($.i18n("Another game like this"))

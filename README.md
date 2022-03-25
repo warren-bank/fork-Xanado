@@ -28,14 +28,14 @@ number of changes I intended required a fork, rather than bothering
 them with hundreds of pull requests.
 
 This version has some major differences:
-- It has been rewritten to use Javascript ES6 and the latest dependencies.
-- It supports different board layouts and tile sets, and makes it easy to define your own.
-- It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui). Dictionaries have been moved server-side and made optional, and integrated into game play. New dictionaries are easy to generate from word lists.
-- It supports logins, which helps you to set up tournaments and record long-term player performance.
-- It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players.
-- You can optionally play against the clock.
-- The UI has been massaged to make it more mobile device friendly.
-- Lots of bug fixes.
+* It has been rewritten to use Javascript ES6 and the latest dependencies.
+* It supports different board layouts and tile sets, and makes it easy to define your own.
+* It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui). Dictionaries have been moved server-side and made optional, and integrated into game play. New dictionaries are easy to generate from word lists.
+* It supports logins, which helps you to set up tournaments and record long-term player performance.
+* It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players.
+* You can optionally play against the clock.
+* The UI has been massaged to make it more mobile device friendly.
+* Lots of bug fixes and improvements.
 
 # Installation
 
@@ -78,34 +78,46 @@ If you want the server to send out email invitations, you should refer to the `n
 
 # Usage
 
-Players will normally start on the games page. This shows a leader board and a list of games. You can select "Show finished games" to view games that have ended.
+Players start on the games page. This shows a leader board and a list
+of games. You can select "Show finished games" to view games that have
+ended.
 
-To see more you have to sign in (or register). 
+You will see an arrow icon ▼ against each game. By clicking on the
+arrow, you can see a list of players in the game with their scores and
+whether they are currently connected or not.
+If you are signed in, you can join the game (or open a game you have
+previously joined), leave the game, add a robot, or delete it.
+ Close the player list with ▲.
+ 
+If you are signed in you can also create a new game.  Normally one
+player will create the new game, then other players sign in and join
+the game from the games page. Anyone can add a robot player to a game.
 
-Signed-in users can see a down arrow next to each active game. By clicking on the down arrow, you can see a list of players in the game, join or leave it, or open a game you have previously joined.
-
-Any signed-in user can delete a game or create a new game.
-
-Normally one player will act as the host, and create a new game on the
-games page. Once a game has been created, other players click on their
-name in the games page to join the game, or you can send out an email
-invitation. The game interface is fairly self explanatory if you know
+The game interface is fairly self explanatory if you know
 the [rules of Scrabble](https://www.officialgamerules.org/scrabble).
 The game starts with a randomly selected player.
 
-You can only have one robot in any one game, and you need at least one human player
-(otherwise, what's the point?)
+You can only have one robot in any one game, and you need at least one
+human player (otherwise, what's the point?)
 
-When you create a game you can select the edition, the dictionary, and whether
-there is to be a time limit or a limit to the number of players who can join. You can optionally select a different dictionary that the robot will use to select plays. Limiting the robot a smaller dictionary will give less challenging gameplay, but may be more suitable for younger players.
+When you create a game you can select the edition, the dictionary, and
+whether there is to be a time limit or a limit to the number of
+players who can join. You can optionally select a different dictionary
+that the robot will use to select plays. Limiting the robot a smaller
+dictionary will give less challenging gameplay, but may be more
+suitable for less experienced players.
 
 The installation comes with emulations of a number of commercially available
-games - SCRABBLE®, Super SCRABBLE®, Lexulous, and Words With Friends.
-Guidance for creating your own custom game is given below.
+games - SCRABBLE®, Super SCRABBLE®, Lexulous, and Words With Friends - all of
+which have very similar gameplay. Guidance for creating your own custom game
+is given below.
 
-## Interface
+## Game play
 
-The user interface uses the mouse, or screen touches on mobile devices. Click the mouse on a letter in the rack and drag it to the board position where you want to drop it, or touch the tile you want to move, then touch where you want to place it.
+The game user interface uses the mouse, or screen touches on mobile
+devices. Click the mouse on a letter in the rack and drag it to the
+board position where you want to drop it, or touch the tile you want
+to move, then touch where you want to place it.
 
 You can also use the keyboard for rapid word entry.
 * Click on any empty square on the board (or type `*`) and a "typing cursor" will appear, pointing right ⇒
@@ -124,6 +136,7 @@ There are also a number of other keyboard shortcuts for the various buttons:
 * `!` will take back your last move, or challenge the last player's move, depending on what the log says.
 
 ## Learning
+
 To assist learners, there are two special 'chat' messages that can be entered.
 - `hint` tells you the highest scoring play the computer can find for you, before your play. Everyone in the game is told when you send this message (to prevent cheating.)
 - `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played. Everyone in the game is told when you enable analysis (to prevent cheating.)
