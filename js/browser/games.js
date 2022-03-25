@@ -6,12 +6,12 @@
  * Browser app for games.html; populate the list of live games
  */
 requirejs([
-	'socket.io',
+	'socket.io', 'platform',
 	'browser/browserApp', 'browser/Dialog',
 	'game/Player',
 	'jquery'
 ], (
-	io,
+	io, Platform,
 	browserApp, Dialog,
 	Player
 ) => {
@@ -20,7 +20,9 @@ requirejs([
 	const TWIST_OPEN = '\u25BC';
 	const TWIST_CLOSE = '\u25B2';
 
-	let loggedInAs;
+	let loggedInAs; // redacted user object
+	let canEmail; // boolean
+	let untwist; // open game key
 
 	/**
 	 * Report an error contained in an ajax response
@@ -72,9 +74,11 @@ requirejs([
 
 			if (player.key === loggedInAs.key) {
 				$box.append(
-					$("<button name='join'></button>")
-					.text($.i18n("Open game", player.name))
-					.button()
+					$("<button name='join' title=''></button>")
+					.button({ label: $.i18n("Open game") })
+					.tooltip({
+						content: $.i18n("tooltip-open-game")
+					})
 					.on('click', () => {
 						console.log(`Join game ${game.key}/${loggedInAs.key}`);
 						$.post(`/join/${game.key}/${loggedInAs.key}`)
@@ -88,9 +92,11 @@ requirejs([
 					}));
 
 				$box.append(
-					$("<button name='leave' class='risky'></button>")
-					.text($.i18n("Leave game"))
-					.button()
+					$("<button name='leave' title='' class='risky'></button>")
+					.button({ label: $.i18n("Leave game") })
+					.tooltip({
+						content: $.i18n("tooltip-leave-game")
+					})
 					.on('click', () => {
 						console.log(`Leave game ${game.key}`);
 						$.post(`/leave/${game.key}/${loggedInAs.key}`)
@@ -98,11 +104,12 @@ requirejs([
 						.catch(report);
 					}));
 
-			} else if (!player.isRobot && game.whosTurnKey === player.key) {
+			} else if (canEmail
+					   && !player.isRobot
+					   && game.whosTurnKey === player.key) {
 				$box.append(
-					$("<button name='email'></button>")
-					.text($.i18n("Email reminder"))
-					.button()
+					$("<button name='email' title=''></button>")
+					.button({ label: $.i18n("Send reminder") })
 					.tooltip({
 						content: $.i18n("tooltip-email-reminder")
 					})
@@ -146,7 +153,7 @@ requirejs([
 				$twistButton.button("option", "label", TWIST_OPEN);
 			}
 		}
-
+		
 		showHideTwist(isOpen && isOpen[game.key]);
 
 		const msg = [
@@ -187,10 +194,13 @@ requirejs([
 
 			if (!game.players.find(p => p.key === loggedInAs.key)) {
 				// Can join game
-				const $join = $(`<button name="join"></button>`);
+				const $join = $(`<button name="join" title=''></button>`);
 				$twist.append($join);
-				$join.text($.i18n("Join game"))
-				.button()
+				$join
+				.button({ label: $.i18n("Join game") })
+				.tooltip({
+					content: $.i18n("tooltip-join-game")
+				})
 				.on('click', () => {
 					console.log(`Join game ${game.key}`);
 					$.post(`/join/${game.key}/${loggedInAs.key}`)
@@ -204,9 +214,11 @@ requirejs([
 
 			if (!game.players.find(p => p.isRobot)) {
 				$twist.append(
-					$(`<button name='robot'></button>`)
-					.text($.i18n("Add robot"))
-					.button()
+					$(`<button name='robot' title=''></button>`)
+					.button({ label: $.i18n("Add robot") })
+					.tooltip({
+						content: $.i18n("tooltip-add-robot")
+					})
 					.on('click', () =>
 						Dialog.open("AddRobotDialog", {
 							gameKey: game.key,
@@ -217,10 +229,31 @@ requirejs([
 		}
 			
 		if (loggedInAs) {
+			if (isActive && canEmail) {
+				$twist.append(
+					$("<button name='invite' title=''></button>")
+					.button({ label: $.i18n("Invite players")})
+					.tooltip({
+						content: $.i18n("tooltip-invite-players")
+					})
+					.on("click", () => Dialog.open("InvitePlayersDialog", {
+						gameKey: game.key,
+						done: info => {
+							$('#alertDialog')
+							.text($.i18n.apply(null, info))
+							.dialog({
+								title: $.i18n("Invitations"),
+								modal: true
+							});
+						},
+						error: report
+					})));
+			}
+
 			if (!(isActive || game.nextGameKey)) {
 				$twist.append(
-					$("<button name='another'></button>")
-					.text($.i18n("Another game like this"))
+					$("<button name='another' title=''></button>")
+					.button({ label: $.i18n("Another game like this") })
 					.on('click',
 						() => $.post(`/anotherGame/${game.key}`)
 						.then(refresh_games)
@@ -228,9 +261,11 @@ requirejs([
 			}
 
 			$twist.append(
-				$("<button name='delete' class='risky'></button>")
-				.text($.i18n("Delete"))
-				.button()
+				$("<button name='delete' title='' class='risky'></button>")
+				.tooltip({
+					content: $.i18n("tooltip-delete-game")
+				})
+				.button({ label: $.i18n("Delete") })
 				.on('click', () => $.post(`/deleteGame/${game.key}`)
 					.then(refresh_games)
 					.catch(report)));
@@ -262,8 +297,14 @@ requirejs([
 		}
 
 		const isOpen = {};
-		$(".game").each(function() {
-			isOpen[this.id] = $(this).find('.twist').is(":visible");
+		games.forEach(game => {
+			if (untwist === game.key) {
+				isOpen[game.key] = true;
+				untwist = undefined;
+			} else {
+				isOpen[this.id] = $(`#${game.key}`)
+				.find('.twist').is(":visible");
+			}
 		});
 		const $gt = $('#gamesTable');
 		$gt.empty();
@@ -271,19 +312,19 @@ requirejs([
 		games.forEach(game => $gt.append($game(game, isOpen)));
 
 		$('#gamesList').show();
-		const ema = games.reduce((em, game) => {
-			// game is Game.simple, not a Game object
-			if (game.state !== 'playing'
-				|| !game.players
-				|| !game.players.find(p => p.key === game.whosTurnKey))
-				return em;
-			return em || game.players.find(p => p.key === game.whosTurnKey)
-			.email;
-		}, false);
-		if (ema && loggedInAs)
-			$('#reminder-button').show();
-		else
-			$('#reminder-button').hide();
+		$('#reminder-button').hide();
+		if (canEmail && loggedInAs) {
+			if (games.reduce((em, game) => {
+				// game is Game.simple, not a Game object
+				if (game.state !== 'playing'
+					|| !game.players
+					|| !game.players.find(p => p.key === game.whosTurnKey))
+					return em;
+				return em || game.players.find(p => p.key === game.whosTurnKey)
+				.email;
+			}, false))
+				$('#reminder-button').show();
+		}
 	}
 
 	/**
@@ -354,10 +395,12 @@ requirejs([
 
 	browserApp.then(() => {
 
-		const socket = io.connect(null);
+		untwist = location.search.replace(/^.*[?&;]untwist=([^&;]*).*$/,"$1");
 
-		$("button")
-		.button();
+		$.get("/defaults")
+		.then(defaults => canEmail = defaults.canEmail);
+
+		const socket = io.connect(null);
 
 		$("#showAllGames")
 		.on('change', refresh_games);
@@ -425,7 +468,8 @@ requirejs([
 			// Can be smarter than this!
 			refresh();
 		});
-		$(document).tooltip({
+		$(document)
+		.tooltip({
 			items: '[data-i18n-tooltip]',
 			content: function() {
 				return $.i18n($(this).data('i18n-tooltip'));

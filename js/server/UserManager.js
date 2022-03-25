@@ -134,7 +134,7 @@ define('server/UserManager', [
 
 			// See if there is a current session
 			app.get(
-				'/session',
+				"/session",
 				(req, res) => this.handle_session(req, res));
 
 			// Remember where we came from
@@ -148,12 +148,19 @@ define('server/UserManager', [
 
 			// Register a new user
 			app.post(
-				'/register',
-				(req, res, next) => this.handle_xanado_register(req, res, next));
+				"/register",
+				(req, res, next) =>
+				this.handle_xanado_register(req, res, next));
+
+			// Return a list of known users. Only the user name and
+			// key are sent.
+			app.get(
+				"/users",
+				(req, res) => this.handle_users(req, res));
 
 			// Log in a user
 			app.post(
-				'/login',
+				"/login",
 				Passport.authenticate("xanado", { assignProperty: "userObject" }),
 				(req, res) => {
 					// error will -> 401
@@ -162,27 +169,28 @@ define('server/UserManager', [
 					.then(() => this.sendResult(res, 200, []));
 				});
 			
-			app.get("/oauth2-providers",
-					   (req, res) => this.handle_oauth2_providers(req, res));
+			app.get(
+				"/oauth2-providers",
+				(req, res) => this.handle_oauth2_providers(req, res));
 			
 			// Log out the current signed-in user
 			app.post(
-				'/logout',
+				"/logout",
 				(req, res) => this.handle_logout(req, res));
 
 			// Send a password reset email to the user with the given email
 			app.post(
-				'/reset-password',
+				"/reset-password",
 				(req, res) => this.handle_xanado_reset_password(req, res));
 
 			// Receive a password reset from a link in email
 			app.get(
-				'/reset-password/:token',
+				"/reset-password/:token",
 				(req, res) => this.handle_xanado_password_reset(req, res));
 
 			// Change the password for the current user
 			app.post(
-				'/change-password',
+				"/change-password",
 				(req, res) => this.handle_xanado_change_password(req, res));
 		}
 
@@ -462,10 +470,11 @@ define('server/UserManager', [
 		}
 
 		/**
-		 * Simply forgets the user, doesn't log OAuth2 users out from the provider.
+		 * Simply forgets the user, doesn't log OAuth2 users out from
+		 * the provider.
 		 * @private
 		 */
-		handle_logout(req, res, next) {
+		handle_logout(req, res) {
 			if (req.session
 				&& req.session.passport
 				&& req.session.passport.user
@@ -476,6 +485,23 @@ define('server/UserManager', [
 				return this.sendResult(res, 200, [
 					/*i18n*/'um-logged-out', departed ]);
 			}
+			return this.sendResult(
+				res, 500, [ /*i18n*/'um-not-logged-in' ]);
+		}
+
+		/**
+		 * Gets a list of known users, user name and player key only
+		 * @private
+		 */
+		handle_users(req, res) {
+			if (req.isAuthenticated())
+				return this.getDB()
+				.then(db => this.sendResult(
+					res, 200,
+ 					db.map(uo => {
+						return { name: uo.name, key: uo.key	};
+					})));
+
 			return this.sendResult(
 				res, 500, [ /*i18n*/'um-not-logged-in' ]);
 		}

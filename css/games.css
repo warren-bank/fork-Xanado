@@ -34,3 +34,16 @@ body {
 #gamesCumulative, #gamesList {
 	display: none;
 }
+
+/* Style list of invitees in the InvitePlayersDialog */
+.invitee:after {
+	content: ", ";
+}
+
+.invitee:last-child:after {
+	content: "";
+}
+
+.invitee {
+	font-style: italic;
+}

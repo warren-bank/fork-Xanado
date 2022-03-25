@@ -10,9 +10,9 @@
 	// Optional mail configuration.
 	// Not required unless you are mailing out invitations.
     "mail": {
-        "sender": "Crossword Server <crosswords@example.com>",
-		// You can also set "transport" to the string "mailgun" to use a mailgun
-		// configuration. https://www.mailgun.com/
+        "sender": "XANADO <xanado@example.com>",
+		// You can also set "transport" to the string "mailgun" to use
+		// a mailgun configuration. https://www.mailgun.com/
 		"transport": {
 			// This structure is passed directly to the nodemailer
 			// createTransport function. Refer to the 'nodemailer'
@@ -28,7 +28,7 @@
 	// The default dictionary when creating new games. Note that the
 	// robot player requires a dictionary. Dictionaries can be found
 	// in the 'dictionaries' directory.
-    "defaultDictionary": "SOWPODS_English",
+    "defaultDictionary": "CSW2019_English",
 
 	// Access control
 	"auth": {

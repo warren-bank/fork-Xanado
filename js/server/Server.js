@@ -127,7 +127,8 @@ define('server/Server', [
 			cmdRouter.get('/defaults', (req, res) =>
 					 res.send({
 						 edition: config.defaultEdition,
-						 dictionary: config.defaultDictionary
+						 dictionary: config.defaultDictionary,
+						 canEmail: typeof config.mail !== 'undefined'
 					 }));
 
 			// Get Game. This is a full description of the game, including
@@ -146,15 +147,15 @@ define('server/Server', [
 
 			// Construct a new game. games.js
 			cmdRouter.post('/createGame',
-						(req, res, next) =>
-						this.userManager.checkLoggedIn(req, res, next),
-						(req, res) => this.request_createGame(req, res));
+						   (req, res, next) =>
+						   this.userManager.checkLoggedIn(req, res, next),
+						   (req, res) => this.request_createGame(req, res));
 
-			// Start a new game. Not used.
-			//cmdRouter.post('/startGame/:gameKey',
-			//			(req, res, next) =>
-			//			this.userManager.checkLoggedIn(req, res, next),
-			//			(req, res) => this.request_startGame(req, res));
+			// Invite players by email
+			cmdRouter.post('/invitePlayers',
+						   (req, res, next) =>
+						   this.userManager.checkLoggedIn(req, res, next),
+						   (req, res) => this.request_invitePlayers(req, res));
 
 			// Delete an active or old game. Invoked from games.js
 			cmdRouter.post('/deleteGame/:gameKey',
@@ -469,26 +470,6 @@ define('server/Server', [
 		}
 
 		/**
-		 * Handler for POST /sendReminder
-		 * Email reminders to next human player in (each) game
-		 */
-		request_sendReminder(req, res) {
-			const gameKey = req.params.gameKey;
-			console.log('Sending turn reminders');
-			const surly = `${req.protocol}://${req.get('Host')}`;
-			const prom = (gameKey === '*')
-				  ? this.db.keys() : Promise.resolve([gameKey]);
-			return prom.then(keys => Promise.all(keys.map(
-				key => (Promise.resolve(this.games[key])
-						|| this.db.get(key, Game.classes))
-				.then(game => game.emailReminder(
-					surly, this.config, this.userManager,
-					req.session.passport.user.key)))))
-			.then(data => res.status(200).send([/*i18n*/'Reminded $1', data.join(', ')]))
-			.catch(e => trap(e, req, res));
-		}
-
-		/**
 		 * Handler for POST /createGame
 		 * @return {Promise}
 		 */
@@ -529,34 +510,144 @@ define('server/Server', [
 			.then(game => res.status(200).send(game.key));
 		}
 
-//		/**
-//		 * Handle /startGame/:gameKey
-//		 * @return {Promise}
-//		 */
-//		request_startGame(req, res) {
-//			const gameKey = req.params.gameKey;
-//			return this.loadGame(gameKey)
-//			.then(game => {
-//				// Check the game can be started
-//				const err = game.blocked();
-//				if (err)
-//					return res.status(500).send(err);
-//
-//				// Pick a random tile from the bag
-//				game.whosTurnKey = game.players[
-//					Math.floor(Math.random() * game.players.length)].key;
-//
-//				game.emailInvitations(
-//					`${req.protocol}://${req.get('Host')}`,
-//					this.config, req.session.passport.user.key);
-//
-//				game.start();
-//
-//				// Redirect back to control panel
-//				return res.redirect('/html/games.html');
-//			})
-//			.catch(e => trap(e, req, res));
-//		}
+		/**
+		 * @param {object} to a lookup suitable for use with UserManager.getUser
+		 * @param {object} req request
+		 * @param {object} res response
+		 * @param {string} gameKey game to which this applies
+		 * @param {string} subject subject
+		 * @param {string} text email text
+		 * @param {string} html email html
+		 * @return {Promise} Promise that resolves to the user that was mailed,
+		 * either their game name or their email if there is no game name.
+		 * @private
+		 */
+		sendMail(to, req, res, gameKey, subject, text, html) {
+			return this.userManager.getUser(
+				{key: req.session.passport.user.key})
+			.then(sender => `${sender.name}<${sender.email}>`)
+			.catch(e => this.config.email.sender)
+			.then(sender =>
+				new Promise(
+					resolve => this.userManager.getUser(to, true)
+					.catch(e => {
+						// Not a known user, rely on email in the
+						// getUser query
+						resolve({
+							name: to.email, email: to.email
+						});
+					})
+					.then(uo => resolve(uo)))
+				.then(uo => {
+					if (!uo.email) // no email
+						return Promise.resolve(
+							Platform.i18n('No email for $1',
+										  uo.toString()));
+					console.debug(
+						subject,
+						`${uo.name}<${uo.email}> from `,
+						sender);
+					return this.config.mail.transport.sendMail({
+						from: sender,
+						to: uo.email,
+						subject: subject,
+						text: text,
+						html: html
+					})
+					.then(() => uo.name || uo.email);
+				}));
+		}
+
+		/**
+		 * Handle /invitePlayers
+		 * @return {Promise}
+		 */
+		request_invitePlayers(req, res) {
+			if (!this.config.mail || !this.config.mail.transport) {
+				res.status(500).send('Mail is not configured');
+				return Promise.reject();
+			}
+			if (!req.body.player) {
+				res.status(500).send('Nobody to notify');
+				return Promise.reject();
+			}
+
+			const gameURL =
+				  `${req.protocol}://${req.get('Host')}/html/games.html?untwist=${req.body.gameKey}`;
+
+			let textBody = req.body.message || "";
+			if (textBody)
+				textBody += "\n";
+			textBody += Platform.i18n(
+				"Join the game by following this link: $1")
+			.replace(/\$1/, gameURL);
+
+			let htmlBody = req.body.message.replace(/</g, '&lt;') || "";
+			if (htmlBody)
+				htmlBody += "<br/>";
+			htmlBody += Platform.i18n(
+				"Click <a href='$1'>here</a> to join the game.")
+			.replace(/\$1/, gameURL);
+			
+			return Promise.all(req.body.player.map(
+				to => this.sendMail(
+					to, req, res, req.body.gameKey,
+					Platform.i18n("You have been invited to play XANADO"),
+					textBody,
+					htmlBody)))
+			.then(list => {
+				console.log("Invited", list);
+				const names = list.filter(uo => uo);
+				console.debug("<-- 200 ", names);
+				res.status(200).send([
+					/*i18n*/"Invited $1", names.join(", ")]);
+			})
+			.catch(e => trap(e, req, res));
+		}
+
+		/**
+		 * Handler for POST /sendReminder
+		 * Email reminders to next human player in (each) game
+		 */
+		request_sendReminder(req, res) {
+			const gameKey = req.params.gameKey;
+			console.log('Sending turn reminders');
+			const gameURL =
+				  `${req.protocol}://${req.get('Host')}/game/${gameKey}`;
+
+			const prom = (gameKey === '*')
+				  ? this.db.keys() : Promise.resolve([gameKey]);
+			return prom
+			.then(keys => Promise.all(keys.map(
+				key => (Promise.resolve(this.games[key])
+						|| this.db.get(key, Game.classes))
+				.then(game => {
+					const pr = game.checkTimeout();
+					if (game.state !== 'playing')
+						return undefined;
+
+					const player = game.getPlayer();
+					console.log(`Sending reminder mail to ${player.key}/${player.name}`);
+
+					return this.sendMail(
+						player, req, res, game.key,
+						Platform.i18n(
+							'It is your turn in your XANADO game'),
+						Platform.i18n(
+							"Join the game by following this link: $1",
+							gameURL),
+						Platform.i18n(
+							"Click <a href='$1'>here</a> to join the game.",
+							gameURL));
+				}))))
+			.then(reminders => reminders.filter(e => typeof e !== 'undefined'))
+			.then(reminders=> {
+				console.debug("Reminded ", reminders);
+				return res.status(200).send(
+					[/*i18n*/'Reminded $1', reminders.join(', ')]);
+			})
+			.catch(e => trap(e, req, res));
+		}
 
 		/**
 		 * Handle /join/:gameKey player joining a game.

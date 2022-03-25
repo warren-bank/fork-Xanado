@@ -168,16 +168,28 @@ define("browser/Dialog", () => {
 
 		/**
 		 * Handle submit button
+		 * @param {object} p optional hash of param values, so subclasses
+		 * can handle non-input type data.
 		 * @private
 		 */
-		submit() {
+		submit(p) {
 			const action = this.getAction();
-			const p = {};
+			if (!p)
+				p = {};
 			this.$dlg
-			.find("input,select")
+			.find("input[name],select[name],textarea[name]")
 			.each(function() {
-				p[$(this).attr("name")] = $(this).val();
+				const name = $(this).attr("name");
+				const value = $(this).val() || $(this).text();
+				// Collect inputs with the same name as arrays
+				if (typeof p[name] === 'undefined')
+					p[name] = value;
+				else if (typeof p[name] === 'string')
+					p[name] = [ p[name], value ];
+				else
+					p[name].push(value);
 			});
+			
 			// Note that password fields are sent as plain text. This is
 			// not a problem so long as the comms are protected by HTTPS,
 			// and is simpler/cleaner than using BasicAuth.

@@ -1,0 +1,25 @@
+<div class="dialog-row">
+  <div data-i18n="Select the player to invite"></div>
+  <label for="invitePlayer" data-i18n="Player:"></label>
+  <select id="invitePlayerName"></select>
+</div>
+<div class="dialog-row">
+  <div data-i18n="Or type the email address of someone who is not listed, and click 'Add'"></div>
+  <input type="email" id="invitePlayerEmail" multiple/>
+  <button id="addButton" data-i18n="Add"></button>
+</div>
+  
+<div class="dialog_row">
+  <div data-i18n="Click on a player's name below to remove them from the list"></div>
+  <span id="invitedPlayers"></span>
+</div>
+
+<div class="dialog_row">
+  <div data-i18n="Personal message"></div>
+  <textarea style="width:100%" name="message"></textarea>
+</div>
+
+<div class="dialog_row">
+  <button class="submit" data-i18n="Send invitation emails"></button>
+</div>
+<input type="text" name="gameKey" class="hidden"></input>

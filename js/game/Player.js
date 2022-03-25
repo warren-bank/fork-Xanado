@@ -99,14 +99,16 @@ define('game/Player', [
 				return {
 					name: this.name || 'Unknown Player',
 					isRobot: this.isRobot,
-					// Only in simple, has no analog in Player
-					connected: this.isRobot
-					|| (game.getConnection(this) !== null),
 					dictionary: this.dictionary,
 					key: this.key,
 					score: this.score,
+					secondsToPlay: this.secondsToPlay,
+					
+					// Can they be emailed?
 					email: ump.email ? true : false,
-					secondsToPlay: this.secondsToPlay
+					// Only in simple, has no analog in Player
+					connected: this.isRobot
+					|| (game.getConnection(this) !== null)
 				};
 			})
 			.catch(e => {
@@ -212,46 +214,6 @@ define('game/Player', [
 		 */
 		toggleAdvice() {
 			this.wantsAdvice = !this.wantsAdvice;
-		}
-
-		/**
-		 * Promise to send an email invitation to a player on
-		 * the server side only.
-		 * @param {string} subject the subject of the mail
-		 * @param {string} gameURL the URL of the game
-		 * @param {object} config the global config object
-		 * @param {UserManager} um user manager for getting emails
-		 * @param {string} senderKey user key  for the sender, will default to
-		 ( config.email.sender if undefined
-		 * @return {Promise} Promise that resolves to the player's name
-		 */
-		emailInvitation(subject, gameURL, config, um, senderKey) {
-			if (!config.mail || !config.mail.transport)
-				return Promise.reject('Mail is not configured');
-			const url = `${gameURL}/${this.key}`;
-			return new Promise(
-				resolve =>
-				um.getUser({key: senderKey})
-				.then(sender => resolve(`${sender.name}<${sender.email}>`))
-				.catch(e => resolve(config.email.sender)))
-			.then(sender => {
-				return um.getUser({key: this.key})
-				.then(ump => {
-					if (!ump.email)
-						return Promise.reject();
-
-					console.log(`Sending invitation to ${this.name}<${ump.email}> subject ${subject} from ${sender} url ${url}`);
-					return ump.email;
-				})
-				.then(email => config.mail.transport.sendMail({
-					from: sender,
-					to:  email,
-					subject: subject,
-					text: Platform.i18n('email-join-text', url),
-					html: Platform.i18n('email-join-html', url)
-				}))
-				.then(() => this.name);
-			});
 		}
 
 		/**

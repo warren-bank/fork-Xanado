@@ -7,11 +7,6 @@
 
 	"chat-advice": "$1 at row $2 column $3 would have scored $4",
 
-	"email-invite": "You have been invited to play with $1",
-	"email-join-html": "Click <a href='$1'>here</a> to join the game.",
-	"email-join-text": "Join the game by following this link: $1",
-	"email-your-turn": "XANADO: It is your turn in your game with $1",
-
 	"games-scores": "$1: <b>$2</b>: $3 ($4 win{{PLURAL:$4||s}})",
 
 	"Hint": "Hint: $1 at row $2 column $3 for $4",
@@ -35,11 +30,16 @@
 
 	"Tile click": "Play a sound when a tile is placed",
 	"time limit $1": "time limit $1 minute{{PLURAL:$1||s}}",
+	"tooltip-delete-game": "CAREFUL! This cannot be undone!",
 	"tooltip-dictionary": "A dictionary is optional for human player games, but is required for computer players and is used to automate challenges.",
 	"tooltip-email-reminder": "Email a reminder to player whose turn it is",
 	"tooltip-email-reminders": "Email reminders to players whose turn it is",
+	"tooltip-invite-players": "Send emails to invite people to join the game",
+	"tooltip-leave-game": "The game may continue with the remaining players",
 	"tooltip-login-name": "Name of an existing Xanado user",
 	"tooltip-max-players": "Limit the total number of players who can join this game",
+	"tooltip-open-game": "Open this game in a new window",
+
 	"tooltip-register-name": "Name you want to be known as in games",
 	"tooltip-register-email": "Leave blank if you don't want to get emails from XANADO. Emails only relate to gameplay, and addresses are never shared with anyone else.",
 	"tooltip-register-password": "Use something you can easily remember. <b>Never</b> re-use a password you use on another site",
