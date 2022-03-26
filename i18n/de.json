@@ -166,7 +166,7 @@
 	"Send reminder": "Eine Erinnerung senden",
 	"You have been invited to play XANADO": "Du wurdest eingeladen, XANADO zu spielen",
 	"Invite players": "Spieler einladen",
-	"No email for $1": "Keine E-Mail für $1",
+	"($1 has no email address)": "(keine E-Mail für $1)",
 	"Add": "Addieren",
 	"Click <a href='$1'>here</a> to join the game.": "Klicken Sie <a href='$1'>hier</a>, um am Spiel teilzunehmen.",
 	"tooltip-add-robot": "Füge diesem Spiel einen Roboterspieler hinzu",

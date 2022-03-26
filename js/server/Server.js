@@ -55,7 +55,7 @@ define('server/Server', [
 			this.monitors = [];
 
 			process.on('unhandledRejection', reason => {
-				console.error('Command rejected', reason, reason.stack);
+				console.error('Command rejected', reason, reason ? reason.stack : "");
 			});
 
 			const express = new Express();
@@ -541,8 +541,8 @@ define('server/Server', [
 				.then(uo => {
 					if (!uo.email) // no email
 						return Promise.resolve(
-							Platform.i18n('No email for $1',
-										  uo.toString()));
+							Platform.i18n('($1 has no email address)',
+										  uo.name || uo.key));
 					console.debug(
 						subject,
 						`${uo.name}<${uo.email}> from `,
@@ -579,15 +579,14 @@ define('server/Server', [
 			if (textBody)
 				textBody += "\n";
 			textBody += Platform.i18n(
-				"Join the game by following this link: $1")
-			.replace(/\$1/, gameURL);
+				"Join the game by following this link: $1", gameURL);
 
+			// Handle XSS risk posed by HTML in the textarea
 			let htmlBody = req.body.message.replace(/</g, '&lt;') || "";
 			if (htmlBody)
 				htmlBody += "<br/>";
 			htmlBody += Platform.i18n(
-				"Click <a href='$1'>here</a> to join the game.")
-			.replace(/\$1/, gameURL);
+				"Click <a href='$1'>here</a> to join the game.", gameURL);
 			
 			return Promise.all(req.body.player.map(
 				to => this.sendMail(

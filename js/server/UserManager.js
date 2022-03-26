@@ -217,7 +217,7 @@ define('server/UserManager', [
 		getDB() {
 			if (this.db)
 				return Promise.resolve(this.db);
-			
+
 			return Lock.lock(this.config.auth.db_file)
 			.then(release => Fs.readFile(this.config.auth.db_file)
 				  .then(data => release()
@@ -226,7 +226,9 @@ define('server/UserManager', [
 				this.db = db || [];
 				return db;
 			})
-			.catch(e => (this.db = []));
+			.catch(e => {
+				this.db = [];
+			});
 		}
 
 		/**
@@ -262,14 +264,21 @@ define('server/UserManager', [
 			return this.getDB()
 			.then(db => {
 				for (let uo of db) {
-					if (typeof desc.key !== 'undefined' && uo.key === desc.key)
+					if (typeof desc.key !== 'undefined'
+						&& uo.key === desc.key)
 						return uo;
-					if (typeof desc.token !== 'undefined' && uo.token === desc.token) {
+
+					if (typeof desc.token !== 'undefined'
+						&& uo.token === desc.token) {
+						// One-time password change token
 						delete uo.token;
 						return this.writeDB()
 						.then(() => uo);
 					}
-					if (typeof desc.name !== 'undefined' && uo.name === desc.name) {
+
+					if (typeof desc.name !== 'undefined'
+						&& uo.name === desc.name) {
+
 						if (ignorePass)
 							return uo;
 						if (typeof uo.pass === 'undefined') {
@@ -288,7 +297,9 @@ define('server/UserManager', [
 							throw new Error(/*i18n*/'um-bad-pass');
 						});
 					}
-					if (typeof desc.email !== 'undefined' && uo.email === desc.email)
+
+					if (typeof desc.email !== 'undefined'
+						&& uo.email === desc.email)
 						return uo;
 				}
 				console.error("getUser", desc, "failed; no such user");

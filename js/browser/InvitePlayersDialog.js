@@ -13,71 +13,87 @@ define("browser/InvitePlayersDialog", ["browser/Dialog"], Dialog => {
 			super("InvitePlayersDialog", $.extend({
 				title: $.i18n("Invite players")
 			}, options));
+
+			// Known users, got afresh from /users each time the
+			// dialog is opened
+			this.users = [];
 		}
 
 		createDialog() {
 			super.createDialog();
-			const $datalist = this.$dlg.find("#invitePlayerName");
-			$.get("/users")
-			.then(users => {
 
-				function pick(name) {
-					if (!name)
-						return;
-					let known = users.find(uo => (
-						uo.name === name
-						|| uo.email === name
-						|| uo.key === name));
-					if (!known) {
-						known = { email: name };
-						users.push(known);
-					}
+			const $email = this.$dlg.find("#playerEmail");
+			$email
+			.on('change', () => this.pick($email.val()));
+		}
 
-					if (invitees.find(uo => known === uo))
-						return;
+		pick(name) {
+			if (!name)
+				return;
+			let known = this.users.find(uo => (
+				uo.name === name
+				|| uo.email === name
+				|| uo.key === name));
+			if (!known) {
+				known = { email: name };
+				this.users.push(known);
+			}
 
-					invitees.push(known);
-					
-					$list.empty();
-					invitees.forEach(uo => {
-						const $in = $("<span class='invitee'></span>")
-							  .text((uo.name || uo.email))
-							  .data("uo", uo)
-							  .on('click', function() {
-								  $(this).remove();
-							  });
-						$list.append($in);
-					});
-				}
-
-				users.forEach(
-					uo =>
-					$datalist.append(`<option value="${uo.key}">${uo.name}</option>`));
-
-				const $list = this.$dlg.find("#invitedPlayers");
-				const invitees = [];
-
-				const $select = this.$dlg.find("#invitePlayerName");
-				$select
-				.selectmenu()
-				.on('selectmenuchange', () => pick($select.val()));
-
-				const $input = this.$dlg.find("#invitePlayerEmail");
-				$input
-				.on('change', () => pick($input.val()));
+			const $list = this.$dlg.find("#invitedPlayers");
+			let invited = false;
+			$(".invitee").each(() => {
+				if ($(this).data("uo") === known)
+					invited = true;
 			});
+			if (invited)
+				return;
+
+			const $removeText = this.$dlg.find("#removeText");
+			const $in = $("<span class='invitee'></span>")
+				  .text((known.name || known.email))
+				  .data("uo", known)
+				  .on('click', function() {
+					  $(this).remove();
+					  if ($list.children().length === 0)
+						  $removeText.hide();
+				  });
+			$list.append($in);
+
+			$removeText.show();
 		}
 
 		openDialog() {
 			super.openDialog();
+
 			const $gk = this.$dlg.find("[name=gameKey]");
 			$gk.val(this.options.gameKey);
+			this.$dlg.find("#invitedPlayers").empty();
+			this.invitees = [];
+			this.$dlg.find("#removeText").hide();
+
+			$.get("/users")
+			.then(users => {
+				this.users = users;
+				const $select = this.$dlg.find("#knownUserSelect");
+				$select.empty();
+				$select.append(`<option></option>`);
+				users.forEach(uo => $select.append(
+					`<option value="${uo.key}">${uo.name}</option>`));
+				$select
+				.selectmenu({
+					change: () => this.pick($select.val())
+				});
+			});
 		}
 
 		submit() {
 			const ps = [];
-			this.$dlg.find(".invitee")
-			.each(function() {
+			const $invitees = this.$dlg.find(".invitee");
+			if ($invitees.length === 0) {
+				this.$dlg.dialog("close");
+				return;
+			}
+			$invitees.each(function() {
 				ps.push($(this).data("uo"));
 			});
 			super.submit({ player: ps });

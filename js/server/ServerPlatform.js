@@ -148,17 +148,14 @@ define('platform', [
 		 * Implement `$.i18n()`
 		 */
 		lookup(args) {
-			const id = args[0];
-			if (this.data) {
-				if (this.data[id])
-					// TODO: support PLURAL
-					return this.data[id].replace(
-						/\$(\d+)/g,
-						(m, index) => args[index]);
-				else
-					return id;
-			} else
-				return id;
+			let s = args[0];
+			if (this.data && typeof this.data[s] !== 'undefined')
+				s = this.data[s];
+			// TODO: support PLURAL
+			console.log(`Expand ${s}`);
+			return s.replace(
+				/\$(\d+)/g,
+				(m, index) => args[index]);
 		}
 	}
 
