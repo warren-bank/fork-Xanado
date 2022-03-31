@@ -61,17 +61,17 @@ requirejs(['node-getopt', 'platform', 'dawg/Dictionary'], (Getopt, Platform, Dic
 			if (opt.options.sequence)
 				for (let w of words)
 					checkSequence(w, dict);
-			else if (opt.options.anagrams) {
+			else if (typeof opt.options.anagrams !== 'undefined') {
 				if (words.length === 0)
 					throw 'Need letters to find anagrams of';
 
 				for (let w of words) {
 					const word = w.toUpperCase();
-					console.log(`\nAnagrams of '${word}'`);
 					let anag = Object.keys(dict.findAnagrams(word));
-					if (opt.options.exact)
-						anag = anag.filter(word => word.length === w.length);
-					console.log(anag);
+					if (opt.options.anagrams > 0)
+						anag = anag.filter(word => word.length >= opt.options.anagrams);
+					console.log(`\n${anag.length} words found in '${word}':`);
+					console.log(anag.join(", "));
 				}
 			}
 			else {
@@ -104,12 +104,11 @@ requirejs(['node-getopt', 'platform', 'dawg/Dictionary'], (Getopt, Platform, Dic
 	}
 
 	const opt = Getopt.create([
-        ['h', 'help', 'Show this help'],
-		['l', 'list', 'Without parameters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root'],
-		['f', 'file=ARG', 'Check all words read from file'],
-		['a', 'anagrams', 'Find anagrams of the words'],
-		['e', 'exact', 'Only find anagrams that use all the letters'],
-		['s', 'sequence', 'Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. "UZZL" is a valid sub-sequence in an English dictionary as it is found in "PUZZLE", but "UZZZL" isn\'t']
+        ['', 'help', 'Show this help'],
+		['', 'list', 'Without parameters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root'],
+		['', 'file=ARG', 'Check all words read from file'],
+		['', 'anagrams[=ARG]', 'Find anagrams of the words. Optionally require sub-anagrams to be a minimum length.'],
+		['', 'sequence', 'Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. "UZZL" is a valid sub-sequence in an English dictionary as it is found in "PUZZLE", but "UZZZL" isn\'t']
 	])
         .bindHelp()
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
