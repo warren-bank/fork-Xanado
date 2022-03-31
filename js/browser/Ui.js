@@ -151,7 +151,7 @@ define('browser/Ui', [
 				console.debug(`--> Game ${gameKey}`);
 				const game = Fridge.thaw(frozen, Game.classes);
 				return this.identifyPlayer(game)
-				.then (playerKey => this.loadGame(game, playerKey))
+				.then (playerKey => this.loadGame(game))
 				.then(() => this.attachSocketListeners());
 			})
 			.catch(report);
@@ -632,7 +632,8 @@ define('browser/Ui', [
 			return $.get("/session")
 			.then(session => {
 				console.debug("Signed in as", session.name);
-				if (game.players.find(p => p.key === session.key)) {
+				this.player = game.players.find(p => p.key === session.key);
+				if (this.player) {
 					$(".logged-in")
 					.show()
 					.find("#whoami")
@@ -652,6 +653,7 @@ define('browser/Ui', [
 			})
 			.catch(e => {
 				console.debug(e);
+				this.player = undefined;
 				$(".not-logged-in")
 				.show()
 				.find("button")
@@ -666,11 +668,9 @@ define('browser/Ui', [
 		/**
 		 * A game has been read; load it into the UI
 		 * @param {Game} game the Game being played
-		 * @param {string?} playerKey player key, if player is in this game
-		 * undefined if not
 		 * @return {Promise} Promise that resolves to a game
 		 */
-		loadGame(game, playerKey) {
+		loadGame(game) {
 			console.debug('Loading UI for', game.toString());
 
 			this.game = game;
@@ -681,7 +681,6 @@ define('browser/Ui', [
 			// Can swap up to swapCount tiles
 			this.swapRack = new Rack(this.game.board.swapCount);
 
-			this.player = this.game.getPlayer(playerKey);
 			this.updatePlayerTable();
 
 			if (this.player) {
@@ -940,7 +939,7 @@ define('browser/Ui', [
 				ui.socket.emit(
 					'message',
 					{
-						sender: ui.player.name,
+						sender: ui.player ? ui.player.name : "Observer",
 						text: $(this).val()
 					});
 				$(this).val('');
@@ -1645,11 +1644,13 @@ define('browser/Ui', [
 		 */
 		setMoveAction(action) {
 			console.debug("setMoveAction", action);
-			$('#turnButton')
-			.data('action', action)
-			.empty()
-			.append($.i18n(`ui-${action}`))
-			.show();
+			if (this.player) {
+				$('#turnButton')
+				.data('action', action)
+				.empty()
+				.append($.i18n(`ui-${action}`))
+				.show();
+			}
 		}
 
 		/**

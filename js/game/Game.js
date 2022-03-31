@@ -406,10 +406,9 @@ define('game/Game', [
 				console.log(`\tautoplay ${player.name}`);
 				return prom.then(() => this.autoplay())
 				// May autoplay next robot recursively
-				.then(turn => this.finishTurn(turn))
-				.then(() => undefined);
+				.then(turn => this.finishTurn(turn));
 			}
-			return prom;
+			return prom.then(() => undefined);
 		}
 
 		/**
@@ -610,19 +609,17 @@ define('game/Game', [
 			// Make sure this is a valid (known) player
 			const player = this.players.find(p => p.key === playerKey);
 			if (!player) {
-				console.error(`WARNING: player key ${playerKey} not found in game ${this.key}, cannot connect()`);
-				return;
+				console.error(`WARNING: player key ${playerKey} not found in game ${this.key}`);
 			}
 
-			// If the player has an open connection, we bump it and
-			// accept the new connection. The logic is if they are changing
-			// device due to some issue (e.g. poor comms)
 			const knownSocket = this.getConnection(player);
 			if (knownSocket !== null) {
 				console.error('WARNING:', player.key, 'already connected to',
 							this.key);
-			} else if (player.key === this.whosTurn
+			} else if (player && player.key === this.whosTurn
 					   && this.state === 'playing') {
+				// This player is just connecting, perhaps for the first time.
+				// Start their timer.
 				const to = (player.secondsToPlay > 0)
 					  ? player.secondsToPlay
 					  : this.secondsPerPlay;
@@ -641,7 +638,7 @@ define('game/Game', [
 			socket.player = player;
 
 			this._connections.push(socket);
-			console.log(`${player} connected`);
+			console.log(player ? `${player} connected` : "Anonymous connect()");
 
 			// Tell players that the player is connected
 			this.updateConnections();
@@ -656,7 +653,9 @@ define('game/Game', [
 
 			// Add disconnect listener
 			socket.on('disconnect', () => {
-				console.log(`${socket.player.toString()} disconnected`);
+				console.log(socket.player
+							? `${socket.player.toString()} disconnected`
+							: "Anonymous disconnect");
 				this._connections = this._connections.filter(
 					sock => sock !== socket);
 				this.updateConnections();
@@ -1310,7 +1309,7 @@ define('game/Game', [
 			const $tab = $('<table class="playerTable"></table>');
 			this.players.forEach(
 				p => $tab.append(p.createScoreDOM(
-					thisPlayer.key, this.state === 'playing')));
+					thisPlayer, this.state === 'playing')));
 			return $tab;
 		}
 	}

@@ -220,18 +220,18 @@ define('game/Player', [
 		 * Create score table representation of the player on the browser
 		 * side only. This is intended to work both on a full Player
 		 * object, but also on a Player.simple of the player.
-		 * @param {string} curKey the key of the player for whom the DOM is
+		 * @param {Player?} curPlayer the player for whom the DOM is
 		 * being generated
 		 * @param {boolean} showConnect show the connection status of the player
 		 * @return {jQuery} DOM object for the score table
 		 */
-		createScoreDOM(curKey, showConnect) {
+		createScoreDOM(curPlayer, showConnect) {
 			const $tr = $(`<tr class="player-row" id='player${this.key}'></tr>`);
 			$tr.append(`<td class='turn-pointer'>&#10148;</td>`);
 			const $icon = $('<div class="ui-icon"></div>');
 			$icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
 			$tr.append($("<td></td>").append($icon));
-			const who = this.key === curKey
+			const who = curPlayer && this.key === curPlayer.key
 				? Platform.i18n("You")
 				: this.name;
 			$tr.append(`<td class='name'>${who}</td>`);

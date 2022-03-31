@@ -42,7 +42,7 @@ requirejs([
 	// Format a player in a game score table
 	function $player(game, player, isActive) {
 		const $tr = Player.prototype.createScoreDOM.call(
-			player, loggedInAs ? loggedInAs.key : undefined, isActive);
+			player, loggedInAs, isActive);
 		
 		if (isActive) {
 			if (player.dictionary && player.dictionary !== game.dictionary) {
@@ -68,63 +68,69 @@ requirejs([
 			return $tr;
 		}
 
-		if (loggedInAs) {
-			const $box = $("<td></td>");
-			$tr.append($box);
+		if (!loggedInAs)
+			return $tr;
 
-			if (player.key === loggedInAs.key) {
-				$box.append(
-					$("<button name='join' title=''></button>")
-					.button({ label: $.i18n("Open game") })
-					.tooltip({
-						content: $.i18n("tooltip-open-game")
-					})
-					.on('click', () => {
-						console.log(`Join game ${game.key}/${loggedInAs.key}`);
-						$.post(`/join/${game.key}/${loggedInAs.key}`)
-						.then(info => {
-							window.open(
-								`/html/game.html?game=${game.key}&player=${loggedInAs.key}`,
-								"_blank");
-							refresh_game(game.key);
-						})
-						.catch(report);
-					}));
+		const $box = $("<td></td>");
+		$tr.append($box);
 
-				$box.append(
-					$("<button name='leave' title='' class='risky'></button>")
-					.button({ label: $.i18n("Leave game") })
-					.tooltip({
-						content: $.i18n("tooltip-leave-game")
+		if (player.key === loggedInAs.key) {
+			// Currently signed in player
+			$box.append(
+				$("<button name='join' title=''></button>")
+				.button({ label: $.i18n("Open game") })
+				.tooltip({
+					content: $.i18n("tooltip-open-game")
+				})
+				.on('click', () => {
+					console.log(`Join game ${game.key}/${loggedInAs.key}`);
+					$.post(`/join/${game.key}/${loggedInAs.key}`)
+					.then(info => {
+						window.open(
+							`/html/game.html?game=${game.key}&player=${loggedInAs.key}`,
+							"_blank");
+						refresh_game(game.key);
 					})
-					.on('click', () => {
-						console.log(`Leave game ${game.key}`);
-						$.post(`/leave/${game.key}/${loggedInAs.key}`)
-						.then(() => refresh_game(game.key))
-						.catch(report);
-					}));
+					.catch(report);
+				}));
 
-			} else if (canEmail
-					   && !player.isRobot
-					   && game.whosTurnKey === player.key) {
-				$box.append(
-					$("<button name='email' title=''></button>")
-					.button({ label: $.i18n("Send reminder") })
-					.tooltip({
-						content: $.i18n("tooltip-email-reminder")
-					})
-					.on("click", () => {
-						console.log("Send reminder");
-						$.post(`/sendReminder/${game.key}`)
-						.then(info => $('#alertDialog')
-							  .text($.i18n.apply(null, info))
-							  .dialog({
-								  title: $.i18n("Reminded $1", player.name),
-								  modal: true
-							  }))
-						.catch(report);
-					}));
-			}
+			$box.append(
+				$("<button name='leave' title='' class='risky'></button>")
+				.button({ label: $.i18n("Leave game") })
+				.tooltip({
+					content: $.i18n("tooltip-leave-game")
+				})
+				.on('click', () => {
+					console.log(`Leave game ${game.key}`);
+					$.post(`/leave/${game.key}/${loggedInAs.key}`)
+					.then(() => refresh_game(game.key))
+					.catch(report);
+				}));
+
+			return $tr;
+		}
+
+		// Not the signed in player
+		if (canEmail
+			&& !player.isRobot
+			&& game.whosTurnKey === player.key) {
+			$box.append(
+				$("<button name='email' title=''></button>")
+				.button({ label: $.i18n("Send reminder") })
+				.tooltip({
+					content: $.i18n("tooltip-email-reminder")
+				})
+				.on("click", () => {
+					console.log("Send reminder");
+					$.post(`/sendReminder/${game.key}`)
+					.then(info => $('#alertDialog')
+						  .text($.i18n.apply(null, info))
+						  .dialog({
+							  title: $.i18n("Reminded $1", player.name),
+							  modal: true
+						  }))
+					.catch(report);
+				}));
 		}
 
 		return $tr;
@@ -269,8 +275,25 @@ requirejs([
 				.on('click', () => $.post(`/deleteGame/${game.key}`)
 					.then(refresh_games)
 					.catch(report)));
+
+			return $box;
 		}
-			
+
+		// Nobody logged in, offer to observe
+		$twist.append(
+			$("<button name='observe' title=''></button>")
+			.button({ label: $.i18n("Observe game") })
+			.tooltip({
+				content: $.i18n("tooltip-observe-game")
+			})
+			.on('click', () => {
+				console.log(`Observe game ${game.key}`);
+				window.open(
+					`/html/game.html?game=${game.key}`,
+					"_blank");
+				refresh_game(game.key);
+			}));
+
 		return $box;
 	}
 
