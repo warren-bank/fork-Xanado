@@ -1,14 +1,18 @@
 JS := $(shell find js -name '*.js' )
 
+# Make html version of github markdown
+%.html : %.md
+	node node_modules/marked/bin/marked.js -gfm $< > $@
+
 all:
 	(cd dictionaries && make)
 	node server.js
 
-# Make HTML source-code documentation
-doc: doc/index.html
-
 doc/index.html: $(JS) doc/README.md
 	node_modules/.bin/jsdoc -c doc/config.json -d doc $(JS)
+
+# Make HTML source-code documentation and README
+doc: doc/index.html README.html
 
 lint:
 	node node_modules/.bin/eslint $(JS)

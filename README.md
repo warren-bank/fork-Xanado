@@ -1,6 +1,6 @@
-# Multiplayer word grid game server and interface
+# Multiplayer word grid game Server and Web Interface
 
-Host your own server to play crossword games according to most of the rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, or Lexulous. Or invent your own!
+Host your own web server to play crossword games according to most of the rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, or Lexulous. Or invent your own!
 Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian, and has dictionaries in English, French, and German, and it's easy to add more.
 <p style="text-align:center;">
 	<img src="/images/splash.png" width="265" height="300" alt="Board" />
@@ -8,6 +8,7 @@ Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian
 While there are a number of freely accessible servers out there offering clones of the classic SCRABBLE® game, I wanted a game I could host on my own server, and experiment with different
 dictionaries, board layouts, tile sets, and rule combinations. And I wanted it
 to be completely free. The public servers I found didn't work for me because:
+
 - Their code is not public, and setting up your own server is not an option.
 - They are generally limited to a single version of the game.
 - Their (English) dictionaries are usually based on the standard American Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, as a computer player will beat them every time.
@@ -17,8 +18,6 @@ An interesting application that has emerged is as an entertaining teaching aid
 for language learners. Included is a dictionary based on the Oxford 5000 most
 important words to learn in English. By playing the game against the robot,
 learners are exposed to new words that they can then seek the definition of.
-
-The server code is written in Javascript ES6 and tested using `node.js` version 12.0.0. It may work in earlier versions of `node.js`, but is untested. The client is also written in Javascript and works in all the browsers I tested (Chrome, Firefox, Android, Opera.)
 
 ## History
 
@@ -153,17 +152,20 @@ dictionaries. Included with the installation are a number of pre-built dictionar
 
 # Security
 The assumption is that you will be running the game on a private
-server with a limited, trustworthy audience. The server can be
-configured to use HTTPS, see the example config.json for how. HTTPS is
-required for notifications to work, and is highly recommended when
-using default logins.
+server with a limited, trustworthy audience.
 
-To use HTTPS you require an SSL certificate. You can generate one using the
-instructions in https://linuxize.com/post/creating-a-self-signed-ssl-certificate/
+The server can be configured to use HTTPS, see the example config.json
+for how. HTTPS is required for notifications to work, and is highly
+recommended when using default logins. To use HTTPS you require an SSL
+certificate. You can generate one using the instructions in
+https://linuxize.com/post/creating-a-self-signed-ssl-certificate/
 
 # Development
+The server code is written in Javascript ES6 and tested using `node.js` version 12.0.0. It may work in earlier versions of `node.js`, but is untested. The client is also written in Javascript and works in all the browsers I tested (Chrome, Firefox, Android, Opera.)
+
 Further development is welcome, especially:
 - User interface translations
+- Security
 - Dictionaries and tile sets for new languages
 - Keeping dependencies up to date
 See [DEVELOPER](doc/README.md) for more.

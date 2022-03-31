@@ -101,6 +101,10 @@ will run the image, mapping `localhost` port 9093 to port 9093 on the docker ima
 
 ## Ideas
 
+The github repository has a list of issues that need to be addressed, including
+a number of enhancements. Here are some other enhancements that you might like
+to explore.
+
 ### Designing your own game
 Game definitions can be found in the `/editions` directory. Each
 definition describes the layout of the lower-right quadrant of the
@@ -120,3 +124,10 @@ can be any big list of words, or it can simply be a lexicon). Run the program
 
 ### DAWG
 The DAWG support is designed to be reusable in other games. It might be fun to implement Wordle, for example, or the word search game often found in newspapers where you try to make as many words as possible from a 9 letter anagram. The `js/dawg/explore.js` is a basic command-line tool for exploring a DAWG.
+
+### Public Server
+It would be nice to see a truly public server that anyone could sign in to and play against other random people. However this would have to be done with great care.
+
+- there are already a number of security features, such as simple XSS avoidance (thanks to @pkolano) and use of HTTPS, but it has some potential holes that might be exploited by an evil person. An audit it required.
+- would also have to address things like the size and performance of the database, and the performance of the robot.
+- the games interface would be unusable without some sort of grouping of users and/or games - for example, into "rooms".
