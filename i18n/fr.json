@@ -186,5 +186,7 @@
 	"tooltip-add-robot": "Ajouter un joueur robot à ce jeu",
 	"Add a message that will be included in the invitation email": "Ajouter un message qui sera inclus dans l'e-mail d'invitation",
 	"Predict score": "Prédiction de score",
-	"tooltip-predict-score": "Prédisez le score du jeu au fur et à mesure que le joueur place chaque tuile. Désactivez cette option si vous souhaitez que le joueur calcule son propre score, par exemple lors d'un tournoi"
+	"tooltip-predict-score": "Prédisez le score du jeu au fur et à mesure que le joueur place chaque tuile. Désactivez cette option si vous souhaitez que le joueur calcule son propre score, par exemple lors d'un tournoi",
+	"Observe game": "Observer le jeu",
+	"tooltip-observe-game": "Ouvrez un plateau pour regarder le jeu, mais pas pour jouer"
 }

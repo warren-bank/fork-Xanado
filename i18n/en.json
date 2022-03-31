@@ -41,6 +41,7 @@
 	"tooltip-leave-game": "If you leave the game your score will still count towards the leader board",
 	"tooltip-login-name": "Name of an existing Xanado user",
 	"tooltip-max-players": "Limit the total number of players who can join this game",
+	"tooltip-observe-game": "Open a board to watch the game, but not play",
 	"tooltip-open-game": "Open this game in a new window",
 
 	"tooltip-register-name": "Name you want to be known as in games",

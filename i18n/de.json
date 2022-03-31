@@ -187,5 +187,7 @@
 	"Join the game by following this link: $1": "Nehmen Sie am Spiel teil, indem Sie diesem Link folgen: $1",
 	"Add a message that will be included in the invitation email": "Fügen Sie eine Nachricht hinzu, die in der Einladungs-E-Mail enthalten sein wird",
 	"tooltip-predict-score": "Sagen Sie die Punktzahl für das Spiel voraus, während der Spieler jede Kachel platziert. Deaktivieren Sie dies, wenn Sie möchten, dass der Spieler seine eigene Punktzahl berechnet, beispielsweise während eines Turnierspiels",
-	"Predict score": "Score-Vorhersage aktivieren"
+	"Predict score": "Score-Vorhersage aktivieren",
+	"Observe game": "Beobachten Sie das Spiel",
+	"tooltip-observe-game": "Öffnen Sie ein Brett, um das Spiel zu sehen, aber nicht zu spielenObserver le jeuOuvrez un plateau pour regarder le jeu, mais pas pour jouer"
 }
