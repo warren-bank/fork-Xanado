@@ -51,7 +51,7 @@
 	"All players passed twice": "Alle Spieler haben zweimal gepasst",
 	"Log": "Protokoll",
 	"tooltip-register-name": "Name, unter dem du in Spielen bekannt sein möchtest",
-	"ui-log-total": "insgesamt $1",
+	"total": "insgesamt",
 	"Sign in": "Anmelden",
 	"dictionary $1": "Wörterbuch $1",
 	"Time limit": "Zeitlimit",
@@ -184,5 +184,8 @@
 	"Personal message": "Persönliche Mitteilung",
 	"Invited $1": "Eingeladen $1",
 	"Click on a player's name below to remove them from the list": "Klicken Sie unten auf den Namen eines Spielers, um ihn aus der Liste zu entfernen",
-	"Join the game by following this link: $1": "Nehmen Sie am Spiel teil, indem Sie diesem Link folgen: $1"
+	"Join the game by following this link: $1": "Nehmen Sie am Spiel teil, indem Sie diesem Link folgen: $1",
+	"Add a message that will be included in the invitation email": "Fügen Sie eine Nachricht hinzu, die in der Einladungs-E-Mail enthalten sein wird",
+	"tooltip-predict-score": "Sagen Sie die Punktzahl für das Spiel voraus, während der Spieler jede Kachel platziert. Deaktivieren Sie dies, wenn Sie möchten, dass der Spieler seine eigene Punktzahl berechnet, beispielsweise während eines Turnierspiels",
+	"Predict score": "Score-Vorhersage aktivieren"
 }

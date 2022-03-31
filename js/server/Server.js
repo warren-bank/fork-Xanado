@@ -493,6 +493,7 @@ define('server/Server', [
 			.then(game => game.onLoad(this.db))
 			.then(game => {
 				game.secondsPerPlay = (req.body.minutesPerPlay || 0) * 60;
+				game.predictScore = req.body.predictScore;
 				if (game.secondsPerPlay > 0)
 					console.log(`\t${game.secondsPerPlay} second time limit`);
 

@@ -2,17 +2,19 @@
    license information */
 /* eslint-env amd */
 
-define('game/Turn', () => {
+define('game/Turn', ["game/Move"], Move => {
 
 	/**
 	 * Communicating the result of a move from server back to client
 	 */
-	class Turn {
+	class Turn extends Move {
 		/**
 		 * @param {Game} game the Game
 		 * @param {Object} members object fields (members)
 		 */
-		constructor(game, members) {		
+		constructor(game, members) {
+			super();
+
 			/**
 			 * The 'type' of the turn. This will be one of
 			 * * `move`: a player has made a move
@@ -56,34 +58,6 @@ define('game/Turn', () => {
 			 * key of the player who initiated the action
 			 */
 			this.challengerKey = undefined;
-
-			/**
-			 * For `move` it indicates the
-			 * move. For `took-back` and `challenge-won` it is the
-			 * move just taken back/challenged.
-			 * @member {Tile[]}
-			 */
-			this.placements = undefined;
-
-			/**
-			 * Tiles replacing those just played.
-			 * @member {Tile[]}
-			 */
-			this.replacements = undefined;
-			
-			/**
-			 * Words just played, each {word: string, score: number}
-			 * @member {object[]} 
-			 */
-			this.words = undefined;
-
-			/**
-			 * If a number, change in score for player as a result of
-			 * this turn. If an object, change in score for each
-			 * player, indexed by player key.
-			 * @member {number|object}
-			 */
-			this.deltaScore = undefined;
 
 			const ep = game.players.find(p => p.rack.isEmpty());
 			if (ep)

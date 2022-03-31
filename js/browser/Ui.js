@@ -49,6 +49,31 @@ define('browser/Ui', [
 	}
 
 	/**
+	 * Format a move score summary.
+	 * @param turn {Move|Turn} the turn or move being scored
+	 * @param {boolean} hideScore true to elide the score
+	 */
+	function formatScore(turn, hideScore) {
+		let sum = 0;
+		const $span = $('<span></span>');
+		for (let word of turn.words) {
+			$span
+			.append(` <span class="word">${word.word}</span>`);
+			if (!hideScore) {
+				$span
+				.append(` (<span class="word-score">${word.score}</span>)`);
+			}
+			sum += word.score;
+		}
+		// .score will always be a number after a move
+		if (!hideScore && turn.words.length > 1 || turn.score > sum) {
+			$span
+			.append(` ${$.i18n("total")} ${turn.score}`);
+		}
+		return $span;
+	}
+
+	/**
 	 * User interface to a game in a browser. The Ui reflects the game state as
 	 * communicated from the server, through the exchange of various messages.
 	 */
@@ -226,43 +251,27 @@ define('browser/Ui', [
 			this.log($.i18n('ui-log-turn-player', player.name), 'turn-player');
 
 			// What did they do?
-			const $turnDetail = $('<div class="turn-detail"></div>');
+			let turnText;
 			switch (turn.type) {
 			case 'move':
-				{
-					// Compose a description of the words created
-					let ws = 0;
-					let sum = 0;
-					for (let word of turn.words) {
-						$turnDetail
-						.append(`<span class="word">${word.word}</span>`)
-						.append(' (')
-						.append(`<span class="word-score">${word.score}</span>`)
-						.append(') ');
-						ws++;
-						sum += word.score;
-					}
-					// deltaScore will always be a number after a move
-					if (ws > 1 || turn.deltaScore > sum)
-						$turnDetail.append($.i18n('ui-log-total', turn.deltaScore));
-				}
+				turnText = formatScore(turn, false);
 				break;
 			case 'swap':
-				$turnDetail.append($.i18n('ui-log-swap', turn.replacements.length));
+				turnText = $.i18n('ui-log-swap', turn.replacements.length);
 				break;
 			case /*i18n ui-log-*/'timeout':
 			case /*i18n ui-log-*/'pass':
 			case /*i18n ui-log-*/'challenge-won':
 			case /*i18n ui-log-*/'challenge-failed':
 			case /*i18n ui-log-*/'took-back':
-				$turnDetail.append($.i18n(`ui-log-${turn.type}`));
+				turnText = $.i18n(`ui-log-${turn.type}`);
 			case 'Game over':
 				break;
 			default:
 				// Terminal, no point in translating
 				throw Error(`Unknown move type ${turn.type}`);
 			}
-			this.log($turnDetail, 'turn-detail');
+			this.log(turnText, 'turn-detail');
 
 			if (latestTurn
 				&& typeof turn.emptyPlayer === 'number'
@@ -1266,15 +1275,7 @@ define('browser/Ui', [
 					$move.append($.i18n(move));
 					this.enableTurnButton(false);
 				} else {
-					for (const word of move.words) {
-						$move
-						.append(`<span class="word">${word.word}</span>`)
-						.append(' (')
-						.append(`<span class="word-score">${word.score}</span>`)
-						.append(') ');
-					}
-					const total = $.i18n('ui-log-total', move.score);
-					$move.append(`<span class="totalScore">${total}</span>`);
+					$move.append(formatScore(move, !this.game.predictScore));
 					this.enableTurnButton(true);
 				}
 
@@ -1336,12 +1337,12 @@ define('browser/Ui', [
 			this.scrollLogToEnd(300);
             this.removeMoveActionButtons();
 			const player = this.game.getPlayer(turn.playerKey);
-			if (typeof turn.deltaScore === 'number')
-				player.score += turn.deltaScore;
-			else if (typeof turn.deltaScore === 'object')
-				Object.keys(turn.deltaScore).forEach(
+			if (typeof turn.score === 'number')
+				player.score += turn.score;
+			else if (typeof turn.score === 'object')
+				Object.keys(turn.score).forEach(
 					k => this.game.players
-					.find(p => p.key === k).score += turn.deltaScore[k]);
+					.find(p => p.key === k).score += turn.score[k]);
 
 			player.refreshDOM();
 

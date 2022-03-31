@@ -583,6 +583,7 @@ define('game/Game', [
 					creationTimestamp: this.creationTimestamp,
 					edition: this.edition,
 					dictionary: this.dictionary,
+					predictScore: this.predictScore,
 					state: this.state,
 					players: ps,					
 					turns: this.turns.length, // just the length
@@ -962,7 +963,7 @@ define('game/Game', [
 				type: 'move',
 				playerKey: player.key,
 				nextToGoKey: this.whosTurnKey,
-				deltaScore: move.score,
+				score: move.score,
 				placements: move.placements,
 				replacements: move.replacements,
 				words: move.words
@@ -1070,7 +1071,7 @@ define('game/Game', [
 			const turn = new Turn(this, {
 				type: /*i18n*/'Game over',
 				playerKey: this.whosTurnKey,
-				deltaScore: deltas
+				score: deltas
 			});
 			return Promise.resolve(turn);
 		}
@@ -1128,7 +1129,7 @@ define('game/Game', [
 				type: type,
 				playerKey: previousMove.playerKey,
 				nextToGoKey: this.whosTurnKey,
-				deltaScore: -previousMove.score,
+				score: -previousMove.score,
 				placements: previousMove.placements,
 				replacements: previousMove.replacements,
 				challengerKey: challenger

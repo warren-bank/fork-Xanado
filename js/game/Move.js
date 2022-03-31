@@ -5,7 +5,7 @@
 define('game/Move', ['game/Tile'], Tile => {
 
 	/**
-	 * A Move is a collection of tile placements, and the total score
+	 * A Move is a collection of tile placements, and the delta score
 	 * achieved for the move. We also record the words created by the
 	 * move. It is used to send a human player's play to the server,
 	 * which then sends a matching {@link Turn} to every player.
@@ -31,8 +31,12 @@ define('game/Move', ['game/Tile'], Tile => {
 			this.words = [];
 
 			/**
-			 * Score for the play
-			 * @member {number}
+			 * Score for the play.
+			 * If a number, change in score for the player as a result of
+			 * this move. If an object, change in score for each
+			 * player, indexed by player key. The object form is only used
+			 * in Turn.
+			 * @member {number|object}
 			 */
 			this.score = 0;
 
@@ -45,6 +49,9 @@ define('game/Move', ['game/Tile'], Tile => {
 			/**
 			 * List of tiles placed in this move. Tiles are required
 			 * to carry col, row positions where they were placed.
+			 * In a Turn, for type=`move` it indicates the
+			 * move. For `took-back` and `challenge-won` it is the
+			 * move just taken back/challenged.
 			 * @member {Tile[]}
 			 */
 			this.placements = [];
