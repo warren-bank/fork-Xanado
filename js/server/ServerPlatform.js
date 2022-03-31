@@ -152,7 +152,6 @@ define('platform', [
 			if (this.data && typeof this.data[s] !== 'undefined')
 				s = this.data[s];
 			// TODO: support PLURAL
-			console.log(`Expand ${s}`);
 			return s.replace(
 				/\$(\d+)/g,
 				(m, index) => args[index]);
