@@ -408,7 +408,7 @@ requirejs([
 				data.forEach(player => {
 					const s = $.i18n(
 						'games-scores', n++, player.name, player.score,
-						player.wins);
+						player.games, player.wins);
 					$gt.append(`<div class="player-cumulative">${s}</div>`);
 				});
 			})

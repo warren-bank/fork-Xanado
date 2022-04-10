@@ -7,7 +7,7 @@
 
 	"chat-advice": "$1 at row $2 column $3 would have scored $4",
 
-	"games-scores": "$1: <b>$2</b>: $3 ($4 win{{PLURAL:$4||s}})",
+	"games-scores": "$1: <b>$2</b>: $3 ($5 win{{PLURAL:$5||s}} from $4 game{{PLURAL:$4||s}})",
 
 	"Hint": "Hint: $1 at row $2 column $3 for $4",
 

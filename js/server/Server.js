@@ -410,9 +410,11 @@ define('server/Server', [
 									key: player.key,
 									name: player.name,
 									score: 0,
-									wins: 0
+									wins: 0,
+									games: 0
 								};
 							}
+							result.games++;
 							if (player.score === winScore)
 								result.wins++;
 							result.score += player.score;
