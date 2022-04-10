@@ -1213,16 +1213,19 @@ define('browser/Ui', [
 		 * a dialog will prompt for the letter.
 		 */
 		moveTile(fromSquare, toSquare, ifBlank) {
-			if (this.boardLocked)
-				return;
 
 			const tile = fromSquare.tile;
 
 			if (fromSquare.owner instanceof Board) {
+				if (this.boardLocked)
+					return; // can't move from board
 				if (!(toSquare.owner instanceof Board))
 					this.placedCount--;
-			} else if (toSquare.owner instanceof Board)
+			} else if (toSquare.owner instanceof Board) {
+				if (this.boardLocked)
+					return; // can't move to board
 				this.placedCount++;
+			}
 
 			fromSquare.placeTile(null);
 			if (tile.isBlank) {			
