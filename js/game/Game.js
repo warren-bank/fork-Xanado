@@ -123,6 +123,13 @@ define('game/Game', [
 			this.pausedBy = undefined;
 
 			/**
+			 * Least number of players must have joined before this game
+			 * can start. Must be at least 2.
+			 * @member {number}
+			 */
+			this.minPlayers = 2;
+
+			/**
 			 * Most number of players who can join this game. 0 means no limit.
 			 * @member {number}
 			 */
@@ -134,6 +141,14 @@ define('game/Game', [
 			 * @member {string}
 			 */
 			this.nextGameKey = undefined;
+
+			/**
+			 * Whether or not to show the predicted score from tiles
+			 * placed during the game. This should be false in tournament
+			 * play, true otherwise.
+			 * @member {boolean}
+			 */
+			this.predictScore = true;
 		}
 
 		/**
@@ -380,9 +395,9 @@ define('game/Game', [
 		 */
 		playIfReady() {
 			console.log(`playIfReady ${this.key} ${this.whosTurnKey}`);
-			if (this.players.length < 2) {
+			if (this.players.length < this.minPlayers) {
 				console.log("\tnot enough players");
-				return Promise.resolve(/*i18n*/'Need 2 players');
+				return Promise.resolve(/*i18n*/'Not enough players');
 			}
 
 			let prom;
@@ -1290,6 +1305,7 @@ define('game/Game', [
 
 					newGame.whosTurnKey = newGame.players[0].key;
 					newGame.secondsPerPlay = this.secondsPerPlay;
+					newGame.predictScore = this.predictScore;
 					newGame.players[0].secondsToPlay = newGame.secondsPerPlay;
 					console.log(`Created follow-on game ${newGame.key}`);
 					return newGame.save()

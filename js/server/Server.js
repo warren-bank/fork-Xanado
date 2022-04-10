@@ -475,6 +475,7 @@ define('server/Server', [
 		 */
 		request_createGame(req, res) {
 			console.log(`Constructing new game ${req.body.edition}`);
+			let minPlayers = req.body.minPlayers;
 			let maxPlayers = req.body.maxPlayers;
 
 			return Edition.load(req.body.edition)
@@ -497,10 +498,17 @@ define('server/Server', [
 				if (game.secondsPerPlay > 0)
 					console.log(`\t${game.secondsPerPlay} second time limit`);
 
+				if (req.body.minPlayers > 2) {
+					game.minPlayers = req.body.minPlayers;
+					console.log(`\tat least ${game.minPlayers} players`);
+				} else
+					game.minPlayers = 2;
+
 				if (req.body.maxPlayers > 1) {
 					game.maxPlayers = req.body.maxPlayers;
 					console.log(`\tat most ${game.maxPlayers} players`);
 				} else
+					// zero means infinity
 					game.maxPlayers = 0;
 
 				console.log(game.toString());

@@ -16,8 +16,13 @@
 </div>
 
 <div class="dialog-row">
+  <label for="minPlayers" data-i18n="Minimum players"></label>
+  <input type="number" id="minPlayers" min="2" step="1" placeholder="2" data-i18n-tooltip="tooltip-min-players" name="minPlayers"/>
+</div>
+
+<div class="dialog-row">
   <label for="maxPlayers" data-i18n="Maximum players"></label>
-  <input type="number" id="maxPlayers" step="1" placeholder="&infin;" data-i18n-tooltip="tooltip-max-players" name="maxPlayers"/>
+  <input type="number" id="maxPlayers" min="2" step="1" placeholder="&infin;" data-i18n-tooltip="tooltip-max-players" name="maxPlayers"/>
 </div>
 
 <div class="dialog-row">
