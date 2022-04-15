@@ -18,7 +18,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
     let tr = new TestRunner('Game');
     let assert = tr.assert;
 
-	tr.deTest('basics', () => {
+	tr.addTest('basics', () => {
 		return new Game('English_Scrabble', 'Oxford_5000').create()
 		.then(game => {
 			const player1 = new Player('player1', "rhino", true);
@@ -46,7 +46,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.deTest('autoplay', () => {
+	tr.addTest('autoplay', () => {
 		return new Game('English_Scrabble', 'Oxford_5000').create()
 		.then(game => {
 			let player = new Player('test', "cheese", true);
@@ -85,7 +85,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 	
-	tr.deTest('swap', () => {
+	tr.addTest('swap', () => {
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
 			const player = new Player('test1', "tree", false);
@@ -129,7 +129,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.deTest('makeMove', () => {
+	tr.addTest('makeMove', () => {
 		const W = new Tile({letter:'W', isBlank:false, score:1, col: 7, row: 7});
 		const O = new Tile({letter:'O', isBlank:false, score:1, col: 8, row: 7});
 		const R = new Tile({letter:'R', isBlank:false, score:1, col: 9, row: 7});
@@ -157,7 +157,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			game.whosTurnKey = player.key;
 			return game.makeMove(move)
 			.then(turn => {
-				console.log(turn);
+				//console.log(turn);
 				assert(turn instanceof Turn);
 				assert.equal(turn.type, 'move');
 				assert.equal(turn.playerKey, player.key);
@@ -171,7 +171,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.deTest('lastMove', () => {
+	tr.addTest('lastMove', () => {
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
 			const player = new Player('test1', "mud", false);
@@ -215,7 +215,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.deTest('confirm', () => {
+	tr.addTest('confirm', () => {
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
 			const player = new Player('test1', "cloud", false);
@@ -233,7 +233,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			game.whosTurnKey = player.key;
 			return game.confirmGameOver('Game over')
 			.then(turn => {
-				console.log(turn);
+				//console.log(turn);
 				assert(turn instanceof Turn);
 				assert.equal(turn.type, 'Game over');
 				assert.equal(turn.playerKey, player.key);
@@ -245,7 +245,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.deTest('badChallenge', () => {
+	tr.addTest('badChallenge', () => {
 		// Implicitly tests pass
 		const game = new Game('Tiny', 'Oxford_5000');
 		return game.create()
@@ -267,7 +267,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.deTest('goodChallenge', () => {
+	tr.addTest('goodChallenge', () => {
 		const game = new Game('Tiny', 'Oxford_5000');
 		return game.create()
 		.then(() => {
@@ -305,7 +305,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.deTest('takeBack', () => {
+	tr.addTest('takeBack', () => {
 		const game = new Game('Tiny', 'Oxford_5000');
 		return game.create()
 		.then(() => {
@@ -345,7 +345,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.deTest('challengeLastMoveGood', () => {
+	tr.addTest('challengeLastMoveGood', () => {
 		const game = new Game('Tiny', 'Oxford_5000');
 		const player1 = new Player('test1', "sheep", false);
 		const player2 = new Player('test2', "wolf", false);
@@ -423,7 +423,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			// Player 0 has played, so issue a challenge on behalf of player 1
 			.then(() => game.challenge())
 			.then(turn => {
-				console.log(turn);
+				//console.log(turn);
 				assert(turn instanceof Turn);
 				assert.equal(turn.type, 'challenge-failed');
 				assert.equal(turn.playerKey, player2.key);

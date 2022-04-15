@@ -436,6 +436,8 @@ define('game/Game', [
 		notifyPlayer(player, message, data) {
 			console.log(`<-S- ${player.key} ${message}`, data);
 			// Player may be connected several times
+			if (!this._connections)
+				return;
 			this._connections.forEach(
 				socket => {
 					if (socket.player === player)
