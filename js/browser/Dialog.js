@@ -72,6 +72,7 @@ define("browser/Dialog", () => {
 			this.$dlg
 			.tooltip({
 				items: '[data-i18n-tooltip]',
+				position: { my: "left+15 center", at: "right center" },
 				content: function() {
 					return $.i18n($(this).data('i18n-tooltip'));
 				}
