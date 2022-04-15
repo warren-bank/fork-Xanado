@@ -259,13 +259,13 @@ define('browser/Ui', [
 			case 'swap':
 				turnText = $.i18n('ui-log-swap', turn.replacements.length);
 				break;
-			case /*i18n ui-log-*/'timeout':
-			case /*i18n ui-log-*/'pass':
-			case /*i18n ui-log-*/'challenge-won':
-			case /*i18n ui-log-*/'challenge-failed':
-			case /*i18n ui-log-*/'took-back':
-				turnText = $.i18n(`ui-log-${turn.type}`);
-			case 'Game over':
+			case /*i18n*/'timeout':
+			case /*i18n*/"passed":
+			case /*i18n*/'challenge-won':
+			case /*i18n*/'challenge-failed':
+			case /*i18n*/'took-back':
+				turnText = $.i18n(turn.type);
+			case /*i18n*/'Game over':
 				break;
 			default:
 				// Terminal, no point in translating
@@ -471,9 +471,9 @@ define('browser/Ui', [
 			this.takeBackTiles();
 			this.logEndMessage(this.settings.cheers);
 			if (this.game.nextGameKey)
-				this.setMoveAction(/*i18n ui-*/'nextGame');
+				this.setMoveAction('nextGame', /*i18n*/"Start next game");
 			else
-				this.setMoveAction(/*i18n ui-*/'anotherGame');
+				this.setMoveAction('anotherGame', /*i18n*/'Another game?');
 			this.enableTurnButton(true);
 			this.notify($.i18n("Game over"),
 						$.i18n("Your game is over..."));
@@ -493,7 +493,7 @@ define('browser/Ui', [
 			if (params.key !== this.game.key)
 				console.error(`key mismatch ${this.game.key}`);
 			this.game.nextGameKey = params.nextGameKey;
-			this.setMoveAction(/*i18n ui-*/'nextGame');
+			this.setMoveAction('nextGame', /*i18n*/'Next game');
 		}
 
 		/**
@@ -707,9 +707,9 @@ define('browser/Ui', [
 			if (game.hasEnded()) {
 				this.logEndMessage(false);
 				if (this.game.nextGameKey)
-					this.setMoveAction(/*i18n ui-*/'nextGame');
+					this.setMoveAction('nextGame', /*i18n*/"Next game");
 				else
-					this.setMoveAction(/*i18n ui-*/'anotherGame');
+					this.setMoveAction('anotherGame', /*i18n*/"Another game?");
 			}
 
 			this.scrollLogToEnd(0);
@@ -1264,13 +1264,14 @@ define('browser/Ui', [
 				&& lastPlayer.rack.isEmpty()) {
 				this.lockBoard(true);
 				if (this.player.key === this.game.whosTurnKey)
-					this.setMoveAction(/*i18n ui-*/'confirmGameOver');
+					this.setMoveAction('confirmGameOver',
+									   /*i18n*/"Accept last move");
 				else
 					$('#turnButton').hide();
 			} else if (this.placedCount > 0) {
 				// Player has dropped some tiles on the board
 				// (tileCount > 0), move action is to make the move
-				this.setMoveAction(/*i18n ui-*/'commitMove');
+				this.setMoveAction('commitMove', /*i18n*/"Finished Turn");
 				const move = this.game.board.analyseMove();
 				const $move = $('#yourMove');
 				if (typeof move === 'string') {
@@ -1286,13 +1287,13 @@ define('browser/Ui', [
 				$('#swapRack').hide();
 			} else if (this.swapRack.squaresUsed() > 0) {
 				// Swaprack has tiles on it, change the move action to swap
-				this.setMoveAction(/*i18n ui-*/'swap');
+				this.setMoveAction('swap', /*i18n*/"Swap");
 				$('#board .ui-droppable').droppable('disable');
 				this.enableTurnButton(true);
 				$('#takeBackButton').css('visibility', 'inherit');
 			} else if (!this.game.hasEnded()) {
 				// Otherwise turn action is a pass
-				this.setMoveAction(/*i18n ui-*/'pass');
+				this.setMoveAction('pass', /*i18n*/"Pass");
 				$('#board .ui-droppable').droppable('enable');
 				this.enableTurnButton(true);
 				$('#takeBackButton').css('visibility', 'hidden');
@@ -1611,7 +1612,7 @@ define('browser/Ui', [
 			$.post(`/anotherGame/${this.game.key}`)
 			.then(nextGameKey => {
 				this.game.nextGameKey = nextGameKey;
-				this.setMoveAction('nextGame');
+				this.setMoveAction('nextGame', /*i18n*/"Next game");
 				this.enableTurnButton(true);
 			})
 			.catch(console.error);
@@ -1643,15 +1644,16 @@ define('browser/Ui', [
 		/**
 		 * Set the action when the turn button is pressed.
 		 * @param {string} action function name e.g. commitMove
+		 * @param {string} title button title e.g. "Commit Move"
 		 * @private
 		 */
-		setMoveAction(action) {
+		setMoveAction(action, title) {
 			console.debug("setMoveAction", action);
 			if (this.player) {
 				$('#turnButton')
 				.data('action', action)
 				.empty()
-				.append($.i18n(`ui-${action}`))
+				.append($.i18n(title))
 				.show();
 			}
 		}

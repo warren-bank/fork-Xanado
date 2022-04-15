@@ -492,7 +492,7 @@ define('game/Game', [
 					// so, the game is over because the computer
 					// will never challenge their play.
 					const promise = this.getPlayerWithNoTiles()
-						  ? this.confirmGameOver(/*i18n*/'Game over')
+						  ? this.confirmGameOver('Game over')
 						  : this.autoplay();
 					// May recurse if the player after is also a robot, but
 					// the recursion will always stop when a human player
@@ -1010,7 +1010,7 @@ define('game/Game', [
 					return this.makeMove(bestPlay);
 
 				console.log(`${player.name} can't play, passing`);
-				return this.pass('pass');
+				return this.pass('passed');
 			});
 		}
 
@@ -1043,7 +1043,8 @@ define('game/Game', [
 		/**
 		 * Called when the game has been confirmed as over - the player
 		 * following the player who just emptied their rack has confirmed
-		 * they don't want to challenge.
+		 * they don't want to challenge, or they have challenged and the
+		 * challenge failed.
 		 * @param {string} endState gives reason why game ended (i18n message id)
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
@@ -1083,7 +1084,7 @@ define('game/Game', [
 			}
 
 			const turn = new Turn(this, {
-				type: /*i18n*/'Game over',
+				type: endState,
 				playerKey: this.whosTurnKey,
 				score: deltas
 			});
@@ -1156,7 +1157,7 @@ define('game/Game', [
 		 * Handler for 'pass' command.
 		 * Player wants to (or has to) miss their move. Either they
 		 * can't play, or challenged and failed.
-		 * @param {string} type pass type, 'pass' or 'challenge-failed'
+		 * @param {string} type pass type, 'passed' or 'challenge-failed'
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		pass(type) {
@@ -1204,6 +1205,15 @@ define('game/Game', [
 				}
 
 				// challenge failed, this player loses their turn
+
+				// Special case; if the challenged play would be the last
+				// play (challenged player has no more tiles) then
+				// it is game over. It is the last play if there were no
+				// replacements.
+				if (this.previousMove.replacements.length === 0) {
+					return this.confirmGameOver(/*i18n*/"challenge-failed");
+				}
+
 				return this.pass('challenge-failed');
 			});
 		}

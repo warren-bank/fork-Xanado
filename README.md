@@ -1,7 +1,7 @@
 # Multiplayer word grid game Server and Web Interface
 
 Host your own web server to play crossword games according to most of the rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, or Lexulous. Or invent your own!
-Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian, and has dictionaries in English, French, and German, and it's easy to add more.
+Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian, with dictionaries in English, French, and German, and it's easy to add more.
 <p style="text-align:center;">
 	<img src="/images/splash.png" width="265" height="300" alt="Board" />
 </p>
@@ -100,11 +100,11 @@ You can only have one robot in any one game, and you need at least one
 human player (otherwise, what's the point?)
 
 When you create a game you can select the edition, the dictionary, and
-whether there is to be a time limit or a limit to the number of
-players who can join. You can optionally select a different dictionary
-that the robot will use to select plays. Limiting the robot a smaller
-dictionary will give less challenging gameplay, but may be more
-suitable for less experienced players.
+whether there is to be a time limit, a minimum number of players, or a
+maximum number of players who can join. You can optionally select a
+different dictionary that the robot will use to select plays. Limiting
+the robot a smaller dictionary will give less challenging gameplay,
+but may be more suitable for less experienced players.
 
 The installation comes with emulations of a number of commercially available
 games - SCRABBLE®, Super SCRABBLE®, Lexulous, and Words With Friends - all of
@@ -139,6 +139,21 @@ There are also a number of other keyboard shortcuts for the various buttons:
 To assist learners, there are two special 'chat' messages that can be entered.
 - `hint` tells you the highest scoring play the computer can find for you, before your play. Everyone in the game is told when you send this message (to prevent cheating.)
 - `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played. Everyone in the game is told when you enable analysis (to prevent cheating.)
+
+# Editions
+
+The `/editions` directory contains the files that are used to specify the
+games that can be played. Each specification is made up from:
+* A board layout, giving the size of the board and the locations of double, triple and quadruple word scores
+* A tile set, which lists the legal letters and the number of tiles of each letter
+* A rack size, and the number of tiles you can swap
+* Bonuses to be given for long words
+
+The following editions are included:
+* Scrabble, for English, French, Czech, Estonian, German, Hungarian, and Dutch
+* SuperScrabble (21x21 board), for English
+* Words with Friends, for English
+* Lexulous, for English
 
 # Dictionaries
 The `/dictionaries` directory contains all the

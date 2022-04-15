@@ -857,7 +857,7 @@ define('server/Server', [
 					break;
 
 				case 'confirmGameOver':
-					promise = game.confirmGameOver(/*i18n*/'Game over');
+					promise = game.confirmGameOver('Game over');
 					break;
 
 				case 'pause':

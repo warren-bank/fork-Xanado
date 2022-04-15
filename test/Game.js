@@ -18,7 +18,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
     let tr = new TestRunner('Game');
     let assert = tr.assert;
 
-	tr.addTest('basics', () => {
+	tr.deTest('basics', () => {
 		return new Game('English_Scrabble', 'Oxford_5000').create()
 		.then(game => {
 			const player1 = new Player('player1', "rhino", true);
@@ -46,7 +46,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('autoplay', () => {
+	tr.deTest('autoplay', () => {
 		return new Game('English_Scrabble', 'Oxford_5000').create()
 		.then(game => {
 			let player = new Player('test', "cheese", true);
@@ -85,7 +85,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 	
-	tr.addTest('swap', () => {
+	tr.deTest('swap', () => {
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
 			const player = new Player('test1', "tree", false);
@@ -129,7 +129,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('makeMove', () => {
+	tr.deTest('makeMove', () => {
 		const W = new Tile({letter:'W', isBlank:false, score:1, col: 7, row: 7});
 		const O = new Tile({letter:'O', isBlank:false, score:1, col: 8, row: 7});
 		const R = new Tile({letter:'R', isBlank:false, score:1, col: 9, row: 7});
@@ -171,7 +171,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('lastMove', () => {
+	tr.deTest('lastMove', () => {
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
 			const player = new Player('test1', "mud", false);
@@ -215,7 +215,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('confirm', () => {
+	tr.deTest('confirm', () => {
 		return new Game('Tiny', 'Oxford_5000').create()
 		.then(game => {
 			const player = new Player('test1', "cloud", false);
@@ -245,7 +245,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('badChallenge', () => {
+	tr.deTest('badChallenge', () => {
 		// Implicitly tests pass
 		const game = new Game('Tiny', 'Oxford_5000');
 		return game.create()
@@ -267,7 +267,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('goodChallenge', () => {
+	tr.deTest('goodChallenge', () => {
 		const game = new Game('Tiny', 'Oxford_5000');
 		return game.create()
 		.then(() => {
@@ -305,7 +305,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('takeBack', () => {
+	tr.deTest('takeBack', () => {
 		const game = new Game('Tiny', 'Oxford_5000');
 		return game.create()
 		.then(() => {
@@ -345,7 +345,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('challengeLastMoveGood', () => {
+	tr.deTest('challengeLastMoveGood', () => {
 		const game = new Game('Tiny', 'Oxford_5000');
 		const player1 = new Player('test1', "sheep", false);
 		const player2 = new Player('test2', "wolf", false);
@@ -423,13 +423,14 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			// Player 0 has played, so issue a challenge on behalf of player 1
 			.then(() => game.challenge())
 			.then(turn => {
-				//console.log(turn);
+				console.log(turn);
 				assert(turn instanceof Turn);
 				assert.equal(turn.type, 'challenge-failed');
 				assert.equal(turn.playerKey, player2.key);
-				assert.equal(turn.nextToGoKey, player1.key);
+				assert.equal(turn.nextToGoKey, undefined);
 				// Still empty!
 				assert.equal(turn.emptyPlayerKey, player1.key);
+				// Game should be over
 			});
 		});
 	});

@@ -31,7 +31,7 @@ closedir($htmld);
 # Scan calls to .i18n(, grab $1
 # Scan /*i18n*/ before a string, grab the string
 # Scan /*i18n prefix*/ before a string, grab prefixthestring e.g.
-# /*i18n ui-$/'frood' will grab 'ui-frood'
+# /*i18n namespace-$/'frood' will grab 'namespace-frood'
 foreach my $dir ("js/browser", "js/game", "js/server") {
 	my $jsd;
 	opendir($jsd, $dir);
