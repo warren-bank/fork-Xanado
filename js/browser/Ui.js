@@ -495,6 +495,9 @@ define('browser/Ui', [
 		 * Handle a keydown. These are captured in the root of the UI and dispatched here.
 		 */
 		handleKeydown(event) {
+			if (event.target.id !== "body" || this.boardLocked)
+				return;
+
 			switch (event.key) {
 
             case "ArrowUp": case "Up":
@@ -992,7 +995,7 @@ define('browser/Ui', [
 			.on('DropSquare',
 				(e, source, square) => this.dropSquare(source, square))
 
-			// Keydown anywhere in the game
+			// Keydown anywhere in the document
 			.on('keydown', event => this.handleKeydown(event));
 		}
 
