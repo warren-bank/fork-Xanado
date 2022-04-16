@@ -392,11 +392,6 @@ define('browser/Ui', [
 			$msg.text($.i18n.apply(null, args));
 			$mess.append($msg);
 
-			/*$('#chatMessages')
-			.append($mess)
-			.animate({
-				scrollTop: $('#chatMessages').prop('scrollHeight')
-				}, 100);*/
 			addToLog($mess);
 
 			// Special handling for Hint, highlight square
@@ -495,6 +490,10 @@ define('browser/Ui', [
 		 * Handle a keydown. These are captured in the root of the UI and dispatched here.
 		 */
 		handleKeydown(event) {
+			// Only handle events targeted when the board is not
+			// locked, and ignore events targeting the chatInput.
+			// Checks for selection status are performed in
+			// individual handler functions.
 			if (event.target.id !== "body" || this.boardLocked)
 				return;
 
@@ -554,7 +553,8 @@ define('browser/Ui', [
 			case '2': case '"': // and type until return
 				break;
 
-			case '8': case '*': // to place typing cursor in centre (or first empty cell)
+			case '8': case '*': // to place typing cursor in centre
+				// (or first empty square, starting at top left)
 				{
 					const mr = Math.floor(this.game.board.rows / 2);
 					const mc = Math.floor(this.game.board.cols / 2);
@@ -929,8 +929,8 @@ define('browser/Ui', [
 			const ui = this;
 
 			// Configure chat input
-			$('#chatInput input')
-			.on('change', function() {
+			$("#chatInput input")
+			.on("change", function() {
 				// Send chat
 				console.debug('<-- message');
 				ui.socket.emit(
@@ -940,6 +940,12 @@ define('browser/Ui', [
 						text: $(this).val()
 					});
 				$(this).val('');
+				$("body").focus();
+			})
+			.on("keydown", function(event) {
+				// Tab and Escape both blur the input
+				if (event.key === "Tab" || event.key === "Escape")
+					$("body").focus();
 			});
 
 			// Load settings from the cookie (if it's there) and

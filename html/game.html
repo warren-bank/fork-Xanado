@@ -22,7 +22,7 @@
 	<script data-main="/js/browser/rjs_config.js" src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.js"></script>
 
   </head>
-  <body id="body">
+  <body id="body" tabindex="0">
     <audio id="yourturn" src="/audio/yourturn.mp3" preload="auto" type="audio/mp3"></audio>
     <audio id="endCheer" src="/audio/endCheer.mp3" preload="auto" type="audio/mp3"></audio>
     <audio id="bonusCheer" src="/audio/bonusCheer.mp3" preload="auto" type="audio/mp3"></audio>
@@ -72,8 +72,7 @@
         </div>          
         <div id="chatBlock">
           <div class="block-title" data-i18n="Chat"></div>
-		  <div id="chatMessages"></div>
-		  <div id="chatInput"><input/></div>
+		  <div id="chatInput" tabindex="1"><input/></div>
         </div>
         <div id="logBlock">
           <div class="block-title" data-i18n="Log"></div>

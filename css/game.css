@@ -529,14 +529,7 @@ button.fat-button {
 
 /* The #controls > div with the chat */
 #chatBlock {
-    max-height: 11em;
-}
-
-/* #chatBlock > div chat message display */
-#chatMessages {
-    overflow: auto;
-    margin-left: 5%;
-	max-height: 7em;
+    max-height: 3em;
 }
 
 /* Who sent a chat message */
@@ -559,9 +552,12 @@ button.fat-button {
 }
 
 /* The div with the game events log */
+#logBlock {
+    height: 14em;
+}
+
 #logMessages {
 	font-size: 80%;
-    height: 14em;
     overflow: auto;
 }
 
