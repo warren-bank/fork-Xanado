@@ -540,7 +540,7 @@ button.fat-button {
 }
 
 /* Who sent a chat message */
-#chatBlock .chatSender {
+.chatSender {
 	font-weight: bold;
 }
 

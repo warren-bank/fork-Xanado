@@ -378,25 +378,26 @@ define('browser/Ui', [
 			else if (message.args instanceof Array)
 				args = args.concat(message.args);
 			
-			const $mess = $('<div class="chatMessage"></div>');
-			if (message.classes)
-				$mess.addClass(message.classes);
-
 			const sender = /^chat-/.test(message.sender)
 				  ? $.i18n(message.sender) : message.sender;
 			const $pn = $("<span class='chatSender'></span>");
 			$pn.text(sender);
+
+			const $mess = $('<div class="chatMessage"></div>');
+			if (message.classes)
+				$mess.addClass(message.classes);
 			$mess.append($pn).append(": ");
 
 			const $msg =  $('<span class="chatText"></span>');
 			$msg.text($.i18n.apply(null, args));
 			$mess.append($msg);
 
-			$('#chatMessages')
+			/*$('#chatMessages')
 			.append($mess)
 			.animate({
 				scrollTop: $('#chatMessages').prop('scrollHeight')
-			}, 100);
+				}, 100);*/
+			addToLog($mess);
 
 			// Special handling for Hint, highlight square
 			if (message.sender === 'Advisor'
