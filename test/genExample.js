@@ -15,7 +15,7 @@ requirejs(['platform', 'game/Edition', 'game/Game', 'game/Player'], (Platform, E
 	const db = new Platform.Database('games', 'game');
 	Edition.load('English_Scrabble')
 	.then(edition => {
-		return new Game(edition.name, 'Oxford_5000')
+		return new Game({edition: edition.name, dictionary: 'Oxford_5000'})
 		.create();
 	})
 	.then(game => game.onLoad(db))

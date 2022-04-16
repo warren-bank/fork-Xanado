@@ -18,9 +18,54 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
     let tr = new TestRunner('Game');
     let assert = tr.assert;
 
-	tr.addTest('basics', () => {
-		return new Game('English_Scrabble', 'Oxford_5000').create()
+	tr.deTest('construct', () => {
+		const p = {
+			edition:'English_Scrabble',
+			dictionary:'Oxford_5000',
+			secondsPerPlay: 60,
+			minutesPerPlay: 999, // secondsToPlay should override
+			predictScore: true,
+			allowTakeBack: true,
+			checkDictionary: true,
+			minPlayers: 5,
+			maxPlayers: 10
+		};
+		return new Game(p).create()
 		.then(game => {
+			assert.equal(game.edition, p.edition);
+			assert.equal(game.dictionary, p.dictionary);
+			assert.equal(game.secondsPerPlay, 60);
+			assert(game.predictScore);
+			assert(game.allowTakeBack);
+			assert(game.checkDictionary);
+			assert.equal(game.minPlayers, 5);
+			assert.equal(game.maxPlayers, 10);
+		});
+	});
+	
+	tr.deTest('basics', () => {
+		const p = {
+			edition:'English_Scrabble',
+			dictionary:'Oxford_5000',
+			minutesPerPlay: 999,
+			predictScore: false,
+			allowTakeBack: false,
+			checkDictionary: false,
+			minPlayers: 30,
+			maxPlayers: 1
+		};
+
+		return new Game(p).create()
+		.then(game => {
+			assert.equal(game.edition, p.edition);
+			assert.equal(game.dictionary, p.dictionary);
+			assert.equal(game.secondsPerPlay, 999*60);
+			assert(!game.predictScore);
+			assert(!game.allowTakeBack);
+			assert(!game.checkDictionary);
+			assert.equal(game.minPlayers, 30);
+			assert.equal(game.maxPlayers, 0);
+
 			const player1 = new Player('player1', "rhino", true);
 			game.addPlayer(player1);
 			const player2 = new Player('player2', "soffit", false);
@@ -46,8 +91,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('autoplay', () => {
-		return new Game('English_Scrabble', 'Oxford_5000').create()
+	tr.deTest('autoplay', () => {
+		return new Game({edition:'English_Scrabble', dictionary:'Oxford_5000'}).create()
 		.then(game => {
 			let player = new Player('test', "cheese", true);
 			game.addPlayer(player);
@@ -59,7 +104,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			return game.autoplay();
 		})
 
-		.then(() => new Game('Tiny', 'Oxford_5000').create())
+		.then(() => new Game({edition:'Tiny', dictionary:'Oxford_5000'}).create())
 		.then(game => {
 			let player = new Player('test', "zebra", true);
 			game.addPlayer(player);
@@ -72,7 +117,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			return game.autoplay(player);
 		})
 
-		.then(() => new Game('Tiny', 'SOWPODS_English').create())
+		.then(() => new Game({edition:'Tiny', dictionary:'SOWPODS_English'}).create())
 		.then(game => {
 			let player = new Player('test', "isolate", true);
 			game.addPlayer(player);
@@ -85,8 +130,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 	
-	tr.addTest('swap', () => {
-		return new Game('Tiny', 'Oxford_5000').create()
+	tr.deTest('swap', () => {
+		return new Game({edition:'Tiny', dictionary:'Oxford_5000'}).create()
 		.then(game => {
 			const player = new Player('test1', "tree", false);
 			game.addPlayer(player);
@@ -129,7 +174,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('makeMove', () => {
+	tr.deTest('makeMove', () => {
 		const W = new Tile({letter:'W', isBlank:false, score:1, col: 7, row: 7});
 		const O = new Tile({letter:'O', isBlank:false, score:1, col: 8, row: 7});
 		const R = new Tile({letter:'R', isBlank:false, score:1, col: 9, row: 7});
@@ -139,7 +184,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			words: [ { word: 'WORD', score: 99 }],
 			score: 99
 		});
-		return new Game('Tiny', 'Oxford_5000').create()
+		return new Game({edition:'Tiny', dictionary:'Oxford_5000'}).create()
 		.then(game => {
 			const player = new Player('test1', "ambulance", false);
 			game.addPlayer(player);
@@ -171,8 +216,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('lastMove', () => {
-		return new Game('Tiny', 'Oxford_5000').create()
+	tr.deTest('lastMove', () => {
+		return new Game({edition:'Tiny', dictionary:'Oxford_5000'}).create()
 		.then(game => {
 			const player = new Player('test1', "mud", false);
 			game.addPlayer(player);
@@ -215,8 +260,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('confirm', () => {
-		return new Game('Tiny', 'Oxford_5000').create()
+	tr.deTest('confirm', () => {
+		return new Game({edition:'Tiny', dictionary:'Oxford_5000'}).create()
 		.then(game => {
 			const player = new Player('test1', "cloud", false);
 			game.addPlayer(player);
@@ -247,11 +292,16 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 
 	tr.addTest('badChallenge', () => {
 		// Implicitly tests pass
-		const game = new Game('Tiny', 'Oxford_5000');
+		const game = new Game({edition:'Tiny', dictionary:'Oxford_5000'});
 		return game.create()
 		.then(game => {
 			const player = new Player('test1', "river", true);
 			game.addPlayer(player);
+			player.rack.empty();
+			player.rack.addTile(new Tile({letter:'S', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'I', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'N', isBlank:false, score:1}));
+			player.rack.addTile(new Tile({letter:'K', isBlank:false, score:1}));
 			const player2 = new Player('test2', "footpad", true);
 			game.addPlayer(player2);
 			game.whosTurnKey = player.key;
@@ -267,8 +317,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('goodChallenge', () => {
-		const game = new Game('Tiny', 'Oxford_5000');
+	tr.deTest('goodChallenge', () => {
+		const game = new Game({edition:'Tiny', dictionary:'Oxford_5000'});
 		return game.create()
 		.then(() => {
 			const player = new Player('test1', "cavalier", true);
@@ -305,8 +355,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('takeBack', () => {
-		const game = new Game('Tiny', 'Oxford_5000');
+	tr.deTest('takeBack', () => {
+		const game = new Game({edition:'Tiny', dictionary:'Oxford_5000'});
 		return game.create()
 		.then(() => {
 			const player = new Player('test1', "psychologist", true);
@@ -345,8 +395,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('challengeLastMoveGood', () => {
-		const game = new Game('Tiny', 'Oxford_5000');
+	tr.deTest('challengeLastMoveGood', () => {
+		const game = new Game({edition:'Tiny', dictionary:'Oxford_5000'});
 		const player1 = new Player('test1', "sheep", false);
 		const player2 = new Player('test2', "wolf", false);
 
@@ -391,8 +441,8 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 		});
 	});
 
-	tr.addTest('challengeLastMoveBad', () => {
-		const game = new Game('Tiny', 'Oxford_5000');
+	tr.deTest('challengeLastMoveBad', () => {
+		const game = new Game({edition:'Tiny', dictionary:'Oxford_5000'});
 		const player1 = new Player('test1', "crime", false);
 		const player2 = new Player('test2', "punishment", false);
 

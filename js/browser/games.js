@@ -162,28 +162,42 @@ requirejs([
 		
 		showHideTwist(isOpen && isOpen[game.key]);
 
-		const msg = [
+		const headline = [
 			//game.key, // debug only
 			$.i18n("edition $1", game.edition)
 		];
 		if (game.dictionary)
-			msg.push($.i18n("dictionary $1", game.dictionary));
-
-		if (game.maxPlayers > 1)
-			msg.push($.i18n("up to $1 players", game.maxPlayers));
+			headline.push($.i18n("dictionary $1", game.dictionary));
 
 		if (game.secondsPerPlay > 0)
-			msg.push($.i18n("time limit $1", game.secondsPerPlay / 60));
+			headline.push($.i18n("time limit $1", game.secondsPerPlay / 60));
 
 		const isActive = (game.state === 'playing');
 
 		if (!isActive)
-			msg.push(`<b>${$.i18n(game.state)}</b>`);
+			headline.push(`<b>${$.i18n(game.state)}</b>`);
 
-		$box.append($twistButton);
-		$box.append(msg.join(', '));
-		$box.append($twist);
-		
+		$box
+		.append($twistButton)
+		.append(headline.join(', '))
+		.append($twist);
+
+		const options = [];
+		if (game.predictScore)
+			options.push($.i18n("Predict score"));
+		if (game.checkDictionary)
+			options.push($.i18n("Check dictionary"));
+		if (game.allowTakeBack)
+			options.push($.i18n("Allow 'Take back'"));
+		if (game.maxPlayers === game.minPlayers)
+			options.push($.i18n("$1 players", game.minPlayers));
+		else if (game.maxPlayers > game.minPlayers)
+			options.push($.i18n("$1 to $2 players",
+								game.minPlayers, game.maxPlayers));
+		else if (game.minPlayers > 2)
+			options.push($.i18n("At least $1 players", game.minPlayers));
+		if (options.length > 0)
+			$twist.append(`<div>${options.join(", ")}</div>`);
 		const $table = $("<table class='playerTable'></table>");
 		$twist.append($table);
 		game.players.forEach(

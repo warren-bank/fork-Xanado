@@ -16,6 +16,26 @@ define('game/Game', [
 	Turn
 ) => {
 
+	function boolParam(val, defalt) {
+		if (typeof val === "undefined")
+			return defalt;
+		if (typeof val === "string") {
+			if (val === "0" || val === "" || val === "false") return false;
+			return true;
+		}
+		if (typeof val === "number")
+			return !isNaN(val) && val !== 0;
+		return val;
+	}
+
+	function intParam(val, defalt) {
+		if (typeof val === "undefined")
+			return defalt;
+		const i = parseInt(val);
+		if (isNaN(i)) return defalt;
+		return i;
+	}
+
 	/**
 	 * The Game object may be used server or browser side.
 	 */
@@ -30,11 +50,23 @@ define('game/Game', [
 		 * ```
 		 * db.get(key, Game.classes).then(game => { game.onLoad(db)...
 		 * ```
-		 * @param {string} edition edition *name*
-		 * @param {string?} dictionary dictionary *name* (may be null)
 		 * (may be null)
+		 * @param {object} params Parameter object. This can be another
+		 * Game to copy game parameters, the result from Game.simple(),
+		 * or a generic object with these fields.
+		 * @param {string} params.edition edition *name*, required
+		 * @param {string?} params.dictionary *name* (may be null)
+		 * @param {number?} params.secondsToPlay seconds allowed for plays
+		 * @param {number?} params.minutesToPlay used if secondsToPlay
+		 *  not given
+		 * @param {boolean?} params.predictScore default true
+		 * @param {boolean?} params.allowTakeBack default false
+		 * @param {boolean?} params.checkDictionary default false
+		 * @param {number?} params.minPlayers
+		 * @param {number?} params.maxPlayers
 		 */
-		constructor(edition, dictionary) {
+		constructor(params) {
+			console.log("Constructing new game", params);
 			/**
 			 * Key that uniquely identifies this game
 			 * @member {string}
@@ -49,12 +81,14 @@ define('game/Game', [
 			this.creationTimestamp = Date.now();
 
 			/**
-			 * The name of the ediiton.
+			 * The name of the edition.
 			 * We don't keep a pointer to the Edition object so we can
 			 * cheaply serialise and send to the games interface. 
 			 * @member {string}
 			 */
-			this.edition = edition;
+			this.edition = params.edition;
+			if (!this.edition)
+				throw new Error("Game must have an edition");
 
 			/**
 			 * We don't keep a pointer to the dictionary objects so we can
@@ -62,7 +96,9 @@ define('game/Game', [
 			 * keep the name of the relevant object.
 			 * @member {string}
 			 */
-			this.dictionary = dictionary;
+			this.dictionary =
+			(params.dictionary && params.dictionary != "none") ?
+			params.dictionary : null;
 
 			/**
 			 * An i18n message identifier, 'playing' until the game is finished
@@ -95,7 +131,8 @@ define('game/Game', [
 			 * Default 0 means never time out.
 			 * @member {number}
 			 */
-			this.secondsPerPlay = 0;
+			this.secondsPerPlay =
+			intParam(params.secondsPerPlay) || (intParam(params.minutesPerPlay) || 0) * 60;
 
 			/**
 			 * Pointer to Board object
@@ -127,13 +164,15 @@ define('game/Game', [
 			 * can start. Must be at least 2.
 			 * @member {number}
 			 */
-			this.minPlayers = 2;
+			this.minPlayers = intParam(params.minPlayers, 2);
 
 			/**
 			 * Most number of players who can join this game. 0 means no limit.
 			 * @member {number}
 			 */
-			this.maxPlayers = 0;
+			this.maxPlayers = intParam(params.maxPlayers, 0);
+			if (this.maxPlayers < this.minPlayers)
+				this.maxPlayers = 0;
 
 			/**
 			 * When a game is ended, nextGameKey is the key for the
@@ -148,7 +187,22 @@ define('game/Game', [
 			 * play, true otherwise.
 			 * @member {boolean}
 			 */
-			this.predictScore = true;
+			this.predictScore = boolParam(params.predictScore, false);
+
+			/**
+			 * Whether or not to allow players to take back their most recent
+			 * move without penalty, so long as the next player hasn't
+			 * challenged or played.
+			 * @member {boolean}
+			 */
+			this.allowTakeBack = boolParam(params.allowTakeBack, false);
+
+			/**
+			 * Whether or not to check the dictionary to report on the
+			 * validity of the just player move.
+			 * @member {boolean}
+			 */
+			this.checkDictionary = boolParam(params.checkDictionary, false);
 		}
 
 		/**
@@ -181,14 +235,14 @@ define('game/Game', [
 		 */
 		onLoad(db) {
 			/**
-			 * List of decorated sockets, We don't serialise these.
+			 * List of decorated sockets
 			 * @member {WebSocket[]}
 			 * @private
 			 */
 			this._connections = [];
 
 			/**
-			 * Database containing this game. Not serialised.
+			 * Database containing this game
 			 * @member {Platform.Database}
 			 * @private
 			 */
@@ -366,8 +420,12 @@ define('game/Game', [
 		 * @return {string} debug description
 		 */
 		toString() {
+			const options = [];
+			if (this.predictScore) options.push("P");
+			if (this.checkDictionary) options.push("C");
+			if (this.allowTakeBack) options.push("T");
 			const ps = this.players.map(p => p.toString()).join(', ');
-			return `Game ${this.key} edition "${this.edition}" dictionary "${this.dictionary}" players [ ${ps} ] next ${this.whosTurnKey}`;
+			return `Game ${options.join('')} ${this.key} edition "${this.edition}" dictionary "${this.dictionary}" players [ ${ps} ] next ${this.whosTurnKey}`;
 		}
 
 		/**
@@ -600,6 +658,7 @@ define('game/Game', [
 					edition: this.edition,
 					dictionary: this.dictionary,
 					predictScore: this.predictScore,
+					checkDictionary: this.checkDictionary,
 					allowTakeBack: this.allowTakeBack,
 					state: this.state,
 					players: ps,					
@@ -609,6 +668,7 @@ define('game/Game', [
 					// this.board is not sent
 					// rackSize not sent, it's just a cache
 					pausedBy: this.pausedBy,
+					minPlayers: this.minPlayers,
 					maxPlayers: this.maxPlayers,
 					nextGameKey: this.nextGameKey,
 					lastActivity: this.lastActivity() // epoch ms
@@ -1289,7 +1349,7 @@ define('game/Game', [
 			}
 
 			console.log(`Create game to follow ${this.key}`);
-			return new Game(this.edition, this.dictionary)
+			return new Game(this)
 			.create()
 			.then(newGame => newGame.onLoad(this._db))
 			.then(newGame => {
@@ -1297,7 +1357,8 @@ define('game/Game', [
 				return this.save()
 				.then(() => {
 					// Re-order players in random order. Everyone should
-					// get an equal chance to start a game.
+					// get an equal chance to start a game, and shouldn't
+					// always play in the same order.
 					const picked = [];
 					this.players.forEach(p => picked.push(p));
 					for (let i = picked.length - 1; i > 0; i--) {
@@ -1317,10 +1378,6 @@ define('game/Game', [
 					.forEach(p => newGame.addPlayer(new Player(p)));
 
 					newGame.whosTurnKey = newGame.players[0].key;
-					newGame.secondsPerPlay = this.secondsPerPlay;
-					newGame.predictScore = this.predictScore;
-					newGame.allowTakeBack = this.allowTakeBack;
-					newGame.checkDictionary = this.checkDictionary;
 					newGame.players[0].secondsToPlay = newGame.secondsPerPlay;
 					console.log(`Created follow-on game ${newGame.key}`);
 					return newGame.save()

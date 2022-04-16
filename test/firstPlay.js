@@ -24,7 +24,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Player', 'game/
 	tr.addTest('first play English Scrabble', () => {
 		let bestPlay;
 
-		return new Game('English_Scrabble', 'SOWPODS_English').create()
+		return new Game({edition:'English_Scrabble', dictionary:'SOWPODS_English'}).create()
 		.then(game => {
 			game.addPlayer(new Player('test', "anonymous", false));
 			return game.loadBoard(
@@ -75,7 +75,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Player', 'game/
 	tr.addTest('first play English WWF', () => {
 		let bestPlay;
 
-		return new Game('English_WWF', 'SOWPODS_English').create()
+		return new Game({edition:'English_WWF', dictionary:'SOWPODS_English'}).create()
 		.then(game => {
 			game.addPlayer(new Player('test', "slight", false));
 			return game.loadBoard(

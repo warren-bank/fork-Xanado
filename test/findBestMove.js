@@ -26,7 +26,7 @@ requirejs([
 
 	tr.addTest('blanks', () => {
 		let bestMoves = [];
-		return new Game('English_WWF', 'Oxford_5000').create()
+		return new Game({edition:'English_WWF', dictionary:'Oxford_5000'}).create()
 		.then(game => {
 			game.addPlayer(new Player('test', "creep", true));
 			return game.loadBoard(
@@ -72,7 +72,8 @@ requirejs([
 
 	tr.addTest('actor', () => {
 		let bestMoves = [];
-		return new Game('English_WWF', 'SOWPODS_English').create()
+		return new Game({edition:'English_WWF', dictionary:'SOWPODS_English'})
+		.create()
 		.then(game => {
 			game.addPlayer(new Player('test', "toast", true));
 			return game.loadBoard(
@@ -132,7 +133,7 @@ requirejs([
 
 	tr.addTest('noe', () => {
 		let bestMoves = [];
-		return new Game('English_Scrabble', 'SOWPODS_English').create()
+		return new Game({edition:'English_Scrabble', dictionary:'SOWPODS_English'}).create()
 		.then(game => {
 			game.addPlayer(new Player('test', "slime", true));
 			return game.loadBoard(
@@ -184,7 +185,7 @@ requirejs([
 	
 	tr.addTest('town', () => {
 		let bestMoves = [];
-		return new Game('English_Scrabble', 'Oxford_5000').create()
+		return new Game({edition:'English_Scrabble', dictionary:'Oxford_5000'}).create()
 		.then(game => {
 			game.addPlayer(new Player('test', "crisp", true));
 			return game.loadBoard(
@@ -230,7 +231,7 @@ requirejs([
 
 	tr.addTest('obliques', () => {
 		let bestMoves = [];
-		return new Game('English_WWF', 'British_English').create()
+		return new Game({edition:'English_WWF', dictionary:'British_English'}).create()
 		.then(game => {
 			game.addPlayer(new Player('test', "turntable", true));
 			return game.loadBoard(

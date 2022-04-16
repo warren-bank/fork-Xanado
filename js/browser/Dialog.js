@@ -181,7 +181,16 @@ define("browser/Dialog", () => {
 			.find("input[name],select[name],textarea[name]")
 			.each(function() {
 				const name = $(this).attr("name");
-				const value = $(this).val() || $(this).text();
+				let value;
+				if (this.type === "checkbox")
+					value = this.checked;
+				else if (this.type === "number") {
+					value = parseInt($(this).val());
+					if (isNaN(value))
+						return;
+				} else
+					value = $(this).val() || $(this).text();
+				console.debug(name,"=",value);
 				// Collect inputs with the same name as arrays
 				if (typeof p[name] === 'undefined')
 					p[name] = value;

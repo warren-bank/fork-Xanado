@@ -32,7 +32,7 @@ requirejs([
 ) => {
 
 	let db = new Platform.Database('test', 'testgame');
-	let game = new Game('Tiny', 'CSW2019_English');
+	let game = new Game({edition: 'Tiny', dictionary: 'CSW2019_English'});
 	let gameKey = game.key;
 	let player = 0;
 

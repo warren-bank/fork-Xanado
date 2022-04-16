@@ -476,45 +476,13 @@ define('server/Server', [
 		 * @return {Promise}
 		 */
 		request_createGame(req, res) {
-			console.log(`Constructing new game ${req.body.edition}`);
 			let minPlayers = req.body.minPlayers;
 			let maxPlayers = req.body.maxPlayers;
 
 			return Edition.load(req.body.edition)
-			.then(edition => {
-				let dictionary = null;
-				if (req.body.dictionary
-					&& req.body.dictionary != 'none') {
-					console.log(`\twith dictionary ${req.body.dictionary}`);
-					dictionary = req.body.dictionary;
-				} else
-					console.log('\twith no dictionary');
-
-				return new Game(edition.name, dictionary)
-				.create();
-			})
+			.then(edition => new Game(req.body).create())
 			.then(game => game.onLoad(this.db))
 			.then(game => {
-				game.secondsPerPlay = (req.body.minutesPerPlay || 0) * 60;
-				game.predictScore = req.body.predictScore;
-				game.allowTakeBack = req.body.allowTakeBack;
-				game.checkDictionary = req.body.checkDictionary;
-				if (game.secondsPerPlay > 0)
-					console.log(`\t${game.secondsPerPlay} second time limit`);
-
-				if (req.body.minPlayers > 2) {
-					game.minPlayers = req.body.minPlayers;
-					console.log(`\tat least ${game.minPlayers} players`);
-				} else
-					game.minPlayers = 2;
-
-				if (req.body.maxPlayers > 1) {
-					game.maxPlayers = req.body.maxPlayers;
-					console.log(`\tat most ${game.maxPlayers} players`);
-				} else
-					// zero means infinity
-					game.maxPlayers = 0;
-
 				console.log(game.toString());
 
 				// Save the game when everything has been initialised
