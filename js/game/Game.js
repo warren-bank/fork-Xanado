@@ -600,6 +600,7 @@ define('game/Game', [
 					edition: this.edition,
 					dictionary: this.dictionary,
 					predictScore: this.predictScore,
+					allowTakeBack: this.allowTakeBack,
 					state: this.state,
 					players: ps,					
 					turns: this.turns.length, // just the length
@@ -935,7 +936,7 @@ define('game/Game', [
 
 			//console.debug('words ', move.words);
 
-			if (!player.isRobot) {
+			if (this.checkDictionary && !player.isRobot) {
 				// Asynchronously check word and notify player if it
 				// isn't found.
 				this.getDictionary()
@@ -1318,6 +1319,8 @@ define('game/Game', [
 					newGame.whosTurnKey = newGame.players[0].key;
 					newGame.secondsPerPlay = this.secondsPerPlay;
 					newGame.predictScore = this.predictScore;
+					newGame.allowTakeBack = this.allowTakeBack;
+					newGame.checkDictionary = this.checkDictionary;
 					newGame.players[0].secondsToPlay = newGame.secondsPerPlay;
 					console.log(`Created follow-on game ${newGame.key}`);
 					return newGame.save()

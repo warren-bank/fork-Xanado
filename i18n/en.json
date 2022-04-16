@@ -38,6 +38,8 @@
 	"timeout": "Timed out",
 	"took-back": "Took back previous turn",
 	"tooltip-add-robot": "Add a robot player to this game",
+	"tooltip-allow-take-back": "Let the player who has just played take their move back before the next player has challenged or played",
+	"tooltip-check-dictionary": "Tell players if the word they just played wasn't in the dictionary. This can help learners.",
 	"tooltip-delete-game": "CAREFUL! This cannot be undone!",
 	"tooltip-dictionary": "A dictionary is optional for human player games, but is required for computer players and is used to automate challenges.",
 	"tooltip-email-reminder": "Email a reminder to player whose turn it is",

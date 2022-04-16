@@ -497,6 +497,8 @@ define('server/Server', [
 			.then(game => {
 				game.secondsPerPlay = (req.body.minutesPerPlay || 0) * 60;
 				game.predictScore = req.body.predictScore;
+				game.allowTakeBack = req.body.allowTakeBack;
+				game.checkDictionary = req.body.checkDictionary;
 				if (game.secondsPerPlay > 0)
 					console.log(`\t${game.secondsPerPlay} second time limit`);
 

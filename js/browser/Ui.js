@@ -74,6 +74,55 @@ define('browser/Ui', [
 	}
 
 	/**
+	 * Append to the log pane. Messages are wrapped in a div, which
+	 * may have the optional css class.
+	 * @param {(jQuery|string)} mess thing to add
+	 * @param {string?} optional css class name
+	 * @return {jQuery} the div created
+	 */
+	function addToLog(mess, css) {
+		const $div = $('<div class="logEntry"></div>');
+		if (css)
+			$div.addClass(css);
+		$div.append(mess);
+		$('#logMessages')
+		.append($div)
+		.animate({
+			scrollTop: $('#logMessages').prop('scrollHeight')
+		}, 300);
+		return $div;
+	}
+
+	/**
+	 * Play an audio clip, identified by #id. Clips must be
+	 * pre-loaded in the HTML. Note that most (all?) browsers require
+	 * some sort of user interaction before they will play audio
+	 * embedded in the page.
+	 */
+	function playAudio(id) {
+		const audio = document.getElementById(id);
+
+		if (audio.playing)
+			audio.pause();
+
+		audio.defaultPlaybackRate = 1;
+		audio.volume = 1;
+
+		try {
+			audio.currentTime = 0;
+			audio.play();
+		}
+		catch(e) {
+			const currentTime = () => {
+				audio.currentTime = 0;
+				audio.removeEventListener('canplay', currentTime, true);
+				audio.play();
+			};
+			audio.addEventListener('canplay', currentTime, true);
+		}
+	}
+
+	/**
 	 * User interface to a game in a browser. The Ui reflects the game state as
 	 * communicated from the server, through the exchange of various messages.
 	 */
@@ -186,61 +235,6 @@ define('browser/Ui', [
 		}
 
 		/**
-		 * Append to the log pane. Messages are wrapped in a div, which
-		 * may have the optional css class.
-		 * @param {(jQuery|string)} mess thing to add
-		 * @param {string} optional css class name
-		 * @return {jQuery} the div created
-		 */
-		log(mess, css) {
-			const $div = $('<div class="logEntry"></div>');
-			if (css)
-				$div.addClass(css);
-			$div.append(mess);
-			$('#logMessages').append($div);
-			return $div;
-		}
-
-		/**
-		 * Scroll to end of log.
-		 * @param {number} speed animation duration in ms
-		 */
-		scrollLogToEnd(speed) {
-			$('#logMessages').animate({
-				scrollTop: $('#logMessages').prop('scrollHeight')
-			}, speed);
-		}
-
-		/**
-		 * Play an audio clip, identified by #id. Clips must be
-		 * pre-loaded in the HTML. Note that most (all?) browsers require
-		 * some sort of user interaction before they will play audio
-		 * embedded in the page.
-		 */
-		playAudio(id) {
-			const audio = document.getElementById(id);
-
-			if (audio.playing)
-				audio.pause();
-
-			audio.defaultPlaybackRate = 1;
-			audio.volume = 1;
-
-			try {
-				audio.currentTime = 0;
-				audio.play();
-			}
-			catch(e) {
-				const currentTime = () => {
-					audio.currentTime = 0;
-					audio.removeEventListener('canplay', currentTime, true);
-					audio.play();
-				};
-				audio.addEventListener('canplay', currentTime, true);
-			}
-		}
-
-		/**
 		 * Append information on a turn to the log.
 		 * @param {Turn} turn a Turn
 		 * @param {boolean} latestTurn set true if this is the most recent turn
@@ -248,7 +242,7 @@ define('browser/Ui', [
 		appendTurnToLog(turn, latestTurn) {
 			// Who's turn was it?
 			const player = this.game.getPlayer(turn.playerKey);
-			this.log($.i18n('ui-log-turn-player', player.name), 'turn-player');
+			addToLog($.i18n('ui-log-turn-player', player.name), 'turn-player');
 
 			// What did they do?
 			let turnText;
@@ -271,7 +265,7 @@ define('browser/Ui', [
 				// Terminal, no point in translating
 				throw Error(`Unknown move type ${turn.type}`);
 			}
-			this.log(turnText, 'turn-detail');
+			addToLog(turnText, 'turn-detail');
 
 			if (latestTurn
 				&& typeof turn.emptyPlayer === 'number'
@@ -282,12 +276,12 @@ define('browser/Ui', [
 				if (this.isPlayer(turn.emptyPlayer)) {
 					if (!turn.nextToGoKey)
 						turn.nextToGoKey = this.game.whosTurnKey;
-					this.log(
+					addToLog(
 						$.i18n('ui-log-you-no-more-tiles',
 							   this.game.getPlayer(turn.nextToGoKey).name),
 						'turn-narrative');
 				} else
-					this.log(
+					addToLog(
 						$.i18n('ui-log-they-no-more-tiles',
 							   this.game.getPlayer(turn.emptyPlayerKey).name),
 					'turn-narrative');
@@ -323,11 +317,11 @@ define('browser/Ui', [
 					if (isMe) {
 						iWon = true;
 						if (cheer)
-							this.playAudio('endCheer');
+							playAudio('endCheer');
 					}
 					winners.push(name);
 				} else if (isMe && cheer)
-					this.playAudio('lost');
+					playAudio('lost');
 
 				if (player.rack.isEmpty()) {
 					if (unplayed > 0) {
@@ -355,13 +349,13 @@ define('browser/Ui', [
 							 winners.slice(0, winners.length - 1).join(', '),
 							 winners[winners.length - 1]);
 
-			this.log($.i18n(game.state), 'game-state');
+			addToLog($.i18n(game.state), 'game-state');
 			if (iWon && winners.length === 1) 
-				this.log($.i18n('ui-log-winner', $.i18n('You'), 0));
+				addToLog($.i18n('ui-log-winner', $.i18n('You'), 0));
 			else
-				this.log($.i18n('ui-log-winner', who, winners.length));
+				addToLog($.i18n('ui-log-winner', who, winners.length));
 
-			this.log($narrative);
+			addToLog($narrative);
 		}
 
 		/**
@@ -436,7 +430,7 @@ define('browser/Ui', [
 				this.player.secondsToPlay = params.secondsToPlay;
 				stick = $.i18n('ui-tick-you', Math.floor(params.secondsToPlay));
 				if (params.secondsToPlay < 10 && this.settings.warnings)
-					this.playAudio('tick');
+					playAudio('tick');
 			}
 			else
 				stick = $.i18n('ui-tick-them',
@@ -695,7 +689,7 @@ define('browser/Ui', [
 			const $board = this.game.board.createDOM();
 			$('#board').append($board);
 
-			this.log($.i18n("Game started"), 'game-state');
+			addToLog($.i18n("Game started"), 'game-state');
 			if (game.secondsPerPlay > 0)
 				$("#timeout").show();
 			else 
@@ -712,8 +706,6 @@ define('browser/Ui', [
 					this.setMoveAction('anotherGame', /*i18n*/"Another game?");
 			}
 
-			this.scrollLogToEnd(0);
-
 			let myGo = this.isPlayer(game.whosTurnKey);
 			this.updateWhosTurn(game.whosTurnKey);
 			this.lockBoard(!myGo);
@@ -729,7 +721,8 @@ define('browser/Ui', [
 				if (this.isPlayer(game.whosTurnKey)) {
 					// It's our turn
 					this.addChallengePreviousButton(lastTurn);
-				} else
+				} else if (game.allowTakeBack
+						   && this.isPlayer(lastTurn.playerKey))
 					// It isn't our turn, but we might still have time to
 					// change our minds on the last move we made
 					this.addTakeBackPreviousButton(lastTurn);
@@ -1019,14 +1012,13 @@ define('browser/Ui', [
 				// moveTile will use a blank if the letter isn't found
 				this.moveTile(rackSquare, this.selectedSquare, letter);
 				if (this.settings.tile_click)
-					this.playAudio('tiledown');
+					playAudio('tiledown');
 				if (this.typeAcross)
 					this.moveTypingCursor(1, 0);
 				else
 					this.moveTypingCursor(0, 1);
 			} else
-				$('#logMessages').append(
-					$.i18n('ui-log-letter-not-on-rack', letter));
+				addToLog($.i18n('ui-log-letter-not-on-rack', letter));
 		}
 
 		/**
@@ -1148,7 +1140,7 @@ define('browser/Ui', [
 			this.moveTile(fromSource, toSquare);
 			this.selectSquare(null);
 			if (this.settings.tile_click)
-				this.playAudio('tiledown');
+				playAudio('tiledown');
 		}
 
 		/**
@@ -1337,7 +1329,6 @@ define('browser/Ui', [
 				});
 
 			this.appendTurnToLog(turn, true);
-			this.scrollLogToEnd(300);
             this.removeMoveActionButtons();
 			const player = this.game.getPlayer(turn.playerKey);
 			if (typeof turn.score === 'number')
@@ -1377,7 +1368,7 @@ define('browser/Ui', [
 					player.rack.refreshDOM();
 					if (turn.type === 'challenge-won') {
 						if (this.settings.warnings)
-							this.playAudio('oops');
+							playAudio('oops');
 						this.notify(
 							$.i18n("Challenged!"),
 							$.i18n('ui-notify-body-challenged',
@@ -1398,13 +1389,13 @@ define('browser/Ui', [
 				if (this.isPlayer(turn.playerKey)) {
 					// Our challenge failed
 					if (this.settings.warnings)
-						this.playAudio('oops');
+						playAudio('oops');
 					this.notify(
 						$.i18n("Your challenge failed!"),
 						$.i18n('ui-notify-body-you-failed'));
 				} else {
 					if (this.settings.warnings)
-						this.playAudio('oops');
+						playAudio('oops');
 					this.notify(
 						$.i18n("Failed challenge!"),
 						$.i18n('ui-notify-body-they-failed', player.name));
@@ -1451,7 +1442,7 @@ define('browser/Ui', [
 
 			if (this.isPlayer(turn.nextToGoKey)) {
 				if (this.settings.turn_alert)
-					this.playAudio('yourturn');
+					playAudio('yourturn');
 				this.lockBoard(false);
 				this.enableTurnButton(true);
 			} else {
@@ -1462,7 +1453,9 @@ define('browser/Ui', [
 			if (turn.nextToGoKey && turn.type !== 'challenge-won') {
 
 				this.updateWhosTurn(turn.nextToGoKey);
-				if (turn.type == 'move')
+				if (turn.type == 'move'
+					&& this.game.allowTakeBack
+					&& this.isPlayer(turn.playerKey))
 					this.addTakeBackPreviousButton(turn);
 
 				if (this.isPlayer(turn.nextToGoKey)
@@ -1507,26 +1500,21 @@ define('browser/Ui', [
 				  $(`<button name='challenge' class='moveAction'>${text}</button>`)
 				  .button();
 			$button.click(() => this.challenge());
-			this.log($button, 'turn-control');
-			this.scrollLogToEnd(300);
+			addToLog($button, 'turn-control');
 		}
 
 		/**
 		 * Add a 'Take back' button to the log pane to take back
-		 * (this player's) previous move.
+		 * (this player's) previous move, if the game allows it.
 		 * @param {Turn} turn the current turn
 		 */
 		addTakeBackPreviousButton(turn) {
-			if (!this.isPlayer(turn.playerKey))
-				return;
-			// It's us!
 			const $button =
 				  $(`<button name='takeBack' class='moveAction'></button>`)
 				  .text($.i18n('Take back'))
 				  .button();
 			$button.click(() => this.takeBackMove());
-			this.log($button, 'turn-control');
-			this.scrollLogToEnd(300);
+			addToLog($button, 'turn-control');
 		}
 
 		/**
@@ -1561,7 +1549,7 @@ define('browser/Ui', [
 			}
 			this.afterMove();
 			if (move.bonus > 0 && this.settings.cheers)
-				this.playAudio('bonusCheer');
+				playAudio('bonusCheer');
 
 			for (let i = 0; i < move.placements.length; i++) {
 				const tilePlaced = move.placements[i];
