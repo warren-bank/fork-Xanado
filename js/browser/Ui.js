@@ -1004,10 +1004,14 @@ define('browser/Ui', [
 		 * @param {string} letter character being placed
 		 */
 		manuallyPlaceLetter(letter) {
-			if (!this.selectedSquare || !this.selectedSquare.isEmpty())
+			if (!this.selectedSquare
+				|| !this.selectedSquare.isEmpty()
+				// Make sure the selected square is on the board!
+				|| !(this.selectedSquare.owner instanceof Board))
 				return;
-			
-			if (this.game.letterBag.legalLetters.indexOf(letter) < 0) // check it's supported
+
+			// check it's supported
+			if (this.game.letterBag.legalLetters.indexOf(letter) < 0)
 				return;
 
 			// Find the letter in the rack
@@ -1073,8 +1077,11 @@ define('browser/Ui', [
 				}
 				this.selectedSquare.setSelected(false);
 			}
-			this.selectedSquare = square;
-			if (square) {
+			this.selectedSquare = undefined;
+			if (square
+				// Only select empty squares on the board
+				&& (!square.isEmpty() || square.owner instanceof Board)) {
+				this.selectedSquare = square;
 				this.selectedSquare.setSelected(true);
 			}
 			this.updateTypingCursor();
