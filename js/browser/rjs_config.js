@@ -38,6 +38,9 @@ requirejs.config({
 		'socket.io': '//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io',
 		cookie: '//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min',
 
+		pluralRuleParser:
+		'/js/browser/cldrpluralruleparser',
+
 		browser: '/js/browser',
 		game: '/js/game',
 		dawg: '/js/dawg',

@@ -712,7 +712,7 @@ define('server/Server', [
 					});
 				}
 				return res.status(500).send([
-					/*i18n*/"Player is not in game", playerKey, gameKey
+					/*i18n*/"Player $1 is not in game $2", playerKey, gameKey
 				]);
 			})
 			.catch(e => trap(e, req, res));
@@ -743,7 +743,11 @@ define('server/Server', [
 			return this.loadGame(gameKey)
 			.then(game => {
 				const player = game.getPlayerWithKey(playerKey);
-				return Platform.findBestPlay(game, player.rack.tiles);
+				if (player)
+					return Platform.findBestPlay(game, player.rack.tiles);
+				return res.status(500).send([
+					/*i18n*/"Player $1 is not in game $2", playerKey, gameKey
+				]);
 			})
 			.then(play => res.status(200).send(Fridge.freeze(play)))
 			.catch(e => trap(e, req, res));
@@ -789,10 +793,14 @@ define('server/Server', [
 			//console.debug(`Handling ${command} ${gameKey} ${playerKey}`);
 			return this.loadGame(gameKey)
 			.then(game => {
-				const player = game.getPlayerWithKey(playerKey);
-
 				if (game.hasEnded())
 					return Promise.resolve();
+
+				const player = game.getPlayerWithKey(playerKey);
+				if (!player)
+					return res.status(500).send([
+						/*i18n*/"Player $1 is not in game $2", playerKey, gameKey
+					]);
 
 				// The command name and arguments
 				const args = req.body.args ? JSON.parse(req.body.args) : null;

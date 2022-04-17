@@ -437,7 +437,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack', 'game/Pl
 			assert.equal(turn.score, -3);
 			assert.equal(turn.replacements.length, 0);
 			assert.equal(turn.challengerKey, player2.key);
-			assert(!turn.emptyPlayer);
+			assert(!turn.emptyPlayerKey);
 		});
 	});
 

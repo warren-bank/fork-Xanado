@@ -455,7 +455,8 @@ define('game/Game', [
 			console.log(`playIfReady ${this.key} ${this.whosTurnKey}`);
 			if (this.players.length < this.minPlayers) {
 				console.log("\tnot enough players");
-				return Promise.resolve(/*i18n*/'Not enough players');
+				// Result is not used
+				return Promise.resolve('Not enough players');
 			}
 
 			let prom;
@@ -931,7 +932,7 @@ define('game/Game', [
 					const words = bestPlay.words.map(w => w.word).join(',');
 					const advice = {
 						sender: /*i18n*/'Advisor',
-						text: /*i18n*/'chat-advice',
+						text: /*i18n*/"$1 at row $2 column $3 would have scored $4",
 						args: [	words, start.row + 1, start.col + 1,
 								bestPlay.score ]
 					};

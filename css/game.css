@@ -553,12 +553,12 @@ button.fat-button {
 
 /* The div with the game events log */
 #logBlock {
-    height: 14em;
 }
 
 #logMessages {
 	font-size: 80%;
     overflow: auto;
+    max-height: 14em;
 }
 
 #logMessages .game-state {

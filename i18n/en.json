@@ -7,21 +7,15 @@
 
 	"challenge-failed": "Challenge failed! All words are OK",
 	"challenge-won": "Previous turn challenged successfully!",
-	"chat-advice": "$1 at row $2 column $3 would have scored $4",
 
 	"games-scores": "$1: <b>$2</b>: $3 ($5 win{{PLURAL:$5||s}} from $4 game{{PLURAL:$4||s}})",
 
 	"Hint": "Hint: $1 at row $2 column $3 for $4",
 
 	"introduction": "To play in a game you have to sign in first. You may be able to sign in using a public service, such as Google or Facebook, or you can create your own XANADO user.",
-
-	"Need 2 players": "Need at least 2 players to make a game",
-	"Not playing": "You ($1) are not playing in this game",
 	
 	"pass": "Pass",
 	"passed": "Passed",
-
-	"Select blank letter": "Select the letter for the blank",
 
 	"square-M": "\u2605",
 	"square-_": " ",
@@ -33,10 +27,10 @@
 	"square-Q": "QUAD WORD SCORE",
 	"Strings from $1": "Strings from $1",
 
-	"Tile click": "Play a sound when a tile is placed",
 	"time limit $1": "time limit $1 minute{{PLURAL:$1||s}}",
 	"timeout": "Timed out",
 	"took-back": "Took back previous turn",
+
 	"tooltip-add-robot": "Add a robot player to this game",
 	"tooltip-allow-take-back": "Let the player who has just played take their move back before the next player has challenged or played",
 	"tooltip-check-dictionary": "Tell players if the word they just played wasn't in the dictionary. This can help learners.",
@@ -48,7 +42,7 @@
 	"tooltip-invite-players": "Send emails to invite people to join the game",
 	"tooltip-join-game": "Join the game and open it in a new window",
 	"tooltip-leave-game": "If you leave the game your score will still count towards the leader board",
-	"tooltip-login-name": "Name of an existing Xanado user",
+	"tooltip-login-name": "Name of an existing XANADO user",
 	"tooltip-max-players": "Limit the total number of players who can join this game",
 	"tooltip-min-players": "Require at least this many players to join before starting the game. A start player won't be assigned until enough players have joined",
 	"tooltip-observe-game": "Open a board to watch the game, but not play",
@@ -60,27 +54,21 @@
 	"tooltip-robot-dictionary": "You can choose a different (usually smaller) dictionary for the robot player to choose words from. 'None' will make it play words from the main Dictionary.",
 
 	"tooltip-time-limit": "Maximum time allowed to take a turn, in minutes. If a player fails to take a turn in this time, they will be forced to pass. Leave blank for no time limit",
-	"Turn alert": "Play a sound when it's your turn",
 
-	"$1 tiles left in bag": "$1 tile{{PLURAL:$1||s}} left in the bag",
-	"ui-challenge": "Challenge $1's turn",
-	"ui-log-gained-from-racks": "$1 gained $2 point{{PLURAL:$2||s}} from the racks of other players",
-	"ui-log-letter-not-on-rack": "'$1' is not on the rack",
-	"ui-log-lost-for-rack": "$1 lost $2 point{{PLURAL:$2||s}} for a rack containing '$3'",
-	"ui-log-name-name": "$1 and $2",
-	"ui-log-swap": "Swapped $1 tile{{PLURAL:$1||s}}",
-	"ui-log-they-no-more-tiles": "$1 has no more tiles, game will be over unless you challenge",
-	"ui-log-turn-player": "<span class='playerName'>$1</span>'s turn",
-	"ui-log-winner": "$1 {{PLURAL:$2|has|have}} won",
-	"ui-log-you-no-more-tiles":  "You have no more tiles, game will be over if $1 doesn't challenge your play",
-	"ui-notify-body-challenged": "$1 has successfully challenged your turn. You have lost the $2 points you scored, and the tiles you played are back on your rack",
+	"ui-notify-body-game-over": "Your game is over...",
 	"ui-notify-body-retracted": "$1 has taken back their turn",
+	"ui-notify-body-succeeded": "$1 has successfully challenged your turn. You have lost the $2 points you scored, and the tiles you played are back on your rack",
 	"ui-notify-body-they-failed": "$1 challenged your turn, but the dictionary backed you up",
 	"ui-notify-body-you-failed": "Your challenge failed, you have lost your turn",
 	"ui-notify-body-your-turn": "$1 has taken their turn and now it is your turn",
+	"ui-notify-title-game-over": "Game over",
+	"ui-notify-title-retracted": "Move retracted!",
+	"ui-notify-title-succeeded": "Challenge succeeded!",
+	"ui-notify-title-they-failed": "Failed challenge!",
+	"ui-notify-title-you-failed": "Your challenge failed!",
+	"ui-notify-title-your-turn": "Your turn",
+
 	"ui-server-disconnected": "Server disconnected, trying to reconnect",
-	"ui-tick-them": "$1 has $2 seconds to play",
-	"ui-tick-you": "You have $1 seconds remaining to play",
 
 	"um-bad-pass": "Wrong password for '$1'",
 	"um-bad-user": "Bad username '$1'",

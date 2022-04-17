@@ -49,17 +49,34 @@ foreach my $dir ("js/browser", "js/game", "js/server") {
 	closedir($jsd);
 }
 
+sub checkParameters {
+	my ($en, $qq) = @_;
+	while ($en =~ /(\$\d+)/g) {
+		my $p = $1;
+		my $re = "\\$p([^\\d]|\$)";
+		if ($qq !~ /$re/) {
+			print STDERR "\"$en\": $p not found in \"$qq\"\n";
+		}
+	}
+}
+
 # LOAD STRINGS
-# from i18n*.json
+# from i18n/*.json
+# If a language or qqq is passed in ARGV[0] will load that, otherwise will load
+# all langauges (including qqq.json, which contains documentation)
 my $i18nd;
 my %strings;
-opendir($i18nd, "i18n");
-foreach my $json (grep { /\.json$/ } readdir($i18nd)) {
-	my $data = decode_json path("i18n/$json")->slurp();
+my @lingos = qw(en);
+if (scalar(@ARGV) > 0) {
+	push(@lingos, @ARGV);
+} else {
+	opendir($i18nd, "i18n");
+	@lingos = map { $_ =~ /(.*)\.json$/; $1 } grep { /\.json$/ } readdir($i18nd)
+}
+foreach my $lang (@lingos) {
+	my $data = decode_json(path("i18n/${lang}.json")->slurp());
 	delete $data->{'@metadata'};
-	$json =~ /^(.*)\.json/;
-	my $lang = $1;
-	$strings{$1} = $data;
+	$strings{$lang} = $data;
 }
 
 my $warns = 0;
@@ -72,7 +89,7 @@ foreach my $string ( sort keys %found ) {
 }
 
 # CHECK STRINGS IN en.json OCCUR AT LEAST ONCE IN HTML/JS
-foreach my $string ( sort keys %{$strings{"en"}}) {
+foreach my $string (sort keys %{$strings{"en"}}) {
 	if (!$found{$string}) {
 		print STDERR "'$string' was found in en.json, but is not used in code\n";
 		$warns++;
@@ -82,29 +99,43 @@ foreach my $string ( sort keys %{$strings{"en"}}) {
 # CHECK OTHER LANGUAGES
 # Check that all keys in en are also in other languages.
 # Check that all keys in other languages occur in en
-foreach my $lang (keys %strings) {
+foreach my $lang (sort keys %strings) {
 	next if ($lang eq "en");
-	print "-------------- THE FOLLOWING $lang STRINGS WILL USE ENGLISH\n";
-	my @ens = ();
-	foreach my $key (keys %{$strings{en}}) {
-		next if ($strings{$lang}{$key});
-		print STDERR "\"$strings{en}{$key}\",\n";
-		push(@ens, $key);
+	print "Check $lang\n";
+	my $titled = 0;
+	my @ens;
+	foreach my $key (sort keys %{$strings{en}}) {
+		if ($strings{$lang}{$key}) {
+			checkParameters($key, $strings{$lang}{$key});
+			next;
+		}
+		if (!$titled) {
+			print "-------------- $lang HAS NO TRANSLATION FOR\n";
+			$titled = 1;
+		}
+		print STDERR "\"$key\"\n";
+		push(@ens, "\"$strings{en}{$key}\"");
 		$warns++;
+	}
+	if ($titled) {
+		print "-------------- CORRESPONDING ENGLISH STRINGS\n";
+		print join("\n", @ens),"\n";
 	}
 
-	foreach my $key (keys %{$strings{$lang}}) {
+	$titled = 0;
+	foreach my $key (sort keys %{$strings{$lang}}) {
 		next if ($strings{"en"}{$key});
-		print STDERR "\"$key\" is in ${lang} but not in en\n";
+		if (!$titled) {
+			print "-------------- UNUSED STRINGS IN $lang (sed script)\n";
+			$titled = 1;
+		}
+		print STDERR "/\"$key\":/d\n";
 		$warns++;
-	}
-	if (scalar(@ens) > 0) {
-		print STDERR "### Corresponding English strings:\n";
-		print STDERR join("\n", map { "\"$_\"" } @ens),"\n";
 	}
 }
 
 
 if ($warns > 0) {
 	print STDERR "$warns warnings\n";
+	print STDERR "See https://github.com/wikimedia/jquery.i18n for help with string formats\n";
 }
