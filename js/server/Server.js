@@ -646,7 +646,9 @@ define('server/Server', [
 				} else {
 					console.log(`Player ${playerKey} joining ${gameKey}`);
 					player = new Player(
-						req.user.name, playerKey, false,
+						{
+							name: req.user.name, key: playerKey
+						},
 						() => req.user.email
 					);
 					game.addPlayer(player);
@@ -670,6 +672,7 @@ define('server/Server', [
 		request_addRobot(req, res) {
 			const gameKey = req.body.gameKey;
 			const dic = req.body.dictionary;
+			const canChallenge = req.body.canChallenge;
 			console.debug("Add robot",req.body);
 			return this.loadGame(gameKey)
 			.then(game => {
@@ -678,7 +681,12 @@ define('server/Server', [
 				console.log(`Robot joining ${gameKey} with ${dic}`);
 				// Robot always has the same player key
 				const robot = new Player(
-					'Robot', UserManager.ROBOT_KEY, true);
+					{
+						name: "Robot",
+						key: UserManager.ROBOT_KEY,
+						isRobot: true,
+						canChallenge: canChallenge
+					});
 				if (dic && dic !== 'none')
 					robot.dictionary = dic;
 				game.addPlayer(robot);
@@ -838,11 +846,7 @@ define('server/Server', [
 					promise = game.confirmGameOver('Game over');
 					break;
 
-				case 'pause':
-					promise = game.togglePause(player);
-					break;
-
-				case 'unpause':
+				case 'pause': case 'unpause':
 					promise = game.togglePause(player);
 					break;
 

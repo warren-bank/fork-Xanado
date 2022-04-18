@@ -28,7 +28,7 @@ requirejs([
 		let bestMoves = [];
 		return new Game({edition:'English_WWF', dictionary:'Oxford_5000'}).create()
 		.then(game => {
-			game.addPlayer(new Player('test', "creep", true));
+			game.addPlayer(new Player({name:'test', key:"creep", isRobot:true}));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -75,7 +75,7 @@ requirejs([
 		return new Game({edition:'English_WWF', dictionary:'SOWPODS_English'})
 		.create()
 		.then(game => {
-			game.addPlayer(new Player('test', "toast", true));
+			game.addPlayer(new Player({name:'test', key:"toast", isRobot:true}));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -135,7 +135,7 @@ requirejs([
 		let bestMoves = [];
 		return new Game({edition:'English_Scrabble', dictionary:'SOWPODS_English'}).create()
 		.then(game => {
-			game.addPlayer(new Player('test', "slime", true));
+			game.addPlayer(new Player({name:'test', key:"slime", isRobot:true}));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -187,7 +187,7 @@ requirejs([
 		let bestMoves = [];
 		return new Game({edition:'English_Scrabble', dictionary:'Oxford_5000'}).create()
 		.then(game => {
-			game.addPlayer(new Player('test', "crisp", true));
+			game.addPlayer(new Player({name:'test', key:"crisp", isRobot:true}));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -233,7 +233,7 @@ requirejs([
 		let bestMoves = [];
 		return new Game({edition:'English_WWF', dictionary:'British_English'}).create()
 		.then(game => {
-			game.addPlayer(new Player('test', "turntable", true));
+			game.addPlayer(new Player({name:'test', key:"turntable", isRobot:true}));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +

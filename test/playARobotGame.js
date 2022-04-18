@@ -32,15 +32,20 @@ requirejs([
 ) => {
 
 	let db = new Platform.Database('test', 'testgame');
-	let game = new Game({edition: 'Tiny', dictionary: 'CSW2019_English'});
+	let game = new Game({
+		edition: 'Tiny',
+		dictionary: 'CSW2019_English'
+	});
 	let gameKey = game.key;
 	let player = 0;
 
 	game.create()
 	.then(game => {
-		let player1 = new Player('player one', "flay", true);
+		let player1 = new Player({
+			name: 'player one', key: "flay", isRobot: true});
 		game.addPlayer(player1);
-		let player2 = new Player('player two', "swelter", true);
+		let player2 = new Player({name: 'player two', key: "swelter",
+								 isRobot: true });
 		game.addPlayer(player2);
 		game.whosTurnKey = player1.key;
 		return game.onLoad(db);

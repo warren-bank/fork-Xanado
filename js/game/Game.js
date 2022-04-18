@@ -66,7 +66,10 @@ define('game/Game', [
 		 * @param {number?} params.maxPlayers
 		 */
 		constructor(params) {
-			console.log("Constructing new game", params);
+			this.debug = boolParam(params.debug, true);
+			if (this.debug)
+				console.debug("Constructing new game", params);
+
 			/**
 			 * Key that uniquely identifies this game
 			 * @member {string}
@@ -203,6 +206,20 @@ define('game/Game', [
 			 * @member {boolean}
 			 */
 			this.checkDictionary = boolParam(params.checkDictionary, false);
+
+			/**
+			 * List of decorated sockets
+			 * @member {WebSocket[]}
+			 * @private
+			 */
+			this._connections = [];
+
+			/**
+			 * Database containing this game
+			 * @member {Platform.Database}
+			 * @private
+			 */
+			this._db = undefined;
 		}
 
 		/**
@@ -234,20 +251,8 @@ define('game/Game', [
 		 * @return {Promise} Promise that resolves to the game
 		 */
 		onLoad(db) {
-			/**
-			 * List of decorated sockets
-			 * @member {WebSocket[]}
-			 * @private
-			 */
 			this._connections = [];
-
-			/**
-			 * Database containing this game
-			 * @member {Platform.Database}
-			 * @private
-			 */
 			this._db = db;
-
 			return Promise.resolve(this);
 		}
 
@@ -277,7 +282,8 @@ define('game/Game', [
 			if (index < 0)
 				throw Error(`No such player ${player.key} in ${this.key}`);
 			this.players.splice(index, 1);
-			console.log(`${player.key} left ${this.key}`);
+			if (this.debug)
+				console.debug(`${player.key} left ${this.key}`);
 		}
 
 		/**
@@ -434,7 +440,8 @@ define('game/Game', [
 		 */
 		save() {
 			if (!this._db) return Promise.resolve();
-			console.log(`Saving game ${this.key}`);
+			if (this.debug)
+				console.debug(`Saving game ${this.key}`);
 			return this._db.set(this.key, this)
 			.then(() => this);
 		}
@@ -452,9 +459,11 @@ define('game/Game', [
 		 * or undefined if game is playable
 		 */
 		playIfReady() {
-			console.log(`playIfReady ${this.key} ${this.whosTurnKey}`);
+			if (this.debug)
+				console.debug(`playIfReady ${this.key} ${this.whosTurnKey}`);
 			if (this.players.length < this.minPlayers) {
-				console.log("\tnot enough players");
+				if (this.debug)
+					console.debug("\tnot enough players");
 				// Result is not used
 				return Promise.resolve('Not enough players');
 			}
@@ -474,10 +483,12 @@ define('game/Game', [
 				prom = Promise.resolve();
 
 			const player = this.getPlayer();
-			console.log(`\tnext to play is ${player.name}`,
+			if (this.debug)
+				console.debug(`\tnext to play is ${player.name}`,
 						player.secondsToPlay);
 			if (player.isRobot) {
-				console.log(`\tautoplay ${player.name}`);
+				if (this.debug)
+					console.debug(`\tautoplay ${player.name}`);
 				return prom.then(() => this.autoplay())
 				// May autoplay next robot recursively
 				.then(turn => this.finishTurn(turn));
@@ -493,10 +504,9 @@ define('game/Game', [
 		 * @param {Object} data to send with message
 		 */
 		notifyPlayer(player, message, data) {
-			console.log(`<-S- ${player.key} ${message}`, data);
+			if (this.debug)
+				console.debug(`<-S- ${player.key} ${message}`, data);
 			// Player may be connected several times
-			if (!this._connections)
-				return;
 			this._connections.forEach(
 				socket => {
 					if (socket.player === player)
@@ -512,7 +522,8 @@ define('game/Game', [
 		 * @param {Object} data to send with message
 		 */
 		notifyPlayers(message, data) {
-			console.log(`<-S- * ${message}`, data);
+			if (this.debug)
+				console.debug(`<-S- * ${message}`, data);
 			this._connections.forEach(socket => socket.emit(message, data));
 		}
 
@@ -546,7 +557,8 @@ define('game/Game', [
 					return Promise.resolve();
 				}
 
-				console.log(`Player ${this.whosTurnKey}'s turn`);
+				if (this.debug)
+					console.debug(`Player ${this.whosTurnKey}'s turn`);
 				const nextPlayer = this.getPlayer();
 				if (nextPlayer.isRobot) {
 					// Does a player have nothing on their rack? If
@@ -558,7 +570,9 @@ define('game/Game', [
 					// May recurse if the player after is also a robot, but
 					// the recursion will always stop when a human player
 					// is reached, so never deep.
-					return promise.then(turn => this.finishTurn(turn));
+					return promise.then(turn => {
+						return this.finishTurn(turn);
+					});
 				}
 
 				nextPlayer.startTimer(
@@ -585,7 +599,8 @@ define('game/Game', [
 			if (ageInDays <= 14)
 				return Promise.resolve(this);
 
-			console.log('Game timed out:',
+			if (this.debug)
+				console.debug('Game timed out:',
 						this.players.map(({ name }) => name));
 
 			this.stopTimers();
@@ -599,8 +614,6 @@ define('game/Game', [
 		 * @return {WebSocket} a decorated socket, or null if not connected.
 		 */
 		getConnection(player) {
-			if (!this._connections)
-				return null;
 			for (let socket of this._connections) {
 				if (socket.player === player)
 					return socket;
@@ -631,10 +644,12 @@ define('game/Game', [
 		 * the Game.secondsPerPlay
 		 */
 		startTurn(player, timeout) {
-			console.log(`Starting ${player.name}'s turn`);
+			if (this.debug)
+				console.debug(`Starting ${player.name}'s turn`);
 			this.whosTurnKey = player.key;
 			if (this.secondsPerPlay && this.state !== 'playing') {
-				console.log(`\ttimeout ${timeout || this.secondsPerPlay}`);
+				if (this.debug)
+					console.debug(`\ttimeout ${timeout || this.secondsPerPlay}`);
 				player.startTimer(
 					timeout || this.secondsPerPlay,
 					() => this.pass('timeout')
@@ -702,7 +717,8 @@ define('game/Game', [
 				const to = (player.secondsToPlay > 0)
 					  ? player.secondsToPlay
 					  : this.secondsPerPlay;
-				console.log(`${player.name} connected to ${this.key}`,
+				if (this.debug)
+					console.debug(`${player.name} connected to ${this.key}`,
 						   player.secondsToPlay);
 				player.startTimer(
 					to,
@@ -717,7 +733,8 @@ define('game/Game', [
 			socket.player = player;
 
 			this._connections.push(socket);
-			console.log(player ? `${player} connected` : "Anonymous connect()");
+			if (this.debug)
+				console.debug(player ? `${player} connected` : "Anonymous connect()");
 
 			// Tell players that the player is connected
 			this.updateConnections();
@@ -732,7 +749,8 @@ define('game/Game', [
 
 			// Add disconnect listener
 			socket.on('disconnect', () => {
-				console.log(socket.player
+				if (this.debug)
+					console.debug(socket.player
 							? `${socket.player.toString()} disconnected`
 							: "Anonymous disconnect");
 				this._connections = this._connections.filter(
@@ -747,7 +765,9 @@ define('game/Game', [
 		 */
 		tick() {
 			const player = this.getPlayer();
-			//console.log(`Tick ${this.getPlayer().name} ${player.secondsToPlay}`);
+			//if (this.debug) console.debug(`Tick ${this.getPlayer().name} ${player.secondsToPlay}`);
+			if (!player)
+				return;
 			player.secondsToPlay--;
 			this.notifyPlayers(
 				'tick',
@@ -779,7 +799,8 @@ define('game/Game', [
 		startTheClock() {
 			if (this.secondsPerPlay && !this._intervalTimer) {
 				const rem = this.getPlayer().secondsToPlay;
-				console.log(`Started tick timer with ${rem} on the clock`);
+				if (this.debug)
+					console.debug(`Started tick timer with ${rem} on the clock`);
 				// Broadcast a ping every second
 				this._intervalTimer = setInterval(() => {
 					const pnext = this.getPlayer();
@@ -795,7 +816,8 @@ define('game/Game', [
 		 */
 		stopTheClock() {
 			if (this._intervalTimer) {
-				console.log('Stopping tick timer');
+				if (this.debug)
+					console.debug('Stopping tick timer');
 				clearInterval(this._intervalTimer);
 				this._intervalTimer = null;
 			}
@@ -805,7 +827,8 @@ define('game/Game', [
 		 * Stop player and game timeout timers
 		 */
 		stopTimers() {
-			console.log("Stopping timers");
+			if (this.debug)
+				console.debug("Stopping timers");
 			this.stopTheClock();
 			this.players.forEach(player => player.stopTimer());
 		}
@@ -815,7 +838,8 @@ define('game/Game', [
 		 * stopTimers()
 		 */
 		restartTimers() {
-			console.log("Restarting timers");
+			if (this.debug)
+				console.debug("Restarting timers");
 			this.startTheClock();
 			this.players.forEach(player => player.startTimer());
 		}
@@ -839,16 +863,19 @@ define('game/Game', [
 		 * @param {Player} player to get a hint for
 		 */
 		hint(player) {
-			console.log(`Player ${player.name} asked for a hint`);
+			if (this.debug)
+				console.debug(`Player ${player.name} asked for a hint`);
 
 			let bestPlay = null;
 			Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
-				if (typeof data === 'string')
-					console.log(data);
-				else
-					bestPlay = data;
-			})
+					if (typeof data === 'string') {
+						if (this.debug)
+							console.debug(data);
+					}
+					else
+						bestPlay = data;
+				})
 			.then(() => {
 				const hint = {
 					sender: /*i18n*/'Advisor'
@@ -856,7 +883,8 @@ define('game/Game', [
 				if (!bestPlay)
 					hint.text = /*i18n*/"Can't find a play";
 				else {
-					console.log(bestPlay);
+					if (this.debug)
+						console.debug(bestPlay);
 					const start = bestPlay.placements[0];
 					hint.text = /*i18n*/"Hint";
 					const words = bestPlay.words.map(w => w.word).join(',');
@@ -915,19 +943,22 @@ define('game/Game', [
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		advise(player, theirScore) {
-			console.log(`Computing advice for ${player.name} > ${theirScore}`);
+			if (this.debug)
+				console.debug(`Computing advice for ${player.name} > ${theirScore}`);
 
 			let bestPlay = null;
 			return Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
-				if (typeof data === 'string')
-					console.log(data);
-				else
-					bestPlay = data;
-			})
+					if (typeof data === 'string') {
+						if (this.debug)
+							console.debug(data);
+					} else
+						bestPlay = data;
+				})
 			.then(() => {
 				if (bestPlay && bestPlay.score > theirScore) {
-					console.log(`Better play found for ${player.name}`);
+					if (this.debug)
+						console.debug(`Better play found for ${player.name}`);
 					const start = bestPlay.placements[0];
 					const words = bestPlay.words.map(w => w.word).join(',');
 					const advice = {
@@ -944,7 +975,8 @@ define('game/Game', [
 						args: [ player.name ]
 					});
 				} else
-					console.log(`No better plays found for ${player.name}`);
+					if (this.debug)
+						console.debug(`No better plays found for ${player.name}`);
 			})
 			.catch(e => {
 				console.error('Error', e);
@@ -963,7 +995,8 @@ define('game/Game', [
 			const player = this.getPlayer();
 			player.stopTimer();
 
-			console.log(move);
+			if (this.debug)
+				console.debug(move);
 			//console.log(`Player's rack is ${player.rack}`);
 
 			// Fire up a thread to generate advice and wait for it
@@ -993,7 +1026,8 @@ define('game/Game', [
 				}
 			}
 
-			console.log('New rack', player.rack.toString());
+			if (this.debug)
+				console.debug('New rack', player.rack.toString());
 
 			//console.debug('words ', move.words);
 
@@ -1003,7 +1037,8 @@ define('game/Game', [
 				this.getDictionary()
 				.then(dict => {
 					for (let w of move.words) {
-						console.log('Checking ',w);
+						if (this.debug)
+							console.debug('Checking ',w);
 						if (!dict.hasWord(w.word)) {
 							// Only want to notify the player
 							this.notifyPlayer(
@@ -1051,30 +1086,71 @@ define('game/Game', [
 		}
 		
 		/**
-		 * Robot play for the next player
+		 * Robot play for the next player. This may result in a challenge.
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		autoplay() {
-			let bestPlay = null;
+
 			const player = this.getPlayer();
+			if (this.debug)
+				console.debug(`Autoplaying ${player.name}`);
 
-			console.log(`Autoplaying ${player.name}`);
-			return Platform.findBestPlay(
-				this, player.rack.tiles(),
-				data => {
-					if (typeof data === 'string')
-						console.log(data);
-					else {
-						bestPlay = data;
-						console.log('Best', bestPlay);
-					}
-				}, player.dictionary)
-			.then(() => {
-				if (bestPlay)
-					return this.makeMove(bestPlay);
+			// Before making a robot move, consider challenging the last
+			// player.
+			// challenge is a Promise that will resolve to a Turn if a
+			// challenge is made, or undefined otherwise.
+			let challenge = Promise.resolve(undefined);;
+			if (this.dictionary
+				&& player.canChallenge
+				&& this.previousMove) {
+				const lastPlayer = this.getPlayer(this.previousMove.playerKey);
+				// There's no point if they are also a robot, though
+				// that should never arise in a "real" game where there can
+				// only be one robot.
+				if (!lastPlayer.isRobot) {
+					// use game dictionary, not robot dictionary
+					challenge = this.getDictionary()
+					.then(dict => {
+						const bad = this.previousMove.words
+							  .filter(word => !dict.hasWord(word.word));
+						if (bad.length > 0) {
+							// Challenge succeeded
+							if (this.debug) {
+								console.debug(`Challenging ${lastPlayer.name}`);
+								console.debug(`Bad Words: `, bad);
+							}
+							return this.takeBack('challenge-won');
+						}
+						return undefined;
+					});
+				}
+			}
 
-				console.log(`${player.name} can't play, passing`);
-				return this.pass('passed');
+			return challenge
+			.then(turn => {
+				if (turn)
+					return turn;
+				let bestPlay = null;
+				return Platform.findBestPlay(
+					this, player.rack.tiles(),
+					data => {
+						if (typeof data === 'string') {
+							if (this.debug)
+								console.debug(data);
+						} else {
+							bestPlay = data;
+							if (this.debug)
+								console.debug('Best', bestPlay);
+						}
+					}, player.dictionary)
+				.then(() => {
+					if (bestPlay)
+						return this.makeMove(bestPlay);
+
+					if (this.debug)
+						console.debug(`${player.name} can't play, passing`);
+					return this.pass('passed');
+				});
 			});
 		}
 
@@ -1085,7 +1161,8 @@ define('game/Game', [
 		 */
 		togglePause(player) {
 			if (this.pausedBy) {
-				console.log(`${player.name} has unpaused game`);
+				if (this.debug)
+					console.debug(`${player.name} has unpaused game`);
 				this.restartTimers();
 				this.notifyPlayers('unpause', {
 					key: this.key,
@@ -1094,7 +1171,8 @@ define('game/Game', [
 				this.pausedBy = undefined;
 			} else {
 				this.pausedBy = player.name;
-				console.log(`${this.pausedBy} has paused game`);
+				if (this.debug)
+					console.debug(`${this.pausedBy} has paused game`);
 				this.stopTimers();
 				this.notifyPlayers('pause', {
 					key: this.key,
@@ -1115,7 +1193,8 @@ define('game/Game', [
 		confirmGameOver(endState) {
 			this.state = endState;
 
-			console.log(`Confirming game over because ${endState}`);
+			if (this.debug)
+				console.debug(`Confirming game over because ${endState}`);
 			this.stopTimers();
 
 			// When the game ends, each player's score is reduced by
@@ -1137,14 +1216,16 @@ define('game/Game', [
 					player.score -= rackScore;
 					deltas[player.key] -= rackScore;
 					pointsRemainingOnRacks += rackScore;
-					console.log(`${player.name} has ${rackScore} left`);
+					if (this.debug)
+						console.debug(`${player.name} has ${rackScore} left`);
 				} 
 			});
 
 			if (playerWithNoTiles) {
 				playerWithNoTiles.score += pointsRemainingOnRacks;
 				deltas[playerWithNoTiles.key] = pointsRemainingOnRacks;
-				console.log(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
+				if (this.debug)
+					console.debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
 			}
 
 			const turn = new Turn(this, {
@@ -1255,7 +1336,8 @@ define('game/Game', [
 
 			return this.getDictionary()
 			.catch(() => {
-				console.log('No dictionary, so challenge always succeeds');
+				if (this.debug)
+					console.debug('No dictionary, so challenge always succeeds');
 				return this.takeBack('challenge-won');
 			})
 			.then(dict => {
@@ -1264,7 +1346,8 @@ define('game/Game', [
 
 				if (bad.length > 0) {
 					// Challenge succeeded
-					console.log(`Bad Words: ${bad.join(',')}`);
+					if (this.debug)
+						console.debug("Bad Words: ", bad);
 					return this.takeBack('challenge-won');
 				}
 
@@ -1349,7 +1432,8 @@ define('game/Game', [
 				return Promise.reject("Next game already exists");
 			}
 
-			console.log(`Create game to follow ${this.key}`);
+			if (this.debug)
+				console.debug(`Create game to follow ${this.key}`);
 			return new Game(this)
 			.create()
 			.then(newGame => newGame.onLoad(this._db))
@@ -1380,7 +1464,8 @@ define('game/Game', [
 
 					newGame.whosTurnKey = newGame.players[0].key;
 					newGame.players[0].secondsToPlay = newGame.secondsPerPlay;
-					console.log(`Created follow-on game ${newGame.key}`);
+					if (this.debug)
+						console.debug(`Created follow-on game ${newGame.key}`);
 					return newGame.save()
 					.then(() => newGame.playIfReady())
 					.then(() => this.notifyPlayers('nextGame', newGame.key))

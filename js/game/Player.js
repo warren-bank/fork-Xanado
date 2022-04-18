@@ -18,29 +18,42 @@ define('game/Player', [
 	class Player {
 
 		/**
-		 * @param {(string|Player)} name name of the player, or
+		 * @param {object} params named parameters, or other layer or simple
+		 *  object to copy
+		 * @param {(string|Player)} params.name name of the player, or
 		 * a Player object to copy
-		 * @param {boolean} key unique key identifying the player. Names
+		 * @param {boolean} params.key unique key identifying the player. Names
 		 * may be duplicated, but keys never are.
-		 * @param {boolean} isRobot if name is a string and true then
+		 * @param {boolean} params.isRobot if name is a string and true then
 		 * it's a robot. If name is a Player object, ignored.
+		 * @param {boolean} params.canChallenge controls whether this player
+		 * can challenge if it's a robot
+		 * @param {boolean} params.debug true for debug messages
 		 */
-		constructor(name, key, isRobot) {
-			if (typeof name === 'object') {
-				// Copying an existing Player or Player.simple
-				this.isRobot = name.isRobot;
-				this.key = name.key; // re-use
-				name = name.name;
-			} else {
-				this.key = key;
-				this.isRobot = isRobot;
-			}
+		constructor(params) {
+			/**
+			 * Player unique key
+			 * @member {string}
+			 */
+			this.key = params.key;
+
+			/**
+			 * Is player a robot?
+			 * @member {boolean}
+			 */
+			this.isRobot = params.isRobot;
+
+			/**
+			 * If isRobot, can it challenge?
+			 * @member {boolean}
+			 */
+			this.canChallenge = params.canChallenge;
 
 			/**
 			 * Player name
 			 * @member {string}
 			 */
-			this.name = name;
+			this.name = params.name;
 
 			/**
 			 * Player doesn't have a rack until they join a game, as
@@ -60,7 +73,7 @@ define('game/Player', [
 			 * they used
 			 * @member {boolean}
 			 */
-			this.wantsAdvice = false;
+			this.wantsAdvice = params.wantsAdvice;
 
 			/**
 			 * Player's current score
@@ -81,7 +94,7 @@ define('game/Player', [
 			 * only be used for findBestPlay for robot players.
 			 * @member {string}
 			 */
-			this.dictionary = undefined;
+			this.dictionary = params.dictionary;
 		}
 
 		/**
@@ -172,14 +185,16 @@ define('game/Player', [
 				return;
 			}
 
-			console.log(`${this.name}'s go will time out in ${time}s`);
+			if (this.debug)
+				console.debug(`${this.name}'s go will time out in ${time}s`);
 
 			// Set an overriding timeout
 			this.secondsToPlay = time;
 			this._timeoutAt = Date.now() + time * 1000;
 			this._timeoutTimer = setTimeout(() => {
 				this._timeoutTimer = null;
-				console.log(`${this.name} has timed out at ${Date.now()}`);
+				if (this.debug)
+					console.debug(`${this.name} has timed out at ${Date.now()}`);
 				// Invoke the timeout function
 				this._onTimeout();
 			}, time * 1000);
@@ -191,7 +206,8 @@ define('game/Player', [
 		stopTimer() {
 			if (this._timeoutTimer) {
 				this.secondsToPlay = (this._timeoutAt - Date.now()) / 1000;
-				console.log(`${this.name} stopped timer with ${this.secondsToPlay}s remaining`);
+				if (this.debug)
+					console.debug(`${this.name} stopped timer with ${this.secondsToPlay}s remaining`);
 				clearTimeout(this._timeoutTimer);
 				this._timeoutTimer = null;
 			}

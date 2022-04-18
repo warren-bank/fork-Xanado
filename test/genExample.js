@@ -20,7 +20,7 @@ requirejs(['platform', 'game/Edition', 'game/Game', 'game/Player'], (Platform, E
 	})
 	.then(game => game.onLoad(db))
 	.then(game => {
-		game.addPlayer(new Player('Player', "shuggie", false));
+		game.addPlayer(new Player({name:'Player', key: "shuggie"}));
 		return game.loadBoard('| | | | | | | | | | | | | | |\n' +
 							  '|W|O|R|D|S| | | | |C| | | | |\n' +
 							  '|I| | | |C| | | | |U| | | | |\n' +

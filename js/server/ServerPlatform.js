@@ -69,7 +69,7 @@ define('platform', [
 			.then(release => Fs.readFile(fn)
 				  .then(data => release()
 						.then(() => {
-							console.log(`Unlocked ${fn}`);
+							console.debug(`Unlocked ${fn}`);
 							return Fridge.thaw(JSON.parse(data), classes);
 							})));*/
 			// Really should lock for read, but it causes issues when
@@ -117,30 +117,25 @@ define('platform', [
 			findLangPath(path, lang)
 			.then(path => {
 				langdir = Path.join(path, 'i18n');
-				//console.log(`Langdir ${langdir}`);
 				// Try the full locale e.g. 'en-US'
 				langfile = Path.join(langdir, `${lang}.json`);
-				//console.log(`Trying ${langfile}`);
 				return Fs.readFile(langfile);
 			})
 			.catch(e => {
-				//console.log(e);
 				// Try the first part of the locale i.e. 'en' from 'en-US'
 				langfile = Path.join(langdir, `${lang.split('-')[0]}.json`);
-				//console.log(`Trying ${langfile}`);
 				return Fs.readFile(langfile);
 			})
 			.catch(e => {
-				//console.log(e);
 				// Fall back to 'en'
 				langfile = Path.join(langdir, 'en.json');
-				//console.log(`Trying ${langfile}`);
 				return Fs.readFile(langfile);
 			})
 			.then(buffer => {
 				this.data = JSON.parse(buffer.toString());
 				// Use lookup() to make sure it works
-				console.log(this.lookup([/*i18n*/'Strings from $1', langfile]));
+				//console.debug(this.lookup([
+				//	/*i18n*/'Strings from $1', langfile]));
 			});
 		}
 
