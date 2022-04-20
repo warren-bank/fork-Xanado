@@ -62,8 +62,8 @@ define('game/Game', [
 		 * @param {boolean?} params.predictScore default true
 		 * @param {boolean?} params.allowTakeBack default false
 		 * @param {boolean?} params.checkDictionary default false
-		 * @param {number?} params.minPlayers
-		 * @param {number?} params.maxPlayers
+		 * @param {number?} params.minPlayers default 2
+		 * @param {number?} params.maxPlayers default 0 (infinity)
 		 */
 		constructor(params) {
 			this.debug = boolParam(params.debug, true);
@@ -208,14 +208,14 @@ define('game/Game', [
 			this.checkDictionary = boolParam(params.checkDictionary, false);
 
 			/**
-			 * List of decorated sockets
+			 * List of decorated sockets. Only available server-side.
 			 * @member {WebSocket[]}
 			 * @private
 			 */
 			this._connections = [];
 
 			/**
-			 * Database containing this game
+			 * Database containing this game. Only available server-side.
 			 * @member {Platform.Database}
 			 * @private
 			 */
@@ -246,7 +246,7 @@ define('game/Game', [
 		 * A game loaded by deserialisation has to know what DB it was
 		 * loaded from so it knows where to save the game. The
 		 * database and connections are not serialised, and must be
-		 * reset.
+		 * reset. Only available server-side.
 		 * @param {Platform.Database} db the db to use
 		 * @return {Promise} Promise that resolves to the game
 		 */
@@ -471,10 +471,21 @@ define('game/Game', [
 			let prom;
 
 			if (!this.whosTurnKey) {
-				// Pick a random tile from the bag
+				// Shuffle the players, and pick a random tile from the bag
+				if (this.players.length > 2)
+					for (let i = this.players.length - 1; i > 0; i--) {
+						const j = Math.floor(Math.random() * (i + 1));
+						const temp = this.players[i];
+						this.players[i] = this.players[j];
+						this.players[j] = temp;
+					}
+
 				this.whosTurnKey = this.players[
 					Math.floor(Math.random() * this.players.length)].key;
 				prom = this.save();
+				// Notify all connections of the changes
+				this.updateConnections();
+
 			} else if (!this.getPlayer(this.whosTurnKey)) {
 				// Player who's play it was must have left
 				this.whosTurnKey = this.players[0].key;
@@ -499,6 +510,7 @@ define('game/Game', [
 		/**
 		 * Send a message to just one player. Note that the player
 		 * may be connected multiple times through different sockets.
+		 * Only available server-side.
 		 * @param {Player} player
 		 * @param {string} message to send
 		 * @param {Object} data to send with message
@@ -518,6 +530,7 @@ define('game/Game', [
 		/**
 		 * Broadcast a message to all players and monitors. Note that a player
 		 * may be connected multiple times, through different sockets.
+		 * ONly available server-side.
 		 * @param {string} message to send
 		 * @param {Object} data to send with message
 		 */
@@ -623,13 +636,12 @@ define('game/Game', [
 
 		/**
 		 * Notify players with a list of the currently connected players,
-		 * as identified by their key.
+		 * as identified by their key. Only available server-side.
 		 */
 		updateConnections() {
 			Promise.all(
-				this._connections
-				.filter(socket => socket.player instanceof Player)
-				.map(socket => socket.player.simple(this)
+				this.players
+				.map(player => player.simple(this)
 					 .then(cat => {
 						 cat.gameKey = this.key;
 						 return cat;
@@ -694,7 +706,8 @@ define('game/Game', [
 
 		/**
 		 * Player is on the given socket, as determined from an incoming
-		 * 'join'. Server side only.
+		 * 'join'.
+		 * Only available server side.
 		 * @param {WebSocket} socket the connecting socket
 		 * @param {string} playerKey the key identifying the player
 		 */
@@ -759,6 +772,32 @@ define('game/Game', [
 			});
 		}
 
+		/**
+		 * Given a list of Player.simple, update the players list
+		 * to reflect the members and ordering of that list.
+		 * Only used client-side.
+		 * @param {object[]} simpleList list of Player.simple
+		 */
+		updatePlayerList(simpleList) {
+			for (let player of this.players)
+				player.online(false);
+			const newOrder = [];
+			for (let simple of simpleList) {
+				if (!simple) continue;
+				let player = this.getPlayerWithKey(simple.key);
+				if (player)
+					player.connected = simple.connected;
+				else {
+					// New player in game
+					player = new Player(simple);
+					this.addPlayer(player);
+				}
+				player.online(player.connected);
+				newOrder.push(player);
+			}
+			this.players = newOrder;
+		}
+		
 		/**
 		 * Server side, tell all clients a tick has happened
 		 * @private

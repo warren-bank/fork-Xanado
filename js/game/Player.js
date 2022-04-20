@@ -119,7 +119,9 @@ define('game/Player', [
 					
 					// Can they be emailed?
 					email: ump.email ? true : false,
-					// Only in simple, has no analog in Player
+
+					// Is the player currently connected through a socket.
+					// Only in Player.simple, has no analogue in Player
 					connected: this.isRobot
 					|| (game.getConnection(this) !== null)
 				};
@@ -130,11 +132,12 @@ define('game/Player', [
 				return {
 					name: 'Unknown',
 					isRobot: this.isRobot,
-					connected: this.isRobot
-					|| (game.getConnection(this) !== null),
+					dictionary: this.dictionary,
 					key: this.key,
 					score: this.score,
-					secondsToPlay: this.secondsToPlay
+					secondsToPlay: this.secondsToPlay,
+					connected: this.isRobot
+					|| (game.getConnection(this) !== null)
 				};
 			});
 		}

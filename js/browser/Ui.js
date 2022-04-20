@@ -591,14 +591,15 @@ define('browser/Ui', [
 		updatePlayerTable() {
 			const $playerTable = this.game.createPlayerTableDOM(this.player);
 			$('#playerList').html($playerTable);
+			this.updateWhosTurn();
 		}
 
 		/**
 		 * Show who's turn it is
 		 */
-		updateWhosTurn(whosTurnKey) {
+		updateWhosTurn() {
 			$('.whosTurn').removeClass('whosTurn');
-			$(`#player${whosTurnKey}`).addClass('whosTurn');
+			$(`#player${this.game.whosTurnKey}`).addClass('whosTurn');
 		}
 
 		/**
@@ -718,7 +719,7 @@ define('browser/Ui', [
 			}
 
 			let myGo = this.isThisPlayer(game.whosTurnKey);
-			this.updateWhosTurn(game.whosTurnKey);
+			this.updateWhosTurn();
 			this.lockBoard(!myGo);
 			this.enableTurnButton(myGo || game.hasEnded());
 
@@ -837,21 +838,8 @@ define('browser/Ui', [
 				// Update list of active connections. 'players' is a list of
 				// Player.simple
 				console.debug("--> connections");
-				for (let player of this.game.players)
-					player.online(false);
-				for (let simple of players) {
-					if (!simple) continue;
-					let player = this.game.getPlayerWithKey(simple.key);
-					if (player)
-						player.connected = simple.connected;
-					else {
-						// New player in game
-						player = new Player(simple);
-						this.game.addPlayer(player);
-						this.updatePlayerTable();
-					}
-					player.online(player.connected);
-				}
+				this.game.updatePlayerList(players);
+				this.updatePlayerTable();
 			})
 
 			// A turn has been taken. turn is a Turn
@@ -1473,7 +1461,6 @@ define('browser/Ui', [
 
 			if (turn.nextToGoKey && turn.type !== 'challenge-won') {
 
-				this.updateWhosTurn(turn.nextToGoKey);
 				if (turn.type == 'move'
 					&& this.game.allowTakeBack
 					&& this.isThisPlayer(turn.playerKey))
@@ -1490,6 +1477,7 @@ define('browser/Ui', [
 						this.addChallengePreviousButton(turn);
 				}
 				this.game.whosTurnKey = turn.nextToGoKey;
+				this.updateWhosTurn();
 			}
 			this.updateGameStatus();
 		}
