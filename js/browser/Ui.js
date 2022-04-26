@@ -36,8 +36,7 @@ define('browser/Ui', [
 		else if (args instanceof Error) // Error object
 			message = args.toString();
 		else if (args instanceof Array) { // First element i18n code
-			args[0] = $.i18n(args[0]);
-			message = args.join(" ");
+			message = $.i18n.apply($.i18n, args);
 		} else // something else
 			message = args.toString();
 		$('#alertDialog')

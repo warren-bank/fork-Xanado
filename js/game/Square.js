@@ -164,6 +164,8 @@ define('game/Square', ['platform'], (Platform) => {
 
 			if (this.tile.isBlank)
 				$div.addClass('blank-letter');
+			else
+				$div.removeClass('blank-letter');
 
 			if (this.tileLocked) {
 				$div.addClass('Locked');
@@ -218,6 +220,7 @@ define('game/Square', ['platform'], (Platform) => {
 			// no tile on the square, valid drop target
 			$div
 			.removeClass("tiled-square")
+			.removeClass('blank-letter')
 			.addClass('empty-square');
 
 			$div.on('click', () => Platform.trigger('SelectSquare', [ this ]))
@@ -234,6 +237,7 @@ define('game/Square', ['platform'], (Platform) => {
 			const text = $.i18n(`square-${this.type}`);
 			$div.addClass('empty-square')
 			.removeClass("tiled-square")
+			.removeClass('blank-letter')
 			.html(`<a>${text}</a>`);
 		}
 	}		
