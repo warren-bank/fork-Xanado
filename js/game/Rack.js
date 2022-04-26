@@ -17,10 +17,18 @@ define('game/Rack', ['game/Surface'], Surface => {
 		 * @param {string} id unique id for this rack
 		 * @param {(number|Tile[])} size a rack size, or an array
 		 * of Tile (for tests)
+		 * @param {string} underlay text string with one character for each cell in the rack
 		 */
-		constructor(id, size) {
+		constructor(id, size, underlay) {
 			super(id, typeof size === 'number' ? size : size.length, 1,
 				  () => '_');
+			if (underlay) {
+				let idx = 0;
+				this.forEachSquare(square => {
+					square.setUnderlay(underlay.charAt(idx++));
+					return idx === underlay.length;
+				});
+			}
 			if (typeof size !== 'number')
 				for (let tile of size)
 					this.addTile(tile);
@@ -145,11 +153,6 @@ define('game/Rack', ['game/Surface'], Surface => {
 			let idx = 0;
 			this.forEachSquare(square => {
 				const $td = square.$ui(idx);
-				if (underlay) {
-					const letter = underlay.charAt(idx);
-					$td.addClass('underlay-container');
-					$td.append(`<div class='underlay'>${letter}</div>`);
-				}
 				$tr.append($td);
 				idx++;
 			});

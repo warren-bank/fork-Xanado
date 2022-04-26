@@ -92,6 +92,13 @@ define('game/Square', ['platform'], (Platform) => {
 			 */
 			this.tileLocked = false;
 
+			/**
+			 * Underlay character to put in the background of the square when
+			 * there is no tile present.
+			 * @member {string}
+			 */
+			this.underlay = undefined;
+
 			// Determine score multipliers from type
 			switch (this.type) {
 			case 'd': this.letterScoreMultiplier = 2; break;
@@ -163,8 +170,6 @@ define('game/Square', ['platform'], (Platform) => {
 		$ui() {
 			const $td = $(`<td></td>`);
 			$td.addClass(`square-${this.type}`);
-			if (!this.id)
-				debugger;
 			const $div = $(`<div id='${this.id}'><a></a></div>`);
 			// Associate the square with the div for dragging
 			$div.data('square', this);
@@ -188,6 +193,14 @@ define('game/Square', ['platform'], (Platform) => {
 				this.refreshOccupied($div);
 			else
 				this.refreshEmpty($div);
+		}
+
+		/**
+		 * Set the underlay; UI
+		 * @param {boolean} sel 
+		 */
+		setUnderlay(ch) {
+			this.underlay = ch;
 		}
 
 		/**
@@ -290,6 +303,9 @@ define('game/Square', ['platform'], (Platform) => {
 
 			const text = $.i18n(`square-${this.type}`);
 			$div.empty().append($("<a></a>").text(text));
+
+			if (typeof this.underlay !== 'undefined')
+				$div.append(`<div class='underlay'>${this.underlay}</div>`);
 		}
 	}		
 

@@ -700,7 +700,7 @@ define('browser/Ui', [
 			this.placedCount = 0;
 
 			// Can swap up to swapCount tiles
-			this.swapRack = new Rack('Swap', this.game.board.swapCount);
+			this.swapRack = new Rack('Swap', this.game.board.swapCount, $.i18n('SWAP'));
 
 			this.updatePlayerTable();
 
