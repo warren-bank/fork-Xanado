@@ -259,7 +259,7 @@ define('browser/Ui', [
 					turn.replacements.length);
 				break;
 			case /*i18n*/'timeout':
-			case /*i18n*/"passed":
+			case /*i18n*/'pass':
 			case /*i18n*/'challenge-won':
 			case /*i18n*/'challenge-failed':
 			case /*i18n*/'took-back':
