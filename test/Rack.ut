@@ -77,7 +77,7 @@ requirejs([
 		let $dact = $("<div></div>").append($act);
 		$("body").append($dact);
 
-		let $exp = $('<table class="Rack"><tbody><tr><td class="square-_"><div id="base_0"><a></a></div><div class="underlay">£</div></td><td class="square-_"><div id="base_1"><a></a></div><div class="underlay"></div></td></tr></tbody></table>');
+		let $exp = $('<table class="Rack"><tbody><tr><td class="square-_"><div id="base_0"><a></a></div></td><td class="square-_"><div id="base_1"><a></a></div></td></tr></tbody></table>');
 
 		let $dexp = $("<div></div>").append($exp);
 		$("body").append($dexp);
