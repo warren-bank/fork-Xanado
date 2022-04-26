@@ -43,13 +43,12 @@ requirejs(['fs', 'node-gzip', 'dawg/Trie'], (fs, Gzip, Trie) => {
 	const infile = process.argv[2];
 	const outfile = process.argv[3];
 
-	Fs.readFile(infile)
+	Fs.readFile(infile, 'utf8')
 	.then(async function(data) {
 		const lexicon = data
-			.toString()
 			.toUpperCase()
 			.split(/\r?\n/)
-			.map(w => w.replace(/[\W].*$/, '')) // comments
+			.map(w => w.replace(/[\s].*$/, '')) // comments
 			.sort();
 
 		// First step; generate a Trie from the words in the lexicon
