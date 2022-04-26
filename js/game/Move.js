@@ -13,22 +13,17 @@ define('game/Move', ['game/Tile'], Tile => {
 	class Move {
 
 		/**
-		 * @param {Move|object} spec Move to copy, or spec, or undefined
-		 * @param {Tile[]} spec.placements list of tiles.
-		 * @param {Tile[]} spec.replacements list of tiles replacing
-		 * played tiles.
-		 * @param {object[]} spec.words words created
-		 * @param {number} spec.words.score - score for the word
-		 * @param {string} spec.words.word - the word
-		 * @param {number} spec.score total score for play
-		 * @param {number} spec.bonus bonus for the play (included in score)
+		 * @param {(Move|object)?} params Move to copy, or params, or undefined
+		 * Any member can be initialised by a corresponding field in
+		 * params.
 		 */
-		constructor(spec) {
+		constructor(params) {
 			/**
 			 * List of words created by the play {word: string, score: number}
 			 * @member {object[]}
 			 */
-			this.words = [];
+			if (params && params.words)
+				this.words = params.words;
 
 			/**
 			 * Score for the play.
@@ -38,7 +33,7 @@ define('game/Move', ['game/Tile'], Tile => {
 			 * in Turn.
 			 * @member {number|object}
 			 */
-			this.score = 0;
+			this.score = params ? (params.score || 0) : 0;
 
 			/**
 			 * Bonus for the play (included in score)
@@ -52,32 +47,20 @@ define('game/Move', ['game/Tile'], Tile => {
 			 * In a Turn, for type=`move` it indicates the
 			 * move. For `took-back` and `challenge-won` it is the
 			 * move just taken back/challenged.
-			 * @member {Tile[]}
+			 * @member {Tile[]?}
 			 */
-			this.placements = [];
+			if (params && params.placements)
+				this.placements = params.placements.map(
+					tilespec => new Tile(tilespec));
 
 			/**
 			 * List of tiles drawn from the bag to replace the tiles played
 			 * in this move. These tiles will not have positions.
 			 * @member {Tile[]}
 			 */
-			this.replacements = [];
-
-			if (spec)
-				Object.getOwnPropertyNames(spec).forEach(p => {
-					switch (p) {
-					case 'placements':
-					case 'replacements':
-						// Must create Tile objects
-						spec[p].forEach(
-							tilespec =>
-							this[p].push(new Tile(tilespec)));
-						break;
-					default:
-						// Just steal it
-						this[p] = spec[p];
-					}
-				});
+			if (params && params.replacements)
+				this.replacements = params.replacements.map(
+					tilespec => new Tile(tilespec));
 		}
 
 		/**
@@ -85,7 +68,10 @@ define('game/Move', ['game/Tile'], Tile => {
 		 * @param {Tile} tile the Tile to add
 		 */
 		addPlacement(tile) {
-			this.placements.push(tile);
+			if (this.placements)
+				this.placements.push(tile);
+			else
+				this.placements = [tile];
 		}
 
 		/**
@@ -93,7 +79,10 @@ define('game/Move', ['game/Tile'], Tile => {
 		 * @param {Tile} tile the Tile to add
 		 */
 		addReplacement(tile) {
-			this.replacements.push(tile);
+			if (this.replacements)
+				this.replacements.push(tile);
+			else
+				this.replacements = [tile];
 		}
 
 		toString() {

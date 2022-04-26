@@ -1,0 +1,113 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node, mocha */
+/*global document:writable*/
+
+requirejs = require('requirejs');
+// node.js
+const { JSDOM } = require('jsdom');
+/* eslint-disable no-global-assign */
+document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
+/* eslint-enable no-global-assign */
+const { window } = document;
+global.window = window;
+global.document = window.document;
+global.navigator = { userAgent: "node.js" };
+const jQuery = require('jquery');
+global.jQuery = jQuery;
+global.$ = jQuery;
+
+requirejs.config({
+    baseUrl: `${__dirname}/..`,
+	nodeRequire: require,
+    paths: {
+		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
+		i18n: "node_modules/jquery-i18n/index",
+		game: 'js/game',
+		platform: 'js/server/ServerPlatform'
+    }
+});
+
+/**
+ * Unit tests for Square class
+ */
+requirejs([
+	'test/TestRunner', 'game/Square', 'game/Tile', 'jquery-ui'
+], (
+	TestRunner, Square, Tile
+) => {
+
+	require("@wikimedia/jquery.i18n/src/jquery.i18n");
+	
+    let tr = new TestRunner('Square tests');
+    let assert = tr.assert;
+
+	tr.addTest('construct', () => {
+		let sq = new Square('q', { id: 'base' }, 56, 42);
+		assert.equal(sq.letterScoreMultiplier, 4);
+		assert.equal(sq.wordScoreMultiplier, 1);
+		assert(!sq.tile);
+		assert(!sq.tileLocked);
+		assert(sq.isEmpty());
+		let tile = new Tile({
+			letter:'S', isBlank:false, score:1, col: 7, row: 7});
+		sq.placeTile(tile, true);
+		assert(sq.tile);
+		assert(sq.tileLocked);
+		assert(!sq.isEmpty());
+		assert.equal(tile.col, sq.col);
+		assert.equal(tile.row, sq.row);
+		sq.placeTile();
+		assert(!sq.tile);
+		assert(!sq.tileLocked);
+		assert(sq.isEmpty());
+	});
+	
+	tr.addTest('$ui', () => {
+		let sq = new Square('q', { id: 'base' }, 56, 42);
+		assert.equal(sq.$ui().html(),
+					 '<div id="base_56x42"><a></a></div>');
+		sq = new Square('_', { id: 'base' }, 56);
+		assert.equal(sq.$ui().html(),
+					 '<div id="base_56"><a></a></div>');
+	});
+
+	tr.addTest("refresh empty", () => {
+		let sq = new Square('q', { id: 'base' }, 56, 42);
+		let $td = sq.$ui();
+		$("body").append($td);
+		sq.$refresh();
+		//console.log($("body").html());
+		assert($td.hasClass("square-q"));
+		const $div = $td.find("div");
+		assert($div.hasClass("empty-square"));
+		assert($div.hasClass("ui-droppable"));
+		assert.equal($div.find("A").text(), "square-q");
+	});
+	
+	tr.addTest("refresh occupied", () => {
+		let sq = new Square('q', { id: 'surface' }, 56, 42);
+		let tile = new Tile({ letter:'S', isBlank:false });
+		sq.placeTile(tile, true);
+		let $td = sq.$ui();
+		$("body").append($td);
+		sq.$refresh();
+		sq.setSelected(true);
+		//console.log($("body").html());
+		assert($td.hasClass("square-q"));
+		const $div = $("div[id=surface_56x42]");
+		assert($div.hasClass("selected"));
+		assert($div.hasClass("Locked"));
+		assert($div.hasClass("tiled-square"));
+		assert(!$div.hasClass("ui-droppable"));
+		let $letter = $("#surface_56x42>a>span.letter");
+		assert.equal($letter.text(), "S");
+		let $score = $("#surface_56x42>a>span.score");
+		assert.equal($score.text(), "0");
+		sq.setSelected(false);
+		assert(!$div.hasClass("selected"));
+	});
+	
+	tr.run();
+});
+

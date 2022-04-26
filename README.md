@@ -173,10 +173,10 @@ The server can be configured to use HTTPS, see the example config.json
 for how. HTTPS is required for notifications to work, and is highly
 recommended when using default logins. To use HTTPS you require an SSL
 certificate. You can generate one using the instructions in
-https://linuxize.com/post/creating-a-self-signed-ssl-certificate/
+https://linuxize.com/post/creating-a-self-signed-ssl-certificate/ (however some browsers - e.g. Brave - will eject a self-signed certificate
 
 # Development
-The server code is written in Javascript ES6 and tested using `node.js` version 12.0.0. It may work in earlier versions of `node.js`, but is untested. The client is also written in Javascript and works in all the browsers I tested (Chrome, Firefox, Android, Opera.)
+The server code is written in Javascript ES6 and tested using `node.js` version 12.0.0. It may work in earlier versions of `node.js`, but is untested. The client is also written in Javascript and works in all the browsers I tested (Chrome, Firefox, Android, Opera.) Apple products - iOS, Safari, MacOS - are NOT tested and are known to exhibit problems.
 
 Further development is welcome, especially:
 - User interface translations

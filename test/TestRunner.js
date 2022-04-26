@@ -23,6 +23,18 @@ define(["mocha", "chai"], (maybeMocha, chai) => {
 			super({ reporter: (typeof global === "undefined") ? 'html' : 'spec' });
 			this.chai = chai;
 			this.assert = chai.assert;
+
+			this.assert.sparseEqual = (actual, expected, path) => {
+				if (!path) path = "";
+				for (let f in expected) {
+					const spath = `${path}->${f}`;
+					if (typeof expected[f] === 'object')
+						this.assert.sparseEqual(actual[f], expected[f], spath);
+					else
+						this.assert.equal(actual[f], expected[f], spath);
+				}
+			};
+
 			if (typeof title === "string")
 				this.suite.title = title;
 			this.debug = debug;

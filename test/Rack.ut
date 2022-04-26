@@ -1,0 +1,120 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node, mocha */
+/*global document:writable*/
+
+requirejs = require('requirejs');
+// node.js
+const { JSDOM } = require('jsdom');
+/* eslint-disable no-global-assign */
+document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
+/* eslint-enable no-global-assign */
+const { window } = document;
+global.window = window;
+global.document = window.document;
+global.navigator = { userAgent: "node.js" };
+const jQuery = require('jquery');
+global.jQuery = jQuery;
+global.$ = jQuery;
+
+requirejs.config({
+    baseUrl: `${__dirname}/..`,
+	nodeRequire: require,
+    paths: {
+		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
+		game: 'js/game',
+		platform: 'js/server/ServerPlatform'
+    }
+});
+
+/**
+ * Unit tests for Rack class
+ */
+requirejs([
+	'test/TestRunner', 'game/Rack', 'game/Tile', "game/Square", 'jquery-ui'
+], (
+	TestRunner, Rack, Tile, Square
+) => {
+
+	require("@wikimedia/jquery.i18n/src/jquery.i18n");
+
+    let tr = new TestRunner('Rack tests');
+    let assert = tr.assert;
+
+	tr.addTest('construct', () => {
+		let r = new Rack('base', 10);
+		assert(r.isEmpty());
+		r = new Rack('base', [new Tile()]);
+		assert(!r.isEmpty());
+	});
+
+	tr.addTest('$ui empty', () => {
+		let r = new Rack('base', 2);
+
+		let $act = r.$ui();
+		assert($act.hasClass("Rack"));
+
+		let $dact = $("<div></div>").append($act);
+		$("body").append($dact);
+
+		let $exp = $('<table class="Rack"><tr><td class="square-_"><div id="base_0"><a></a></div></td><td class="square-_"><div id="base_1"><a></a></div></td></tr></table>');
+
+		let $dexp = $("<div></div>").append($exp);
+		$("body").append($dexp);
+
+		assert($act[0].isEqualNode($exp[0]),
+			   "\nexpected:" + $dexp.html() + "\n" +
+			   "  actual:" + $dact.html());
+		$("body").empty();
+	});
+
+	tr.addTest('$ui empty underlay', () => {
+		let r = new Rack('base', 2);
+
+		let $act = r.$ui("£");
+		assert($act.hasClass("Rack"));
+
+		let $dact = $("<div></div>").append($act);
+		$("body").append($dact);
+
+		let $exp = $('<table class="Rack"><tbody><tr><td class="square-_ underlay-container"><div id="base_0"><a></a></div><div class="underlay">£</div></td><td class="square-_ underlay-container"><div id="base_1"><a></a></div><div class="underlay"></div></td></tr></tbody></table>');
+
+		let $dexp = $("<div></div>").append($exp);
+		$("body").append($dexp);
+
+		assert($act[0].isEqualNode($exp[0]),
+			   "\nexpected:" + $dexp.html() + "\n" +
+			   "  actual:" + $dact.html());
+
+		$("body").empty();
+	});
+
+	tr.addTest('$ui tiled', () => {
+		let r = new Rack('base', 2);
+		r.addTile(new Tile({letter:'S'}), 0, 0);
+		r.addTile(new Tile({letter:'Q'}), 0, 0);
+
+		assert.deepEqual(r.letters().sort(), ['Q', 'S']);
+
+		let $act = r.$ui();
+		assert($act.hasClass("Rack"));
+
+		let $dact = $("<div></div>").append($act);
+
+		// Must be iun the body before refresh or #id's won't be found
+		$("body").append($dact);
+		r.$refresh();
+
+		let $exp = $('<table class="Rack"><tbody><tr><td class="square-_"><div id="base_0" class="tiled-square temporary ui-draggable ui-draggable-handle"><a><span class="letter">S</span><span class="score">0</span></a></div></td><td class="square-_"><div id="base_1" class="tiled-square temporary ui-draggable ui-draggable-handle"><a><span class="letter">Q</span><span class="score">0</span></a></div></td></tr></tbody></table>');
+
+		let $dexp = $("<div></div>").append($exp);
+
+		assert($act[0].isEqualNode($exp[0]),
+			   "\nexpected:" + $dexp.html() + "\n" +
+			   "  actual:" + $dact.html());
+		$("body").empty();
+	});
+
+	tr.run();
+});
+

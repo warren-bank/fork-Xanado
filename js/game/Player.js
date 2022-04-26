@@ -28,9 +28,20 @@ define('game/Player', [
 		 * it's a robot. If name is a Player object, ignored.
 		 * @param {boolean} params.canChallenge controls whether this player
 		 * can challenge if it's a robot
-		 * @param {boolean} params.debug true for debug messages
+		 * @param {string} params.dictionary dictionary to use to find moves
+		 * if this is a robot
+		 * @param {boolean} params.missNextTurn true if this player
+		 * has to miss their next turn due to a failed challenge
+		 * @param {boolean} params._debug true to enable debug messages
 		 */
 		constructor(params) {
+			/**
+			 * Debug log messages on/off
+			 * @member {boolean}
+			 * @private
+			 */
+			this._debug = params.debug;
+
 			/**
 			 * Player unique key
 			 * @member {string}
@@ -95,6 +106,21 @@ define('game/Player', [
 			 * @member {string}
 			 */
 			this.dictionary = params.dictionary;
+
+			/**
+			 * True if this player is due to miss their next play due
+			 * to a failed challenge
+			 * @member {boolean?}
+			 */
+			this.missNextTurn = params.missNextTurn;
+
+			/**
+			 * The connected flag is set when the player is created
+			 * from a Player.simple structure. It is not used server-side.
+			 * @member {boolean?}
+			 */
+			if (params.isConnected)
+				this.isConnected = true;
 		}
 
 		/**
@@ -121,9 +147,13 @@ define('game/Player', [
 					email: ump.email ? true : false,
 
 					// Is the player currently connected through a socket.
-					// Only in Player.simple, has no analogue in Player
-					connected: this.isRobot
-					|| (game.getConnection(this) !== null)
+					// Set in Player.simple before transmission to the client,
+					// client creates a Player(simple), which initialises
+					// connected on the client. Not used server-side.
+					isConnected: this.isRobot
+					|| (game.getConnection(this) !== null),
+
+					missNextTurn: this.missNextTurn
 				};
 			})
 			.catch(e => {
@@ -136,20 +166,24 @@ define('game/Player', [
 					key: this.key,
 					score: this.score,
 					secondsToPlay: this.secondsToPlay,
-					connected: this.isRobot
+					isConnected: this.isRobot
 					|| (game.getConnection(this) !== null)
+					// A robot never misses its next turn, because its
+					// challenges never fail
 				};
 			});
 		}
 
 		/**
-		 * Draw an initial rack from the letter bag.
+		 * Draw an initial rack from the letter bag. Server side only.
 		 * @param {LetterBag} letterBag LetterBag to draw tiles from
 		 * @param {number} rackSize size of the rack
 		 */
 		fillRack(letterBag, rackSize) {
 			// +1 to allow space for tile sorting in the UI
-			this.rack = new Rack(rackSize + 1);
+			// Use the player key for the rack id, so we can maintain
+			// unique racks for different players
+			this.rack = new Rack(`Rack_${this.key}`, rackSize + 1);
 			for (let i = 0; i < rackSize; i++)
 				this.rack.addTile(letterBag.getRandomTile());
 			this.score = 0;
@@ -164,12 +198,12 @@ define('game/Player', [
 		}
 
 		/**
-		 * Set a play timeout for the player
-		 * @param {number} time number of seconds before elapse, or
+		 * Set a play timeout for the player. If the 
+		 * @param {number?} time number of seconds before elapse, or
 		 * 0 to cancel any timeout. If undefined, will restart the timer with
 		 * the time remaining to the player.
-		 * @param {function} onTimeout a function() invoked if the
-		 * timer expires
+		 * @param {function?} onTimeout a function() invoked if the
+		 * timer expires, ignored if time undefined
 		 */
 		startTimer(time, onTimeout) {
 			if (typeof time !== 'undefined') {
@@ -180,11 +214,15 @@ define('game/Player', [
 					return;
 				this._onTimeout = onTimeout;
 			} else if (!this._timeoutTimer && this.secondsToPlay > 0) {
-				// Timer was previously stopped in stopTimer with
-				// time remaining
+				// Timer was never started of was previously stopped in
+				// stopTimer, and there is time remaining. Restart the
+				// timer with the outstanding seconds.
 				time = this.secondsToPlay;
 			} else {
-				this.stopTimer();
+				// Timer is running
+				if (this.secondsToPlay <= 0)
+					this.stopTimer();
+				// Otherwise let the timer run on
 				return;
 			}
 
@@ -208,7 +246,8 @@ define('game/Player', [
 		 */
 		stopTimer() {
 			if (this._timeoutTimer) {
-				this.secondsToPlay = (this._timeoutAt - Date.now()) / 1000;
+				this.secondsToPlay = Math.ceil(
+					(this._timeoutAt - Date.now()) / 1000);
 				if (this.debug)
 					console.debug(`${this.name} stopped timer with ${this.secondsToPlay}s remaining`);
 				clearTimeout(this._timeoutTimer);
@@ -236,31 +275,34 @@ define('game/Player', [
 		}
 
 		/**
-		 * Create score table representation of the player on the browser
-		 * side only. This is intended to work both on a full Player
-		 * object, but also on a Player.simple of the player.
-		 * @param {Player?} curPlayer the player for whom the DOM is
-		 * being generated
-		 * @param {boolean} showConnect show the connection status of the player
-		 * @return {jQuery} DOM object for the score table
+		 * Create score table row for the player. This must work both
+		 * on a full Player object, and also when called statically on
+		 * a Player.simple
+		 * @param {Player?} curPlayer the current player in the UI
+		 * @return {jQuery} jQuery object for the score table
 		 */
-		createScoreDOM(curPlayer, showConnect) {
-			const $tr = $(`<tr class="player-row" id='player${this.key}'></tr>`);
+		$ui(curPlayer) {
+			const $tr = $(`<tr id='player${this.key}'></tr>`)
+				  .addClass("player-row");
+			if (curPlayer && this.key === curPlayer.key)
+				$tr.addClass('whosTurn');
 			$tr.append(`<td class='turn-pointer'>&#10148;</td>`);
 			const $icon = $('<div class="ui-icon"></div>');
 			$icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
 			$tr.append($("<td></td>").append($icon));
 			const who = curPlayer && this.key === curPlayer.key
 				? Platform.i18n("You")
-				: this.name;
-			$tr.append(`<td class='name'>${who}</td>`);
+				  : this.name;
+			const $name = $(`<td class='player-name'>${who}</td>`);
+			if (this.missNextTurn)
+				$name.addClass("miss-turn");
+			$tr.append($name);
 			$tr.append('<td class="remaining-tiles"></td>');
 
-			if (showConnect) {
-				const $status = $(`<td class='connect-state'>${BLACK_CIRCLE}</td>`);
-				$status.addClass(this.connected ? "online" : "offline");
-				$tr.append($status);
-			}
+			// Robots are always connected
+			const $status = $(`<td class='connect-state'>${BLACK_CIRCLE}</td>`);
+			$status.addClass(this.isConnected ? "online" : "offline");
+			$tr.append($status);
 			
 			$tr.append(`<td class='score'>${this.score}</td>`);
 
@@ -271,7 +313,7 @@ define('game/Player', [
 		 * Refresh score table representation of the player on the browser
 		 * side only.
 		 */
-		refreshDOM() {
+		$refresh() {
 			$(`#player${this.key} .score`).text(this.score);
 		}
 
@@ -281,6 +323,7 @@ define('game/Player', [
 		 * @param {boolean} tf true/false
 		 */
 		online(tf) {
+			this.isConnected = tf;
 			let rem = tf ? 'offline' : 'online';
 			let add = tf ? 'online' : 'offline';
 			$(`#player${this.key} .connect-state`)

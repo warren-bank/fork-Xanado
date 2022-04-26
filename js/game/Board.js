@@ -13,7 +13,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		 * @param {Edition} edition the edition defining the board layout
 		 */
 		constructor(edition) {
-			super(edition.cols, edition.rows,
+			super('Board', edition.cols, edition.rows,
 				  (col, row) => edition.squareType(col, row));
 
 			// Copy essentials from the Edition, so we don't have
@@ -363,16 +363,16 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		}
 
 		/**
-		 * Create the DOM representation
+		 * Create the UI representation
 		 * @return {jQuery}
 		 */
-		createDOM() {
+		$ui() {
 			const $table = $('<table></table>');
 			for (let row = 0; row < this.rows; row++) {
 				const $tr = $('<tr></tr>');
 				for (let col = 0; col < this.cols; col++) {
 					const square = this.at(col, row);
-					const $td = square.createDOM('Board', col, row);			
+					const $td = square.$ui('Board', col, row);
 					if (col == this.midcol && row == this.midrow)
 						$td.addClass('StartField');
 					else if (square.type != '_')

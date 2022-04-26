@@ -78,7 +78,7 @@ define('dawg/Dictionary', [ 'platform', 'dawg/LetterNode' ], (Platform, LetterNo
 					`${root}/dictionaries/${name}.dict`)
 				.then(buffer => {
 					dictionaries[name] = new Dictionary(name, buffer.buffer);
-					console.log(`Loaded dictionary ${name}`);
+					//console.log(`Loaded dictionary ${name}`);
 					resolve(dictionaries[name]);
 				});
 			});
@@ -156,7 +156,7 @@ define('dawg/Dictionary', [ 'platform', 'dawg/LetterNode' ], (Platform, LetterNo
 					this.sequenceRoots[node.letter].push(node);
 				return true;
 			});
-			console.log(`Created sequence roots for dictionary '${this.name}'`);
+			//console.log(`Created sequence roots for dictionary '${this.name}'`);
 		}
 
 		/**

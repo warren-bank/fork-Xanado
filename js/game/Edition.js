@@ -81,7 +81,7 @@ define('game/Edition', () => {
 				requirejs([ `editions/${name}` ], data => {
 					editions[name] = new Edition(data);
 					editions[name].name = name;
-					console.log(`Loaded edition ${name}`);
+					//console.log(`Loaded edition ${name}`);
 					resolve(editions[name]);
 				});
 			});

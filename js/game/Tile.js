@@ -21,7 +21,7 @@ define('game/Tile', () => {
 			// to a letter chosen by the player. When the tile is returned
 			// to the rack, the letter will be reset to ' ' as isBlank is true.
 			// However the letter will stick to the Tile when it is sent to
-			// the server as part of the move. Henceforward that Tile will
+			// the server as part of a move. Henceforward that Tile will
 			// be locked to the chosen letter.
 
 			/**

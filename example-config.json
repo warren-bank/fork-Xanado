@@ -1,11 +1,14 @@
 // Rename this file as 'config.json' and remove ALL // comments
 {
-	// The port on the server to use. The default 9093 is used by several
-	// other applications, see:
-	// https://www.speedguide.net/port.php?port=9093
+	// The port on the server to use. The default 9093 may be used by several
+	// other applications, see: https://www.speedguide.net/port.php?port=9093
     "port": 9093,
 
     "baseUrl": "http://localhost:9093/",
+
+	// Name of a subdirectory under the server root to to store
+	// the games database in. Defaults to 'games'.
+	"games": "games",
 
 	// Optional mail configuration.
 	// Not required unless you are mailing out invitations.

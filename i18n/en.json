@@ -5,9 +5,6 @@
 		"NOTE": "English strings are in code. Only particulary long or complex strings are expanded here. Use bin/checkStrings.pl to determine what needs to be translated."
     },
 
-	"challenge-failed": "Challenge failed! All words are OK",
-	"challenge-won": "Previous turn challenged successfully!",
-
 	"games-scores": "$1: <b>$2</b>: $3 ($5 win{{PLURAL:$5||s}} from $4 game{{PLURAL:$4||s}})",
 
 	"Hint": "Hint: $1 at row $2 column $3 for $4",
@@ -51,6 +48,7 @@
 	"tooltip-register-name": "Name you want to be known as in games.",
 	"tooltip-register-email": "Leave blank if you don't want to get emails from XANADO. Emails only relate to gameplay, and addresses are never shared with anyone else.",
 	"tooltip-register-password": "Use something you can easily remember. <b>Never</b> re-use a password you use on another site.",
+	"tooltip-remove-robot": "Remove the robot from this game.",
 	"tooltip-robot-dictionary": "You can choose a different (usually smaller) dictionary for the robot player to choose words from. 'None' will make it play words from the main Dictionary.",
 	"tooltip-time-limit": "Maximum time allowed to take a turn, in minutes. If a player fails to take a turn in this time, they will be forced to pass. Leave blank for no time limit.",
 

@@ -47,6 +47,7 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Player', 'game/
 
 		.then(game => findBestPlay(
 			game, new Rack(
+				'base',
 				[
 					new Tile({letter:'A', isBlank:false, score:1}),
 					new Tile({letter:'E', isBlank:false, score:1}),
@@ -97,12 +98,14 @@ requirejs(['test/TestRunner', 'game/Edition', 'game/Tile', 'game/Player', 'game/
 		})
 
 		.then(game => findBestPlay(
-			game, new Rack([
-				new Tile({letter:'Z', isBlank:false, score:1}),
-				new Tile({letter:'E', isBlank:false, score:1}),
-				new Tile({letter:'B', isBlank:false, score:1}),
-				new Tile({letter:'U', isBlank:false, score:1})
-			]).tiles(),
+			game, new Rack(
+				'base',
+				[
+					new Tile({letter:'Z', isBlank:false, score:1}),
+					new Tile({letter:'E', isBlank:false, score:1}),
+					new Tile({letter:'B', isBlank:false, score:1}),
+					new Tile({letter:'U', isBlank:false, score:1})
+				]).tiles(),
 			play => bestPlay = play))
 
 		.then(() => {

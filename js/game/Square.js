@@ -27,24 +27,72 @@ define('game/Square', ['platform'], (Platform) => {
 		 * @param {string} type /^[QqTtSs_]$/ see {@link Board}
 		 * @param {Surface} owner the container this is in
 		 * @param {number} col 0-based column where the square is
-		 * @param {number} row 0-based row where the square is (undefined on a rack)
+		 * @param {number?} row 0-based row where the square is
+		 * (undefined on a rack)
 		 */
 		constructor(type, owner, col, row) {
+			/**
+			 * /^[QqTtSs_]$/ see {@link Board}
+			 * @member {string}
+			 */
 			this.type = type;
+
+			/**
+			 * Rack or Board
+			 * @member {Surface?}
+			 */
 			this.owner = owner; // Rack or Board
+
+			/**
+			 * 0-based row where the square is (undefined on a 1D surface)
+			 * @member {number}
+			 */
 			this.col = col;
-			this.row = row;
 
+			/**
+			 * 0-based row where the square is (undefined on a 1D surface)
+			 * @member {number}
+			 */
+			if (typeof row !== 'undefined')
+				this.row = row;
+
+			let id = `${owner.id}_${col}`;
+			if (typeof row !== 'undefined')
+				id += `x${row}`;
+
+			/**
+			 * Unique id for this square
+			 * @member {string}
+			 */
+			this.id = id;
+
+			/**
+			 * Multiplier for letters using this square
+			 * @member {number}
+			 */
 			this.letterScoreMultiplier = 1;
-			this.wordScoreMultiplier = 1;
-			this.tile = null; // Tile placed on this square
 
-			// True if the tile cannot be moved i.e. it was
-			// placed in a prior move. Locked tiles don't gather
-			// bonuses.
+			/**
+			 * Multiplier for wordss using this square
+			 * @member {number}
+			 */
+			this.wordScoreMultiplier = 1;
+
+			/**
+			 * Tile placed on this square
+			 * @member {Tile?}
+			 */
+			this.tile = null;
+
+			/**
+			 * True if the tile cannot be moved i.e. it was
+			 * placed in a prior move. Locked tiles don't gather
+			 * bonuses.
+			 * @member {boolean}
+			 */
 			this.tileLocked = false;
 
-			// Determine score multipliers from type in the layout
+			// Determine score multipliers from type
 			switch (this.type) {
 			case 'd': this.letterScoreMultiplier = 2; break;
 			case 't': this.letterScoreMultiplier = 3; break;
@@ -109,26 +157,30 @@ define('game/Square', ['platform'], (Platform) => {
 		}
 
 		/**
-		 * Create the DOM representation
+		 * Create the jquery representation
+		 * @param {string} base for id='s
 		 */
-		createDOM(idbase, col, row) {
+		$ui() {
 			const $td = $(`<td></td>`);
 			$td.addClass(`square-${this.type}`);
-
-			let id = `${idbase}_${col}`;
-			if (typeof row !== 'undefined')
-				id += `x${row}`;
-			this.id = id;
-			const $div = $(`<div id='${id}'><a></a></div>`);
+			if (!this.id)
+				debugger;
+			const $div = $(`<div id='${this.id}'><a></a></div>`);
 			// Associate the square with the div for dragging
 			$div.data('square', this);
 			$td.append($div);
 			return $td;
 		}
 
-		refreshDOM() {
-			const $div = $(`#${this.id}`)
-				.removeClass('selected')
+		$refresh() {
+			const $div = $(`#${this.id}`);
+
+			if ($div.length === 0)
+				// No visual representation for this square - for
+				// example, a square in another player's rack
+				return;
+
+			$div.removeClass('selected')
 				.removeClass('temporary')
 				.off('click');
 
@@ -173,6 +225,7 @@ define('game/Square', ['platform'], (Platform) => {
 					$div.draggable('destroy');
 			} else {
 				// tile isn't locked, valid drag source
+				$div.removeClass('Locked');
 				$div
 				.addClass('temporary')
 				.on('click', () => Platform.trigger('SelectSquare', [ this ]));
@@ -203,7 +256,7 @@ define('game/Square', ['platform'], (Platform) => {
 			const $a = $('<a></a>');
 			$a.append(`<span class='letter'>${letter}</span>`);
 			$a.append(`<span class='score'>${score}</span>`);
-			$div.html($a);
+			$div.empty().append($a);
 		}
 
 		/**
@@ -220,7 +273,8 @@ define('game/Square', ['platform'], (Platform) => {
 			// no tile on the square, valid drop target
 			$div
 			.removeClass("tiled-square")
-			.removeClass('blank-letter')
+			.removeClass("blank-letter")
+			.removeClass("Locked")
 			.addClass('empty-square');
 
 			$div.on('click', () => Platform.trigger('SelectSquare', [ this ]))
@@ -235,10 +289,7 @@ define('game/Square', ['platform'], (Platform) => {
 			});
 
 			const text = $.i18n(`square-${this.type}`);
-			$div.addClass('empty-square')
-			.removeClass("tiled-square")
-			.removeClass('blank-letter')
-			.html(`<a>${text}</a>`);
+			$div.empty().append($("<a></a>").text(text));
 		}
 	}		
 

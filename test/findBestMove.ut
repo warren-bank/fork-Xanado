@@ -26,9 +26,13 @@ requirejs([
 
 	tr.addTest('blanks', () => {
 		let bestMoves = [];
-		return new Game({edition:'English_WWF', dictionary:'Oxford_5000'}).create()
+		return new Game({
+			edition:'English_WWF',
+			dictionary:'Oxford_5000'
+		}).create()
 		.then(game => {
-			game.addPlayer(new Player({name:'test', key:"creep", isRobot:true}));
+			game.addPlayer(new Player({
+				name:'test', key:"creep", isRobot:true}));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -64,18 +68,22 @@ requirejs([
 			}))
 		.then(() => {
 			assert.equal(bestMoves[5].words[0].word, 'HAIRIEST');
-			assert.equal(bestMoves.length, 6);
 			assert.equal(bestMoves[5].words.length, 1);
 			assert.equal(bestMoves[5].score, 42);
+			assert.equal(bestMoves.length, 6);
 		});
 	});
 
 	tr.addTest('actor', () => {
 		let bestMoves = [];
-		return new Game({edition:'English_WWF', dictionary:'SOWPODS_English'})
+		return new Game({
+			edition:'English_WWF',
+			dictionary:'SOWPODS_English'
+		})
 		.create()
 		.then(game => {
-			game.addPlayer(new Player({name:'test', key:"toast", isRobot:true}));
+			game.addPlayer(new Player({
+				name:'test', key:"toast", isRobot:true}));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -92,12 +100,15 @@ requirejs([
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n');
+			game.state = Game.STATE_PLAYING;
 		})
 		.then(game => findBestPlay(
-			game, new Rack([
-				new Tile({letter:'A', isBlank:false, score:1}),
-				new Tile({letter:'C', isBlank:false, score:3}),
-				new Tile({letter:'R', isBlank:false, score:1})
+			game, new Rack(
+				'base',
+				[
+					new Tile({letter:'A', isBlank:false, score:1}),
+					new Tile({letter:'C', isBlank:false, score:3}),
+					new Tile({letter:'R', isBlank:false, score:1})
 			]).tiles(),
 			move => {
 				//console.log(move);
@@ -133,7 +144,10 @@ requirejs([
 
 	tr.addTest('noe', () => {
 		let bestMoves = [];
-		return new Game({edition:'English_Scrabble', dictionary:'SOWPODS_English'}).create()
+		return new Game({
+			edition:'English_Scrabble',
+			dictionary:'SOWPODS_English'
+		}).create()
 		.then(game => {
 			game.addPlayer(new Player({name:'test', key:"slime", isRobot:true}));
 			return game.loadBoard(
@@ -155,7 +169,7 @@ requirejs([
 		})
 		
 		.then(game => findBestPlay(
-			game, new Rack([
+			game, new Rack('best', [
 				new Tile({letter:'L', isBlank:false, score:1}),
 				new Tile({letter:'I', isBlank:false, score:1}),
 				new Tile({letter:'G', isBlank:false, score:2}),
@@ -185,9 +199,13 @@ requirejs([
 	
 	tr.addTest('town', () => {
 		let bestMoves = [];
-		return new Game({edition:'English_Scrabble', dictionary:'Oxford_5000'}).create()
+		return new Game({
+			edition:'English_Scrabble',
+			dictionary:'Oxford_5000'
+		}).create()
 		.then(game => {
-			game.addPlayer(new Player({name:'test', key:"crisp", isRobot:true}));
+			game.addPlayer(new Player({
+				name:'test', key:"crisp", isRobot:true}));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
@@ -207,7 +225,7 @@ requirejs([
 				'| | | | | | | | | | | | | | | |\n');
 		})
 		.then(game => findBestPlay(
-			game, new Rack([
+			game, new Rack('best', [
 				new Tile({letter:'U', isBlank:false, score:1}),
 				new Tile({letter:'T', isBlank:false, score:1}),
 				new Tile({letter:'R', isBlank:false, score:1}),
@@ -231,9 +249,13 @@ requirejs([
 
 	tr.addTest('obliques', () => {
 		let bestMoves = [];
-		return new Game({edition:'English_WWF', dictionary:'British_English'}).create()
+		return new Game({
+			edition:'English_WWF',
+			dictionary:'British_English'
+		}).create()
 		.then(game => {
-			game.addPlayer(new Player({name:'test', key:"turntable", isRobot:true}));
+			game.addPlayer(new Player({
+				name:'test', key:"turntable", isRobot:true}));
 			return game.loadBoard(
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +

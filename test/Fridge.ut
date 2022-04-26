@@ -7,7 +7,7 @@ if (typeof requirejs === 'undefined') {
 }
 
 requirejs.config({
-    baseUrl: '..',
+    baseUrl: `${__dirname}/..`,
     paths: {
         'game': 'js/game'
     }

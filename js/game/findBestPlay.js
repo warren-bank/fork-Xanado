@@ -386,7 +386,7 @@ define('game/findBestPlay', [
 	 * @private
 	 */
 	function bestOpeningPlay(rackTiles) {
-		const ruck = rackTiles.map(l => l.letter).join('');
+		const ruck = rackTiles.map(l => l.letter ? l.letter : ' ').join('');
 		const choices = dict.findAnagrams(ruck);
 		// Random whether it is played across or down
 		const drow = Math.round(Math.random());
@@ -487,7 +487,7 @@ define('game/findBestPlay', [
 			dict = de[0];
 			edition = de[1];
 
-			report('Starting computation');
+			report('Starting computation', rackTiles);
 			bestScore = 0;
 
 			// Has at least one anchor been explored? If there are

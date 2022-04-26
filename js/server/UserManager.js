@@ -84,7 +84,8 @@ define('server/UserManager', [
 		constructor(config, app) {
 			this.config = config;
 			this.db = undefined;
-			
+			this._config = config.debug_comms;
+
 			// Passport requires ExpressSession to be configured
 			app.use(ExpressSession({
 				secret: this.config.auth.sessionSecret,
@@ -200,10 +201,12 @@ define('server/UserManager', [
 		 * @private
 		 */
 		passportLogin(req, res, uo) {
-			console.debug("passportLogin in", uo);
+			if (this._debug)
+				console.debug("passportLogin in", uo);
 			return new Promise(resolve => {
 				req.login(uo, () => {
-					console.log(uo, "logged in");
+					if (this._debug)
+						console.log(uo, "logged in");
 					resolve(uo);
 				});
 			});
@@ -425,7 +428,8 @@ define('server/UserManager', [
 			.then(pw => {
 				if (typeof pw !== 'undefined')
 					desc.pass = pw;
-				console.log("Add user", desc);
+				if (this._debug)
+					console.debug("Add user", desc);
 				this.db.push(desc);
 				return this.writeDB()
 				.then(() => desc);
@@ -436,7 +440,8 @@ define('server/UserManager', [
 		 * @private
 		 */
 		sendResult(res, status, info) {
-			console.debug(`<-- ${status}`, info);
+			if (this._debug)
+				console.debug(`<-- ${status}`, info);
 			res.status(status).send(info);
 		}
 
@@ -491,7 +496,8 @@ define('server/UserManager', [
 				&& req.session.passport.user
 				&& req.logout) {
 				const departed = req.session.passport.user.name;
-				console.log("Logging out", departed);
+				if (this._debug)
+					console.debug("Logging out", departed);
 				req.logout();
 				return this.sendResult(res, 200, [
 					/*i18n*/'um-logged-out', departed ]);
@@ -551,7 +557,8 @@ define('server/UserManager', [
 				return this.setToken(user)
 				.then(token => {
 					const url = `${surly}/reset-password/${token}`;
-					console.log(`Send password reset ${url} to ${user.email}`);
+					if (this._debug)
+						console.debug(`Send password reset ${url} to ${user.email}`);
 					if (!this.options.mail)
 						return this.sendResult(res, 500, [
 							/*i18n*/'um-mail-not-configured' ]);
@@ -578,7 +585,8 @@ define('server/UserManager', [
 		 * @private
 		 */
 		handle_password_reset(req, res) {
-			console.log(`Password reset ${req.params.token}`);
+			if (this._debug)
+				console.debug(`Password reset ${req.params.token}`);
 			return this.getUser({token: req.params.token})
 			.then(userObject => this.passportLogin(req, res, userObject))
 			.then(() => res.redirect('/'))

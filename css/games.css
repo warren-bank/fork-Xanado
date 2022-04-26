@@ -22,6 +22,16 @@ body {
 	margin-top: 1em;
 }
 
+.game-key {
+	float: right;
+	font-size: smaller;
+}
+
+.game-state {
+	margin-left: 1em;
+	font-weight: bold;
+}
+
 #gamesTable {
 	margin-bottom: 1.5em;
 }
@@ -46,4 +56,9 @@ body {
 
 .invitee {
 	font-style: italic;
+}
+
+button.risky {
+	/*background-color: transparent;*/
+	color: #c33;
 }

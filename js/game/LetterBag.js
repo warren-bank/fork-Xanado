@@ -40,6 +40,10 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 			this.shake();
 		}
 
+		/**
+		 * Test bag for emptiness
+		 * @return {boolean} true if there are no tiles in the bag
+		 */
 		isEmpty() {
 			return this.tiles.length === 0;
 		}
@@ -116,6 +120,13 @@ define('game/LetterBag', ['game/Tile'], (Tile) => {
 		 */
 		remainingTileCount() {
 			return this.tiles.length;
+		}
+
+		/**
+		 * Return an unsorted list of letters in the bag
+		 */
+		letters() {
+			return this.tiles.map(tile => tile.letter);
 		}
 	}
 	return LetterBag;

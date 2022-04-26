@@ -36,8 +36,10 @@
 		"socket.io": ">=4.4.1"
 	},
 	"devDependencies": {
+		"@wikimedia/jquery.i18n": "^1.0.7",
 		"chai": ">=4.3.6",
 		"eslint": ">=8.12.0",
+		"jquery-ui-dist": "^1.13.1",
 		"jsdoc": "^3.6.10",
 		"marked": "^4.0.12",
 		"mocha": ">=9.2.2"

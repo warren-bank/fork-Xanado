@@ -47,8 +47,13 @@
 	visibility: inherit;
 }
 
-.playerTable td.name {
+.playerTable td.player-name {
 	font-weight: bold;
+}
+
+/* player is missing their next turn */
+.playerTable .miss-turn {
+	text-decoration:line-through;
 }
 
 .playerTable td.remaining-tiles {}

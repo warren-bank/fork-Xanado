@@ -123,26 +123,3 @@ button.hide-password {
 	font-weight: normal;
 	box-shadow: 0.1em 0.1em 0.3em rgba(0,0,0,0.9);
 }
-
-/*button {
-  background-image: linear-gradient(#A49E63, #47755B);
-  border: 0;
-  border-radius: 0.2em;
-  box-shadow: rgba(0, 0, 0, .3) 0 5px 15px;
-  box-sizing: border-box;
-  color: #fff;
-  cursor: pointer;
-  font-family: Montserrat,sans-serif;
-  font-size: .9em;
-  margin: 3px;
-  padding: 5px 7px;
-  text-align: center;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
-*/
-button.risky {
-	/*background-color: transparent;*/
-	color: #c33;
-}

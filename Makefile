@@ -6,7 +6,14 @@ JS := $(shell find js -name '*.js' )
 
 all:
 	(cd dictionaries && make)
-	node server.js
+	node server.js --debug_comms --debug_game
+
+TESTS := $(shell find . \( -name node_modules -o -name doc \) -prune -false -o \( -type f -name '*.ut' \) )
+
+%.utr: %.ut
+	node $^
+
+tests: $(TESTS:.ut=.utr)
 
 doc/index.html: $(JS) doc/README.md
 	node_modules/.bin/jsdoc -c doc/config.json -d doc $(JS)

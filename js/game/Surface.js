@@ -10,11 +10,18 @@ define('game/Surface', ['game/Square'], Square => {
 	class Surface {
 
 		/**
+		 * @param {string} id unique id for the surface 
 		 * @param {number} cols number of columns
 		 * @param {number} rows number of rows (1 for a rack)
 		 * @param {function} type function(col, row) returning the square type
 		 */
-		constructor(cols, rows, type) {
+		constructor(id, cols, rows, type) {
+			/**
+			 * Unique id for the surface 
+			 * @member {string}
+			 */
+			this.id = id;
+
 			/**
 			 * Number of columns on the surface
 			 * @member {number}
@@ -34,7 +41,8 @@ define('game/Surface', ['game/Square'], Square => {
 			for (let i = 0; i < cols; i++) {
 				const row = [];
 				for (let j = 0; j < rows; j++)
-					row.push(new Square(type(i, j), this, i, j));
+					row.push(new Square(
+						type(i, j), this, i, rows > 1 ? j : undefined));
 				this.squares.push(row);
 			}
 		}
@@ -147,8 +155,8 @@ define('game/Surface', ['game/Square'], Square => {
 		/**
 		 * Refresh the DOM for all squares
 		 */
-		refreshDOM() {
-			this.forEachSquare(s => s.refreshDOM());
+		$refresh() {
+			this.forEachSquare(s => s.$refresh());
 		}
 	}
 

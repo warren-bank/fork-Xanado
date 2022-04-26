@@ -14,11 +14,12 @@ define('game/Rack', ['game/Surface'], Surface => {
 	class Rack extends Surface {
 
 		/**
+		 * @param {string} id unique id for this rack
 		 * @param {(number|Tile[])} size a rack size, or an array
 		 * of Tile (for tests)
 		 */
-		constructor(size) {
-			super(typeof size === 'number' ? size : size.length, 1,
+		constructor(id, size) {
+			super(id, typeof size === 'number' ? size : size.length, 1,
 				  () => '_');
 			if (typeof size !== 'number')
 				for (let tile of size)
@@ -48,6 +49,8 @@ define('game/Rack', ['game/Surface'], Surface => {
 		 */
 		addTile(tile) {
 			let col = -1;
+			if (tile.isBlank)
+				tile.letter = ' ';
 			this.forEachEmptySquare(square => {
 				square.placeTile(tile);
 				col = square.col;
@@ -57,7 +60,7 @@ define('game/Rack', ['game/Surface'], Surface => {
 		}
 
 		/**
-		 * Get an array of the letters currently on the rack
+		 * Get an unsorted list of the letters currently on the rack
 		 * @return {string[]}
 		 */
 		letters() {
@@ -84,9 +87,8 @@ define('game/Rack', ['game/Surface'], Surface => {
 		}
 
 		/**
-		 * Find and remove a tile from the rack. Will match the requested
-		 * tile within the Rack and return it.
-		 * @param {Tile} remove the Tile to remove, or null to remove any tile
+		 * Find and remove a tile from the rack.
+		 * @param {Tile} remove the Tile to remove
 		 * @return {Tile} the removed tile
 		 */
 		removeTile(remove) {
@@ -95,7 +97,9 @@ define('game/Rack', ['game/Surface'], Surface => {
 				throw Error("Cannot find '"
 							+ remove.letter + "' on " + this);
 			const tile = square.tile;
-			tile.letter = remove.letter; // TODO: huh?
+			// If the tile is a blank, set the letter to the remove letter
+			if (tile.isBlank)
+				tile.letter = remove.letter;
 			square.placeTile(null);
 			return tile;
 		}
@@ -128,18 +132,19 @@ define('game/Rack', ['game/Surface'], Surface => {
 		}
 
 		/**
-		 * Create the DOM for the Rack.
-		 * @param {string} idbase base of id's to uniquely identify this rack
+		 * Create the jquery representation for the Rack.
 		 * @param {string} underlay a string of letters to use as background of
-		 * the rack squares. This is in place of a label.
+		 * the rack squares.
 		 * @return {jQuery}
 		 */
-		createDOM(idbase, underlay) {
+		$ui(underlay) {
 			const $table = $('<table class="Rack"></table>');
+			const $tbody = $("<tbody></tbody>");
+			$table.append($tbody);
 			const $tr = $(`<tr></tr>`);
 			let idx = 0;
 			this.forEachSquare(square => {
-				const $td = square.createDOM(idbase, idx);
+				const $td = square.$ui(idx);
 				if (underlay) {
 					const letter = underlay.charAt(idx);
 					$td.addClass('underlay-container');
@@ -148,8 +153,7 @@ define('game/Rack', ['game/Surface'], Surface => {
 				$tr.append($td);
 				idx++;
 			});
-			$table.append($tr);
-			this.refreshDOM();
+			$tbody.append($tr);
 			return $table;
 		}
 	}

@@ -1,0 +1,411 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node */
+
+requirejs = require('requirejs');
+
+requirejs.config({
+    baseUrl: `${__dirname}/..`,
+	nodeRequire: require,
+	paths: {
+		game: 'js/game',
+		dawg: 'js/dawg',
+		platform: 'js/server/ServerPlatform'
+	}
+});
+
+/**
+ * Unit tests for robot.
+ */
+requirejs([
+	'test/TestRunner', 'test/TestSocket',
+	'game/Tile', 'game/Player', 'game/Game', 'game/Move', 'game/Turn'
+], (
+	TestRunner, TestSocket,
+	Tile, Player, Game, Move, Turn
+) => {
+    let tr = new TestRunner('Game tests');
+    let assert = tr.assert;
+
+	tr.addTest('robot cannot play first', () => {
+		const game = new Game({
+			edition: "Tiny",
+			dictionary: "Oxford_5000",
+			noPlayerShuffle: true,
+			debug: false
+		});
+
+		const robot = new Player({name:'Machine', key:"robot",
+								  isRobot: true, canChallenge: true});
+		const human = new Player({name:'Man', key:"human", isRobot: false});
+		const socket = new TestSocket();
+		socket.on('connections', () => {});
+		let turns = 0;
+		socket.on('turn', (event, turn) => {
+			switch(turns++) {
+			case 0:
+				assert.equal(turn.type, 'passed');
+				assert.equal(turn.playerKey, robot.key);
+				assert.equal(turn.nextToGoKey, human.key);
+				socket.done();
+				break;
+			default:
+				assert.fail('too many turns');
+			}
+		});
+		socket.on('*', (event, turn) => {
+			console.error("UNEXPECTED EVENT", event);
+			assert.fail(event);
+		});
+
+		return game.create()
+		.then(game => {
+			game.addPlayer(robot);
+			game.addPlayer(human);
+			robot.rack.empty();
+			robot.rack.addTile(
+				new Tile({letter:'X', isBlank:false, score:1}));
+			robot.rack.addTile(
+				new Tile({letter:'Y', isBlank:false, score:1}));
+			robot.rack.addTile(
+				new Tile({letter:'Z', isBlank:false, score:1}));
+		})
+		// Connecting the human ought to autoplay the robot, who is marked
+		// as the first player
+		.then(() => game.connect(socket, human.key))
+		.then(() => socket.wait());
+	});
+
+	tr.addTest('robot can play first', () => {
+		const game = new Game({
+			debug: false,
+			noPlayerShuffle: true,
+			edition:'English_Scrabble',
+			dictionary:'Oxford_5000'
+		});
+		const robot = new Player({
+			name: 'Robot 1', key:"robot", isRobot: true});
+		const human = new Player({
+			name: 'Human 2', key:"human", isRobot: false});
+		const aTile = new Tile({
+			letter:'A', isBlank:true, score:0
+		});
+		const gTile = new Tile({
+			letter:'G', isBlank:false, score:1
+		});
+		const oTile = new Tile({
+			letter:'O', isBlank:false, score:1
+		});
+
+		const socket = new TestSocket();
+		const handle = (event, data) => {
+			assert.equal(event, 'turn');
+			assert(data.type, 'move');
+			assert.deepEqual(data.words, [ { word: 'AGO', score: 4 } ]);
+			assert.equal(data.placements.length, 3);
+			assert.equal(data.placements[0].letter, 'A');
+			let ver = (data.placements[0].col === 5);
+			assert.equal(data.placements[0].col, ver ? 5 : 7);
+			assert.equal(data.placements[0].row, ver ? 7 : 5);
+			assert(data.placements[0].isBlank);
+			assert.equal(data.placements[0].score, 0);
+
+			assert.equal(data.placements[1].letter, 'G');
+			assert(!data.placements[1].isBlank);
+			assert.equal(data.placements[1].score, 1);
+			assert.equal(data.placements[1].col, ver ? 6 : 7);
+			assert.equal(data.placements[1].row, ver ? 7 : 6);
+
+			assert.equal(data.placements[2].letter, 'O');
+			assert(!data.placements[2].isBlank);
+			assert.equal(data.placements[2].score, 1);
+			assert.equal(data.replacements.length, 3);
+			assert.equal(data.placements[2].col, ver ? 7 : 7);
+			assert.equal(data.placements[2].row, ver ? 7 : 7);
+
+			assert.equal(data.score, 4);
+			assert.equal(data.bonus, 0);
+			assert.equal(data.playerKey, robot.key);
+			assert.equal(data.nextToGoKey, human.key);
+			socket.done();
+		};
+		socket.on('turn', handle);
+		socket.on('connections', () => {});
+		socket.on('*', (event, data) => {
+			console.error("UNEXPECTED EVENT", event);
+			assert.fail(event);
+		});
+		return game.create()
+		.then(game => {
+			game.addPlayer(robot);
+			game.addPlayer(human);
+			// Override the random rack
+			robot.rack.empty();
+			robot.rack.addTile(
+				new Tile({letter:'G', isBlank:false, score:1}));
+			robot.rack.addTile(
+				new Tile({letter:'O', isBlank:false, score:1}));
+			robot.rack.addTile(
+				new Tile({letter:null, isBlank:true, score:0}));
+		})
+		.then(() => game.connect(socket, human.key))
+		.then(() => socket.wait())
+		.then(() => assert.equal(game.whosTurnKey, human.key));
+	});
+
+	tr.addTest('robot play second', () => {
+		const game = new Game({
+			edition:'English_Scrabble',
+			dictionary:'Oxford_5000',
+			noPlayerShuffle: true,
+			debug: false
+		});
+		let human = new Player({
+				name: 'Human 1', key:"human", isRobot: false});
+		let robot = new Player({
+				name: 'Robot 2', key:"robot", isRobot: true});
+		const W = new Tile({letter:'W', isBlank:false,
+							score:1, col: 7, row: 7});
+		const O = new Tile({letter:'O', isBlank:false,
+							score:1, col: 8, row: 7});
+		const R = new Tile({letter:'R', isBlank:false,
+							score:1, col: 9, row: 7});
+		const D = new Tile({letter:'D', isBlank:false,
+							score:1, col: 10, row: 7});
+		const move = new Move({
+			placements: [ W, O, R, D ],
+			words: [ { word: 'WORD', score: 99 }],
+			score: 99
+		});
+
+		const socket = new TestSocket();
+		let turns = 0;
+		const handle = (event, data) => {
+			assert.equal(event, 'turn');
+			assert.equal(data.type, 'move');
+			assert.equal(data.words.length, 1);
+			if (turns++ == 0) {
+				assert.equal(data.placements.length, 4);
+				assert.equal(data.placements[0].letter, 'W');
+				assert.equal(data.placements[1].letter, 'O');
+				assert.equal(data.placements[2].letter, 'R');
+				assert.equal(data.placements[3].letter, 'D');
+				assert.equal(data.replacements.length, 4);
+				assert.equal(data.score, 99);
+				assert.equal(data.bonus, 0);
+				assert.equal(data.playerKey, human.key);
+				assert.equal(data.nextToGoKey, robot.key);
+			} else {
+				assert.equal(data.placements.length, 1);
+				assert.equal(data.placements[0].letter, 'T');
+				assert.equal(data.replacements.length, 1);
+				assert.equal(data.score, 3);
+				assert.equal(data.bonus, 0);
+				assert.equal(data.playerKey, robot.key);
+				assert.equal(data.nextToGoKey, human.key);
+				socket.done();
+			}
+		};
+		socket.on('turn', handle);
+		socket.on('connections', () => {});
+		socket.on('*', (event, data) => {
+			console.error("UNEXPECTED EVENT", event);
+			assert.fail(event);
+		});
+		return game.create()
+		.then(game => {
+			game.addPlayer(human);
+			// Override the random rack
+			human.rack.empty();
+			human.rack.addTile(
+				new Tile({letter:'W', isBlank:false, score:1}));
+			human.rack.addTile(
+				new Tile({letter:'O', isBlank:false, score:1}));
+			human.rack.addTile(
+				new Tile({letter:'R', isBlank:false, score:1}));
+			human.rack.addTile(
+				new Tile({letter:'D', isBlank:false, score:1}));
+			game.addPlayer(robot);
+			robot.rack.empty();
+			robot.rack.addTile(
+				new Tile({letter:'T', isBlank:false, score:1}));
+			game.whosTurnKey = human.key;
+		})
+		.then(() => game.connect(socket, human.key))
+		.then(() => game.makeMove(human, move))
+		.then(() => socket.wait())
+		.then(() => {
+			// We ought to have autoplayed robot
+			assert.equal(game.whosTurnKey, human.key);
+		});
+	});
+
+	tr.addTest('robot confirm game over', () => {
+		const game =  new Game({
+			edition:'Tiny',
+			dictionary:'Oxford_5000',
+			noPlayerShuffle: true,
+			debug: false
+		});
+		const human = new Player({
+			name: 'Human 1', key: "human", isRobot: false});
+		const robot = new Player({
+			name: 'Robot 2', key: "robot", isRobot: true});
+		const move = new Move({
+			placements: [
+				new Tile({letter:'W', isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:'O', isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:'R', isBlank:false, score:1, col: 9, row: 7}),
+				new Tile({letter:'D', isBlank:false, score:1, col: 10, row: 7})
+			],
+			words: [ { word: 'WORD', score: 99 }],
+			score: 99
+		});
+		const socket = new TestSocket();
+		let turns = 0;
+		const handle = (event, turn) => {
+			if (turns++ === 0) {
+			} else {
+				assert.equal(event, 'turn');
+				assert.equal(turn.type, 'Game over');
+				assert.equal(turn.endState, Game.STATE_GAME_OVER);
+				const exp = {};
+				exp[human.key] = 100;
+				exp[robot.key] = -100;
+				assert.deepEqual(turn.score, exp);
+				assert.equal(turn.playerKey, robot.key);
+				assert.equal(turn.emptyPlayerKey, human.key);
+				assert(!turn.nextToGoKey);
+				assert.equal(turn.score[human.key], 100);
+				assert.equal(turn.score[robot.key], -100);
+				assert.equal(human.score, 199);
+				assert.equal(robot.score, -100);
+				socket.done();
+			}
+		};
+		socket.on('turn', handle);
+		socket.on('connections', () => {});
+		socket.on('*', (event, data) => {
+			console.error("UNEXPECTED EVENT", event);
+			assert.fail(event);
+		});
+		return game.create()
+		.then(game => {
+			// Empty racks and bag => game over
+			game.addPlayer(human);
+			human.rack.empty();
+			human.rack.addTile(
+				new Tile({letter:'W', isBlank:false, score:1}));
+			human.rack.addTile(
+				new Tile({letter:'O', isBlank:false, score:1}));
+			human.rack.addTile(
+				new Tile({letter:'R', isBlank:false, score:1}));
+			human.rack.addTile(
+				new Tile({letter:'D', isBlank:false, score:1}));
+			game.addPlayer(robot);
+			robot.rack.empty();
+			robot.rack.addTile(
+				new Tile({letter:'Q', isBlank:false, score:100}));
+			game.letterBag.getRandomTiles(
+				game.letterBag.remainingTileCount());
+			game.whosTurnKey = human.key;
+		})
+		.then(() => game.connect(socket, human.key))
+		.then(() => game.makeMove(human, move))
+		// the startTurn after the makeMove should have triggered the
+		// robot to confirmGameOver
+		.then(() => socket.wait());
+	});
+
+	tr.addTest('robot challenge and make last play', () => {
+		const game = new Game({
+			edition: "Tiny",
+			dictionary: "Oxford_5000",
+			noPlayerShuffle: true,
+			debug: false
+		});
+
+		const human = new Player({name:'Man', key:"human", isRobot: false});
+		const robot = new Player({name:'Machine', key:"robot",
+								  isRobot: true, canChallenge: true});
+
+		const move = new Move({
+			placements: [
+				new Tile({letter:'X', isBlank:false, score:1, col: 6, row: 7}),
+				new Tile({letter:'Y', isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:'Z', isBlank:false, score:1, col: 8, row: 7}),
+			],
+			words: [ { word: 'XYZ', score: 3 }],
+			score: 3
+		});
+
+		const socket = new TestSocket();
+		socket.on('connections', () => {});
+		let turns = 0;
+		socket.on('turn', (event, turn) => {
+			switch(turns++) {
+			case 0:
+				assert.equal(turn.type, 'move');
+				break;
+			case 1:
+				assert.equal(turn.type, 'challenge-won');
+				assert.equal(turn.score, -3);
+				assert.equal(turn.bonus, 0);
+				assert.equal(turn.playerKey, human.key);
+				assert.equal(turn.challengerKey, robot.key);
+				break;
+			case 2:
+				assert.equal(turn.type, 'move');
+				assert.equal(turn.score, 16);
+				assert.equal(turn.playerKey, robot.key);
+				assert.equal(turn.nextToGoKey, human.key);
+				socket.done();
+				break;
+			default:
+				assert.fail('too many turns');
+			}
+		});
+		socket.on('*', (event, turn) => {
+			console.error("UNEXPECTED EVENT", event);
+			assert.fail(event);
+		});
+
+		return game.create()
+		.then(game => {
+			game.addPlayer(human);
+			human.rack.empty();
+			human.rack.addTile(
+				new Tile({letter:'X', isBlank:false, score:1}));
+			human.rack.addTile(
+				new Tile({letter:'Y', isBlank:false, score:1}));
+			human.rack.addTile(
+				new Tile({letter:'Z', isBlank:false, score:1}));
+			
+			game.addPlayer(robot);
+			robot.rack.empty();
+			robot.rack.addTile(
+				new Tile({letter:'O', isBlank:false, score:1}));
+			robot.rack.addTile(
+				new Tile({letter:'N', isBlank:false, score:1}));
+			robot.rack.addTile(
+				new Tile({letter:'E', isBlank:false, score:1}));
+
+			game.whosTurnKey = human.key;
+
+			// Empty the bag, so the human's play would be
+			// the last, and the robot's play is the last
+			game.letterBag.getRandomTiles(
+				game.letterBag.remainingTileCount());
+		})
+		.then(() => game.connect(socket, human.key))
+		.then(() => game.makeMove(human, move))
+		// Human has played. The autoplay should issue a challenge,
+		// which is a turn and needs to be reflected in the UI. At the
+		// same time, the robot needs to compute the next play so we
+		// end up notifying two moves.
+		.then(() => socket.wait());
+	});
+
+	tr.run();
+});
+

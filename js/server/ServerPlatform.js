@@ -65,15 +65,18 @@ define('platform', [
 		/** See {@link Database#get} for documentation */
 		get(key, classes) {
 			const fn = Path.join(this.directory, `${key}.${this.type}`);
-/*			return Lock.lock(fn)
+
+			/* Locking doesn't work cleanly; locks are often left dangling,
+			   despite our releasing them religiously.
+
+			return Lock.lock(fn)
 			.then(release => Fs.readFile(fn)
 				  .then(data => release()
 						.then(() => {
 							console.debug(`Unlocked ${fn}`);
 							return Fridge.thaw(JSON.parse(data), classes);
-							})));*/
-			// Really should lock for read, but it causes issues when
-			// restarting after a server shutdown so let's not bother.
+							})));
+            */
 			return Fs.readFile(fn)
 			.then(data => {
 				return Fridge.thaw(JSON.parse(data), classes);

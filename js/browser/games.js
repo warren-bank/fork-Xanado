@@ -8,12 +8,12 @@
 requirejs([
 	'socket.io', 'platform',
 	'browser/browserApp', 'browser/Dialog',
-	'game/Player',
+	'game/Player', 'game/Game',
 	'jquery'
 ], (
 	io, Platform,
 	browserApp, Dialog,
-	Player
+	Player, Game
 ) => {
 	const BLACK_CIRCLE = '\u25cf';
 	const NEXT_TO_PLAY = '\u25B6';
@@ -23,6 +23,7 @@ requirejs([
 	let loggedInAs; // redacted user object
 	let canEmail; // boolean
 	let untwist; // open game key
+	let isOpen = {};
 
 	/**
 	 * Report an error contained in an ajax response
@@ -41,8 +42,7 @@ requirejs([
 
 	// Format a player in a game score table
 	function $player(game, player, isActive) {
-		const $tr = Player.prototype.createScoreDOM.call(
-			player, loggedInAs, isActive);
+		const $tr = Player.prototype.$ui.call(player);
 		
 		if (isActive) {
 			if (player.dictionary && player.dictionary !== game.dictionary) {
@@ -85,7 +85,7 @@ requirejs([
 				.on('click', () => {
 					console.log(`Join game ${game.key}/${loggedInAs.key}`);
 					$.post(`/join/${game.key}/${loggedInAs.key}`)
-					.then(info => {
+					.then(() => {
 						window.open(
 							`/html/game.html?game=${game.key}&player=${loggedInAs.key}`,
 							"_blank");
@@ -109,6 +109,21 @@ requirejs([
 
 			return $tr;
 		}
+		else if (player.isRobot) {
+			$box.append(
+				$("<button name='removeRobot' title=''></button>")
+				.button({ label: $.i18n("Remove robot") })
+				.tooltip({
+					content: $.i18n("tooltip-remove-robot")
+				})
+				.on('click', () => {
+					console.log(`Remove robot from ${game.key}`);
+					$.post(`/removeRobot/${game.key}`)
+					.then(() => refresh_game(game.key))
+					.catch(report);
+				}));
+
+		}
 
 		// Not the signed in player
 		if (canEmail
@@ -123,8 +138,8 @@ requirejs([
 				.on("click", () => {
 					console.log("Send reminder");
 					$.post(`/sendReminder/${game.key}`)
-					.then(info => $('#alertDialog')
-						  .text($.i18n.apply(null, info))
+					.then(names => $('#alertDialog')
+						  .text($.i18n(/*i18n*/'Reminded $1', names.join(", ")))
 						  .dialog({
 							  title: $.i18n("Reminded $1", player.name),
 							  modal: true
@@ -141,7 +156,7 @@ requirejs([
 	 * @param {Game|object} game a Game or Game.simple
 	 * @param {object} isOpen map from game key to boolean
 	 */
-	function $game(game, isOpen) {
+	function $game(game) {
 		const $box = $(`<div class="game" id="${game.key}"></div>`);
 		const $twist = $("<div class='twist'></div>");
 		const $twistButton =
@@ -154,9 +169,11 @@ requirejs([
 			if (show) {
 				$twist.show();
 				$twistButton.button("option", "label", TWIST_CLOSE);
+				isOpen[game.key] = true;
 			} else {
 				$twist.hide();
 				$twistButton.button("option", "label", TWIST_OPEN);
+				isOpen[game.key] = false;
 			}
 		}
 		
@@ -172,14 +189,20 @@ requirejs([
 		if (game.secondsPerPlay > 0)
 			headline.push($.i18n("time limit $1", game.secondsPerPlay / 60));
 
-		const isActive = (game.state === 'playing');
+		const isActive = (game.state === Game.STATE_PLAYING
+						 || game.state === Game.STATE_WAITING);
 
+
+		const $headline = $("<span></span>");
+		$headline
+		.text(headline.join(', '));
 		if (!isActive)
-			headline.push(`<b>${$.i18n(game.state)}</b>`);
+			$headline.append($("<span class='game-state'></span>").text($.i18n(game.state)));
 
 		$box
+		.append($('<div class="game-key"></div>').text(game.key))
 		.append($twistButton)
-		.append(headline.join(', '))
+		.append($headline)
 		.append($twist);
 
 		const options = [];
@@ -225,7 +248,7 @@ requirejs([
 					console.log(`Join game ${game.key}`);
 					$.post(`/join/${game.key}/${loggedInAs.key}`)
 					.then(info => {
-						window.open(`/html/game.html?game=${info.gameKey}&player=${info.playerKey}`, "_blank");
+						window.open(`/html/game.html?game=${game.key}&player=${loggedInAs.key}`, "_blank");
 						refresh_game(game.key);
 					})
 					.catch(report);
@@ -258,9 +281,9 @@ requirejs([
 					})
 					.on("click", () => Dialog.open("InvitePlayersDialog", {
 						gameKey: game.key,
-						done: info => {
+						done: names => {
 							$('#alertDialog')
-							.text($.i18n.apply(null, info))
+							.text($.i18n("Invited $1", names.join(", ")))
 							.dialog({
 								title: $.i18n("Invitations"),
 								modal: true
@@ -317,10 +340,8 @@ requirejs([
 	 * @param {Game|object} game a Game or Game.simple
 	 */
 	function show_game(game) {
-		const isOpen = {};
-		isOpen[game.key] = $(`#${game.key} .twist`).is(":visible");
-		console.log(`Reshow ${game.key} ${isOpen[game.key]}`);
-		$(`#${game.key}`).replaceWith($game(game, isOpen));
+		console.log(`Reshow ${game.key}`);
+		$(`#${game.key}`).replaceWith($game(game));
 	}
 
 	/**
@@ -353,9 +374,8 @@ requirejs([
 		if (canEmail && loggedInAs) {
 			if (games.reduce((em, game) => {
 				// game is Game.simple, not a Game object
-				if (game.state !== 'playing'
-					|| !game.players
-					|| !game.players.find(p => p.key === game.whosTurnKey))
+				// Can't remind a game that hasn't started or has ended.
+				if (game.state !== Game.STATE_PLAYING)
 					return em;
 				return em || game.players.find(p => p.key === game.whosTurnKey)
 				.email;
