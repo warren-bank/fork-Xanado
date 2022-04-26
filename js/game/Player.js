@@ -237,7 +237,8 @@ define('game/Player', [
 				if (this.debug)
 					console.debug(`${this.name} has timed out at ${Date.now()}`);
 				// Invoke the timeout function
-				this._onTimeout();
+				if (typeof this._onTimeout === 'function')
+					this._onTimeout();
 			}, time * 1000);
 		}
 
