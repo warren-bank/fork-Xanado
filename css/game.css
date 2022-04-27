@@ -144,7 +144,7 @@ div.Surface td.square-q {
     border-color: #0e6993;
 }
 
-div.Surface td div[id] {
+div.Surface td div[id], div.Surface td div.temporary {
     display: block;
 
     margin: 0;
