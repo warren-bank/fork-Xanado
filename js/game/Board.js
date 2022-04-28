@@ -29,7 +29,9 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		 * Load the board from the string representation output by
 		 * toString. This is for use in tests.
 		 * @param {string} sboard string representation of the board
-		 * @param {Edition} edition the edition defining the board layout
+		 * @param {Edition} edition the edition defining the board layout.
+		 * This has to be provided because we don't cache the actual
+		 * Edition in the Board.
 		 */
 		parse(sboard, edition) {
 			const rows = sboard.split('\n');
@@ -44,7 +46,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 						const tile = new Tile({
 							letter: letter.toUpperCase(),
 							isBlank: isBlank,
-							score: isBlank ? 0	: edition.letterScore(letter)
+							score: isBlank ? 0 : edition.letterScore(letter)
 						});
 						this.at(col, row).placeTile(tile, true);
 					}
@@ -158,7 +160,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		}
 
 		/**
-		 * Given a play at col, row, compute its score.
+		 * Given a play at col, row, compute its score. Used in findBestPlay.
 		 * @param {number} col the col of the LAST letter
 		 * @param {number} row the row of the LAST letter
 		 * @param {number} dcol 1 if the word being played across
@@ -292,7 +294,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 			if (!tile)
 				// Move can't be made. Should never happen
 				// Terminal, no point in translating
-				throw Error('No new tile found');
+				throw Error('No new tiles found');
 
 			// Remember which newly placed tile positions are legal
 			const legalPlacements = new Array(this.cols);
