@@ -5,7 +5,7 @@
 define('game/Surface', ['game/Square'], Square => {
 
 	/**
-	 * Base class of a tile holder (Rack or Board)
+	 * Base class of a 2D grid of {@link Sqaure} (a Rack or a Board)
 	 */
 	class Surface {
 
@@ -16,6 +16,12 @@ define('game/Surface', ['game/Square'], Square => {
 		 * @param {function} type function(col, row) returning the square type
 		 */
 		constructor(id, cols, rows, type) {
+
+			if (typeof id !== 'string'
+				|| typeof cols !== 'number'
+				|| typeof rows !== 'number')
+				throw Error("Bad parameters to Surface");
+
 			/**
 			 * Unique id for the surface 
 			 * @member {string}
@@ -27,14 +33,17 @@ define('game/Surface', ['game/Square'], Square => {
 			 * @member {number}
 			 */
 			this.cols = cols;
+
 			/**
 			 * Number of rows on the surface
 			 * @member {number}
 			 */
 			this.rows = rows;
+
 			/**
 			 * rowsXcols array of Square
 			 * @member {Square[][]}
+			 * @private
 			 */
 			this.squares = [];
 
@@ -55,7 +64,7 @@ define('game/Surface', ['game/Square'], Square => {
 		}
 
 		/**
-		 * Call fn(square, col, row) on every square, column major.
+		 * Call fn on every square, column major.
 		 * @param {function} fn function(Square, col, row)
 		 * Iteration will stop if fn returns true.
 		 * @return {boolean} true if fn() returns true, false otherwise
@@ -137,7 +146,7 @@ define('game/Surface', ['game/Square'], Square => {
 
 		/**
 		 * Get the total of the scoring tiles placed on the
-		 * surface
+		 * surface. Does not apply square multipliers.
 		 * @return {number} total score
 		 */
 		score() {
@@ -153,7 +162,15 @@ define('game/Surface', ['game/Square'], Square => {
 		}
 
 		/**
-		 * Refresh the DOM for all squares
+		 * Refresh the UI for all squares.  Must be implemented by
+		 * subclasses.
+		 */
+		$ui() {
+			throw Error("Pure virtual");
+		}
+
+		/**
+		 * Refresh the UI for all squares on the surface.
 		 */
 		$refresh() {
 			this.forEachSquare(s => s.$refresh());
