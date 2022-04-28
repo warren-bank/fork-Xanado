@@ -5,28 +5,27 @@ Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian
 <p style="text-align:center;">
 	<img src="/images/splash.png" width="265" height="300" alt="Board" />
 </p>
-While there are a number of freely accessible servers out there offering clones of the classic SCRABBLE® game, I wanted a game I could host on my own server, and experiment with different
-dictionaries, board layouts, tile sets, and rule combinations. And I wanted it
-to be completely free. The public servers I found didn't work for me because:
+
+## History
+
+While there are a number of freely accessible servers out there
+offering clones of the classic SCRABBLE® game, but I wanted a game I
+could host on my own server, and experiment with different
+dictionaries, board layouts, tile sets, and rule combinations. And I
+wanted it to be completely free. The public servers I found didn't
+work for me because:
 
 - Their code is not public, and setting up your own server is not an option.
 - They are generally limited to a single version of the game.
 - Their (English) dictionaries are usually based on the standard American Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, as a computer player will beat them every time.
-- They plague you with tedious advertisements.
+- They plague you with tedious advertisements and in-app purchases.
 
-An interesting application that has emerged is as an entertaining teaching aid
-for language learners. Included is a dictionary based on the Oxford 5000 most
-important words to learn in English. By playing the game against the robot,
-learners are exposed to new words that they can then seek the definition of.
-
-## History
-
-This started out as a fork of [Hans Hübner's html-scrabble](https://github.com/hanshuebner/html-scrabble).
-I started working on their code but rapidly realised the scope and
+Enter [Hans Hübner's html-scrabble](https://github.com/hanshuebner/html-scrabble), which this is a fork of.
+I started out working on their code but rapidly realised the scope and
 number of changes I intended required a fork, rather than bothering
 them with hundreds of pull requests.
 
-This version has some major differences:
+This fork has some major differences:
 * It has been rewritten to use Javascript ES6 and the latest dependencies.
 * It supports different board layouts and tile sets, and makes it easy to define your own.
 * It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui). Dictionaries have been moved server-side and made optional, and integrated into game play. New dictionaries are easy to generate from word lists.
@@ -89,8 +88,9 @@ previously joined), leave the game, add a robot, or delete it.
  Close the player list with ▲.
  
 If you are signed in you can also create a new game.  Normally one
-player will create the new game, then other players sign in and join
-the game from the games page. Anyone can add a robot player to a game.
+player will create a new game, then other players sign in and join
+the game from the games page. Anyone signed in can add or remove a
+robot player, or even delete the game, even if they are not a player.
 
 The game interface is fairly self explanatory if you know
 the [rules of Scrabble](https://www.officialgamerules.org/scrabble).
@@ -99,17 +99,21 @@ The game starts with a randomly selected player.
 You can only have one robot in any one game, and you need at least one
 human player (otherwise, what's the point?)
 
-When you create a game you can select the edition, the dictionary, and
-whether there is to be a time limit, a minimum number of players, or a
-maximum number of players who can join. You can optionally select a
-different dictionary that the robot will use to select plays. Limiting
-the robot a smaller dictionary will give less challenging gameplay,
-but may be more suitable for less experienced players.
+When you create a game you can select the edition (the game board,
+rules, and tile set), the dictionary for checking words, and whether
+there is to be a time limit. You can also set a minimum number of
+players, or a maximum number of players who can join, and enable or
+disable some gameplay features.
 
-The installation comes with emulations of a number of commercially available
-games - SCRABBLE®, Super SCRABBLE®, Lexulous, and Words With Friends - all of
-which have very similar gameplay. Guidance for creating your own custom game
-is given below.
+When you add a robot to a game, you can optionally select a different
+dictionary that the robot will search to find plays. Limiting the
+robot to a smaller dictionary will give less challenging gameplay, but
+may be more suitable for less experienced players.
+
+The installation comes with editions that emulate a number of
+commercially available games - SCRABBLE®, Super SCRABBLE®, Lexulous,
+and Words With Friends - all of which have very similar
+gameplay. Guidance for creating your own custom game is given below.
 
 ## Game play
 
@@ -170,10 +174,12 @@ The assumption is that you will be running the game on a private
 server with a limited, trustworthy audience.
 
 The server can be configured to use HTTPS, see the example config.json
-for how. HTTPS is required for notifications to work, and is highly
-recommended when using default logins. To use HTTPS you require an SSL
-certificate. You can generate one using the instructions in
-https://linuxize.com/post/creating-a-self-signed-ssl-certificate/ (however some browsers - e.g. Brave - will eject a self-signed certificate
+for how. HTTPS is required for social media logins and notifications
+to work, and is highly recommended when using default logins. To use
+HTTPS you require an SSL
+certificate. See
+https://linuxize.com/post/creating-a-self-signed-ssl-certificate/
+for instructions.
 
 # Development
 The server code is written in Javascript ES6 and tested using `node.js` version 12.0.0. It may work in earlier versions of `node.js`, but is untested. The client is also written in Javascript and works in all the browsers I tested (Chrome, Firefox, Android, Opera.) Apple products - iOS, Safari, MacOS - are NOT tested and are known to exhibit problems.
