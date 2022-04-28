@@ -56,7 +56,7 @@ div.user-interface {
 /* Narrative desription of the outcome of the turn */
 .turn-narrative {
 	font-size: 110%;
-	margin-top: 0.3em;
+	margin-top: 0.5em;
 	color: #950000
 }
 
