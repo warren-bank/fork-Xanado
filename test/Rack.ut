@@ -44,8 +44,24 @@ requirejs([
 	tr.addTest('construct', () => {
 		let r = new Rack('base', 10);
 		assert(r.isEmpty());
-		r = new Rack('base', [new Tile()]);
+		const aTile = new Tile({letter: 'A'});
+		assert.equal(r.addTile(aTile), 0);
 		assert(!r.isEmpty());
+		assert.equal(r.addTile(new Tile({letter: 'B'})), 1);
+		assert(!r.isEmpty());
+		assert.deepEqual(r.letters().sort(), ['A', 'B']);
+		const t = new Tile({letter: 'A'});
+		assert.strictEqual(r.removeTile(t), aTile);
+		assert.deepEqual(r.letters().sort(), ['B']);
+		assert.equal(r.addTile(new Tile({letter: ' ', isBlank: true})), 0);
+		assert.equal(r.addTile(new Tile({letter: 'D'})), 2);
+		assert.equal(r.addTile(new Tile({letter: 'E'})), 3);
+		assert.equal(r.findSquare('D').col, 2);
+		const before = r.letters();
+		r.shuffle();
+		assert.notDeepEqual(r.letters(), before);
+		assert(r.findSquare('X').tile.isBlank);
+		assert.deepEqual(r.lettersLeft().sort(), ['B', 'D', 'E']);
 	});
 
 	tr.addTest('$ui empty', () => {
