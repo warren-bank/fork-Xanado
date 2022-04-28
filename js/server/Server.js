@@ -484,9 +484,6 @@ define('server/Server', [
 		 * @return {Promise}
 		 */
 		request_createGame(req, res) {
-			let minPlayers = req.body.minPlayers;
-			let maxPlayers = req.body.maxPlayers;
-
 			return Edition.load(req.body.edition)
 			.then(edition => new Game(req.body).create())
 			.then(game => game.onLoad(this.db))

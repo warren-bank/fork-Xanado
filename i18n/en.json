@@ -34,6 +34,7 @@
 	"tooltip-check-dictionary": "Tell players if the word they just played wasn't in the dictionary. This can help learners.",
 	"tooltip-delete-game": "CAREFUL! This cannot be undone!",
 	"tooltip-dictionary": "A dictionary is optional for human player games, but is required for computer players and is used to automate challenges.",
+	"tooltip-reject-bad-plays": "Do not allow words that cannot be found in the dictionary to be played.",
 	"tooltip-email-reminder": "Email a reminder to player whose turn it is.",
 	"tooltip-email-reminders": "Email reminders to players whose turn it is.",
 	"tooltip-predict-score": "Predict score for the play as the player places each tile. Turn this off if you want the player to calculate their own score, for example during tournament play.",

@@ -326,6 +326,66 @@ requirejs([
 		});
 	});
 
+	tr.addTest('verify human play', () => {
+		const game = new Game({
+			edition:'Tiny',
+			dictionary:'Oxford_5000',
+			noPlayerShuffle: true,
+			rejectBadPlays: true,
+			debug: false
+		});
+		const human1 = new Player({
+			name:'Human 1', key:"human1", isRobot: false});
+		const human2 = new Player({
+			name:'Human 2', key:"human2", isRobot: false});
+		const move = new Move({
+			placements: [
+				new Tile({letter:'X', isBlank:false, score:1, col: 6, row: 7}),
+				new Tile({letter:'Y', isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:'Z', isBlank:false, score:1, col: 8, row: 7})
+			],
+			words: [ { word: 'XYZ', score: 99 }],
+			score: 99
+		});
+		const socket1 = new TestSocket();
+		socket1.on('reject', (event, data) => {
+			assert.deepEqual(data, {
+				playerKey: human1.key,
+				words: [ 'XYZ' ] });
+			socket1.done();
+		});
+		socket1.on('connections', () => {});
+		socket1.on('*', (event, data) => {
+			console.error("Socket 1 UNEXPECTED EVENT", event);
+			assert.fail(event);
+		});
+
+		const socket2 = new TestSocket();
+		socket2.on('connections', () => {});
+		socket2.on('*', (event, data) => {
+			console.error("Socket 2 UNEXPECTED EVENT", event);
+			assert.fail(event);
+		});
+
+		return game.create()
+		.then(game => {
+			game.addPlayer(human1);
+			human1.rack.empty();
+			human1.rack.addTile(
+				new Tile({letter:'X', isBlank:false, score:1}));
+			human1.rack.addTile(
+				new Tile({letter:'Y', isBlank:false, score:1}));
+			human1.rack.addTile(
+				new Tile({letter:'Z', isBlank:false, score:1}));
+
+			game.addPlayer(human2);
+		})
+		.then(() => game.connect(socket1, human1.key))
+		.then(() => game.connect(socket2, human2.key))
+		.then(() => game.makeMove(human1, move))
+		.then(() => socket1.wait());
+	});
+
 	tr.run();
 });
 

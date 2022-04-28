@@ -1,0 +1,221 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node, mocha */
+/*global document:writable*/
+
+requirejs = require('requirejs');
+// node.js
+const { JSDOM } = require('jsdom');
+/* eslint-disable no-global-assign */
+document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
+/* eslint-enable no-global-assign */
+const { window } = document;
+global.window = window;
+global.document = window.document;
+global.navigator = { userAgent: "node.js" };
+const jQuery = require('jquery');
+global.jQuery = jQuery;
+global.$ = jQuery;
+
+requirejs.config({
+    baseUrl: `${__dirname}/..`,
+	nodeRequire: require,
+    paths: {
+		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
+		game: 'js/game',
+		platform: 'js/server/ServerPlatform'
+    }
+});
+
+/**
+ * Unit tests for Board class
+ */
+requirejs([
+	'test/TestRunner', 'game/Board', 'game/Edition', 'game/Tile', "game/Square", 'jquery-ui'
+], (
+	TestRunner, Board, Edition, Tile, Square
+) => {
+
+	require("@wikimedia/jquery.i18n/src/jquery.i18n");
+
+    let tr = new TestRunner('Rack tests');
+    let assert = tr.assert;
+
+	tr.addTest('construct', () => {
+		return Edition.load('Tiny')
+		.then(edition => {
+			let b = new Board(edition);
+			b.parse(
+				'|Q| | | | | | | | | | | | | | |\n' +
+				'|U| | | | | | | | | | | | | | |\n' +
+				'|E| | | | | | | | | | | | | | |\n' +
+				'|S|C|I|E|N|C|E| | | | | | | | |\n' +
+				'|T| | | | | | | | | | | | | | |\n' +
+				'|I| | | | | | | | | | | | | | |\n' +
+				'|O|P|I|N|I|O|N| | | | | | | | |\n' +
+				'|N| | | | | |O|M| | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n' +
+				'| | | | | | | | | | | | | | | |\n', edition);
+			assert.equal(b.toString(),
+						 "Board 11x11\n" +
+						 "|Q| | | | | | | | | |8|\n" +
+						 "|U|4| | | | | | | |4| |\n" +
+						 "|E| |7| | | | | |7| | |\n" +
+						 "|S|C|I|E|N|C|E|3| | | |\n" +
+						 "|T| | | |2| |2| | | | |\n" +
+						 "|I| | | | |6| | | | | |\n" +
+						 "|O|P|I|N|I|O|N| | | | |\n" +
+						 "|N| | |3| | |O|M| | | |\n" +
+						 "| | |7| | | | | |7| | |\n" +
+						 "| |4| | | | | | | |4| |\n" +
+						 "|8| | | | | | | | | |8|\n");
+		});
+	});
+
+	tr.addTest('touching old', () => {
+		return Edition.load('Tiny')
+		.then(edition => {
+			let b = new Board(edition);
+			for (let r = 0; r < b.rows; r++)
+				for (let c = 0; c < b.cols; c++)
+					assert(!b.touchingOld(r, c));
+			const mr = Math.floor(b.rows / 2);
+			const mc = Math.floor(b.cols / 2);
+			let sq = b.at(mr, mc);
+			let t = new Tile({letter: '?'});
+			sq.placeTile(t, true);
+			assert.equal(t.row, mr);
+			assert.equal(t.col, mc);
+			assert(sq.tileLocked);
+
+			b.at(0, 0).placeTile(new Tile({letter: 't'}), true);
+			b.at(0, b.rows-1).placeTile(new Tile({letter: 'T'}), true);
+			b.at(b.cols-1, 0).placeTile(new Tile({letter: 'b'}), true);
+			b.at(b.cols-1, b.rows-1).placeTile(new Tile({letter: 'B'}), true);
+			//console.log(b.toString());
+			for (let r = 0; r < b.rows; r++) {
+				for (let c = 0; c < b.cols; c++) {
+					if (r == mr && (c == mc-1 || c == mc+1)
+						|| c == mc && (r == mr-1 || r == mr+1)
+						|| r == 0 && (c == 1 || c == b.cols-2)
+						|| c == 0 && (r == 1 || r == b.rows-2)
+						|| r == b.rows - 1 && (c == 1 || c == b.cols - 2)
+						|| c == b.cols - 1 && (r == 1 || r == b.cols - 2))
+						assert(b.touchingOld(r, c), `${r} ${c}`);
+					else
+						assert(!b.touchingOld(r, c), `${r} ${c}`);
+				}
+			}
+		});
+	});
+
+	tr.addTest('analyse move', () => {
+		return Edition.load('Tiny')
+		.then(edition => {
+			let b = new Board(edition);
+			for (let r = 0; r < b.rows; r++)
+				for (let c = 0; c < b.cols; c++)
+					assert(!b.touchingOld(r, c));
+			const mr = Math.floor(b.rows / 2);
+			const mc = Math.floor(b.cols / 2);
+			
+			const W = new Tile({letter: 'W', score:4});
+			const O = new Tile({letter: 'O', score:1});
+			const R = new Tile({letter: 'R', score:2, isBlank:true});
+			const D = new Tile({letter: 'D', score:3});
+			
+			b.at(mr, mc).placeTile(W);
+			b.at(mr, mc+1).placeTile(O);
+			b.at(mr, mc+2).placeTile(R);
+			b.at(mr, mc+3).placeTile(D);
+
+			let move = b.analyseMove();
+			assert.sparseEqual(move, {
+				words: [ { word: 'WORD', score: 20 } ],
+				score: 35,
+				bonus: 0,
+				placements: [ W, O, R, D ]
+			});
+
+			// Clear the temp tiles
+			b.at(mr, mc).placeTile();
+			b.at(mr, mc+1).placeTile();
+			b.at(mr, mc+2).placeTile();
+			b.at(mr, mc+3).placeTile();
+
+			// Lock down the play
+			b.at(mr, mc).placeTile(W, true);
+			b.at(mr, mc+1).placeTile(O, true);
+			b.at(mr, mc+2).placeTile(R, true);
+			b.at(mr, mc+3).placeTile(D, true);
+
+			// Score another play
+			const A = new Tile({letter: 'A', score: 1});
+			const L = new Tile({letter: 'L', isBlank:true, score: 2});
+			const K = new Tile({letter: 'K', score: 5});
+			
+			b.at(mr+1, mc).placeTile(A);
+			b.at(mr+2, mc).placeTile(L);
+			b.at(mr+3, mc).placeTile(K);
+
+			move = b.analyseMove();
+			assert.sparseEqual(move, {
+				words: [ { word: 'WALK', score: 12 } ],
+				score: 22,
+				bonus: 0,
+				placements: [ A, L, K ]
+			});
+		});
+	});
+
+	// scorePlay is implicitly tested in findBestMove.ut
+
+	tr.addTest("$ui", () => {
+		const edition = new Edition({
+			layout: [
+				'Dd_',
+				'T_t',
+				'QqM' ],
+			bag: [
+				{ score: 0, count: 1 },
+				{ letter: 'W', score: 1, count: 1 },
+				{ letter: 'O', score: 1, count: 1 },
+				{ letter: 'R', score: 1, count: 1 },
+				{ letter: 'D', score: 1, count: 1 },
+				{ letter: 'A', score: 1, count: 1 },
+				{ letter: 'L', score: 1, count: 1 },
+				{ letter: 'K', score: 1, count: 1 }
+			],
+			rackCount: 3,
+			swapCount: 1,
+			bonuses: {}
+		});
+
+		let b = new Board(edition);
+		const W = new Tile({letter: 'W', score:4});
+		const O = new Tile({letter: 'O', score:1});
+		const R = new Tile({letter: 'R', score:2, isBlank:true});
+		const D = new Tile({letter: 'D', score:3});
+		const A = new Tile({letter: 'A', score: 1});
+		const L = new Tile({letter: 'L', isBlank:true, score: 2});
+		const K = new Tile({letter: 'K', score: 5});
+			
+		// Lock down the play. This should not affect $ui!
+		b.at(0, 0).placeTile(W, true);
+		b.at(0, 1).placeTile(O, true);
+		b.at(0, 2).placeTile(R, true);
+		b.at(1, 0).placeTile(A);
+		b.at(2, 0).placeTile(L);
+
+		// Not going to bother with a detailed check because it's obvious
+		// from the UI
+	});
+	
+	tr.run();
+});
+

@@ -109,7 +109,7 @@ define('game/Game', [
 			 * We don't keep a pointer to the dictionary objects so we can
 			 * cheaply serialise and send to the games interface. We just
 			 * keep the name of the relevant object.
-			 * @member {string}
+			 * @member {string?}
 			 */
 			this.dictionary =
 			(params.dictionary && params.dictionary != "none") ?
@@ -220,6 +220,13 @@ define('game/Game', [
 			 * @member {boolean}
 			 */
 			this.allowTakeBack = boolParam(params.allowTakeBack, false);
+
+			/**
+			 * Whether or not to check plays against the dictionary.
+			 * A bad play in this case does not result in a penalty, it
+			 * just forces the player to take the move back.
+			 */
+			this.rejectBadPlays =  boolParam(params.rejectBadPlays, false);
 
 			/**
 			 * Whether or not to check the dictionary to report on the
@@ -552,7 +559,7 @@ define('game/Game', [
 		 * Send a message to just one player. Note that the player
 		 * may be connected multiple times through different sockets.
 		 * Only available server-side.
-		 * @param {Player} player
+		 * @param {Player} player player to send to
 		 * @param {string} message to send
 		 * @param {Object} data to send with message
 		 */
@@ -569,9 +576,9 @@ define('game/Game', [
 		}
 
 		/**
-		 * Broadcast a message to all players and monitors. Note that a player
+		 * Broadcast a message to all players. Note that a player
 		 * may be connected multiple times, through different sockets.
-		 * ONly available server-side.
+		 * Only available server-side.
 		 * @param {string} message to send
 		 * @param {Object} data to send with message
 		 */
@@ -579,6 +586,25 @@ define('game/Game', [
 			if (this._debug)
 				console.debug(`<-S- * ${message}`, data);
 			this._connections.forEach(socket => socket.emit(message, data));
+		}
+
+		/**
+		 * Broadcase a message to all players except the given player.
+		 * Only available server-side.
+		 * @param {Player} player player to exclude
+		 * @param {string} message to send
+		 * @param {Object} data to send with message
+		 */
+		notifyOtherPlayers(player, message, data) {
+			if (this._debug)
+				console.debug(`<-S- !${player.key} ${message}`, data);
+			// Player may be connected several times
+			this._connections.forEach(
+				socket => {
+					if (socket.player.key !== player.key)
+						socket.emit(message, data);
+					return false;
+				});
 		}
 
 		/**
@@ -595,7 +621,7 @@ define('game/Game', [
 			this.turns.push(turn);
 
 			// TODO: the results of a turn should not simply be broadcast,
-			// becase a client could intercept and reconstruct other
+			// because a client could intercept and reconstruct other
 			// player's racks from the results. Really there should be
 			// one turn broadcast, and a different turn sent to the
 			// playing player.
@@ -1056,19 +1082,55 @@ define('game/Game', [
 				console.debug(move);
 			//console.log(`Player's rack is ${player.rack}`);
 
-			// Fire up a thread to generate advice and wait for it
-			// to complete. We can't do this asynchronously because
-			// the advice depends on the board state, which the move will
-			// update while the advice is still being computed.
-			if (player.wantsAdvice)
+			if (this.dictionary
+				&& !this.isRobot
+				&& this.rejectBadPlays) {
+
+				if (this._debug)
+					console.debug("Validating play");
+
+				// Check the play in the dictionary, and generate a
+				// 'reject' if it's bad. This has to be done
+				// synchronously before we start modifying the board
+				// state.
+				let badWords = [];
+				await this.getDictionary()
+				.then(dict => {
+					for (let w of move.words) {
+						if (!dict.hasWord(w.word))
+							badWords.push(w.word);
+					}
+				});
+				if (badWords.length > 0) {
+					if (this._debug)
+						console.debug('\trejecting', badWords);
+					// Reject the play. Nothing has been done to the
+					// game state yet, so we can just ping the
+					// player back and let the UI sort it out.
+					this.notifyPlayer(
+						player, 'reject',
+						{
+							playerKey: player.key,
+							words: badWords
+						});
+					return Promise.resolve();
+				}
+			}
+
+			if (player.wantsAdvice) {
+				// 'Post-move' alternatives analysis.
+				// We can't do this asynchronously because the advice
+				// depends on the board state, which the move might
+				// update while the advice was still being computed.
 				await this.advise(player, move.score);
+			}
 
 			const game = this;
 
 			// Move tiles from the rack to the board
 			move.placements.forEach(placement => {
-				const tile = player.rack.removeTile(placement);
 				const square = game.board.at(placement.col, placement.row);
+				const tile = player.rack.removeTile(placement);
 				square.placeTile(tile, true);
 			});
 
@@ -1088,7 +1150,10 @@ define('game/Game', [
 
 			//console.debug('words ', move.words);
 
-			if (this.checkDictionary && !player.isRobot) {
+			if (this.dictionary
+				&& this.checkDictionary
+				&& !player.isRobot
+				&& !this.rejectBadPlays) {
 				// Asynchronously check word and notify player if it
 				// isn't found.
 				this.getDictionary()
@@ -1107,9 +1172,6 @@ define('game/Game', [
 								});
 						}
 					}
-				})
-				.catch((e) => {
-					console.error('Dictionary load failed', e);
 				});
 			}
 
