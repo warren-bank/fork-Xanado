@@ -76,6 +76,10 @@ requirejs([
 
 	tr.addTest('actor', () => {
 		let bestMoves = [];
+		let rack = new Rack('base', 3);
+		rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
+		rack.addTile(new Tile({letter:'C', isBlank:false, score:3}));
+		rack.addTile(new Tile({letter:'R', isBlank:false, score:1}));
 		return new Game({
 			edition:'English_WWF',
 			dictionary:'SOWPODS_English'
@@ -103,13 +107,7 @@ requirejs([
 			game.state = Game.STATE_PLAYING;
 		})
 		.then(game => findBestPlay(
-			game, new Rack(
-				'base',
-				[
-					new Tile({letter:'A', isBlank:false, score:1}),
-					new Tile({letter:'C', isBlank:false, score:3}),
-					new Tile({letter:'R', isBlank:false, score:1})
-			]).tiles(),
+			game, rack.tiles(),
 			move => {
 				//console.log(move);
 				if (move instanceof Move)
@@ -144,6 +142,14 @@ requirejs([
 
 	tr.addTest('noe', () => {
 		let bestMoves = [];
+		let rack = new Rack('best', 7);
+		rack.addTile(new Tile({letter:'L', isBlank:false, score:1}));
+		rack.addTile(new Tile({letter:'I', isBlank:false, score:1}));
+		rack.addTile(new Tile({letter:'G', isBlank:false, score:2}));
+		rack.addTile(new Tile({letter:'E', isBlank:false, score:1}));
+		rack.addTile(new Tile({letter:'B', isBlank:false, score:3}));
+		rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
+		rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
 		return new Game({
 			edition:'English_Scrabble',
 			dictionary:'SOWPODS_English'
@@ -169,15 +175,7 @@ requirejs([
 		})
 		
 		.then(game => findBestPlay(
-			game, new Rack('best', [
-				new Tile({letter:'L', isBlank:false, score:1}),
-				new Tile({letter:'I', isBlank:false, score:1}),
-				new Tile({letter:'G', isBlank:false, score:2}),
-				new Tile({letter:'E', isBlank:false, score:1}),
-				new Tile({letter:'B', isBlank:false, score:3}),
-				new Tile({letter:'A', isBlank:false, score:1}),
-				new Tile({letter:'A', isBlank:false, score:1})
-			]).tiles(),
+			game, rack.tiles(),
 			move => {
 				//console.log(move);
 				if (move instanceof Move)
@@ -199,6 +197,14 @@ requirejs([
 	
 	tr.addTest('town', () => {
 		let bestMoves = [];
+		const rack = new Rack('best', 7);
+		rack.addTile(new Tile({letter:'U', isBlank:false, score:1}));
+		rack.addTile(new Tile({letter:'T', isBlank:false, score:1}));
+		rack.addTile(new Tile({letter:'R', isBlank:false, score:1}));
+		rack.addTile(new Tile({letter:'N', isBlank:false, score:1}));
+		rack.addTile(new Tile({letter:'M', isBlank:false, score:3}));
+		rack.addTile(new Tile({letter:'K', isBlank:false, score:5}));
+		rack.addTile(new Tile({letter:'I', isBlank:false, score:1}));
 		return new Game({
 			edition:'English_Scrabble',
 			dictionary:'Oxford_5000'
@@ -225,15 +231,7 @@ requirejs([
 				'| | | | | | | | | | | | | | | |\n');
 		})
 		.then(game => findBestPlay(
-			game, new Rack('best', [
-				new Tile({letter:'U', isBlank:false, score:1}),
-				new Tile({letter:'T', isBlank:false, score:1}),
-				new Tile({letter:'R', isBlank:false, score:1}),
-				new Tile({letter:'N', isBlank:false, score:1}),
-				new Tile({letter:'M', isBlank:false, score:3}),
-				new Tile({letter:'K', isBlank:false, score:5}),
-				new Tile({letter:'I', isBlank:false, score:1})
-			]).tiles(),
+			game, rack.tiles(),
 			move => {
 				//console.log(move);
 				if (move instanceof Move)
