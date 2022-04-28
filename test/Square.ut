@@ -51,16 +51,25 @@ requirejs([
 		assert(sq.isEmpty());
 		let tile = new Tile({
 			letter:'S', isBlank:false, score:1, col: 7, row: 7});
-		sq.placeTile(tile, true);
-		assert(sq.tile);
-		assert(sq.tileLocked);
+		
+		sq.placeTile(tile, false);
+		assert.strictEqual(sq.tile, tile);
+		assert(!sq.tileLocked);
 		assert(!sq.isEmpty());
 		assert.equal(tile.col, sq.col);
 		assert.equal(tile.row, sq.row);
+
 		sq.placeTile();
 		assert(!sq.tile);
 		assert(!sq.tileLocked);
 		assert(sq.isEmpty());
+
+		sq.placeTile(tile, true);
+		assert.strictEqual(sq.tile, tile);
+		assert(sq.tileLocked);
+		assert(!sq.isEmpty());
+		assert.equal(tile.col, sq.col);
+		assert.equal(tile.row, sq.row);
 	});
 	
 	tr.addTest('$ui', () => {
@@ -70,25 +79,34 @@ requirejs([
 		sq = new Square('_', { id: 'base' }, 56);
 		assert.equal(sq.$ui().html(),
 					 '<div id="base_56"><a></a></div>');
+		$("body").empty();
 	});
 
 	tr.addTest("refresh empty", () => {
 		let sq = new Square('q', { id: 'base' }, 56, 42);
+		sq.setUnderlay('T');
 		let $td = sq.$ui();
 		$("body").append($td);
 		sq.$refresh();
 		//console.log($("body").html());
 		assert($td.hasClass("square-q"));
-		const $div = $td.find("div");
+		const $div = $td.find("#base_56x42");
 		assert($div.hasClass("empty-square"));
 		assert($div.hasClass("ui-droppable"));
 		assert.equal($div.find("A").text(), "square-q");
+		const $u = $("#base_56x42 > div.underlay");
+		assert($u.hasClass("underlay"));
+		assert.equal($u.text(), "T");
+		$("body").empty();
 	});
 	
-	tr.addTest("refresh occupied", () => {
+	tr.addTest("refresh occupied unlocked", () => {
 		let sq = new Square('q', { id: 'surface' }, 56, 42);
+		sq.setUnderlay('T');
+		assert(!sq.tileLocked);
 		let tile = new Tile({ letter:'S', isBlank:false });
-		sq.placeTile(tile, true);
+		sq.placeTile(tile, false);
+		assert(!sq.tileLocked);
 		let $td = sq.$ui();
 		$("body").append($td);
 		sq.$refresh();
@@ -97,6 +115,32 @@ requirejs([
 		assert($td.hasClass("square-q"));
 		const $div = $("div[id=surface_56x42]");
 		assert($div.hasClass("selected"));
+		assert(!$div.hasClass("Locked"));
+		assert($div.hasClass("tiled-square"));
+		assert(!$div.hasClass("ui-droppable"));
+		let $letter = $("#surface_56x42>a>span.letter");
+		assert.equal($letter.text(), "S");
+		let $score = $("#surface_56x42>a>span.score");
+		assert.equal($score.text(), "0");
+		sq.setSelected(false);
+		assert(!$div.hasClass("selected"));
+		assert.equal($("div.underlay").length, 0);
+		$("body").empty();
+	});
+	
+	tr.addTest("refresh occupied locked", () => {
+		let sq = new Square('q', { id: 'surface' }, 56, 42);
+		assert(!sq.tileLocked);
+		let tile = new Tile({ letter:'S', isBlank:false });
+		sq.placeTile(tile, true);
+		assert(sq.tileLocked);
+		let $td = sq.$ui();
+		$("body").append($td);
+		sq.$refresh();
+		//console.log($("body").html());
+		assert($td.hasClass("square-q"));
+		const $div = $("div[id=surface_56x42]");
+		assert(!$div.hasClass("selected"));
 		assert($div.hasClass("Locked"));
 		assert($div.hasClass("tiled-square"));
 		assert(!$div.hasClass("ui-droppable"));
@@ -106,6 +150,7 @@ requirejs([
 		assert.equal($score.text(), "0");
 		sq.setSelected(false);
 		assert(!$div.hasClass("selected"));
+		$("body").empty();
 	});
 	
 	tr.run();

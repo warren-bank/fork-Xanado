@@ -119,10 +119,12 @@ define('game/Square', ['platform'], (Platform) => {
 		}
 
 		/**
-		 * Place a tile on this square
-		 * @param {Tile} tile the Tile to place
-		 * @param {boolean} lockedwhether the tile is to be locekd to the square
-		 * (fixed on the board)
+		 * Place a tile on this square. Tiles are locked when a play is
+		 * committed to a Board.
+		 * @param {Tile?} tile the Tile to place, or undefined to remove
+		 * the placement.
+		 * @param {boolean} locked whether the tile is to be locked to
+		 * the square (fixed on the board).
 		 */
 		placeTile(tile, locked) {
 			if (tile && this.tile && tile !== this.tile) {
@@ -136,9 +138,15 @@ define('game/Square', ['platform'], (Platform) => {
 					tile.row = this.row;
 				this.tile = tile;
 				this.tileLocked = locked;
-			} else {
+			}
+			else {
+				// Note that a locked tile might be unplaced as
+				// part of undoing a challenged play
+				if (this.tile) {
+					this.tile.row = -1;
+					this.tile.col = -1;
+				}
 				delete this.tile;
-				delete this.tileLocked;
 			}
 
 			// Used in the UI to update the square
@@ -208,9 +216,11 @@ define('game/Square', ['platform'], (Platform) => {
 		 * @param {boolean} sel 
 		 */
 		setSelected(sel) {
-			if (sel && this.tile)
+			if (sel && this.tile) {
+				if (this.tileLocked)
+					throw Error("Attempt to select locked tile");
 				$(`#${this.id}`).addClass('selected');
-			else
+			} else
 				$(`#${this.id}`).removeClass('selected');
 		}
 
