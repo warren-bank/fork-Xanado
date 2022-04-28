@@ -26,23 +26,24 @@
 </div>
 
 <div class="dialog-row">
-  <label for="predictScore" data-i18n="Predict score"></label>
-  <input type="checkbox" id="predictScore" checked data-i18n-tooltip="tooltip-predict-score" name="predictScore"/>
-</div>
-
-<div class="dialog-row">
-  <label for="checkDictionary" data-i18n="Check dictionary after each play"></label>
-  <input type="checkbox" id="checkDictionary" data-i18n-tooltip="tooltip-check-dictionary" name="checkDictionary"/>
+  <fieldset>
+	<legend data-i18n="Feedback on plays"></legend>
+	<div class="dialog-row">
+	  <label for="predictScore" data-i18n="Predict score"></label>
+	  <input type="checkbox" id="predictScore" checked data-i18n-tooltip="tooltip-predict-score" name="predictScore"/>
+	</div>
+	<label for="noCheck" data-i18n="Don't check words"></label>
+	<input type="radio" id="noCheck" checked name="wordCheck"/>
+	<label for="checkDictionary" data-i18n="Check words after play"></label>
+	<input type="radio" id="checkDictionary" data-i18n-tooltip="tooltip-check-dictionary" name="wordCheck"/>
+	<label for="rejectBadPlays" data-i18n="Disallow unknown words"></label>
+	<input type="radio" id="rejectBadPlays" data-i18n-tooltip="tooltip-reject-bad-plays" name="wordCheck"/>
+  </fieldset>
 </div>
 
 <div class="dialog-row">
   <label for="allowTakeBack" data-i18n="Allow 'Take back'"></label>
   <input type="checkbox" id="allowTakeBack" data-i18n-tooltip="tooltip-allow-take-back" name="allowTakeBack"/>
-</div>
-
-<div class="dialog-row">
-  <label for="rejectBadPlays" data-i18n="Disallow unknown words'"></label>
-  <input type="checkbox" id="rejectBadPlays" data-i18n-tooltip="tooltip-reject-bad-plays" name="rejectBadPlays"/>
 </div>
 
 <div class="dialog_row">

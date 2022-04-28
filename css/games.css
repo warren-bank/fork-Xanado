@@ -32,6 +32,10 @@ body {
 	font-weight: bold;
 }
 
+.game-options {
+	margin: 0.3em;
+}
+
 #gamesTable {
 	margin-bottom: 1.5em;
 }

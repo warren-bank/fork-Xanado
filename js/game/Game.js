@@ -750,6 +750,7 @@ define('game/Game', [
 					dictionary: this.dictionary,
 					predictScore: this.predictScore,
 					checkDictionary: this.checkDictionary,
+					rejectBadPlays: this.rejectBadPlays,
 					allowTakeBack: this.allowTakeBack,
 					state: this.state,
 					players: ps,					

@@ -209,7 +209,9 @@ requirejs([
 		if (game.predictScore)
 			options.push($.i18n("Predict score"));
 		if (game.checkDictionary)
-			options.push($.i18n("Check dictionary"));
+			options.push($.i18n("Check words after play"));
+		if (game.rejectBadPlays)
+			options.push($.i18n("Disallow unknown words"));
 		if (game.allowTakeBack)
 			options.push($.i18n("Allow 'Take back'"));
 		if (game.maxPlayers === game.minPlayers)
@@ -219,8 +221,11 @@ requirejs([
 								game.minPlayers, game.maxPlayers));
 		else if (game.minPlayers > 2)
 			options.push($.i18n("At least $1 players", game.minPlayers));
-		if (options.length > 0)
-			$twist.append(`<div>${options.join(", ")}</div>`);
+		if (options.length > 0) {
+			$twist.append(
+				$(`<div class="game-options"></div>`)
+				.text($.i18n("Options: " + options.join(", "))));
+		}
 		const $table = $("<table class='playerTable'></table>");
 		$twist.append($table);
 		game.players.forEach(

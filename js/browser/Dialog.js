@@ -72,7 +72,10 @@ define("browser/Dialog", () => {
 			this.$dlg
 			.tooltip({
 				items: '[data-i18n-tooltip]',
-				position: { my: "left+15 center", at: "right center" },
+				position: {
+					my: "left+15 center",
+					at: "right center"
+				},
 				content: function() {
 					return $.i18n($(this).data('i18n-tooltip'));
 				}
@@ -180,17 +183,23 @@ define("browser/Dialog", () => {
 			this.$dlg
 			.find("input[name],select[name],textarea[name]")
 			.each(function() {
-				const name = $(this).attr("name");
+				let name = $(this).attr("name");
 				let value;
 				if (this.type === "checkbox")
-					value = this.checked ? true : false;
-				else if (this.type === "number") {
+					value = $(this).is(":checked") ? true : false;
+				else if (this.type === "radio") {
+					if (!$(this).is(":checked"))
+						return;
+					// Radio buttons are grouped by name, so use id
+					name = this.id;
+					value = true;
+				} else if (this.type === "number") {
 					value = parseInt($(this).val());
 					if (isNaN(value))
 						return;
 				} else // text, password, email, <select, <textarea
 					value = $(this).val() || $(this).text();
-				console.debug(name,"=",value);
+				//console.debug(name,"=",value);
 				// Collect <input with the same name, and make arrays
 				if (typeof p[name] === 'undefined')
 					p[name] = value;
