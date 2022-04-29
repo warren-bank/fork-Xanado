@@ -730,7 +730,7 @@ define('browser/Ui', [
 
 			// Can swap up to swapCount tiles
 			this.swapRack = new Rack(
-				'Swap', this.game.board.swapCount, $.i18n('SWAP'));
+				'Swap', game.board.swapCount, $.i18n('SWAP'));
 
 			this.updatePlayerTable();
 
@@ -743,7 +743,7 @@ define('browser/Ui', [
 				this.swapRack.$refresh();
 			}
 
-			const $board = this.game.board.$ui();
+			const $board = game.board.$ui();
 			$('#board').append($board);
 
 			addToLog(true, $.i18n("Game started"), 'game-state');
@@ -759,7 +759,7 @@ define('browser/Ui', [
 			addToLog(true, ""); // Force scroll to end of log
 
 			if (game.hasEnded()) {
-				if (this.game.nextGameKey)
+				if (game.nextGameKey)
 					this.setMoveAction('nextGame', /*i18n*/"Next game");
 				else
 					this.setMoveAction('anotherGame', /*i18n*/"Another game?");
@@ -1560,23 +1560,25 @@ define('browser/Ui', [
 
 			if (turn.nextToGoKey && turn.type !== 'challenge-won') {
 
-				if (turn.type == 'move'
-					&& wasUs
-					&& this.game.allowTakeBack) {
-					this.addTakeBackPreviousButton(turn);
+				if (turn.type == 'move') {
+					if (wasUs) {
+						if (this.game.allowTakeBack) {
+							this.addTakeBackPreviousButton(turn);
+						}
+					} else {
+						// It wasn't us, we might want to challenge.
+						// Not much point in challenging a robot, but
+						// ho hum...
+						this.addChallengePreviousButton(turn);
+					}
 				}
 
 				if (this.isThisPlayer(turn.nextToGoKey)
 					&& turn.type !== 'took-back') {
-					// It's our turn, and we didn't just take back
+					// It's our turn next, and we didn't just take back
 					/*.i18n('ui-notify-title-your-turn')*/
 					this.notify(/*i18n ui-notify-body-*/'your-turn',
 								this.game.getPlayer(turn.playerKey).name);
-
-					if (turn.type === 'move') {
-						// Should be added to all players...
-						this.addChallengePreviousButton(turn);
-					}
 				}
 				this.game.whosTurnKey = turn.nextToGoKey;
 				this.updateWhosTurn();
