@@ -9,7 +9,8 @@ Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian
 ## History
 
 While there are a number of freely accessible servers out there
-offering clones of the classic SCRABBLE® game, but I wanted a game I
+offering clones of the classic SCRABBLE® game, 
+I wanted a game I
 could host on my own server, and experiment with different
 dictionaries, board layouts, tile sets, and rule combinations. And I
 wanted it to be completely free. The public servers I found didn't
