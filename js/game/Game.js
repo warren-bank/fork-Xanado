@@ -236,6 +236,20 @@ define('game/Game', [
 			this.checkDictionary = boolParam(params.checkDictionary, false);
 
 			/**
+			 * The type of penalty to apply for a failed challenge,
+			 * default miss next turn
+			 * @member {string}
+			 */
+			this.penaltyType = params.penaltyType || Game.PENALTY_MISS;
+
+			/**
+			 * The type of penalty to apply for a failed challenge,
+			 * default 5
+			 * @member {number}
+			 */
+			this.penaltyPoints = intParam(params.penaltyPoints, 5);
+
+			/**
 			 * List of decorated sockets. Only available server-side.
 			 * @member {WebSocket[]}
 			 * @private
@@ -1513,7 +1527,11 @@ define('game/Game', [
 
 				// Challenge failed
 
-				if (challenger === this.getPlayer()) {
+				const prevPlayerKey = this.previousMove.playerKey;
+				const currPlayerKey = this.getPlayer().key;
+				const nextPlayer = this.nextPlayer();
+				if (challenger.key === currPlayerKey &&
+					this.penaltyType === Game.PENALTY_MISS) {
 					// Current player issued the challenge, they lose the
 					// rest of this turn
 					challenger.stopTimer();
@@ -1529,21 +1547,10 @@ define('game/Game', [
 							Game.STATE_CHALLENGE_FAILED);
 					// Otherwise issue turn type=challenge-failed
 
-					const prevPlayerKey = this.previousMove.playerKey;
-					delete this.previousMove;
-
-					// TODO: Note that in this code, a failed
-					// challenge by not-next player incurs no penalty
-					// except a lost turn. That means they can
-					// challenge the last play as often as they
-					// like, as they are never going to lose a turn.
-					// Competition rules impose a points penalty
-					// for all failed challenges.
-
-					const nextPlayer = this.nextPlayer();
 					const turn = new Turn(
 						this, {
 							type: 'challenge-failed',
+							penalty: Game.PENALTY_MISS,
 							playerKey: prevPlayerKey,
 							challengerKey: challenger.key,
 							nextToGoKey: nextPlayer.key
@@ -1553,15 +1560,26 @@ define('game/Game', [
 					.then(() => this.startTurn(nextPlayer));
 				}
 
-				// Current player is not the challenger, so just tag
-				// them as missing their next turn
-				challenger.missNextTurn = true;
+				// Otherwise it's either a points penalty, or the challenger
+				// was not the next player
+				let lostPoints = 0;
+				if (this.penaltyType === Game.PENALTY_MISS) {
+					// tag them as missing their next turn
+					challenger.missNextTurn = true;
+				} else {
+					lostPoints = this.penaltyPoints;
+					if (this.penaltyType === Game.PENALTY_WORDS)
+						lostPoints *= this.previousMove.words.length;
+				}
+
 				return this.finishTurn(new Turn(
 					this, {
 						type: 'challenge-failed',
-						playerKey: this.previousMove.playerKey,
+						penalty: this.penaltyType,
+						score: -lostPoints,
+						playerKey: prevPlayerKey,
 						challengerKey: challenger.key,
-						nextToGoKey: this.getPlayer().key
+						nextToGoKey: currPlayerKey
 					}));
 				// no startTurn, because the challenge is asynchronous and
 				// doesn't move the player on
@@ -1686,6 +1704,10 @@ define('game/Game', [
 	Game.STATE_2_PASSES         = /*i18n*/"All players passed twice";
 	Game.STATE_CHALLENGE_FAILED = /*i18n*/"Challenge failed";
 	Game.STATE_TIMED_OUT        = /*i18n*/"Timed out";
+
+	Game.PENALTY_MISS           = "Miss next turn";
+	Game.PENALTY_TURN           = "Lose points";
+	Game.PENALTY_WORDS          = "Lose points per word";
 
 	// Classes used in Freeze/Thaw
 	Game.classes = [ LetterBag, Square, Board, Tile, Rack,
