@@ -1712,10 +1712,10 @@ define('game/Game', [
 	Game.STATE_TIMED_OUT        = /*i18n*/"Timed out";
 
 	// Penalty types
-	Game.PENALTY_NONE           = "No penalty";
-	Game.PENALTY_MISS           = "Miss next turn";
-	Game.PENALTY_PER_TURN       = "Lose points";
-	Game.PENALTY_PER_WORD       = "Lose points per word";
+	Game.PENALTY_NONE           = /*i18n*/"No penalty";
+	Game.PENALTY_MISS           = /*i18n*/"Miss next turn";
+	Game.PENALTY_PER_TURN       = /*i18n*/"Lose points";
+	Game.PENALTY_PER_WORD       = /*i18n*/"Lose points per word";
 	// defaults
 	Game.PENALTY_TYPE           = Game.PENALTY_PER_WORD;
 	Game.PENALTY_POINTS         = 5;
