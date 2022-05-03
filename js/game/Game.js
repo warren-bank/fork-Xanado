@@ -240,14 +240,14 @@ define('game/Game', [
 			 * default miss next turn
 			 * @member {string}
 			 */
-			this.penaltyType = params.penaltyType || Game.PENALTY_MISS;
+			this.penaltyType = params.penaltyType || Game.PENALTY_TYPE;
 
 			/**
-			 * The type of penalty to apply for a failed challenge,
-			 * default 5
+			 * The type of penalty to apply for a failed challenge
 			 * @member {number}
 			 */
-			this.penaltyPoints = intParam(params.penaltyPoints, 5);
+			this.penaltyPoints =
+			intParam(params.penaltyPoints, Game.PENALTY_POINTS);
 
 			/**
 			 * List of decorated sockets. Only available server-side.
@@ -1532,6 +1532,7 @@ define('game/Game', [
 				const nextPlayer = this.nextPlayer();
 				if (challenger.key === currPlayerKey &&
 					this.penaltyType === Game.PENALTY_MISS) {
+
 					// Current player issued the challenge, they lose the
 					// rest of this turn
 					challenger.stopTimer();
@@ -1563,20 +1564,25 @@ define('game/Game', [
 				// Otherwise it's either a points penalty, or the challenger
 				// was not the next player
 				let lostPoints = 0;
-				if (this.penaltyType === Game.PENALTY_MISS) {
+				switch (this.penaltyType) {
+				case Game.PENALTY_MISS:
 					// tag them as missing their next turn
 					challenger.missNextTurn = true;
-				} else {
-					lostPoints = this.penaltyPoints;
-					if (this.penaltyType === Game.PENALTY_WORDS)
-						lostPoints *= this.previousMove.words.length;
+					break;
+				case Game.PENALTY_PER_TURN:
+					lostPoints = -this.penaltyPoints;
+					break;
+				case Game.PENALTY_PER_WORD:
+					lostPoints = -this.penaltyPoints
+					* this.previousMove.words.length;
+					break;
+				default: // Game.PENALTY_NONE
 				}
 
 				return this.finishTurn(new Turn(
 					this, {
 						type: 'challenge-failed',
-						penalty: this.penaltyType,
-						score: -lostPoints,
+						score: lostPoints,
 						playerKey: prevPlayerKey,
 						challengerKey: challenger.key,
 						nextToGoKey: currPlayerKey
@@ -1705,9 +1711,14 @@ define('game/Game', [
 	Game.STATE_CHALLENGE_FAILED = /*i18n*/"Challenge failed";
 	Game.STATE_TIMED_OUT        = /*i18n*/"Timed out";
 
+	// Penalty types
+	Game.PENALTY_NONE           = "No penalty";
 	Game.PENALTY_MISS           = "Miss next turn";
-	Game.PENALTY_TURN           = "Lose points";
-	Game.PENALTY_WORDS          = "Lose points per word";
+	Game.PENALTY_PER_TURN       = "Lose points";
+	Game.PENALTY_PER_WORD       = "Lose points per word";
+	// defaults
+	Game.PENALTY_TYPE           = Game.PENALTY_PER_WORD;
+	Game.PENALTY_POINTS         = 5;
 
 	// Classes used in Freeze/Thaw
 	Game.classes = [ LetterBag, Square, Board, Tile, Rack,

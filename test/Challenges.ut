@@ -34,7 +34,8 @@ requirejs([
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
-			debug: false
+			debug: false,
+			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
@@ -111,7 +112,7 @@ requirejs([
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
 			debug: false,
-			penaltyType: Game.PENALTY_TURN,
+			penaltyType: Game.PENALTY_PER_TURN,
 			penaltyPoints: 5
 		});
 		const human1 = new Player({
@@ -144,7 +145,6 @@ requirejs([
 			case 1: // challenge failed
 				assert.equal(game.whosTurnKey, human2.key);
 				assert.equal(turn.type, 'challenge-failed');
-				assert.equal(turn.penaltyType, Game.PENALTY_POINTS);
 				assert.equal(turn.score, -5);
 				assert.equal(turn.playerKey, human1.key); // who was challenged
 				assert.equal(turn.challengerKey, human2.key); // who issued the challenged
@@ -190,7 +190,7 @@ requirejs([
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
 			debug: false,
-			penaltyType: Game.PENALTY_WORDS,
+			penaltyType: Game.PENALTY_PER_WORD,
 			penaltyPoints: 6
 		});
 		const human1 = new Player({name: 'Human 1', key: "human1"});
@@ -264,7 +264,8 @@ requirejs([
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
-			debug: false
+			debug: false,
+			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({name: 'Human 1', key: "human1", isRobot: false});
 		const human2 = new Player({name: 'Human 2', key: "human2", isRobot: false});
@@ -334,7 +335,8 @@ requirejs([
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
-			debug: false
+			debug: false,
+			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
@@ -401,7 +403,8 @@ requirejs([
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
-			debug: false
+			debug: false,
+			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
@@ -459,7 +462,8 @@ requirejs([
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
-			debug: false
+			debug: false,
+			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({name: 'Human 1', key:"sheep", isRobot: false});
 		const human2 = new Player({name: 'Human 2', key:"wolf", isRobot: false});
@@ -518,12 +522,13 @@ requirejs([
 
 	// A bad challenge of the final play by the next player is treated
 	// as a 'Game over' with appropriate end state.
-	tr.addTest('bad challenge of final play by next player', () => {
+	tr.addTest('bad challenge of final play by next player - miss turn', () => {
 		const game = new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
-			debug: false
+			debug: false,
+			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
@@ -592,12 +597,13 @@ requirejs([
 
 	// If the bad challenge is from a not-next player,
 	// it should generate a turn{type='challenge-failed'}.
-	tr.addTest('bad challenge of final play by not-next player', () => {
+	tr.addTest('bad challenge of final play by not-next player - miss turn', () => {
 		const game = new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
-			debug: false
+			debug: false,
+			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
@@ -681,7 +687,8 @@ requirejs([
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
-			debug: false
+			debug: false,
+			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
