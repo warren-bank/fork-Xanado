@@ -503,7 +503,7 @@ define('game/Game', [
 		 */
 		playIfReady() {
 			if (this._debug)
-				console.debug(`playIfReady ${this.key} ${this.state}`);
+				console.debug(`playIfReady game=${this.key} state=${this.state}`);
 
 			// Check preconditions for starting the game
 			if (this.players.length < this.minPlayers) {
@@ -541,16 +541,17 @@ define('game/Game', [
 
 				this.state = Game.STATE_PLAYING;
 
+				return this.save()
 				// startTurn will autoplay if the first player is
 				// a robot
-				return this.startTurn(player);
+				.then(() => this.startTurn(player));
 			}
 
 			if (this.getPlayer().isRobot)
 				return this.startTurn();
 
 			if (this._debug)
-				console.debug(`\twaiting for ${this.whosTurnKey} to play`);
+				console.debug(`\twaiting for ${this.getPlayer().name} to play`);
 
 			return Promise.resolve(this);
 		}
@@ -703,7 +704,8 @@ define('game/Game', [
 				return this.confirmGameOver(Game.STATE_2_PASSES);
 
 			if (this._debug)
-				console.debug(`Starting ${player.name}'s turn`);
+				console.debug(`startTurn ${player.name}'s turn`);
+
 			this.whosTurnKey = player.key;
 
 			if (player.isRobot) {
@@ -715,14 +717,15 @@ define('game/Game', [
 
 			if (this.secondsPerPlay <= 0) {
 				if (this._debug)
-					console.debug("\tuntimed game, wait for them to play");
+					console.debug(
+						`\tuntimed game, wait for ${player.name} to play`);
 				return Promise.resolve(this);
 			}
 
 			// For a timed game, make sure the clock is running and
 			// start the player's timer.
 			if (this._debug)
-				console.debug(`\ttimed game, ${timeout || this.secondsPerPlay} left`);
+				console.debug(`\ttimed game, ${player.name} has ${timeout || this.secondsPerPlay}s left to play`);
 			this.startTheClock(); // does nothing if already started
 
 			player.startTimer(
