@@ -260,13 +260,50 @@ define('browser/Ui', [
 			let player = this.game.getPlayer(turn.playerKey);
 			if (!player)
 				player = new Player({name: "Unknown player"});
+			const challenger = (typeof turn.challengerKey === 'string')
+				  ? this.game.getPlayer(turn.challengerKey) : undefined;
 
+			let what, who;
+			if (turn.type === 'challenge-failed') {
+				what = $.i18n("challenge");
+				if (challenger === this.player)
+					who = $.i18n("Your");
+				else
+					who = $.i18n("$1's", challenger.name);
+			} else {
+				what = $.i18n("turn");
+				if (player === this.player)
+					who = $.i18n("Your");
+				else
+					who = $.i18n("$1's", player.name);
+			}
 			addToLog(interactive, $.i18n(
-				"$1's turn", `<span class='playerName'>${player.name}</span>`),
+				"<span class='player-name'>$1</span> $2", who, what),
 					 'turn-player');
 
 			// What did they do?
 			let turnText;
+
+			let playerPossessive;
+			let playerIndicative;
+			if (this.player === player) {
+				playerPossessive = $.i18n("Your");
+				playerIndicative = $.i18n("You");
+			} else {
+				playerPossessive = $.i18n("$1's", player.name);
+				playerIndicative = player.name;
+			}
+
+			let challengerPossessive;
+			let challengerIndicative;
+			if (this.player === challenger) {
+				challengerPossessive = $.i18n("Your");
+				challengerIndicative = $.i18n("You");
+			} else if (challenger) {
+				challengerPossessive = $.i18n("$1's", challenger.name);
+				challengerIndicative = challenger.name;
+			}
+
 			switch (turn.type) {
 
 			case 'move':
@@ -286,35 +323,27 @@ define('browser/Ui', [
 				break;
 
 			case /*i18n*/'challenge-won':
-				if (this.isThisPlayer(turn.challengerKey))
-					turnText = $.i18n(
-						"You successfully challenged $1's play",
-						this.game.getPlayer(turn.playerKey).name);
-				else if (this.isThisPlayer(turn.playerKey))
-					turnText = $.i18n(
-						"$1 successfully challenged your play",
-						this.game.getPlayer(turn.challengerKey).name);
-				else
-					turnText = $.i18n(
-						"$1 successfully challenged $2's play",
-						this.game.getPlayer(turn.challengerKey).name,
-						this.game.getPlayer(turn.playerKey).name);
+				turnText = $.i18n(
+					"$1 successfully challenged $2 play",
+					challengerIndicative, playerPossessive);
 				break;
 
 			case /*i18n*/'challenge-failed':
-				if (this.isThisPlayer(turn.challengerKey))
-					turnText = $.i18n(
-						"Your challenge of $1's play failed, you will lose a turn",
-						this.game.getPlayer(turn.playerKey).name);
-				else if (this.isThisPlayer(turn.playerKey))
-					turnText = $.i18n(
-						"$1's challenge of your play failed, they will lose a turn",
-						this.game.getPlayer(turn.challengerKey).name);
-				else
-					turnText = $.i18n(
-						"$1's challenge of $2's play failed, they will lose a turn",
-						this.game.getPlayer(turn.challengerKey).name,
-						this.game.getPlayer(turn.playerKey).name);
+				turnText = $.i18n(
+					"$1 challenge of $2 play failed.",
+					challengerPossessive, playerPossessive);
+				switch (this.game.penaltyType) {
+				case Game.PENALTY_PER_WORD:
+				case Game.PENALTY_PER_TURN:
+					turnText += " " + $.i18n(
+						"$1 lost $2 points",
+						challengerIndicative, -turn.score);
+					break;
+				case Game.PENALTY_MISS:
+					turnText += " "
+					+ $.i18n("$1 will miss a turn", challengerIndicative);
+					break;
+				}
 				break;
 
 			default:
@@ -1420,14 +1449,21 @@ define('browser/Ui', [
 
             this.removeMoveActionButtons();
 			const player = this.game.getPlayer(turn.playerKey);
-			if (typeof turn.score === 'number')
-				player.score += turn.score;
-			else if (typeof turn.score === 'object')
-				Object.keys(turn.score).forEach(
-					k => this.game.players
-					.find(p => p.key === k).score += turn.score[k]);
+			const challenger = (typeof turn.challengerKey === 'string')
+				  ? this.game.getPlayer(turn.challengerKey) : undefined;
 
-			player.$refresh();
+			if (turn.type === 'challenge-failed') {
+				challenger.score += turn.score;
+				challenger.$refresh();
+			} else {
+				if (typeof turn.score === 'number')
+					player.score += turn.score;
+				else if (typeof turn.score === 'object')
+					Object.keys(turn.score).forEach(
+						k => this.game.players
+						.find(p => p.key === k).score += turn.score[k]);
+				player.$refresh();
+			}
 
 			// Unhighlight last placed tiles
 			$('.last-placement').removeClass('last-placement');
@@ -1482,15 +1518,13 @@ define('browser/Ui', [
 				break;
 
 			case 'challenge-failed':
-				if (wasUs) {
+				if (this.settings.warnings)
+					playAudio('oops');
+				if (challenger === this.player) {
 					// Our challenge failed
-					if (this.settings.warnings)
-						playAudio('oops');
 					/*.i18n('ui-notify-title-you-failed')*/
 					this.notify(/*i18n ui-notify-body-*/'you-failed');
 				} else {
-					if (this.settings.warnings)
-						playAudio('oops');
 					/*.i18n('ui-notify-title-they-failed')*/
 					this.notify(/*i18n ui-notify-body-*/'they-failed',
 						player.name);

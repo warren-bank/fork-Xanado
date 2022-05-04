@@ -46,6 +46,7 @@
 	"tooltip-min-players": "Require at least this many players to join before starting the game. A start player won't be assigned until enough players have joined.",
 	"tooltip-observe-game": "Open a board to watch the game, but not play.",
 	"tooltip-open-game": "Open this game in a new window.",
+	"tooltip-penalty-points": "Number of points lost for an incorrect challenge, either per turn or per correct word",
 	"tooltip-register-name": "Name you want to be known as in games.",
 	"tooltip-register-email": "Leave blank if you don't want to get emails from XANADO. Emails only relate to gameplay, and addresses are never shared with anyone else.",
 	"tooltip-register-password": "Use something you can easily remember. <b>Never</b> re-use a password you use on another site.",

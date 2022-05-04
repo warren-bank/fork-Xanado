@@ -116,11 +116,13 @@ define('game/Game', [
 			params.dictionary : null;
 
 			/**
-			 * An i18n message identifier, STATE_WAITING until
-			 * playIfReady starts the game, then STATE_PLAYING until the
-			 * game is finished, when it is some other identifier
-			 * giving the reason for the end game state - STATE_GAME_OVER,
-			 * STATE_2_PASSES, or STATE_CHALLENGE_FAILED
+			 * An i18n message identifier indicating the game state, one of
+			 * * `Game.STATE_WAITING` - until `playIfReady` starts the game
+			 * * `Game.STATE_PLAYING` - until the game is over, then
+			 * * `Game.STATE_GAME_OVER` - game was played to end, or
+			 * * `Game.STATE_2_PASSES` - all players passed twice, or
+			 * * `Game.STATE_CHALLENGE_FAILED` - a challenge on the final
+			 * play failed
 			 * @member {string}
 			 */
 			this.state = Game.STATE_WAITING;
@@ -237,7 +239,11 @@ define('game/Game', [
 
 			/**
 			 * The type of penalty to apply for a failed challenge,
-			 * default miss next turn
+			 * one of:
+			 * * `Game.PENALTY_NONE` - no penalty
+			 * * `Game.PENALTY_MISS` - miss next turn
+			 * * `Game.PENALTY_PER_TURN` - simple points penalty
+			 * * `Game.PENALTY_PER_WORD` - points penalty per correct word
 			 * @member {string}
 			 */
 			this.penaltyType = params.penaltyType || Game.PENALTY_TYPE;
@@ -779,6 +785,8 @@ define('game/Game', [
 					pausedBy: this.pausedBy,
 					minPlayers: this.minPlayers,
 					maxPlayers: this.maxPlayers,
+					penaltyType: this.penaltyType,
+					penaltyPoints: this.penaltyPoints,
 					nextGameKey: this.nextGameKey,
 					lastActivity: this.lastActivity() // epoch ms
 				};
@@ -1530,6 +1538,7 @@ define('game/Game', [
 				const prevPlayerKey = this.previousMove.playerKey;
 				const currPlayerKey = this.getPlayer().key;
 				const nextPlayer = this.nextPlayer();
+
 				if (challenger.key === currPlayerKey &&
 					this.penaltyType === Game.PENALTY_MISS) {
 
@@ -1578,6 +1587,8 @@ define('game/Game', [
 					break;
 				default: // Game.PENALTY_NONE
 				}
+
+				challenger.score += lostPoints;
 
 				return this.finishTurn(new Turn(
 					this, {
@@ -1703,7 +1714,7 @@ define('game/Game', [
 		}
 	}
 
-	// Valid values for 'state'
+	// Valid values for 'state'. Values are used in UI
 	Game.STATE_WAITING          = /*i18n*/"Waiting for players";
 	Game.STATE_PLAYING          = /*i18n*/"Playing";
 	Game.STATE_GAME_OVER        = /*i18n*/"Game over";
@@ -1711,14 +1722,21 @@ define('game/Game', [
 	Game.STATE_CHALLENGE_FAILED = /*i18n*/"Challenge failed";
 	Game.STATE_TIMED_OUT        = /*i18n*/"Timed out";
 
-	// Penalty types
-	Game.PENALTY_NONE           = /*i18n*/"No penalty";
-	Game.PENALTY_MISS           = /*i18n*/"Miss next turn";
-	Game.PENALTY_PER_TURN       = /*i18n*/"Lose points";
-	Game.PENALTY_PER_WORD       = /*i18n*/"Lose points per word";
+	// Valid values for 'penaltyType'. Values are used in UI
+	Game.PENALTY_NONE     = /*i18n*/"No penalty";
+	Game.PENALTY_MISS     = /*i18n*/"Miss next turn";
+	Game.PENALTY_PER_TURN = /*i18n*/"Lose points";
+	Game.PENALTY_PER_WORD = /*i18n*/"Lose points per word";
+
+	// Failed challenge penalty options for UI
+	Game.PENALTIES = [
+		Game.PENALTY_PER_WORD, Game.PENALTY_PER_TURN,
+		Game.PENALTY_MISS, Game.PENALTY_NONE
+	];
+
 	// defaults
-	Game.PENALTY_TYPE           = Game.PENALTY_PER_WORD;
-	Game.PENALTY_POINTS         = 5;
+	Game.PENALTY_TYPE   = Game.PENALTY_PER_WORD;
+	Game.PENALTY_POINTS = 5; // points per correct word challenged
 
 	// Classes used in Freeze/Thaw
 	Game.classes = [ LetterBag, Square, Board, Tile, Rack,

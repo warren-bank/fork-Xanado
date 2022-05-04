@@ -5,7 +5,9 @@
 /**
  * Dialog for game creation. Demand loads the HTML.
  */
-define("browser/CreateGameDialog", ["browser/Dialog"], (Dialog) => {
+define("browser/CreateGameDialog", [
+	"browser/Dialog", "game/Game"
+], (Dialog, Game) => {
 
 	class CreateGameDialog extends Dialog {
 		
@@ -26,6 +28,11 @@ define("browser/CreateGameDialog", ["browser/Dialog"], (Dialog) => {
 
 		createDialog() {
 			super.createDialog();
+
+			const $pen = this.$dlg.find("#penalty");
+			Game.PENALTIES.forEach(p => $pen.append(
+				`<option value="${p}">${$.i18n(p)}</option>`));
+
 			let promise;
 			$.get("/defaults")
 			.then(defaults => Promise.all([

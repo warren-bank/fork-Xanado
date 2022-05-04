@@ -221,6 +221,22 @@ requirejs([
 								game.minPlayers, game.maxPlayers));
 		else if (game.minPlayers > 2)
 			options.push($.i18n("At least $1 players", game.minPlayers));
+
+		switch (game.penaltyType) {
+		case Game.PENALTY_PER_TURN:
+			options.push($.i18n("Lose $1 points for a failed challenge",
+								game.penaltyPoints));
+			break;
+		case Game.PENALTY_PER_WORD:
+			options.push($.i18n(
+				"Lose $1 points for each wrongly challenged word",
+				game.penaltyPoints));
+			break;
+		case Game.PENALTY_MISS:
+			options.push($.i18n("Miss a turn after a failed challenge"));
+			break;
+		}
+
 		if (options.length > 0) {
 			$twist.append(
 				$(`<div class="game-options"></div>`)
