@@ -63,7 +63,7 @@ sub checkParameters {
 # LOAD STRINGS
 # from i18n/*.json
 # If a language or qqq is passed in ARGV[0] will load that, otherwise will load
-# all langauges (including qqq.json, which contains documentation)
+# all languages (including qqq.json, which contains documentation)
 my $i18nd;
 my %strings;
 my @lingos = qw(en);
@@ -98,12 +98,12 @@ foreach my $string (sort keys %{$strings{"en"}}) {
 
 # CHECK OTHER LANGUAGES
 # Check that all keys in en are also in other languages.
-# Check that all keys in other languages occur in en
+# Check that all keys in other languages occur in en.
+# qqq is treated as a language
 foreach my $lang (sort keys %strings) {
 	next if ($lang eq "en");
 	print "Check $lang\n";
 	my $titled = 0;
-	my @ens;
 	foreach my $key (sort keys %{$strings{en}}) {
 		if ($strings{$lang}{$key}) {
 			checkParameters($key, $strings{$lang}{$key});
@@ -113,13 +113,9 @@ foreach my $lang (sort keys %strings) {
 			print "-------------- $lang HAS NO TRANSLATION FOR\n";
 			$titled = 1;
 		}
-		print STDERR "\"$key\"\n";
-		push(@ens, "\"$strings{en}{$key}\"");
+		print STDERR "\"$key\": $strings{qqq}{$key}, ";
+		print STDERR "Found in ",join(", ", @{$found{$key}}),"\n";
 		$warns++;
-	}
-	if ($titled) {
-		print "-------------- CORRESPONDING ENGLISH STRINGS\n";
-		print join("\n", @ens),"\n";
 	}
 
 	$titled = 0;
@@ -138,4 +134,5 @@ foreach my $lang (sort keys %strings) {
 if ($warns > 0) {
 	print STDERR "$warns warnings\n";
 	print STDERR "See https://github.com/wikimedia/jquery.i18n for help with string formats\n";
+	print STDERR "See i18n/qqq.json for help with string meanings\n";
 }
