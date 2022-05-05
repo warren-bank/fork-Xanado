@@ -59,6 +59,7 @@ requirejs([
 		assert.equal(r.findSquare('D').col, 2);
 		const before = r.letters();
 		r.shuffle();
+		// Probably won't be equal, but it might be!
 		assert.notDeepEqual(r.letters(), before);
 		assert(r.findSquare('X').tile.isBlank);
 		assert.deepEqual(r.lettersLeft().sort(), ['B', 'D', 'E']);

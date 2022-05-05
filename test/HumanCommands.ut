@@ -24,7 +24,7 @@ requirejs([
 	TestRunner, TestSocket,
 	Tile, Player, Game, Move, Turn
 ) => {
-    let tr = new TestRunner('Game tests');
+    let tr = new TestRunner('Game - human commands - tests');
     let assert = tr.assert;
 
 	tr.addTest("swap", () => {
@@ -122,9 +122,9 @@ requirejs([
 			debug: false
 		});
 		const socket = new TestSocket();
-		socket.on('nextGame', (event, key) => {
-			//console.debug('anotherGame', key);
-			assert.equal(key, game.nextGameKey);
+		socket.on('nextGame', (event, info) => {
+			//console.debug('anotherGame', info);
+			assert.equal(info.gameKey, game.nextGameKey);
 			socket.done();
 		});
 		socket.on('connections', () => {});
@@ -143,13 +143,15 @@ requirejs([
 			// no shuffle, so player should be reset to first
 			// player
 			assert.equal(newGame.whosTurnKey, human1.key);
-			assert.equal(newGame.secondsPerPlay, game.secondsPerPlay);
+			assert.equal(newGame.timerType, game.timerType);
+			assert.equal(newGame.timeLimit, game.timeLimit);
+			assert.equal(newGame.timePenalty, game.timePenalty);
 			assert.equal(newGame.edition, game.edition);
 			assert.equal(newGame.dictionary, game.dictionary);
 			assert.equal(newGame.minutesToPlay, game.minutesToPlay);
 			assert.equal(newGame.predictScore, game.predictScore);
 			assert.equal(newGame.allowTakeBack, game.allowTakeBack);
-			assert.equal(newGame.checkDictionary, game.checkDictionary);
+			assert.equal(newGame.wordCheck, game.wordCheck);
 			assert.equal(newGame.minPlayers, game.minPlayers);
 			assert.equal(newGame.maxPlayers, game.maxPlayers);
 		})
@@ -308,14 +310,12 @@ requirejs([
 			assert.equal(event, 'turn');
 			assert.equal(turn.type, 'Game over');
 			const exp = {};
-			exp[human1.key] = -3;
-			exp[human2.key] = 3;
+			exp[human1.key] = { tiles: -3 };
+			exp[human2.key] = { tiles: 3 };
 			assert.deepEqual(turn.score, exp);
 			assert.equal(turn.playerKey, human1.key);
 			assert.equal(turn.emptyPlayerKey, human2.key);
 			assert(!turn.nextToGoKey);
-			assert.equal(turn.score[human1.key], -3);
-			assert.equal(turn.score[human2.key], 3);
 			socket.done();
 		};
 		socket.on('turn', handle);

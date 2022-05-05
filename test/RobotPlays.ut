@@ -24,7 +24,7 @@ requirejs([
 	TestRunner, TestSocket,
 	Tile, Player, Game, Move, Turn
 ) => {
-    let tr = new TestRunner('Game tests');
+    let tr = new TestRunner('Game - robot plays - tests');
     let assert = tr.assert;
 
 	tr.addTest('robot cannot play first', () => {
@@ -270,14 +270,12 @@ requirejs([
 				assert.equal(turn.type, 'Game over');
 				assert.equal(turn.endState, Game.STATE_GAME_OVER);
 				const exp = {};
-				exp[human.key] = 100;
-				exp[robot.key] = -100;
+				exp[human.key] = { tiles: 100 };
+				exp[robot.key] = { tiles: -100 };
 				assert.deepEqual(turn.score, exp);
 				assert.equal(turn.playerKey, robot.key);
 				assert.equal(turn.emptyPlayerKey, human.key);
 				assert(!turn.nextToGoKey);
-				assert.equal(turn.score[human.key], 100);
-				assert.equal(turn.score[robot.key], -100);
 				assert.equal(human.score, 199);
 				assert.equal(robot.score, -100);
 				socket.done();

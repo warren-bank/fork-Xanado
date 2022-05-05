@@ -20,6 +20,7 @@ define('browser/Ui', [
 	 * @param {string|Error|array|jqXHR} args This will either be a
 	 * simple i18n string ID, or an array containing an i18n ID and a
 	 * series of arguments, or a jqXHR.
+	 * @private
 	 */
 	function report(args) {
 		// Handle a jqXHR
@@ -52,6 +53,7 @@ define('browser/Ui', [
 	 * Format a move score summary.
 	 * @param turn {Move|Turn} the turn or move being scored.
 	 * @param {boolean} hideScore true to elide the score
+	 * @private
 	 */
 	function formatScore(turn, hideScore) {
 		let sum = 0;
@@ -82,6 +84,7 @@ define('browser/Ui', [
 	 * @param {(jQuery|string)} mess thing to add
 	 * @param {string?} optional css class name
 	 * @return {jQuery} the div created
+	 * @private
 	 */
 	function addToLog(interactive, mess, css) {
 		const $div = $('<div class="logEntry"></div>');
@@ -102,6 +105,7 @@ define('browser/Ui', [
 	 * pre-loaded in the HTML. Note that most (all?) browsers require
 	 * some sort of user interaction before they will play audio
 	 * embedded in the page.
+	 * @private
 	 */
 	function playAudio(id) {
 		const audio = document.getElementById(id);
@@ -392,12 +396,13 @@ define('browser/Ui', [
 			// we just need to present the results.
 			const unplayed = game.players.reduce(
 				(sum, player) => sum + player.rack.score(), 0);
-			addToLog(interactive, $.i18n(turn.endState||'Game over'), 'game-state');
+			addToLog(interactive, $.i18n(turn.endState||'Game over'),
+					 'game-state');
 			const $narrative = $('<div class="game-outcome"></div>');
 			game.players.forEach(player => {
 				const isMe = this.isThisPlayer(player.key);
 				const name = isMe ? $.i18n("You") : player.name;
-				const $gsd = $('<div class="rack-gains"></div>');
+				const $rackAdjust = $('<div class="rack-adjust"></div>');
 
 				if (player.score === winningScore) {
 					if (isMe) {
@@ -411,19 +416,28 @@ define('browser/Ui', [
 
 				if (player.rack.isEmpty()) {
 					if (unplayed > 0) {
-						$gsd.text($.i18n(
+						$rackAdjust.text($.i18n(
 							"$1 gained $2 point{{PLURAL:$2||s}} from the racks of other players",
 										 name, unplayed));
 					}
 				} else if (player.rack.score() > 0) {
 					// Lost sum of unplayed letters
-					$gsd.text($.i18n(
+					$rackAdjust.text($.i18n(
 						"$1 lost $2 point{{PLURAL:$2||s}} for a rack containing '$3'",
 						name, player.rack.score(),
 						player.rack.lettersLeft().join(',')));
 				}
 				player.$refresh();
-				$narrative.append($gsd);
+				$narrative.append($rackAdjust);
+
+				const timePenalty = turn.score[player.key].time;
+				if (typeof timePenalty === 'number' && timePenalty !== 0) {
+					const $timeAdjust = $('<div class="time-adjust"></div>');
+					$timeAdjust.text($.i18n(
+						"$1 lost $2 point{{PLURAL:$2||s}} to the clock",
+						name, Math.abs(timePenalty)));
+					$narrative.append($timeAdjust);
+				}
 			});
 
 			let who;
@@ -495,50 +509,51 @@ define('browser/Ui', [
 		 * @param {object} params Parameters
 		 * @param {string} gameKey game key
 		 * @param {string} playerKey player key
-		 * @param {string} secondsToPlay seconds left for this player to play
+		 * @param {string} clock seconds left for this player to play
 		 */
 		handle_tick(params) {
 			// console.debug("--> tick");
 			if (params.gameKey !== this.game.key)
 				console.error(`key mismatch ${this.game.key}`);
-			const $to = $('#timeout')
-			.removeClass('tick-alert-high tick-alert-medium tick-alert-low');
 
-			if (params.secondsToPlay <= 0) {
-				$to.hide();
-				return;
+			const ticked = this.game.getPlayer(params.playerKey);
+			let remains = params.clock;
+			ticked.clock = remains;
+
+			const clocks = Game.formatTimeInterval(remains);
+			if (this.game.timerType === Player.TIMER_TURN) {
+				$(`.player-clock`)
+				.empty()
+				.removeClass("tick-alert-low tick-alert-medium tick-alert-high");
+				if (remains <= 0)
+					return;
 			}
 
-			let stick = '';
-			if (this.isThisPlayer(params.playerKey)) {
-				this.player.secondsToPlay = params.secondsToPlay;
-				stick = $.i18n("You have $1 seconds to play",
-							   Math.floor(params.secondsToPlay));
-				if (params.secondsToPlay < 10 && this.settings.warnings)
-					playAudio('tick');
-			}
-			else
-				stick = $.i18n("$1 has $2 seconds to play",
-							   this.game.getPlayer(params.playerKey).name,
-							   params.secondsToPlay);
+			if (ticked === this.player
+				&& this.game.timerType === Player.TIMER_TURN
+				&& remains <= 10
+				&& this.settings.warnings)
+				playAudio('tick');
 
-			if (params.secondsToPlay < 15)
-				$to.fadeOut(100).addClass('tick-alert-high');
-			else if (params.secondsToPlay < 45)
-				$to.fadeOut(100).addClass('tick-alert-medium');
-			else if (params.secondsToPlay < 90)
-				$to.fadeOut(100).addClass('tick-alert-low');
-			$to.text(stick).fadeIn(200);
+			const $to = $(`#player${ticked.key} .player-clock`);
+			if (remains < this.game.timeLimit / 6) {
+				$to.addClass("tick-alert-high");
+			} else if (remains < this.game.timeLimit / 3)
+				$to.addClass("tick-alert-medium");
+			else if (remains < this.game.timeLimit / 2)
+				$to.addClass("tick-alert-low");
+			$to.text(clocks);
 		}
 
 		/**
 		 * Handle nextGame event. This tells the UI that a follow-on
 		 * game is available.
-		 * @param {string} key key for next game
+		 * @param {object} info event info
+		 * @param {string} info.gameKey key for next game
 		 */
-		handle_nextGame(key) {
-			console.debug("--> nextGame", key);
-			this.game.nextGameKey = key;
+		handle_nextGame(info) {
+			console.debug("--> nextGame", info.gameKey);
+			this.game.nextGameKey = info.gameKey;
 			this.setMoveAction('nextGame', /*i18n*/'Next game');
 		}
 
@@ -776,11 +791,6 @@ define('browser/Ui', [
 			$('#board').append($board);
 
 			addToLog(true, $.i18n("Game started"), 'game-state');
-
-			if (game.secondsPerPlay > 0)
-				$("#timeout").show();
-			else 
-				$("#timeout").hide();
 
 			game.turns.forEach(
 				(turn, i) => this.describeTurn(
@@ -1032,7 +1042,7 @@ define('browser/Ui', [
 
 			$('#settings')
 			.on('click', () => {
-				$("#pauseButton").toggle(this.game.secondsPerPlay > 0);
+				$("#pauseButton").toggle(this.game.timeLimit > 0);
 				$('#settingsDialog')
 				.dialog({
 					title: $.i18n("Options"),
@@ -1461,7 +1471,10 @@ define('browser/Ui', [
 				else if (typeof turn.score === 'object')
 					Object.keys(turn.score).forEach(
 						k => this.game.players
-						.find(p => p.key === k).score += turn.score[k]);
+						.find(p => p.key === k)
+						.score +=
+						(turn.score[k].tiles || 0) +
+						(turn.score[k].time || 0));
 				player.$refresh();
 			}
 

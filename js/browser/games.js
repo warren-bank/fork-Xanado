@@ -50,9 +50,8 @@ requirejs([
 				$tr.append(`<td>${dic}</td>`);
 			}
 
-			if (game.secondsPerPlay > 0 && player.secondsToPlay > 0) {
-				const left = $.i18n("$1s left to play",
-									player.secondsToPlay / 1000);
+			if (game.timerType !== Player.TIMER_NONE) {
+				const left = $.i18n("$1s left to play", player.clock);
 				$tr.append(`<td>${left}</td>`);
 			}
 			
@@ -186,8 +185,12 @@ requirejs([
 		if (game.dictionary)
 			headline.push($.i18n("dictionary $1", game.dictionary));
 
-		if (game.secondsPerPlay > 0)
-			headline.push($.i18n("time limit $1", game.secondsPerPlay / 60));
+		if (game.timerType === Player.TIMER_TURN)
+			headline.push($.i18n("turn time limit $1",
+								 Game.formatTimeInterval(game.timeLimit)));
+		else if (game.timerType === Player.TIMER_GAME)
+			headline.push($.i18n("game time limit $1",
+								 Game.formatTimeInterval(game.timeLimit)));
 
 		const isActive = (game.state === Game.STATE_PLAYING
 						 || game.state === Game.STATE_WAITING);
@@ -208,10 +211,8 @@ requirejs([
 		const options = [];
 		if (game.predictScore)
 			options.push($.i18n("Predict score"));
-		if (game.checkDictionary)
-			options.push($.i18n("Check words after play"));
-		if (game.rejectBadPlays)
-			options.push($.i18n("Disallow unknown words"));
+		if (game.wordCheck && game.wordCheck !== Game.WORD_CHECK_NONE)
+			options.push($.i18n(game.wordCheck));
 		if (game.allowTakeBack)
 			options.push($.i18n("Allow 'Take back'"));
 		if (game.maxPlayers === game.minPlayers)

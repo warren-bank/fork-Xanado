@@ -114,7 +114,14 @@ foreach my $lang (sort keys %strings) {
 			$titled = 1;
 		}
 		print STDERR "\"$key\": $strings{qqq}{$key}, ";
-		print STDERR "Found in ",join(", ", @{$found{$key}}),"\n";
+		if ($found{$key}) {
+			print STDERR "Found in ",join(", ", @{$found{$key}}),"\n";
+		} else {
+			print STDERR "Not found\n";
+		}
+		if ($strings{en}{$key} ne $key) {
+			print STDERR "English is: $strings{en}{$key}\n";
+		}
 		$warns++;
 	}
 

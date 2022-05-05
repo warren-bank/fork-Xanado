@@ -65,6 +65,7 @@ requirejs(['test/TestRunner', 'game/Player'], (TestRunner, Player) => {
 		$tr.append('<td class="remaining-tiles"></td>');
 		$tr.append(`<td class='connect-state online'>●</td>`);
 		$tr.append('<td class="score">0</td>');
+		$tr.append('<td class="player-clock"></td>');
 
 		player.isConnected = true; // muddy-boots client-side setting
 
@@ -95,6 +96,7 @@ requirejs(['test/TestRunner', 'game/Player'], (TestRunner, Player) => {
 		$tr.append('<td class="remaining-tiles"></td>');
 		$tr.append(`<td class='connect-state offline'>●</td>`);
 		$tr.append('<td class="score">20</td>');
+		$tr.append('<td class="player-clock"></td>');
 		const $act = player.$ui();
 		assert($act[0].isEqualNode($tr[0]),
 			  `expected: ${$tr.html()}\n actual: ${$act.html()}`);

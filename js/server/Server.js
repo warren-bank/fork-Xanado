@@ -805,7 +805,6 @@ define('server/Server', [
 			const gameKey = req.params.gameKey;
 			console.log("Delete game",gameKey);
 			return this.loadGame(gameKey)
-			.then(game => game.stopTimers())
 			.then(() => this.db.rm(gameKey))
 			.then(() => res.status(200).send("OK"))
 			.then(() => this.updateObservers())

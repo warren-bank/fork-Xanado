@@ -435,16 +435,20 @@ div.Surface td div.blank-letter a {
 	font-size: 0.75em;
 }
 
+.player-clock {
+	color: #080;
+}
+
 .tick-alert-low {
-	color: white;
+	color: #cc5801 !important;
 }
 
 .tick-alert-medium {
-	color:orange;
+	color:#fcae1e !important;
 }
 
 .tick-alert-high {
-	color: red;
+	color: red !important;
 }
 
 /* Override jquery-ui for shuffle and take-back buttons */
@@ -563,30 +567,23 @@ button.fat-button {
 #rackControls {
 	margin-top: 0.5em;
 	width: 100%;
-	text-align: center;
-	display: table;
+	flex-direction: row;
+	justify-content: space-evenly;
+	align-items: center;
+	display: flex;
 }
 
 #rackControls .Rack {
-	float: left;
-	margin: 0;
+	margin-bottom: 0;
 }
 
 /* div that contains the rack control buttons - Shuffle, Take back */
 #rackControls .fat-buttons {
-	display: table-cell;
-	vertical-align: middle;
     font-size: 1.2em;
-	height: 100%;
 }
 
 #takeBackButton {
     visibility: hidden;
-}
-
-#timeout[name=message] {
-	font-size: 1.5em;
-	color: grey;
 }
 
 /* Blank letter requester dialog */

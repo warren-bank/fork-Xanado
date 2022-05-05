@@ -33,6 +33,14 @@ define("browser/CreateGameDialog", [
 			Game.PENALTIES.forEach(p => $pen.append(
 				`<option value="${p}">${$.i18n(p)}</option>`));
 
+			const $tim = this.$dlg.find("#timerType");
+			Game.TIMERS.forEach(t => $tim.append(
+				`<option value="${t}">${$.i18n(t)}</option>`));
+
+			const $wc = this.$dlg.find("#wordCheck");
+			Game.WORD_CHECKS.forEach(c => $wc.append(
+				`<option value="${c}">${$.i18n(c)}</option>`));
+
 			let promise;
 			$.get("/defaults")
 			.then(defaults => Promise.all([

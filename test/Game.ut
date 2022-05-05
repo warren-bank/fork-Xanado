@@ -45,11 +45,13 @@ requirejs([
 		const p = {
 			edition:'English_Scrabble',
 			dictionary:'Oxford_5000',
-			secondsPerPlay: 60,
-			minutesPerPlay: 999, // secondsToPlay should override
+			timerType: Player.TIMER_GAME,
+			timeLimit: 60,
+			timeLimitMinutes: 999, // timeLimit should override
+			timePenalty: 100,
 			predictScore: true,
 			allowTakeBack: true,
-			checkDictionary: true,
+			wordCheck: Game.WORD_CHECK_AFTER,
 			minPlayers: 5,
 			maxPlayers: 10,
 			debug: false
@@ -59,10 +61,12 @@ requirejs([
 		.then(game => {
 			assert.equal(game.edition, p.edition);
 			assert.equal(game.dictionary, p.dictionary);
-			assert.equal(game.secondsPerPlay, 60);
+			assert.equal(game.timerType, Player.TIMER_GAME);
+			assert.equal(game.timePenalty, 100);
+			assert.equal(game.timeLimit, 60);
 			assert(game.predictScore);
 			assert(game.allowTakeBack);
-			assert(game.checkDictionary);
+			assert(game.wordCheck);
 			assert.equal(game.minPlayers, 5);
 			assert.equal(game.maxPlayers, 10);
 			assert.equal(game.state, Game.STATE_WAITING);
@@ -73,10 +77,11 @@ requirejs([
 		const p = {
 			edition:'English_Scrabble',
 			dictionary:'Oxford_5000',
-			minutesPerPlay: 999,
+			timerType: Player.TIMER_TURN,
+			timeLimitMinutes: 999,
 			predictScore: false,
 			allowTakeBack: false,
-			checkDictionary: false,
+			wordCheck: Game.WORD_CHECK_AFTER,
 			minPlayers: 30,
 			maxPlayers: 1,
 			debug: false
@@ -87,10 +92,10 @@ requirejs([
 		.then(game => {
 			assert.equal(game.edition, p.edition);
 			assert.equal(game.dictionary, p.dictionary);
-			assert.equal(game.secondsPerPlay, 999*60);
+			assert.equal(game.timeLimit, 999*60);
 			assert(!game.predictScore);
 			assert(!game.allowTakeBack);
-			assert(!game.checkDictionary);
+			assert.equal(game.wordCheck, Game.WORD_CHECK_AFTER);
 			assert.equal(game.minPlayers, 30);
 			assert.equal(game.maxPlayers, 0);
 
@@ -127,10 +132,9 @@ requirejs([
 		const p = {
 			edition:'English_Scrabble',
 			dictionary:'Oxford_5000',
-			minutesPerPlay: 999,
+			timeLimit: 999,
 			predictScore: false,
 			allowTakeBack: false,
-			checkDictionary: false,
 			noPlayerShuffle: true,
 			debug: false
 		};
@@ -193,7 +197,6 @@ requirejs([
 			//console.debug(`actual: ${$act.html()}`);
 			assert($act[0].isEqualNode($tab[0]),
 				   `expected: ${$tab.html()}\n actual: ${$act.html()}`);
-			game.stopTimers();
 		});
 	});
 
@@ -331,7 +334,7 @@ requirejs([
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true,
-			rejectBadPlays: true,
+			wordCheck: Game.WORD_CHECK_REJECT,
 			debug: false
 		});
 		const human1 = new Player({

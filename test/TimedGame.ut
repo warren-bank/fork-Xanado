@@ -41,7 +41,7 @@ requirejs([
     let tr = new TestRunner('Timed Game tests');
     let assert = tr.assert;
 
-	tr.addTest('timeout all players and end game', () => {
+	tr.addTest('timeout and end game', () => {
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
 		const human2 = new Player({
@@ -52,7 +52,8 @@ requirejs([
 			dictionary:'Oxford_5000',
 			debug: false,
 			noPlayerShuffle: true,
-			secondsPerPlay: 0.25
+			timerType: Player.TIMER_TURN,
+			timeLimit: 1
 		});
 		let nextTurn = 0;
 		const socket = new TestSocket();
@@ -92,7 +93,8 @@ requirejs([
 				assert.equal(turn.gameKey, game.key);
 				break;
 			case 4:
-				assert.deepEqual(turn.score, { human1: -1, human2: -1 });
+				assert.deepEqual(turn.score, {
+					human1: { tiles: -1 }, human2: {tiles: -1 }});
 				assert.equal(turn.bonus, 0);
 				assert.equal(turn.type, 'Game over');
 				assert.equal(turn.endState, 'All players passed twice');
@@ -126,10 +128,129 @@ requirejs([
 				new Tile({letter:'A', isBlank:false, score:1}));
 			// we have enough players to kick the game off. We don't need
 			// to connect player 2, as the connect() of player1 should
-			// kick off with a startTurn(). The players will each
-			// timeout twice and the game will finish.
+			// kick off play. The players will each timeout twice and
+			// the game will finish.
 		})
 		.then(() => game.connect(socket, human1.key))
+		.then(() => socket.wait());
+	});
+
+	tr.addTest('pass and ovetime', () => {
+		const human1 = new Player({
+			name: 'Human 1', key: "human1", isRobot: false});
+		const human2 = new Player({
+			name: 'Human 2', key: "human2", isRobot: false});
+
+		const game = new Game({
+			edition:'Tiny',
+			dictionary:'Oxford_5000',
+			debug: false,
+			noPlayerShuffle: true,
+			timerType: Player.TIMER_GAME,
+			timeLimit: 0.001,
+			timePenalty: 60
+		});
+		let nextTurn = 0;
+
+		const socket = new TestSocket();
+		// Expected turns
+		const handle = (event, turn) => {
+			switch (nextTurn++) {
+			case 0:
+				assert.equal(turn.score, 0);
+				assert.equal(turn.bonus, 0);
+				assert.equal(turn.type, 'passed');
+				assert.equal(turn.playerKey, human1.key);
+				assert.equal(turn.nextToGoKey, human2.key);
+				assert.equal(turn.gameKey, game.key);
+				break;
+			case 1:
+				assert.equal(turn.score, 0);
+				assert.equal(turn.bonus, 0);
+				assert.equal(turn.type, 'passed');
+				assert.equal(turn.playerKey, human2.key);
+				assert.equal(turn.nextToGoKey, human1.key);
+				assert.equal(turn.gameKey, game.key);
+				break;
+			case 2:
+				assert.equal(turn.score, 0);
+				assert.equal(turn.bonus, 0);
+				assert.equal(turn.type, 'passed');
+				assert.equal(turn.playerKey, human1.key);
+				assert.equal(turn.nextToGoKey, human2.key);
+				assert.equal(turn.gameKey, game.key);
+				break;
+			case 3:
+				assert.equal(turn.score, 0);
+				assert.equal(turn.bonus, 0);
+				assert.equal(turn.type, 'passed');
+				assert.equal(turn.playerKey, human2.key);
+				assert.equal(turn.nextToGoKey, human1.key);
+				assert.equal(turn.gameKey, game.key);
+				break;
+			case 4:
+				//console.debug(turn.score);
+				assert.equal(turn.score.human1.tiles, -1);
+				assert.equal(turn.score.human2.tiles, -1);
+				// Human 1 should be over-time by one clock tick, which
+				// is 1/60th of a minute. The penalty should therefore be
+				// 100/60 = 
+				assert.equal(turn.score.human1.time, -2);
+				// human2 has no time penalty
+				assert(!turn.score.human2.time);
+				assert.equal(turn.bonus, 0);
+				assert.equal(turn.type, 'Game over');
+				assert.equal(turn.endState, 'All players passed twice');
+				assert.equal(turn.gameKey, game.key);
+				assert(!turn.nextToGoKey);
+				socket.done();
+				break;
+			default:
+				console.error("UNEXPECTED TURN", turn);
+				assert.fail("UNEXPECTED TURN");
+				socket.done();
+			}
+		};
+		socket.on('turn', handle);
+
+		socket.on('connections', () => {});
+
+		let onTick;
+		function awaitTick() {
+			return new Promise(resolve => {
+				onTick = resolve;
+			});
+		}
+		socket.on('tick', () => {
+			if (onTick)
+				onTick();
+		});
+		socket.on('*', (event, data) => {
+			console.error("UNEXPECTED EVENT", event);
+			assert.fail(event);
+		});
+
+		// Players don't time out in a chess clock game, so we have to
+		// explicitly pass twice
+		return game.create()
+		.then(game => {
+			game.addPlayer(human1);
+			human1.rack.empty();
+			human1.rack.addTile(
+				new Tile({letter:'A', isBlank:false, score:1}));
+			game.addPlayer(human2);
+			human2.rack.empty();
+			human2.rack.addTile(
+				new Tile({letter:'A', isBlank:false, score:1}));
+		})
+		.then(() => game.connect(socket, human1.key))
+		.then(() => awaitTick())
+		.then(() => game.pass(human1, 'passed'))
+		// human 2 plays as soon as possible
+		.then(() => game.pass(human2, 'passed'))
+		.then(() => awaitTick())
+		.then(() => game.pass(human1, 'passed'))
+		.then(() => game.pass(human2, 'passed'))
 		.then(() => socket.wait());
 	});
 
