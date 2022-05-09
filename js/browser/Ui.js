@@ -208,6 +208,14 @@ define('browser/Ui', [
 
 			$("button").button();
 
+			$(document)
+			.tooltip({
+				items: '[data-i18n-tooltip]',
+				content: function() {
+					return $.i18n($(this).data('i18n-tooltip'));
+				}
+			});
+
 			console.debug(`GET /game/${gameKey}`);
 			$.get(`/game/${gameKey}`)
 			.then(frozen => {
