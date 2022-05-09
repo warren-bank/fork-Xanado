@@ -1,0 +1,71 @@
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
+/**
+ * Styling specific to the "games" interface
+ */
+body {
+	color: white;
+    margin-left: 3em;
+    margin-right: 3em;
+	font-size: 1.2em;
+}
+
+/* A game in the games table */
+.game {
+	border: 1px solid;
+	padding: 0.2em;
+}
+
+.logged-in {
+	display: none;
+}
+
+.logo {
+	margin-top: 1em;
+}
+
+.game-key {
+	float: right;
+	font-size: smaller;
+}
+
+.game-state {
+	margin-left: 1em;
+	font-weight: bold;
+}
+
+.game-options {
+	margin: 0.3em;
+}
+
+#gamesTable {
+	margin-bottom: 1.5em;
+}
+
+#loginState {
+	float: right;
+	margin-top: 1em;
+}
+
+#gamesCumulative, #gamesList {
+	display: none;
+}
+
+/* Style list of invitees in the InvitePlayersDialog */
+.invitee:after {
+	content: ", ";
+}
+
+.invitee:last-child:after {
+	content: "";
+}
+
+.invitee {
+	font-style: italic;
+}
+
+button.risky {
+	/*background-color: transparent;*/
+	color: #c33;
+}
