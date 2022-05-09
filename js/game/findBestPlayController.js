@@ -1,6 +1,6 @@
-/* See README.md at the root of this distribution for copyright and
-   license information */
-
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
 /**
  * This is the controller side of a best play thread. It provides 
  * the same API as findBestPlay(). See also findBestPlayWorker.js

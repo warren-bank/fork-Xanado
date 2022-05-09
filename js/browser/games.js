@@ -1,5 +1,6 @@
-/* See README.md at the root of this distribution for copyright and
-   license information */
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
 /* eslint-env browser, jquery */
 
 /**
@@ -287,7 +288,8 @@ requirejs([
 					.on('click', () =>
 						Dialog.open("AddRobotDialog", {
 							gameKey: game.key,
-							done: () => refresh_game(game.key),
+							postAction: "/addRobot",
+							postResult: () => refresh_game(game.key),
 							error: report
 						})));
 			}
@@ -303,7 +305,8 @@ requirejs([
 					})
 					.on("click", () => Dialog.open("InvitePlayersDialog", {
 						gameKey: game.key,
-						done: names => {
+						postAction: "/invitePlayers",
+						postResult: names => {
 							$('#alertDialog')
 							.text($.i18n("Invited $1", names.join(", ")))
 							.dialog({
@@ -499,13 +502,15 @@ requirejs([
 
 		$("#create-game")
 		.on("click", () => Dialog.open("CreateGameDialog", {
-			done: refresh_games,
+			postAction: "/createGame",
+			postResult: refresh_games,
 			error: report
 		}));
 
 		$("#login-button")
 		.on("click", () => Dialog.open("LoginDialog", {
-			done: refresh,
+			// postAction is dynamic, depends which tab is open
+			postResult: refresh,
 			error: report
 		}));
 
@@ -522,7 +527,8 @@ requirejs([
 
 		$("#chpw_button")
 		.on("click", () => Dialog.open("ChangePasswordDialog", {
-			done: refresh,
+			postAction: "/change-password",
+			postResult: refresh,
 			error: report
 		}));
 	

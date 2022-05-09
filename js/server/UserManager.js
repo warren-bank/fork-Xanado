@@ -1,5 +1,6 @@
-/* See README.md at the root of this distribution for copyright and
-   license information */
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
 /* eslint-env amd, node */
 
 define('server/UserManager', [
@@ -84,7 +85,7 @@ define('server/UserManager', [
 		constructor(config, app) {
 			this.config = config;
 			this.db = undefined;
-			this._config = config.debug_comms;
+			this._debug = config.debug_comms;
 
 			// Passport requires ExpressSession to be configured
 			app.use(ExpressSession({
@@ -137,6 +138,11 @@ define('server/UserManager', [
 			app.get(
 				"/session",
 				(req, res) => this.handle_session(req, res));
+
+			// Post a preference update
+			app.post(
+				"/session-prefs",
+				(req, res) => this.handle_session_prefs(req, res));
 
 			// Remember where we came from
 			app.use((req, res, next) => {
@@ -331,6 +337,7 @@ define('server/UserManager', [
 						return this.addUser({
 							name: profile.displayName,
 							email: profile.email,
+							prefs: "",
 							provider: provider,
 							key: key
 						});
@@ -604,9 +611,24 @@ define('server/UserManager', [
 				return this.sendResult(res, 200, {
 					name: req.user.name,
 					provider: req.user.provider,
-					key: req.user.key
+					key: req.user.key,
+					prefs: req.user.prefs
 				});
+			return this.sendResult(res, 401, [	'not-logged-in' ]);
+		}
 
+		/**
+		 * Write new session prefs for the user
+		 * @private
+		 */
+		handle_session_prefs(req, res) {
+			if (req.user) {
+				if (this._debug)
+					console.debug("Session prefs", req.body);
+				req.user.prefs = req.body;
+				return this.writeDB()
+				.then(() => this.sendResult(res, 200, req.user_prefs));
+			}
 			return this.sendResult(res, 401, [	'not-logged-in' ]);
 		}
 

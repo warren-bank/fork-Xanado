@@ -1,4 +1,4 @@
-/*@preserve Copyright (C) 2015-2021 Crawford Currie http://c-dot.co.uk license MIT*/
+/*Copyright (C) 2019-2022 Crawford Currie http://c-dot.co.uk. License MIT*/
 /* eslint-env node, mocha */
 
 if (typeof requirejs === "undefined") {
