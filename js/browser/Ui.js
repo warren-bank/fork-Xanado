@@ -1,19 +1,22 @@
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
 /* eslint-env browser, jquery */
 
 define('browser/Ui', [
-	'socket.io', 'browser/Dialog',
+	'socket.io',
 	'game/Fridge',
 	'game/Tile', 'game/Rack', 'game/Board',
 	'game/Game', 'game/Player',
+	'browser/Dialog',
 	'jquery', 'jqueryui', 'cookie', 'browser/icon_button'
 ], (
-	Socket, Dialog,
+	Socket,
 	Fridge,
 	Tile, Rack, Board,
-	Game, Player
+	Game, Player,
+	Dialog
 ) => {
-
-	const SETTINGS_COOKIE = 'xanado_settings';
 
 	/**
 	 * Report an error returned from an ajax request.
@@ -147,7 +150,8 @@ define('browser/Ui', [
 			this.usingHttps = document.URL.indexOf('https:') === 0;
 
 			/**
-			 * Currently user preference settings
+			 * Current user preference settings. Will be updated when
+			 * session is known.
 			 * @member {object}
 			 */
 			this.settings = {
@@ -155,8 +159,11 @@ define('browser/Ui', [
 				cheers: true,
 				tile_click: true,
 				warnings: true,
-				notification: this.usingHttps
+				// Notification requires https
+				notification: this.usingHttps,
+				theme: "default"
 			};
+
 
 			let m = document.URL.match(/[?;&]game=([^;&]+)/);
 			if (!m) {
@@ -725,6 +732,9 @@ define('browser/Ui', [
 			return $.get("/session")
 			.then(session => {
 				console.debug("Signed in as", session.name);
+				// Apply user preferences
+				this.settings = $.extend(this.settings, session.prefs);
+				// Find if they are a player
 				this.player = game.players.find(p => p.key === session.key);
 				if (this.player) {
 					$(".logged-in")
@@ -752,7 +762,7 @@ define('browser/Ui', [
 				.show()
 				.find("button")
 				.on("click", () => Dialog.open("LoginDialog", {
-					done: () => location.replace(location),
+					postResult: () => location.replace(location),
 					error: report
 				}));
 				return Promise.resolve();
@@ -803,6 +813,8 @@ define('browser/Ui', [
 				else
 					this.setMoveAction('anotherGame', /*i18n*/"Another game?");
 			}
+
+			$("#pauseButton").toggle(game.timeLimit > 0);
 
 			let myGo = this.isThisPlayer(game.whosTurnKey);
 			this.updateWhosTurn();
@@ -998,8 +1010,6 @@ define('browser/Ui', [
 				console.error(`key mismatch ${this.game.key}`);
 			$(".Surface .letter").removeClass("hidden");
 			$(".Surface .score").removeClass("hidden");
-			$("#pauseButton")
-			.button("option", "label", $.i18n("Pause game"));
 			$('#pauseDialog')
 			.dialog("close");
 		}
@@ -1030,40 +1040,25 @@ define('browser/Ui', [
 					$("body").focus();
 			});
 
-			// Load settings from the cookie (if it's there) and
-			// configure the gear button
-			const sets = $.cookie(SETTINGS_COOKIE);
-			if (sets)
-				sets.split(";").map(
-					s => {
-						const v = s.split('=');
-						this.settings[v[0]] = (v[1] === 'true');
-					});
-
-			$('#settings')
+			// gear button
+			$('#settingsButton')
 			.on('click', () => {
-				$("#pauseButton").toggle(this.game.timeLimit > 0);
-				$('#settingsDialog')
-				.dialog({
-					title: $.i18n("Options"),
-					modal: true,
-					width: 'auto'
+				const curTheme = this.settings.theme;
+				Dialog.open("SettingsDialog", {
+				settings: this.settings,
+				postAction: "/session-prefs",
+					postResult: prefs => {
+						if (prefs.theme === curTheme)
+							this.settings = prefs;
+						else
+							window.location.reload();
+					},
+					error: report
 				});
 			});
 
-			$('input.setting')
-			.each(function() {
-				$(this).prop('checked', ui.settings[$(this).data('set')]);
-			})
-			.on('change', function() {
-				ui.settings[$(this).data('set')] = $(this).prop('checked');
-				$.cookie(SETTINGS_COOKIE,
-						 Object.getOwnPropertyNames(ui.settings)
-						 .map(k => `${k}=${ui.settings[k]}`).join(';'),
-						 { SameSite: "Strict" });
-			});
-
-			$("#pauseButton").button({})
+			// clock button
+			$("#pauseButton")
 			.on('click', () => this.sendCommand("pause"));
 
 			if (!this.usingHttps) {
@@ -1906,9 +1901,11 @@ define('browser/Ui', [
 		 * @return {Promise} Promise that resolves to undefined if we can notify
 		 */
 		canNotify() {
-			if (!this.settings.notification
-				|| !('Notification' in window))
+			if (!(this.usingHttps
+				  && this.settings.notification
+				  && 'Notification' in window))
 				return Promise.reject();
+
 			switch (Notification.permission) {
 			case 'denied':
 				return Promise.reject();

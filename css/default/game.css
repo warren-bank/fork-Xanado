@@ -1,3 +1,6 @@
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
 /**
  * Styling for the "game" interface
  */
@@ -40,7 +43,10 @@ div.user-interface {
 }
 
 /* Description of points gained and lost from final racks */
-.game-outcome .rack-gains {}
+.game-outcome .rack-adjust {}
+
+/* Description of points lost due to overtime */
+.game-outcome .time-adjust {}
 
 /* The player who just had a turn */
 .turn-player {
@@ -458,11 +464,11 @@ button.fat-button {
 }
 
 .shuffle-icon {
-	background-image: url(../images/shuffle.png) !important;
+	background-image: url(/images/shuffle.png) !important;
 }
 
 .take-back-icon {
-	background-image: url(../images/take-back.png) !important;
+	background-image: url(/images/take-back.png) !important;
 }
 
 /* Div that wraps all the individual control panels */
@@ -472,7 +478,7 @@ button.fat-button {
     width: 20em;
 }
 
-#settings {
+#toolbox {
 	float: right;
 	font-size: 1.3em;
 }

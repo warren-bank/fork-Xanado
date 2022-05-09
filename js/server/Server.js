@@ -1,15 +1,16 @@
-/* See README.md at the root of this distribution for copyright and
-   license information */
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
 /* eslint-env amd, node */
 
 define('server/Server', [
-	'fs', 'node-getopt', 'events',
+	'fs', 'node-getopt', 'events', 'cookie',
 	'socket.io', 'http', 'https', 'nodemailer', "cors",
 	'express', 'express-negotiate', 'errorhandler',
 	'platform', 'server/UserManager',
 	'game/Fridge', 'game/Game', 'game/Player', 'game/Edition'
 ], (
-	fs, Getopt, Events,
+	fs, Getopt, Events, Cookie,
 	SocketIO, Http, Https, NodeMailer, cors,
 	Express, ExpressNegotiate, ErrorHandler,
 	Platform, UserManager,
@@ -103,6 +104,14 @@ define('server/Server', [
 			// Get a description of the available dictionaries
 			cmdRouter.get('/dictionaries',
 					 (req, res) => this.request_dictionaries(req, res));
+
+			// Get a description of the available themes
+			cmdRouter.get('/themes',
+					 (req, res) => this.request_themes(req, res));
+
+			// Get a css for the current theme.
+			cmdRouter.get('/theme/:css',
+					 (req, res) => this.request_theme(req, res));
 
 			// Get a description of defaults for new games
 			cmdRouter.get('/defaults', (req, res) =>
@@ -476,6 +485,33 @@ define('server/Server', [
 			const db = new Platform.Database('dictionaries', 'dict');
 			return db.keys()
 			.then(keys => res.status(200).send(keys))
+			.catch(e => this.trap(e, req, res));
+		}
+
+		/**
+		 * Handler for GET /themes
+		 * return {Promise} Promise to index available themes
+		 */
+		request_themes(req, res) {
+			const dir = requirejs.toUrl("css");
+			return Fs.readdir(dir)
+			.then(list => res.status(200).send(list))
+			.catch(e => this.trap(e, req, res));
+		}
+
+		/**
+		 * Handler for GET /theme
+		 * return {Promise} Promise to return css for current theme, if
+		 * a user is logged in and they have selected a theme.
+		 */
+		request_theme(req, res, next) {
+			let theme = "default";
+			if (req.user && req.user.prefs && req.user.prefs.theme)
+				theme = req.user.prefs.theme;
+			let file = requirejs.toUrl(`css/${theme}/${req.params.css}`);
+			console.log(file);
+			return Fs.readFile(file)
+			.then(css => res.status(200).contentType("text/css").send(css))
 			.catch(e => this.trap(e, req, res));
 		}
 
