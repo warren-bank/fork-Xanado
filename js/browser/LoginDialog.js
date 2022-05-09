@@ -1,12 +1,13 @@
-/* See README.md at the root of this distribution for copyright and
-   license information */
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
 /* eslint-env browser, jquery */
 
 define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 
 	class LoginDialog extends Dialog {
 
-		validate() {
+		enableSubmit() {
 			if (this.getAction() === "register") {
 				const user = this.$dlg.find('#register_username').val();
 				return (user
@@ -19,10 +20,15 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 		getAction() {
 			const active = this.$dlg.find("#tabs").tabs("option", "active");
 			return {
-				0: "login",
-				1: "register",
-				2: "reset-password"
+				0: "/login",
+				1: "/register",
+				2: "/reset-password"
 			}[active];
+		}
+
+		onSubmit(p) {
+			this.options.postAction = this.getAction();
+			super.onSubmit(p);
 		}
 
 		createDialog() {
@@ -39,7 +45,7 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 			this.$dlg.find(".forgotten-password")
 			.on("click", () => $tabs.tabs("option", "active", 2));
 
-			$.get("/oauth2-providers")
+			return $.get("/oauth2-providers")
 			.then(list => {
 				if (!list || list.length === 0)
 					return;
@@ -62,9 +68,8 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 				.prepend($(`<div class="sign-in-using">${$.i18n("Sign in using:")}</div>`)
 						 .append($table)
 						 .append(`<br /><div class="sign-in-using">${$.i18n("or sign in as XANADO user:")}</div>`));
-			});
-
-			super.createDialog();
+			})
+			.then(() => super.createDialog());
 		}
 
 		constructor(options) {

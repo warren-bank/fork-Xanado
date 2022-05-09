@@ -1,14 +1,11 @@
-/* See README.md at the root of this distribution for copyright and
-   license information */
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
 /* eslint-env browser, jquery */
 
 define('browser/ChangePasswordDialog', ["browser/Dialog"], (Dialog) => {
 
 	class ChangePasswordDialog extends Dialog {
-
-		getAction() {
-			return "change-password";
-		}
 
 		constructor(options) {
 			options.done = (data) => {

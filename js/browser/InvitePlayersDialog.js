@@ -1,5 +1,6 @@
-/* See README.md at the root of this distribution for copyright and
-   license information */
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
 /* eslint-env browser, jquery */
 
 /**
@@ -20,11 +21,31 @@ define("browser/InvitePlayersDialog", ["browser/Dialog"], Dialog => {
 		}
 
 		createDialog() {
-			super.createDialog();
-
 			const $email = this.$dlg.find("#playerEmail");
 			$email
 			.on('change', () => this.pick($email.val()));
+			const $select = this.$dlg.find("[name=knownUserSelect]");
+			return super.createDialog();
+		}
+
+		openDialog() {
+			return super.openDialog()
+			.then(() => $.get("/users"))
+			.then(users => {
+				this.users = users;
+				const $select = this.$dlg.find("#knownUserSelect");
+				$select.empty();
+				users.forEach(uo => $select.append(
+					`<option value="${uo.key}">${uo.name}</option>`));
+				$select
+				.selectmenu("refresh")
+				.on("selectmenuchange", () => this.pick($select.val()));
+				const $gk = this.$dlg.find("[name=gameKey]");
+				$gk.val(this.options.gameKey);
+				this.$dlg.find("#invitedPlayers").empty();
+				this.invitees = [];
+				this.$dlg.find("#removeText").hide();
+			});
 		}
 
 		pick(name) {
@@ -62,30 +83,6 @@ define("browser/InvitePlayersDialog", ["browser/Dialog"], Dialog => {
 			$removeText.show();
 		}
 
-		openDialog() {
-			super.openDialog();
-
-			const $gk = this.$dlg.find("[name=gameKey]");
-			$gk.val(this.options.gameKey);
-			this.$dlg.find("#invitedPlayers").empty();
-			this.invitees = [];
-			this.$dlg.find("#removeText").hide();
-
-			$.get("/users")
-			.then(users => {
-				this.users = users;
-				const $select = this.$dlg.find("#knownUserSelect");
-				$select.empty();
-				$select.append(`<option></option>`);
-				users.forEach(uo => $select.append(
-					`<option value="${uo.key}">${uo.name}</option>`));
-				$select
-				.selectmenu({
-					change: () => this.pick($select.val())
-				});
-			});
-		}
-
 		submit() {
 			const ps = [];
 			const $invitees = this.$dlg.find(".invitee");
@@ -97,10 +94,6 @@ define("browser/InvitePlayersDialog", ["browser/Dialog"], Dialog => {
 				ps.push($(this).data("uo"));
 			});
 			super.submit({ player: ps });
-		}
-
-		getAction() {
-			return "invitePlayers";
 		}
 	}
 

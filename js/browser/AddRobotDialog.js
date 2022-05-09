@@ -1,5 +1,6 @@
-/* See README.md at the root of this distribution for copyright and
-   license information */
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
 /* eslint-env browser, jquery */
 
 /**
@@ -16,33 +17,27 @@ define("browser/AddRobotDialog", ["browser/Dialog"], (Dialog) => {
 		}
 
 		createDialog() {
-			super.createDialog();
-
-			let promise;
 			$.get("/defaults")
 			.then(defaults => Promise.all([
 				$.get("/dictionaries")
 				.then(dictionaries => {
-					const $dic = this.$dlg.find('#dictionary');
+					const $dic = this.$dlg.find('[name=dictionary]');
 					dictionaries
 					.forEach(d => $dic.append(`<option>${d}</option>`));
 					if (defaults.dictionary)
 						$dic.val(defaults.dictionary);
-					$dic.selectmenu();
-					$dic.on('selectmenuchange', () => this.validate());
-					this.validate();
+					this.enableSubmit();
 				})
-			]));
+			]))
+			.then(() => super.createDialog());
 		}
 
 		openDialog() {
-			super.openDialog();
-			const $gk = this.$dlg.find("[name=gameKey]");
-			$gk.val(this.options.gameKey);
-		}
-
-		getAction() {
-			return "addRobot";
+			return super.openDialog()
+			.then(() => {
+				const $gk = this.$dlg.find("[name=gameKey]");
+				$gk.val(this.options.gameKey);
+			});
 		}
 	}
 

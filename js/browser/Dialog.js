@@ -1,4 +1,4 @@
-/*@preserve Copyright (C) 2019-2021 Crawford Currie http://c-dot.co.uk license MIT*/
+/*Copyright (C) 2019-2022 Crawford Currie https://c-dot.co.uk. License MIT.*/
 /* eslint-env browser */
 
 define("browser/Dialog", () => {
@@ -18,16 +18,27 @@ define("browser/Dialog", () => {
 		 * necessary.
 		 * @param {string} dlg the dialog name
 		 * @param {object} options options
-		 * @param {function} options.done submitted function, passed result
-		 * of action AJAX call
+		 * @param {string} options.postAction AJAX call name
+		 * @param {function} options.postResult passed result
+		 * of postAction AJAX call
 		 * @param {function} options.error error function, passed jqXHR
 		 * 
 		 */
 		constructor(id, options) {
+			/**
+			 * Cache of settings
+			 * @member {object}
+			 */
 			this.options = options;
+
+			/**
+			 * Cache of dialog object
+			 * @member {jQuery}
+			 */
 			this.$dlg = $(`#${id}`);
 
 			if (this.$dlg.length === 0) {
+				// Demand-load the HTML
 				$.get(`/html/${id}.html`)
 				.then(html_code => {
 					const $div = $(`<div id="${id}" class="dialog"></div>`)
@@ -36,6 +47,7 @@ define("browser/Dialog", () => {
 					this.$dlg = $(`#${id}`);
 					this.$dlg.dialog({
 						title: options.title,
+						minWidth: 400,
 						width: 'auto',
 						modal: true,
 						open: () => this.openDialog(),
@@ -56,6 +68,10 @@ define("browser/Dialog", () => {
 		/**
 		 * Handle dialog creation once the HTML has been loaded.
 		 * Override in subclasses to attach handlers etc.
+		 * @return {Promise} promise that will be resolved when
+		 * it is OK to populate the dialog. super.createDialog()
+		 * must be called as the LAST step in any subclass createDialog
+		 * so that selectmenus get correctly initialised.
 		 */
 		createDialog() {
 			this.$dlg
@@ -136,21 +152,27 @@ define("browser/Dialog", () => {
 			this.$dlg.find('.submit')
 			.on('click', () => this.submit());
 
-			this.validate();
+			this.enableSubmit();
+
+			this.$dlg.find('select')
+			.selectmenu()
+			.on('selectmenuchange', () => this.enableSubmit());
+
+			this.created = true;
+			if (this.onCreation)
+				this.onCreation();
 		}
 
 		/**
-		 * Override to set any dynamic values from context
+		 * Subclass to set any dynamic values from context.
+		 * Superclass must be called.
+		 * @return {Promise} promise that will be resolved when
+		 * it is OK to populate the dialog.
 		 */
 		openDialog() {
-		}
-
-		/**
-		 * Return the AJAX action to be performed.
-		 * Override in subclasses.
-		 */
-		getAction() {
-			return '';
+			if (this.created)
+				return Promise.resolve();
+			return new Promise(resolve => this.onCreation = resolve);
 		}
 
 		/**
@@ -165,7 +187,7 @@ define("browser/Dialog", () => {
 		 * Enable submit if field values allow it.
 		 * @protected
 		 */
-		validate() {
+		enableSubmit() {
 			this.$dlg.find('.submit').prop(
 				'disabled', !this.canSubmit());
 		}
@@ -177,7 +199,8 @@ define("browser/Dialog", () => {
 		 * @private
 		 */
 		submit(p) {
-			const action = this.getAction();
+			this.$dlg.dialog("close");
+
 			if (!p)
 				p = {};
 			this.$dlg
@@ -208,16 +231,29 @@ define("browser/Dialog", () => {
 				else
 					p[name].push(value);
 			});
-			
+
+			if (typeof this.onSubmit === 'function')
+				this.onSubmit(p);
+		}
+
+		/**
+		 * Default onSubmit. Where `this.options.postAction` is defined,
+		 * make an AJAX call passing the parameters. Override in
+		 * subclasses for alternative behaviours. Default is no `postAction`
+		 * so this is a NOP.
+		 */
+		onSubmit(p) {
+			if (!this.options.postAction)
+				return;
+
 			// Note that password fields are sent as plain text. This is
 			// not a problem so long as the comms are protected by HTTPS,
 			// and is simpler/cleaner than using BasicAuth.
 			// Some day we may implement OpenAuth, but there's no hurry.
-			$.post(`/${action}`, p)
+			$.post(this.options.postAction, p)
 			.then(data => {
-				this.$dlg.dialog("close");
-				if (typeof this.options.done === "function")
-					this.options.done(data);
+				if (typeof this.options.postResult === "function")
+					this.options.postResult(data);
 			})
 			.catch((jqXHR, textStatus, errorThrown) => {
 				if (typeof this.options.error === "function")
@@ -230,12 +266,7 @@ define("browser/Dialog", () => {
 		/**
 		 * Open the named dialog, demand-loading the JS and HTML as
 		 * needed. Some day we may demand-load css as well, but there's
-		 * no need right now.
-		 * @param {string} dlg the dialog name
-		 * @param {object} options options
-		 * @param {function} options.done submitted function, passed result
-		 * of action AJAX call
-		 * @param {function} options.error error function, passed jqXHR
+		 * no need right now. Parameters as for constructor.
 		 */
 		static open(dlg, options) {
 			console.log(`Opening dialog ${dlg}`);
