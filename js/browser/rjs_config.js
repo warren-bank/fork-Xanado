@@ -8,35 +8,33 @@
 requirejs.config({
 	baseUrl: '../..',
 	paths: {
-		jquery:
-		'//cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min',
+		jquery: '/node_modules/jquery/dist/jquery.min',
 		
-		jqueryui:
-		'//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min',
+		jqueryui: '/node_modules/jquery-ui-dist/jquery-ui.min',
 		
-		i18n:
-		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.min',
+		i18n: '/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n',
 		
 		i18n_emitter:
-		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.emitter.min',
+		'/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.emitter',
 
 		i18n_fallbacks:
-		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.fallbacks.min',
+		'/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.fallbacks',
 
 		i18n_language:
-		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.language.min',
+		'/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.language',
 
 		i18n_messagestore:
-		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.messagestore.min',
+		'/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.messagestore',
 		
 		i18n_parser:
-		'//cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.7/jquery.i18n.parser.min',
+		'/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.parser',
 		
 		touchpunch:
-		'//cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min',
+		'/node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch.min',
 		
-		'socket.io': '//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io',
-		cookie: '//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min',
+		'socket.io': '/node_modules/socket.io/client-dist/socket.io',
+
+		cookie: '/node_modules/jquery.cookie/jquery.cookie',
 
 		pluralRuleParser:
 		'/js/browser/cldrpluralruleparser',

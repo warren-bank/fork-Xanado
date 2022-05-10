@@ -31,7 +31,7 @@ define("browser/CreateGameDialog", [
 		}
 
 		createDialog() {
-			const $pen = this.$dlg.find("[name=timePenalty]");
+			const $pen = this.$dlg.find("[name=penaltyType]");
 			Game.PENALTIES.forEach(p => $pen.append(
 				`<option value="${p}">${$.i18n(p)}</option>`));
 
@@ -58,7 +58,7 @@ define("browser/CreateGameDialog", [
 					dictionaries
 					.forEach(d => $dics.append(`<option>${d}</option>`));
 					if (this.ui.getSetting('dictionary'))
-						$dics.val((this.ui.getSetting('dictionary'));
+						$dics.val((this.ui.getSetting('dictionary')));
 				})
 			])
 			.then(() => super.createDialog());

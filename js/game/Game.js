@@ -18,35 +18,6 @@ define('game/Game', [
 ) => {
 
 	/**
-	 * Parameters sent from the game creation dialog in the games interface
-	 * are JSONified as strings, and need to be decoded and provided with
-	 * defaults.
-	 */
-	function boolParam(val, defalt) {
-		if (typeof val === "undefined")
-			return defalt;
-		if (typeof val === "string") {
-			//console.debug(`Fixing bool ${val} passed in string`);
-			if (val === "0" || val === "" || val === "false") return false;
-			return true;
-		}
-		if (typeof val === "number")
-			return !isNaN(val) && val !== 0;
-		return val;
-	}
-
-	function intParam(val, defalt) {
-		if (typeof val === "undefined")
-			return defalt;
-		if (typeof val === "number")
-			return val;
-		//console.debug(`Fixing int ${val} passed in string`);
-		const i = parseInt(val);
-		if (isNaN(i)) return defalt;
-		return i;
-	}
-
-	/**
 	 * The Game object may be used server or browser side.
 	 */
 	class Game {
@@ -71,14 +42,14 @@ define('game/Game', [
 			 * @member {boolean}
 			 * @private
 			 */
-			this._debug = boolParam(params.debug, false);
+			this._debug = params.debug || false;
 
 			/**
 			 * Strictly internal, for debug
 			 * @member {boolean}
 			 * @private
 			 */
-			this._noPlayerShuffle = boolParam(params.noPlayerShuffle, false);
+			this._noPlayerShuffle = params.noPlayerShuffle || false;
 
 			if (this._debug)
 				console.debug("Constructing new game", params);
@@ -161,10 +132,10 @@ define('game/Game', [
 			 * Time limit for this game.
 			 * @member {number}
 			 */
-			if (this.timerType !== Player.TIMER_NONE)
-				this.timeLimit = intParam(
-					params.timeLimit,
-					intParam(params.timeLimitMinutes, 1) * 60);
+			if (this.timerType !== Player.TIMER_NONE) {
+				this.timeLimit = params.timeLimit ||
+				(params.timeLimitMinutes || 0) * 60;
+			}
 
 			/**
 			 * Time penalty for this game. Points lost per minute over
@@ -172,7 +143,7 @@ define('game/Game', [
 			 * @member {number}
 			 */
 			if (this.timerType === Player.TIMER_GAME)
-				this.timePenalty = intParam(params.timePenalty, 0);
+				this.timePenalty = params.timePenalty || 0;
 
 			/**
 			 * Pointer to Board object
@@ -207,13 +178,13 @@ define('game/Game', [
 			 * can start. Must be at least 2.
 			 * @member {number}
 			 */
-			this.minPlayers = intParam(params.minPlayers, 2);
+			this.minPlayers = Math.max(params.minPlayers || 0, 2);
 
 			/**
 			 * Most number of players who can join this game. 0 means no limit.
 			 * @member {number}
 			 */
-			this.maxPlayers = intParam(params.maxPlayers, 0);
+			this.maxPlayers = Math.max(params.maxPlayers || 0, 0);
 			if (this.maxPlayers < this.minPlayers)
 				this.maxPlayers = 0;
 
@@ -230,7 +201,7 @@ define('game/Game', [
 			 * play, true otherwise.
 			 * @member {boolean}
 			 */
-			this.predictScore = boolParam(params.predictScore, false);
+			this.predictScore = params.predictScore;
 
 			/**
 			 * Whether or not to allow players to take back their most recent
@@ -238,7 +209,7 @@ define('game/Game', [
 			 * challenged or played.
 			 * @member {boolean}
 			 */
-			this.allowTakeBack = boolParam(params.allowTakeBack, false);
+			this.allowTakeBack = params.allowTakeBack ||  false;
 
 			/**
 			 * Whether or not to check plays against the dictionary. One
@@ -266,8 +237,7 @@ define('game/Game', [
 			 * The type of penalty to apply for a failed challenge
 			 * @member {number}
 			 */
-			this.penaltyPoints =
-			intParam(params.penaltyPoints, Game.PENALTY_POINTS);
+			this.penaltyPoints = params.penaltyPoints || Game.PENALTY_POINTS;
 
 			/**
 			 * List of decorated sockets. Only available server-side.

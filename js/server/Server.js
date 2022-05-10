@@ -732,7 +732,7 @@ define('server/Server', [
 		request_addRobot(req, res) {
 			const gameKey = req.body.gameKey;
 			const dic = req.body.dictionary;
-			const canChallenge = req.body.canChallenge;
+			const canChallenge = req.body.canChallenge || false;
 			return this.loadGame(gameKey)
 			.then(game => {
 				if (game.hasRobot())
@@ -899,7 +899,7 @@ define('server/Server', [
 					]);
 
 				// The command name and arguments
-				const args = req.body.args ? JSON.parse(req.body.args) : null;
+				const args = req.body;
 				
 				if (this.config.debug_comms)
 					console.debug(`COMMAND ${command} player ${player.name} game ${game.key}`);

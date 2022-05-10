@@ -95,7 +95,7 @@ define('browser/UI', [
 		 * must exist as an mp3 file in the /audio directory.
 		 */
 		playAudio(id) {
-			const audio = this.soundClips[id];
+			let audio = this.soundClips[id];
 
 			if (!audio) {
 				audio = new Audio(`/audio/${id}.mp3`);

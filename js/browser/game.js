@@ -155,12 +155,12 @@ define('browser/game', [
 			this.lockBoard(true);
 			this.enableTurnButton(false);
 			this.cancelNotification();
-			$.post(
-				`/command/${command}/${this.game.key}/${this.player.key}`,
-				// Pass data as a JSON string. If given an object,
-				// jQuery will serialise it using $.param, which will
-				// convert all numbers to strings. Which is a PITA.
-				{ args: JSON.stringify(args) })
+			$.ajax({
+				url: `/command/${command}/${this.game.key}/${this.player.key}`,
+				type: "POST",
+				contentType: "application/json",
+				data: JSON.stringify(args)
+			})
 			.then(r => console.debug(`${command} OK`, r))
 			.catch(console.error);
 		}

@@ -250,7 +250,12 @@ define("browser/Dialog", () => {
 			// not a problem so long as the comms are protected by HTTPS,
 			// and is simpler/cleaner than using BasicAuth.
 			// Some day we may implement OpenAuth, but there's no hurry.
-			$.post(this.options.postAction, p)
+			$.ajax({
+				url: this.options.postAction,
+				type: "POST",
+				contentType: "application/json",
+				data: JSON.stringify(p)
+			})
 			.then(data => {
 				if (typeof this.options.postResult === "function")
 					this.options.postResult(data);
