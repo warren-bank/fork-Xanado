@@ -141,8 +141,8 @@ define('server/UserManager', [
 
 			// Post a preference update
 			app.post(
-				"/session-prefs",
-				(req, res) => this.handle_session_prefs(req, res));
+				"/session-settings",
+				(req, res) => this.handle_session_settings(req, res));
 
 			// Remember where we came from
 			app.use((req, res, next) => {
@@ -337,7 +337,7 @@ define('server/UserManager', [
 						return this.addUser({
 							name: profile.displayName,
 							email: profile.email,
-							prefs: "",
+							settings: "",
 							provider: provider,
 							key: key
 						});
@@ -612,22 +612,22 @@ define('server/UserManager', [
 					name: req.user.name,
 					provider: req.user.provider,
 					key: req.user.key,
-					prefs: req.user.prefs
+					settings: req.user.settings
 				});
 			return this.sendResult(res, 401, [	'not-logged-in' ]);
 		}
 
 		/**
-		 * Write new session prefs for the user
+		 * Write new session settings for the user
 		 * @private
 		 */
-		handle_session_prefs(req, res) {
+		handle_session_settings(req, res) {
 			if (req.user) {
 				if (this._debug)
-					console.debug("Session prefs", req.body);
-				req.user.prefs = req.body;
+					console.debug("Session settings", req.body);
+				req.user.settings = req.body;
 				return this.writeDB()
-				.then(() => this.sendResult(res, 200, req.user_prefs));
+				.then(() => this.sendResult(res, 200, req.user_settings));
 			}
 			return this.sendResult(res, 401, [	'not-logged-in' ]);
 		}

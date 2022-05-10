@@ -7,13 +7,13 @@ define('browser/game', [
 	'game/Fridge',
 	'game/Tile', 'game/Rack', 'game/Board',
 	'game/Game', 'game/Player',
-	'browser/browserApp', 'browser/UI', 'browser/Dialog',
+	'browser/UI', 'browser/Dialog',
 	'jquery', 'jqueryui', 'cookie', 'browser/icon_button'
 ], (
 	Fridge,
 	Tile, Rack, Board,
 	Game, Player,
-	browserApp, UI, Dialog
+	UI, Dialog
 ) => {
 
 	/**
@@ -75,9 +75,6 @@ define('browser/game', [
 	class GameUI extends UI {
 
 		constructor() {
-
-			console.log("Starting game UI");
-
 			super();
 
 			/**
@@ -110,11 +107,9 @@ define('browser/game', [
 			 * @member {boolean}
 			 */
 			this.boardLocked = false;
-
-			this.attachHandlers();
 		}
 
-		build() {
+		decorate() {
 			let m = document.URL.match(/[?;&]game=([^;&]+)/);
 			if (!m) {
 				const mess = `no game in ${document.URL}`;
@@ -122,6 +117,8 @@ define('browser/game', [
 				throw new Error(mess);
 			}
 			const gameKey = m[1];
+
+			this.attachHandlers();
 
 			console.debug(`GET /game/${gameKey}`);
 			return $.get(`/game/${gameKey}`)
@@ -134,7 +131,7 @@ define('browser/game', [
 				.then (playerKey => this.loadGame(game))
 				.then(() => this.attachSocketListeners());
 			})
-			.then(() => super.build())
+			.then(() => super.decorate())
 			.catch(UI.report);
 		}
 
@@ -1812,5 +1809,5 @@ define('browser/game', [
 		}
 	}
 
-	browserApp.then(() => new GameUI().build());
+	new GameUI().build();
 });

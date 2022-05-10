@@ -27,6 +27,7 @@ define("browser/CreateGameDialog", [
 			super("CreateGameDialog", $.extend({
 				title: $.i18n("Create game")
 			}, options));
+			this.ui = options.ui;
 		}
 
 		createDialog() {
@@ -43,24 +44,23 @@ define("browser/CreateGameDialog", [
 				`<option value="${c}">${$.i18n(c)}</option>`));
 
 			let promise;
-			$.get("/defaults")
-			.then(defaults => Promise.all([
+			Promise.all([
 				$.get("/editions")
 				.then(editions => {
 					const $eds = this.$dlg.find('[name=edition]');
 					editions.forEach(e => $eds.append(`<option>${e}</option>`));
-					if (defaults.edition)
-						$eds.val(defaults.edition);
+					if (this.ui.getSetting('edition'))
+						$eds.val(this.ui.getSetting('edition'));
 				}),
 				$.get("/dictionaries")
 				.then(dictionaries => {
 					const $dics = this.$dlg.find('[name=dictionary]');
 					dictionaries
 					.forEach(d => $dics.append(`<option>${d}</option>`));
-					if (defaults.dictionary)
-						$dics.val(defaults.dictionary);
+					if (this.ui.getSetting('dictionary'))
+						$dics.val((this.ui.getSetting('dictionary'));
 				})
-			]))
+			])
 			.then(() => super.createDialog());
 		}
 	}

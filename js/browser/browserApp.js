@@ -4,7 +4,7 @@ and license information*/
 /* eslint-env amd, browser, jquery */
 
 /**
- * Common dependency handling for all browser apps (games, game, createGame)
+ * Common dependency handling for all browser apps (games, game)
  * Returns a promise that resolves to a list of supported locales
  */
 define('browser/browserApp', [

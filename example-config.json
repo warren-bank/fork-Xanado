@@ -24,14 +24,28 @@
 		}
 	},
 
-	// The default edition when creating new games. Game editions can
-	// be found in the 'editions' directory.
-    "defaultEdition": "English_Scrabble",
-	
-	// The default dictionary when creating new games. Note that the
-	// robot player requires a dictionary. Dictionaries can be found
-	// in the 'dictionaries' directory.
-    "defaultDictionary": "CSW2019_English",
+	// Defaults to apply to new games and the UI for new users.
+	"defaults": {
+		// The default edition when creating new games. Game editions can
+		// be found in the 'editions' directory.
+		"edition": "English_Scrabble",
+		// The default dictionary when creating new games. Note that the
+		// robot player requires a dictionary. Dictionaries can be found
+		// in the 'dictionaries' directory.
+		"dictionary": "CSW2019_English",
+		// Whether to generate notifications in the UI. Requires HTTPS.
+		"notification": true,
+		// User interface theme, must be the name of a subdiurectory of css
+		"theme": "default",
+		// Whether to generate warning sounds
+		"warnings": true,
+		// Whether to generate end of game cheers / groans
+		"cheers": true,
+		// Whether to make a click when a tile is placed
+		"tile_click": true,
+		// Whether to bong when it's your turn
+		"turn_alert": true
+	},
 
 	// Access control
 	"auth": {

@@ -14,18 +14,18 @@ define("browser/AddRobotDialog", ["browser/Dialog"], (Dialog) => {
 			super("AddRobotDialog", $.extend({
 				title: $.i18n("Add robot")
 			}, options));
+			this.ui = options.ui;
 		}
 
 		createDialog() {
-			$.get("/defaults")
-			.then(defaults => Promise.all([
+			Promise.all([
 				$.get("/dictionaries")
 				.then(dictionaries => {
 					const $dic = this.$dlg.find('[name=dictionary]');
 					dictionaries
 					.forEach(d => $dic.append(`<option>${d}</option>`));
-					if (defaults.dictionary)
-						$dic.val(defaults.dictionary);
+					if (this.ui.getSetting('dictionary'))
+						$dic.val(this.ui.getSetting('dictionary'));
 					this.enableSubmit();
 				})
 			]))

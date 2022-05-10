@@ -8,12 +8,12 @@ and license information*/
  */
 requirejs([
 	'socket.io', 'platform',
-	'browser/browserApp', 'browser/UI', 'browser/Dialog',
+	'browser/UI', 'browser/Dialog',
 	'game/Player', 'game/Game',
 	'jquery'
 ], (
 	io, Platform,
-	browserApp, UI, Dialog,
+	UI, Dialog,
 	Player, Game
 ) => {
 
@@ -35,14 +35,9 @@ requirejs([
 			const untwist = location.search.replace(/^.*[?&;]untwist=([^&;]*).*$/,"$1");
 			if (untwist && untwist !== 'undefined')
 				this.isUntwisted[untwist] = true;
-
-			/**
-			 * Cache of defaults object
-			 */
-			this.defaults = undefined;
 		}
 
-		build() {
+		decorate() {
 			$("#showAllGames")
 			.on('change', () => this.refresh_games());
 
@@ -61,6 +56,7 @@ requirejs([
 
 			$("#create-game")
 			.on("click", () => Dialog.open("CreateGameDialog", {
+				ui: this,
 				postAction: "/createGame",
 				postResult: () => this.refresh_games(),
 				error: UI.report
@@ -78,7 +74,7 @@ requirejs([
 				$.post("/logout")
 				.then(result => {
 					console.log("Logged out", result);
-					this.loggedInAs = undefined;
+					this.session = undefined;
 					this.refresh();
 				})
 				.catch(UI.report);
@@ -113,11 +109,9 @@ requirejs([
 				this.refresh();
 			});
 
-			// Get defaults for new games
-			return $.get("/defaults")
-			.then(defaults => this.defaults = defaults)
-			.then(() => this.socket.emit('monitor'))
-			.then(() => super.build());
+			this.socket.emit('monitor');
+
+			return super.decorate();
 		}
 
 		// Format a player in a game score table
@@ -147,26 +141,25 @@ requirejs([
 				return $tr;
 			}
 
-			if (!this.loggedInAs)
+			if (!this.session)
 				return $tr;
 
 			const $box = $("<td></td>");
 			$tr.append($box);
 
-			if (player.key === this.loggedInAs.key) {
+			if (player.key === this.session.key) {
 				// Currently signed in player
 				$box.append(
 					$("<button name='join' title=''></button>")
 					.button({ label: $.i18n("Open game") })
 					.tooltip({
 						content: $.i18n("tooltip-open-game")
-					})
-					.on('click', () => {
-						console.log(`Join game ${game.key}/${this.loggedInAs.key}`);
-						$.post(`/join/${game.key}/${this.loggedInAs.key}`)
+					}) .on('click', () => {
+						console.log(`Join game ${game.key}/${this.session.key}`);
+						$.post(`/join/${game.key}/${this.session.key}`)
 						.then(() => {
 							window.open(
-								`/html/game.html?game=${game.key}&player=${this.loggedInAs.key}`,
+								`/html/game.html?game=${game.key}&player=${this.session.key}`,
 								"_blank");
 							refresh_game(game.key);
 						})
@@ -181,7 +174,7 @@ requirejs([
 					})
 					.on('click', () => {
 						console.log(`Leave game ${game.key}`);
-						$.post(`/leave/${game.key}/${this.loggedInAs.key}`)
+						$.post(`/leave/${game.key}/${this.session.key}`)
 						.then(() => this.refresh_game(game.key))
 						.catch(UI.report);
 					}));
@@ -205,7 +198,7 @@ requirejs([
 			}
 
 			// Not the signed in player
-			if (this.defaults.canEmail
+			if (this.getSetting('canEmail')
 				&& !player.isRobot
 				&& game.whosTurnKey === player.key) {
 				$box.append(
@@ -332,11 +325,11 @@ requirejs([
 				$table.find(`#player${game.whosTurnKey}`).addClass('whosTurn');
 
 			if (isActive
-				&& this.loggedInAs
+				&& this.session
 				&& (game.maxPlayers === 0
 					|| game.players.length < game.maxPlayers)) {
 
-				if (!game.players.find(p => p.key === this.loggedInAs.key)) {
+				if (!game.players.find(p => p.key === this.session.key)) {
 					// Can join game
 					const $join = $(`<button name="join" title=''></button>`);
 					$twist.append($join);
@@ -347,9 +340,9 @@ requirejs([
 					})
 					.on('click', () => {
 						console.log(`Join game ${game.key}`);
-						$.post(`/join/${game.key}/${this.loggedInAs.key}`)
+						$.post(`/join/${game.key}/${this.session.key}`)
 						.then(info => {
-							window.open(`/html/game.html?game=${game.key}&player=${this.loggedInAs.key}`, "_blank");
+							window.open(`/html/game.html?game=${game.key}&player=${this.session.key}`, "_blank");
 							this.refresh_game(game.key);
 						})
 						.catch(UI.report);
@@ -373,8 +366,8 @@ requirejs([
 				}
 			}
 			
-			if (this.loggedInAs) {
-				if (isActive && this.defaults.canEmail) {
+			if (this.session) {
+				if (isActive && this.getSetting('canEmail')) {
 					$twist.append(
 						$("<button name='invite' title=''></button>")
 						.button({ label: $.i18n("Invite players")})
@@ -464,7 +457,7 @@ requirejs([
 
 			$('#gamesList').show();
 			$('#reminder-button').hide();
-			if (this.defaults.canEmail && this.loggedInAs) {
+			if (this.session && this.getSetting('canEmail')) {
 				if (games.reduce((em, game) => {
 					// game is Game.simple, not a Game object
 					// Can't remind a game that hasn't started or has ended.
@@ -540,5 +533,5 @@ requirejs([
 		}
 	}
 
-	browserApp.then(() => new GamesUI().build());
+	new GamesUI().build();
 });

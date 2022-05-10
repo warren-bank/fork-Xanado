@@ -4,7 +4,17 @@ and license information*/
 /* eslint-env browser, jquery */
 
 define('browser/UI', [
-	'socket.io',  'browser/Dialog'
+	'socket.io',  'browser/Dialog',
+
+	'jquery',
+	'jqueryui',
+	'i18n',
+	'i18n_emitter',
+	'i18n_fallbacks',
+	'i18n_language',
+	'i18n_messagestore',
+	'i18n_parser',
+	'pluralRuleParser'
 ], (
 	io, Dialog
 ) => {
@@ -19,10 +29,8 @@ define('browser/UI', [
 		 * @param {string|Error|array|jqXHR} args This will either be a
 		 * simple i18n string ID, or an array containing an i18n ID and a
 		 * series of arguments, or a jqXHR.
-		 * @private
-		 * @static
 		 */
-		report(args) {
+		static report(args) {
 			// Handle a jqXHR
 			if (typeof args === 'object') {
 				if (args.responseJSON)
@@ -54,10 +62,8 @@ define('browser/UI', [
 		 * pre-loaded in the HTML. Note that most (all?) browsers require
 		 * some sort of user interaction before they will play audio
 		 * embedded in the page.
-		 * @private
-		 * @static
 		 */
-		playAudio(id) {
+		static playAudio(id) {
 			const audio = document.getElementById(id);
 
 			if (audio.playing)
@@ -88,48 +94,83 @@ define('browser/UI', [
 			this.usingHttps = document.URL.indexOf('https:') === 0;
 
 			/**
-			 * Current user preference settings. Will be updated when
-			 * session is known.
-			 * @member {object}
-			 */
-			this.settings = {
-				// Notification requires https
-				notification: this.usingHttps,
-				theme: "default"
-			};
-
-			$("button").button();
-
-			/**
 			 * Session object describing signed-in user
 			 * @member {object}
 			 */
 			this.session = undefined;
+
+			/**
+			 * Cache of defaults object, lateinit in build()
+			 */
+			this.defaults = undefined;
+		}
+
+		/**
+		 * Complete construction using promises
+		 * @return {Promise} promise that resolves when the UI is ready
+		 * @protected
+		 */
+		build() {
+			this.socket = io.connect(null);
+			return Promise.all([
+				$.get('/locales')
+				.then(locales => {
+					const params = {};
+					locales.forEach(locale => {
+						params[locale] = `/i18n/${locale}.json`;
+					});
+					// Note: without other guidance, i18n will use the locale
+					// already in the browser - which is fine by us!
+					return $.i18n().load(params).then(() => locales);
+				})
+				.then(locales => {
+					console.log('Locales available', locales.join(', '));
+					// Expand/translate strings in the HTML
+					return new Promise(resolve => {
+						$(document).ready(() => {
+							console.log('Translating HTML to', $.i18n().locale);
+							$('body').i18n();
+							resolve(locales);
+						});
+					});
+				}),
+				$.get("/defaults")
+				.then(defaults => {
+					this.defaults = defaults;
+					// Notification requires https
+					if (!this.usingHttps)
+						this.defaults.notification = false;
+				})
+			])
+			.then(() => this.decorate());
+		}
+
+		/**
+		 * Once the locales and defaults have been loaded, decorate the
+		 * UI with shared functionality. Subclasses should override this
+		 * and end the promise chain with a call to super.decorate()
+		 * @return {Promise} promise that resolves when decoration is
+		 * complete and the UI is ready.
+		 */
+		decorate() {
+			$("button").button();
 
 			// gear button
 			$('#settingsButton')
 			.on('click', () => {
 				const curTheme = this.getSetting('theme');
 				Dialog.open("SettingsDialog", {
-					settings: this.getSettings(),
-					postAction: "/session-prefs",
-					postResult: prefs => {
-						if (prefs.theme === curTheme)
-							this.setSettings(prefs);
+					ui: this,
+					postAction: "/session-settings",
+					postResult: settings => {
+						if (settings.theme === curTheme)
+							this.setSettings(settings);
 						else
 							window.location.reload();
 					},
 					error: UI.report
 				});
 			});
-
-			if (!this.usingHttps) {
-				// Notification requires https
-				$("input.setting[data-set='notification']")
-				.prop('disabled', true);
-			}
-
-			this.socket = io.connect(null);
 
 			$(document)
 			.tooltip({
@@ -138,14 +179,7 @@ define('browser/UI', [
 					return $.i18n($(this).data('i18n-tooltip'));
 				}
 			});
-		}
 
-		/**
-		 * Subclass to add synchrnous steps to the UI build process.
-		 * Always call super.build() last in the promise chain.
-		 * @return {Promise}
-		 */
-		build() {
 			return new Promise(resolve => {
 				$(".user-interface").show();
 				resolve();
@@ -183,14 +217,24 @@ define('browser/UI', [
 			});
 		}
 
+		/**
+		 * Get the current value for a setting. If a user is logged in, the
+		 * value will be taken from their session (and will default if it
+		 * is not defined).
+		 * @param {string} key setting to retrieve
+		 * @return {string|number|boolean} setting value
+		 */
 		getSetting(key) {
-			if (!(this.session && this.session.settings))
-				return undefined;
-			return this.session.settings[key];
+			return (this.session && this.session.settings
+					&& typeof this.session.settings[key] !== 'undefined')
+			? this.session.settings[key]
+			: this.defaults[key];
 		}
 
 		getSettings() {
-			return this.session.settings;
+			return this.session && this.session.settings
+			? this.session.settings
+			: this.defaults;
 		}
 
 	}

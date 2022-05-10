@@ -29,6 +29,25 @@ define('server/Server', [
 		 */
 		constructor(config) {
 			this.config = config;
+
+			if (!config.defaults) {
+				config.defaults = {
+					edition: config.defaultEdition || 'English_Scrabble',
+					dictionary: config.defaultDictionary
+					|| 'CSW2019_English',
+					theme: "default",
+					warnings: true,
+					cheers: true,
+					tile_click: true,
+					turn_alert: true,
+					notification: true
+				};
+			}
+			config.defaults.canEmail = (typeof config.mail !== 'undefined');
+
+			config.defaults.notification = config.defaults.notification &&
+			(typeof config.https !== 'undefined');
+
 			this.db = new Platform.Database(config.games || 'games', 'game');
 			// Live games; map from game key to Game
 			this.games = {};
@@ -113,13 +132,10 @@ define('server/Server', [
 			cmdRouter.get('/theme/:css',
 					 (req, res) => this.request_theme(req, res));
 
-			// Get a description of defaults for new games
-			cmdRouter.get('/defaults', (req, res) =>
-					 res.send({
-						 edition: config.defaultEdition,
-						 dictionary: config.defaultDictionary,
-						 canEmail: typeof config.mail !== 'undefined'
-					 }));
+			// Defaults for user session settings.
+			// Some of these can be overridden by a user.
+			cmdRouter.get('/defaults',
+						  (req, res) => res.send(config.defaults));
 
 			// Get Game. This is a full description of the game, including
 			// the Board. c.f. /simple which provides a cut-down version
@@ -506,8 +522,8 @@ define('server/Server', [
 		 */
 		request_theme(req, res, next) {
 			let theme = "default";
-			if (req.user && req.user.prefs && req.user.prefs.theme)
-				theme = req.user.prefs.theme;
+			if (req.user && req.user.settings && req.user.settings.theme)
+				theme = req.user.settings.theme;
 			let file = requirejs.toUrl(`css/${theme}/${req.params.css}`);
 			console.log(file);
 			return Fs.readFile(file)

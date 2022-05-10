@@ -35,15 +35,16 @@ define("browser/SettingsDialog", [ "browser/Dialog" ], Dialog => {
 		openDialog() {
 			return super.openDialog()
 			.then(() => {
-				const settings = this.options.settings;
-				this.$dlg.find('select[name=theme]')
-				.val(settings.theme || "default")
+				const ui = this.options.ui;
+				this.$dlg.find('[name=theme]')
+				.val(ui.getSetting('theme'))
 				.selectmenu("refresh");
-				this.$dlg.find('input[type=checkbox]')
+				this.$dlg.find('[type=checkbox]')
 				.each(function() {
-					const key = $(this).data('set');
-					$(this).prop('checked', settings[key]);
+					$(this).prop('checked', ui.getSetting(this.name));
 				});
+				// Notification requires https
+				this.$dlg.find(".require-https").toggle(ui.usingHttps);
 			});
 		}
 	}
