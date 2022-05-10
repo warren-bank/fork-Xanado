@@ -66,7 +66,7 @@ requirejs([
 			$("#login-button")
 			.on("click", () => Dialog.open("LoginDialog", {
 				// postAction is dynamic, depends which tab is open
-				postResult: () => this.refresh(),
+				postResult: () => this.refresh().catch(UI.report),
 				error: UI.report
 			}));
 
@@ -76,7 +76,7 @@ requirejs([
 				.then(result => {
 					console.log("Logged out", result);
 					this.session = undefined;
-					this.refresh();
+					this.refresh().catch(UI.report);
 				})
 				.catch(UI.report);
 			});
@@ -84,39 +84,25 @@ requirejs([
 			$("#chpw_button")
 			.on("click", () => Dialog.open("ChangePasswordDialog", {
 				postAction: "/change-password",
-				postResult: () => this.refresh(),
+				postResult: () => this.refresh().catch(UI.report),
 				error: UI.report
 			}));
 			
-			//refresh(); do this in 'connect' handler
 			return super.decorate();
 		}
 
 		// @Override
 		connectToServer() {
-			this.refresh();
+			return this.refresh();
 		}
 
 		// @Override
 		attachSocketListeners(socket) {
 			socket
-
-			.on('connect', () => {
-				console.debug("--> connect");
-				this.refresh();
-			})
-
-			.on('disconnect', () => {
-				console.debug("--> disconnect");
-				this.refresh();
-			})
-
-			// Custom messages
-
 			.on('update', () => {
 				console.debug("--> update");
 				// Can be smarter than this!
-				this.refresh();
+				this.refresh().catch(UI.report);
 			});
 
 			socket.emit('monitor');
@@ -542,8 +528,7 @@ requirejs([
 						$gt.append(`<div class="player-cumulative">${s}</div>`);
 					});
 				})
-			])
-			.catch(UI.report);
+			]);
 		}
 	}
 

@@ -782,6 +782,7 @@ define('browser/game', [
 				gameKey: this.game.key,
 				playerKey: playerKey
 			});
+			return Promise.resolve();
 		}
 
 		// @Override

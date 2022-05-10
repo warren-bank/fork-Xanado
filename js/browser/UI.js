@@ -60,8 +60,8 @@ define('browser/UI', [
 			if (typeof args === 'object') {
 				if (args.responseJSON)
 					args = args.responseJSON;
-				else if (args.responsetext)
-					args = args.responseJSON;
+				else if (args.statusText)
+					args = `Network error: ${args.statusText}`;
 			}
 
 			let message;
@@ -74,12 +74,16 @@ define('browser/UI', [
 			} else // something else
 				message = args.toString();
 
-			$('#alertDialog')
-			.text(message)
-			.dialog({
-				modal: true,
-				title: $.i18n("XANADO problem")
-			});
+			const $dlg = $('#alertDialog');
+			if ($dlg.dialog("isOpen"))
+				$dlg.append(`<p>${message}</p>`);
+			else {
+				$dlg.text(message)
+				.dialog({
+					modal: true,
+					title: $.i18n("XANADO problem")
+				});
+			}
 		}
 
 		/**
@@ -201,15 +205,21 @@ define('browser/UI', [
 				// Socket has disconnected for some reason
 				// (server died, maybe?) Back off and try to reconnect.
 				console.debug(`--> disconnect`);
+				const mess = $.i18n("Server disconnected, trying to reconnect");
 				$reconnectDialog = $('#alertDialog')
-				.text($.i18n("Server disconnected, trying to reconnect"))
+				.text(mess)
 				.dialog({
 					title: $.i18n("XANADO problem"),
 					modal: true
 				});
 				setTimeout(() => {
 					// Try and rejoin after a 3s timeout
-					this.connectToServer();
+					this.connectToServer()
+					.catch(e => {
+						console.debug(e);
+						if (!$reconnectDialog)
+							UI.report(mess);
+					});
 				}, 3000);
 
 			});
@@ -228,6 +238,7 @@ define('browser/UI', [
 		 * Implement in subclasses.
 		 */
 		connectToServer() {
+			return Promise.reject("Not implemented");
 		}
 
 		/**
