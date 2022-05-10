@@ -15,9 +15,9 @@ and license information-->
 	<link href="//cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" rel="stylesheet" type="text/css">
     <link href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css">
 
-    <link href="/css/default/common.css" rel="stylesheet" type="text/css">
-    <link href="/css/default/playerTable.css" rel="stylesheet" type="text/css">
-    <link href="/css/default/games.css" rel="stylesheet" type="text/css">
+    <link href="/theme/common.css" rel="stylesheet" type="text/css">
+    <link href="/theme/playerTable.css" rel="stylesheet" type="text/css">
+    <link href="/theme/games.css" rel="stylesheet" type="text/css">
 	
 	<script>
 	  var rjs_main = "browser/games";
@@ -26,37 +26,39 @@ and license information-->
 
   </head>
   <body>
-	<img src="/images/logo.svg" class="logo" />
-	<div id="loginState">
-	  <span class="not-logged-in">
-		<div data-i18n="introduction"></div>
-		<button id="login-button" data-i18n="Sign in"></button>
-	  </span>
-	  <span class="logged-in">
-		<span id="id"></span>
-		<button id="logout-button" data-i18n="Sign out"></button>
-		<button id="chpw_button" data-i18n="Change password"></button>
-	  </span>
-	</div>
-
-	<div id="gamesCumulative">
-	  <h2 data-i18n="Leader Board"></h2>
-	  <div id="player-list">
+	<div class="user-interface">
+	  <img src="/images/logo.svg" class="logo" />
+	  <div id="loginState">
+		<span class="not-logged-in">
+		  <div data-i18n="introduction"></div>
+		  <button id="login-button" data-i18n="Sign in"></button>
+		</span>
+		<span class="logged-in">
+		  <span id="id"></span>
+		  <button id="logout-button" data-i18n="Sign out"></button>
+		  <button id="chpw_button" data-i18n="Change password"></button>
+		</span>
 	  </div>
-	</div>
 
-	<div id="gamesKnown">
-	  <h2 data-i18n="Games"></h2>
-	  <label for="showAllGames" data-i18n="Show finished games"></label>
-	  <input type="checkbox" id="showAllGames" />
-	  <div id="gamesList">
-		<div id="gamesTable"></div>
+	  <div id="gamesCumulative">
+		<h2 data-i18n="Leader Board"></h2>
+		<div id="player-list">
+		</div>
 	  </div>
-	</div>
 
-	<div class="dialog-row">
-	  <button id="create-game" class="hidden" data-i18n="Create a new game"></button>
-	  <button id="reminder-button" class="hidden" data-i18n="Send turn reminders" data-i18n-tooltip="tooltip-email-reminders"></button>
+	  <div id="gamesKnown">
+		<h2 data-i18n="Games"></h2>
+		<label for="showAllGames" data-i18n="Show finished games"></label>
+		<input type="checkbox" id="showAllGames" />
+		<div id="gamesList">
+		  <div id="gamesTable"></div>
+		</div>
+	  </div>
+
+	  <div class="dialog-row">
+		<button id="create-game" class="hidden" data-i18n="Create a new game"></button>
+		<button id="reminder-button" class="hidden" data-i18n="Send turn reminders" data-i18n-tooltip="tooltip-email-reminders"></button>
+	  </div>
 	</div>
 
 	<div id="alertDialog" class="dialog">

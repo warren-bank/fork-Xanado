@@ -8,559 +8,537 @@ and license information*/
  */
 requirejs([
 	'socket.io', 'platform',
-	'browser/browserApp', 'browser/Dialog',
+	'browser/browserApp', 'browser/UI', 'browser/Dialog',
 	'game/Player', 'game/Game',
 	'jquery'
 ], (
 	io, Platform,
-	browserApp, Dialog,
+	browserApp, UI, Dialog,
 	Player, Game
 ) => {
-	const BLACK_CIRCLE = '\u25cf';
-	const NEXT_TO_PLAY = '\u25B6';
+
 	const TWIST_OPEN = '\u25BC';
 	const TWIST_CLOSE = '\u25B2';
 
-	let loggedInAs; // redacted user object
-	let canEmail; // boolean
-	let untwist; // open game key
-	let isOpen = {};
+	class GamesUI extends UI {
 
-	/**
-	 * Report an error contained in an ajax response
-	 * The response is either a string, or a JSON-encoded
-	 * array containing a message code and arguments.
-	 */
-	function report(jqXHR, textStatus, errorThrown) {
-		const info = JSON.parse(jqXHR.responseText);
-		if (!info || info.length === 0)
-			return;
-		const text = $.i18n.apply(null, info);
-		$('#alertDialog')
-		.text(text)
-		.dialog({ modal: true });
-	}
+		constructor() {
 
-	// Format a player in a game score table
-	function $player(game, player, isActive) {
-		const $tr = Player.prototype.$ui.call(player);
-		
-		if (isActive) {
-			if (player.dictionary && player.dictionary !== game.dictionary) {
-				const dic = $.i18n("using dictionary $1", player.dictionary);
-				$tr.append(`<td>${dic}</td>`);
-			}
+			super();
 
-			if (game.timerType !== Player.TIMER_NONE) {
-				const left = $.i18n("$1s left to play", player.clock);
-				$tr.append(`<td>${left}</td>`);
-			}
+			/**
+			 * Map of game keys to boolean, true if the game is untwisted (open)
+			 * @member {object}
+			 */
+			this.isUntwisted = {};
+
+			const untwist = location.search.replace(/^.*[?&;]untwist=([^&;]*).*$/,"$1");
+			if (untwist && untwist !== 'undefined')
+				this.isUntwisted[untwist] = true;
+
+			/**
+			 * Cache of defaults object
+			 */
+			this.defaults = undefined;
+		}
+
+		build() {
+			$("#showAllGames")
+			.on('change', () => this.refresh_games());
+
+			$('#reminder-button')
+			.on('click', () => {
+				console.log("Send reminders");
+				$.post("/sendReminder/*")
+				.then(info => $('#alertDialog')
+					  .text($.i18n.apply(null, info))
+					  .dialog({
+						  title: $.i18n("Email turn reminders"),
+						  modal: true
+					  }))
+				.catch(UI.report);
+			});
+
+			$("#create-game")
+			.on("click", () => Dialog.open("CreateGameDialog", {
+				postAction: "/createGame",
+				postResult: () => this.refresh_games(),
+				error: UI.report
+			}));
+
+			$("#login-button")
+			.on("click", () => Dialog.open("LoginDialog", {
+				// postAction is dynamic, depends which tab is open
+				postResult: () => this.refresh(),
+				error: UI.report
+			}));
+
+			$("#logout-button")
+			.on('click', () => {
+				$.post("/logout")
+				.then(result => {
+					console.log("Logged out", result);
+					this.loggedInAs = undefined;
+					this.refresh();
+				})
+				.catch(UI.report);
+			});
+
+			$("#chpw_button")
+			.on("click", () => Dialog.open("ChangePasswordDialog", {
+				postAction: "/change-password",
+				postResult: () => this.refresh(),
+				error: UI.report
+			}));
 			
-		} else {
-			const winningScore = game.players.reduce(
-				(max, p) =>
-				Math.max(max, p.score), 0);
-			
-			if (player.score === winningScore) {
-				$tr.append('<td class="ui-icon icon-winner"></td>');
-			}
+			//refresh(); do this in 'connect' handler
 
-			return $tr;
+			this.socket
+
+			.on('connect', () => {
+				console.debug("--> connect");
+				this.refresh();
+			})
+
+			.on('disconnect', () => {
+				console.debug("--> disconnect");
+				this.refresh();
+			})
+
+			// Custom messages
+
+			.on('update', () => {
+				console.debug("--> update");
+				// Can be smarter than this!
+				this.refresh();
+			});
+
+			// Get defaults for new games
+			return $.get("/defaults")
+			.then(defaults => this.defaults = defaults)
+			.then(() => this.socket.emit('monitor'))
+			.then(() => super.build());
 		}
 
-		if (!loggedInAs)
-			return $tr;
+		// Format a player in a game score table
+		$player(game, player, isActive) {
+			const $tr = Player.prototype.$ui.call(player);
 
-		const $box = $("<td></td>");
-		$tr.append($box);
+			if (isActive) {
+				if (player.dictionary && player.dictionary !== game.dictionary) {
+					const dic = $.i18n("using dictionary $1", player.dictionary);
+					$tr.append(`<td>${dic}</td>`);
+				}
 
-		if (player.key === loggedInAs.key) {
-			// Currently signed in player
-			$box.append(
-				$("<button name='join' title=''></button>")
-				.button({ label: $.i18n("Open game") })
-				.tooltip({
-					content: $.i18n("tooltip-open-game")
-				})
-				.on('click', () => {
-					console.log(`Join game ${game.key}/${loggedInAs.key}`);
-					$.post(`/join/${game.key}/${loggedInAs.key}`)
-					.then(() => {
-						window.open(
-							`/html/game.html?game=${game.key}&player=${loggedInAs.key}`,
-							"_blank");
-						refresh_game(game.key);
-					})
-					.catch(report);
-				}));
-
-			$box.append(
-				$("<button name='leave' title='' class='risky'></button>")
-				.button({ label: $.i18n("Leave game") })
-				.tooltip({
-					content: $.i18n("tooltip-leave-game")
-				})
-				.on('click', () => {
-					console.log(`Leave game ${game.key}`);
-					$.post(`/leave/${game.key}/${loggedInAs.key}`)
-					.then(() => refresh_game(game.key))
-					.catch(report);
-				}));
-
-			return $tr;
-		}
-		else if (player.isRobot) {
-			$box.append(
-				$("<button name='removeRobot' title=''></button>")
-				.button({ label: $.i18n("Remove robot") })
-				.tooltip({
-					content: $.i18n("tooltip-remove-robot")
-				})
-				.on('click', () => {
-					console.log(`Remove robot from ${game.key}`);
-					$.post(`/removeRobot/${game.key}`)
-					.then(() => refresh_game(game.key))
-					.catch(report);
-				}));
-
-		}
-
-		// Not the signed in player
-		if (canEmail
-			&& !player.isRobot
-			&& game.whosTurnKey === player.key) {
-			$box.append(
-				$("<button name='email' title=''></button>")
-				.button({ label: $.i18n("Send reminder") })
-				.tooltip({
-					content: $.i18n("tooltip-email-reminder")
-				})
-				.on("click", () => {
-					console.log("Send reminder");
-					$.post(`/sendReminder/${game.key}`)
-					.then(names => $('#alertDialog')
-						  .text($.i18n(/*i18n*/'Reminded $1', names.join(", ")))
-						  .dialog({
-							  title: $.i18n("Reminded $1", player.name),
-							  modal: true
-						  }))
-					.catch(report);
-				}));
-		}
-
-		return $tr;
-	}
-
-	/**
-	 * Construct a table that shows the state of the given game
-	 * @param {Game|object} game a Game or Game.simple
-	 * @param {object} isOpen map from game key to boolean
-	 */
-	function $game(game) {
-		const $box = $(`<div class="game" id="${game.key}"></div>`);
-		const $twist = $("<div class='twist'></div>");
-		const $twistButton =
-			  $("<button name='twist'></button>")
-			  .button({ label: TWIST_OPEN })
-			  .addClass("no-padding")
-			  .on("click", () => showHideTwist(!$twist.is(":visible")));
-
-		function showHideTwist(show) {
-			if (show) {
-				$twist.show();
-				$twistButton.button("option", "label", TWIST_CLOSE);
-				isOpen[game.key] = true;
+				if (game.timerType !== Player.TIMER_NONE) {
+					const left = $.i18n("$1s left to play", player.clock);
+					$tr.append(`<td>${left}</td>`);
+				}
+				
 			} else {
-				$twist.hide();
-				$twistButton.button("option", "label", TWIST_OPEN);
-				isOpen[game.key] = false;
+				const winningScore = game.players.reduce(
+					(max, p) =>
+					Math.max(max, p.score), 0);
+				
+				if (player.score === winningScore) {
+					$tr.append('<td class="ui-icon icon-winner"></td>');
+				}
+
+				return $tr;
 			}
+
+			if (!this.loggedInAs)
+				return $tr;
+
+			const $box = $("<td></td>");
+			$tr.append($box);
+
+			if (player.key === this.loggedInAs.key) {
+				// Currently signed in player
+				$box.append(
+					$("<button name='join' title=''></button>")
+					.button({ label: $.i18n("Open game") })
+					.tooltip({
+						content: $.i18n("tooltip-open-game")
+					})
+					.on('click', () => {
+						console.log(`Join game ${game.key}/${this.loggedInAs.key}`);
+						$.post(`/join/${game.key}/${this.loggedInAs.key}`)
+						.then(() => {
+							window.open(
+								`/html/game.html?game=${game.key}&player=${this.loggedInAs.key}`,
+								"_blank");
+							refresh_game(game.key);
+						})
+						.catch(UI.report);
+					}));
+
+				$box.append(
+					$("<button name='leave' title='' class='risky'></button>")
+					.button({ label: $.i18n("Leave game") })
+					.tooltip({
+						content: $.i18n("tooltip-leave-game")
+					})
+					.on('click', () => {
+						console.log(`Leave game ${game.key}`);
+						$.post(`/leave/${game.key}/${this.loggedInAs.key}`)
+						.then(() => this.refresh_game(game.key))
+						.catch(UI.report);
+					}));
+
+				return $tr;
+			}
+			else if (player.isRobot) {
+				$box.append(
+					$("<button name='removeRobot' title=''></button>")
+					.button({ label: $.i18n("Remove robot") })
+					.tooltip({
+						content: $.i18n("tooltip-remove-robot")
+					})
+					.on('click', () => {
+						console.log(`Remove robot from ${game.key}`);
+						$.post(`/removeRobot/${game.key}`)
+						.then(() => this.refresh_game(game.key))
+						.catch(UI.report);
+					}));
+
+			}
+
+			// Not the signed in player
+			if (this.defaults.canEmail
+				&& !player.isRobot
+				&& game.whosTurnKey === player.key) {
+				$box.append(
+					$("<button name='email' title=''></button>")
+					.button({ label: $.i18n("Send reminder") })
+					.tooltip({
+						content: $.i18n("tooltip-email-reminder")
+					})
+					.on("click", () => {
+						console.log("Send reminder");
+						$.post(`/sendReminder/${game.key}`)
+						.then(names => $('#alertDialog')
+							  .text($.i18n(/*i18n*/'Reminded $1', names.join(", ")))
+							  .dialog({
+								  title: $.i18n("Reminded $1", player.name),
+								  modal: true
+							  }))
+						.catch(UI.report);
+					}));
+			}
+
+			return $tr;
 		}
-		
-		showHideTwist(isOpen && isOpen[game.key]);
 
-		const headline = [
-			//game.key, // debug only
-			$.i18n("edition $1", game.edition)
-		];
-		if (game.dictionary)
-			headline.push($.i18n("dictionary $1", game.dictionary));
+		/**
+		 * Construct a table that shows the state of the given game
+		 * @param {Game|object} game a Game or Game.simple
+		 */
+		$game(game) {
+			const $box = $(`<div class="game" id="${game.key}"></div>`);
+			const $twist = $("<div class='twist'></div>");
+			const $twistButton =
+				  $("<button name='twist'></button>")
+				  .button({ label: TWIST_OPEN })
+				  .addClass("no-padding")
+				  .on("click", () => showHideTwist(!$twist.is(":visible")));
 
-		if (game.timerType === Player.TIMER_TURN)
-			headline.push($.i18n("turn time limit $1",
-								 Game.formatTimeInterval(game.timeLimit)));
-		else if (game.timerType === Player.TIMER_GAME)
-			headline.push($.i18n("game time limit $1",
-								 Game.formatTimeInterval(game.timeLimit)));
+			function showHideTwist(show) {
+				if (show) {
+					$twist.show();
+					$twistButton.button("option", "label", TWIST_CLOSE);
+					this.isUntwisted[game.key] = true;
+				} else {
+					$twist.hide();
+					$twistButton.button("option", "label", TWIST_OPEN);
+					this.isUntwisted[game.key] = false;
+				}
+			}
+			
+			showHideTwist(this.isUntwisted && this.isUntwisted[game.key]);
 
-		const isActive = (game.state === Game.STATE_PLAYING
-						 || game.state === Game.STATE_WAITING);
+			const headline = [
+				//game.key, // debug only
+				$.i18n("edition $1", game.edition)
+			];
+			if (game.dictionary)
+				headline.push($.i18n("dictionary $1", game.dictionary));
 
+			if (game.timerType === Player.TIMER_TURN)
+				headline.push($.i18n("turn time limit $1",
+									 Game.formatTimeInterval(game.timeLimit)));
+			else if (game.timerType === Player.TIMER_GAME)
+				headline.push($.i18n("game time limit $1",
+									 Game.formatTimeInterval(game.timeLimit)));
 
-		const $headline = $("<span></span>");
-		$headline
-		.text(headline.join(', '));
-		if (!isActive)
-			$headline.append($("<span class='game-state'></span>").text($.i18n(game.state)));
+			const isActive = (game.state === Game.STATE_PLAYING
+							  || game.state === Game.STATE_WAITING);
 
-		$box
-		.append($('<div class="game-key"></div>').text(game.key))
-		.append($twistButton)
-		.append($headline)
-		.append($twist);
+			
+			const $headline = $("<span></span>");
+			$headline
+			.text(headline.join(', '));
+			if (!isActive)
+				$headline.append($("<span class='game-state'></span>").text($.i18n(game.state)));
 
-		const options = [];
-		if (game.predictScore)
-			options.push($.i18n("Predict score"));
-		if (game.wordCheck && game.wordCheck !== Game.WORD_CHECK_NONE)
-			options.push($.i18n(game.wordCheck));
-		if (game.allowTakeBack)
-			options.push($.i18n("Allow 'Take back'"));
-		if (game.maxPlayers === game.minPlayers)
-			options.push($.i18n("$1 players", game.minPlayers));
-		else if (game.maxPlayers > game.minPlayers)
-			options.push($.i18n("$1 to $2 players",
-								game.minPlayers, game.maxPlayers));
-		else if (game.minPlayers > 2)
-			options.push($.i18n("At least $1 players", game.minPlayers));
+			$box
+			.append($('<div class="game-key"></div>').text(game.key))
+			.append($twistButton)
+			.append($headline)
+			.append($twist);
 
-		switch (game.penaltyType) {
-		case Game.PENALTY_PER_TURN:
-			options.push($.i18n("Lose $1 points for a failed challenge",
-								game.penaltyPoints));
-			break;
-		case Game.PENALTY_PER_WORD:
-			options.push($.i18n(
-				"Lose $1 points for each wrongly challenged word",
-				game.penaltyPoints));
-			break;
-		case Game.PENALTY_MISS:
-			options.push($.i18n("Miss a turn after a failed challenge"));
-			break;
-		}
+			const options = [];
+			if (game.predictScore)
+				options.push($.i18n("Predict score"));
+			if (game.wordCheck && game.wordCheck !== Game.WORD_CHECK_NONE)
+				options.push($.i18n(game.wordCheck));
+			if (game.allowTakeBack)
+				options.push($.i18n("Allow 'Take back'"));
+			if (game.maxPlayers === game.minPlayers)
+				options.push($.i18n("$1 players", game.minPlayers));
+			else if (game.maxPlayers > game.minPlayers)
+				options.push($.i18n("$1 to $2 players",
+									game.minPlayers, game.maxPlayers));
+			else if (game.minPlayers > 2)
+				options.push($.i18n("At least $1 players", game.minPlayers));
 
-		if (options.length > 0) {
+			switch (game.penaltyType) {
+			case Game.PENALTY_PER_TURN:
+				options.push($.i18n("Lose $1 points for a failed challenge",
+									game.penaltyPoints));
+				break;
+			case Game.PENALTY_PER_WORD:
+				options.push($.i18n(
+					"Lose $1 points for each wrongly challenged word",
+					game.penaltyPoints));
+				break;
+			case Game.PENALTY_MISS:
+				options.push($.i18n("Miss a turn after a failed challenge"));
+				break;
+			}
+
+			if (options.length > 0) {
+				$twist.append(
+					$(`<div class="game-options"></div>`)
+					.text($.i18n("Options: " + options.join(", "))));
+			}
+			const $table = $("<table class='playerTable'></table>");
+			$twist.append($table);
+			game.players.forEach(
+				player => $table.append(this.$player(game, player, isActive)));
+
+			if (isActive)
+				// .find because it's not in the document yet
+				$table.find(`#player${game.whosTurnKey}`).addClass('whosTurn');
+
+			if (isActive
+				&& this.loggedInAs
+				&& (game.maxPlayers === 0
+					|| game.players.length < game.maxPlayers)) {
+
+				if (!game.players.find(p => p.key === this.loggedInAs.key)) {
+					// Can join game
+					const $join = $(`<button name="join" title=''></button>`);
+					$twist.append($join);
+					$join
+					.button({ label: $.i18n("Join game") })
+					.tooltip({
+						content: $.i18n("tooltip-join-game")
+					})
+					.on('click', () => {
+						console.log(`Join game ${game.key}`);
+						$.post(`/join/${game.key}/${this.loggedInAs.key}`)
+						.then(info => {
+							window.open(`/html/game.html?game=${game.key}&player=${this.loggedInAs.key}`, "_blank");
+							this.refresh_game(game.key);
+						})
+						.catch(UI.report);
+					});
+				}
+
+				if (!game.players.find(p => p.isRobot)) {
+					$twist.append(
+						$(`<button name='robot' title=''></button>`)
+						.button({ label: $.i18n("Add robot") })
+						.tooltip({
+							content: $.i18n("tooltip-add-robot")
+						})
+						.on('click', () =>
+							Dialog.open("AddRobotDialog", {
+								gameKey: game.key,
+								postAction: "/addRobot",
+								postResult: () => this.refresh_game(game.key),
+								error: UI.report
+							})));
+				}
+			}
+			
+			if (this.loggedInAs) {
+				if (isActive && this.defaults.canEmail) {
+					$twist.append(
+						$("<button name='invite' title=''></button>")
+						.button({ label: $.i18n("Invite players")})
+						.tooltip({
+							content: $.i18n("tooltip-invite-players")
+						})
+						.on("click", () => Dialog.open("InvitePlayersDialog", {
+							gameKey: game.key,
+							postAction: "/invitePlayers",
+							postResult: names => {
+								$('#alertDialog')
+								.text($.i18n("Invited $1", names.join(", ")))
+								.dialog({
+									title: $.i18n("Invitations"),
+									modal: true
+								});
+							},
+							error: UI.report
+						})));
+				}
+
+				if (!(isActive || game.nextGameKey)) {
+					$twist.append(
+						$("<button name='another' title=''></button>")
+						.button({ label: $.i18n("Another game like this") })
+						.on('click',
+							() => $.post(`/anotherGame/${game.key}`)
+							.then(() => this.refresh_games())
+							.catch(UI.report)));
+				}
+
+				$twist.append(
+					$("<button name='delete' title='' class='risky'></button>")
+					.tooltip({
+						content: $.i18n("tooltip-delete-game")
+					})
+					.button({ label: $.i18n("Delete") })
+					.on('click', () => $.post(`/deleteGame/${game.key}`)
+						.then(() => this.refresh_games())
+						.catch(UI.report)));
+
+				return $box;
+			}
+
+			// Nobody logged in, offer to observe
 			$twist.append(
-				$(`<div class="game-options"></div>`)
-				.text($.i18n("Options: " + options.join(", "))));
-		}
-		const $table = $("<table class='playerTable'></table>");
-		$twist.append($table);
-		game.players.forEach(
-			player => $table.append($player(game, player, isActive)));
-
-		if (isActive)
-			// .find because it's not in the document yet
-			$table.find(`#player${game.whosTurnKey}`).addClass('whosTurn');
-
-		if (isActive
-			&& loggedInAs
-			&& (game.maxPlayers === 0
-				|| game.players.length < game.maxPlayers)) {
-
-			if (!game.players.find(p => p.key === loggedInAs.key)) {
-				// Can join game
-				const $join = $(`<button name="join" title=''></button>`);
-				$twist.append($join);
-				$join
-				.button({ label: $.i18n("Join game") })
+				$("<button name='observe' title=''></button>")
+				.button({ label: $.i18n("Observe game") })
 				.tooltip({
-					content: $.i18n("tooltip-join-game")
+					content: $.i18n("tooltip-observe-game")
 				})
 				.on('click', () => {
-					console.log(`Join game ${game.key}`);
-					$.post(`/join/${game.key}/${loggedInAs.key}`)
-					.then(info => {
-						window.open(`/html/game.html?game=${game.key}&player=${loggedInAs.key}`, "_blank");
-						refresh_game(game.key);
-					})
-					.catch(report);
-				});
-			}
-
-			if (!game.players.find(p => p.isRobot)) {
-				$twist.append(
-					$(`<button name='robot' title=''></button>`)
-					.button({ label: $.i18n("Add robot") })
-					.tooltip({
-						content: $.i18n("tooltip-add-robot")
-					})
-					.on('click', () =>
-						Dialog.open("AddRobotDialog", {
-							gameKey: game.key,
-							postAction: "/addRobot",
-							postResult: () => refresh_game(game.key),
-							error: report
-						})));
-			}
-		}
-			
-		if (loggedInAs) {
-			if (isActive && canEmail) {
-				$twist.append(
-					$("<button name='invite' title=''></button>")
-					.button({ label: $.i18n("Invite players")})
-					.tooltip({
-						content: $.i18n("tooltip-invite-players")
-					})
-					.on("click", () => Dialog.open("InvitePlayersDialog", {
-						gameKey: game.key,
-						postAction: "/invitePlayers",
-						postResult: names => {
-							$('#alertDialog')
-							.text($.i18n("Invited $1", names.join(", ")))
-							.dialog({
-								title: $.i18n("Invitations"),
-								modal: true
-							});
-						},
-						error: report
-					})));
-			}
-
-			if (!(isActive || game.nextGameKey)) {
-				$twist.append(
-					$("<button name='another' title=''></button>")
-					.button({ label: $.i18n("Another game like this") })
-					.on('click',
-						() => $.post(`/anotherGame/${game.key}`)
-						.then(refresh_games)
-						.catch(report)));
-			}
-
-			$twist.append(
-				$("<button name='delete' title='' class='risky'></button>")
-				.tooltip({
-					content: $.i18n("tooltip-delete-game")
-				})
-				.button({ label: $.i18n("Delete") })
-				.on('click', () => $.post(`/deleteGame/${game.key}`)
-					.then(refresh_games)
-					.catch(report)));
+					console.log(`Observe game ${game.key}`);
+					window.open(
+						`/html/game.html?game=${game.key}`,
+						"_blank");
+					this.refresh_game(game.key);
+				}));
 
 			return $box;
 		}
 
-		// Nobody logged in, offer to observe
-		$twist.append(
-			$("<button name='observe' title=''></button>")
-			.button({ label: $.i18n("Observe game") })
-			.tooltip({
-				content: $.i18n("tooltip-observe-game")
-			})
-			.on('click', () => {
-				console.log(`Observe game ${game.key}`);
-				window.open(
-					`/html/game.html?game=${game.key}`,
-					"_blank");
-				refresh_game(game.key);
-			}));
-
-		return $box;
-	}
-
-
-	/**
-	 * Refresh the display of a single game
-	 * @param {Game|object} game a Game or Game.simple
-	 */
-	function show_game(game) {
-		console.log(`Reshow ${game.key}`);
-		$(`#${game.key}`).replaceWith($game(game));
-	}
-
-	/**
-	 * Refresh the display of all games
-	 * @param {object[]} games array of Game.simple
-	 */
-	function show_games(games) {
-		if (games.length === 0) {
-			$('#gamesList').hide();
-			return;
+		
+		/**
+		 * Refresh the display of a single game
+		 * @param {Game|object} game a Game or Game.simple
+		 */
+		show_game(game) {
+			console.log(`Reshow ${game.key}`);
+			$(`#${game.key}`).replaceWith(this.$game(game));
 		}
 
-		const isOpen = {};
-		games.forEach(game => {
-			if (untwist === game.key) {
-				isOpen[game.key] = true;
-				untwist = undefined;
-			} else {
-				isOpen[this.id] = $(`#${game.key}`)
-				.find('.twist').is(":visible");
+		/**
+		 * Refresh the display of all games
+		 * @param {object[]} games array of Game.simple
+		 */
+		show_games(games) {
+			if (games.length === 0) {
+				$('#gamesList').hide();
+				return;
 			}
-		});
-		const $gt = $('#gamesTable');
-		$gt.empty();
 
-		games.forEach(game => $gt.append($game(game, isOpen)));
+			const $gt = $('#gamesTable');
+			$gt.empty();
 
-		$('#gamesList').show();
-		$('#reminder-button').hide();
-		if (canEmail && loggedInAs) {
-			if (games.reduce((em, game) => {
-				// game is Game.simple, not a Game object
-				// Can't remind a game that hasn't started or has ended.
-				if (game.state !== Game.STATE_PLAYING)
-					return em;
-				return em || game.players.find(p => p.key === game.whosTurnKey)
-				.email;
-			}, false))
-				$('#reminder-button').show();
+			games.forEach(game => $gt.append(this.$game(game)));
+
+			$('#gamesList').show();
+			$('#reminder-button').hide();
+			if (this.defaults.canEmail && this.loggedInAs) {
+				if (games.reduce((em, game) => {
+					// game is Game.simple, not a Game object
+					// Can't remind a game that hasn't started or has ended.
+					if (game.state !== Game.STATE_PLAYING)
+						return em;
+					return em || game.players.find(p => p.key === game.whosTurnKey)
+					.email;
+				}, false))
+					$('#reminder-button').show();
+			}
+		}
+
+		/**
+		 * Request an update for a single game (which must exist in the
+		 * games table)
+		 * @param {string} key Game key
+		 */
+		refresh_game(key) {
+			return $.get(`/simple/${key}`)
+			.then(simple => this.show_game(simple[0]))
+			.catch(UI.report);
+		}
+
+		/**
+		 * Request an update for all games
+		 */
+		refresh_games() {
+			console.debug("refresh_games");
+			const what = $('#showAllGames').is(':checked') ? 'all' : 'active';
+			return $.get(`/simple/${what}`)
+			.then(games => this.show_games(games))
+			.catch(UI.report);
+		}
+
+		/**
+		 * Request an update for session status and all games lists
+		 * @return {Promise} promise that resolves when all AJAX calls have completed
+		 */
+		refresh() {
+			console.debug("refresh");
+			return Promise.all([
+				this.getSession()
+				.then(session => {
+					if (session) {
+						console.log("Signed in as", this.session.name);
+						$("#create-game").show();
+						$("#chpw_button").toggle(session.provider === 'xanado');
+					} else {
+						$("#create-game").hide();
+					}
+				})
+				.then(() => this.refresh_games()),
+
+				$.get("/history")
+				.then(data => {
+					if (data.length === 0) {
+						$('#gamesCumulative').hide();
+						return;
+					}
+					let n = 1;
+					$('#gamesCumulative').show();
+					const $gt = $('#player-list');
+					$gt.empty();
+					data.forEach(player => {
+						const s = $.i18n(
+							'games-scores', n++, player.name, player.score,
+							player.games, player.wins);
+						$gt.append(`<div class="player-cumulative">${s}</div>`);
+					});
+				})
+			])
+			.catch(UI.report);
 		}
 	}
 
-	/**
-	 * Request an update for a single game (which must exist in the
-	 * games table)
-	 * @param {string} key Game key
-	 */
-	function refresh_game(key) {
-		return $.get(`/simple/${key}`)
-		.then(simple => show_game(simple[0]))
-		.catch(report);
-	}
-
-	/**
-	 * Request an update for all games
-	 */
-	function refresh_games() {
-		console.debug("refresh_games");
-		const what = $('#showAllGames').is(':checked') ? 'all' : 'active';
-		return $.get(`/simple/${what}`)
-		.then(show_games)
-		.catch(report);
-	}
-
-	/**
-	 * Request an update for session status and all games lists
-	 */
-	function refresh() {
-		console.debug("refresh");
-		return Promise.all([
-			$.get("/session")
-			.then(session => {
-				loggedInAs = session;
-				console.log("Signed in as", session.name);
-				$(".not-logged-in").hide();
-				$(".logged-in").show()
-				.find("span").first().text(session.name);
-				$("#create-game").show();
-				$("#chpw_button").toggle(session.provider === 'xanado');
-			})
-			.catch(e => {
-				$(".logged-in").hide();
-				$(".not-logged-in").show();
-				$("#create-game").hide();
-			})
-			.then(refresh_games),
-
-			$.get("/history")
-			.then(data => {
-				if (data.length === 0) {
-					$('#gamesCumulative').hide();
-					return;
-				}
-				let n = 1;
-				$('#gamesCumulative').show();
-				const $gt = $('#player-list');
-				$gt.empty();
-				data.forEach(player => {
-					const s = $.i18n(
-						'games-scores', n++, player.name, player.score,
-						player.games, player.wins);
-					$gt.append(`<div class="player-cumulative">${s}</div>`);
-				});
-			})
-			.catch(report)
-		]);
-	}
-
-	browserApp.then(() => {
-
-		untwist = location.search.replace(/^.*[?&;]untwist=([^&;]*).*$/,"$1");
-
-		$.get("/defaults")
-		.then(defaults => canEmail = defaults.canEmail);
-
-		const socket = io.connect(null);
-
-		$("#showAllGames")
-		.on('change', refresh_games);
-
-		$('#reminder-button')
-		.on('click', () => {
-			console.log("Send reminders");
-			$.post("/sendReminder/*")
-			.then(info => $('#alertDialog')
-				  .text($.i18n.apply(null, info))
-				  .dialog({
-					  title: $.i18n("Email turn reminders"),
-					  modal: true
-				  }))
-			.catch(report);
-		});
-
-		$("#create-game")
-		.on("click", () => Dialog.open("CreateGameDialog", {
-			postAction: "/createGame",
-			postResult: refresh_games,
-			error: report
-		}));
-
-		$("#login-button")
-		.on("click", () => Dialog.open("LoginDialog", {
-			// postAction is dynamic, depends which tab is open
-			postResult: refresh,
-			error: report
-		}));
-
-		$("#logout-button")
-		.on('click', () => {
-			$.post("/logout")
-			.then(result => {
-				console.log("Logged out", result);
-				loggedInAs = undefined;
-				refresh();
-			})
-			.catch(report);
-		});
-
-		$("#chpw_button")
-		.on("click", () => Dialog.open("ChangePasswordDialog", {
-			postAction: "/change-password",
-			postResult: refresh,
-			error: report
-		}));
-	
-		//refresh(); do this in 'connect' handler
-
-		socket
-
-		.on('connect', () => {
-			console.debug("--> connect");
-			refresh();
-		})
-
-		.on('disconnect', () => {
-			console.debug("--> disconnect");
-			refresh();
-		})
-
-		// Custom messages
-
-		.on('update', () => {
-			console.debug("--> update");
-			// Can be smarter than this!
-			refresh();
-		});
-		$(document)
-		.tooltip({
-			items: '[data-i18n-tooltip]',
-			content: function() {
-				return $.i18n($(this).data('i18n-tooltip'));
-			}
-		});
-
-		socket.emit('monitor');
-	});
+	browserApp.then(() => new GamesUI().build());
 });
