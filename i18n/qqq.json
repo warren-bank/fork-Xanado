@@ -124,6 +124,7 @@
 	"Send invitation emails": "button label",
 	"Send reminder": "Button label for sending an eail reminder",
 	"Send turn reminders": "button label",
+	"Server disconnected, trying to reconnect": "Alert text when server can't be contacted",
 	"Show finished games": "checkbox label",
 	"Shuffle": "button label, not normally seen",
 	"Signed in as": "Reporting the currently signed-in player",
@@ -193,7 +194,6 @@
 	"ui-notify-body-you-failed": "Notify body content when a challenge failed",
 	"ui-notify-title-your-turn": "Notify title",
 	"ui-notify-body-your-turn": "Notify body when $1 has finished their turn and it's now your turn",
-	"ui-server-disconnected": "Alert text when server can't be contacted",
 	
 	"um-bad-pass": "reporting a bad password during login, $1 is the user name",
 	"um-bad-user": "User manager: reporting unknown user during login",

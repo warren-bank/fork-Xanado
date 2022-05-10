@@ -24,68 +24,6 @@ define('browser/UI', [
 	 */
 	class UI {
 
-		/**
-		 * Report an error returned from an ajax request.
-		 * @param {string|Error|array|jqXHR} args This will either be a
-		 * simple i18n string ID, or an array containing an i18n ID and a
-		 * series of arguments, or a jqXHR.
-		 */
-		static report(args) {
-			// Handle a jqXHR
-			if (typeof args === 'object') {
-				if (args.responseJSON)
-					args = args.responseJSON;
-				else if (args.responsetext)
-					args = args.responseJSON;
-			}
-
-			let message;
-			if (typeof(args) === 'string') // simpe string
-				message = $.i18n(args);
-			else if (args instanceof Error) // Error object
-				message = args.toString();
-			else if (args instanceof Array) { // First element i18n code
-				message = $.i18n.apply($.i18n, args);
-			} else // something else
-				message = args.toString();
-
-			$('#alertDialog')
-			.text(message)
-			.dialog({
-				modal: true,
-				title: $.i18n("XANADO problem")
-			});
-		}
-
-		/**
-		 * Play an audio clip, identified by #id. Clips must be
-		 * pre-loaded in the HTML. Note that most (all?) browsers require
-		 * some sort of user interaction before they will play audio
-		 * embedded in the page.
-		 */
-		static playAudio(id) {
-			const audio = document.getElementById(id);
-
-			if (audio.playing)
-				audio.pause();
-
-			audio.defaultPlaybackRate = 1;
-			audio.volume = 1;
-
-			try {
-				audio.currentTime = 0;
-				audio.play();
-			}
-			catch(e) {
-				const currentTime = () => {
-					audio.currentTime = 0;
-					audio.removeEventListener('canplay', currentTime, true);
-					audio.play();
-				};
-				audio.addEventListener('canplay', currentTime, true);
-			}
-		}
-
 		constructor() {
 			/**
 			 * Are we using https?
@@ -103,6 +41,76 @@ define('browser/UI', [
 			 * Cache of defaults object, lateinit in build()
 			 */
 			this.defaults = undefined;
+
+			/**
+			 * Cache of Audio objects, indexed by name of clip.
+			 * Empty until a clip is played.
+			 */
+			this.soundClips = {};
+		}
+
+		/**
+		 * Report an error returned from an ajax request.
+		 * @param {string|Error|array|jqXHR} args This will either be a
+		 * simple i18n string ID, or an array containing an i18n ID and a
+		 * series of arguments, or a jqXHR.
+		 */
+		static report(args) {
+			// Handle a jqXHR
+			if (typeof args === 'object') {
+				if (args.responseJSON)
+					args = args.responseJSON;
+				else if (args.responsetext)
+					args = args.responseJSON;
+			}
+
+			let message;
+			if (typeof(args) === 'string') // simple string
+				message = $.i18n(args);
+			else if (args instanceof Error) // Error object
+				message = args.toString();
+			else if (args instanceof Array) { // First element i18n code
+				message = $.i18n.apply($.i18n, args);
+			} else // something else
+				message = args.toString();
+
+			$('#alertDialog')
+			.text(message)
+			.dialog({
+				modal: true,
+				title: $.i18n("XANADO problem")
+			});
+		}
+
+		/**
+		 * Play an audio clip, identified by id. Clips must be
+		 * pre-loaded in the HTML. Note that most (all?) browsers require
+		 * some sort of user interaction before they will play audio
+		 * embedded in the page.
+		 * @param {string} id name of the clip to play (no extension). Clip
+		 * must exist as an mp3 file in the /audio directory.
+		 */
+		playAudio(id) {
+			const audio = this.soundClips[id];
+
+			if (!audio) {
+				audio = new Audio(`/audio/${id}.mp3`);
+				this.soundClips[id] = audio;
+			}
+
+			if (audio.playing)
+				audio.pause();
+
+			try {
+				audio.play();
+			}
+			catch(e) {
+				$(audio).on("canplaythrough", 
+					() => {
+						$(audio).off("canplaythrough");
+						audio.play();
+					}, true);
+			}
 		}
 
 		/**
@@ -111,7 +119,6 @@ define('browser/UI', [
 		 * @protected
 		 */
 		build() {
-			this.socket = io.connect(null);
 			return Promise.all([
 				$.get('/locales')
 				.then(locales => {
@@ -135,12 +142,7 @@ define('browser/UI', [
 					});
 				}),
 				$.get("/defaults")
-				.then(defaults => {
-					this.defaults = defaults;
-					// Notification requires https
-					if (!this.usingHttps)
-						this.defaults.notification = false;
-				})
+				.then(defaults => this.defaults = defaults)
 			])
 			.then(() => this.decorate());
 		}
@@ -180,10 +182,59 @@ define('browser/UI', [
 				}
 			});
 
+			console.debug("Connecting to socket");
+			this.socket = io.connect(null);
+			let $reconnectDialog = null;
+			this.socket
+			.on('connect', skt => {
+				// Note: 'connect' is synonymous with 'connection'
+				// Socket has connected to the server
+				console.debug('--> connect');
+				if ($reconnectDialog) {
+					$reconnectDialog.dialog('close');
+					$reconnectDialog = null;
+				}
+				this.connectToServer();
+			})
+
+			.on('disconnect', skt => {
+				// Socket has disconnected for some reason
+				// (server died, maybe?) Back off and try to reconnect.
+				console.debug(`--> disconnect`);
+				$reconnectDialog = $('#alertDialog')
+				.text($.i18n("Server disconnected, trying to reconnect"))
+				.dialog({
+					title: $.i18n("XANADO problem"),
+					modal: true
+				});
+				setTimeout(() => {
+					// Try and rejoin after a 3s timeout
+					this.connectToServer();
+				}, 3000);
+
+			});
+
+			this.attachSocketListeners(this.socket);
+
 			return new Promise(resolve => {
 				$(".user-interface").show();
 				resolve();
 			});
+		}
+
+		/**
+		 * Called when a connection to the server is reported by the
+		 * socket. Use to update the UI to reflect the game state.
+		 * Implement in subclasses.
+		 */
+		connectToServer() {
+		}
+
+		/**
+		 * Attach socket communications listeners. Implement in subclasses.
+		 * @param {Socket} communications socket
+		 */
+		attachSocketListeners(socket) {
 		}
 
 		/**
@@ -237,6 +288,76 @@ define('browser/UI', [
 			: this.defaults;
 		}
 
+		/**
+		 * Promise to check if we have been granted permission to
+		 * create Notifications.
+		 * @return {Promise} Promise that resolves to undefined if we can notify
+		 */
+		canNotify() {
+			if (!(this.usingHttps
+				  && this.getSetting('notification')
+				  && 'Notification' in window))
+				return Promise.reject();
+
+			switch (Notification.permission) {
+			case 'denied':
+				return Promise.reject();
+			case 'granted':
+				return Promise.resolve();
+			default:
+				return new Promise((resolve, reject) => {
+					return Notification.requestPermission()
+					.then(result => {
+						if (result === 'granted')
+							resolve();
+						else
+							reject();
+					});
+				});
+			}
+		}
+
+		/**
+		 * Generate a notification using the HTML5 notifications API
+		 * @param {string} id notification id
+		 */
+		notify() {
+			const args = Array.from(arguments);
+			const id = args[0];
+			args[0] = `ui-notify-title-${id}`;
+			const title = $.i18n.call(args);
+			args[0] = `ui-notify-body-${id}`;
+			const body = $.i18n.call(args);
+			this.canNotify()
+			.then(() => {
+				this.cancelNotification();
+				const notification = new Notification(
+					title,
+					{
+						icon: '/images/favicon.ico',
+						body: body
+					});
+				this._notification = notification;
+				$(notification)
+				.on('click', function () {
+					this.cancel();
+				})
+				.on('close', () => {
+					delete this._notification;
+				});
+			})
+			.catch(() => {});
+		}
+
+		/**
+		 * Cancel any outstanding Notification
+		 */
+		cancelNotification() {
+			if (this._notification) {
+				this._notification.close();
+				delete this._notification;
+			}
+		}
 	}
 
 	return UI;

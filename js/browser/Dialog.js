@@ -267,10 +267,15 @@ define("browser/Dialog", () => {
 		 * Open the named dialog, demand-loading the JS and HTML as
 		 * needed. Some day we may demand-load css as well, but there's
 		 * no need right now. Parameters as for constructor.
+		 * @return {Promise} resolving to the Dialog object
 		 */
 		static open(dlg, options) {
 			console.log(`Opening dialog ${dlg}`);
-			requirejs([`browser/${dlg}`], Clas => new Clas(options));
+			return new Promise(resolve => {
+				requirejs([`browser/${dlg}`], Clas => {
+					resolve(new Clas(options));
+				});
+			});
 		}
 	}
 

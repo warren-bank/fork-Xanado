@@ -6,7 +6,7 @@ and license information*/
 /**
  * Dialog for robot creation. Demand loads the HTML.
  */
-define("browser/AddRobotDialog", ["browser/Dialog"], (Dialog) => {
+define("browser/AddRobotDialog", ["browser/Dialog"], Dialog => {
 
 	class AddRobotDialog extends Dialog {
 		
@@ -14,21 +14,21 @@ define("browser/AddRobotDialog", ["browser/Dialog"], (Dialog) => {
 			super("AddRobotDialog", $.extend({
 				title: $.i18n("Add robot")
 			}, options));
-			this.ui = options.ui;
 		}
 
 		createDialog() {
+			const ui = this.options.ui;
 			Promise.all([
 				$.get("/dictionaries")
 				.then(dictionaries => {
 					const $dic = this.$dlg.find('[name=dictionary]');
 					dictionaries
 					.forEach(d => $dic.append(`<option>${d}</option>`));
-					if (this.ui.getSetting('dictionary'))
-						$dic.val(this.ui.getSetting('dictionary'));
+					if (ui.getSetting('dictionary'))
+						$dic.val(ui.getSetting('dictionary'));
 					this.enableSubmit();
 				})
-			]))
+			])
 			.then(() => super.createDialog());
 		}
 

@@ -76,10 +76,8 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 			const ddone = options.done;
 			options.done = data => {
 				if (this.getAction() === 'register') {
-					$('#alertDialog')
-					.text($.i18n("Welcome to XANADO, $1!", data.name))
-					.dialog({
-						modal: true,
+					Dialog.open('AlertDialog', {
+ 						message: $.i18n("Welcome to XANADO, $1!", data.name),
 						title: $.i18n("New player registered")
 					});
 				}

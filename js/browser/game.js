@@ -109,6 +109,7 @@ define('browser/game', [
 			this.boardLocked = false;
 		}
 
+		// @Override
 		decorate() {
 			let m = document.URL.match(/[?;&]game=([^;&]+)/);
 			if (!m) {
@@ -128,8 +129,7 @@ define('browser/game', [
 			})
 			.then(game => {
 				return this.identifyPlayer(game)
-				.then (playerKey => this.loadGame(game))
-				.then(() => this.attachSocketListeners());
+				.then (playerKey => this.loadGame(game));
 			})
 			.then(() => super.decorate())
 			.catch(UI.report);
@@ -329,11 +329,11 @@ define('browser/game', [
 					if (isMe) {
 						iWon = true;
 						if (interactive && this.getSetting('cheers'))
-							UI.playAudio('endCheer');
+							this.playAudio('endCheer');
 					}
 					winners.push(name);
 				} else if (isMe && interactive && this.getSetting('cheers'))
-					UI.playAudio('lost');
+					this.playAudio('lost');
 
 				if (player.rack.isEmpty()) {
 					if (unplayed > 0) {
@@ -454,7 +454,7 @@ define('browser/game', [
 				&& this.game.timerType === Player.TIMER_TURN
 				&& remains <= 10
 				&& this.getSetting('warnings'))
-				UI.playAudio('tick');
+				this.playAudio('tick');
 
 			const $to = $(`#player${ticked.key} .player-clock`);
 			if (remains < this.game.timeLimit / 6) {
@@ -493,7 +493,7 @@ define('browser/game', [
 			this.lockBoard(false);
 			this.enableTurnButton(true);
 			if (this.getSetting('warnings'))
-				UI.playAudio('oops');
+				this.playAudio('oops');
 			addToLog(true, $.i18n(
 				"The word{{PLURAL:$1||s}} $2 {{PLURAL:$1|was|were}} not found in the dictionary",
 				rejection.words.length,
@@ -773,56 +773,20 @@ define('browser/game', [
 			return Promise.resolve();
 		}
 
-		/**
-		 * Attach socket communications listeners
-		 */
-		attachSocketListeners() {
+		// @Override
+		connectToServer() {
+			const playerKey = this.player ? this.player.key : undefined;
+			// Confirm to the server that we're ready to play
+			console.debug('<-- join');
+			this.socket.emit('join', {
+				gameKey: this.game.key,
+				playerKey: playerKey
+			});
+		}
 
-
-			let $reconnectDialog = null;
-
-			this.socket
-
-			.on('connect', skt => {
-				// Note: 'connect' is synonymous with 'connection'
-				// Socket has connected to the server
-				console.debug('--> connect');
-				if ($reconnectDialog) {
-					$reconnectDialog.dialog('close');
-					$reconnectDialog = null;
-				}
-				if (this.wasConnected) {
-					this.cancelNotification();
-				} else {
-					this.wasConnected = true;
-					const playerKey = this.player ? this.player.key : undefined;
-					// Confirm to the server that we're ready to play
-					console.debug('<-- join');
-					this.socket.emit('join', {
-						gameKey: this.game.key,
-						playerKey: playerKey
-					});
-				}
-			})
-
-			.on('disconnect', skt => {
-				// Socket has disconnected for some reason
-				// (server died, maybe?) Back off and try to reconnect.
-				console.debug(`--> disconnect`);
-				$reconnectDialog = $('#alertDialog')
-				.text($.i18n('ui-server-disconnected'))
-				.dialog({ modal: true });
-				const ui = this;
-				setTimeout(() => {
-					// Try and rejoin after a 3s timeout
-					console.debug('<-- join (after timeout)');
-					ui.socket.emit('join', {
-						gameKey: this.game.key,
-						playerKey: this.player ? this.player.key : undefined
-					});
-				}, 3000);
-
-			})
+		// @Override
+		attachSocketListeners(socket) {
+			socket
 
 			// socket.io events 'new_namespace', 'disconnecting',
 			// 'initial_headers', 'headers', 'connection_error' are not handled
@@ -981,7 +945,7 @@ define('browser/game', [
 				// moveTile will use a blank if the letter isn't found
 				this.moveTile(rackSquare, this.selectedSquare, letter);
 				if (this.getSetting('tile_click'))
-					UI.playAudio('tiledown');
+					this.playAudio('tiledown');
 				if (this.typeAcross)
 					this.moveTypingCursor(1, 0);
 				else
@@ -1113,7 +1077,7 @@ define('browser/game', [
 				this.moveTile(fromSource, toSquare);
 				this.selectSquare(null);
 				if (this.getSetting('tile_click'))
-					UI.playAudio('tiledown');
+					this.playAudio('tiledown');
 			}
 		}
 
@@ -1383,7 +1347,7 @@ define('browser/game', [
 
 					if (turn.type === 'challenge-won') {
 						if (this.getSetting('warnings'))
-							UI.playAudio('oops');
+							this.playAudio('oops');
 						this.notify(
 							/*.i18n('ui-notify-title-succeeded')*/
 							/*i18n ui-notify-body-*/'succeeded',
@@ -1401,7 +1365,7 @@ define('browser/game', [
 
 			case 'challenge-failed':
 				if (this.getSetting('warnings'))
-					UI.playAudio('oops');
+					this.playAudio('oops');
 				if (challenger === this.player) {
 					// Our challenge failed
 					/*.i18n('ui-notify-title-you-failed')*/
@@ -1416,7 +1380,7 @@ define('browser/game', [
 			case 'move':
 				if (wasUs) {
 					if (turn.bonus > 0 && this.getSetting('cheers'))
-						UI.playAudio('bonusCheer');
+						this.playAudio('bonusCheer');
 					this.placedCount = 0;
 				}
 
@@ -1466,7 +1430,7 @@ define('browser/game', [
 
 			if (this.isThisPlayer(turn.nextToGoKey)) {
 				if (this.getSetting('turn_alert'))
-					UI.playAudio('yourturn');
+					this.playAudio('yourturn');
 				this.lockBoard(false);
 				this.enableTurnButton(true);
 			} else {
@@ -1735,77 +1699,6 @@ define('browser/game', [
 		 */
 		shuffleRack() {
 			this.player.rack.shuffle().$refresh();
-		}
-
-		/**
-		 * Generate a notification using the HTML5 notifications API
-		 * @param {string} id notification id
-		 */
-		notify() {
-			const args = Array.from(arguments);
-			const id = args[0];
-			args[0] = `ui-notify-title-${id}`;
-			const title = $.i18n.call(args);
-			args[0] = `ui-notify-body-${id}`;
-			const body = $.i18n.call(args);
-			this.canNotify()
-			.then(() => {
-				this.cancelNotification();
-				const notification = new Notification(
-					title,
-					{
-						icon: '/images/favicon.ico',
-						body: body
-					});
-				this.notification = notification;
-				$(notification)
-				.on('click', function () {
-					this.cancel();
-				})
-				.on('close', () => {
-					delete this.notification;
-				});
-			})
-			.catch(() => {});
-		}
-
-		/**
-		 * Promise to check if we have been granted permission to
-		 * create Notifications.
-		 * @return {Promise} Promise that resolves to undefined if we can notify
-		 */
-		canNotify() {
-			if (!(this.usingHttps
-				  && this.getSetting('notification')
-				  && 'Notification' in window))
-				return Promise.reject();
-
-			switch (Notification.permission) {
-			case 'denied':
-				return Promise.reject();
-			case 'granted':
-				return Promise.resolve();
-			default:
-				return new Promise((resolve, reject) => {
-					return Notification.requestPermission()
-					.then(result => {
-						if (result === 'granted')
-							resolve();
-						else
-							reject();
-					});
-				});
-			}
-		}
-
-		/**
-		 * Cancel any outstanding Notification
-		 */
-		cancelNotification() {
-			if (this.notification) {
-				this.notification.close();
-				delete this.notification;
-			}
 		}
 	}
 

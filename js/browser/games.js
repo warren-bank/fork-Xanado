@@ -7,12 +7,12 @@ and license information*/
  * Browser app for games.html; populate the list of live games
  */
 requirejs([
-	'socket.io', 'platform',
+	'platform',
 	'browser/UI', 'browser/Dialog',
 	'game/Player', 'game/Game',
 	'jquery'
 ], (
-	io, Platform,
+	Platform,
 	UI, Dialog,
 	Player, Game
 ) => {
@@ -37,6 +37,7 @@ requirejs([
 				this.isUntwisted[untwist] = true;
 		}
 
+		// @Override
 		decorate() {
 			$("#showAllGames")
 			.on('change', () => this.refresh_games());
@@ -88,8 +89,17 @@ requirejs([
 			}));
 			
 			//refresh(); do this in 'connect' handler
+			return super.decorate();
+		}
 
-			this.socket
+		// @Override
+		connectToServer() {
+			this.refresh();
+		}
+
+		// @Override
+		attachSocketListeners(socket) {
+			socket
 
 			.on('connect', () => {
 				console.debug("--> connect");
@@ -109,12 +119,15 @@ requirejs([
 				this.refresh();
 			});
 
-			this.socket.emit('monitor');
-
-			return super.decorate();
+			socket.emit('monitor');
 		}
 
-		// Format a player in a game score table
+		/**
+		 * Construct a table row that shows the state of the given player
+		 * @param {Game|object} game a Game or Game.simple
+		 * @param {Player} player the player
+		 * @param {boolean} isActive true if the game isn't over
+		 */
 		$player(game, player, isActive) {
 			const $tr = Player.prototype.$ui.call(player);
 
@@ -161,7 +174,7 @@ requirejs([
 							window.open(
 								`/html/game.html?game=${game.key}&player=${this.session.key}`,
 								"_blank");
-							refresh_game(game.key);
+							this.refresh_game(game.key);
 						})
 						.catch(UI.report);
 					}));
@@ -236,7 +249,7 @@ requirejs([
 				  .addClass("no-padding")
 				  .on("click", () => showHideTwist(!$twist.is(":visible")));
 
-			function showHideTwist(show) {
+			const showHideTwist = show => {
 				if (show) {
 					$twist.show();
 					$twistButton.button("option", "label", TWIST_CLOSE);
@@ -246,7 +259,7 @@ requirejs([
 					$twistButton.button("option", "label", TWIST_OPEN);
 					this.isUntwisted[game.key] = false;
 				}
-			}
+			};
 			
 			showHideTwist(this.isUntwisted && this.isUntwisted[game.key]);
 
@@ -358,6 +371,7 @@ requirejs([
 						})
 						.on('click', () =>
 							Dialog.open("AddRobotDialog", {
+								ui: this,
 								gameKey: game.key,
 								postAction: "/addRobot",
 								postResult: () => this.refresh_game(game.key),

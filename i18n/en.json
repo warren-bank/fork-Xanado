@@ -74,8 +74,6 @@
 	"ui-notify-title-you-failed": "Your challenge failed!",
 	"ui-notify-title-your-turn": "Your turn",
 
-	"ui-server-disconnected": "Server disconnected, trying to reconnect",
-
 	"um-bad-pass": "Wrong password for '$1'",
 	"um-bad-user": "Bad username '$1'",
 	"um-forgot": "Lost your password? Please enter the email you registered with, and I'll send you a reset link.",
