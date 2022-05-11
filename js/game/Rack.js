@@ -7,7 +7,7 @@ and license information*/
  * A Rack is a set of tiles that a player can play from. It's
  * a 1D array of Square.
  */
-define('game/Rack', ['game/Surface'], Surface => {
+define("game/Rack", ["game/Surface"], Surface => {
 
 	/**
 	 * A Rack is a 1-column {@link Surface}
@@ -28,9 +28,9 @@ define('game/Rack', ['game/Surface'], Surface => {
 			// the swap rack, but will also have racks that have no UI
 			// for the other players. The ID for these racks must be
 			// player specific.
-			super(id, size, 1, () => '_');
-			if (typeof underlay !== 'undefined') {
-				if (typeof underlay !== 'string')
+			super(id, size, 1, () => "_");
+			if (typeof underlay !== "undefined") {
+				if (typeof underlay !== "string")
 					throw Error("Rack underlay must be string");
 				let idx = 0;
 				this.forEachSquare(square => {
@@ -44,7 +44,7 @@ define('game/Rack', ['game/Surface'], Surface => {
 		 * Debug
 		 */
 		toString() {
-			return `Rack ${this.tiles().join(',')}`;
+			return `Rack ${this.tiles().join(",")}`;
 		}
 
 		/**
@@ -64,7 +64,7 @@ define('game/Rack', ['game/Surface'], Surface => {
 		addTile(tile) {
 			let col = -1;
 			if (tile.isBlank)
-				tile.letter = ' ';
+				tile.letter = " ";
 			this.forEachEmptySquare(square => {
 				square.placeTile(tile);
 				col = square.col;

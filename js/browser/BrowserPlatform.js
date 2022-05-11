@@ -8,7 +8,7 @@ and license information*/
  * for the abstract base class.  Note there is no Platform.Database
  * implementation for the browser.
  */
-define('platform', [ "game/Platform" ], (Platform) => {
+define("platform", [ "game/Platform" ], (Platform) => {
 
 	/**
 	 * Implementation of game/Platform

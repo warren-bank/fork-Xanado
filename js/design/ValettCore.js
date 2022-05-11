@@ -6,7 +6,7 @@
  */
 /* eslint-env amd */
 
-define('design/ValettCore', () => {
+define("design/ValettCore", () => {
 
 	function norm(vector) {
 		let sum = 0;
@@ -70,7 +70,7 @@ define('design/ValettCore', () => {
 			for (let i = 0; i < this.letters.length; i++)
 				this.frequency[i] = 0;
 			for (let word of this.words)
-				for (let letter of word.split(''))
+				for (let letter of word.split(""))
 					this.frequency[this.hash[letter]]++;
 
 			// frequencyByLength
@@ -86,7 +86,7 @@ define('design/ValettCore', () => {
 		
 			for (let word of words) {
 				this.totalFrequencyByLength[word.length - 1] += word.length;
-				for (let letter of word.split('')) {
+				for (let letter of word.split("")) {
 					this.frequencyByLength[this.hash[letter]][word.length - 1]++;
 				}
 			}
@@ -159,7 +159,7 @@ define('design/ValettCore', () => {
 			
 			for (let word of this.words) {
 				let i = 0;
-				const wl = word.split('');
+				const wl = word.split("");
 				for (let letter of wl) {
 					let prevLetter = null;
 					let nextLetter = null;

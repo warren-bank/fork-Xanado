@@ -3,7 +3,7 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, node, jquery */
 
-define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile, Move) => {
+define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile, Move) => {
 
 	/**
 	 * The square game board
@@ -14,7 +14,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		 * @param {Edition} edition the edition defining the board layout
 		 */
 		constructor(edition) {
-			super('Board', edition.cols, edition.rows,
+			super("Board", edition.cols, edition.rows,
 				  (col, row) => edition.squareType(col, row));
 
 			// Copy essentials from the Edition, so we don't have
@@ -35,12 +35,12 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		 * Edition in the Board.
 		 */
 		parse(sboard, edition) {
-			const rows = sboard.split('\n');
+			const rows = sboard.split("\n");
 			for (let row = 0; row < this.rows; row++) {
-				const r = rows[row].split('|');
+				const r = rows[row].split("|");
 				for (let col = 0; col < this.cols; col++) {
 					const letter = r[col + 1];
-					if (letter != ' ') {
+					if (letter != " ") {
 						// Treat lower-case letters as cast blanks.
 						// May not work in non-latin languages.
 						const isBlank = (letter.toUpperCase() != letter);
@@ -79,10 +79,10 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 						else if (square.wordScoreMultiplier > 1)
 							r.push(4 + square.wordScoreMultiplier);
 						else
-							r.push(' ');
+							r.push(" ");
 					}
 				}
-				s += `|${r.join('|')}|\n`;
+				s += `|${r.join("|")}|\n`;
 			}
 			return s;
 		}
@@ -119,7 +119,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 			
 			const taste = (dcol, drow) => {			
 				let wordScore = 0;
-				let letters = '';
+				let letters = "";
 				let wordMultiplier = 1;
 				let isNewWord = false;
 				while (col < this.cols
@@ -209,7 +209,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 
 				// This is a new tile, need to analyse cross words and
 				// apply bonuses
-				let crossWord = '';
+				let crossWord = "";
 				let crossWordScore = 0;
 
 				// Look left/up
@@ -248,7 +248,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 
 			if (words)
 				words.push({
-					word: tiles.map(tile => tile.letter).join(''),
+					word: tiles.map(tile => tile.letter).join(""),
 					score: wordScore
 				});
 
@@ -265,7 +265,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		 * @param {number} tilesPlaced
 		 */
 		calculateBonus(tilesPlaced) {
-			if (typeof this.bonuses[tilesPlaced] === 'number')
+			if (typeof this.bonuses[tilesPlaced] === "number")
 				return this.bonuses[tilesPlaced];
 			return 0;
 		}
@@ -295,7 +295,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 			if (!tile)
 				// Move can't be made. Should never happen
 				// Terminal, no point in translating
-				throw Error('No new tiles found');
+				throw Error("No new tiles found");
 
 			// Remember which newly placed tile positions are legal
 			const legalPlacements = new Array(this.cols);
@@ -330,7 +330,7 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 			}
 
 			if (!isTouchingOld && !legalPlacements[this.midcol][this.midrow])
-				return /*i18n*/'Disconnected placement';
+				return /*i18n*/"Disconnected placement";
 
 			// Check whether there are any unconnected placements
 			let totalTiles = 0;
@@ -341,10 +341,10 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 			});
 			
 			if (disco)
-				return /*i18n*/'Disconnected placement';
+				return /*i18n*/"Disconnected placement";
 
 			if (totalTiles < 2)
-				return /*i18n*/'First word must be at least two tiles';
+				return /*i18n*/"First word must be at least two tiles";
 
 			const placements = [];
 			this.forEachTiledSquare(square => {
@@ -370,16 +370,16 @@ define('game/Board', ['game/Surface', 'game/Tile', 'game/Move'], (Surface, Tile,
 		 * @return {jQuery}
 		 */
 		$ui() {
-			const $table = $('<table></table>');
+			const $table = $("<table></table>");
 			for (let row = 0; row < this.rows; row++) {
-				const $tr = $('<tr></tr>');
+				const $tr = $("<tr></tr>");
 				for (let col = 0; col < this.cols; col++) {
 					const square = this.at(col, row);
-					const $td = square.$ui('Board', col, row);
+					const $td = square.$ui("Board", col, row);
 					if (col == this.midcol && row == this.midrow)
-						$td.addClass('StartField');
-					else if (square.type != '_')
-						$td.addClass('score-multiplier'); // score multiplier
+						$td.addClass("StartField");
+					else if (square.type != "_")
+						$td.addClass("score-multiplier"); // score multiplier
 					$tr.append($td);
 				}
 				$table.append($tr);

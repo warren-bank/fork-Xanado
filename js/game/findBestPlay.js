@@ -14,8 +14,8 @@ and license information*/
  * @module game/findBestPlay
  * @exports game/findBestPlay
  */
-define('game/findBestPlay', [
-	'game/Edition', 'game/Tile', 'game/Move', 'dawg/Dictionary'
+define("game/findBestPlay", [
+	"game/Edition", "game/Tile", "game/Move", "dawg/Dictionary"
 ], (Edition, Tile, Move, Dictionary) => {
 
 	// Shortcuts to game information during move computation
@@ -69,8 +69,8 @@ define('game/findBestPlay', [
 	 * @private
 	 */
 	function pack(tiles) {
-		let word = tiles.map(l => l.letter).join('');
-		const blanks = tiles.map(l => l.isBlank ? ' ' : l.letter).join('');
+		let word = tiles.map(l => l.letter).join("");
+		const blanks = tiles.map(l => l.isBlank ? " " : l.letter).join("");
 		if (blanks != word)
 			word += `/${blanks}`;
 		return word;
@@ -110,14 +110,14 @@ define('game/findBestPlay', [
 				}
 
 				// Find the words above and below
-				let wordAbove = '';
+				let wordAbove = "";
 				let r = row - 1;
 				while (r >= 0 && board.at(col, r).tile) {
 					wordAbove = board.at(col, r).tile.letter + wordAbove;
 					r--;
 				}
 
-				let wordBelow = '';
+				let wordBelow = "";
 				r = row + 1;
 				while (r < board.rows && board.at(col, r).tile) {
 					wordBelow += board.at(col, r).tile.letter;
@@ -125,14 +125,14 @@ define('game/findBestPlay', [
 				}
 
 				// Find the words left and right
-				let wordLeft = '';
+				let wordLeft = "";
 				let c = col - 1;
 				while (c >= 0 && board.at(c, row).tile) {
 					wordLeft = board.at(c, row).tile.letter + wordLeft;
 					c--;
 				}
 
-				let wordRight = '';
+				let wordRight = "";
 				c = col + 1
 				while (c != board.cols && board.at(c, row).tile) {
 					wordRight += board.at(c, row).tile.letter;
@@ -214,7 +214,7 @@ define('game/findBestPlay', [
 
             if (score > bestScore) {
 				bestScore = score;
-				//console.log(drow > 0 ? 'vertical' : 'horizontal')
+				//console.log(drow > 0 ? "vertical" : "horizontal")
                 report(new Move({
 					placements: wordSoFar.filter(t => !board.at(t.col, t.row).tile),
 					words: words,
@@ -222,7 +222,7 @@ define('game/findBestPlay', [
 				}));
 			}
 			else if (col == 5 && row == 6)
-				report(`Reject '${pack(wordSoFar)}' at ${col},${row} ${score}`);
+				report(`Reject "${pack(wordSoFar)}" at ${col},${row} ${score}`);
 		}
 
 		let available; // list of letters that can be extended with
@@ -387,7 +387,7 @@ define('game/findBestPlay', [
 	 * @private
 	 */
 	function bestOpeningPlay(rackTiles) {
-		const ruck = rackTiles.map(l => l.letter ? l.letter : ' ').join('');
+		const ruck = rackTiles.map(l => l.letter ? l.letter : " ").join("");
 		const choices = dict.findAnagrams(ruck);
 		// Random whether it is played across or down
 		const drow = Math.round(Math.random());
@@ -398,12 +398,12 @@ define('game/findBestPlay', [
 			// Keep track of the rack and played letters
 			const placements = [];
 			let shrunkRack = rackTiles;
-			for (let c of choice.split('')) {
+			for (let c of choice.split("")) {
 				const rackTile = shrunkRack.find(t => t.letter == c)
 					  || shrunkRack.find(t => t.isBlank);
 				if (!rackTile) {
 					// Can't do this with the available tiles
-					choice = '';
+					choice = "";
 					break;
 				}
 				placements.push(new Tile({
@@ -432,7 +432,7 @@ define('game/findBestPlay', [
 
 				if (score > bestScore) {
 					bestScore = score;
-					//console.log(drow > 0 ? 'vertical' : 'horizontal')
+					//console.log(drow > 0 ? "vertical" : "horizontal")
 					report(new Move({
 						placements: placements,
 						words: [{ word: choice, score: score }],
@@ -460,9 +460,9 @@ define('game/findBestPlay', [
 		report = listener;
 
 		if (!game.edition) {
-			report('Error: Game has no edition', game);
+			report("Error: Game has no edition", game);
 			// Terminal, no point in translating
-			return Promise.reject('Game has no edition');
+			return Promise.reject("Game has no edition");
 		}
 
 		// sort and reverse to make sure high value letters come
@@ -473,7 +473,7 @@ define('game/findBestPlay', [
 			return a.letter < b.letter ? -1	: a.score > b.score ? 1 : 0;
 		}).reverse();
 
-		report('Finding best play for rack ' + rackTiles);
+		report("Finding best play for rack", rackTiles);
 
 		board = game.board;
 		report(`on ${board}`);
@@ -488,7 +488,7 @@ define('game/findBestPlay', [
 			dict = de[0];
 			edition = de[1];
 
-			report('Starting computation', rackTiles);
+			report("Starting computation", rackTiles);
 			bestScore = 0;
 
 			// Has at least one anchor been explored? If there are

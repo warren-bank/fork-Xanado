@@ -3,7 +3,7 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, jquery */
 
-define('game/Square', ['platform'], (Platform) => {
+define("game/Square", ["platform"], (Platform) => {
 
 	// Map the characters in the board template to CSS classes
 	const CSS_CLASS =  {
@@ -54,11 +54,11 @@ define('game/Square', ['platform'], (Platform) => {
 			 * 0-based row where the square is (undefined on a 1D surface)
 			 * @member {number}
 			 */
-			if (typeof row !== 'undefined')
+			if (typeof row !== "undefined")
 				this.row = row;
 
 			let id = `${owner.id}_${col}`;
-			if (typeof row !== 'undefined')
+			if (typeof row !== "undefined")
 				id += `x${row}`;
 
 			/**
@@ -102,13 +102,13 @@ define('game/Square', ['platform'], (Platform) => {
 
 			// Determine score multipliers from type
 			switch (this.type) {
-			case 'd': this.letterScoreMultiplier = 2; break;
-			case 't': this.letterScoreMultiplier = 3; break;
-			case 'q': this.letterScoreMultiplier = 4; break;
-			case 'M':
-			case 'D': this.wordScoreMultiplier = 2; break;
-			case 'T': this.wordScoreMultiplier = 3; break;
-			case 'Q': this.wordScoreMultiplier = 4; break;
+			case "d": this.letterScoreMultiplier = 2; break;
+			case "t": this.letterScoreMultiplier = 3; break;
+			case "q": this.letterScoreMultiplier = 4; break;
+			case "M":
+			case "D": this.wordScoreMultiplier = 2; break;
+			case "T": this.wordScoreMultiplier = 3; break;
+			case "Q": this.wordScoreMultiplier = 4; break;
 			}
 		}
 
@@ -135,7 +135,7 @@ define('game/Square', ['platform'], (Platform) => {
 
 			if (tile) {
 				tile.col = this.col;
-				if (typeof this.row !== 'undefined')
+				if (typeof this.row !== "undefined")
 					tile.row = this.row;
 				this.tile = tile;
 				this.tileLocked = locked;
@@ -151,7 +151,7 @@ define('game/Square', ['platform'], (Platform) => {
 			}
 
 			// Used in the UI to update the square
-			Platform.trigger('SquareChanged', [ this ]);
+			Platform.trigger("SquareChanged", [ this ]);
 		}
 
 		/**
@@ -162,12 +162,12 @@ define('game/Square', ['platform'], (Platform) => {
 			let string = `${this.type} square @ ${this.col}`;
 			// Squares on the board have a row too
 			if (this.row >= 0)
-				string += ',' + this.row;
+				string += "," + this.row;
 
 			if (this.tile) {
 				string += ` => ${this.tile}`;
 				if (this.tileLocked)
-					string += ' (Locked)';
+					string += " (Locked)";
 			}
 			return string;
 		}
@@ -179,9 +179,9 @@ define('game/Square', ['platform'], (Platform) => {
 		$ui() {
 			const $td = $(`<td></td>`);
 			$td.addClass(`square-${this.type}`);
-			const $div = $(`<div id='${this.id}'><a></a></div>`);
+			const $div = $(`<div id="${this.id}"><a></a></div>`);
 			// Associate the square with the div for dragging
-			$div.data('square', this);
+			$div.data("square", this);
 			$td.append($div);
 			return $td;
 		}
@@ -194,9 +194,9 @@ define('game/Square', ['platform'], (Platform) => {
 				// example, a square in another player's rack
 				return;
 
-			$div.removeClass('selected')
-				.removeClass('temporary')
-				.off('click');
+			$div.removeClass("selected")
+				.removeClass("temporary")
+				.off("click");
 
 			if (this.tile)
 				this.refreshOccupied($div);
@@ -220,9 +220,9 @@ define('game/Square', ['platform'], (Platform) => {
 			if (sel && this.tile) {
 				if (this.tileLocked)
 					throw Error("Attempt to select locked tile");
-				$(`#${this.id}`).addClass('selected');
+				$(`#${this.id}`).addClass("selected");
 			} else
-				$(`#${this.id}`).removeClass('selected');
+				$(`#${this.id}`).removeClass("selected");
 		}
 
 		/**
@@ -231,45 +231,45 @@ define('game/Square', ['platform'], (Platform) => {
 		 * @private
 		 */
 		refreshOccupied($div) {
-			if ($div.hasClass('ui-droppable'))
-				$div.droppable('destroy');
+			if ($div.hasClass("ui-droppable"))
+				$div.droppable("destroy");
 
 			$div
 			.removeClass("empty-square")
 			.addClass("tiled-square");
 
 			if (this.tile.isBlank)
-				$div.addClass('blank-letter');
+				$div.addClass("blank-letter");
 			else
-				$div.removeClass('blank-letter');
+				$div.removeClass("blank-letter");
 
 			if (this.tileLocked) {
-				$div.addClass('Locked');
-				if ($div.hasClass('ui-draggable'))
-					$div.draggable('destroy');
+				$div.addClass("Locked");
+				if ($div.hasClass("ui-draggable"))
+					$div.draggable("destroy");
 			} else {
 				// tile isn't locked, valid drag source
-				$div.removeClass('Locked');
+				$div.removeClass("Locked");
 				$div
-				.addClass('temporary')
-				.on('click', () => Platform.trigger('SelectSquare', [ this ]));
+				.addClass("temporary")
+				.on("click", () => Platform.trigger("SelectSquare", [ this ]));
 
 				$div.draggable({
-					revert: 'invalid',
+					revert: "invalid",
 					opacity: 1,
-					helper: 'clone',
+					helper: "clone",
 
 					start: (event, jui) => {
 						$div.css({ opacity: 0.5 });
 						// Clear selection
-						Platform.trigger('SelectSquare');
+						Platform.trigger("SelectSquare");
 						// Configure drag helper
 						$(jui.helper)
-						.animate({'font-size' : '120%'}, 300)
-						.addClass('drag-border');
+						.animate({"font-size" : "120%"}, 300)
+						.addClass("drag-border");
 					},
 
-					drag: (event, jui) => $(jui.helper).addClass('drag-border'),
+					drag: (event, jui) => $(jui.helper).addClass("drag-border"),
 
 					stop: () => $div.css({ opacity: 1 })
 				});
@@ -277,9 +277,9 @@ define('game/Square', ['platform'], (Platform) => {
 
 			const letter = this.tile.letter;
 			const score = this.tile.score;
-			const $a = $('<a></a>');
-			$a.append(`<span class='letter'>${letter}</span>`);
-			$a.append(`<span class='score'>${score}</span>`);
+			const $a = $("<a></a>");
+			$a.append(`<span class="letter">${letter}</span>`);
+			$a.append(`<span class="score">${score}</span>`);
 			$div.empty().append($a);
 		}
 
@@ -291,32 +291,32 @@ define('game/Square', ['platform'], (Platform) => {
 		refreshEmpty($div) {
 
 			// Not draggable
-			if ($div.hasClass('ui-draggable'))
-				$div.draggable('destroy');
+			if ($div.hasClass("ui-draggable"))
+				$div.draggable("destroy");
 
 			// no tile on the square, valid drop target
 			$div
 			.removeClass("tiled-square")
 			.removeClass("blank-letter")
 			.removeClass("Locked")
-			.addClass('empty-square');
+			.addClass("empty-square");
 
-			$div.on('click', () => Platform.trigger('SelectSquare', [ this ]))
+			$div.on("click", () => Platform.trigger("SelectSquare", [ this ]))
 			// Handle something dropping on us
 			.droppable({
-				hoverClass: 'drop-active',
+				hoverClass: "drop-active",
 				drop: (event, jui) => {
-					const source = $(jui.draggable).data('square');
+					const source = $(jui.draggable).data("square");
 					// Tell the main UI about it
-					Platform.trigger('DropSquare', [ source, this ]);
+					Platform.trigger("DropSquare", [ source, this ]);
 				}
 			});
 
 			const text = $.i18n(`square-${this.type}`);
 			$div.empty().append($("<a></a>").text(text));
 
-			if (typeof this.underlay !== 'undefined')
-				$div.append(`<div class='underlay'>${this.underlay}</div>`);
+			if (typeof this.underlay !== "undefined")
+				$div.append(`<div class="underlay">${this.underlay}</div>`);
 		}
 	}		
 

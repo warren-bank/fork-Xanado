@@ -2,7 +2,7 @@
 License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 
-define('game/Tile', () => {
+define("game/Tile", () => {
 	/**
 	 * A tile in a LetterBag, on a Board, or on a Rack, or during best move
 	 * computation.
@@ -20,7 +20,7 @@ define('game/Tile', () => {
 		constructor(spec) {
 			// Caution; during gameplay, .letter for a blank will be cast
 			// to a letter chosen by the player. When the tile is returned
-			// to the rack, the letter will be reset to ' ' as isBlank is true.
+			// to the rack, the letter will be reset to " " as isBlank is true.
 			// However the letter will stick to the Tile when it is sent to
 			// the server as part of a move. Henceforward that Tile will
 			// be locked to the chosen letter.
@@ -29,7 +29,7 @@ define('game/Tile', () => {
 			 * character(s) represented by this tile
 			 * @member {string}
 			 */
-			this.letter = ' ';
+			this.letter = " ";
 
 			/**
 			 * value of this tile
@@ -61,7 +61,7 @@ define('game/Tile', () => {
 		}
 
 		toString(place) {
-			const pl = place ? `@${this.col},${this.row}` : '';
+			const pl = place ? `@${this.col},${this.row}` : "";
 			return `|${this.letter}${pl}(${this.score})|`;
 		}
 	}

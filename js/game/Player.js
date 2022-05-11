@@ -3,14 +3,14 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, jquery */
 
-define('game/Player', [
-	'platform', 'game/GenKey', 'game/Rack',
+define("game/Player", [
+	"platform", "game/GenKey", "game/Rack",
 ], (
 	Platform, GenKey, Rack
 ) => {
 
 	// Unicode characters
-	const BLACK_CIRCLE = '\u25cf';
+	const BLACK_CIRCLE = "\u25cf";
 
 	/**
 	 * A player in a {@link Game}. Player objects are specific to
@@ -84,6 +84,7 @@ define('game/Player', [
 
 			/**
 			 * Number of times this player has passed (or swapped)
+			 * since the last non-pass/swap play.
 			 * @member {number}
 			 */
 			this.passes = 0;
@@ -148,7 +149,7 @@ define('game/Player', [
 					: um.getUser({key: this.key}))
 			.then(ump => {
 				return {
-					name: this.name || 'Unknown Player',
+					name: this.name || "Unknown Player",
 					isRobot: this.isRobot,
 					dictionary: this.dictionary,
 					key: this.key,
@@ -172,7 +173,7 @@ define('game/Player', [
 				// User key not found in the db. Not fatal, just pretend it's
 				// a robot.
 				return {
-					name: 'Unknown',
+					name: "Unknown",
 					isRobot: this.isRobot,
 					dictionary: this.dictionary,
 					key: this.key,
@@ -216,7 +217,7 @@ define('game/Player', [
 			this.clock--;
 			if (this._debug)
 				console.debug("Tick", this.name, this.clock);
-			if (this.clock <= 0 && typeof this._onTimeout === 'function') {
+			if (this.clock <= 0 && typeof this._onTimeout === "function") {
 				if (this._debug)
 					console.debug(`${this.name} has timed out at ${Date.now()}`);
 				this._onTimeout();
@@ -247,7 +248,7 @@ define('game/Player', [
 		toString() {
 			let s = `Player '${this.name}'`;
 			if (this.isRobot)
-				s += ' (Robot)';
+				s += " (Robot)";
 			if (this.key)
 				s += ` key ${this.key}`;
 			return s;
@@ -268,18 +269,18 @@ define('game/Player', [
 		 * @return {jQuery} jQuery object for the score table
 		 */
 		$ui(curPlayer) {
-			const $tr = $(`<tr id='player${this.key}'></tr>`)
+			const $tr = $(`<tr id="player${this.key}"></tr>`)
 				  .addClass("player-row");
 			if (curPlayer && this.key === curPlayer.key)
-				$tr.addClass('whosTurn');
-			$tr.append(`<td class='turn-pointer'>&#10148;</td>`);
+				$tr.addClass("whosTurn");
+			$tr.append(`<td class="turn-pointer">&#10148;</td>`);
 			const $icon = $('<div class="ui-icon"></div>');
 			$icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
 			$tr.append($("<td></td>").append($icon));
 			const who = curPlayer && this.key === curPlayer.key
 				? Platform.i18n("You")
 				  : this.name;
-			const $name = $(`<td class='player-name'>${who}</td>`);
+			const $name = $(`<td class="player-name">${who}</td>`);
 			if (this.missNextTurn)
 				$name.addClass("miss-turn");
 			$tr.append($name);
@@ -311,8 +312,8 @@ define('game/Player', [
 		 */
 		online(tf) {
 			this.isConnected = tf;
-			let rem = tf ? 'offline' : 'online';
-			let add = tf ? 'online' : 'offline';
+			let rem = tf ? "offline" : "online";
+			let add = tf ? "online" : "offline";
 			$(`#player${this.key} .connect-state`)
 			.removeClass(rem)
 			.addClass(add);
@@ -321,8 +322,8 @@ define('game/Player', [
 
 	// Timer types
 	Player.TIMER_NONE = /*i18n*/"No timer";
-	Player.TIMER_TURN = /*i18n*/'Turn timer';
-	Player.TIMER_GAME = /*i18n*/'Game timer';
+	Player.TIMER_TURN = /*i18n*/"Turn timer";
+	Player.TIMER_GAME = /*i18n*/"Game timer";
 
 	return Player;
 });

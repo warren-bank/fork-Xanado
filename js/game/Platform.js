@@ -3,7 +3,7 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd */
 
-define('game/Platform', () => {
+define("game/Platform", () => {
 
 	/**
 	 * A pure abstraction isolating platform details from the rest of

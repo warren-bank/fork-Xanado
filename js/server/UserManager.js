@@ -3,11 +3,11 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, node */
 
-define('server/UserManager', [
-	'fs', 'proper-lockfile', 'bcrypt',
-	'express-session',
-	'passport', 'passport-strategy',
-	'platform'
+define("server/UserManager", [
+	"fs", "proper-lockfile", "bcrypt",
+	"express-session",
+	"passport", "passport-strategy",
+	"platform"
 ], (
 	fs, Lock, BCrypt,
 	ExpressSession,
@@ -18,15 +18,15 @@ define('server/UserManager', [
 	const Fs = fs.promises;
 
 	function pw_hash(pw) {
-		if (typeof pw === 'undefined')
+		if (typeof pw === "undefined")
 			return Promise.resolve(pw);
 		else
 			return BCrypt.hash(pw, 10);
 	}
 
 	function pw_compare(pw, hash) {
-		if (typeof pw === 'undefined')
-			return Promise.resolve(typeof hash === 'undefined');
+		if (typeof pw === "undefined")
+			return Promise.resolve(typeof hash === "undefined");
 		else
 			return BCrypt.compare(pw, hash);
 	}
@@ -39,7 +39,7 @@ define('server/UserManager', [
 	class XanadoPass extends Strategy {
 		constructor(verify) {
 			super();
-			this.name = 'xanado';
+			this.name = "xanado";
 			this._verify = verify;
 		}
 
@@ -96,7 +96,7 @@ define('server/UserManager', [
 
 			app.use(Passport.initialize());
 
-			// Same as app.use(passport.authenticate('session')); 
+			// Same as app.use(passport.authenticate("session")); 
 			app.use(Passport.session());
 
 			Passport.serializeUser((userObject, done) => {
@@ -171,7 +171,7 @@ define('server/UserManager', [
 				Passport.authenticate("xanado", { assignProperty: "userObject" }),
 				(req, res) => {
 					// error will -> 401
-					req.userObject.provider = 'xanado';
+					req.userObject.provider = "xanado";
 					return this.passportLogin(req, res, req.userObject)
 					.then(() => this.sendResult(res, 200, []));
 				});
@@ -273,11 +273,11 @@ define('server/UserManager', [
 			return this.getDB()
 			.then(db => {
 				for (let uo of db) {
-					if (typeof desc.key !== 'undefined'
+					if (typeof desc.key !== "undefined"
 						&& uo.key === desc.key)
 						return uo;
 
-					if (typeof desc.token !== 'undefined'
+					if (typeof desc.token !== "undefined"
 						&& uo.token === desc.token) {
 						// One-time password change token
 						delete uo.token;
@@ -285,34 +285,34 @@ define('server/UserManager', [
 						.then(() => uo);
 					}
 
-					if (typeof desc.name !== 'undefined'
+					if (typeof desc.name !== "undefined"
 						&& uo.name === desc.name) {
 
 						if (ignorePass)
 							return uo;
-						if (typeof uo.pass === 'undefined') {
+						if (typeof uo.pass === "undefined") {
 							if (desc.pass === uo.pass)
 								return uo;
-							throw new Error(/*i18n*/'um-bad-pass');
+							throw new Error(/*i18n*/"um-bad-pass");
 						}
 						return pw_compare(desc.pass, uo.pass)
 						.then(ok => {
 							if (ok)
 								return uo;
-							throw new Error(/*i18n*/'um-bad-pass');
+							throw new Error(/*i18n*/"um-bad-pass");
 						})
 						.catch(e => {
 							console.error("getUser", desc, "failed; bad pass", e);
-							throw new Error(/*i18n*/'um-bad-pass');
+							throw new Error(/*i18n*/"um-bad-pass");
 						});
 					}
 
-					if (typeof desc.email !== 'undefined'
+					if (typeof desc.email !== "undefined"
 						&& uo.email === desc.email)
 						return uo;
 				}
 				console.error("getUser", desc, "failed; no such user");
-				throw new Error(/*i18n*/'um-no-such-user');
+				throw new Error(/*i18n*/"um-no-such-user");
 			});
 		}
 
@@ -433,7 +433,7 @@ define('server/UserManager', [
 				desc.key = this.genKey();
 			return pw_hash(desc.pass)
 			.then(pw => {
-				if (typeof pw !== 'undefined')
+				if (typeof pw !== "undefined")
 					desc.pass = pw;
 				if (this._debug)
 					console.debug("Add user", desc);
@@ -461,18 +461,18 @@ define('server/UserManager', [
 			const pass = req.body.register_password;
 			if (!username)
 				return this.sendResult(
-					res, 500, [ /*i18n*/'um-bad-user', username ]);
+					res, 500, [ /*i18n*/"um-bad-user", username ]);
 			return this.getUser({name: username }, true)
 			.then(() => {
 				this.sendResult(
-					res, 403, [ /*i18n*/'um-user-exists', username ]);
+					res, 403, [ /*i18n*/"um-user-exists", username ]);
 			})
 			.catch(() => {
 				// New user
 				return this.addUser({
 					name: username,
 					email: email,
-					provider: 'xanado',
+					provider: "xanado",
 					pass: pass
 				})
 				.then(userObject => this.passportLogin(req, res, userObject))
@@ -507,10 +507,10 @@ define('server/UserManager', [
 					console.debug("Logging out", departed);
 				req.logout();
 				return this.sendResult(res, 200, [
-					/*i18n*/'um-logged-out', departed ]);
+					/*i18n*/"um-logged-out", departed ]);
 			}
 			return this.sendResult(
-				res, 500, [ /*i18n*/'um-not-logged-in' ]);
+				res, 500, [ /*i18n*/"um-not-logged-in" ]);
 		}
 
 		/**
@@ -527,7 +527,7 @@ define('server/UserManager', [
 					})));
 
 			return this.sendResult(
-				res, 500, [ /*i18n*/'um-not-logged-in' ]);
+				res, 500, [ /*i18n*/"um-not-logged-in" ]);
 		}
 
 		/**
@@ -542,11 +542,11 @@ define('server/UserManager', [
 				userObject.pass = pass;
 				return this.writeDB()
 				.then(() => this.sendResult(res, 200, [
-					/*i18n*/'um-pass-changed',
+					/*i18n*/"um-pass-changed",
 					req.session.passport.user.name ]));
 			}
 			return this.sendResult(
-				res, 500, [ /*i18n*/'um-not-logged-in' ]);
+				res, 500, [ /*i18n*/"um-not-logged-in" ]);
 		}
 
 		/**
@@ -557,8 +557,8 @@ define('server/UserManager', [
 			//console.debug(`/reset-password for ${email}`);
 			if (!email)
 				return this.sendResult(
-					res, 500, [ /*i18n*/'um-unknown-email' ]);
-			const surly = `${req.protocol}://${req.get('Host')}`;
+					res, 500, [ /*i18n*/"um-unknown-email" ]);
+			const surly = `${req.protocol}://${req.get("Host")}`;
 			return this.getUser({email: email})
 			.then(user => {
 				return this.setToken(user)
@@ -568,20 +568,20 @@ define('server/UserManager', [
 						console.debug(`Send password reset ${url} to ${user.email}`);
 					if (!this.options.mail)
 						return this.sendResult(res, 500, [
-							/*i18n*/'um-mail-not-configured' ]);
+							/*i18n*/"um-mail-not-configured" ]);
 					return this.options.mail.transport.sendMail({
 						from: this.options.mail.sender,
 						to:  user.email,
-						subject: Platform.i18n('um-password-reset'),
-						text: Platform.i18n('um-reset-text', url),
-						html: Platform.i18n('um-reset-html', url)
+						subject: Platform.i18n("um-password-reset"),
+						text: Platform.i18n("um-reset-text", url),
+						html: Platform.i18n("um-reset-html", url)
 					})
 					.then(() => this.sendResult(
-						res, 403, [ /*i18n*/'um-reset-sent', user.name ]))
+						res, 403, [ /*i18n*/"um-reset-sent", user.name ]))
 					.catch(e => {
 						console.error("WARNING: Mail misconfiguration?", e);
 						return this.sendResult(
-							res, 500, [	/*i18n*/'um-mail-not-configured' ]);
+							res, 500, [	/*i18n*/"um-mail-not-configured" ]);
 					});
 				});
 			})
@@ -596,7 +596,7 @@ define('server/UserManager', [
 				console.debug(`Password reset ${req.params.token}`);
 			return this.getUser({token: req.params.token})
 			.then(userObject => this.passportLogin(req, res, userObject))
-			.then(() => res.redirect('/'))
+			.then(() => res.redirect("/"))
 			.catch(e => this.sendResult(res, 500, [	e.message ]));
 		}
 
@@ -614,7 +614,7 @@ define('server/UserManager', [
 					key: req.user.key,
 					settings: req.user.settings
 				});
-			return this.sendResult(res, 401, [	'not-logged-in' ]);
+			return this.sendResult(res, 401, [	"not-logged-in" ]);
 		}
 
 		/**
@@ -629,7 +629,7 @@ define('server/UserManager', [
 				return this.writeDB()
 				.then(() => this.sendResult(res, 200, req.user_settings));
 			}
-			return this.sendResult(res, 401, [	'not-logged-in' ]);
+			return this.sendResult(res, 401, [	"not-logged-in" ]);
 		}
 
 		/**
@@ -640,11 +640,11 @@ define('server/UserManager', [
 		checkLoggedIn(req, res, next) {
 			if (req.isAuthenticated())
 				return next();
-			return this.sendResult(res, 401, [ /*i18n*/'um-not-logged-in' ]);
+			return this.sendResult(res, 401, [ /*i18n*/"um-not-logged-in" ]);
 		}
 	}
 
-	UserManager.ROBOT_KEY = 'babefacebabeface';
+	UserManager.ROBOT_KEY = "babefacebabeface";
 
 	return UserManager;
 });

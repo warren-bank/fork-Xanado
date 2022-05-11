@@ -128,14 +128,14 @@ define("browser/Dialog", () => {
 			.button({
 				icon: "icon-eye-open"
 			})
-			.on('click', function() {
+			.on("click", function() {
 				const $icon = $(this);
-				const $field = $icon.prev('input');
-				if ($field.attr('type') === 'password') {
-					$field.attr('type', 'text');
+				const $field = $icon.prev("input");
+				if ($field.attr("type") === "password") {
+					$field.attr("type", "text");
 					$icon.button("option", "icon", "icon-eye-closed");
 				} else {
-					$field.attr('type', 'password');
+					$field.attr("type", "password");
 					$icon.button("option", "icon", "icon-eye-open");
 				}
 				// focus and move cursor to the end of input field
@@ -149,14 +149,14 @@ define("browser/Dialog", () => {
 					this.submit();
 			});
 
-			this.$dlg.find('.submit')
-			.on('click', () => this.submit());
+			this.$dlg.find(".submit")
+			.on("click", () => this.submit());
 
 			this.enableSubmit();
 
-			this.$dlg.find('select')
+			this.$dlg.find("select")
 			.selectmenu()
-			.on('selectmenuchange', () => this.enableSubmit());
+			.on("selectmenuchange", () => this.enableSubmit());
 
 			this.created = true;
 			if (this.onCreation)
@@ -188,8 +188,8 @@ define("browser/Dialog", () => {
 		 * @protected
 		 */
 		enableSubmit() {
-			this.$dlg.find('.submit').prop(
-				'disabled', !this.canSubmit());
+			this.$dlg.find(".submit").prop(
+				"disabled", !this.canSubmit());
 		}
 
 		/**
@@ -224,15 +224,15 @@ define("browser/Dialog", () => {
 					value = $(this).val() || $(this).text();
 				//console.debug(name,"=",value);
 				// Collect <input with the same name, and make arrays
-				if (typeof p[name] === 'undefined')
+				if (typeof p[name] === "undefined")
 					p[name] = value;
-				else if (typeof p[name] === 'string')
+				else if (typeof p[name] === "string")
 					p[name] = [ p[name], value ];
 				else
 					p[name].push(value);
 			});
 
-			if (typeof this.onSubmit === 'function')
+			if (typeof this.onSubmit === "function")
 				this.onSubmit(p);
 		}
 

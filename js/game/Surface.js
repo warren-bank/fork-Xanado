@@ -3,7 +3,7 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, node, jquery */
 
-define('game/Surface', ['game/Square'], Square => {
+define("game/Surface", ["game/Square"], Square => {
 
 	/**
 	 * Base class of a 2D grid of {@link Sqaure} (a Rack or a Board)
@@ -18,9 +18,9 @@ define('game/Surface', ['game/Square'], Square => {
 		 */
 		constructor(id, cols, rows, type) {
 
-			if (typeof id !== 'string'
-				|| typeof cols !== 'number'
-				|| typeof rows !== 'number')
+			if (typeof id !== "string"
+				|| typeof cols !== "number"
+				|| typeof rows !== "number")
 				throw Error("Bad parameters to Surface");
 
 			/**

@@ -3,7 +3,7 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd */
 
-define('game/Edition', () => {
+define("game/Edition", () => {
 	// Static DB of loaded Editions, indexed by name
 	const editions = {};
 
@@ -60,12 +60,12 @@ define('game/Edition', () => {
 				if (tile.letter)
 					this.alphabeta.push(tile.letter);
 				else {
-					tile.letter = ' '; // blank
+					tile.letter = " "; // blank
 					tile.isBlank = true;
 				}
 				this.scores[tile.letter] = tile.score || 0;
 			}
-			this.alphabet = this.alphabeta.sort().join('');
+			this.alphabet = this.alphabeta.sort().join("");
 		}
 
 		/**
@@ -112,7 +112,7 @@ define('game/Edition', () => {
 		 * @private
 		 */
 		getLetterIndices(word) {
-			return word.split('')
+			return word.split("")
 			.map(l => this.alphabet.indexOf(l.toUpperCase()));
 		}
 

@@ -7,9 +7,9 @@ and license information*/
  * This is the node.js implementation of game/Platform. There is an
  * implementation for the browser, too, in js/browser/Platform.js
  */
-define('platform', [
-	'events', 'fs', 'proper-lockfile', 'node-gzip', 'get-user-locale', 'path',
-	'game/Platform', 'game/Fridge', 'game/Platform'
+define("platform", [
+	"events", "fs", "proper-lockfile", "node-gzip", "get-user-locale", "path",
+	"game/Platform", "game/Fridge", "game/Platform"
 ], (
 	Events, fs, Lock, Gzip, Locale, Path, Platform, Fridge
 ) => {
@@ -45,7 +45,7 @@ define('platform', [
 			return Fs.readdir(this.directory)
 			.then(list =>
 				  list.filter(f => this.re.test(f))
-				  .map(fn => fn.replace(this.re, '')));
+				  .map(fn => fn.replace(this.re, "")));
 		}
 
 		/** See {@link Database#set} for documentation */
@@ -105,7 +105,7 @@ define('platform', [
 			// Recurse up the path to find the i18n directory,
 			// identified by the end path i18n/en.json
 			function findLangPath(path, lang) {
-				const f = Path.join(path, 'i18n', 'en.json');
+				const f = Path.join(path, "i18n", "en.json");
 				return Fs.stat(f)
 				.then(() => path)
 				.catch(e => {
@@ -120,19 +120,19 @@ define('platform', [
 			let langdir, langfile;
 			findLangPath(path, lang)
 			.then(path => {
-				langdir = Path.join(path, 'i18n');
-				// Try the full locale e.g. 'en-US'
+				langdir = Path.join(path, "i18n");
+				// Try the full locale e.g. "en-US"
 				langfile = Path.join(langdir, `${lang}.json`);
 				return Fs.readFile(langfile);
 			})
 			.catch(e => {
-				// Try the first part of the locale i.e. 'en' from 'en-US'
-				langfile = Path.join(langdir, `${lang.split('-')[0]}.json`);
+				// Try the first part of the locale i.e. "en" from "en-US"
+				langfile = Path.join(langdir, `${lang.split("-")[0]}.json`);
 				return Fs.readFile(langfile);
 			})
 			.catch(e => {
-				// Fall back to 'en'
-				langfile = Path.join(langdir, 'en.json');
+				// Fall back to "en"
+				langfile = Path.join(langdir, "en.json");
 				return Fs.readFile(langfile);
 			})
 			.then(buffer => {
@@ -148,7 +148,7 @@ define('platform', [
 		 */
 		lookup(args) {
 			let s = args[0];
-			if (this.data && typeof this.data[s] !== 'undefined')
+			if (this.data && typeof this.data[s] !== "undefined")
 				s = this.data[s];
 			// TODO: support PLURAL
 			return s.replace(
@@ -194,7 +194,7 @@ define('platform', [
 				// game/findBestPlay will findBestPlay in this thread
 				// game/findBestPlayController will findBestPlay in
 				// a worker thread
-				requirejs(['game/findBestPlayController'], findBestPlay => {
+				requirejs(["game/findBestPlayController"], findBestPlay => {
 					findBestPlay.apply(null, arguments)
 					.then(() => resolve());
 				});

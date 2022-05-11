@@ -3,13 +3,13 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env browser, jquery */
 
-define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
+define("browser/LoginDialog", ["browser/Dialog"], Dialog => {
 
 	class LoginDialog extends Dialog {
 
 		enableSubmit() {
 			if (this.getAction() === "register") {
-				const user = this.$dlg.find('#register_username').val();
+				const user = this.$dlg.find("#register_username").val();
 				return (user
 						&& user !== $.i18n("Advisor")
 						&& user !== $.i18n("Robot"));
@@ -39,7 +39,7 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 			if ($las.length > 0) {
 				$.get("/session")
 				.then(user => $las.text(
-					$.i18n('um-logged-in-as', user.name)));
+					$.i18n("um-logged-in-as", user.name)));
 			}
 			
 			this.$dlg.find(".forgotten-password")
@@ -75,13 +75,13 @@ define('browser/LoginDialog', ["browser/Dialog"], Dialog => {
 		constructor(options) {
 			const ddone = options.done;
 			options.done = data => {
-				if (this.getAction() === 'register') {
-					Dialog.open('AlertDialog', {
+				if (this.getAction() === "register") {
+					Dialog.open("AlertDialog", {
  						message: $.i18n("Welcome to XANADO, $1!", data.name),
 						title: $.i18n("New player registered")
 					});
 				}
-				if (typeof ddone === 'function')
+				if (typeof ddone === "function")
 					ddone(data);
 			};
 			super("LoginDialog", $.extend({

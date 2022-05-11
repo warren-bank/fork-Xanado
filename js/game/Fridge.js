@@ -3,7 +3,7 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env browser, node */
 
-define('game/Fridge', () => {
+define("game/Fridge", () => {
 
 	const IB_ID = "_\u00CD";
 	const IB_CN = "_\u0106";
@@ -47,10 +47,10 @@ define('game/Fridge', () => {
 
 			function _freeze(unfrozen) {
 				// Can't/don't want to serialise functions
-				if (typeof unfrozen === 'function')
+				if (typeof unfrozen === "function")
 					return undefined;
 
-				if (!unfrozen || typeof unfrozen !== 'object')
+				if (!unfrozen || typeof unfrozen !== "object")
 					return unfrozen;
 
 				// better way to handle arrays
@@ -83,14 +83,14 @@ define('game/Fridge', () => {
 
 				if (unfrozen.constructor
 					&& unfrozen.constructor.name
-					&& unfrozen.constructor.name !== 'Object')
+					&& unfrozen.constructor.name !== "Object")
 					frozen[IB_CN] = unfrozen.constructor.name;
 
 				const proto = Object.getPrototypeOf(unfrozen);
-				if (proto && typeof proto.Freeze === 'function') {
+				if (proto && typeof proto.Freeze === "function") {
 					frozen[IB_DATA] = unfrozen.Freeze();
 					
-				} else if (frozen[IB_CN] === 'Date') {
+				} else if (frozen[IB_CN] === "Date") {
 					// Special handling because the fields are just noise
 					frozen[IB_DATA] = unfrozen.getTime();
 					return frozen;
@@ -132,7 +132,7 @@ define('game/Fridge', () => {
 					typeMap[clzz.name] = clzz;
 
 			function _thaw(object) {
-				if (!object || typeof object !== 'object')
+				if (!object || typeof object !== "object")
 					return object;
 
 				if (Array.isArray(object)) {
@@ -149,12 +149,12 @@ define('game/Fridge', () => {
 
 				let thawed, thawProps = false;
 				const clzz = typeMap[object[IB_CN]];
-				if (object[IB_CN] === 'Date')
+				if (object[IB_CN] === "Date")
 					// Special handling because we just serialise an integer
 					return new Date(object[IB_DATA]);
 
 				else if (clzz) {
-					if (typeof clzz.Thaw === 'function')
+					if (typeof clzz.Thaw === "function")
 						thawed = clzz.Thaw(object[IB_DATA]);
 					else {
 						thawed = Object.create(clzz.prototype);
