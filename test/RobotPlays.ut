@@ -45,7 +45,7 @@ requirejs([
 		socket.on(Notify.TURN, (event, turn) => {
 			switch(turns++) {
 			case 0:
-				assert.equal(turn.type, Turn.TYPE_PASSED);
+				assert.equal(turn.type, Turn.PASSED);
 				assert.equal(turn.playerKey, robot.key);
 				assert.equal(turn.nextToGoKey, human.key);
 				socket.done();
@@ -101,7 +101,7 @@ requirejs([
 		const socket = new TestSocket();
 		const handle = (event, data) => {
 			assert.equal(event, Notify.TURN);
-			assert(data.type, Turn.TYPE_PLAY);
+			assert(data.type, Turn.PLAY);
 			assert.deepEqual(data.words, [ { word: 'AGO', score: 4 } ]);
 			assert.equal(data.placements.length, 3);
 			assert.equal(data.placements[0].letter, 'A');
@@ -183,7 +183,7 @@ requirejs([
 		let turns = 0;
 		const handle = (event, data) => {
 			assert.equal(event, Notify.TURN);
-			assert.equal(data.type, Turn.TYPE_PLAY);
+			assert.equal(data.type, Turn.PLAY);
 			assert.equal(data.words.length, 1);
 			if (turns++ == 0) {
 				assert.equal(data.placements.length, 4);
@@ -268,7 +268,7 @@ requirejs([
 			if (turns++ === 0) {
 			} else {
 				assert.equal(event, Notify.TURN);
-				assert.equal(turn.type, Turn.TYPE_GAME_OVER);
+				assert.equal(turn.type, Turn.GAME_OVER);
 				assert.equal(turn.endState, Game.STATE_GAME_OVER);
 				const exp = {};
 				exp[human.key] = { tiles: 100 };
@@ -344,17 +344,17 @@ requirejs([
 		socket.on(Notify.TURN, (event, turn) => {
 			switch(turns++) {
 			case 0:
-				assert.equal(turn.type, Turn.TYPE_PLAY);
+				assert.equal(turn.type, Turn.PLAY);
 				break;
 			case 1:
-				assert.equal(turn.type, Turn.TYPE_CHALLENGE_WON);
+				assert.equal(turn.type, Turn.CHALLENGE_WON);
 				assert.equal(turn.score, -3);
 				assert.equal(turn.bonus, 0);
 				assert.equal(turn.playerKey, human.key);
 				assert.equal(turn.challengerKey, robot.key);
 				break;
 			case 2:
-				assert.equal(turn.type, Turn.TYPE_PLAY);
+				assert.equal(turn.type, Turn.PLAY);
 				assert.equal(turn.score, 16);
 				assert.equal(turn.playerKey, robot.key);
 				assert.equal(turn.nextToGoKey, human.key);

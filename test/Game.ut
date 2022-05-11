@@ -2,17 +2,17 @@
    license information */
 /* eslint-env node */
 
-requirejs = require('requirejs');
+requirejs = require("requirejs");
 // node.js
-const { JSDOM } = require('jsdom');
+const { JSDOM } = require("jsdom");
 /* eslint-disable no-global-assign */
-document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
+document = new JSDOM("<!doctype html><html><body id='working'></body></html>");
 /* eslint-enable no-global-assign */
 const { window } = document;
 global.window = window;
 global.document = window.document;
 global.navigator = { userAgent: "node.js" };
-const jQuery = require('jquery');
+const jQuery = require("jquery");
 global.jQuery = jQuery;
 global.$ = jQuery;
 
@@ -21,9 +21,9 @@ requirejs.config({
 	nodeRequire: require,
 	paths: {
 		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
-		game: 'js/game',
-		dawg: 'js/dawg',
-		platform: 'js/server/ServerPlatform'
+		game: "js/game",
+		dawg: "js/dawg",
+		platform: "js/server/ServerPlatform"
 	}
 });
 
@@ -32,21 +32,21 @@ requirejs.config({
  * in Challenges, HumanCommands, RobotPlays and TimedGame.
  */
 requirejs([
-	'test/TestRunner', 'test/TestSocket',
-	'game/Tile', 'game/Player', 'game/Game', 'game/Move', 'game/Turn',
-	'game/Notify'
+	"test/TestRunner", "test/TestSocket",
+	"game/Tile", "game/Player", "game/Game", "game/Move", "game/Turn",
+	"game/Notify", "game/Command", "platform"
 ], (
 	TestRunner, TestSocket,
 	Tile, Player, Game, Move, Turn,
-	Notify
+	Notify, Command, Platform
 ) => {
-    let tr = new TestRunner('Game tests');
+    let tr = new TestRunner("Game tests");
     let assert = tr.assert;
 
-	tr.addTest('construct', () => {
+	tr.addTest("construct", () => {
 		const p = {
-			edition:'English_Scrabble',
-			dictionary:'Oxford_5000',
+			edition:"English_Scrabble",
+			dictionary:"Oxford_5000",
 			timerType: Player.TIMER_GAME,
 			timeLimit: 60,
 			timeLimitMinutes: 999, // timeLimit should override
@@ -75,10 +75,10 @@ requirejs([
 		});
 	});
 	
-	tr.addTest('basics', () => {
+	tr.addTest("basics", () => {
 		const p = {
-			edition:'English_Scrabble',
-			dictionary:'Oxford_5000',
+			edition:"English_Scrabble",
+			dictionary:"Oxford_5000",
 			timerType: Player.TIMER_TURN,
 			timeLimitMinutes: 999,
 			predictScore: false,
@@ -102,13 +102,13 @@ requirejs([
 			assert.equal(game.maxPlayers, 0);
 
 			const robot1 = new Player({
-				name:'Robot 1', key:"robot1", isRobot: true});
+				name:"Robot 1", key:"robot1", isRobot: true});
 			game.addPlayer(robot1);
 			const human2 = new Player({
-				name:'human2', key:"human2", isRobot: false});
+				name:"human2", key:"human2", isRobot: false});
 			game.addPlayer(human2);
 			const human3 = new Player({
-				name:'human3', key:"human3", isRobot: false});
+				name:"human3", key:"human3", isRobot: false});
 			game.addPlayer(human3);
 			game.whosTurnKey = human2.key;
 
@@ -130,10 +130,10 @@ requirejs([
 		});
 	});
 
-	tr.addTest('$html', () => {
+	tr.addTest("$html", () => {
 		const p = {
-			edition:'English_Scrabble',
-			dictionary:'Oxford_5000',
+			edition:"English_Scrabble",
+			dictionary:"Oxford_5000",
 			timeLimit: 999,
 			predictScore: false,
 			allowTakeBack: false,
@@ -142,11 +142,11 @@ requirejs([
 		};
 
 		const robot1 = new Player(
-			{name:'Robot 1', key:"robot1", isRobot: true});
+			{name:"Robot 1", key:"robot1", isRobot: true});
 		const human1 = new Player(
-			{name:'Human 1', key:"human1", isRobot: false});
+			{name:"Human 1", key:"human1", isRobot: false});
 		const human2 = new Player(
-			{name:'Human 2', key:"human2", isRobot: false});
+			{name:"Human 2", key:"human2", isRobot: false});
 		const game = new Game(p);
 
 		const socket = new TestSocket();
@@ -157,17 +157,17 @@ requirejs([
 			game.addPlayer(human2);
 			game.whosTurnKey = human1.key;
 
-			const $tab = $('<table class="player-table"></table>');
+			const $tab = $("<table></table>").addClass("player-table");
 			let $tr;
 			$tr = human1.$ui(human1, false);
-			assert($tr.hasClass('whosTurn'));
+			assert($tr.hasClass("whosTurn"));
 			$tab.append($tr);
 			$tr = robot1.$ui(human1, false);
 			$tab.append($tr);
-			assert(!$tr.hasClass('whosTurn'));
+			assert(!$tr.hasClass("whosTurn"));
 			$tr = human2.$ui(human1, false);
 			$tab.append($tr);
-			assert(!$tr.hasClass('whosTurn'));
+			assert(!$tr.hasClass("whosTurn"));
 
 			const $act = game.$ui(game.getPlayer());
 
@@ -180,21 +180,21 @@ requirejs([
 		.then(() => {
 			game.whosTurnKey = human2.key;
 			human1.missNextTurn = true;
-			const $tab = $('<table class="player-table"></table>');
+			const $tab = $("<table></table>").addClass("player-table");
 			let $tr;
 			$tr = human1.$ui(human2, true);
 			$tab.append($tr);
-			assert(!$tr.hasClass('whosTurn'));
+			assert(!$tr.hasClass("whosTurn"));
 			$tr = robot1.$ui(human2, false);
 			$tab.append($tr);
-			assert(!$tr.hasClass('whosTurn'));
+			assert(!$tr.hasClass("whosTurn"));
 			$tr = human2.$ui(human2, false);
-			assert($tr.hasClass('whosTurn'));
+			assert($tr.hasClass("whosTurn"));
 			$tab.append($tr);
 
 			const $act = game.$ui(game.getPlayer());
-			assert($act.find('#playerhuman1 td.player-name')
-				   .hasClass('miss-turn'));
+			assert($act.find("#playerhuman1 td.player-name")
+				   .hasClass("miss-turn"));
 			//console.debug(`expect: ${$tab.html()}`);
 			//console.debug(`actual: ${$act.html()}`);
 			assert($act[0].isEqualNode($tab[0]),
@@ -202,26 +202,26 @@ requirejs([
 		});
 	});
 
-	tr.addTest('last move in game', () => {
+	tr.addTest("last move in game", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false
 		});
 		const human1 = new Player({
-			name:'Human 1', key:"human1", isRobot: false});
+			name:"Human 1", key:"human1", isRobot: false});
 		const human2 = new Player({
-			name:'Human 2', key:"human2", isRobot: false});
+			name:"Human 2", key:"human2", isRobot: false});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'X', isBlank:false, score:1, col: 6, row: 7}),
-				new Tile({letter:'W', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'O', isBlank:false, score:1, col: 8, row: 7}),
-				new Tile({letter:'R', isBlank:false, score:1, col: 9, row: 7}),
-				new Tile({letter:'D', isBlank:false, score:1, col: 10, row: 7})
+				new Tile({letter:"X", isBlank:false, score:1, col: 6, row: 7}),
+				new Tile({letter:"W", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"O", isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"R", isBlank:false, score:1, col: 9, row: 7}),
+				new Tile({letter:"D", isBlank:false, score:1, col: 10, row: 7})
 			],
-			words: [ { word: 'XWORD', score: 99 }],
+			words: [ { word: "XWORD", score: 99 }],
 			score: 99
 		});
 		const socket = new TestSocket();
@@ -229,7 +229,7 @@ requirejs([
 			{
 				event: Notify.TURN,
 				data: {
-					type: Turn.TYPE_PLAY,
+					type: Turn.PLAY,
 					playerKey: human1.key,
 					nextToGoKey: human2.key,
 					score: move.score,
@@ -251,7 +251,7 @@ requirejs([
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on("*", (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -260,15 +260,15 @@ requirejs([
 			game.addPlayer(human1);
 			human1.rack.empty();
 			human1.rack.addTile(
-				new Tile({letter:'W', isBlank:false, score:1}));
+				new Tile({letter:"W", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'O', isBlank:false, score:1}));
+				new Tile({letter:"O", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'R', isBlank:false, score:1}));
+				new Tile({letter:"R", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'D', isBlank:false, score:1}));
+				new Tile({letter:"D", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'X', isBlank:false, score:1}));
+				new Tile({letter:"X", isBlank:false, score:1}));
 			game.addPlayer(human2);
 			// Empty the bag
 			game.letterBag.getRandomTiles(
@@ -288,24 +288,24 @@ requirejs([
 	});
 
 	// Clear missed turn flag set after challenge failed
-	tr.addTest('clear missed turn', () => {
+	tr.addTest("clear missed turn", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false
 		});
 		const human1 = new Player({
-			name: 'Human 1', key: "human1", isRobot: false});
+			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
-			name: 'Human 2', key: "human2", isRobot: false});
+			name: "Human 2", key: "human2", isRobot: false});
 		const human3 = new Player({
-			name:'Human 3', key:"human3", isRobot: false});
+			name:"Human 3", key:"human3", isRobot: false});
 		const socket = new TestSocket();
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on("*", (event, data) => {
 			if (event === Notify.TURN) {
-				assert.equal(data.type, Turn.TYPE_PASSED);
+				assert.equal(data.type, Turn.PASSED);
 				socket.done();
 				return;
 			}
@@ -324,50 +324,50 @@ requirejs([
 			assert.equal(game.whosTurnKey, human1.key);
 			assert(human2.missNextTurn);
 		})
-		.then(() => game.pass(human1, Turn.TYPE_PASSED))
+		.then(() => game.pass(human1, Turn.PASSED))
 		.then(() => {
 			assert.equal(game.whosTurnKey, human3.key);
 			assert(!human3.missNextTurn);
 		});
 	});
 
-	tr.addTest('verify human play', () => {
+	tr.addTest("verify human play", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			wordCheck: Game.WORD_CHECK_REJECT,
 			debug: false
 		});
 		const human1 = new Player({
-			name:'Human 1', key:"human1", isRobot: false});
+			name:"Human 1", key:"human1", isRobot: false});
 		const human2 = new Player({
-			name:'Human 2', key:"human2", isRobot: false});
+			name:"Human 2", key:"human2", isRobot: false});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'X', isBlank:false, score:1, col: 6, row: 7}),
-				new Tile({letter:'Y', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'Z', isBlank:false, score:1, col: 8, row: 7})
+				new Tile({letter:"X", isBlank:false, score:1, col: 6, row: 7}),
+				new Tile({letter:"Y", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"Z", isBlank:false, score:1, col: 8, row: 7})
 			],
-			words: [ { word: 'XYZ', score: 99 }],
+			words: [ { word: "XYZ", score: 99 }],
 			score: 99
 		});
 		const socket1 = new TestSocket();
 		socket1.on(Notify.REJECT, (event, data) => {
 			assert.deepEqual(data, {
 				playerKey: human1.key,
-				words: [ 'XYZ' ] });
+				words: [ "XYZ" ] });
 			socket1.done();
 		});
 		socket1.on(Notify.CONNECTIONS, () => {});
-		socket1.on('*', (event, data) => {
+		socket1.on("*", (event, data) => {
 			console.error("Socket 1 UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
 
 		const socket2 = new TestSocket();
 		socket2.on(Notify.CONNECTIONS, () => {});
-		socket2.on('*', (event, data) => {
+		socket2.on("*", (event, data) => {
 			console.error("Socket 2 UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -377,11 +377,11 @@ requirejs([
 			game.addPlayer(human1);
 			human1.rack.empty();
 			human1.rack.addTile(
-				new Tile({letter:'X', isBlank:false, score:1}));
+				new Tile({letter:"X", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'Y', isBlank:false, score:1}));
+				new Tile({letter:"Y", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'Z', isBlank:false, score:1}));
+				new Tile({letter:"Z", isBlank:false, score:1}));
 
 			game.addPlayer(human2);
 		})
@@ -391,6 +391,19 @@ requirejs([
 		.then(() => socket1.wait());
 	});
 
+	tr.addTest("load from file", () => {
+		const db = new Platform.Database("test", "game");
+		return db.get("bad_robot", Game.classes)
+		.then(game => {
+			//game._debug = true;
+			return game.onLoad(this.db);
+		})
+		.then(game => {
+			const human = game.getPlayer("human");
+			return game.pass(human);
+		});
+	});
+	
 	tr.run();
 });
 

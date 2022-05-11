@@ -35,7 +35,7 @@ define("browser/LoginDialog", ["browser/Dialog"], Dialog => {
 			const $tabs = this.$dlg.find("#tabs");
 			$tabs.tabs();
 
-			const $las = this.$dlg.find("#logged-in-as");
+			const $las = this.$dlg.find(".logged-in-as");
 			if ($las.length > 0) {
 				$.get("/session")
 				.then(user => $las.text(

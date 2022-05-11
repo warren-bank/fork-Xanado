@@ -476,7 +476,7 @@ define("game/Game", [
 		/**
 		 * Get the last move made in this game. A move is the last
 		 * successful placement of tiles that is not followed by a
-		 * `Turn.TYPE_TOOK_BACK` or `Turn.TYPE_CHALLENGE_WON`.
+		 * `Turn.TOOK_BACK` or `Turn.CHALLENGE_WON`.
 		 * @return {Turn} the last move recorded for the game.
 		 */
 		lastPlay() {
@@ -484,24 +484,25 @@ define("game/Game", [
 			let skipPrevious = false;
 			while (i >= 0) {
 				switch (this.turns[i].type) {
-				case Turn.TYPE_PLAY:
+				case Turn.PLAY:
 					if (!skipPrevious)
 						return this.turns[i];
 					skipPrevious = false;
 					break;
 
-				case Turn.TYPE_CHALLENGE_LOST:
-				case Turn.TYPE_SWAP:
+				case Turn.CHALLENGE_LOST:
+				case Turn.SWAP:
 					break;
 
-				case Turn.TYPE_CHALLENGE_WON:
-				case Turn.TYPE_TOOK_BACK:
+				case Turn.CHALLENGE_WON:
+				case Turn.TOOK_BACK:
 					skipPrevious = true;
 					break;
 
-				case Turn.TYPE_GAME_OVER:
+				case Turn.GAME_OVER:
 					return undefined;
 				}
+				i--;
 			}
 			return undefined;
 		}
@@ -781,7 +782,7 @@ define("game/Game", [
 				// Make the player pass when their clock reaches 0
 				player.setTimeout(
 					timeout || this.timeLimit,
-					() => this.pass(player, Turn.TYPE_TIMED_OUT));
+					() => this.pass(player, Turn.TIMED_OUT));
 
 			return Promise.resolve(this);
 		}
@@ -1204,7 +1205,7 @@ define("game/Game", [
 			const nextPlayer = this.nextPlayer();
 			this.whosTurnKey = nextPlayer.key;
 			return this.finishTurn(new Turn(this, {
-				type: Turn.TYPE_PLAY,
+				type: Turn.PLAY,
 				playerKey: player.key,
 				nextToGoKey: nextPlayer.key,
 				score: move.score,
@@ -1248,7 +1249,7 @@ define("game/Game", [
 								console.debug(`Challenging ${lastPlayer.name}`);
 								console.debug(`Bad Words: `, bad);
 							}
-							return this.takeBack(player, Turn.TYPE_CHALLENGE_WON)
+							return this.takeBack(player, Turn.CHALLENGE_WON)
 							.then(() => true);
 						}
 						return false;
@@ -1391,7 +1392,7 @@ define("game/Game", [
 					console.debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
 			}
 			const turn = new Turn(this, {
-				type: Turn.TYPE_GAME_OVER,
+				type: Turn.GAME_OVER,
 				endState: endState,
 				playerKey: this.whosTurnKey,
 				score: deltas
@@ -1402,11 +1403,11 @@ define("game/Game", [
 		/**
 		 * Undo the last move. This might be as a result of a player request,
 		 * or the result of a challenge.
-		 * @param {Player} player if type==Turn.TYPE_CHALLENGE_WON this must be
+		 * @param {Player} player if type==Turn.CHALLENGE_WON this must be
 		 * the challenging player. Otherwise it is the player taking their
 		 * play back.
-		 * @param {string} type the type of the takeBack; Turn.TYPE_TOOK_BACK
-		 * or Turn.TYPE_CHALLENGE_WON.
+		 * @param {string} type the type of the takeBack; Turn.TOOK_BACK
+		 * or Turn.CHALLENGE_WON.
 		 * @return {Promise} Promise resolving to the game
 		 */
 		takeBack(player, type) {
@@ -1439,14 +1440,14 @@ define("game/Game", [
 			const turn = new Turn(this, {
 				type: type,
 				nextToGoKey:
-				type === Turn.TYPE_CHALLENGE_WON ? this.whosTurnKey
+				type === Turn.CHALLENGE_WON ? this.whosTurnKey
 				: previousMove.playerKey,
 				score: -previousMove.score,
 				placements: previousMove.placements,
 				replacements: previousMove.replacements,
 			});
 
-			if (type === Turn.TYPE_TOOK_BACK) {
+			if (type === Turn.TOOK_BACK) {
 				// A takeBack, not a challenge.
 				turn.playerKey = previousMove.playerKey;
 
@@ -1459,7 +1460,7 @@ define("game/Game", [
 			this.whosTurnKey = player.key;
 			return this.finishTurn(turn)
 			.then(() => {
-				if (type === Turn.TYPE_TOOK_BACK) {
+				if (type === Turn.TOOK_BACK) {
 					// Let the taking-back player go again,
 					// but with just the remaining time from their move.
 					return this.startTurn(player, previousMove.remainingTime);
@@ -1476,8 +1477,8 @@ define("game/Game", [
 		 * Player wants to (or has to) miss their move. Either they
 		 * can't play, or challenged and failed.
 		 * @param {Player} player player passing (must be current player)
-		 * @param {string} type pass type, `Turn.TYPE_PASSED` or
-		 * `Turn.TYPE_TIMEOUT`. If undefined, defaults to passed
+		 * @param {string} type pass type, `Turn.PASSED` or
+		 * `Turn.TIMEOUT`. If undefined, defaults to passed
 		 * @return {Promise} resolving to the game
 		 */
 		pass(player, type) {
@@ -1486,7 +1487,7 @@ define("game/Game", [
 
 			const turn = new Turn(
 				this, {
-					type: type || Turn.TYPE_PASSED
+					type: type || Turn.PASSED
 				});
 			turn.playerKey = player.key;
 			player.passes++;
@@ -1516,7 +1517,7 @@ define("game/Game", [
 			.catch(() => {
 				if (this._debug)
 					console.debug("No dictionary, so challenge always succeeds");
-				return this.takeBack(challenger, Turn.TYPE_CHALLENGE_WON);
+				return this.takeBack(challenger, Turn.CHALLENGE_WON);
 			})
 			.then(dict => {
 				const bad = previousMove.words
@@ -1526,7 +1527,7 @@ define("game/Game", [
 					// Challenge succeeded
 					if (this._debug)
 						console.debug("Bad Words: ", bad);
-					return this.takeBack(challenger, Turn.TYPE_CHALLENGE_WON);
+					return this.takeBack(challenger, Turn.CHALLENGE_WON);
 				}
 
 				// Challenge failed
@@ -1550,11 +1551,11 @@ define("game/Game", [
 						 || previousMove.replacements.length === 0))
 						return this.confirmGameOver(
 							Game.STATE_CHALLENGE_FAILED);
-					// Otherwise issue turn type=challenge-failed
+					// Otherwise issue turn type=Turn.CHALLENGE_LOST
 
 					const turn = new Turn(
 						this, {
-							type: "challenge-failed",
+							type: Turn.CHALLENGE_LOST,
 							penalty: Game.PENALTY_MISS,
 							playerKey: prevPlayerKey,
 							challengerKey: challenger.key,
@@ -1587,7 +1588,7 @@ define("game/Game", [
 
 				return this.finishTurn(new Turn(
 					this, {
-						type: "challenge-failed",
+						type: Turn.CHALLENGE_LOST,
 						score: lostPoints,
 						playerKey: prevPlayerKey,
 						challengerKey: challenger.key,
@@ -1649,7 +1650,7 @@ define("game/Game", [
 			return this.finishTurn(new Turn(
 				this,
 				{
-					type: Turn.TYPE_SWAP,
+					type: Turn.SWAP,
 					playerKey: player.key,
 					nextToGoKey: nextPlayer.key,
 					replacements: move.replacements

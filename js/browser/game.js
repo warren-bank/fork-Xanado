@@ -147,8 +147,7 @@ define("browser/game", [
 		}
 
 		/**
-		 * Send a game command to the server. Game commands are
-		 * `makeMove`, `swap`, `takeBack`, `pass` etc.
+		 * Send a game command to the server. Game commands are listed in the {@link Command} type
 		 * @param {string} command command name
 		 * @param {object} args arguments for the request body
 		 */
@@ -178,7 +177,7 @@ define("browser/game", [
 		 * turn during a game (as against a step in a replay)
 		 */
 		describeTurn(turn, isLatestTurn, interactive) {
-			if (turn.type === Turn.TYPE_GAME_OVER) {
+			if (turn.type === Turn.GAME_OVER) {
 				this.describeGameOver(turn, interactive);
 				return;
 			}
@@ -191,7 +190,7 @@ define("browser/game", [
 				  ? this.game.getPlayer(turn.challengerKey) : undefined;
 
 			let what, who;
-			if (turn.type === Turn.TYPE_CHALLENGE_LOST) {
+			if (turn.type === Turn.CHALLENGE_LOST) {
 				what = $.i18n("challenge");
 				if (challenger === this.player)
 					who = $.i18n("Your");
@@ -233,35 +232,35 @@ define("browser/game", [
 
 			switch (turn.type) {
 
-			case Turn.TYPE_PLAY:
+			case Turn.PLAY:
 				turnText = formatScore(turn, false);
 				break;
 
-			case Turn.TYPE_SWAP:
+			case Turn.SWAP:
 				turnText = $.i18n(
 					"Swapped $1 tile{{PLURAL:$1||s}}",
 					turn.replacements.length);
 				break;
 
-			case Turn.TYPE_TIMEOUT:
+			case Turn.TIMEOUT:
 				turnText = $.i18n("Timed out");
 				break;
 
-			case Turn.TYPE_PASSED:
+			case Turn.PASSED:
 				turnText = $.i18n("Passed");
 				break;
 
-			case Turn.TYPE_TOOK_BACK:
+			case Turn.TOOK_BACK:
 				turnText = $.i18n("Took back their turn");
 				break;
 
-			case Turn.TYPE_CHALLENGE_WON:
+			case Turn.CHALLENGE_WON:
 				turnText = $.i18n(
 					"$1 successfully challenged $2 play",
 					challengerIndicative, playerPossessive);
 				break;
 
-			case Turn.TYPE_CHALLENGE_LOST:
+			case Turn.CHALLENGE_LOST:
 				turnText = $.i18n(
 					"$1 challenge of $2 play failed.",
 					challengerPossessive, playerPossessive);
@@ -289,8 +288,8 @@ define("browser/game", [
 			if (isLatestTurn
 				&& turn.emptyPlayerKey
 				&& !this.game.hasEnded()
-				&& turn.type !== Turn.TYPE_CHALLENGE_LOST
-				&& turn.type !== Turn.TYPE_GAME_OVER) {
+				&& turn.type !== Turn.CHALLENGE_LOST
+				&& turn.type !== Turn.GAME_OVER) {
 				if (this.isThisPlayer(turn.emptyPlayerKey)) {
 					addToLog(interactive, $.i18n(
 						"You have no more tiles, game will be over if your play isn't challenged"),
@@ -305,7 +304,7 @@ define("browser/game", [
 
 		/**
 		 * Append a formatted 'end of game' message to the log
-		 * @param {Turn} turn a Turn.TYPE_GAME_OVER Turn
+		 * @param {Turn} turn a Turn.GAME_OVER Turn
 		 * @param {boolean} interactive false if we are replaying messages into
 		 * the log, true if this is an interactive response to a player action.
 		 * @private
@@ -561,7 +560,7 @@ define("browser/game", [
 			case "!": // Challenge
 				{
 					const lastTurn = this.game.lastTurn();
-					if (lastTurn && lastTurn.type == Turn.TYPE_PLAY) {
+					if (lastTurn && lastTurn.type == Turn.PLAY) {
 						if (this.isThisPlayer(this.game.whosTurnKey))
 							// Challenge last move
 							this.challenge();
@@ -730,8 +729,8 @@ define("browser/game", [
 			this.updateGameStatus();
 
 			const lastTurn = game.lastTurn();
-			if (lastTurn && (lastTurn.type === Turn.TYPE_PLAY
-							 || lastTurn.type === Turn.TYPE_CHALLENGE_LOST)) {
+			if (lastTurn && (lastTurn.type === Turn.PLAY
+							 || lastTurn.type === Turn.CHALLENGE_LOST)) {
 				if (this.isThisPlayer(lastTurn.playerKey)) {
 					// It isn't our turn, but we might still have time to
 					// change our minds on the last move we made
@@ -1302,7 +1301,7 @@ define("browser/game", [
 			const challenger = (typeof turn.challengerKey === "string")
 				  ? this.game.getPlayer(turn.challengerKey) : undefined;
 
-			if (turn.type === "challenge-failed") {
+			if (turn.type === Turn.CHALLENGE_LOST) {
 				challenger.score += turn.score;
 				challenger.$refresh();
 			} else {
@@ -1327,8 +1326,8 @@ define("browser/game", [
 			const wasUs = this.isThisPlayer(turn.playerKey);
 
 			switch (turn.type) {
-			case Turn.TYPE_CHALLENGE_WON:
-			case Turn.TYPE_TOOK_BACK:
+			case Turn.CHALLENGE_WON:
+			case Turn.TOOK_BACK:
 				// Move new tiles out of challenged player's rack
 				// into the bag
 				if (turn.replacements)
@@ -1352,7 +1351,7 @@ define("browser/game", [
 				if (wasUs) {
 					player.rack.$refresh();
 
-					if (turn.type === Turn.TYPE_CHALLENGE_WON) {
+					if (turn.type === Turn.CHALLENGE_WON) {
 						if (this.getSetting("warnings"))
 							this.playAudio("oops");
 						this.notify(
@@ -1363,14 +1362,14 @@ define("browser/game", [
 					}
 				}
 
-				if (turn.type == Turn.TYPE_TOOK_BACK) {
+				if (turn.type == Turn.TOOK_BACK) {
 					/*.i18n("ui-notify-title-retracted")*/
 					this.notify(/*i18n ui-notify-body-*/"retracted",
 								this.game.getPlayer(turn.playerKey).name);
 				}
 				break;
 
-			case Turn.TYPE_CHALLENGE_LOST:
+			case Turn.CHALLENGE_LOST:
 				if (this.getSetting("warnings"))
 					this.playAudio("oops");
 				if (challenger === this.player) {
@@ -1384,7 +1383,7 @@ define("browser/game", [
 				}
 				break;
 
-			case Turn.TYPE_PLAY:
+			case Turn.PLAY:
 				if (wasUs) {
 					if (turn.bonus > 0 && this.getSetting("cheers"))
 						this.playAudio("bonusCheer");
@@ -1414,10 +1413,10 @@ define("browser/game", [
 					this.game.letterBag.getRandomTiles(
 						turn.replacements.length);
 
-				// Deliberate fall-through to Turn.TYPE_SWAP to get the
+				// Deliberate fall-through to Turn.SWAP to get the
 				// replacements onto the rack
 
-			case Turn.TYPE_SWAP:
+			case Turn.SWAP:
 				// Add replacement tiles to the player's rack. Number of tiles
 				// in letter bag doesn't change.
 				if (turn.replacements) {
@@ -1429,7 +1428,7 @@ define("browser/game", [
 
 				break;
 
-			case Turn.TYPE_GAME_OVER:
+			case Turn.GAME_OVER:
 				// End of game has been accepted
 				this.gameOverConfirmed(turn);
 				return;
@@ -1445,9 +1444,9 @@ define("browser/game", [
 				this.enableTurnButton(false);
 			}
 
-			if (turn.nextToGoKey && turn.type !== Turn.TYPE_CHALLENGE_WON) {
+			if (turn.nextToGoKey && turn.type !== Turn.CHALLENGE_WON) {
 
-				if (turn.type == Turn.TYPE_PLAY) {
+				if (turn.type == Turn.PLAY) {
 					if (wasUs) {
 						if (this.game.allowTakeBack) {
 							this.addTakeBackPreviousButton(turn);
@@ -1461,7 +1460,7 @@ define("browser/game", [
 				}
 
 				if (this.isThisPlayer(turn.nextToGoKey)
-					&& turn.type !== Turn.TYPE_TOOK_BACK) {
+					&& turn.type !== Turn.TOOK_BACK) {
 					// It's our turn next, and we didn't just take back
 					/*.i18n("ui-notify-title-your-turn")*/
 					this.notify(/*i18n ui-notify-body-*/"your-turn",
@@ -1544,7 +1543,7 @@ define("browser/game", [
 
 		/**
 		 * Handler for the 'Make Move' button. Invoked via 'click_turnButton'.
-		 * Response will be turn type Turn.TYPE_PLAY (or Turn.TYPE_TOOK_BACK if the play
+		 * Response will be turn type Turn.PLAY (or Turn.TOOK_BACK if the play
 		 * is rejected).
 		 */
 		action_commitMove() {
@@ -1563,7 +1562,7 @@ define("browser/game", [
 
 		/**
 		 * Handler for the 'Take back' button clicked. Invoked via
-		 * 'click_turnButton'. Response will be a turn type Turn.TYPE_TOOK_BACK.
+		 * 'click_turnButton'. Response will be a turn type Turn.TOOK_BACK.
 		 */
 		action_takeBackMove() {
 			this.takeBackTiles();

@@ -28,7 +28,7 @@ define("game/Turn", ["game/Move"], Move => {
 			this.gameKey = game.key;
 
 			/**
-			 * The 'type' of the turn. This will be one of Turn_TYPE_*
+			 * The 'type' of the turn. This will be a Turn.* constant
 			 * constants.
 			 * @member {string}
 			 */
@@ -50,7 +50,7 @@ define("game/Turn", ["game/Move"], Move => {
 			this.nextToGoKey = params.nextToGoKey;
 			
 			/**
-			 * For `Turn.TYPE_CHALLENGE_WON` and `Turn.TYPE_CHALLENGE_FAIL`,
+			 * For `Turn.CHALLENGE_WON` and `Turn.CHALLENGE_LOST`,
 			 * the key of the player who challenged. playerkey in this case
 			 * will be the player who's play was challenged (always the
 			 * previous player)
@@ -70,7 +70,7 @@ define("game/Turn", ["game/Move"], Move => {
 
 			/**
 			 * String describing the reason the game ended. Only used when
-			 * type==Turn.TYPE_GAME_OVER
+			 * type==Turn.GAME_OVER
 			 * @member {string?}
 			 */
 			if (params.endState)
@@ -78,14 +78,14 @@ define("game/Turn", ["game/Move"], Move => {
 		}
 	}
 
-	Turn.TYPE_PLAY           = "play";
-	Turn.TYPE_SWAP           = "swap";
-	Turn.TYPE_GAME_OVER      = "game-over";
-	Turn.TYPE_CHALLENGE_FAIL = "challenge-lost";
-	Turn.TYPE_CHALLENGE_WON  = "challenge-won";
-	Turn.TYPE_TOOK_BACK      = "took-back";
-	Turn.TYPE_PASSED         = "passed";
-	Turn.TYPE_TIMED_OUT      = "timed-out";
+	Turn.PLAY           = "play";
+	Turn.SWAP           = "swap";
+	Turn.GAME_OVER      = "game-over";
+	Turn.CHALLENGE_LOST = "challenge-lost";
+	Turn.CHALLENGE_WON  = "challenge-won";
+	Turn.TOOK_BACK      = "took-back";
+	Turn.PASSED         = "passed";
+	Turn.TIMED_OUT      = "timed-out";
 
 	return Turn;
 });

@@ -253,7 +253,7 @@ define("server/Server", [
 			if (typeof e === "object" && e.code === "ENOENT") {
 				// Special case of a database file load failure
 				if (this.config.debug_comms)
-					console.error(`<-- 404 ${req.url}`);
+					console.error(`<-- 404 ${req.url}`, e);
 				return res.status(404).send([
 					"Database file load failed", req.url, e]);
 			} else {
@@ -910,7 +910,7 @@ define("server/Server", [
 				switch (command) {
 
 				case Command.PLAY:
-					promise = game.makeMove(player, args);
+					promise = game.play(player, args);
 					break;
 
 				case Command.PASS:
@@ -927,7 +927,7 @@ define("server/Server", [
 
 				case Command.TAKE_BACK:
 					// Check that it was our turn
-					promise = game.takeBack(player, Turn.TYPE_TOOK_BACK);
+					promise = game.takeBack(player, Turn.TOOK_BACK);
 					break;
 
 				case Command.GAME_OVER:

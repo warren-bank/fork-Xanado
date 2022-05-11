@@ -65,7 +65,7 @@ requirejs([
 			case 0:
 				assert.equal(turn.score, 0);
 				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turn.TYPE_TIMED_OUT);
+				assert.equal(turn.type, Turn.TIMED_OUT);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.gameKey, game.key);
@@ -73,7 +73,7 @@ requirejs([
 			case 1:
 				assert.equal(turn.score, 0);
 				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turn.TYPE_TIMED_OUT);
+				assert.equal(turn.type, Turn.TIMED_OUT);
 				assert.equal(turn.playerKey, human2.key);
 				assert.equal(turn.nextToGoKey, human1.key);
 				assert.equal(turn.gameKey, game.key);
@@ -81,7 +81,7 @@ requirejs([
 			case 2:
 				assert.equal(turn.score, 0);
 				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turn.TYPE_TIMED_OUT);
+				assert.equal(turn.type, Turn.TIMED_OUT);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.gameKey, game.key);
@@ -89,7 +89,7 @@ requirejs([
 			case 3:
 				assert.equal(turn.score, 0);
 				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turn.TYPE_TIMED_OUT);
+				assert.equal(turn.type, Turn.TIMED_OUT);
 				assert.equal(turn.playerKey, human2.key);
 				assert.equal(turn.nextToGoKey, human1.key);
 				assert.equal(turn.gameKey, game.key);
@@ -98,7 +98,7 @@ requirejs([
 				assert.deepEqual(turn.score, {
 					human1: { tiles: -1 }, human2: {tiles: -1 }});
 				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turn.TYPE_GAME_OVER);
+				assert.equal(turn.type, Turn.GAME_OVER);
 				assert.equal(turn.endState, 'All players passed twice');
 				assert.equal(turn.gameKey, game.key);
 				assert(!turn.nextToGoKey);
@@ -161,7 +161,7 @@ requirejs([
 			case 0:
 				assert.equal(turn.score, 0);
 				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turn.TYPE_PASSED);
+				assert.equal(turn.type, Turn.PASSED);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.gameKey, game.key);
@@ -169,7 +169,7 @@ requirejs([
 			case 1:
 				assert.equal(turn.score, 0);
 				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turn.TYPE_PASSED);
+				assert.equal(turn.type, Turn.PASSED);
 				assert.equal(turn.playerKey, human2.key);
 				assert.equal(turn.nextToGoKey, human1.key);
 				assert.equal(turn.gameKey, game.key);
@@ -177,7 +177,7 @@ requirejs([
 			case 2:
 				assert.equal(turn.score, 0);
 				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turn.TYPE_PASSED);
+				assert.equal(turn.type, Turn.PASSED);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.gameKey, game.key);
@@ -185,7 +185,7 @@ requirejs([
 			case 3:
 				assert.equal(turn.score, 0);
 				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turn.TYPE_PASSED);
+				assert.equal(turn.type, Turn.PASSED);
 				assert.equal(turn.playerKey, human2.key);
 				assert.equal(turn.nextToGoKey, human1.key);
 				assert.equal(turn.gameKey, game.key);
@@ -201,7 +201,7 @@ requirejs([
 				// human2 has no time penalty
 				assert(!turn.score.human2.time);
 				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turn.TYPE_GAME_OVER);
+				assert.equal(turn.type, Turn.GAME_OVER);
 				assert.equal(turn.endState, 'All players passed twice');
 				assert.equal(turn.gameKey, game.key);
 				assert(!turn.nextToGoKey);
@@ -247,12 +247,12 @@ requirejs([
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => awaitTick())
-		.then(() => game.pass(human1, Turn.TYPE_PASSED))
+		.then(() => game.pass(human1, Turn.PASSED))
 		// human 2 plays as soon as possible
-		.then(() => game.pass(human2, Turn.TYPE_PASSED))
+		.then(() => game.pass(human2, Turn.PASSED))
 		.then(() => awaitTick())
-		.then(() => game.pass(human1, Turn.TYPE_PASSED))
-		.then(() => game.pass(human2, Turn.TYPE_PASSED))
+		.then(() => game.pass(human1, Turn.PASSED))
+		.then(() => game.pass(human2, Turn.PASSED))
 		.then(() => socket.wait());
 	});
 

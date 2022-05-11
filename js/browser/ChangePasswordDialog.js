@@ -19,6 +19,16 @@ define("browser/ChangePasswordDialog", ["browser/Dialog"], (Dialog) => {
 				title: $.i18n("Change password")
 			}, options));
 		}
+
+		createDialog() {
+			const $las = this.$dlg.find(".logged-in-as");
+			if ($las.length > 0) {
+				$.get("/session")
+				.then(user => $las.text(
+					$.i18n("um-logged-in-as", user.name)));
+			}
+			return super.createDialog();
+		}
 	}
 	
 	return ChangePasswordDialog;

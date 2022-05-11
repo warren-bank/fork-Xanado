@@ -46,7 +46,7 @@ define("game/Move", ["game/Tile"], Tile => {
 			 * List of tiles placed in this move. Tiles are required
 			 * to carry col, row positions where they were placed.  In
 			 * a Turn, for type=`move` it indicates the move. For
-			 * `Turn.TYPE_TOOK_BACK` and `Turn.TYPE_CHALLENGE_WON` it is
+			 * `Turn.TOOK_BACK` and `Turn.CHALLENGE_WON` it is
 			 * the move just taken back/challenged.
 			 * @member {Tile[]?}
 			 */
