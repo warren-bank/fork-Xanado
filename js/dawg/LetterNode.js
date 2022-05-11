@@ -7,7 +7,7 @@ and license information*/
  * Letter node in a Dictionary. Each node has multiple links and helpers
  * that trade off space for performance during word searches.
  */
-define('dawg/LetterNode', () => {
+define("dawg/LetterNode", () => {
 
 	class LetterNode {
 		constructor(letter) {
@@ -106,14 +106,14 @@ define('dawg/LetterNode', () => {
 
 		/**
 		 * Return the LetterNode that matches the last character
-		 * in chars, even if it's not isEndOfWord
+		 * in chars, even if it"s not isEndOfWord
 		 * @param {string} chars a string of characters that may
 		 * be the root of a word
 		 * @param {number} index the start index within partialWord
 		 * @return {LetterNode} node found, or undefined
 		 */
 		match(chars, index) {
-			if (typeof index === 'undefined')
+			if (typeof index === "undefined")
 				index = 0;
 			let node = this;
 			while (node) {
@@ -141,7 +141,7 @@ define('dawg/LetterNode', () => {
 			// Only use blank if no other choice
 			let i = sortedChars.indexOf(this.letter);
 			if (i < 0) // not there, try blank
-				i = sortedChars.indexOf(' ');
+				i = sortedChars.indexOf(" ");
 
 			if (i >= 0) {
 				const match = sortedChars[i];

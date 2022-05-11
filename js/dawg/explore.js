@@ -10,21 +10,21 @@ and license information*/
  * `node js/dawg/explore.js` will tell you how to use it
  * @module
  */
-const requirejs = require('requirejs');
+const requirejs = require("requirejs");
 
 requirejs.config({
 	baseUrl: `${__dirname}/../..`,
 	paths: {
-		dawg: 'js/dawg',
-		game: 'js/game',
-		platform: 'js/server/ServerPlatform'
+		dawg: "js/dawg",
+		game: "js/game",
+		platform: "js/server/ServerPlatform"
 	}
 });
 
-const DESCRIPTION = 'USAGE\n  node explore.js [options] <dictionary> <words>\n'
-	  + 'Explore a DAWG dictionary.';
+const DESCRIPTION = "USAGE\n  node explore.js [options] <dictionary> <words>\n"
+	  + "Explore a DAWG dictionary.";
 
-requirejs(['node-getopt', 'platform', 'dawg/Dictionary'], (Getopt, Platform, Dictionary) => {
+requirejs(["node-getopt", "platform", "dawg/Dictionary"], (Getopt, Platform, Dictionary) => {
 
 	const biglist = {};
 	
@@ -39,22 +39,22 @@ requirejs(['node-getopt', 'platform', 'dawg/Dictionary'], (Getopt, Platform, Dic
 				list = list.filter(w => !biglist[w]);
 				list.forEach(w => biglist[w] = true);
 				
-				console.log(list.join('\n'));
+				console.log(list.join("\n"));
 			}
 		} else if (root.node && root.node.isEndOfWord)
-			console.log(`'${root.word}' was found`,
-						root.node.child ? '& is a root' : '');
+			console.log(`"${root.word}" was found`,
+						root.node.child ? "& is a root" : "");
 		else if (root.node && root.node.child)
-			console.log(`'${root.word}' is a root`);
+			console.log(`"${root.word}" is a root`);
 		else
-			console.log(`'${root.word}' NOT FOUND`);
+			console.log(`"${root.word}" NOT FOUND`);
 	}
 	
 	function checkSequence(word, dict) {
 		if (dict.hasSequence(word))
-			console.log(`'${word}' is a valid sequence`);
+			console.log(`"${word}" is a valid sequence`);
 		else
-			console.log(`'${word}' is NOT a valid sequence`);
+			console.log(`"${word}" is NOT a valid sequence`);
 	}
 	
 	function withDictionary(opt, words) {
@@ -64,16 +64,16 @@ requirejs(['node-getopt', 'platform', 'dawg/Dictionary'], (Getopt, Platform, Dic
 			if (opt.options.sequence)
 				for (let w of words)
 					checkSequence(w, dict);
-			else if (typeof opt.options.anagrams !== 'undefined') {
+			else if (typeof opt.options.anagrams !== "undefined") {
 				if (words.length === 0)
-					throw 'Need letters to find anagrams of';
+					throw "Need letters to find anagrams of";
 
 				for (let w of words) {
 					const word = w.toUpperCase();
 					let anag = Object.keys(dict.findAnagrams(word));
 					if (opt.options.anagrams > 0)
 						anag = anag.filter(word => word.length >= opt.options.anagrams);
-					console.log(`\n${anag.length} words found in '${word}':`);
+					console.log(`\n${anag.length} words found in "${word}":`);
 					console.log(anag.join(", "));
 				}
 			}
@@ -107,11 +107,11 @@ requirejs(['node-getopt', 'platform', 'dawg/Dictionary'], (Getopt, Platform, Dic
 	}
 
 	const opt = Getopt.create([
-        ['', 'help', 'Show this help'],
-		['', 'list', 'Without parameters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root'],
-		['', 'file=ARG', 'Check all words read from file'],
-		['', 'anagrams[=ARG]', 'Find anagrams of the words. Optionally require sub-anagrams to be a minimum length.'],
-		['', 'sequence', 'Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. "UZZL" is a valid sub-sequence in an English dictionary as it is found in "PUZZLE", but "UZZZL" isn\'t']
+        ["", "help", "Show this help"],
+		["", "list", "Without parameters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root"],
+		["", "file=ARG", "Check all words read from file"],
+		["", "anagrams[=ARG]", "Find anagrams of the words. Optionally require sub-anagrams to be a minimum length."],
+		["", "sequence", "Determine if the strings passed are valid sub-sequences of any word in the dictionary e.g. 'UZZL' is a valid sub-sequence in an English dictionary as it is found in 'PUZZLE', but 'UZZZL' isn't"]
 	])
         .bindHelp()
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
@@ -119,7 +119,7 @@ requirejs(['node-getopt', 'platform', 'dawg/Dictionary'], (Getopt, Platform, Dic
 
     if (opt.argv.length == 0) {
         opt.showHelp();
-        throw 'No DAWG filename given';
+        throw "No DAWG filename given";
     } else {
 		opt.dawgfile = opt.argv.shift();
 	}

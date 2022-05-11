@@ -3,7 +3,7 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, node */
 
-define('dawg/TrieNode', () => {
+define("dawg/TrieNode", () => {
 
 	// Second integer of node tuple is encoded
 	const END_OF_WORD_BIT_MASK = 0x1;
@@ -55,11 +55,11 @@ define('dawg/TrieNode', () => {
 			let simpler = `{${this.id} ${this.letter}`;
 
 			if (this.isEndOfWord)
-				simpler += '.';
+				simpler += ".";
 			if (this.child)
-				simpler += '+';
+				simpler += "+";
 			if (this.next)
-				simpler += '-';
+				simpler += "-";
 
 			return `${simpler}}`;
 		}
@@ -211,7 +211,7 @@ define('dawg/TrieNode', () => {
 				if (this.sameSubtrie(red[this.maxChildDepth][x]))
 					break;
 			if (red[this.maxChildDepth][x].isPruned)
-				throw Error('Same subtrie equivalent is pruned!');
+				throw Error("Same subtrie equivalent is pruned!");
 			return red[this.maxChildDepth][x];
 		}
 
@@ -236,7 +236,7 @@ define('dawg/TrieNode', () => {
 					// equivalent which isn't tagged.
 					this.child = this.child.findSameSubtrie(red);
 					if (this.child === null)
-						throw Error('Something horrible');
+						throw Error("Something horrible");
 					trimmed++;
 				} else
 					trimmed += this.child.replaceRedundantNodes(red);
