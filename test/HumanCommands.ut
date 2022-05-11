@@ -19,15 +19,16 @@ requirejs.config({
  */
 requirejs([
 	'test/TestRunner', 'test/TestSocket',
-	'game/Tile', 'game/Player', 'game/Game', 'game/Move', 'game/Turn'
+	'game/Tile', 'game/Player', 'game/Game',
+	'game/Move', 'game/Turn', 'game/Command', 'game/Notify'
 ], (
 	TestRunner, TestSocket,
-	Tile, Player, Game, Move, Turn
+	Tile, Player, Game, Move, Turn, Command, Notify
 ) => {
     let tr = new TestRunner('Game - human commands - tests');
     let assert = tr.assert;
 
-	tr.addTest("swap", () => {
+	tr.addTest(Command.SWAP, () => {
 		const game = new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
@@ -43,7 +44,7 @@ requirejs([
 		const handle = (event, turn) => {
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, 'swap');
+				assert.equal(turn.type, Turn.TYPE_SWAP);
 				assert(!turn.words);
 				assert(!turn.placements);
 				assert.deepEqual(turn.replacements.map(t=>t.letter).sort(),
@@ -59,8 +60,8 @@ requirejs([
 				assert.fail("UNEXPECTED TURN");
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -122,12 +123,12 @@ requirejs([
 			debug: false
 		});
 		const socket = new TestSocket();
-		socket.on('nextGame', (event, info) => {
+		socket.on(Notify.NEXT_GAME, (event, info) => {
 			//console.debug('anotherGame', info);
 			assert.equal(info.gameKey, game.nextGameKey);
 			socket.done();
 		});
-		socket.on('connections', () => {});
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -158,7 +159,7 @@ requirejs([
 		.then(() => socket.wait());
 	});
 
-	tr.addTest("pass", () => {
+	tr.addTest(Command.PASS, () => {
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
 		const human2 = new Player({
@@ -191,8 +192,8 @@ requirejs([
 				assert.fail("UNEXPECTED TURN");				
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -217,7 +218,7 @@ requirejs([
 		.then(() => socket.wait());
 	});
 
-	tr.addTest("makeMove", () => {
+	tr.addTest(Command.PLAY, () => {
 		const W = new Tile({letter:'W', score:1, col: 7, row: 7});
 		const O = new Tile({letter:'O', score:1, col: 8, row: 7});
 		const R = new Tile({letter:'R', score:1, col: 9, row: 7});
@@ -244,7 +245,7 @@ requirejs([
 		const handle = (event, turn) => {
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.score, move.score);
@@ -258,8 +259,8 @@ requirejs([
 				assert.fail("UNEXPECTED TURN");
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -288,13 +289,13 @@ requirejs([
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move))
+		.then(() => game.play(human1, move))
 		.then(g => assert.strictEqual(g, game))
 		.then(() => socket.wait())
 		.then(() => assert.equal(game.whosTurnKey, human2.key));
 	});
 
-	tr.addTest("confirmGameOver", () => {
+	tr.addTest(Command.GAME_OVER, () => {
 		const game =  new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
@@ -307,8 +308,8 @@ requirejs([
 			name:'Human2', key:"human2", isRobot: false});
 		const socket = new TestSocket();
 		const handle = (event, turn) => {
-			assert.equal(event, 'turn');
-			assert.equal(turn.type, 'Game over');
+			assert.equal(event, Notify.TURN);
+			assert.equal(turn.type, Turn.TYPE_GAME_OVER);
 			const exp = {};
 			exp[human1.key] = { tiles: -3 };
 			exp[human2.key] = { tiles: 3 };
@@ -318,8 +319,8 @@ requirejs([
 			assert(!turn.nextToGoKey);
 			socket.done();
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -347,7 +348,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest("takeBack", () => {
+	tr.addTest(Command.TAKE_BACK, () => {
 		const game = new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
@@ -368,16 +369,16 @@ requirejs([
 			score: 3
 		});
 		const socket = new TestSocket();
-		socket.on('connections', () => {});
+		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on('turn', (event, turn) => {
+		socket.on(Notify.TURN, (event, turn) => {
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.sparseEqual(turn, move);
 				break;
 			case 1:
-				assert.equal(turn.type, 'took-back');
+				assert.equal(turn.type, Turn.TYPE_TOOK_BACK);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human1.key);
 				assert.equal(turn.score, -3);
@@ -421,7 +422,7 @@ requirejs([
 				new Tile({letter:'C', score:1}));
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move))
+		.then(() => game.play(human1, move))
 		.then(() => {
 			assert.deepEqual(human1.rack.letters().sort(),
 							 [ 'A', 'B', 'C', 'P', 'Q' ]);
@@ -429,7 +430,7 @@ requirejs([
 			
 		})
 		// Player 0 takes their move back, tils should return to the bag
-		.then(() => game.takeBack(human1, 'took-back'))
+		.then(() => game.takeBack(human1, Turn.TYPE_TOOK_BACK))
 		.then(g => {
 			assert.strictEqual(g, game);
 			assert.deepEqual(game.letterBag.letters().sort(),
@@ -443,7 +444,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest("challenge", () => {
+	tr.addTest(Command.CHALLENGE, () => {
 		// More tests are in Challenges.ut
 		const game = new Game({
 			edition:'Tiny',
@@ -456,9 +457,9 @@ requirejs([
 		const human2 = new Player({
 			name: 'Human 2', key: "human2", isRobot: false});
 		const socket = new TestSocket();
-		socket.on('connections', () => {});
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
-			if (event === 'turn') {
+			if (event === Notify.TURN) {
 				socket.done();
 				return;
 			}
@@ -481,7 +482,7 @@ requirejs([
 		});
 	});
 	
-	tr.addTest("pause/unpause", () => {
+	tr.addTest(Command.PAUSE, () => {
 		const game = new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
@@ -493,18 +494,18 @@ requirejs([
 		const human2 = new Player({
 			name: 'Human 2', key: "human2", isRobot: false});
 		const socket = new TestSocket();
-		socket.on('connections', () => {});
+		socket.on(Notify.CONNECTIONS, () => {});
 		let ev = 0;
 		socket.on('*', (event, data) => {
 			//console.debug(event, data);
 			switch (ev++) {
 			case 0:
-				assert.equal(event, 'pause');
+				assert.equal(event, Notify.PAUSE);
 				assert.equal(data.key, game.key);
 				assert.equal(data.name, human1.name);
 				break;
 			case 1:
-				assert.equal(event, 'unpause');
+				assert.equal(event, Notify.UNPAUSE);
 				assert.equal(data.key, game.key);
 				assert.equal(data.name, human2.name);
 				socket.done();

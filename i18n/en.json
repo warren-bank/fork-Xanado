@@ -11,9 +11,6 @@
 
 	"introduction": "To play in a game you have to sign in first. You may be able to sign in using a public service, such as Google or Facebook, or you can create your own XANADO user.",
 	
-	"pass": "Pass",
-	"passed": "Passed",
-
 	"square-M": "\u2605",
 	"square-_": " ",
 	"square-d": "DOUBLE LETTER SCORE",
@@ -24,17 +21,11 @@
 	"square-Q": "QUAD WORD SCORE",
 	"Strings from $1": "Strings from $1",
 
-	"time limit $1": "time limit $1 minute{{PLURAL:$1||s}}",
-	"timeout": "Timed out",
-	"took-back": "Took back previous turn",
-
 	"tooltip-add-robot": "Add a robot player to this game.",
 	"tooltip-allow-take-back": "Let the player who has just played take their move back before the next player has challenged or played.",
 	"tooltip-can-challenge": "Select whether the robot player can issue challenges.",
-	"tooltip-check-dictionary": "Tell players if the word they just played wasn't in the dictionary. This can help learners.",
 	"tooltip-delete-game": "CAREFUL! This cannot be undone!",
 	"tooltip-dictionary": "A dictionary is optional for human player games, but is required for computer players and is used to automate challenges.",
-	"tooltip-reject-bad-plays": "Do not allow words that cannot be found in the dictionary to be played.",
 	"tooltip-email-reminder": "Email a reminder to player whose turn it is.",
 	"tooltip-email-reminders": "Email reminders to players whose turn it is.",
 	"tooltip-predict-score": "Predict score for the play as the player places each tile. Turn this off if you want the player to calculate their own score, for example during tournament play.",

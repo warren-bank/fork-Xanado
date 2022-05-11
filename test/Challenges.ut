@@ -20,10 +20,12 @@ requirejs.config({
  */
 requirejs([
 	'test/TestRunner', 'test/TestSocket',
-	'game/Tile', 'game/Player', 'game/Game', 'game/Move', 'game/Turn'
+	'game/Tile', 'game/Player', 'game/Game',
+	'game/Move', 'game/Turn', 'game/Notify'
 ], (
 	TestRunner, TestSocket,
-	Tile, Player, Game, Move, Turn
+	Tile, Player, Game, Move,
+	Turn, Notify
 ) => {
     let tr = new TestRunner('Game - challenges - tests');
     let assert = tr.assert;
@@ -56,7 +58,7 @@ requirejs([
 		const handle = (event, turn) => {
 			if (turns++ === 0) {
 				// Human's move
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 
@@ -75,8 +77,8 @@ requirejs([
 				socket.done();
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -97,7 +99,7 @@ requirejs([
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move1))
+		.then(() => game.play(human1, move1))
 		.then(() => game.challenge(human2))
 		.then(() => socket.wait())
 		.then(() => {
@@ -136,7 +138,7 @@ requirejs([
 		const handle = (event, turn) => {
 			switch (turns++) {
 			case 0: // Human's move
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
@@ -156,8 +158,8 @@ requirejs([
 				console.error("UNEXPECTED TURN", turn);
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -175,7 +177,7 @@ requirejs([
 			game.addPlayer(human2);
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move1))
+		.then(() => game.play(human1, move1))
 		.then(() => game.challenge(human2))
 		.then(() => socket.wait())
 		.then(() => {
@@ -214,7 +216,7 @@ requirejs([
 			switch (turns++) {
 			case 0:
 				// Human's move
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
@@ -229,8 +231,8 @@ requirejs([
 				socket.done();
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -250,7 +252,7 @@ requirejs([
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move))
+		.then(() => game.play(human1, move))
 		.then(() => game.challenge(human3))
 		.then(() => {
 			assert.equal(game.whosTurnKey, human2.key);
@@ -285,7 +287,7 @@ requirejs([
 		const handle = (event, turn) => {
 			if (turns++ === 0) {
 				// Human's move
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
@@ -299,8 +301,8 @@ requirejs([
 				socket.done();
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -322,7 +324,7 @@ requirejs([
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move))
+		.then(() => game.play(human1, move))
 		.then(() => game.challenge(human3))
 		.then(() => {
 			assert.equal(game.whosTurnKey, human2.key);
@@ -356,13 +358,13 @@ requirejs([
 		const handle = (event, turn) => {
 			if (turns++ === 0) {
 				// Human's move
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
 			} else {
 				//console.debug('good challenge by next player', turn);
-				assert.equal(turn.type, 'challenge-won');
+				assert.equal(turn.type, Turn.TYPE_CHALLENGE_WON);
 				assert.equal(turn.challengerKey, human2.key);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
@@ -370,8 +372,8 @@ requirejs([
 				socket.done();
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -389,7 +391,7 @@ requirejs([
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move))
+		.then(() => game.play(human1, move))
 		.then(() => game.challenge(human2))
 		.then(() => socket.wait())
 		.then(() => {
@@ -421,9 +423,9 @@ requirejs([
 			score: 99
 		});
 		const socket = new TestSocket();
-		socket.on('connections', () => {});
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
-			if (event === 'turn') {
+			if (event === Notify.TURN) {
 				socket.done();
 				return;
 			}
@@ -448,7 +450,7 @@ requirejs([
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move))
+		.then(() => game.play(human1, move))
 		.then(() => game.challenge(human1))
 		.then(() => socket.wait())
 		.then(() => assert.fail("Expected an error"))
@@ -478,15 +480,15 @@ requirejs([
 		});
 
 		const socket = new TestSocket();
-		socket.on('connections', () => {});
+		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on('turn', (event, turn) => {
+		socket.on(Notify.TURN, (event, turn) => {
 			if (turns++ == 0) {
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.sparseEqual(turn, move);
 			} else {
 				//console.debug('good challenge of final play', turn);
-				assert.equal(turn.type, 'challenge-won');
+				assert.equal(turn.type, Turn.TYPE_CHALLENGE_WON);
 				assert.equal(turn.challengerKey, human2.key);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
@@ -514,14 +516,14 @@ requirejs([
 				game.letterBag.remainingTileCount());
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move))
+		.then(() => game.play(human1, move))
 		// Player 1 has played, so issue a challenge on behalf of player 2
 		.then(() => game.challenge(human2))
 		.then(() => socket.wait());
 	});
 
 	// A bad challenge of the final play by the next player is treated
-	// as a 'Game over' with appropriate end state.
+	// as a Turn.TYPE_GAME_OVER with appropriate end state.
 	tr.addTest('bad challenge of final play by next player - miss turn', () => {
 		const game = new Game({
 			edition:'Tiny',
@@ -544,9 +546,9 @@ requirejs([
 			score: 3
 		});
 		const socket = new TestSocket();
-		socket.on('connections', () => {});
+		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on('turn', (event, turn) => {
+		socket.on(Notify.TURN, (event, turn) => {
 			if (turns++ == 0) {
 				assert.equal(turn.words.length, 1);
 				assert.deepEqual(turn.words[0], { word: 'ART', score: 3 });
@@ -555,7 +557,7 @@ requirejs([
 				assert.equal(turn.nextToGoKey, human2.key);
 			} else {
 				//console.debug('bad challenge of final play', turn);
-				assert.equal(turn.type, 'Game over');
+				assert.equal(turn.type, Turn.TYPE_GAME_OVER);
 				assert.equal(turn.endState, Game.STATE_CHALLENGE_FAILED);
 				assert.deepEqual(turn.score, {
 					human1: {tiles: 6 }, human2: {tiles: -6}});
@@ -590,7 +592,7 @@ requirejs([
 				game.letterBag.remainingTileCount());
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move))
+		.then(() => game.play(human1, move))
 		// Player 1 has played, so issue a challenge on behalf of player 2
 		.then(() => game.challenge(human2))
 		.then(() => socket.wait());
@@ -622,9 +624,9 @@ requirejs([
 			score: 3
 		});
 		const socket = new TestSocket();
-		socket.on('connections', () => {});
+		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on('turn', (event, turn) => {
+		socket.on(Notify.TURN, (event, turn) => {
 			switch (turns++) {
 			case 0:
 				assert.equal(turn.words.length, 1);
@@ -671,7 +673,7 @@ requirejs([
 				game.letterBag.remainingTileCount());
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move))
+		.then(() => game.play(human1, move))
 		// Player 1 has played, so issue a challenge on behalf of player 3
 		.then(() => game.challenge(human3))
 		.then(() => socket.wait());
@@ -718,27 +720,27 @@ requirejs([
 		const handle = (event, turn) => {
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.score, move1.score);
 				assert.equal(game.whosTurnKey, human2.key);
 				break;
 			case 1:
-				assert.equal(turn.type, 'challenge-won');
+				assert.equal(turn.type, Turn.TYPE_CHALLENGE_WON);
 				assert.equal(turn.challengerKey, human2.key);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.score, -move1.score);
 				break;
 			case 2:
-				assert.equal(turn.type, 'passed');
+				assert.equal(turn.type, Turn.TYPE_PASSED);
 				assert.equal(turn.playerKey, human2.key);
 				assert.equal(turn.nextToGoKey, human1.key);
 				assert.equal(turn.score, 0);
 				break;
 			case 3:
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.score, move2.score);
@@ -749,8 +751,8 @@ requirejs([
 				assert.fail("Unexpected turn");
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -765,10 +767,10 @@ requirejs([
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.makeMove(human1, move1))
+		.then(() => game.play(human1, move1))
 		.then(() => game.challenge(human2)) // should succeed
 		.then(() => game.pass(human2))
-		.then(() => game.makeMove(human1, move2))
+		.then(() => game.play(human1, move2))
 		.then(() => socket.wait())
 		.then(() => {
 			assert(!human1.missNextTurn);

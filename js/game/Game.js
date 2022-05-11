@@ -3,18 +3,18 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd */
 
-define('game/Game', [
-	'platform',
-	'dawg/Dictionary',
-	'game/GenKey', 'game/Board', 'game/LetterBag', 'game/Edition',
-	'game/Player', 'game/Square', 'game/Tile', 'game/Rack', 'game/Move',
-	'game/Turn'
+define("game/Game", [
+	"platform",
+	"dawg/Dictionary",
+	"game/GenKey", "game/Board", "game/LetterBag", "game/Edition",
+	"game/Player", "game/Square", "game/Tile", "game/Rack", "game/Move",
+	"game/Turn", "game/Notify"
 ], (
 	Platform,
 	Dictionary,
 	GenKey, Board, LetterBag, Edition,
 	Player, Square, Tile, Rack, Move,
-	Turn
+	Turn, Notify
 ) => {
 
 	/**
@@ -294,9 +294,9 @@ define('game/Game', [
 		 */
 		addPlayer(player) {
 			if (!this.letterBag)
-				throw Error('Cannot addPlayer() before create()');
+				throw Error("Cannot addPlayer() before create()");
 			if (this.maxPlayers > 1 && this.players.length === this.maxPlayers)
-				throw Error('Cannot addPlayer() to a full game');			
+				throw Error("Cannot addPlayer() to a full game");			
 			this.players.push(player);
 			player.fillRack(this.letterBag, this.rackSize);
 			if (this._debug) {
@@ -329,7 +329,7 @@ define('game/Game', [
 		 * @return {Player} player, or undefined if not found
 		 */
 		getPlayer(key) {
-			if (typeof key === 'undefined')
+			if (typeof key === "undefined")
 				key = this.whosTurnKey;
 			return this.players.find(p => p.key === key);
 		}
@@ -341,9 +341,9 @@ define('game/Game', [
 		 * @return {Player} previous player
 		 */
 		previousPlayer(player) {
-			if (typeof player === 'undefined')
+			if (typeof player === "undefined")
 				player = this.getPlayer(this.whosTurnKey);
-			else if (typeof player === 'string')
+			else if (typeof player === "string")
 				player = this.getPlayer(player);
 			if (!player)
 				return undefined;
@@ -363,9 +363,9 @@ define('game/Game', [
 		 * @return {Player} the next player
 		 */
 		nextPlayer(player) {
-			if (typeof player === 'undefined')
+			if (typeof player === "undefined")
 				player = this.getPlayer(this.whosTurnKey);
-			else if (typeof player === 'string')
+			else if (typeof player === "string")
 				player = this.getPlayer(player);
 			let index = this.players.findIndex(p => p.key === player.key);
 			if (index < 0)
@@ -419,7 +419,7 @@ define('game/Game', [
 				return Dictionary.load(this.dictionary);
 
 			// Terminal, no point in translating
-			return Promise.reject('Game has no dictionary');
+			return Promise.reject("Game has no dictionary");
 		}
 
 		/**
@@ -454,10 +454,56 @@ define('game/Game', [
 		 * @return {number} a time in epoch ms
 		 */
 		lastActivity() {
-			if (this.turns.length > 0)
-				return this.turns[this.turns.length - 1].timestamp;
+			const last = this.lastTurn();
+			if (last)
+				return last.timestamp;
 
 			return this.creationTimestamp;
+		}
+
+		/**
+		 * Get the last turn made in this game.
+		 * @return {Turn} the last turn recorded for the game, or undefined
+		 * if no turns have been made yet.
+		 */
+		lastTurn() {
+			if (this.turns.length === 0)
+				return undefined;
+
+			return this.turns[this.turns.length - 1];
+		}
+
+		/**
+		 * Get the last move made in this game. A move is the last
+		 * successful placement of tiles that is not followed by a
+		 * `Turn.TYPE_TOOK_BACK` or `Turn.TYPE_CHALLENGE_WON`.
+		 * @return {Turn} the last move recorded for the game.
+		 */
+		lastPlay() {
+			let i = this.turns.length - 1;
+			let skipPrevious = false;
+			while (i >= 0) {
+				switch (this.turns[i].type) {
+				case Turn.TYPE_PLAY:
+					if (!skipPrevious)
+						return this.turns[i];
+					skipPrevious = false;
+					break;
+
+				case Turn.TYPE_CHALLENGE_LOST:
+				case Turn.TYPE_SWAP:
+					break;
+
+				case Turn.TYPE_CHALLENGE_WON:
+				case Turn.TYPE_TOOK_BACK:
+					skipPrevious = true;
+					break;
+
+				case Turn.TYPE_GAME_OVER:
+					return undefined;
+				}
+			}
+			return undefined;
 		}
 
 		/**
@@ -478,8 +524,8 @@ define('game/Game', [
 			if (this.wordCheck === Game.WORD_CHECK_AFTER) options.push("A");
 			if (this.wordCheck === Game.WORD_CHECK_REJECT) options.push("R");
 			if (this.allowTakeBack) options.push("T");
-			const ps = this.players.map(p => p.toString()).join(', ');
-			return `Game ${options.join('')} ${this.key} edition "${this.edition}" dictionary "${this.dictionary}" players [ ${ps} ] player ${this.whosTurnKey}`;
+			const ps = this.players.map(p => p.toString()).join(", ");
+			return `Game ${options.join("")} ${this.key} edition "${this.edition}" dictionary "${this.dictionary}" players [ ${ps} ] player ${this.whosTurnKey}`;
 		}
 
 		/**
@@ -590,7 +636,7 @@ define('game/Game', [
 		 * @param {Object} data to send with message
 		 */
 		notifyPlayers(message, data) {
-			if (this._debug && message !== 'connections')
+			if (this._debug && message !== Notify.CONNECTIONS)
 				console.debug(`<-S- * ${message}`, data);
 			this._connections.forEach(socket => socket.emit(message, data));
 		}
@@ -633,7 +679,7 @@ define('game/Game', [
 			// one turn broadcast, and a different turn sent to the
 			// playing player.
 			return this.save()
-			.then(() => this.notifyPlayers('turn', turn))
+			.then(() => this.notifyPlayers(Notify.TURN, turn))
 			.then(() => this);
 		}
 
@@ -652,7 +698,7 @@ define('game/Game', [
 				return Promise.resolve(this); // still active
 
 			if (this._debug)
-				console.debug('Game timed out:',
+				console.debug("Game timed out:",
 						this.players.map(({ name }) => name));
 
 			this.state = Game.STATE_TIMED_OUT;
@@ -686,7 +732,7 @@ define('game/Game', [
 							 cat.nextToGo = true;
 						 return cat;
 					 })))
-			.then(res => this.notifyPlayers('connections', res));
+			.then(res => this.notifyPlayers(Notify.CONNECTIONS, res));
 		}
 
 		/**
@@ -735,7 +781,7 @@ define('game/Game', [
 				// Make the player pass when their clock reaches 0
 				player.setTimeout(
 					timeout || this.timeLimit,
-					() => this.pass(player, 'timeout'));
+					() => this.pass(player, Turn.TYPE_TIMED_OUT));
 
 			return Promise.resolve(this);
 		}
@@ -797,7 +843,7 @@ define('game/Game', [
 
 			const knownSocket = this.getConnection(player);
 			if (knownSocket !== null) {
-				console.error('WARNING:', player.key, 'already connected to',
+				console.error("WARNING:", player.key, "already connected to",
 							this.key);
 			} else if (this._debug && player) {
 				// This player is just connecting, perhaps for the first time.
@@ -820,7 +866,7 @@ define('game/Game', [
 			this.updateConnections();
 
 			// Add disconnect listener
-			socket.on('disconnect', () => {
+			socket.on("disconnect", () => {
 				if (this._debug)
 					console.debug(socket.player
 							? `${socket.player.toString()} disconnected`
@@ -876,7 +922,7 @@ define('game/Game', [
 			// survive a server restart. However it's expensive, and server
 			// restarts are rare, so let's not.
 			this.notifyPlayers(
-				'tick',
+				Notify.TICK,
 				{
 					gameKey: this.key,
 					playerKey: player.key,
@@ -905,7 +951,7 @@ define('game/Game', [
 		stopTheClock() {
 			if (this._intervalTimer) {
 				if (this._debug)
-					console.debug('Stopped the clock');
+					console.debug("Stopped the clock");
 				clearInterval(this._intervalTimer);
 				this._intervalTimer = null;
 			}
@@ -924,7 +970,7 @@ define('game/Game', [
 			let bestPlay = null;
 			Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
-					if (typeof data === 'string') {
+					if (typeof data === "string") {
 						if (this._debug)
 							console.debug(data);
 					}
@@ -933,7 +979,7 @@ define('game/Game', [
 				})
 			.then(() => {
 				const hint = {
-					sender: /*i18n*/'Advisor'
+					sender: /*i18n*/"Advisor"
 				};
 				if (!bestPlay)
 					hint.text = /*i18n*/"Can't find a play";
@@ -942,27 +988,27 @@ define('game/Game', [
 						console.debug(bestPlay);
 					const start = bestPlay.placements[0];
 					hint.text = /*i18n*/"Hint";
-					const words = bestPlay.words.map(w => w.word).join(',');
+					const words = bestPlay.words.map(w => w.word).join(",");
 					hint.args = [
 						words, start.row + 1, start.col + 1, bestPlay.score
 					];
 				}
 
 				// Tell the requesting player the hint
-				this.notifyPlayer(player, 'message', hint);
+				this.notifyPlayer(player, Notify.MESSAGE, hint);
 				
 				// Tell *everyone* that they asked for a hint
-				this.notifyPlayers('message', {
+				this.notifyPlayers(Notify.MESSAGE, {
 					sender: /*i18n*/"Advisor",
 					text: /*i18n*/"$1 asked for a hint",
-					classes: 'warning',
+					classes: "warning",
 					args: [ player.name ],
 					timestamp: Date.now()
 				});
 			})
 			.catch(e => {
-				console.error('Error', e);
-				this.notifyPlayers('message', {
+				console.error("Error", e);
+				this.notifyPlayers(Notify.MESSAGE, {
 					sender: /*i18n*/"Advisor",
 					text: e.toString(),
 					timestamp: Date.now()
@@ -977,18 +1023,18 @@ define('game/Game', [
 		toggleAdvice(player) {
 			player.toggleAdvice();
 			this.notifyPlayer(
-				player, 'message',
+				player, Notify.MESSAGE,
 				{
-					sender: /*i18n*/'Advisor',
+					sender: /*i18n*/"Advisor",
 					text: (player.wantsAdvice
-						   ? /*i18n*/'Enabled'
-						   : /*i18n*/'Disabled')
+						   ? /*i18n*/"Enabled"
+						   : /*i18n*/"Disabled")
 				});
 			if (player.wantsAdvice)
-				this.notifyPlayers('message', {
+				this.notifyPlayers(Notify.MESSAGE, {
 					sender: /*i18n*/"Advisor",
 					text: /*i18n*/"$1 has asked for advice from the robot",
-					classes: 'warning',
+					classes: "warning",
 					args: [ player.name ],
 					timestamp: Date.now()
 				});
@@ -1008,7 +1054,7 @@ define('game/Game', [
 			let bestPlay = null;
 			return Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
-					if (typeof data === 'string') {
+					if (typeof data === "string") {
 						if (this._debug)
 							console.debug(data);
 					} else
@@ -1019,18 +1065,18 @@ define('game/Game', [
 					if (this._debug)
 						console.debug(`Better play found for ${player.name}`);
 					const start = bestPlay.placements[0];
-					const words = bestPlay.words.map(w => w.word).join(',');
+					const words = bestPlay.words.map(w => w.word).join(",");
 					const advice = {
-						sender: /*i18n*/'Advisor',
+						sender: /*i18n*/"Advisor",
 						text: /*i18n*/"$1 at row $2 column $3 would have scored $4",
 						args: [	words, start.row + 1, start.col + 1,
 								bestPlay.score ]
 					};
-					this.notifyPlayer(player, 'message', advice);
-					this.notifyPlayers('message', {
+					this.notifyPlayer(player, Notify.MESSAGE, advice);
+					this.notifyPlayers(Notify.MESSAGE, {
 						sender: /*i18n*/"Advisor",
 						text: /*i18n*/"$1 has received advice from the robot",
-						classes: 'warning',
+						classes: "warning",
 						args: [ player.name ],
 						timestamp: Date.now()
 					});
@@ -1039,19 +1085,19 @@ define('game/Game', [
 						console.debug(`No better plays found for ${player.name}`);
 			})
 			.catch(e => {
-				console.error('Error', e);
+				console.error("Error", e);
 			});
 		}
 
 		/**
-		 * Handler for 'makeMove' command.
+		 * Handler for `Command.PLAY`
 		 * @param {Player} player player requesting the move
 		 * @param {Move} move a Move (or the spec of a Move)
 		 * @return {Promise} resolving to a the game
 		 */
-		async makeMove(player, move) {
+		async play(player, move) {
 			if (player.key !== this.whosTurnKey)
-				return Promise.reject('Not your turn');
+				return Promise.reject("Not your turn");
 
 			if (!(move instanceof Move))
 				move = new Move(move);
@@ -1081,12 +1127,12 @@ define('game/Game', [
 				});
 				if (badWords.length > 0) {
 					if (this._debug)
-						console.debug('\trejecting', badWords);
+						console.debug("\trejecting", badWords);
 					// Reject the play. Nothing has been done to the
 					// game state yet, so we can just ping the
 					// player back and let the UI sort it out.
 					this.notifyPlayer(
-						player, 'reject',
+						player, Notify.REJECT,
 						{
 							playerKey: player.key,
 							words: badWords
@@ -1124,9 +1170,9 @@ define('game/Game', [
 			}
 
 			if (this._debug)
-				console.debug('New rack', player.rack.toString());
+				console.debug("New rack", player.rack.toString());
 
-			//console.debug('words ', move.words);
+			//console.debug("words ", move.words);
 
 			if (this.dictionary
 				&& this.wordCheck === Game.WORD_CHECK_AFTER
@@ -1137,14 +1183,14 @@ define('game/Game', [
 				.then(dict => {
 					for (let w of move.words) {
 						if (this._debug)
-							console.debug('Checking ',w);
+							console.debug("Checking ",w);
 						if (!dict.hasWord(w.word)) {
 							// Only want to notify the player
 							this.notifyPlayer(
-								player, 'message',
+								player, Notify.MESSAGE,
 								{
-									sender: /*i18n*/'Advisor',
-									text: /*i18n*/'$1 not found in $2',
+									sender: /*i18n*/"Advisor",
+									text: /*i18n*/"$1 not found in $2",
 									args: [ w.word, dict.name ]
 								});
 						}
@@ -1152,18 +1198,13 @@ define('game/Game', [
 				});
 			}
 
-			// Record the move
-			move.playerKey = player.key;
-			move.remainingTime = player.remainingTime;
-			this.previousMove = move;
-
 			player.passes = 0;
 
 			// Report the result of the turn
 			const nextPlayer = this.nextPlayer();
 			this.whosTurnKey = nextPlayer.key;
 			return this.finishTurn(new Turn(this, {
-				type: 'move',
+				type: Turn.TYPE_PLAY,
 				playerKey: player.key,
 				nextToGoKey: nextPlayer.key,
 				score: move.score,
@@ -1188,10 +1229,10 @@ define('game/Game', [
 			// challenge is a Promise that will resolve to a Turn if a
 			// challenge is made, or undefined otherwise.
 			let challenge = Promise.resolve(undefined);
-			if (this.dictionary
-				&& player.canChallenge
-				&& this.previousMove) {
-				const lastPlayer = this.getPlayer(this.previousMove.playerKey);
+			if (this.lastPlay()
+				&& this.dictionary
+				&& player.canChallenge) {
+				const lastPlayer = this.getPlayer(this.lastPlay().playerKey);
 				// There's no point if they are also a robot, though
 				// that should never arise in a "real" game where there can
 				// only be one robot.
@@ -1199,7 +1240,7 @@ define('game/Game', [
 					// use game dictionary, not robot dictionary
 					challenge = this.getDictionary()
 					.then(dict => {
-						const bad = this.previousMove.words
+						const bad = this.lastPlay().words
 							  .filter(word => !dict.hasWord(word.word));
 						if (bad.length > 0) {
 							// Challenge succeeded
@@ -1207,7 +1248,7 @@ define('game/Game', [
 								console.debug(`Challenging ${lastPlayer.name}`);
 								console.debug(`Bad Words: `, bad);
 							}
-							return this.takeBack(player, 'challenge-won')
+							return this.takeBack(player, Turn.TYPE_CHALLENGE_WON)
 							.then(() => true);
 						}
 						return false;
@@ -1221,11 +1262,11 @@ define('game/Game', [
 				// least one other player can play again.
 				// Challenge cannot fail - robot never challenges unless
 				// it is sure it will win.
-				if (!challenged && this.previousMove) {
+				if (!challenged && this.lastPlay()) {
 					// Last play was good, check the last player has tiles
 					// otherwise the game is over
 					const lastPlayer = this.getPlayer(
-						this.previousMove.playerKey);
+						this.lastPlay().playerKey);
 					if (lastPlayer.rack.isEmpty())
 						return this.confirmGameOver(Game.STATE_GAME_OVER);
 				}
@@ -1234,18 +1275,18 @@ define('game/Game', [
 				return Platform.findBestPlay(
 					this, player.rack.tiles(),
 					data => {
-						if (typeof data === 'string') {
+						if (typeof data === "string") {
 							if (this._debug)
 								console.debug(data);
 						} else {
 							bestPlay = data;
 							if (this._debug)
-								console.debug('Best', bestPlay);
+								console.debug("Best", bestPlay);
 						}
 					}, player.dictionary)
 				.then(() => {
 					if (bestPlay)
-						return this.makeMove(player, bestPlay);
+						return this.play(player, bestPlay);
 
 					if (this._debug)
 						console.debug(`${player.name} can't play, passing`);
@@ -1266,7 +1307,7 @@ define('game/Game', [
 			this.pausedBy = player.name;
 			if (this._debug)
 				console.debug(`${this.pausedBy} has paused game`);
-			this.notifyPlayers('pause', {
+			this.notifyPlayers(Notify.PAUSE, {
 				key: this.key,
 				name: player.name,
 				timestamp: Date.now()
@@ -1284,7 +1325,7 @@ define('game/Game', [
 				return Promise.resolve(this); // not paused
 			if (this._debug)
 				console.debug(`${player.name} has unpaused game`);
-			this.notifyPlayers('unpause', {
+			this.notifyPlayers(Notify.UNPAUSE, {
 				key: this.key,
 				name: player.name,
 				timestamp: Date.now()
@@ -1322,7 +1363,7 @@ define('game/Game', [
 				deltas[player.key] = { tiles: 0 };
 				if (player.rack.isEmpty()) {
 					if (playerWithNoTiles)
-						throw Error('Found more than one player with no tiles when finishing game');
+						throw Error("Found more than one player with no tiles when finishing game");
 					playerWithNoTiles = player;
 				}
 				else {
@@ -1350,7 +1391,7 @@ define('game/Game', [
 					console.debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
 			}
 			const turn = new Turn(this, {
-				type: /*i18n*/'Game over',
+				type: Turn.TYPE_GAME_OVER,
 				endState: endState,
 				playerKey: this.whosTurnKey,
 				score: deltas
@@ -1361,21 +1402,19 @@ define('game/Game', [
 		/**
 		 * Undo the last move. This might be as a result of a player request,
 		 * or the result of a challenge.
-		 * @param {Player} challenger if type=='challenge-won' this must be
+		 * @param {Player} player if type==Turn.TYPE_CHALLENGE_WON this must be
 		 * the challenging player. Otherwise it is the player taking their
 		 * play back.
-		 * @param {string} type the type of the takeBack; 'took-back'
-		 * or 'challenge-won'.
+		 * @param {string} type the type of the takeBack; Turn.TYPE_TOOK_BACK
+		 * or Turn.TYPE_CHALLENGE_WON.
 		 * @return {Promise} Promise resolving to the game
 		 */
 		takeBack(player, type) {
-			// The UI ensures that 'took-back' can only be issued by the
+			// The UI ensures that 'takeBack' can only be issued by the
 			// previous player.
-			const previousMove = this.previousMove;
+			const previousMove = this.lastPlay();
 			const prevPlayer = this.getPlayer(previousMove.playerKey);
-
-			delete this.previousMove;
-
+			
 			// Move tiles that were added to the rack as a consequence
 			// of the previous move, back to the letter bag
 			if (previousMove.replacements) {
@@ -1400,14 +1439,14 @@ define('game/Game', [
 			const turn = new Turn(this, {
 				type: type,
 				nextToGoKey:
-				type === 'challenge-won' ? this.whosTurnKey
+				type === Turn.TYPE_CHALLENGE_WON ? this.whosTurnKey
 				: previousMove.playerKey,
 				score: -previousMove.score,
 				placements: previousMove.placements,
 				replacements: previousMove.replacements,
 			});
 
-			if (type === 'took-back') {
+			if (type === Turn.TYPE_TOOK_BACK) {
 				// A takeBack, not a challenge.
 				turn.playerKey = previousMove.playerKey;
 
@@ -1420,14 +1459,14 @@ define('game/Game', [
 			this.whosTurnKey = player.key;
 			return this.finishTurn(turn)
 			.then(() => {
-				if (type === 'took-back') {
+				if (type === Turn.TYPE_TOOK_BACK) {
 					// Let the taking-back player go again,
 					// but with just the remaining time from their move.
 					return this.startTurn(player, previousMove.remainingTime);
 				}
-				// Otherwise this is a challenge-won, and the current player
-				// continues where they left off, but with the timer
-				// reset
+				// Otherwise this is a successful challenge, and the
+				// current player continues where they left off, but
+				// with their timer reset
 				return Promise.resolve(this);
 			});
 		}
@@ -1437,19 +1476,17 @@ define('game/Game', [
 		 * Player wants to (or has to) miss their move. Either they
 		 * can't play, or challenged and failed.
 		 * @param {Player} player player passing (must be current player)
-		 * @param {string} type pass type, 'passed' or 'timeout'. If
-		 * undefined, defaults to 'passed;
+		 * @param {string} type pass type, `Turn.TYPE_PASSED` or
+		 * `Turn.TYPE_TIMEOUT`. If undefined, defaults to passed
 		 * @return {Promise} resolving to the game
 		 */
 		pass(player, type) {
 			if (player.key !== this.whosTurnKey)
-				return Promise.reject('Not your turn');
-
-			delete this.previousMove;
+				return Promise.reject("Not your turn");
 
 			const turn = new Turn(
 				this, {
-					type: type || 'passed'
+					type: type || Turn.TYPE_PASSED
 				});
 			turn.playerKey = player.key;
 			player.passes++;
@@ -1468,32 +1505,33 @@ define('game/Game', [
 		 * @return {Promise} resolving to the game
 		 */
 		challenge(challenger) {
-			if (!this.previousMove)
-				return Promise.reject('No previous move to challenge');
+			const previousMove = this.lastPlay();
+			if (!previousMove)
+				return Promise.reject("No previous move to challenge");
 
-			if (challenger.key === this.previousMove.playerKey)
-				return Promise.reject('Cannot challenge your own play');
+			if (challenger.key === previousMove.playerKey)
+				return Promise.reject("Cannot challenge your own play");
 
 			return this.getDictionary()
 			.catch(() => {
 				if (this._debug)
-					console.debug('No dictionary, so challenge always succeeds');
-				return this.takeBack(challenger, 'challenge-won');
+					console.debug("No dictionary, so challenge always succeeds");
+				return this.takeBack(challenger, Turn.TYPE_CHALLENGE_WON);
 			})
 			.then(dict => {
-				const bad = this.previousMove.words
+				const bad = previousMove.words
 					  .filter(word => !dict.hasWord(word.word));
 
 				if (bad.length > 0) {
 					// Challenge succeeded
 					if (this._debug)
 						console.debug("Bad Words: ", bad);
-					return this.takeBack(challenger, 'challenge-won');
+					return this.takeBack(challenger, Turn.TYPE_CHALLENGE_WON);
 				}
 
 				// Challenge failed
 
-				const prevPlayerKey = this.previousMove.playerKey;
+				const prevPlayerKey = previousMove.playerKey;
 				const currPlayerKey = this.getPlayer().key;
 				const nextPlayer = this.nextPlayer();
 
@@ -1508,15 +1546,15 @@ define('game/Game', [
 					// challenging player is the next player, then it is game
 					// over. It is the last play if there were no
 					// replacements.
-					if ((!this.previousMove.replacements
-						 || this.previousMove.replacements.length === 0))
+					if ((!previousMove.replacements
+						 || previousMove.replacements.length === 0))
 						return this.confirmGameOver(
 							Game.STATE_CHALLENGE_FAILED);
 					// Otherwise issue turn type=challenge-failed
 
 					const turn = new Turn(
 						this, {
-							type: 'challenge-failed',
+							type: "challenge-failed",
 							penalty: Game.PENALTY_MISS,
 							playerKey: prevPlayerKey,
 							challengerKey: challenger.key,
@@ -1540,7 +1578,7 @@ define('game/Game', [
 					break;
 				case Game.PENALTY_PER_WORD:
 					lostPoints = -this.penaltyPoints
-					* this.previousMove.words.length;
+					* previousMove.words.length;
 					break;
 				default: // Game.PENALTY_NONE
 				}
@@ -1549,7 +1587,7 @@ define('game/Game', [
 
 				return this.finishTurn(new Turn(
 					this, {
-						type: 'challenge-failed',
+						type: "challenge-failed",
 						score: lostPoints,
 						playerKey: prevPlayerKey,
 						challengerKey: challenger.key,
@@ -1571,13 +1609,14 @@ define('game/Game', [
 		 */
 		swap(player, tiles) {
 			if (player.key !== this.whosTurnKey)
-				return Promise.reject('Not your turn');
+				return Promise.reject("Not your turn");
 
 			if (this.letterBag.remainingTileCount() < tiles.length)
 				// Terminal, no point in translating
 				throw Error(`Cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
 
-			delete this.previousMove;
+			// A swap counts as a pass. If the other player is also swapping
+			// or passing, that means two swaps at most.
 			player.passes++;
 
 			// Construct a move to record the results of the swap
@@ -1610,7 +1649,7 @@ define('game/Game', [
 			return this.finishTurn(new Turn(
 				this,
 				{
-					type: 'swap',
+					type: Turn.TYPE_SWAP,
 					playerKey: player.key,
 					nextToGoKey: nextPlayer.key,
 					replacements: move.replacements
@@ -1619,7 +1658,7 @@ define('game/Game', [
 		}
 
 		/**
-		 * Handler for 'anotherGame' command
+		 * Create another game the same, but with players re-ordered.
 		 * @return {Promise} resolving to the new game
 		 */
 		anotherGame() {
@@ -1650,7 +1689,7 @@ define('game/Game', [
 					console.debug(`Created follow-on game ${newGame.key}`);
 				return newGame.save()
 				.then(() => newGame.playIfReady()) // trigger robot
-				.then(() => this.notifyPlayers('nextGame', {
+				.then(() => this.notifyPlayers(Notify.NEXT_GAME, {
 					gameKey: newGame.key,
 					timestamp: Date.now()
 				}))
@@ -1665,7 +1704,7 @@ define('game/Game', [
 		 * @return {jQuery} jQuery object representing the player table
 		 */
 		$ui(thisPlayer) {
-			const $tab = $('<table class="playerTable"></table>');
+			const $tab = $("<table></table>").addClass("player-table");
 			this.players.forEach(
 				p => $tab.append(p.$ui(thisPlayer)));
 			return $tab;

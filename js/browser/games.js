@@ -9,12 +9,12 @@ and license information*/
 requirejs([
 	'platform',
 	'browser/UI', 'browser/Dialog',
-	'game/Player', 'game/Game',
+	'game/Player', 'game/Game', 'game/Notify',
 	'jquery'
 ], (
 	Platform,
 	UI, Dialog,
-	Player, Game
+	Player, Game, Notify
 ) => {
 
 	const TWIST_OPEN = '\u25BC';
@@ -105,7 +105,7 @@ requirejs([
 				this.refresh().catch(UI.report);
 			});
 
-			socket.emit('monitor');
+			socket.emit(Notify.MONITOR);
 		}
 
 		/**
@@ -314,7 +314,7 @@ requirejs([
 					$(`<div class="game-options"></div>`)
 					.text($.i18n("Options: " + options.join(", "))));
 			}
-			const $table = $("<table class='playerTable'></table>");
+			const $table = $("<table></table>").addClass("player-table");
 			$twist.append($table);
 			game.players.forEach(
 				player => $table.append(this.$player(game, player, isActive)));
@@ -419,7 +419,7 @@ requirejs([
 				.tooltip({
 					content: $.i18n("tooltip-observe-game")
 				})
-				.on('click', () => {
+				.on("click", () => {
 					console.log(`Observe game ${game.key}`);
 					window.open(
 						`/html/game.html?game=${game.key}`,

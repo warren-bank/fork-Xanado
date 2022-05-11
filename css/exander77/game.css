@@ -531,7 +531,7 @@ button.fat-button {
 }
 
 /* Who sent a chat message */
-.chatSender {
+.chat-sender {
 	font-weight: bold;
 }
 
@@ -545,7 +545,7 @@ button.fat-button {
     width: 95%;
 }
 
-.chatMessage.warning {
+.chat-message.warning {
 	color: #B00;
 }
 

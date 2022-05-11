@@ -3,7 +3,7 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd */
 
-define('game/Turn', ["game/Move"], Move => {
+define("game/Turn", ["game/Move"], Move => {
 
 	/**
 	 * Communicating the result of a command from server back to client,
@@ -28,13 +28,8 @@ define('game/Turn', ["game/Move"], Move => {
 			this.gameKey = game.key;
 
 			/**
-			 * The 'type' of the turn. This will be one of
-			 * * `move`: a player has made a move
-			 * * `swap`: a player has execute a tile swap
-			 * * `Game over`: the end of the game has been confirmed
-			 * * `challenge-failed`: a challenge was not successful
-			 * * `challenge-won`: a challenge succeeded
-			 * * `took-back`: the last player took back their turn
+			 * The 'type' of the turn. This will be one of Turn_TYPE_*
+			 * constants.
 			 * @member {string}
 			 */
 			this.type = params.type;
@@ -55,7 +50,7 @@ define('game/Turn', ["game/Move"], Move => {
 			this.nextToGoKey = params.nextToGoKey;
 			
 			/**
-			 * For 'challenge-won' and 'challenge-failed',
+			 * For `Turn.TYPE_CHALLENGE_WON` and `Turn.TYPE_CHALLENGE_FAIL`,
 			 * the key of the player who challenged. playerkey in this case
 			 * will be the player who's play was challenged (always the
 			 * previous player)
@@ -75,13 +70,22 @@ define('game/Turn', ["game/Move"], Move => {
 
 			/**
 			 * String describing the reason the game ended. Only used when
-			 * type=='Game over'
+			 * type==Turn.TYPE_GAME_OVER
 			 * @member {string?}
 			 */
 			if (params.endState)
 				this.endState = params.endState;
 		}
 	}
+
+	Turn.TYPE_PLAY           = "play";
+	Turn.TYPE_SWAP           = "swap";
+	Turn.TYPE_GAME_OVER      = "game-over";
+	Turn.TYPE_CHALLENGE_FAIL = "challenge-lost";
+	Turn.TYPE_CHALLENGE_WON  = "challenge-won";
+	Turn.TYPE_TOOK_BACK      = "took-back";
+	Turn.TYPE_PASSED         = "passed";
+	Turn.TYPE_TIMED_OUT      = "timed-out";
 
 	return Turn;
 });

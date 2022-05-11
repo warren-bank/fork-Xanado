@@ -21,44 +21,44 @@ and license information*/
 	color: #f3c716ff;
 }
 
-.playerTable tr.player-row {
+.player-table tr.player-row {
 }
 
-.playerTable td {
+.player-table td {
 	vertical-align: middle;
 }
 
-.playerTable .connect-state {}
+.player-table .connect-state {}
 
-.playerTable .connect-state.online {
+.player-table .connect-state.online {
     color: green;
 }
 
-.playerTable .connect-state.offline {
+.player-table .connect-state.offline {
     color: #FF0000;
 }
 
 /* The pointer */
-.playerTable td.turn-pointer {
+.player-table td.turn-pointer {
 	visibility: hidden;
 	color: green;
 }
 
 /* whosTurn is added to the table row when it's the player's turn. This
  * enables the td that contains the pointer */
-.playerTable tr.whosTurn td.turn-pointer {
+.player-table tr.whosTurn td.turn-pointer {
 	visibility: inherit;
 }
 
-.playerTable td.player-name {
+.player-table td.player-name {
 	font-weight: bold;
 }
 
 /* player is missing their next turn */
-.playerTable .miss-turn {
+.player-table .miss-turn {
 	text-decoration:line-through;
 }
 
-.playerTable td.remaining-tiles {}
+.player-table td.remaining-tiles {}
 
-.playerTable td.score {}
+.player-table td.score {}

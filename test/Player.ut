@@ -3,17 +3,17 @@
 /* eslint-env node, mocha */
 /*global document:writable*/
 
-requirejs = require('requirejs');
+requirejs = require("requirejs");
 // node.js
-const { JSDOM } = require('jsdom');
+const { JSDOM } = require("jsdom");
 /* eslint-disable no-global-assign */
-document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
+document = new JSDOM("<!doctype html><html><body id='working'></body></html>");
 /* eslint-enable no-global-assign */
 const { window } = document;
 global.window = window;
 global.document = window.document;
 global.navigator = { userAgent: "node.js" };
-const jQuery = require('jquery');
+const jQuery = require("jquery");
 global.jQuery = jQuery;
 global.$ = jQuery;
 
@@ -22,19 +22,19 @@ requirejs.config({
 	nodeRequire: require,
     paths: {
 		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
-		game: 'js/game',
-		platform: 'js/server/ServerPlatform'
+		game: "js/game",
+		platform: "js/server/ServerPlatform"
     }
 });
 
-requirejs(['test/TestRunner', 'game/Player'], (TestRunner, Player) => {
-    let tr = new TestRunner('Player tests');
+requirejs(["test/TestRunner", "game/Player"], (TestRunner, Player) => {
+    let tr = new TestRunner("Player tests");
     let assert = tr.assert;
 
-	tr.addTest('construct', () => {
+	tr.addTest("construct", () => {
 		const p = {
-			name: 'name',
-			key: 'key',
+			name: "name",
+			key: "key",
 			isRobot: true,
 			canChallenge: true,
 			missNextTurn: true,
@@ -46,10 +46,10 @@ requirejs(['test/TestRunner', 'game/Player'], (TestRunner, Player) => {
 		}
 	});
 
-	tr.addTest('$html-robot', () => {
+	tr.addTest("$html-robot", () => {
 		const p = {
-			name: 'Player 1',
-			key: 'playerkey',
+			name: "Player 1",
+			key: "playerkey",
 			isRobot: true,
 			canChallenge: true,
 			missNextTurn: true,
@@ -57,15 +57,15 @@ requirejs(['test/TestRunner', 'game/Player'], (TestRunner, Player) => {
 			dictionary: "NoDic"
 		};
 		const player = new Player(p);
-		const $tr = $('<tr></tr>').addClass("player-row");
+		const $tr = $("<tr></tr>").addClass("player-row");
 		$tr[0].id = `player${p.key}`;
-		$tr.append('<td class="turn-pointer">&#10148;</td>');
-		$tr.append('<td><div class="ui-icon icon-robot"></div></td>');
+		$tr.append("<td class='turn-pointer'>&#10148;</td>");
+		$tr.append("<td><div class='ui-icon icon-robot'></div></td>");
 		$tr.append(`<td class="player-name miss-turn">${p.name}</td>`);
-		$tr.append('<td class="remaining-tiles"></td>');
-		$tr.append(`<td class='connect-state online'>●</td>`);
-		$tr.append('<td class="score">0</td>');
-		$tr.append('<td class="player-clock"></td>');
+		$tr.append("<td class='remaining-tiles'></td>");
+		$tr.append(`<td class="connect-state online">●</td>`);
+		$tr.append("<td class='score'>0</td>");
+		$tr.append("<td class='player-clock'></td>");
 
 		player.isConnected = true; // muddy-boots client-side setting
 
@@ -74,10 +74,10 @@ requirejs(['test/TestRunner', 'game/Player'], (TestRunner, Player) => {
 			  `expected: ${$tr.html()}\n actual: ${$act.html()}`);
 	});
 
-	tr.addTest('$html-human', () => {
+	tr.addTest("$html-human", () => {
 		const p = {
-			name: 'Player 1',
-			key: 'playerkey',
+			name: "Player 1",
+			key: "playerkey",
 			isRobot: false,
 			canChallenge: false,
 			missNextTurn: false,
@@ -87,16 +87,16 @@ requirejs(['test/TestRunner', 'game/Player'], (TestRunner, Player) => {
 		const player = new Player(p);
 		player.score = 20;
 
-		const $tr = $('<tr></tr>').addClass("player-row");
+		const $tr = $("<tr></tr>").addClass("player-row");
 		$tr[0].id = `player${p.key}`;
 
-		$tr.append('<td class="turn-pointer">&#10148;</td>');
-		$tr.append('<td><div class="ui-icon icon-person"></div></td>');
+		$tr.append("<td class='turn-pointer'>&#10148;</td>");
+		$tr.append("<td><div class='ui-icon icon-person'></div></td>");
 		$tr.append(`<td class="player-name">${p.name}</td>`);
-		$tr.append('<td class="remaining-tiles"></td>');
+		$tr.append("<td class='remaining-tiles'></td>");
 		$tr.append(`<td class='connect-state offline'>●</td>`);
-		$tr.append('<td class="score">20</td>');
-		$tr.append('<td class="player-clock"></td>');
+		$tr.append("<td class='score'>20</td>");
+		$tr.append("<td class='player-clock'></td>");
 		const $act = player.$ui();
 		assert($act[0].isEqualNode($tr[0]),
 			  `expected: ${$tr.html()}\n actual: ${$act.html()}`);

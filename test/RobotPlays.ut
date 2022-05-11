@@ -19,10 +19,11 @@ requirejs.config({
  */
 requirejs([
 	'test/TestRunner', 'test/TestSocket',
-	'game/Tile', 'game/Player', 'game/Game', 'game/Move', 'game/Turn'
+	'game/Tile', 'game/Player', 'game/Game',
+	'game/Move', 'game/Turn', 'game/Notify'
 ], (
 	TestRunner, TestSocket,
-	Tile, Player, Game, Move, Turn
+	Tile, Player, Game, Move, Turn, Notify
 ) => {
     let tr = new TestRunner('Game - robot plays - tests');
     let assert = tr.assert;
@@ -39,12 +40,12 @@ requirejs([
 								  isRobot: true, canChallenge: true});
 		const human = new Player({name:'Man', key:"human", isRobot: false});
 		const socket = new TestSocket();
-		socket.on('connections', () => {});
+		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on('turn', (event, turn) => {
+		socket.on(Notify.TURN, (event, turn) => {
 			switch(turns++) {
 			case 0:
-				assert.equal(turn.type, 'passed');
+				assert.equal(turn.type, Turn.TYPE_PASSED);
 				assert.equal(turn.playerKey, robot.key);
 				assert.equal(turn.nextToGoKey, human.key);
 				socket.done();
@@ -99,8 +100,8 @@ requirejs([
 
 		const socket = new TestSocket();
 		const handle = (event, data) => {
-			assert.equal(event, 'turn');
-			assert(data.type, 'move');
+			assert.equal(event, Notify.TURN);
+			assert(data.type, Turn.TYPE_PLAY);
 			assert.deepEqual(data.words, [ { word: 'AGO', score: 4 } ]);
 			assert.equal(data.placements.length, 3);
 			assert.equal(data.placements[0].letter, 'A');
@@ -129,8 +130,8 @@ requirejs([
 			assert.equal(data.nextToGoKey, human.key);
 			socket.done();
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -181,8 +182,8 @@ requirejs([
 		const socket = new TestSocket();
 		let turns = 0;
 		const handle = (event, data) => {
-			assert.equal(event, 'turn');
-			assert.equal(data.type, 'move');
+			assert.equal(event, Notify.TURN);
+			assert.equal(data.type, Turn.TYPE_PLAY);
 			assert.equal(data.words.length, 1);
 			if (turns++ == 0) {
 				assert.equal(data.placements.length, 4);
@@ -206,8 +207,8 @@ requirejs([
 				socket.done();
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -232,7 +233,7 @@ requirejs([
 			game.whosTurnKey = human.key;
 		})
 		.then(() => game.connect(socket, human.key))
-		.then(() => game.makeMove(human, move))
+		.then(() => game.play(human, move))
 		.then(() => socket.wait())
 		.then(() => {
 			// We ought to have autoplayed robot
@@ -266,8 +267,8 @@ requirejs([
 		const handle = (event, turn) => {
 			if (turns++ === 0) {
 			} else {
-				assert.equal(event, 'turn');
-				assert.equal(turn.type, 'Game over');
+				assert.equal(event, Notify.TURN);
+				assert.equal(turn.type, Turn.TYPE_GAME_OVER);
 				assert.equal(turn.endState, Game.STATE_GAME_OVER);
 				const exp = {};
 				exp[human.key] = { tiles: 100 };
@@ -281,8 +282,8 @@ requirejs([
 				socket.done();
 			}
 		};
-		socket.on('turn', handle);
-		socket.on('connections', () => {});
+		socket.on(Notify.TURN, handle);
+		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on('*', (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
@@ -309,8 +310,8 @@ requirejs([
 			game.whosTurnKey = human.key;
 		})
 		.then(() => game.connect(socket, human.key))
-		.then(() => game.makeMove(human, move))
-		// the startTurn after the makeMove should have triggered the
+		.then(() => game.play(human, move))
+		// the startTurn after the play should have triggered the
 		// robot to confirmGameOver
 		.then(() => socket.wait());
 	});
@@ -338,22 +339,22 @@ requirejs([
 		});
 
 		const socket = new TestSocket();
-		socket.on('connections', () => {});
+		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on('turn', (event, turn) => {
+		socket.on(Notify.TURN, (event, turn) => {
 			switch(turns++) {
 			case 0:
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				break;
 			case 1:
-				assert.equal(turn.type, 'challenge-won');
+				assert.equal(turn.type, Turn.TYPE_CHALLENGE_WON);
 				assert.equal(turn.score, -3);
 				assert.equal(turn.bonus, 0);
 				assert.equal(turn.playerKey, human.key);
 				assert.equal(turn.challengerKey, robot.key);
 				break;
 			case 2:
-				assert.equal(turn.type, 'move');
+				assert.equal(turn.type, Turn.TYPE_PLAY);
 				assert.equal(turn.score, 16);
 				assert.equal(turn.playerKey, robot.key);
 				assert.equal(turn.nextToGoKey, human.key);
@@ -396,7 +397,7 @@ requirejs([
 				game.letterBag.remainingTileCount());
 		})
 		.then(() => game.connect(socket, human.key))
-		.then(() => game.makeMove(human, move))
+		.then(() => game.play(human, move))
 		// Human has played. The autoplay should issue a challenge,
 		// which is a turn and needs to be reflected in the UI. At the
 		// same time, the robot needs to compute the next play so we

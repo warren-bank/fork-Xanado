@@ -7,34 +7,34 @@
  * It will play a complete game between two robot players. It does not test
  * the server.
  */
-const requirejs = require('requirejs');
+const requirejs = require("requirejs");
 
 requirejs.config({
-	baseUrl: '..',
+	baseUrl: "..",
     nodeRequire: require,
 	paths: {
-		game: 'js/game',
-		server: 'js/server',
-		dawg: 'js/dawg',
+		game: "js/game",
+		server: "js/server",
+		dawg: "js/dawg",
 
-		platform: 'js/server/ServerPlatform'
+		platform: "js/server/ServerPlatform"
 	}
 });
 
 requirejs([
-	'platform', 'game/Edition', 'game/Tile', 'game/Rack',
-	'game/Square', 'game/Player', 'game/Game', 'game/LetterBag',
-	'game/Board', 'game/Move'
+	"platform", "game/Edition", "game/Tile", "game/Rack",
+	"game/Square", "game/Player", "game/Game", "game/LetterBag",
+	"game/Board", "game/Move"
 ], (
 	Platform, Edition, Tile, Rack,
 	Square, Player, Game, LetterBag,
 	Board, Move
 ) => {
 
-	let db = new Platform.Database('test', 'testgame');
+	let db = new Platform.Database("test", "testgame");
 	let game = new Game({
-		edition: 'Tiny',
-		dictionary: 'CSW2019_English'
+		edition: "Tiny",
+		dictionary: "CSW2019_English"
 	});
 	let gameKey = game.key;
 	let player = 0;
@@ -42,9 +42,9 @@ requirejs([
 	game.create()
 	.then(game => {
 		let player1 = new Player({
-			name: 'player one', key: "flay", isRobot: true});
+			name: "player one", key: "flay", isRobot: true});
 		game.addPlayer(player1);
-		let player2 = new Player({name: 'player two', key: "swelter",
+		let player2 = new Player({name: "player two", key: "swelter",
 								 isRobot: true });
 		game.addPlayer(player2);
 		game.whosTurnKey = player1.key;
@@ -68,7 +68,7 @@ requirejs([
 				});
 			});
 		}
-		console.log('Game over');
+		console.log("Robot game over");
 	});
 });
 

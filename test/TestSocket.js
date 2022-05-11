@@ -13,9 +13,9 @@ define("test/TestSocket", [], () => {
 	 * Simulator for socket.io, replaces the socket functionality with a
 	 * simple callback that can be used in tests to monitor expected
 	 * events. Pattern:
-	 * tr.addTest('example', () => {
+	 * tr.addTest("example", () => {
 	 *   const socket = new TestSocket();
-	 *   socket.on('event', (event, data) => {
+	 *   socket.on("event", (event, data) => {
 	 *     // handle expected events. When last event seen, call socket.done()
 	 *   }
 	 *   return new Promise((resolve, reject) => {
@@ -41,8 +41,8 @@ define("test/TestSocket", [], () => {
 			try {
 				if (this.listeners[event] && this.listeners[event].length > 0) {
 					this.listeners[event].forEach(l => l(event, data));
-				} else if (this.listeners['*'])
-					this.listeners['*'].forEach(l => l(event, data));
+				} else if (this.listeners["*"])
+					this.listeners["*"].forEach(l => l(event, data));
 			} catch (e) {
 				console.error(e);
 				this.sawError = e;
@@ -51,7 +51,7 @@ define("test/TestSocket", [], () => {
 		}
 
 		/**
-		 * Register a listener for the given event. Pass '*' for the event
+		 * Register a listener for the given event. Pass "*" for the event
 		 * for a catch-all handler that will handle any events not
 		 * otherwise handled.
 		 */
@@ -63,7 +63,7 @@ define("test/TestSocket", [], () => {
 		}
 
 		/**
-		 * Mark the socket as 'done'. The socket must be sitting in 'wait()'
+		 * Mark the socket as `done`. The socket must be sitting in `wait()`
 		 * when done() is called, or it will error out.
 		 */
 		done() {
@@ -75,7 +75,7 @@ define("test/TestSocket", [], () => {
 		}
 
 		/**
-		 * Wait for the socket to be marked as 'done()'. This will normally
+		 * Wait for the socket to be marked as `done()`. This will normally
 		 * be after all the expected messages have been received. If done()
 		 * is never called, then TestRunner will eventually time out.
 		 */

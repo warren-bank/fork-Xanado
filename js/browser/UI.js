@@ -3,18 +3,18 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env browser, jquery */
 
-define('browser/UI', [
-	'socket.io',  'browser/Dialog',
+define("browser/UI", [
+	"socket.io",  "browser/Dialog",
 
-	'jquery',
-	'jqueryui',
-	'i18n',
-	'i18n_emitter',
-	'i18n_fallbacks',
-	'i18n_language',
-	'i18n_messagestore',
-	'i18n_parser',
-	'pluralRuleParser'
+	"jquery",
+	"jqueryui",
+	"i18n",
+	"i18n_emitter",
+	"i18n_fallbacks",
+	"i18n_language",
+	"i18n_messagestore",
+	"i18n_parser",
+	"pluralRuleParser"
 ], (
 	io, Dialog
 ) => {
@@ -29,7 +29,7 @@ define('browser/UI', [
 			 * Are we using https?
 			 * @member {boolean}
 			 */
-			this.usingHttps = document.URL.indexOf('https:') === 0;
+			this.usingHttps = document.URL.indexOf("https:") === 0;
 
 			/**
 			 * Session object describing signed-in user
@@ -57,7 +57,7 @@ define('browser/UI', [
 		 */
 		static report(args) {
 			// Handle a jqXHR
-			if (typeof args === 'object') {
+			if (typeof args === "object") {
 				if (args.responseJSON)
 					args = args.responseJSON;
 				else if (args.statusText)
@@ -65,7 +65,7 @@ define('browser/UI', [
 			}
 
 			let message;
-			if (typeof(args) === 'string') // simple string
+			if (typeof(args) === "string") // simple string
 				message = $.i18n(args);
 			else if (args instanceof Error) // Error object
 				message = args.toString();
@@ -74,16 +74,12 @@ define('browser/UI', [
 			} else // something else
 				message = args.toString();
 
-			const $dlg = $('#alertDialog');
-			if ($dlg.dialog("isOpen"))
-				$dlg.append(`<p>${message}</p>`);
-			else {
-				$dlg.text(message)
-				.dialog({
-					modal: true,
-					title: $.i18n("XANADO problem")
-				});
-			}
+			$("#alertDialog")
+			.dialog({
+				modal: true,
+				title: $.i18n("XANADO problem")
+			})
+			.append(`<p>${message}</p>`);
 		}
 
 		/**
@@ -124,7 +120,7 @@ define('browser/UI', [
 		 */
 		build() {
 			return Promise.all([
-				$.get('/locales')
+				$.get("/locales")
 				.then(locales => {
 					const params = {};
 					locales.forEach(locale => {
@@ -135,12 +131,12 @@ define('browser/UI', [
 					return $.i18n().load(params).then(() => locales);
 				})
 				.then(locales => {
-					console.log('Locales available', locales.join(', '));
+					console.log("Locales available", locales.join(", "));
 					// Expand/translate strings in the HTML
 					return new Promise(resolve => {
 						$(document).ready(() => {
-							console.log('Translating HTML to', $.i18n().locale);
-							$('body').i18n();
+							console.log("Translating HTML to", $.i18n().locale);
+							$("body").i18n();
 							resolve(locales);
 						});
 					});
@@ -162,9 +158,9 @@ define('browser/UI', [
 			$("button").button();
 
 			// gear button
-			$('#settingsButton')
-			.on('click', () => {
-				const curTheme = this.getSetting('theme');
+			$("#settingsButton")
+			.on("click", () => {
+				const curTheme = this.getSetting("theme");
 				Dialog.open("SettingsDialog", {
 					ui: this,
 					postAction: "/session-settings",
@@ -180,9 +176,9 @@ define('browser/UI', [
 
 			$(document)
 			.tooltip({
-				items: '[data-i18n-tooltip]',
+				items: "[data-i18n-tooltip]",
 				content: function() {
-					return $.i18n($(this).data('i18n-tooltip'));
+					return $.i18n($(this).data("i18n-tooltip"));
 				}
 			});
 
@@ -190,23 +186,23 @@ define('browser/UI', [
 			this.socket = io.connect(null);
 			let $reconnectDialog = null;
 			this.socket
-			.on('connect', skt => {
-				// Note: 'connect' is synonymous with 'connection'
+			.on("connect", skt => {
+				// Note: "connect" is synonymous with "connection"
 				// Socket has connected to the server
-				console.debug('--> connect');
+				console.debug("--> connect");
 				if ($reconnectDialog) {
-					$reconnectDialog.dialog('close');
+					$reconnectDialog.dialog("close");
 					$reconnectDialog = null;
 				}
 				this.connectToServer();
 			})
 
-			.on('disconnect', skt => {
+			.on("disconnect", skt => {
 				// Socket has disconnected for some reason
 				// (server died, maybe?) Back off and try to reconnect.
 				console.debug(`--> disconnect`);
 				const mess = $.i18n("Server disconnected, trying to reconnect");
-				$reconnectDialog = $('#alertDialog')
+				$reconnectDialog = $("#alertDialog")
 				.text(mess)
 				.dialog({
 					title: $.i18n("XANADO problem"),
@@ -288,7 +284,7 @@ define('browser/UI', [
 		 */
 		getSetting(key) {
 			return (this.session && this.session.settings
-					&& typeof this.session.settings[key] !== 'undefined')
+					&& typeof this.session.settings[key] !== "undefined")
 			? this.session.settings[key]
 			: this.defaults[key];
 		}
@@ -306,20 +302,20 @@ define('browser/UI', [
 		 */
 		canNotify() {
 			if (!(this.usingHttps
-				  && this.getSetting('notification')
-				  && 'Notification' in window))
+				  && this.getSetting("notification")
+				  && "Notification" in window))
 				return Promise.reject();
 
 			switch (Notification.permission) {
-			case 'denied':
+			case "denied":
 				return Promise.reject();
-			case 'granted':
+			case "granted":
 				return Promise.resolve();
 			default:
 				return new Promise((resolve, reject) => {
 					return Notification.requestPermission()
 					.then(result => {
-						if (result === 'granted')
+						if (result === "granted")
 							resolve();
 						else
 							reject();
@@ -345,15 +341,15 @@ define('browser/UI', [
 				const notification = new Notification(
 					title,
 					{
-						icon: '/images/favicon.ico',
+						icon: "/images/favicon.ico",
 						body: body
 					});
 				this._notification = notification;
 				$(notification)
-				.on('click', function () {
+				.on("click", function () {
 					this.cancel();
 				})
-				.on('close', () => {
+				.on("close", () => {
 					delete this._notification;
 				});
 			})

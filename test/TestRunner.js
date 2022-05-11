@@ -9,7 +9,7 @@ if (typeof requirejs === "undefined") {
  * Common code for running mocha tests.
  * Look at one of the UnitTest* files to understand the pattern.
  * node.js: Command-line parameters are interpreted as names of tests to run.
- * '*' wildcard.
+ * "*" wildcard.
  * --keep will prevent tmp files from being deleted
  */
 define(["mocha", "chai"], (maybeMocha, chai) => {
@@ -20,7 +20,7 @@ define(["mocha", "chai"], (maybeMocha, chai) => {
 	class TestRunner extends Mocha {
 
 		constructor(title, debug) {
-			super({ reporter: (typeof global === "undefined") ? 'html' : 'spec' });
+			super({ reporter: (typeof global === "undefined") ? "html" : "spec" });
 			this.chai = chai;
 			this.assert = chai.assert;
 
@@ -28,7 +28,7 @@ define(["mocha", "chai"], (maybeMocha, chai) => {
 				if (!path) path = "";
 				for (let f in expected) {
 					const spath = `${path}->${f}`;
-					if (typeof expected[f] === 'object')
+					if (typeof expected[f] === "object")
 						this.assert.sparseEqual(actual[f], expected[f], spath);
 					else
 						this.assert.equal(actual[f], expected[f], spath);
@@ -47,7 +47,7 @@ define(["mocha", "chai"], (maybeMocha, chai) => {
 					if (arg === "--keep")
 						this.keepTmpFiles = true;
 					else {
-						const expr = arg.replace('*', '.*');
+						const expr = arg.replace("*", ".*");
 						this.matches.push(new RegExp(`^${expr}$`));
 					}
 				}
