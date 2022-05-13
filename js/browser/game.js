@@ -1275,10 +1275,7 @@ define("browser/game", [
 		 * @param {boolean} enable true to enable, disable otherwise
 		 */
 		enableTurnButton(enable) {
-			if (enable)
-				$("#turnButton").removeAttr("disabled");
-			else
-				$("#turnButton").attr("disabled", "disabled");
+			$("#turnButton").button(enable ? "enable" : "disable");
 		}
 
 		/**

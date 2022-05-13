@@ -144,6 +144,7 @@ define("browser/UI", [
 				$.get("/defaults")
 				.then(defaults => this.defaults = defaults)
 			])
+			.then(() => $("button").button())
 			.then(() => this.decorate());
 		}
 
@@ -155,8 +156,6 @@ define("browser/UI", [
 		 * complete and the UI is ready.
 		 */
 		decorate() {
-			$("button").button();
-
 			// gear button
 			$("#settingsButton")
 			.on("click", () => {
