@@ -1457,7 +1457,6 @@ define("game/Game", [
 				turn.playerKey = previousMove.playerKey;
 			}
 
-			this.whosTurnKey = player.key;
 			return this.finishTurn(turn)
 			.then(() => {
 				if (type === Turn.TOOK_BACK) {
@@ -1465,7 +1464,7 @@ define("game/Game", [
 					// but with just the remaining time from their move.
 					return this.startTurn(player, previousMove.remainingTime);
 				}
-				// Otherwise this is a successful challenge, and the
+				// Otherwise this is a CHALLENGE_WON, and the
 				// current player continues where they left off, but
 				// with their timer reset
 				return Promise.resolve(this);
@@ -1527,6 +1526,11 @@ define("game/Game", [
 					// Challenge succeeded
 					if (this._debug)
 						console.debug("Bad Words: ", bad);
+
+					// Take back the challenged play. Irrespective of
+					// whether the challenger is the current player or
+					// not, takeBack should leave the next player
+					// after the challenged player with the turn.
 					return this.takeBack(challenger, Turn.CHALLENGE_WON);
 				}
 
@@ -1562,6 +1566,9 @@ define("game/Game", [
 							nextToGoKey: nextPlayer.key
 						});
 
+					// Penalty for a failed challenge is miss a turn,
+					// and the challenger is the current player, so their
+					// turn is at an end.
 					return this.finishTurn(turn)
 					.then(() => this.startTurn(nextPlayer));
 				}
@@ -1585,7 +1592,6 @@ define("game/Game", [
 				}
 
 				challenger.score += lostPoints;
-
 				return this.finishTurn(new Turn(
 					this, {
 						type: Turn.CHALLENGE_LOST,
@@ -1595,7 +1601,7 @@ define("game/Game", [
 						nextToGoKey: currPlayerKey
 					}));
 				// no startTurn, because the challenge is asynchronous and
-				// doesn't move the player on
+				// shouldn't move the player on
 			});
 		}
 
