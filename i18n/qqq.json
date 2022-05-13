@@ -61,6 +61,7 @@
 	"Email turn reminders": "button label",
 	"Enabled": "Log message when advice is enabled",
 	"Enable notifications": "checkbox label in user settings dialog",
+	"Enter a new password. Empty passwords are discouraged, but will work": "tooltip",
 	"Failed challenge penalty": "part of game description",
 	"Feedback on plays": "fieldset title",
 	"Finished Turn": "Button text to commit a play",
