@@ -41,15 +41,18 @@ define("game/Player", [
 		 * if this is a robot
 		 * @param {boolean} params.missNextTurn true if this player
 		 * has to miss their next turn due to a failed challenge
-		 * @param {boolean} params._debug true to enable debug messages
+		 * @param {function} params.debug pass console.debug to enable debug messages
 		 */
 		constructor(params) {
 			/**
-			 * Debug log messages on/off
-			 * @member {boolean}
+			 * Debug
+			 * @member {function}
 			 * @private
 			 */
-			this._debug = params.debug;
+			if (typeof params.debug === "function")
+				this._debug = params.debug;
+			else
+				this._debug = () => {};
 
 			/**
 			 * Player unique key
@@ -215,11 +218,9 @@ define("game/Player", [
 		 */
 		tick() {
 			this.clock--;
-			if (this._debug)
-				console.debug("Tick", this.name, this.clock);
+			this._debug("Tick", this.name, this.clock);
 			if (this.clock <= 0 && typeof this._onTimeout === "function") {
-				if (this._debug)
-					console.debug(`${this.name} has timed out at ${Date.now()}`);
+				this._debug(`${this.name} has timed out at ${Date.now()}`);
 				this._onTimeout();
 				// Timeout only happens once!
 				delete this._onTimeout;
@@ -236,8 +237,7 @@ define("game/Player", [
 		 * timer expires, ignored if time undefined
 		 */
 		setTimeout(time, onTimeout) {
-			if (this._debug)
-				console.debug(`${this.name} turn timeout in ${time}s`);
+			this._debug(`${this.name} turn timeout in ${time}s`);
 			this.clock = time;
 			this._onTimeout = onTimeout;
 		}

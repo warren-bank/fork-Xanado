@@ -54,7 +54,7 @@
 	},
 	"scripts": {
 		"web": "node server.js",
-		"test": "nyc mocha --extension ut --timeout=5000",
+		"test": "mocha --extension ut --timeout=5000",
 		"coverage": "nyc --hook-run-in-context --hook-run-in-this-context mocha --extension ut --timeout=5000"
 	},
 	"eslintConfig": {

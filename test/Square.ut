@@ -52,7 +52,7 @@ describe('Square class', () => {
 		assert(sq.isEmpty());
 		let tile = new Tile({
 			letter:'S', isBlank:false, score:1, col: 7, row: 7});
-		
+		tile.toString();
 		sq.placeTile(tile, false);
 		assert.strictEqual(sq.tile, tile);
 		assert(!sq.tileLocked);

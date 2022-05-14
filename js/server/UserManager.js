@@ -85,7 +85,8 @@ define("server/UserManager", [
 		constructor(config, app) {
 			this.config = config;
 			this.db = undefined;
-			this._debug = config.debug_comms;
+			if (config.debug_comms)
+				this._debug = console.debug;
 
 			// Passport requires ExpressSession to be configured
 			app.use(ExpressSession({
@@ -103,13 +104,13 @@ define("server/UserManager", [
 				// Decide what info from the user object loaded from
 				// the DB needs to be shadowed in the session as
 				// req.user
-				//console.debug("serializeUser", userObject);
+				//this._debug("serializeUser", userObject);
 				done(null, userObject);
 			});
 
 			Passport.deserializeUser((userObject, done) => {
 				// Session active, look it up to get user
-				//console.debug("deserializeUser",userObject);
+				//this._debug("deserializeUser",userObject);
 				// attach user object as req.user
 				done(null, userObject);
 			});
@@ -149,7 +150,7 @@ define("server/UserManager", [
 				if (/(^|[?&;])origin=/.test(req.url))
 					req.session.origin = decodeURI(
 						req.url.replace(/^.*[?&;]origin=([^&;]*).*$/,"$1"));
-				//console.debug("Remembering origin", req.session.origin);
+				//this._debug("Remembering origin", req.session.origin);
 				next();
 			});
 
@@ -207,12 +208,10 @@ define("server/UserManager", [
 		 * @private
 		 */
 		passportLogin(req, res, uo) {
-			if (this._debug)
-				console.debug("passportLogin in", uo);
+			this._debug("passportLogin in", uo);
 			return new Promise(resolve => {
 				req.login(uo, () => {
-					if (this._debug)
-						console.log(uo, "logged in");
+					this._debug(uo, "logged in");
 					resolve(uo);
 				});
 			});
@@ -325,7 +324,7 @@ define("server/UserManager", [
 			Passport.use(new strategy(
 				cfg,
 				(accessToken, refreshToken, profile, done) => {
-					//console.debug("Logging in", profile.displayName);
+					//this._debug("Logging in", profile.displayName);
 					if (profile.emails && profile.emails.length > 0)
 						profile.email = profile.emails[0].value;
 					if (!profile.id || !profile.displayName)
@@ -367,10 +366,10 @@ define("server/UserManager", [
 				Passport.authenticate(provider, { assignProperty: "userObject" }),
 				(req, res) => {
 					// error will -> 401
-					//console.debug("OAuth2 user is", req.userObject);
+					//this._debug("OAuth2 user is", req.userObject);
 					req.login(req.userObject, () => {
 						// Back to where we came from
-						//console.debug("Redirect to",req.session.origin);
+						//this._debug("Redirect to",req.session.origin);
 						res.redirect(req.session.origin);
 					});
 				});
@@ -435,8 +434,7 @@ define("server/UserManager", [
 			.then(pw => {
 				if (typeof pw !== "undefined")
 					desc.pass = pw;
-				if (this._debug)
-					console.debug("Add user", desc);
+				this._debug("Add user", desc);
 				this.db.push(desc);
 				return this.writeDB()
 				.then(() => desc);
@@ -447,8 +445,7 @@ define("server/UserManager", [
 		 * @private
 		 */
 		sendResult(res, status, info) {
-			if (this._debug)
-				console.debug(`<-- ${status}`, info);
+			this._debug(`<-- ${status}`, info);
 			res.status(status).send(info);
 		}
 
@@ -503,8 +500,7 @@ define("server/UserManager", [
 				&& req.session.passport.user
 				&& req.logout) {
 				const departed = req.session.passport.user.name;
-				if (this._debug)
-					console.debug("Logging out", departed);
+				this._debug("Logging out", departed);
 				req.logout();
 				return this.sendResult(res, 200, [
 					/*i18n*/"um-logged-out", departed ]);
@@ -554,7 +550,7 @@ define("server/UserManager", [
 		 */
 		handle_xanado_reset_password(req, res) {
 			const email = req.body.reset_email;
-			//console.debug(`/reset-password for ${email}`);
+			//this._debug(`/reset-password for ${email}`);
 			if (!email)
 				return this.sendResult(
 					res, 500, [ /*i18n*/"um-unknown-email" ]);
@@ -564,8 +560,7 @@ define("server/UserManager", [
 				return this.setToken(user)
 				.then(token => {
 					const url = `${surly}/reset-password/${token}`;
-					if (this._debug)
-						console.debug(`Send password reset ${url} to ${user.email}`);
+					this._debug(`Send password reset ${url} to ${user.email}`);
 					if (!this.options.mail)
 						return this.sendResult(res, 500, [
 							/*i18n*/"um-mail-not-configured" ]);
@@ -592,8 +587,7 @@ define("server/UserManager", [
 		 * @private
 		 */
 		handle_password_reset(req, res) {
-			if (this._debug)
-				console.debug(`Password reset ${req.params.token}`);
+			this._debug(`Password reset ${req.params.token}`);
 			return this.getUser({token: req.params.token})
 			.then(userObject => this.passportLogin(req, res, userObject))
 			.then(() => res.redirect("/"))
@@ -623,8 +617,7 @@ define("server/UserManager", [
 		 */
 		handle_session_settings(req, res) {
 			if (req.user) {
-				if (this._debug)
-					console.debug("Session settings", req.body);
+				this._debug("Session settings", req.body);
 				req.user.settings = req.body;
 				return this.writeDB()
 				.then(() => this.sendResult(res, 200, req.user_settings));

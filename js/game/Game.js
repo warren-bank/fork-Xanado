@@ -39,10 +39,13 @@ define("game/Game", [
 		constructor(params) {
 			/**
 			 * Strictly internal, for debug
-			 * @member {boolean}
+			 * @member {function}
 			 * @private
 			 */
-			this._debug = params.debug || false;
+			if (typeof params.debug === "function")
+				this._debug = params.debug;
+			else
+				this._debug = () => {};
 
 			/**
 			 * Strictly internal, for debug
@@ -51,8 +54,7 @@ define("game/Game", [
 			 */
 			this._noPlayerShuffle = params.noPlayerShuffle || false;
 
-			if (this._debug)
-				console.debug("Constructing new game", params);
+			this._debug("Constructing new game", params);
 
 			/**
 			 * Key that uniquely identifies this game - generated
@@ -283,6 +285,7 @@ define("game/Game", [
 		 * @return {Promise} Promise that resolves to the game
 		 */
 		onLoad(db) {
+			this._debug = () => {};
 			this._connections = [];
 			this._db = db;
 			return Promise.resolve(this);
@@ -299,10 +302,8 @@ define("game/Game", [
 				throw Error("Cannot addPlayer() to a full game");			
 			this.players.push(player);
 			player.fillRack(this.letterBag, this.rackSize);
-			if (this._debug) {
-				console.debug("Added", player);
-				player.debug = true;
-			}
+			this._debug("Added", player);
+			player.debug = this._debug;
 			if (this.timerType !== Player.TIMER_NONE)
 				player.clock = this.timeLimit;
 		}
@@ -318,8 +319,7 @@ define("game/Game", [
 			if (index < 0)
 				throw Error(`No such player ${player.key} in ${this.key}`);
 			this.players.splice(index, 1);
-			if (this._debug)
-				console.debug(`${player.key} left ${this.key}`);
+			this._debug(`${player.key} left ${this.key}`);
 		}
 
 		/**
@@ -535,8 +535,7 @@ define("game/Game", [
 		 */
 		save() {
 			if (!this._db) return Promise.resolve(this);
-			if (this._debug)
-				console.debug(`Saving game ${this.key}`);
+			this._debug(`Saving game ${this.key}`);
 			return this._db.set(this.key, this)
 			.then(() => this);
 		}
@@ -554,13 +553,11 @@ define("game/Game", [
 		 * @return {Promise} promise that resolves to the game
 		 */
 		playIfReady() {
-			if (this._debug)
-				console.debug(`playIfReady game=${this.key} state=${this.state}`);
+			this._debug(`playIfReady game=${this.key} state=${this.state}`);
 
 			// Check preconditions for starting the game
 			if (this.players.length < this.minPlayers) {
-				if (this._debug)
-					console.debug("\tnot enough players");
+				this._debug("\tnot enough players");
 				// Result is not used
 				return Promise.resolve(this);
 			}
@@ -569,12 +566,10 @@ define("game/Game", [
 			// shuffle the players, and pick a random tile from the bag.
 			// The shuffle can be suppressed for unit testing.
 			if (this.state === Game.STATE_WAITING) {
-				if (this._debug)
-					console.debug("\tpreconditions met");
+				this._debug("\tpreconditions met");
 
 				if (this.players.length > 1 && !this._noPlayerShuffle) {
-					if (this._debug)
-						console.debug("\tshuffling player order");
+					this._debug("\tshuffling player order");
 					for (let i = this.players.length - 1; i > 0; i--) {
 						const j = Math.floor(Math.random() * (i + 1));
 						// i = 1, j = 0,1
@@ -603,8 +598,7 @@ define("game/Game", [
 			if (nextPlayer.isRobot)
 				return this.startTurn(nextPlayer);
 
-			if (this._debug)
-				console.debug(`\twaiting for ${this.getPlayer().name} to play`);
+			this._debug(`\twaiting for ${this.getPlayer().name} to play`);
 
 			return Promise.resolve(this);
 		}
@@ -618,8 +612,7 @@ define("game/Game", [
 		 * @param {Object} data to send with message
 		 */
 		notifyPlayer(player, message, data) {
-			if (this._debug)
-				console.debug(`<-S- ${player.key} ${message}`, data);
+			this._debug(`<-S- ${player.key} ${message}`, data);
 			// Player may be connected several times
 			this._connections.forEach(
 				socket => {
@@ -637,8 +630,7 @@ define("game/Game", [
 		 * @param {Object} data to send with message
 		 */
 		notifyPlayers(message, data) {
-			if (this._debug && message !== Notify.CONNECTIONS)
-				console.debug(`<-S- * ${message}`, data);
+			this._debug(`<-S- * ${message}`, data);
 			this._connections.forEach(socket => socket.emit(message, data));
 		}
 
@@ -650,8 +642,7 @@ define("game/Game", [
 		 * @param {Object} data to send with message
 		 */
 		notifyOtherPlayers(player, message, data) {
-			if (this._debug)
-				console.debug(`<-S- !${player.key} ${message}`, data);
+			this._debug(`<-S- !${player.key} ${message}`, data);
 			// Player may be connected several times
 			this._connections.forEach(
 				socket => {
@@ -698,8 +689,7 @@ define("game/Game", [
 			if (ageInDays <= 14)
 				return Promise.resolve(this); // still active
 
-			if (this._debug)
-				console.debug("Game timed out:",
+			this._debug("Game timed out:",
 						this.players.map(({ name }) => name));
 
 			this.state = Game.STATE_TIMED_OUT;
@@ -753,8 +743,7 @@ define("game/Game", [
 			if (!this.players.find(p => p.passes < 2))
 				return this.confirmGameOver(Game.STATE_2_PASSES);
 
-			if (this._debug)
-				console.debug(`startTurn ${player.name}'s turn`);
+			this._debug(`startTurn ${player.name}'s turn`);
 
 			this.whosTurnKey = player.key;
 
@@ -766,16 +755,14 @@ define("game/Game", [
 			}
 
 			if (this.timeLimit <= 0) {
-				if (this._debug)
-					console.debug(
+				this._debug(
 						`\tuntimed game, wait for ${player.name} to play`);
 				return Promise.resolve(this);
 			}
 
 			// For a timed game, make sure the clock is running and
 			// start the player's timer.
-			if (this._debug)
-				console.debug(`\ttimed game, ${player.name} has ${timeout || this.timeLimit}s left to play`);
+			this._debug(`\ttimed game, ${player.name} has ${timeout || this.timeLimit}s left to play`);
 			this.startTheClock(); // does nothing if already started
 
 			if (this.timerType === Player.TIMER_TURN)
@@ -846,9 +833,9 @@ define("game/Game", [
 			if (knownSocket !== null) {
 				console.error("WARNING:", player.key, "already connected to",
 							this.key);
-			} else if (this._debug && player) {
+			} else if (player) {
 				// This player is just connecting, perhaps for the first time.
-				console.debug(`${player.name} connected to ${this.key}`);
+				this._debug(`${player.name} connected to ${this.key}`);
 			}
 
 			// Player is connected. Decorate the socket. It may seem
@@ -858,18 +845,14 @@ define("game/Game", [
 			socket.player = player;
 
 			this._connections.push(socket);
-			if (this._debug)
-				console.debug(player
-							  ? `${player} connected`
-							  : "'Anonymous' connected");
+			this._debug(player ? `${player} connected` : "'Anonymous' connected");
 
 			// Tell players that the player is connected
 			this.updateConnections();
 
 			// Add disconnect listener
 			socket.on("disconnect", () => {
-				if (this._debug)
-					console.debug(socket.player
+				this._debug(socket.player
 							? `${socket.player.toString()} disconnected`
 							: "'Anonymous' disconnected");
 				this._connections = this._connections.filter(
@@ -938,8 +921,7 @@ define("game/Game", [
 		 */
 		startTheClock() {
 			if (!this._intervalTimer && this.timerType !== Player.TIMER_NONE) {
-				if (this._debug)
-					console.debug(`Started the clock`);
+				this._debug(`Started the clock`);
 				// Broadcast a ping every second
 				this._intervalTimer = setInterval(() => this.tick(), 1000);
 			}
@@ -951,8 +933,7 @@ define("game/Game", [
 		 */
 		stopTheClock() {
 			if (this._intervalTimer) {
-				if (this._debug)
-					console.debug("Stopped the clock");
+				this._debug("Stopped the clock");
 				clearInterval(this._intervalTimer);
 				this._intervalTimer = null;
 			}
@@ -965,16 +946,13 @@ define("game/Game", [
 		 * @param {Player} player to get a hint for
 		 */
 		hint(player) {
-			if (this._debug)
-				console.debug(`Player ${player.name} asked for a hint`);
+			this._debug(`Player ${player.name} asked for a hint`);
 
 			let bestPlay = null;
 			Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
-					if (typeof data === "string") {
-						if (this._debug)
-							console.debug(data);
-					}
+					if (typeof data === "string")
+						this._debug(data);
 					else
 						bestPlay = data;
 				})
@@ -985,8 +963,7 @@ define("game/Game", [
 				if (!bestPlay)
 					hint.text = /*i18n*/"Can't find a play";
 				else {
-					if (this._debug)
-						console.debug(bestPlay);
+					this._debug(bestPlay);
 					const start = bestPlay.placements[0];
 					hint.text = /*i18n*/"Hint";
 					const words = bestPlay.words.map(w => w.word).join(",");
@@ -1049,22 +1026,19 @@ define("game/Game", [
 		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		advise(player, theirScore) {
-			if (this._debug)
-				console.debug(`Computing advice for ${player.name} > ${theirScore}`);
+			this._debug(`Computing advice for ${player.name} > ${theirScore}`);
 
 			let bestPlay = null;
 			return Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
-					if (typeof data === "string") {
-						if (this._debug)
-							console.debug(data);
-					} else
+					if (typeof data === "string")
+						this._debug(data);
+					else
 						bestPlay = data;
 				})
 			.then(() => {
 				if (bestPlay && bestPlay.score > theirScore) {
-					if (this._debug)
-						console.debug(`Better play found for ${player.name}`);
+					this._debug(`Better play found for ${player.name}`);
 					const start = bestPlay.placements[0];
 					const words = bestPlay.words.map(w => w.word).join(",");
 					const advice = {
@@ -1082,8 +1056,7 @@ define("game/Game", [
 						timestamp: Date.now()
 					});
 				} else
-					if (this._debug)
-						console.debug(`No better plays found for ${player.name}`);
+					this._debug(`No better plays found for ${player.name}`);
 			})
 			.catch(e => {
 				console.error("Error", e);
@@ -1103,16 +1076,14 @@ define("game/Game", [
 			if (!(move instanceof Move))
 				move = new Move(move);
 
-			if (this._debug)
-				console.debug(move);
+			this._debug(move);
 			//console.log(`Player's rack is ${player.rack}`);
 
 			if (this.dictionary
 				&& !this.isRobot
 				&& this.wordCheck === Game.WORD_CHECK_REJECT) {
 
-				if (this._debug)
-					console.debug("Validating play");
+				this._debug("Validating play");
 
 				// Check the play in the dictionary, and generate a
 				// 'reject' if it's bad. This has to be done
@@ -1127,8 +1098,7 @@ define("game/Game", [
 					}
 				});
 				if (badWords.length > 0) {
-					if (this._debug)
-						console.debug("\trejecting", badWords);
+					this._debug("\trejecting", badWords);
 					// Reject the play. Nothing has been done to the
 					// game state yet, so we can just ping the
 					// player back and let the UI sort it out.
@@ -1170,8 +1140,7 @@ define("game/Game", [
 				}
 			}
 
-			if (this._debug)
-				console.debug("New rack", player.rack.toString());
+			this._debug("New rack", player.rack.toString());
 
 			//console.debug("words ", move.words);
 
@@ -1183,8 +1152,7 @@ define("game/Game", [
 				this.getDictionary()
 				.then(dict => {
 					for (let w of move.words) {
-						if (this._debug)
-							console.debug("Checking ",w);
+						this._debug("Checking ",w);
 						if (!dict.hasWord(w.word)) {
 							// Only want to notify the player
 							this.notifyPlayer(
@@ -1222,8 +1190,7 @@ define("game/Game", [
 		 */
 		autoplay() {
 			const player = this.getPlayer();
-			if (this._debug)
-				console.debug(`Autoplaying ${player.name}`);
+			this._debug(`Autoplaying ${player.name}`);
 
 			// Before making a robot move, consider challenging the last
 			// player.
@@ -1245,10 +1212,8 @@ define("game/Game", [
 							  .filter(word => !dict.hasWord(word.word));
 						if (bad.length > 0) {
 							// Challenge succeeded
-							if (this._debug) {
-								console.debug(`Challenging ${lastPlayer.name}`);
-								console.debug(`Bad Words: `, bad);
-							}
+							this._debug(`Challenging ${lastPlayer.name}`);
+							this._debug(`Bad Words: `, bad);
 							return this.takeBack(player, Turn.CHALLENGE_WON)
 							.then(() => true);
 						}
@@ -1276,21 +1241,18 @@ define("game/Game", [
 				return Platform.findBestPlay(
 					this, player.rack.tiles(),
 					data => {
-						if (typeof data === "string") {
-							if (this._debug)
-								console.debug(data);
-						} else {
+						if (typeof data === "string")
+							this._debug(data);
+						else {
 							bestPlay = data;
-							if (this._debug)
-								console.debug("Best", bestPlay);
+							this._debug("Best", bestPlay);
 						}
 					}, player.dictionary)
 				.then(() => {
 					if (bestPlay)
 						return this.play(player, bestPlay);
 
-					if (this._debug)
-						console.debug(`${player.name} can't play, passing`);
+					this._debug(`${player.name} can't play, passing`);
 					return this.pass(player);
 				});
 			});
@@ -1306,8 +1268,7 @@ define("game/Game", [
 				return Promise.resolve(this); // already paused
 			this.stopTheClock();
 			this.pausedBy = player.name;
-			if (this._debug)
-				console.debug(`${this.pausedBy} has paused game`);
+			this._debug(`${this.pausedBy} has paused game`);
 			this.notifyPlayers(Notify.PAUSE, {
 				key: this.key,
 				name: player.name,
@@ -1324,8 +1285,7 @@ define("game/Game", [
 		unpause(player) {
 			if (!this.pausedBy)
 				return Promise.resolve(this); // not paused
-			if (this._debug)
-				console.debug(`${player.name} has unpaused game`);
+			this._debug(`${player.name} has unpaused game`);
 			this.notifyPlayers(Notify.UNPAUSE, {
 				key: this.key,
 				name: player.name,
@@ -1349,8 +1309,7 @@ define("game/Game", [
 		confirmGameOver(endState) {
 			this.state = endState || Game.STATE_GAME_OVER;
 
-			if (this._debug)
-				console.debug(`Confirming game over because ${endState}`);
+			this._debug(`Confirming game over because ${endState}`);
 			this.stopTheClock();
 
 			// When the game ends, each player's score is reduced by
@@ -1372,14 +1331,13 @@ define("game/Game", [
 					player.score -= rackScore;
 					deltas[player.key].tiles -= rackScore;
 					pointsRemainingOnRacks += rackScore;
-					if (this._debug)
-						console.debug(`${player.name} has ${rackScore} left`);
+					this._debug(`${player.name} has ${rackScore} left`);
 				} 
 				if (this.timerType === Player.TIMER_GAME && player.clock < 0) {
 					const points = Math.round(
 						player.clock * this.timePenalty / 60);
-					if (this._debug)
-						console.debug(player.name, "over by", player.clock, "time penalty", player.clock * this.timePenalty / 60, "=", points);
+					this._debug(player.name, "over by", player.clock,
+							   "time penalty", player.clock * this.timePenalty / 60, "=", points);
 					if (Math.abs(points) > 0)
 						deltas[player.key].time = points;
 				}
@@ -1388,8 +1346,7 @@ define("game/Game", [
 			if (playerWithNoTiles) {
 				playerWithNoTiles.score += pointsRemainingOnRacks;
 				deltas[playerWithNoTiles.key].tiles = pointsRemainingOnRacks;
-				if (this._debug)
-					console.debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
+				this._debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
 			}
 			const turn = new Turn(this, {
 				type: Turn.GAME_OVER,
@@ -1514,8 +1471,7 @@ define("game/Game", [
 
 			return this.getDictionary()
 			.catch(() => {
-				if (this._debug)
-					console.debug("No dictionary, so challenge always succeeds");
+				this._debug("No dictionary, so challenge always succeeds");
 				return this.takeBack(challenger, Turn.CHALLENGE_WON);
 			})
 			.then(dict => {
@@ -1524,8 +1480,7 @@ define("game/Game", [
 
 				if (bad.length > 0) {
 					// Challenge succeeded
-					if (this._debug)
-						console.debug("Bad Words: ", bad);
+					this._debug("Bad Words: ", bad);
 
 					// Take back the challenged play. Irrespective of
 					// whether the challenger is the current player or
@@ -1674,8 +1629,7 @@ define("game/Game", [
 				return Promise.reject("Next game already exists");
 			}
 
-			if (this._debug)
-				console.debug(`Create game to follow ${this.key}`);
+			this._debug(`Create game to follow ${this.key}`);
 			const newGame = new Game(this);
 
 			return newGame.create()
@@ -1692,8 +1646,7 @@ define("game/Game", [
 				// Players will be shuffled in playIfReady
 				newGame.whosTurnKey = undefined;
 
-				if (this._debug)
-					console.debug(`Created follow-on game ${newGame.key}`);
+				this._debug(`Created follow-on game ${newGame.key}`);
 				return newGame.save()
 				.then(() => newGame.playIfReady()) // trigger robot
 				.then(() => this.notifyPlayers(Notify.NEXT_GAME, {

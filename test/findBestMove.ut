@@ -2,7 +2,7 @@
    license information */
 /* eslint-env node */
 
-const requirejs = require('requirejs');
+requirejs = require('requirejs');
 
 requirejs.config({
 	baseUrl: `${__dirname}/..`,

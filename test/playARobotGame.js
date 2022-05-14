@@ -7,7 +7,7 @@
  * It will play a complete game between two robot players. It does not test
  * the server.
  */
-const requirejs = require("requirejs");
+requirejs = require("requirejs");
 
 requirejs.config({
 	baseUrl: "..",
@@ -33,6 +33,7 @@ requirejs([
 
 	let db = new Platform.Database("test", "testgame");
 	let game = new Game({
+		//_debug: console.debug,
 		edition: "Tiny",
 		dictionary: "CSW2019_English"
 	});

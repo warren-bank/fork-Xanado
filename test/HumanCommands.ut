@@ -40,8 +40,8 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
-			debug: false
+			//_debug: console.debug,
+			noPlayerShuffle: true
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -127,8 +127,8 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
-			debug: false
+			//_debug: console.debug,
+			noPlayerShuffle: true
 		});
 		const socket = new TestSocket();
 		socket.on(Notify.NEXT_GAME, (event, info) => {
@@ -176,8 +176,8 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
-			debug: false
+			//_debug: console.debug,
+			noPlayerShuffle: true
 		});
 		const socket = new TestSocket();
 		let turns = 0;
@@ -245,8 +245,8 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
-			debug: false
+			//_debug: console.debug,
+			noPlayerShuffle: true
 		});
 		const socket = new TestSocket();
 		let turns = 0;
@@ -307,8 +307,8 @@ describe("Game - human commands - tests", () => {
 		const game =  new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
-			debug: false
+			//_debug: console.debug,
+			noPlayerShuffle: true
 		});
 		const human1 = new Player({
 			name:"Human1", key:"human1", isRobot: false});
@@ -360,8 +360,8 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
-			debug: false
+			//_debug: console.debug,
+			noPlayerShuffle: true
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -457,8 +457,8 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
-			debug: false
+			//_debug: console.debug,
+			noPlayerShuffle: true
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -494,8 +494,8 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
-			debug: false
+			//_debug: console.debug,
+			noPlayerShuffle: true
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});

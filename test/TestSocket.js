@@ -77,7 +77,7 @@ define("test/TestSocket", [], () => {
 		/**
 		 * Wait for the socket to be marked as `done()`. This will normally
 		 * be after all the expected messages have been received. If done()
-		 * is never called, then TestRunner will eventually time out.
+		 * is never called, then mocha will eventually time out.
 		 */
 		wait() {
 			if (this.finished)

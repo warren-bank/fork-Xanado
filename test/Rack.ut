@@ -32,7 +32,6 @@ requirejs.config({
  */
 describe("Rack class", () => {
 	const deps = [
-		{ TestRunner: 'test/TestRunner' },
 		{ Rack: 'game/Rack' },
 		{ Tile: 'game/Tile' },
 		{ Square: "game/Square" },

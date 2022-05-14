@@ -60,8 +60,8 @@ describe("Game - basic tests", () => {
 			allowTakeBack: true,
 			wordCheck: Game.WORD_CHECK_AFTER,
 			minPlayers: 5,
-			maxPlayers: 10,
-			debug: false
+			//_debug: console.debug,
+			maxPlayers: 10
 		};
 		return new Game(p)
 		.create()
@@ -82,6 +82,7 @@ describe("Game - basic tests", () => {
 	
 	it("basics", () => {
 		const p = {
+			//_debug: console.debug,
 			edition:"English_Scrabble",
 			dictionary:"Oxford_5000",
 			timerType: Player.TIMER_TURN,
@@ -90,8 +91,7 @@ describe("Game - basic tests", () => {
 			allowTakeBack: false,
 			wordCheck: Game.WORD_CHECK_AFTER,
 			minPlayers: 30,
-			maxPlayers: 1,
-			debug: false
+			maxPlayers: 1
 		};
 
 		return new Game(p)
@@ -137,13 +137,13 @@ describe("Game - basic tests", () => {
 
 	it("$html", () => {
 		const p = {
+			//_debug: console.debug,
 			edition:"English_Scrabble",
 			dictionary:"Oxford_5000",
 			timeLimit: 999,
 			predictScore: false,
 			allowTakeBack: false,
-			noPlayerShuffle: true,
-			debug: false
+			noPlayerShuffle: true
 		};
 
 		const robot1 = new Player(
@@ -209,10 +209,10 @@ describe("Game - basic tests", () => {
 
 	it("last move in game", () => {
 		const game = new Game({
+			//_debug: console.debug,
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
-			debug: false
+			noPlayerShuffle: true
 		});
 		const human1 = new Player({
 			name:"Human 1", key:"human1", isRobot: false});
@@ -295,10 +295,10 @@ describe("Game - basic tests", () => {
 	// Clear missed turn flag set after challenge failed
 	it("clear missed turn", () => {
 		const game = new Game({
+			//_debug: console.debug,
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
-			debug: false
+			noPlayerShuffle: true
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -338,11 +338,11 @@ describe("Game - basic tests", () => {
 
 	it("verify human play", () => {
 		const game = new Game({
+			//_debug: console.debug,
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			wordCheck: Game.WORD_CHECK_REJECT,
-			debug: false
+			wordCheck: Game.WORD_CHECK_REJECT
 		});
 		const human1 = new Player({
 			name:"Human 1", key:"human1", isRobot: false});
@@ -400,7 +400,7 @@ describe("Game - basic tests", () => {
 		const db = new Platform.Database("test", "game");
 		return db.get("bad_robot", Game.classes)
 		.then(game => {
-			//game._debug = true;
+			//game._debug = console.debug;
 			return game.onLoad(this.db);
 		})
 		.then(game => {

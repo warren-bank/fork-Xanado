@@ -57,7 +57,7 @@ describe("Timed games", () => {
 		const game = new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
-			debug: false,
+			//_debug: console.debug,
 			noPlayerShuffle: true,
 			timerType: Player.TIMER_TURN,
 			timeLimit: 1
@@ -151,7 +151,7 @@ describe("Timed games", () => {
 		const game = new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
-			debug: false,
+			//_debug: console.debug,
 			noPlayerShuffle: true,
 			timerType: Player.TIMER_GAME,
 			timeLimit: 0.001,

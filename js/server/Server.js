@@ -284,7 +284,8 @@ define("server/Server", [
 					game, "connections", { enumerable: false });
 
 				this.games[key] = game;
-				game._debug = this.config.debug_game;
+				if (this.config.debug_game)
+					game._debug = console.debug;
 
 				if (game.hasEnded())
 					return game;
@@ -542,7 +543,8 @@ define("server/Server", [
 			.then(edition => new Game(req.body).create())
 			.then(game => game.onLoad(this.db))
 			.then(game => {
-				game._debug = this.config.debug_game;
+				if (this.config.debug_game)
+					game._debug = console.debug;
 				return game.save();
 			})
 			.then(game => res.status(200).send(game.key))
