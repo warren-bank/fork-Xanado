@@ -31,18 +31,19 @@ requirejs.config({
 /**
  * Unit tests for Square class
  */
-requirejs([
-	'test/TestRunner', 'game/Square', 'game/Tile', 'jquery-ui'
-], (
-	TestRunner, Square, Tile
-) => {
+describe('Square class', () => {
+	const deps = [
+		{ Square: 'game/Square' },
+		{ Tile: 'game/Tile' },
+		{ jQueryUI: 'jquery-ui' }
+	];
 
 	require("@wikimedia/jquery.i18n/src/jquery.i18n");
 	
-    let tr = new TestRunner('Square tests');
-    let assert = tr.assert;
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
 
-	tr.addTest('construct', () => {
+	it('construct', () => {
 		let sq = new Square('q', { id: 'base' }, 56, 42);
 		assert.equal(sq.letterScoreMultiplier, 4);
 		assert.equal(sq.wordScoreMultiplier, 1);
@@ -72,7 +73,7 @@ requirejs([
 		assert.equal(tile.row, sq.row);
 	});
 	
-	tr.addTest('$ui', () => {
+	it('$ui', () => {
 		let sq = new Square('q', { id: 'base' }, 56, 42);
 		assert.equal(sq.$ui().html(),
 					 '<div id="base_56x42"><a></a></div>');
@@ -82,7 +83,7 @@ requirejs([
 		$("body").empty();
 	});
 
-	tr.addTest("refresh empty", () => {
+	it("refresh empty", () => {
 		let sq = new Square('q', { id: 'base' }, 56, 42);
 		sq.setUnderlay('T');
 		let $td = sq.$ui();
@@ -100,7 +101,7 @@ requirejs([
 		$("body").empty();
 	});
 	
-	tr.addTest("refresh occupied unlocked", () => {
+	it("refresh occupied unlocked", () => {
 		let sq = new Square('q', { id: 'surface' }, 56, 42);
 		sq.setUnderlay('T');
 		assert(!sq.tileLocked);
@@ -128,7 +129,7 @@ requirejs([
 		$("body").empty();
 	});
 	
-	tr.addTest("refresh occupied locked", () => {
+	it("refresh occupied locked", () => {
 		let sq = new Square('q', { id: 'surface' }, 56, 42);
 		assert(!sq.tileLocked);
 		let tile = new Tile({ letter:'S', isBlank:false });
@@ -152,7 +153,5 @@ requirejs([
 		assert(!$div.hasClass("selected"));
 		$("body").empty();
 	});
-	
-	tr.run();
 });
 

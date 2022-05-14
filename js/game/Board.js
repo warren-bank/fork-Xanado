@@ -187,7 +187,6 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 			for (let tile of tiles) {
 				const c = tile.col;
 				const r = tile.row;
-
 				let letterScore = tile.score;
 				const square = this.at(c, r);
 				if (square.tileLocked) {
@@ -230,14 +229,14 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 					 cp += drow, rp += dcol) {
 					const tile = this.at(cp, rp).tile;
 					crossWord += tile.letter;
-					crossWordScore += tile.score
+					crossWordScore += tile.score;
 				}
 
 				if (crossWordScore > 0) {
 					// This tile (and bonuses) contribute to cross words
 					crossWordScore += letterScore;
 					crossWordScore *= crossWordMultiplier;
-					if (words)
+					if (words && words.filter(w => w.word === crossWord).length === 0)
 						words.push({ word: crossWord, score: crossWordScore });
 
 					crossWordsScore += crossWordScore;
@@ -271,10 +270,16 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		}
 
 		/**
-		 * UI-side move calculation. Constructs a {@link Move}
+		 * UI-side move calculation. Constructs a {@link Move}.
+		 * `analysePlay` and `scorePlay` do essentially the same job; given a board with
+		 * tiles placed but not locked, calculate the score and the words formed. They
+		 * differ in respect of their application; analysePlay is intended to
+		 * be used client-side to calculate a move made by a human, whereas scorePlay
+		 * is used to calculate the score for a play being constructed on the server
+		 * side by a robot.
 		 * @return {(Move|string)} Move or a string if there is a problem
 		 */
-		analyseMove() {
+		analysePlay() {
 			// Check that the start field is occupied
 
 			if (!this.at(this.midcol, this.midrow).tile)
@@ -292,10 +297,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 				topLeftY = row;
 				return true;
 			});
-			if (!tile)
-				// Move can't be made. Should never happen
-				// Terminal, no point in translating
-				throw Error("No new tiles found");
+			assert(tile, "No new tiles found");
 
 			// Remember which newly placed tile positions are legal
 			const legalPlacements = new Array(this.cols);

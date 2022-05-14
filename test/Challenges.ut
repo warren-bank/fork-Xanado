@@ -1,6 +1,6 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
-/* eslint-env node */
+/* eslint-env node, mocha */
 
 requirejs = require('requirejs');
 
@@ -18,46 +18,50 @@ requirejs.config({
  * Unit tests for correct handling of challenges at various stages of
  * the game.
  */
-requirejs([
-	'test/TestRunner', 'test/TestSocket',
-	'game/Tile', 'game/Player', 'game/Game',
-	'game/Move', 'game/Turn', 'game/Notify'
-], (
-	TestRunner, TestSocket,
-	Tile, Player, Game, Move,
-	Turn, Notify
-) => {
-    let tr = new TestRunner('Game - challenges - tests');
-    let assert = tr.assert;
+describe("Game - challenges - tests", () => {
 
-	tr.addTest('bad challenge by next player - miss turn', () => {
-		// Implicitly tests pass
+	const deps = [
+		{ Tile: "game/Tile" },
+		{ Player: "game/Player" },
+		{ Game: "game/Game" },
+		{ Move: "game/Move" },
+		{ Turn: "game/Turn" },
+		{ Notify: "game/Notify" }
+	];
+	
+	function unit() {
+	}
+
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
+	
+	it("bad challenge by next player - miss turn", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
-			name: 'Human 1', key: "human1", isRobot: false});
+			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
-			name: 'Human 2', key: "human2", isRobot: false});
+			name: "Human 2", key: "human2", isRobot: false});
 		const move1 = new Move({
 			placements: [
-				new Tile({letter:'S', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'I', isBlank:false, score:1, col: 8, row: 7}),
-				new Tile({letter:'N', isBlank:false, score:1, col: 9, row: 7}),
-				new Tile({letter:'K', isBlank:false, score:1, col: 10, row: 7})
+				new Tile({letter:"S", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"I", isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"N", isBlank:false, score:1, col: 9, row: 7}),
+				new Tile({letter:"K", isBlank:false, score:1, col: 10, row: 7})
 			],
-			words: [ { word: 'SINK', score: 99 }],
+			words: [ { word: "SINK", score: 99 }],
 			score: 99
 		});
 		const socket = new TestSocket();
 		let turns = 0;
 		const handle = (event, turn) => {
 			if (turns++ === 0) {
-				// Human's move
+				// Human"s move
 				assert.equal(turn.type, Turn.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
@@ -70,7 +74,7 @@ requirejs([
 				assert.equal(turn.challengerKey, human2.key); // who issued the challenged
 				assert.equal(turn.nextToGoKey, human1.key);
 
-				// The challenge failed, and they are forced to pass, but that doesn't
+				// The challenge failed, and they are forced to pass, but that doesn"t
 				// mean they miss the next turn after this one.
 				assert(!human2.missNextTurn);
 
@@ -79,22 +83,23 @@ requirejs([
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on("*", (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
+
 		return game.create()
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
 			human1.rack.addTile(
-				new Tile({letter:'S', isBlank:false, score:1}));
+				new Tile({letter:"S", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'I', isBlank:false, score:1}));
+				new Tile({letter:"I", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'N', isBlank:false, score:1}));
+				new Tile({letter:"N", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'K', isBlank:false, score:1}));
+				new Tile({letter:"K", isBlank:false, score:1}));
 			game.addPlayer(human2);
 			game.whosTurnKey = human1.key;
 		})
@@ -107,37 +112,37 @@ requirejs([
 		});
 	});
 
-	tr.addTest('bad challenge by next player - points penalty', () => {
+	it("bad challenge by next player - points penalty", () => {
 		// Implicitly tests pass
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_PER_TURN,
 			penaltyPoints: 5
 		});
 		const human1 = new Player({
-			name: 'Human 1', key: "human1", isRobot: false});
+			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
-			name: 'Human 2', key: "human2", isRobot: false});
+			name: "Human 2", key: "human2", isRobot: false});
 		const move1 = new Move({
 			placements: [
-				new Tile({letter:'S', score:1, col: 7, row: 7}),
-				new Tile({letter:'I', score:1, col: 8, row: 7}),
-				new Tile({letter:'N', score:1, col: 9, row: 7}),
-				new Tile({letter:'K', score:1, col: 10, row: 7}),
-				new Tile({letter:'E', score:1, col: 7, row: 8}),
-				new Tile({letter:'T', isBlank: true, score:0, col:7, row:9})
+				new Tile({letter:"S", score:1, col: 7, row: 7}),
+				new Tile({letter:"I", score:1, col: 8, row: 7}),
+				new Tile({letter:"N", score:1, col: 9, row: 7}),
+				new Tile({letter:"K", score:1, col: 10, row: 7}),
+				new Tile({letter:"E", score:1, col: 7, row: 8}),
+				new Tile({letter:"T", isBlank: true, score:0, col:7, row:9})
 			],
-			words: [ { word: 'SINK', score: 4 }, { word: 'SET', score: 2 }],
+			words: [ { word: "SINK", score: 4 }, { word: "SET", score: 2 }],
 			score: 99
 		});
 		const socket = new TestSocket();
 		let turns = 0;
 		const handle = (event, turn) => {
 			switch (turns++) {
-			case 0: // Human's move
+			case 0: // Human"s move
 				assert.equal(turn.type, Turn.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
@@ -160,7 +165,7 @@ requirejs([
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on("*", (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -168,12 +173,12 @@ requirejs([
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
-			human1.rack.addTile(new Tile({letter:'S', score:1}));
-			human1.rack.addTile(new Tile({letter:'I', score:1}));
-			human1.rack.addTile(new Tile({letter:'N', score:1}));
-			human1.rack.addTile(new Tile({letter:'K', score:1}));
-			human1.rack.addTile(new Tile({letter:'E', score:1}));
-			human1.rack.addTile(new Tile({letter:'T', isBlank: true, score:0}));
+			human1.rack.addTile(new Tile({letter:"S", score:1}));
+			human1.rack.addTile(new Tile({letter:"I", score:1}));
+			human1.rack.addTile(new Tile({letter:"N", score:1}));
+			human1.rack.addTile(new Tile({letter:"K", score:1}));
+			human1.rack.addTile(new Tile({letter:"E", score:1}));
+			human1.rack.addTile(new Tile({letter:"T", isBlank: true, score:0}));
 			game.addPlayer(human2);
 		})
 		.then(() => game.connect(socket, human1.key))
@@ -185,29 +190,29 @@ requirejs([
 		});
 	});
 
-	tr.addTest('bad challenge by not-next player - points penalty', () => {
+	it("bad challenge by not-next player - points penalty", () => {
 		// Implicitly tests pass
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_PER_WORD,
 			penaltyPoints: 6
 		});
-		const human1 = new Player({name: 'Human 1', key: "human1"});
-		const human2 = new Player({name: 'Human 2', key: "human2"});
-		const human3 = new Player({name:'Human 3', key:"human3"});
+		const human1 = new Player({name: "Human 1", key: "human1"});
+		const human2 = new Player({name: "Human 2", key: "human2"});
+		const human3 = new Player({name:"Human 3", key:"human3"});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'S', score:1, col: 7, row: 7}),
-				new Tile({letter:'I', score:1, col: 8, row: 7}),
-				new Tile({letter:'N', score:1, col: 9, row: 7}),
-				new Tile({letter:'K', score:1, col: 10, row: 7}),
-				new Tile({letter:'E', score:1, col: 7, row: 8}),
-				new Tile({letter:'T', isBlank: true, score:0, col: 7, row: 10})
+				new Tile({letter:"S", score:1, col: 7, row: 7}),
+				new Tile({letter:"I", score:1, col: 8, row: 7}),
+				new Tile({letter:"N", score:1, col: 9, row: 7}),
+				new Tile({letter:"K", score:1, col: 10, row: 7}),
+				new Tile({letter:"E", score:1, col: 7, row: 8}),
+				new Tile({letter:"T", isBlank: true, score:0, col: 7, row: 10})
 			],
-			words: [ { word: 'SINK', score: 4 }, { word: 'SET', score: 2 }],
+			words: [ { word: "SINK", score: 4 }, { word: "SET", score: 2 }],
 			score: 99
 		});
 		const socket = new TestSocket();
@@ -215,14 +220,14 @@ requirejs([
 		const handle = (event, turn) => {
 			switch (turns++) {
 			case 0:
-				// Human's move
+				// Human"s move
 				assert.equal(turn.type, Turn.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
 				break;
 			case 1:
-				//console.debug('bad challenge by not-next player', turn);
+				//console.debug("bad challenge by not-next player", turn);
 				assert.equal(turn.type, Turn.CHALLENGE_LOST);
 				assert.equal(turn.score, -12);
 				assert.equal(turn.challengerKey, human3.key); // who challenged them
@@ -233,7 +238,7 @@ requirejs([
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on("*", (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -241,12 +246,12 @@ requirejs([
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
-			human1.rack.addTile(new Tile({letter:'S', score:1}));
-			human1.rack.addTile(new Tile({letter:'I', score:1}));
-			human1.rack.addTile(new Tile({letter:'N', score:1}));
-			human1.rack.addTile(new Tile({letter:'K', score:1}));
-			human1.rack.addTile(new Tile({letter:'E', score:1}));
-			human1.rack.addTile(new Tile({letter:'T', isBlank: true, score:0}));
+			human1.rack.addTile(new Tile({letter:"S", score:1}));
+			human1.rack.addTile(new Tile({letter:"I", score:1}));
+			human1.rack.addTile(new Tile({letter:"N", score:1}));
+			human1.rack.addTile(new Tile({letter:"K", score:1}));
+			human1.rack.addTile(new Tile({letter:"E", score:1}));
+			human1.rack.addTile(new Tile({letter:"T", isBlank: true, score:0}));
 			game.addPlayer(human2);
 			game.addPlayer(human3);
 			game.whosTurnKey = human1.key;
@@ -260,39 +265,39 @@ requirejs([
 		});
 	});
 
-	tr.addTest('bad challenge by not-next player - miss turn', () => {
+	it("bad challenge by not-next player - miss turn", () => {
 		// Implicitly tests pass
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_MISS
 		});
-		const human1 = new Player({name: 'Human 1', key: "human1", isRobot: false});
-		const human2 = new Player({name: 'Human 2', key: "human2", isRobot: false});
-		const human3 = new Player({name:'test3', key:"three", isRobot: false});
+		const human1 = new Player({name: "Human 1", key: "human1", isRobot: false});
+		const human2 = new Player({name: "Human 2", key: "human2", isRobot: false});
+		const human3 = new Player({name:"test3", key:"three", isRobot: false});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'S', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'I', isBlank:false, score:1, col: 8, row: 7}),
-				new Tile({letter:'N', isBlank:false, score:1, col: 9, row: 7}),
-				new Tile({letter:'K', isBlank:false, score:1, col: 10, row: 7})
+				new Tile({letter:"S", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"I", isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"N", isBlank:false, score:1, col: 9, row: 7}),
+				new Tile({letter:"K", isBlank:false, score:1, col: 10, row: 7})
 			],
-			words: [ { word: 'SINK', score: 99 }],
+			words: [ { word: "SINK", score: 99 }],
 			score: 99
 		});
 		const socket = new TestSocket();
 		let turns = 0;
 		const handle = (event, turn) => {
 			if (turns++ === 0) {
-				// Human's move
+				// Human"s move
 				assert.equal(turn.type, Turn.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
 			} else {
-				//console.debug('bad challenge by not-next player', turn);
+				//console.debug("bad challenge by not-next player", turn);
 				assert.equal(turn.type, Turn.CHALLENGE_LOST);
 				assert.equal(turn.score, 0);
 				assert.equal(turn.challengerKey, human3.key); // who challenged them
@@ -303,7 +308,7 @@ requirejs([
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on("*", (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -312,13 +317,13 @@ requirejs([
 			game.addPlayer(human1);
 			human1.rack.empty();
 			human1.rack.addTile(
-				new Tile({letter:'S', isBlank:false, score:1}));
+				new Tile({letter:"S", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'I', isBlank:false, score:1}));
+				new Tile({letter:"I", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'N', isBlank:false, score:1}));
+				new Tile({letter:"N", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'K', isBlank:false, score:1}));
+				new Tile({letter:"K", isBlank:false, score:1}));
 			game.addPlayer(human2);
 			game.addPlayer(human3);
 			game.whosTurnKey = human1.key;
@@ -332,38 +337,38 @@ requirejs([
 		});
 	});
 
-	tr.addTest('good challenge by next player', () => {
+	it("good challenge by next player", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
-			name: 'Human 1', key: "human1", isRobot: false});
+			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
-			name: 'Human 2', key: "human2", isRobot: false});
+			name: "Human 2", key: "human2", isRobot: false});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'X', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'Y', isBlank:false, score:1, col: 8, row: 7}),
-				new Tile({letter:'Z', isBlank:false, score:1, col: 9, row: 7}),
-				new Tile({letter:'Z', isBlank:false, score:1, col: 10, row: 7}) ],
-			words: [ { word: 'XYZZ', score: 99 }],
+				new Tile({letter:"X", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"Y", isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"Z", isBlank:false, score:1, col: 9, row: 7}),
+				new Tile({letter:"Z", isBlank:false, score:1, col: 10, row: 7}) ],
+			words: [ { word: "XYZZ", score: 99 }],
 			score: 99
 		});
 		const socket = new TestSocket();
 		let turns = 0;
 		const handle = (event, turn) => {
 			if (turns++ === 0) {
-				// Human's move
+				// Human"s move
 				assert.equal(turn.type, Turn.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
 			} else {
-				//console.debug('good challenge by next player', turn);
+				//console.debug("good challenge by next player", turn);
 				assert.equal(turn.type, Turn.CHALLENGE_WON);
 				assert.equal(turn.challengerKey, human2.key);
 				assert.equal(turn.playerKey, human1.key);
@@ -374,7 +379,7 @@ requirejs([
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on("*", (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -382,11 +387,11 @@ requirejs([
 		.then(() => {
 			game.addPlayer(human1);
 			human1.rack.empty();
-			human1.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"X", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"Y", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"Z", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"Z", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"Y", isBlank:false, score:1}));
 			game.addPlayer(human2);
 			game.whosTurnKey = human1.key;
 		})
@@ -400,29 +405,29 @@ requirejs([
 		});
 	});
 
-	tr.addTest('good challenge by not-next player', () => {
+	it("good challenge by not-next player", () => {
 		debugger;
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_PER_WORD,
 			penaltyPoints: 6
 		});
-		const human1 = new Player({name: 'Human 1', key: "human1"});
-		const human2 = new Player({name: 'Human 2', key: "human2"});
-		const human3 = new Player({name:'Human 3', key:"human3"});
+		const human1 = new Player({name: "Human 1", key: "human1"});
+		const human2 = new Player({name: "Human 2", key: "human2"});
+		const human3 = new Player({name:"Human 3", key:"human3"});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'S', score:1, col: 7, row: 7}),
-				new Tile({letter:'P', score:1, col: 8, row: 7}),
-				new Tile({letter:'N', score:1, col: 9, row: 7}),
-				new Tile({letter:'K', score:1, col: 10, row: 7}),
-				new Tile({letter:'P', score:1, col: 7, row: 8}),
-				new Tile({letter:'T', isBlank: true, score:0, col: 7, row: 10})
+				new Tile({letter:"S", score:1, col: 7, row: 7}),
+				new Tile({letter:"P", score:1, col: 8, row: 7}),
+				new Tile({letter:"N", score:1, col: 9, row: 7}),
+				new Tile({letter:"K", score:1, col: 10, row: 7}),
+				new Tile({letter:"P", score:1, col: 7, row: 8}),
+				new Tile({letter:"T", isBlank: true, score:0, col: 7, row: 10})
 			],
-			words: [ { word: 'SPNK', score: 4 }, { word: 'SPT', score: 2 }],
+			words: [ { word: "SPNK", score: 4 }, { word: "SPT", score: 2 }],
 			score: 99
 		});
 		const socket = new TestSocket();
@@ -430,14 +435,14 @@ requirejs([
 		const handle = (event, turn) => {
 			switch (turns++) {
 			case 0:
-				// Human's move
+				// Human"s move
 				assert.equal(turn.type, Turn.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
 				break;
 			case 1:
-				//console.debug('good challenge by not-next player', turn);
+				//console.debug("good challenge by not-next player", turn);
 				assert.equal(turn.type, Turn.CHALLENGE_WON);
 				assert.equal(turn.score, -99);
 				assert.equal(turn.challengerKey, human3.key); // who challenged them
@@ -450,7 +455,7 @@ requirejs([
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on("*", (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -458,12 +463,12 @@ requirejs([
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
-			human1.rack.addTile(new Tile({letter:'S', score:1}));
-			human1.rack.addTile(new Tile({letter:'P', score:1}));
-			human1.rack.addTile(new Tile({letter:'N', score:1}));
-			human1.rack.addTile(new Tile({letter:'K', score:1}));
-			human1.rack.addTile(new Tile({letter:'P', score:1}));
-			human1.rack.addTile(new Tile({letter:'T', isBlank: true, score:0}));
+			human1.rack.addTile(new Tile({letter:"S", score:1}));
+			human1.rack.addTile(new Tile({letter:"P", score:1}));
+			human1.rack.addTile(new Tile({letter:"N", score:1}));
+			human1.rack.addTile(new Tile({letter:"K", score:1}));
+			human1.rack.addTile(new Tile({letter:"P", score:1}));
+			human1.rack.addTile(new Tile({letter:"T", isBlank: true, score:0}));
 			game.addPlayer(human2);
 			game.addPlayer(human3);
 			game.whosTurnKey = human1.key;
@@ -481,31 +486,31 @@ requirejs([
 		});
 	});
 
-	tr.addTest('challenge by same player', () => {
+	it("challenge by same player", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
-			name: 'Human 1', key: "human1", isRobot: false});
+			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
-			name: 'Human 2', key: "human2", isRobot: false});
+			name: "Human 2", key: "human2", isRobot: false});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'X', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'Y', isBlank:false, score:1, col: 8, row: 7}),
-				new Tile({letter:'Z', isBlank:false, score:1, col: 9, row: 7}),
-				new Tile({letter:'Z', isBlank:false, score:1, col: 10, row: 7})
+				new Tile({letter:"X", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"Y", isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"Z", isBlank:false, score:1, col: 9, row: 7}),
+				new Tile({letter:"Z", isBlank:false, score:1, col: 10, row: 7})
 			],
-			words: [ { word: 'XYZZ', score: 99 }],
+			words: [ { word: "XYZZ", score: 99 }],
 			score: 99
 		});
 		const socket = new TestSocket();
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on("*", (event, data) => {
 			if (event === Notify.TURN) {
 				socket.done();
 				return;
@@ -518,15 +523,15 @@ requirejs([
 			game.addPlayer(human1);
 			human1.rack.empty();
 			human1.rack.addTile(
-				new Tile({letter:'X', isBlank:false, score:1}));
+				new Tile({letter:"X", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'Y', isBlank:false, score:1}));
+				new Tile({letter:"Y", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'Z', isBlank:false, score:1}));
+				new Tile({letter:"Z", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'Z', isBlank:false, score:1}));
+				new Tile({letter:"Z", isBlank:false, score:1}));
 			human1.rack.addTile(
-				new Tile({letter:'Y', isBlank:false, score:1}));
+				new Tile({letter:"Y", isBlank:false, score:1}));
 			game.addPlayer(human2);
 			game.whosTurnKey = human1.key;
 		})
@@ -536,27 +541,27 @@ requirejs([
 		.then(() => socket.wait())
 		.then(() => assert.fail("Expected an error"))
 		.catch(e => {
-			assert.equal(e, 'Cannot challenge your own play');
+			assert.equal(e, "Cannot challenge your own play");
 		});
 	});
 
-	tr.addTest('good challenge of final play by next player', () => {
+	it("good challenge of final play by next player", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_MISS
 		});
-		const human1 = new Player({name: 'Human 1', key:"sheep", isRobot: false});
-		const human2 = new Player({name: 'Human 2', key:"wolf", isRobot: false});
+		const human1 = new Player({name: "Human 1", key:"sheep", isRobot: false});
+		const human2 = new Player({name: "Human 2", key:"wolf", isRobot: false});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'X', isBlank:false, score:1, col: 6, row: 7}),
-				new Tile({letter:'Y', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'Z', isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"X", isBlank:false, score:1, col: 6, row: 7}),
+				new Tile({letter:"Y", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"Z", isBlank:false, score:1, col: 8, row: 7}),
 			],
-			words: [ { word: 'XYZ', score: 3 }],
+			words: [ { word: "XYZ", score: 3 }],
 			score: 3
 		});
 
@@ -566,9 +571,9 @@ requirejs([
 		socket.on(Notify.TURN, (event, turn) => {
 			if (turns++ == 0) {
 				assert.equal(turn.type, Turn.PLAY);
-				assert.sparseEqual(turn, move);
+				Assert.sparseEqual(turn, move);
 			} else {
-				//console.debug('good challenge of final play', turn);
+				//console.debug("good challenge of final play", turn);
 				assert.equal(turn.type, Turn.CHALLENGE_WON);
 				assert.equal(turn.challengerKey, human2.key);
 				assert.equal(turn.playerKey, human1.key);
@@ -578,7 +583,7 @@ requirejs([
 				socket.done();
 			}
 		});
-		socket.on('*', (event, turn) => {
+		socket.on("*", (event, turn) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -586,9 +591,9 @@ requirejs([
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
-			human1.rack.addTile(new Tile({letter:'X', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'Y', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'Z', isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"X", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"Y", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"Z", isBlank:false, score:1}));
 			game.addPlayer(human2);
 			game.whosTurnKey = human1.key;
 
@@ -603,27 +608,27 @@ requirejs([
 		.then(() => socket.wait());
 	});
 
-	tr.addTest('good challenge of final play by not-next player', () => {
+	it("good challenge of final play by not-next player", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
-			name: 'Human 1', key: "human1", isRobot: false});
+			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
-			name: 'Human 2', key: "human2", isRobot: false});
+			name: "Human 2", key: "human2", isRobot: false});
 		const human3 = new Player({
-			name: 'Human 3', key: "human3", isRobot: false});
+			name: "Human 3", key: "human3", isRobot: false});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'P', isBlank:false, score:1, col: 6, row: 7}),
-				new Tile({letter:'Q', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'T', isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"P", isBlank:false, score:1, col: 6, row: 7}),
+				new Tile({letter:"Q", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"T", isBlank:false, score:1, col: 8, row: 7}),
 			],
-			words: [ { word: 'PQT', score: 3 }],
+			words: [ { word: "PQT", score: 3 }],
 			score: 3
 		});
 		const socket = new TestSocket();
@@ -633,13 +638,13 @@ requirejs([
 			switch (turns++) {
 			case 0:
 				assert.equal(turn.words.length, 1);
-				assert.deepEqual(turn.words[0], { word: 'PQT', score: 3 });
+				assert.deepEqual(turn.words[0], { word: "PQT", score: 3 });
 				assert.equal(turn.score, 3);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				break;
 			case 1:
-				//console.debug('good challenge of final play by not-next', turn);
+				//console.debug("good challenge of final play by not-next", turn);
 				assert.equal(turn.type, Turn.CHALLENGE_WON);
 				assert.deepEqual(turn.score, -3);
 				assert.equal(turn.playerKey, human1.key);
@@ -652,7 +657,7 @@ requirejs([
 				assert.fail("UNEXPECTED TURN" + turn);
 			}
 		});
-		socket.on('*', (event, turn) => {
+		socket.on("*", (event, turn) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -661,13 +666,13 @@ requirejs([
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
-			human1.rack.addTile(new Tile({letter:'P', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'Q', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'T', isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"P", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"Q", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"T", isBlank:false, score:1}));
 
 			game.addPlayer(human2);			
 			human2.rack.empty();
-			human2.rack.addTile(new Tile({letter:'Q', isBlank:false, score:6}));
+			human2.rack.addTile(new Tile({letter:"Q", isBlank:false, score:6}));
 
 			// Empty the bag
 			game.letterBag.getRandomTiles(
@@ -689,25 +694,25 @@ requirejs([
 
 	// A bad challenge of the final play by the next player is treated
 	// as a Turn.GAME_OVER with appropriate end state.
-	tr.addTest('bad challenge of final play by next player - miss turn', () => {
+	it("bad challenge of final play by next player - miss turn", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
-			name: 'Human 1', key: "human1", isRobot: false});
+			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
-			name: 'Human 2', key: "human2", isRobot: false});
+			name: "Human 2", key: "human2", isRobot: false});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'A', isBlank:false, score:1, col: 6, row: 7}),
-				new Tile({letter:'R', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'T', isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"A", isBlank:false, score:1, col: 6, row: 7}),
+				new Tile({letter:"R", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"T", isBlank:false, score:1, col: 8, row: 7}),
 			],
-			words: [ { word: 'ART', score: 3 }],
+			words: [ { word: "ART", score: 3 }],
 			score: 3
 		});
 		const socket = new TestSocket();
@@ -716,12 +721,12 @@ requirejs([
 		socket.on(Notify.TURN, (event, turn) => {
 			if (turns++ == 0) {
 				assert.equal(turn.words.length, 1);
-				assert.deepEqual(turn.words[0], { word: 'ART', score: 3 });
+				assert.deepEqual(turn.words[0], { word: "ART", score: 3 });
 				assert.equal(turn.score, 3);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 			} else {
-				//console.debug('bad challenge of final play', turn);
+				//console.debug("bad challenge of final play", turn);
 				assert.equal(turn.type, Turn.GAME_OVER);
 				assert.equal(turn.endState, Game.STATE_CHALLENGE_FAILED);
 				assert.deepEqual(turn.score, {
@@ -734,7 +739,7 @@ requirejs([
 				socket.done();
 			}
 		});
-		socket.on('*', (event, turn) => {
+		socket.on("*", (event, turn) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -743,13 +748,13 @@ requirejs([
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
-			human1.rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'R', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'T', isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"A", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"R", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"T", isBlank:false, score:1}));
 
 			game.addPlayer(human2);			
 			human2.rack.empty();
-			human2.rack.addTile(new Tile({letter:'Q', isBlank:false, score:6}));
+			human2.rack.addTile(new Tile({letter:"Q", isBlank:false, score:6}));
 
 			game.whosTurnKey = human1.key;
 			// Empty the bag
@@ -765,27 +770,27 @@ requirejs([
 
 	// If the bad challenge is from a not-next player,
 	// it should generate a turn{type=Turn.CHALLENGE_LOST}.
-	tr.addTest('bad challenge of final play by not-next player - miss turn', () => {
+	it("bad challenge of final play by not-next player - miss turn", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
-			name: 'Human 1', key: "human1", isRobot: false});
+			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
-			name: 'Human 2', key: "human2", isRobot: false});
+			name: "Human 2", key: "human2", isRobot: false});
 		const human3 = new Player({
-			name: 'Human 3', key: "human3", isRobot: false});
+			name: "Human 3", key: "human3", isRobot: false});
 		const move = new Move({
 			placements: [
-				new Tile({letter:'A', isBlank:false, score:1, col: 6, row: 7}),
-				new Tile({letter:'R', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'T', isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"A", isBlank:false, score:1, col: 6, row: 7}),
+				new Tile({letter:"R", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"T", isBlank:false, score:1, col: 8, row: 7}),
 			],
-			words: [ { word: 'ART', score: 3 }],
+			words: [ { word: "ART", score: 3 }],
 			score: 3
 		});
 		const socket = new TestSocket();
@@ -795,13 +800,13 @@ requirejs([
 			switch (turns++) {
 			case 0:
 				assert.equal(turn.words.length, 1);
-				assert.deepEqual(turn.words[0], { word: 'ART', score: 3 });
+				assert.deepEqual(turn.words[0], { word: "ART", score: 3 });
 				assert.equal(turn.score, 3);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				break;
 			case 1:
-				//console.debug('bad challenge of final play by not-next', turn);
+				//console.debug("bad challenge of final play by not-next", turn);
 				assert.equal(turn.type, Turn.CHALLENGE_LOST);
 				// a failed challenge by not-next incurs no penalty under
 				// default rules.
@@ -816,7 +821,7 @@ requirejs([
 				assert.fail("UNEXPECTED TURN" + turn);
 			}
 		});
-		socket.on('*', (event, turn) => {
+		socket.on("*", (event, turn) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -825,13 +830,13 @@ requirejs([
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
-			human1.rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'R', isBlank:false, score:1}));
-			human1.rack.addTile(new Tile({letter:'T', isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"A", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"R", isBlank:false, score:1}));
+			human1.rack.addTile(new Tile({letter:"T", isBlank:false, score:1}));
 
 			game.addPlayer(human2);			
 			human2.rack.empty();
-			human2.rack.addTile(new Tile({letter:'Q', isBlank:false, score:6}));
+			human2.rack.addTile(new Tile({letter:"Q", isBlank:false, score:6}));
 
 			// Empty the bag
 			game.letterBag.getRandomTiles(
@@ -848,36 +853,36 @@ requirejs([
 	 * player 1 played not-final play
 	 * player 2 challenged - good challenge
 	 * player 2 passed
-     * player 1 tried to make a play - blew up with "Cannot find on Rack"
-	*/
-	tr.addTest('play, challenge, swap', () => {
+	 * player 1 tried to make a play - blew up with "Cannot find on Rack"
+	 */
+	it("play, challenge, swap", () => {
 		const game = new Game({
-			edition:'Tiny',
-			dictionary:'Oxford_5000',
+			edition:"Tiny",
+			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			debug: false,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
-			name: 'Human 1', key: "human1", isRobot: false});
+			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
-			name: 'Human 2', key: "human2", isRobot: false});
+			name: "Human 2", key: "human2", isRobot: false});
 		const move1 = new Move({
 			placements: [
-				new Tile({letter:'Q', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'Y', isBlank:false, score:1, col: 8, row: 7}),
-				new Tile({letter:'Z', isBlank:false, score:1, col: 9, row: 7}),
-				new Tile({letter:'F', isBlank:false, score:1, col: 10, row: 7}) ],
-			words: [ { word: 'QYZF', score: 1 }],
+				new Tile({letter:"Q", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"Y", isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"Z", isBlank:false, score:1, col: 9, row: 7}),
+				new Tile({letter:"F", isBlank:false, score:1, col: 10, row: 7}) ],
+			words: [ { word: "QYZF", score: 1 }],
 			score: 1
 		});
 		const move2 = new Move({
 			placements: [
-				new Tile({letter:'F', isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:'Z', isBlank:false, score:1, col: 8, row: 7}),
-				new Tile({letter:'Y', isBlank:false, score:1, col: 9, row: 7}),
-				new Tile({letter:'Q', isBlank:false, score:1, col: 10, row: 7}) ],
-			words: [ { word: 'FZYQ', score: 99 }],
+				new Tile({letter:"F", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"Z", isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"Y", isBlank:false, score:1, col: 9, row: 7}),
+				new Tile({letter:"Q", isBlank:false, score:1, col: 10, row: 7}) ],
+			words: [ { word: "FZYQ", score: 99 }],
 			score: 99
 		});
 		const socket = new TestSocket();
@@ -918,7 +923,7 @@ requirejs([
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on("*", (event, data) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -942,7 +947,4 @@ requirejs([
 			assert(!human2.missNextTurn);
 		});
 	});
-
-	tr.run();
 });
-

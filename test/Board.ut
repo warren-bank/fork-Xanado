@@ -30,18 +30,21 @@ requirejs.config({
 /**
  * Unit tests for Board class
  */
-requirejs([
-	'test/TestRunner', 'game/Board', 'game/Edition', 'game/Tile', "game/Square", 'jquery-ui'
-], (
-	TestRunner, Board, Edition, Tile, Square
-) => {
+describe('Rack class', () => {
+	const deps = [
+		{ Board: 'game/Board' },
+		{ Edition: 'game/Edition' },
+		{ Tile: 'game/Tile' },
+		{ Square: "game/Square" },
+		{ jQueryUI: 'jquery-ui' }
+	];
 
 	require("@wikimedia/jquery.i18n/src/jquery.i18n");
 
-    let tr = new TestRunner('Rack tests');
-    let assert = tr.assert;
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
 
-	tr.addTest('construct', () => {
+	it('construct', () => {
 		return Edition.load('Tiny')
 		.then(edition => {
 			let b = new Board(edition);
@@ -61,6 +64,8 @@ requirejs([
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n' +
 				'| | | | | | | | | | | | | | | |\n', edition);
+			b.at(6, 6).placeTile(null);
+			b.at(6, 6).placeTile(new Tile({letter: 'N', isBlank: true}), true);
 			assert.equal(b.toString(),
 						 "Board 11x11\n" +
 						 "|Q| | | | | | | | | |8|\n" +
@@ -69,7 +74,7 @@ requirejs([
 						 "|S|C|I|E|N|C|E|3| | | |\n" +
 						 "|T| | | |2| |2| | | | |\n" +
 						 "|I| | | | |6| | | | | |\n" +
-						 "|O|P|I|N|I|O|N| | | | |\n" +
+						 "|O|P|I|N|I|O|n| | | | |\n" +
 						 "|N| | |3| | |O|M| | | |\n" +
 						 "| | |7| | | | | |7| | |\n" +
 						 "| |4| | | | | | | |4| |\n" +
@@ -77,7 +82,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest('touching old', () => {
+	it('touching old', () => {
 		return Edition.load('Tiny')
 		.then(edition => {
 			let b = new Board(edition);
@@ -114,7 +119,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest('analyse move', () => {
+	it('analysePlay and scorePlay', () => {
 		return Edition.load('Tiny')
 		.then(edition => {
 			let b = new Board(edition);
@@ -134,8 +139,8 @@ requirejs([
 			b.at(mr, mc+2).placeTile(R);
 			b.at(mr, mc+3).placeTile(D);
 
-			let move = b.analyseMove();
-			assert.sparseEqual(move, {
+			let move = b.analysePlay();
+			Assert.sparseEqual(move, {
 				words: [ { word: 'WORD', score: 20 } ],
 				score: 35,
 				bonus: 0,
@@ -154,28 +159,126 @@ requirejs([
 			b.at(mr, mc+2).placeTile(R, true);
 			b.at(mr, mc+3).placeTile(D, true);
 
-			// Score another play
-			const A = new Tile({letter: 'A', score: 1});
-			const L = new Tile({letter: 'L', isBlank:true, score: 2});
-			const K = new Tile({letter: 'K', score: 5});
-			
-			b.at(mr+1, mc).placeTile(A);
-			b.at(mr+2, mc).placeTile(L);
-			b.at(mr+3, mc).placeTile(K);
+			// Score another play that extends the existing word
+			const S = new Tile({letter: 'S', score: 1});
+			const U = new Tile({letter: 'U', score: 1});
+			const N = new Tile({letter: 'N', isBlank:true, score: 2});
 
-			move = b.analyseMove();
-			assert.sparseEqual(move, {
-				words: [ { word: 'WALK', score: 12 } ],
-				score: 22,
+			b.at(mr, mc-1).placeTile(S);
+			b.at(mr+1, mc-1).placeTile(U);
+			b.at(mr+2, mc-1).placeTile(N);
+
+			const words = [];
+			const got = b.scorePlay(mc-1, mr+2, 1, 0, [ S, U, N ], words);
+			assert.deepEqual(words, [ { word: 'SWORD', score: 11 }, { word: 'SUN', score: 5 } ]);
+			assert.equal(got, 26);
+
+			move = b.analysePlay();
+			Assert.sparseEqual(move, {
+				words: [ { word: 'SUN', score: 5 }, { word: 'SWORD', score: 11 } ],
+				score: 26,
 				bonus: 0,
-				placements: [ A, L, K ]
+				placements: [ S, U, N ]
 			});
+
+			// clear temp tiles
+			b.at(mr, mc-1).placeTile();
+			b.at(mr+1, mc-1).placeTile();
+			b.at(mr+2, mc-1).placeTile();
+
+			// Score another play that intersects the existing word
+			b.at(mr+1, mc+3).placeTile(U);
+			b.at(mr+2, mc+3).placeTile(N);
+
+			const w2 = [];
+			const g2 = b.scorePlay(mc+3, mr+2, 1, 0, [ D, U, N ], w2);
+			assert.deepEqual(w2, [ { word: 'DUN', score: 6 } ]);
+			assert.equal(g2, 6);
+
+			move = b.analysePlay();
+			Assert.sparseEqual(move, {
+				words: [ { word: 'DUN', score: 6 } ],
+				score: 6,
+				bonus: 0,
+				placements: [ U, N ]
+			});
+			
 		});
 	});
 
-	// scorePlay is implicitly tested in findBestMove.ut
+	it('analyse first play - disconnected', () => {
+		return Edition.load('Tiny')
+		.then(edition => {
+			let b = new Board(edition);
+			for (let r = 0; r < b.rows; r++)
+				for (let c = 0; c < b.cols; c++)
+					assert(!b.touchingOld(r, c));
+			const mr = Math.floor(b.rows / 2);
+			const mc = Math.floor(b.cols / 2);
+			
+			const W = new Tile({letter: 'W', score:4});
+			const O = new Tile({letter: 'O', score:1});
+			const R = new Tile({letter: 'R', score:2, isBlank:true});
+			const D = new Tile({letter: 'D', score:3});
+			
+			b.at(mr, mc).placeTile(W);
+			b.at(mr, mc+1).placeTile(O);
+			b.at(mr+1, mc+2).placeTile(R);
+			b.at(mr, mc+3).placeTile(D);
 
-	tr.addTest("$ui", () => {
+			let move = b.analysePlay();
+			assert.equal(move, "Disconnected placement");
+		});
+	});
+
+	it('analyse first play - centre missing', () => {
+		return Edition.load('Tiny')
+		.then(edition => {
+			let b = new Board(edition);
+			for (let r = 0; r < b.rows; r++)
+				for (let c = 0; c < b.cols; c++)
+					assert(!b.touchingOld(r, c));
+			const mr = Math.floor(b.rows / 2);
+			const mc = Math.floor(b.cols / 2);
+			
+			const W = new Tile({letter: 'W', score:4});
+			const O = new Tile({letter: 'O', score:1});
+			const R = new Tile({letter: 'R', score:2, isBlank:true});
+			const D = new Tile({letter: 'D', score:3});
+			
+			b.at(mr, mc+1).placeTile(W);
+			b.at(mr, mc+2).placeTile(O);
+			b.at(mr, mc+3).placeTile(R);
+			b.at(mr, mc+4).placeTile(D);
+
+			let move = b.analysePlay();
+			assert.equal(move, "Centre must be used");
+		});
+	});
+
+	it('analyse first play - single tile', () => {
+		return Edition.load('Tiny')
+		.then(edition => {
+			let b = new Board(edition);
+			for (let r = 0; r < b.rows; r++)
+				for (let c = 0; c < b.cols; c++)
+					assert(!b.touchingOld(r, c));
+			const mr = Math.floor(b.rows / 2);
+			const mc = Math.floor(b.cols / 2);
+			
+			const W = new Tile({letter: 'W', score:4});
+			const O = new Tile({letter: 'O', score:1});
+			const R = new Tile({letter: 'R', score:2, isBlank:true});
+			const D = new Tile({letter: ' ', isBlank: true, score:3});
+			
+			b.at(mr, mc).placeTile(W);
+
+			let move = b.analysePlay();
+			assert.equal(move, "First word must be at least two tiles");
+		});
+	});
+
+	it("$ui", () => {
 		const edition = new Edition({
 			layout: [
 				'Dd_',
@@ -214,8 +317,6 @@ requirejs([
 
 		// Not going to bother with a detailed check because it's obvious
 		// from the UI
+		const s = b.$ui();
 	});
-	
-	tr.run();
 });
-

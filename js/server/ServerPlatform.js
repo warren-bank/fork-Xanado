@@ -101,6 +101,12 @@ define("platform", [
 		 * @param {string} lang Language to translate to
 		 */
 		constructor(lang) {
+		}
+
+		// @private
+		_getData() {
+			if (this.data)
+				return Promise.resolve();
 
 			// Recurse up the path to find the i18n directory,
 			// identified by the end path i18n/en.json
@@ -118,7 +124,7 @@ define("platform", [
 			// process.argv[1] has the path to server.js
 			const path = Path.dirname(process.argv[1]);
 			let langdir, langfile;
-			findLangPath(path, lang)
+			return findLangPath(path, lang)
 			.then(path => {
 				langdir = Path.join(path, "i18n");
 				// Try the full locale e.g. "en-US"
@@ -144,9 +150,10 @@ define("platform", [
 		}
 
 		/**
-		 * Implement `$.i18n()`
+		 * Implement `$.i18n()` in node.js
 		 */
-		lookup(args) {
+		async lookup(args) {
+			await this._getData();
 			let s = args[0];
 			if (this.data && typeof this.data[s] !== "undefined")
 				s = this.data[s];

@@ -14,17 +14,22 @@ requirejs.config({
 	}
 });
 
-requirejs([
-	'test/TestRunner', 'game/Edition', 'game/Tile', 'game/Rack',
-	'game/Player', 'game/Game', 'game/Move', 'game/findBestPlay'
-], (
-	TestRunner, Edition, Tile, Rack,
-	Player, Game, Move, findBestPlay
-) => {
-    let tr = new TestRunner('best move from complex boards');
-    let assert = tr.assert;
+describe('best move from complex boards', () => {
+	const deps = [
+		{ Edition: 'game/Edition' },
+		{ Tile: 'game/Tile' },
+		{ Rack: 'game/Rack' },
+		
+		{ Player: 'game/Player' },
+		{ Game: 'game/Game' },
+		{ Move: 'game/Move' },
+		{ findBestPlay: 'game/findBestPlay' }
+	];
 
-	tr.addTest('blanks', () => {
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
+
+	it('blanks', () => {
 		let bestMoves = [];
 		return new Game({
 			edition:'English_WWF',
@@ -74,7 +79,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest('actor', () => {
+	it('actor', () => {
 		let bestMoves = [];
 		let rack = new Rack('base', 3);
 		rack.addTile(new Tile({letter:'A', isBlank:false, score:1}));
@@ -140,7 +145,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest('noe', () => {
+	it('noe', () => {
 		let bestMoves = [];
 		let rack = new Rack('best', 7);
 		rack.addTile(new Tile({letter:'L', isBlank:false, score:1}));
@@ -195,7 +200,7 @@ requirejs([
 		});
 	});
 	
-	tr.addTest('town', () => {
+	it('town', () => {
 		let bestMoves = [];
 		const rack = new Rack('best', 7);
 		rack.addTile(new Tile({letter:'U', isBlank:false, score:1}));
@@ -245,7 +250,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest('obliques', () => {
+	it('obliques', () => {
 		let bestMoves = [];
 		return new Game({
 			edition:'English_WWF',
@@ -290,7 +295,5 @@ requirejs([
 			//console.log(bestMoves[bestMoves.length-1]);
 		});
 	});
-
-	tr.run();
 });
 

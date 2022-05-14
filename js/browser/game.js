@@ -1226,7 +1226,7 @@ define("browser/game", [
 				// move action is to make the move
 				this.setAction("action_commitMove", /*i18n*/"Finished Turn");
 				// Check that the play is legal
-				const move = this.game.board.analyseMove();
+				const move = this.game.board.analysePlay();
 				const $move = $("#yourMove");
 				if (typeof move === "string") {
 					// Play is bad
@@ -1546,7 +1546,7 @@ define("browser/game", [
 		action_commitMove() {
 			$(".hint-placement").removeClass("hint-placement");
 
-			const move = this.game.board.analyseMove();
+			const move = this.game.board.analysePlay();
 			if (typeof move === "string") {
 				// fatal - should never get here
 				UI.report(move);

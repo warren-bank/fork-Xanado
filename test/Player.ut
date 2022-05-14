@@ -27,11 +27,14 @@ requirejs.config({
     }
 });
 
-requirejs(["test/TestRunner", "game/Player"], (TestRunner, Player) => {
-    let tr = new TestRunner("Player tests");
-    let assert = tr.assert;
+describe("Player class", () => {
 
-	tr.addTest("construct", () => {
+	const deps = [ { Player: "game/Player" } ];
+
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
+
+	it("construct", () => {
 		const p = {
 			name: "name",
 			key: "key",
@@ -45,8 +48,37 @@ requirejs(["test/TestRunner", "game/Player"], (TestRunner, Player) => {
 			assert.equal(player[f], p[f], f);
 		}
 	});
+	
+	it("toString and simple", () => {
+		const p = {
+			name: "Player 1",
+			key: "playerkey",
+			isRobot: false,
+			canChallenge: false,
+			missNextTurn: false,
+			debug: false,
+			dictionary: "NoDic"
+		};
+		const player = new Player(p);
+		player.isRobot = true;
+		player.score = 20;
 
-	tr.addTest("$html-robot", () => {
+		assert.equal(player.toString(), "Player 'Player 1' (Robot) key playerkey");
+		return player.simple()
+		.then(d => assert.deepEqual(d, {
+			name: 'Player 1',
+			isRobot: true,
+			dictionary: 'NoDic',
+			key: 'playerkey',
+			score: 20,
+			clock: undefined,
+			email: false,
+			isConnected: true,
+			missNextTurn: false
+		}));
+	});
+	   
+	it("$html-robot", () => {
 		const p = {
 			name: "Player 1",
 			key: "playerkey",
@@ -71,10 +103,14 @@ requirejs(["test/TestRunner", "game/Player"], (TestRunner, Player) => {
 
 		const $act = player.$ui();
 		assert($act[0].isEqualNode($tr[0]),
-			  `expected: ${$tr.html()}\n actual: ${$act.html()}`);
+			   `expected: ${$tr.html()}\n actual: ${$act.html()}`);
+		player.score = 666;
+		$("body").append("<div id='playerplayerkey'><div class='score'>fail</div></div>");
+		player.$refresh();
+		assert.equal($("#playerplayerkey .score").text(), player.score);
 	});
 
-	tr.addTest("$html-human", () => {
+	it("$html-human", () => {
 		const p = {
 			name: "Player 1",
 			key: "playerkey",
@@ -101,7 +137,5 @@ requirejs(["test/TestRunner", "game/Player"], (TestRunner, Player) => {
 		assert($act[0].isEqualNode($tr[0]),
 			  `expected: ${$tr.html()}\n actual: ${$act.html()}`);
 	});
-
-	tr.run();
 });
 

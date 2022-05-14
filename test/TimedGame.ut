@@ -31,19 +31,24 @@ requirejs.config({
 /**
  * Unit tests for behavious specific to timed games
  */
-requirejs([
-	'test/TestRunner', 'test/TestSocket', 'game/Edition', 'game/Tile',
-	'game/Rack', 'game/Player', 'game/Game', 'game/Move',
-	'game/Turn', 'game/findBestPlay', 'game/Notify'
-], (
-	TestRunner, TestSocket, Edition, Tile,
-	Rack, Player, Game, Move,
-	Turn, findBestPlay, Notify
-) => {
-    let tr = new TestRunner('Timed Game tests');
-    let assert = tr.assert;
+describe("Timed games", () => {
+	const deps = [
+		{ TestSocket: 'test/TestSocket' },
+		{ Edition: 'game/Edition' },
+		{ Tile: 'game/Tile' },
+		{ Rack: 'game/Rack' },
+		{ Player: 'game/Player' },
+		{ Game: 'game/Game' },
+		{ Move: 'game/Move' },
+		{ Turn: 'game/Turn' },
+		{ findBestPlay: 'game/findBestPlay' },
+		{ Notify: 'game/Notify' }
+	];
 
-	tr.addTest('timeout and end game', () => {
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
+
+	it('timeout and end game', () => {
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
 		const human2 = new Player({
@@ -137,7 +142,7 @@ requirejs([
 		.then(() => socket.wait());
 	});
 
-	tr.addTest('pass and ovetime', () => {
+	it('pass and ovetime', () => {
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
 		const human2 = new Player({
@@ -255,7 +260,5 @@ requirejs([
 		.then(() => game.pass(human2, Turn.PASSED))
 		.then(() => socket.wait());
 	});
-
-	tr.run();
 });
 

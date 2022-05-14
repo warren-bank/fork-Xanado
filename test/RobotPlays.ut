@@ -17,18 +17,23 @@ requirejs.config({
 /**
  * Unit tests for robot.
  */
-requirejs([
-	'test/TestRunner', 'test/TestSocket',
-	'game/Tile', 'game/Player', 'game/Game',
-	'game/Move', 'game/Turn', 'game/Notify'
-], (
-	TestRunner, TestSocket,
-	Tile, Player, Game, Move, Turn, Notify
-) => {
-    let tr = new TestRunner('Game - robot plays - tests');
-    let assert = tr.assert;
+describe('Game - robot plays - tests', () => {
+	const deps = [
+		{ TestSocket: 'test/TestSocket' },
+		
+		{ Tile: 'game/Tile' },
+		{ Player: 'game/Player' },
+		{ Game: 'game/Game' },
+		
+		{ Move: 'game/Move' },
+		{ Turn: 'game/Turn' },
+		{ Notify: 'game/Notify' }
+	];
 
-	tr.addTest('robot cannot play first', () => {
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
+
+	it('robot cannot play first', () => {
 		const game = new Game({
 			edition: "Tiny",
 			dictionary: "Oxford_5000",
@@ -77,7 +82,7 @@ requirejs([
 		.then(() => socket.wait());
 	});
 
-	tr.addTest('robot can play first', () => {
+	it('robot can play first', () => {
 		const game = new Game({
 			debug: false,
 			noPlayerShuffle: true,
@@ -154,7 +159,7 @@ requirejs([
 		.then(() => assert.equal(game.whosTurnKey, human.key));
 	});
 
-	tr.addTest('robot play second', () => {
+	it('robot play second', () => {
 		const game = new Game({
 			edition:'English_Scrabble',
 			dictionary:'Oxford_5000',
@@ -241,7 +246,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest('robot confirm game over', () => {
+	it('robot confirm game over', () => {
 		const game =  new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
@@ -316,7 +321,7 @@ requirejs([
 		.then(() => socket.wait());
 	});
 
-	tr.addTest('robot challenge and make last play', () => {
+	it('robot challenge and make last play', () => {
 		const game = new Game({
 			edition: "Tiny",
 			dictionary: "Oxford_5000",
@@ -404,7 +409,5 @@ requirejs([
 		// end up notifying two moves.
 		.then(() => socket.wait());
 	});
-
-	tr.run();
 });
 

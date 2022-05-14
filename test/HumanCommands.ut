@@ -1,6 +1,6 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
-/* eslint-env node */
+/* eslint-env node, mocha */
 
 requirejs = require("requirejs");
 
@@ -17,18 +17,26 @@ requirejs.config({
 /**
  * Unit tests for Game commands that are issued during gameplay.
  */
-requirejs([
-	"test/TestRunner", "test/TestSocket",
-	"game/Tile", "game/Player", "game/Game",
-	"game/Move", "game/Turn", "game/Command", "game/Notify"
-], (
-	TestRunner, TestSocket,
-	Tile, Player, Game, Move, Turn, Command, Notify
-) => {
-    let tr = new TestRunner("Game - human commands - tests");
-    let assert = tr.assert;
 
-	tr.addTest(Command.SWAP, () => {
+describe("Game - human commands - tests", () => {
+
+	const deps = [
+		{ TestSocket: "test/TestSocket" },
+		
+		{ Tile: "game/Tile" },
+		{ Player: "game/Player" },
+		{ Game: "game/Game" },
+		
+		{ Move: "game/Move" },
+		{ Turn: "game/Turn" },
+		{ Command: "game/Command" },
+		{ Notify: "game/Notify" }
+	];
+	
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
+
+	it("swap", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
@@ -110,7 +118,7 @@ requirejs([
 		.then(() => socket.wait());
 	});
 
-	tr.addTest("anotherGame", () => {
+	it("anotherGame", () => {
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
@@ -159,7 +167,7 @@ requirejs([
 		.then(() => socket.wait());
 	});
 
-	tr.addTest(Command.PASS, () => {
+	it("pass", () => {
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
@@ -218,7 +226,7 @@ requirejs([
 		.then(() => socket.wait());
 	});
 
-	tr.addTest(Command.PLAY, () => {
+	it("play", () => {
 		const W = new Tile({letter:"W", score:1, col: 7, row: 7});
 		const O = new Tile({letter:"O", score:1, col: 8, row: 7});
 		const R = new Tile({letter:"R", score:1, col: 9, row: 7});
@@ -251,7 +259,7 @@ requirejs([
 				assert.equal(turn.score, move.score);
 				assert.deepEqual(turn.words, move.words);
 				assert.deepEqual(turn.placements, move.placements);
-				assert.sparseEqual(turn.replacements, [ aTile ]);
+				Assert.sparseEqual(turn.replacements, [ aTile ]);
 				socket.done();
 				break;
 			default:
@@ -295,7 +303,7 @@ requirejs([
 		.then(() => assert.equal(game.whosTurnKey, human2.key));
 	});
 
-	tr.addTest(Command.GAME_OVER, () => {
+	it("game_over", () => {
 		const game =  new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
@@ -348,7 +356,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest(Command.TAKE_BACK, () => {
+	it("take_back", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
@@ -375,7 +383,7 @@ requirejs([
 			switch (turns++) {
 			case 0:
 				assert.equal(turn.type, Turn.PLAY);
-				assert.sparseEqual(turn, move);
+				Assert.sparseEqual(turn, move);
 				break;
 			case 1:
 				assert.equal(turn.type, Turn.TOOK_BACK);
@@ -444,8 +452,8 @@ requirejs([
 		});
 	});
 
-	tr.addTest(Command.CHALLENGE, () => {
-		// More tests are in Challenges.ut
+	it("challenge", () => {
+		// more tests are in Challenges.ut
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
@@ -482,7 +490,7 @@ requirejs([
 		});
 	});
 	
-	tr.addTest(Command.PAUSE, () => {
+	it("pause", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
@@ -529,7 +537,5 @@ requirejs([
 		.then(g => assert.strictEqual(g, game))
 		.then(g => assert(!game.pausedBy));
 	});
-
-	tr.run();
 });
 

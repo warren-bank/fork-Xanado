@@ -1,6 +1,6 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
-/* eslint-env node */
+/* eslint-env node, mocha */
 
 requirejs = require("requirejs");
 // node.js
@@ -31,19 +31,24 @@ requirejs.config({
  * Basic unit tests for Game class. More tests for Game methods are
  * in Challenges, HumanCommands, RobotPlays and TimedGame.
  */
-requirejs([
-	"test/TestRunner", "test/TestSocket",
-	"game/Tile", "game/Player", "game/Game", "game/Move", "game/Turn",
-	"game/Notify", "game/Command", "platform"
-], (
-	TestRunner, TestSocket,
-	Tile, Player, Game, Move, Turn,
-	Notify, Command, Platform
-) => {
-    let tr = new TestRunner("Game tests");
-    let assert = tr.assert;
+describe("Game - basic tests", () => {
+	
+	const deps = [
+		{ TestSocket: "test/TestSocket" },
+		{ Tile: "game/Tile" },
+		{ Player: "game/Player" },
+		{ Game: "game/Game" },
+		{ Move: "game/Move" },
+		{ Turn: "game/Turn" },
+		{ Notify: "game/Notify" },
+		{ Command: "game/Command" },
+		{ Platform: "platform" }
+	];
 
-	tr.addTest("construct", () => {
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
+
+	it("construct", () => {
 		const p = {
 			edition:"English_Scrabble",
 			dictionary:"Oxford_5000",
@@ -75,7 +80,7 @@ requirejs([
 		});
 	});
 	
-	tr.addTest("basics", () => {
+	it("basics", () => {
 		const p = {
 			edition:"English_Scrabble",
 			dictionary:"Oxford_5000",
@@ -130,7 +135,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest("$html", () => {
+	it("$html", () => {
 		const p = {
 			edition:"English_Scrabble",
 			dictionary:"Oxford_5000",
@@ -202,7 +207,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest("last move in game", () => {
+	it("last move in game", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
@@ -240,7 +245,7 @@ requirejs([
 		];
 		const handle = (event, data) => {
 			const turn = turns.shift();
-			assert.sparseEqual(
+			Assert.sparseEqual(
 				{ event: event, data: data}, turn);
 			if (turns.length === 0) {
 				// Last play should have no replacements, so player rack
@@ -288,7 +293,7 @@ requirejs([
 	});
 
 	// Clear missed turn flag set after challenge failed
-	tr.addTest("clear missed turn", () => {
+	it("clear missed turn", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
@@ -331,7 +336,7 @@ requirejs([
 		});
 	});
 
-	tr.addTest("verify human play", () => {
+	it("verify human play", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
@@ -391,7 +396,7 @@ requirejs([
 		.then(() => socket1.wait());
 	});
 
-	tr.addTest("load from file", () => {
+	it("load from file", () => {
 		const db = new Platform.Database("test", "game");
 		return db.get("bad_robot", Game.classes)
 		.then(game => {
@@ -403,7 +408,5 @@ requirejs([
 			return game.pass(human);
 		});
 	});
-	
-	tr.run();
 });
 

@@ -30,18 +30,21 @@ requirejs.config({
 /**
  * Unit tests for Rack class
  */
-requirejs([
-	'test/TestRunner', 'game/Rack', 'game/Tile', "game/Square", 'jquery-ui'
-], (
-	TestRunner, Rack, Tile, Square
-) => {
+describe("Rack class", () => {
+	const deps = [
+		{ TestRunner: 'test/TestRunner' },
+		{ Rack: 'game/Rack' },
+		{ Tile: 'game/Tile' },
+		{ Square: "game/Square" },
+		{ jQeuryUI: 'jquery-ui' }
+	];
 
 	require("@wikimedia/jquery.i18n/src/jquery.i18n");
 
-    let tr = new TestRunner('Rack tests');
-    let assert = tr.assert;
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
 
-	tr.addTest('construct', () => {
+	it('construct', () => {
 		let r = new Rack('base', 10);
 		assert(r.isEmpty());
 		const aTile = new Tile({letter: 'A'});
@@ -65,7 +68,7 @@ requirejs([
 		assert.deepEqual(r.lettersLeft().sort(), ['B', 'D', 'E']);
 	});
 
-	tr.addTest('$ui empty', () => {
+	it('$ui empty', () => {
 		let r = new Rack('base', 2);
 
 		let $act = r.$ui();
@@ -85,7 +88,7 @@ requirejs([
 		$("body").empty();
 	});
 
-	tr.addTest('$ui empty underlay', () => {
+	it('$ui empty underlay', () => {
 		let r = new Rack('base', 2, "£");
 
 		let $act = r.$ui();
@@ -106,7 +109,7 @@ requirejs([
 		$("body").empty();
 	});
 
-	tr.addTest('$ui tiled', () => {
+	it('$ui tiled', () => {
 		let r = new Rack('base', 2);
 		r.addTile(new Tile({letter:'S'}), 0, 0);
 		r.addTile(new Tile({letter:'Q'}), 0, 0);
@@ -131,7 +134,5 @@ requirejs([
 			   "  actual:" + $dact.html());
 		$("body").empty();
 	});
-
-	tr.run();
 });
 
