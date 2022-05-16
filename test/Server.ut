@@ -1,0 +1,467 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node, mocha */
+
+requirejs = require("requirejs");
+
+requirejs.config({
+    baseUrl: `${__dirname}/..`,
+	nodeRequire: require,
+	paths: {
+		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
+		common: "js/common",
+		server: "js/server",
+		dawg: "js/dawg",
+		game: "js/game",
+		platform: "js/server/ServerPlatform"
+	}
+});
+
+const chai = require("chai");
+chai.use(require("chai-http"));
+const expect = chai.expect;
+const fs = require("fs").promises;
+const { exec } = require('child_process');
+
+/**
+ * Basic unit tests for Server class.
+ */
+describe("Server", () => {
+	
+	const deps = [
+		{ TestSocket: "test/TestSocket" },
+		{ Server: "server/Server" },
+		{ Platform: "platform" }
+	];
+
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
+
+	//after(() => Assert.why_is_node_running());
+	
+	const assert = chai.assert;
+
+	// Promise to create a new server and reset DB, resolve to Server.express.
+	function reset(config) {
+		const server = new Server(config);
+		Platform.LANG_SEARCH_BASE = __dirname;
+		return new Promise(resolve => {
+			const cmd = `rm -f ${__dirname}/games/*.game`;
+			exec(cmd,
+				 (err, stdout, stderr) => {
+					 if (err)
+						 console.debug(cmd, err);
+					 resolve();
+				 });
+		})
+		.then(() => fs.unlink(config.auth.db_file))
+		.catch(e => {
+			console.debug(e);
+			return undefined;
+		})
+		.then(() => server);
+	}
+	
+	// Promise to register user. Resolve to server.
+	function register(server, user) {
+		return new Promise(resolve => {
+			chai.request(server.express)
+			.post("/register")
+			.set('content-type', 'application/x-www-form-urlencoded')
+			.send(user)
+			.end((err, res) => {
+				assert.equal(res.status, 200);
+				Assert.sparseEqual(res.body, {
+					name: user.register_username,
+					provider: "xanado"
+				});
+				assert(res.body.key.length > 1);
+				assert(!res.body.email);
+				resolve(server);
+			});
+		});
+	}
+	
+	// Promise to login user. Resolve to session_cookie.
+	function login(server, user) {
+		return new Promise(resolve => {
+			chai.request(server.express)
+			.post("/login")
+			.send(user)
+			.end((err, res) => {
+				assert.equal(res.status, 200);
+				resolve(res.header["set-cookie"]);
+			});
+		});
+	}
+
+	const config = {
+		auth: {
+			"sessionSecret": "cross words",
+			"db_file" : `${__dirname}/passwd.json`
+		},
+		defaults: {
+			edition: "Tiny",
+			dictionary: "Oxford_5000",
+			theme: "default"
+		}
+	};
+
+	function unit() {}
+	
+	it("handlers", () => new Promise(resolve => {
+		const s = new Server(config);
+		const ts = new TestSocket();
+		s.attachSocketHandlers(ts);
+		resolve();
+	}));
+
+	it("/defaults", () => new Promise(resolve => {
+		const s = new Server(config);
+		chai.request(s.express)
+		.get("/defaults")
+		.end((err, res) => {
+			assert.equal(res.status, 200);
+			assert.deepEqual(res.body, {
+				edition: "Tiny",
+				dictionary: "Oxford_5000",
+				theme: "default",
+				canEmail: false
+			});
+			resolve();
+		});
+	}));
+
+	it("/locales", () => new Promise(resolve => {
+		const s = new Server(config);
+		chai.request(s.express)
+		.get("/locales")
+		.end((err, res) => {
+			console.log(res.body);
+			assert(res.body.indexOf('en') >= 0);
+			assert(res.body.indexOf('fr') >= 0);
+			assert(res.body.indexOf('de') >= 0);
+			assert(res.body.indexOf('qqq') >= 0);
+			assert.equal(res.status, 200);
+			resolve();
+		});
+	}));
+
+	it("/editions", () => new Promise(resolve => {
+		const s = new Server(config);
+		chai.request(s.express)
+		.get("/editions")
+		.end((err, res) => {
+			assert(res.body.indexOf('English_Lexulous') >= 0);
+			assert(res.body.indexOf('English_WWF') >= 0);
+			assert.equal(res.status, 200);
+			resolve();
+		});
+	}));
+
+	it("/dictionaries", () => new Promise(resolve => {
+		const s = new Server(config);
+		chai.request(s.express)
+		.get("/dictionaries")
+		.end((err, res) => {
+			assert(res.body.indexOf('SOWPODS_English') >= 0);
+			assert(res.body.indexOf('CSW2019_English') >= 0);
+			assert.equal(res.status, 200);
+			resolve();
+		});
+	}));
+
+	it("/themes", () => new Promise(resolve => {
+		const s = new Server(config);
+		chai.request(s.express)
+		.get("/themes")
+		.end((err, res) => {
+			assert.equal(res.status, 200);
+			assert(res.body.indexOf('default') >= 0);
+			resolve();
+		});
+	}));
+
+	it("/theme", () => new Promise(resolve => {
+		const s = new Server(config);
+		chai.request(s.express)
+		.get("/theme/games.css")
+		.end((err, res) => {
+			//console.log(res.text);
+			assert.equal(res.status, 200);
+			resolve();
+		});
+	}));
+
+	it("/history", () => new Promise(resolve => {
+		const s = new Server(config);
+		chai.request(s.express)
+		.get("/history")
+		.end((err, res) => {
+			//console.log(res.text);
+			assert.equal(res.status, 200);
+			resolve();
+		});
+	}));
+
+	it("/createGame - /join - /addRobot - /game - /leave - /removeRobot - /deleteGame", () => {
+		const config = {
+			auth: {
+				"sessionSecret": "cross words",
+				"db_file" : `${__dirname}/passwd.json`
+			},
+			defaults: {
+				edition: "Tiny",
+				dictionary: "Oxford_5000",
+				theme: "default"
+			},
+			games: "test/games"
+		};
+		let server, cookie, sessionkey, gamekey;
+		return reset(config)
+		.then(s => server = s)
+		.then(() => register(server, {
+				register_username: "test_user",
+				register_password: "test_pass",
+				register_email: "test@email.com"
+			}))
+		.then(() => login(server, {
+			login_username: "test_user",
+			login_password: "test_pass"
+		}))
+		.then(c => cookie = c)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/createGame")
+			.set('Cookie', cookie)
+			.send({
+				edition: "English_Scrabble",
+				dictionary:"CSW2019_English"
+			})
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}))
+		.then(g => gamekey = g)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/join/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200, res.text);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/addRobot/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200, res.text);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.get(`/game/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/leave/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/removeRobot/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/deleteGame/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}));
+	});
+
+	it("/anotherGame", () => {
+		const config = {
+			auth: {
+				"sessionSecret": "cross words",
+				"db_file" : `${__dirname}/passwd.json`
+			},
+			defaults: {
+				edition: "Tiny",
+				dictionary: "Oxford_5000",
+				theme: "default"
+			},
+			games: "test/games"
+		};
+		let server, cookie, sessionkey, gamekey;
+		return reset(config)
+		.then(s => server = s)
+		.then(() => register(server, {
+				register_username: "test_user",
+				register_password: "test_pass",
+				register_email: "test@email.com"
+			}))
+		.then(() => login(server, {
+			login_username: "test_user",
+			login_password: "test_pass"
+		}))
+		.then(c => cookie = c)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/createGame")
+			.set('Cookie', cookie)
+			.send({
+				edition: "English_Scrabble",
+				dictionary:"CSW2019_English"
+			})
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}))
+		.then(g => gamekey = g)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/join/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200, res.text);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/addRobot/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200, res.text);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/anotherGame/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200, res.text);
+				assert.notEqual(res.text, gamekey);
+				resolve(res.text);
+			});
+		}));
+	});
+
+	it("/command/:command/:gameKey", () => {
+		const config = {
+			auth: {
+				"sessionSecret": "cross words",
+				"db_file" : `${__dirname}/passwd.json`
+			},
+			defaults: {
+				edition: "Tiny",
+				dictionary: "Oxford_5000",
+				theme: "default"
+			},
+			games: "test/games"
+		};
+		let server, cookie, sessionkey, gamekey;
+		return reset(config)
+		.then(s => server = s)
+		.then(() => register(server, {
+				register_username: "test_user",
+				register_password: "test_pass",
+				register_email: "test@email.com"
+			}))
+		.then(() => login(server, {
+			login_username: "test_user",
+			login_password: "test_pass"
+		}))
+		.then(c => cookie = c)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/createGame")
+			.set('Cookie', cookie)
+			.send({
+				edition: "English_Scrabble",
+				dictionary:"CSW2019_English"
+			})
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}))
+		.then(g => gamekey = g)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/join/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200, res.text);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/addRobot/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200, res.text);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/command/confirmGameOver/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				console.log(res.text);
+				assert.equal(res.status, 200, res.text);
+				resolve();
+			});
+		}));
+	});
+
+	it("/invitePlayers", () => new Promise(resolve => {
+		assert(false, "Not implemented");
+		resolve();
+	}));
+
+	it("/sendReminder", () => new Promise(resolve => {
+		assert(false, "Not implemented");
+		resolve();
+	}));
+
+});

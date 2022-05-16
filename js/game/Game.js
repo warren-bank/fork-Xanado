@@ -4,15 +4,17 @@ and license information*/
 /* eslint-env amd */
 
 define("game/Game", [
+	"common/Utils",
 	"platform",
 	"dawg/Dictionary",
-	"game/GenKey", "game/Board", "game/LetterBag", "game/Edition",
+	"game/Board", "game/LetterBag", "game/Edition",
 	"game/Player", "game/Square", "game/Tile", "game/Rack", "game/Move",
 	"game/Turn", "game/Notify"
 ], (
+	Utils,
 	Platform,
 	Dictionary,
-	GenKey, Board, LetterBag, Edition,
+	Board, LetterBag, Edition,
 	Player, Square, Tile, Rack, Move,
 	Turn, Notify
 ) => {
@@ -42,6 +44,7 @@ define("game/Game", [
 			 * @member {function}
 			 * @private
 			 */
+			/* istanbul ignore if */
 			if (typeof params.debug === "function")
 				this._debug = params.debug;
 			else
@@ -60,7 +63,7 @@ define("game/Game", [
 			 * Key that uniquely identifies this game - generated
 			 * @member {string}
 			 */
-			this.key = GenKey();
+			this.key = Utils.genKey();
 
 			/**
 			 * Epoch ms when this game was created
@@ -76,6 +79,7 @@ define("game/Game", [
 			 * @member {string}
 			 */
 			this.edition = params.edition;
+			/* istanbul ignore if */
 			if (!this.edition)
 				throw new Error("Game must have an edition");
 
@@ -296,8 +300,10 @@ define("game/Game", [
 		 * @param {Player} player
 		 */
 		addPlayer(player) {
+			/* istanbul ignore if */
 			if (!this.letterBag)
 				throw Error("Cannot addPlayer() before create()");
+			/* istanbul ignore if */
 			if (this.maxPlayers > 1 && this.players.length === this.maxPlayers)
 				throw Error("Cannot addPlayer() to a full game");			
 			this.players.push(player);
@@ -316,6 +322,7 @@ define("game/Game", [
 		removePlayer(player) {
 			player.returnTiles(this.letterBag);
 			const index = this.players.findIndex(p => p.key === player.key);
+			/* istanbul ignore if */
 			if (index < 0)
 				throw Error(`No such player ${player.key} in ${this.key}`);
 			this.players.splice(index, 1);
@@ -348,6 +355,7 @@ define("game/Game", [
 			if (!player)
 				return undefined;
 			const index = this.players.findIndex(p => p.key === player.key);
+			/* istanbul ignore if */
 			if (index < 0)
 				throw new Error(`${player.key} not found in ${this.key}`);
 			return this.players[
@@ -368,6 +376,7 @@ define("game/Game", [
 			else if (typeof player === "string")
 				player = this.getPlayer(player);
 			let index = this.players.findIndex(p => p.key === player.key);
+			/* istanbul ignore if */
 			if (index < 0)
 				throw new Error(`${player.key} not found in ${this.key}`);
 			for (let i = 0; i < this.players.length; i++) {
@@ -378,6 +387,7 @@ define("game/Game", [
 				} else
 					return nextPlayer;
 			}
+			/* istanbul ignore next */
 			throw new Error(
 				`Unable to determine next player after ${player.key}`);
 		}
@@ -419,6 +429,7 @@ define("game/Game", [
 				return Dictionary.load(this.dictionary);
 
 			// Terminal, no point in translating
+			/* istanbul ignore next */
 			return Promise.reject("Game has no dictionary");
 		}
 
@@ -512,6 +523,7 @@ define("game/Game", [
 		 * @return {Square} at col,row
 		 */
 		at(col, row) {
+			throw new Error("Never called");
 			return this.board.at(col, row);
 		}
 
@@ -519,6 +531,7 @@ define("game/Game", [
 		 * Simple summary of the game, for console output
 		 * @return {string} debug description
 		 */
+		/* istanbul ignore next */
 		toString() {
 			const options = [];
 			if (this.predictScore) options.push("P");
@@ -580,6 +593,7 @@ define("game/Game", [
 						this.players[j] = temp;
 					}
 					// Notify all connections of the order change
+					// (asynchronously)
 					this.updateConnections();
 				}
 
@@ -737,6 +751,7 @@ define("game/Game", [
 		 * @private
 		 */
 		startTurn(player, timeout) {
+			/* istanbul ignore if */
 			if (!player)
 				throw Error("No player");
 
@@ -830,6 +845,7 @@ define("game/Game", [
 			}
 
 			const knownSocket = this.getConnection(player);
+			/* istanbul ignore if */
 			if (knownSocket !== null) {
 				console.error("WARNING:", player.key, "already connected to",
 							this.key);
@@ -851,6 +867,7 @@ define("game/Game", [
 			this.updateConnections();
 
 			// Add disconnect listener
+			/* istanbul ignore next */
 			socket.on("disconnect", () => {
 				this._debug(socket.player
 							? `${socket.player.toString()} disconnected`
@@ -869,6 +886,7 @@ define("game/Game", [
 		 * Only used client-side.
 		 * @param {object[]} simpleList list of Player.simple
 		 */
+		/* istanbul ignore next */
 		updatePlayerList(simpleList) {
 			for (let player of this.players)
 				player.online(false);
@@ -1019,17 +1037,16 @@ define("game/Game", [
 		}
 
 		/**
-		 * Advise player as to what better play they might have been
-		 * able to make.
+		 * Asynchronously advise player as to what better play they
+		 * might have been able to make.
 		 * @param {Player} player a Player
 		 * @param {number} theirScore score they got from their play
-		 * @return {Promise} resolving to a {@link Turn}
 		 */
 		advise(player, theirScore) {
 			this._debug(`Computing advice for ${player.name} > ${theirScore}`);
 
 			let bestPlay = null;
-			return Platform.findBestPlay(
+			Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
 					if (typeof data === "string")
 						this._debug(data);
@@ -1070,6 +1087,7 @@ define("game/Game", [
 		 * @return {Promise} resolving to a the game
 		 */
 		async play(player, move) {
+			/* istanbul ignore if */
 			if (player.key !== this.whosTurnKey)
 				return Promise.reject("Not your turn");
 
@@ -1283,6 +1301,7 @@ define("game/Game", [
 		 * @return {Promise} resolving to the game
 		 */
 		unpause(player) {
+			/* istanbul ignore if */
 			if (!this.pausedBy)
 				return Promise.resolve(this); // not paused
 			this._debug(`${player.name} has unpaused game`);
@@ -1322,6 +1341,7 @@ define("game/Game", [
 			this.players.forEach(player => {
 				deltas[player.key] = { tiles: 0 };
 				if (player.rack.isEmpty()) {
+					/* istanbul ignore if */
 					if (playerWithNoTiles)
 						throw Error("Found more than one player with no tiles when finishing game");
 					playerWithNoTiles = player;
@@ -1438,6 +1458,7 @@ define("game/Game", [
 		 * @return {Promise} resolving to the game
 		 */
 		pass(player, type) {
+			/* istanbul ignore if */
 			if (player.key !== this.whosTurnKey)
 				return Promise.reject("Not your turn");
 
@@ -1471,7 +1492,9 @@ define("game/Game", [
 
 			return this.getDictionary()
 			.catch(() => {
+				/* istanbul ignore next */
 				this._debug("No dictionary, so challenge always succeeds");
+				/* istanbul ignore next */
 				return this.takeBack(challenger, Turn.CHALLENGE_WON);
 			})
 			.then(dict => {
@@ -1570,9 +1593,11 @@ define("game/Game", [
 		 * @return {Promise} resolving to the game
 		 */
 		swap(player, tiles) {
+			/* istanbul ignore if */
 			if (player.key !== this.whosTurnKey)
 				return Promise.reject("Not your turn");
 
+			/* istanbul ignore if */
 			if (this.letterBag.remainingTileCount() < tiles.length)
 				// Terminal, no point in translating
 				throw Error(`Cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
@@ -1597,6 +1622,7 @@ define("game/Game", [
 			// Return discarded tiles to the letter bag
 			for (tile of tiles) {
 				const removed = player.rack.removeTile(tile);
+				/* istanbul ignore if */
 				if (!removed)
 					// Terminal, no point in translating
 					throw Error(`Cannot swap, player rack does not contain letter ${tile.letter}`);
@@ -1624,10 +1650,8 @@ define("game/Game", [
 		 * @return {Promise} resolving to the new game
 		 */
 		anotherGame() {
-			if (this.nextGameKey) {
-				console.error(`another game already created: old ${this.key} new ${this.nextGameKey}`);
+			if (this.nextGameKey)
 				return Promise.reject("Next game already exists");
-			}
 
 			this._debug(`Create game to follow ${this.key}`);
 			const newGame = new Game(this);
@@ -1671,23 +1695,6 @@ define("game/Game", [
 		}
 	}
 
-	/**
-	 * Format a time interval in seconds for display in a string e.g
-	 * `formatTimeInterval(601)` -> `"10:01"`
-	 * @param {number} t time period in seconds
-	 */
-	Game.formatTimeInterval = t => {
-		const neg = (t < 0) ? "-" : "";
-		t = Math.abs(t);
-		const s = `0${t % 60}`.slice(-2);
-		t = Math.floor(t / 60);
-		const m = `0${t % 60}`.slice(-2);
-		t = Math.floor(t / 60);
-		const h = `0${t}`.slice(-2);
-		return (h !== "00") ? `${neg}${h}:${m}:${s}`
-		: `${neg}${m}:${s}`;
-		
-	};
 	// Valid values for 'state'. Values are used in UI
 	Game.STATE_WAITING          = /*i18n*/"Waiting for players";
 	Game.STATE_PLAYING          = /*i18n*/"Playing";

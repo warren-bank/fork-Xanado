@@ -4,19 +4,16 @@ and license information*/
 /* eslint-env amd, node */
 
 define("server/Server", [
-	"fs", "node-getopt", "events", "cookie",
-	"socket.io", "http", "https", "nodemailer", "cors",
-	"express", "express-negotiate", "errorhandler",
-	"platform", "server/UserManager",
-	"game/Fridge", "game/Game", "game/Player", "game/Turn", "game/Edition",
+	"fs", "path", "events", "cookie", "cors", "express", "errorhandler",
+	"platform",	"common/Fridge",
+	"server/UserManager",
+	"game/Game", "game/Player", "game/Turn", "game/Edition",
 	"game/Command", "game/Notify"
 ], (
-	fs, Getopt, Events, Cookie,
-	SocketIO, Http, Https, NodeMailer, cors,
-	Express, ExpressNegotiate, ErrorHandler,
-	Platform, UserManager,
-	Fridge, Game, Player, Turn, Edition,
-	Command, Notify
+	fs, Path, Events, Cookie, cors, Express, ErrorHandler,
+	Platform, Fridge,
+	UserManager,
+	Game, Player, Turn, Edition, Command, Notify
 ) => {
 
 	const Fs = fs.promises;
@@ -45,6 +42,12 @@ define("server/Server", [
 					notification: true
 				};
 			}
+
+			/* istanbul ignore if */
+			if (config.debug_server)
+				this._debug = console.debug;
+			else
+				this._debug = () => {};
 			config.defaults.canEmail = (typeof config.mail !== "undefined");
 
 			config.defaults.notification = config.defaults.notification &&
@@ -57,38 +60,39 @@ define("server/Server", [
 			this.monitors = [];
 
 			process.on("unhandledRejection", reason => {
+				/* istanbul ignore next */
 				console.error("Command rejected", reason, reason ? reason.stack : "");
 			});
 
-			const express = new Express();
+			this.express = new Express();
 
 			// Headers not added by passport?
-			express.use(cors());
+			this.express.use(cors());
 
 			// Parse incoming requests with url-encoded payloads
-			express.use(Express.urlencoded({ extended: true }));
+			this.express.use(Express.urlencoded({ extended: true }));
 
 			// Parse incoming requests with a JSON body
-			express.use(Express.json());
+			this.express.use(Express.json());
 
+			const staticFiles = Path.resolve(requirejs.toUrl(""));
 			// Grab all static files relative to the project root
 			// html, images, css etc. The Content-type should be set
 			// based on the file mime type (extension) but Express doesn't
 			// always get it right.....
-			console.log(`static files from ${requirejs.toUrl("")}`);
-			express.use(Express.static(requirejs.toUrl("")));
+			this._debug(`static files from ${staticFiles}`);
+			this.express.use(Express.static(staticFiles));
 
-			express.use((req, res, next) => {
-				if (this.config.debug_comms)
-					console.debug(`--> ${req.method} ${req.url}`);
+			this.express.use((req, res, next) => {
+				this._debug(`--> ${req.method} ${req.url}`);
 				next();
 			});
 
 			// Add user manager routes (/login, /register etc.
-			this.userManager = new UserManager(config, express);
+			this.userManager = new UserManager(config, this.express);
 
 			//DEBUG
-			//express.use((req, res, next) => {
+			//this.express.use((req, res, next) => {
 			//	if (req.isAuthenticated())
 			//		console.debug(`\tuser ${req.user.name}`);
 			//next();
@@ -100,7 +104,7 @@ define("server/Server", [
 			// Get the HTML for the main interface (the "games" page)
 			cmdRouter.get("/",
 					   (req, res) => res.sendFile(
-						   requirejs.toUrl("html/games.html")));
+						   `${staticFiles}/html/games.html`));
 
 			// Get a simplified version of games list or a single game
 			// (no board, bag etc) for the "games" page. You can request
@@ -120,7 +124,7 @@ define("server/Server", [
 
 			// Get a list of of available editions
 			cmdRouter.get("/editions",
-					 (req, res) => this.request_editions(req, res));
+						  (req, res) => this.request_editions(req, res));
 
 			// Get a description of the available dictionaries
 			cmdRouter.get("/dictionaries",
@@ -144,14 +148,6 @@ define("server/Server", [
 			// of the same thing.
 			cmdRouter.get("/game/:gameKey",
 					 (req, res) => this.request_game(req, res));
-
-			// Request handler for best play hint. Allows us to pass in
-			// any player key, which is useful for debug (though could
-			// be used to silently cheat!)
-			cmdRouter.get("/bestPlay/:gameKey/:playerKey",
-						(req, res, next) =>
-						this.userManager.checkLoggedIn(req, res, next),
-					   (req, res) => this.request_bestPlay(req, res));
 
 			// Construct a new game. Invoked from games.js
 			cmdRouter.post("/createGame",
@@ -186,19 +182,19 @@ define("server/Server", [
 						(req, res) => this.request_sendReminder(req, res));
 
 			// Handler for player joining a game
-			cmdRouter.post("/join/:gameKey/:playerKey",
+			cmdRouter.post("/join/:gameKey",
 					   (req, res, next) =>
 					   this.userManager.checkLoggedIn(req, res, next),
 					   (req, res) => this.request_join(req, res));
 
 			// Handler for player leaving a game
-			cmdRouter.post("/leave/:gameKey/:playerKey",
+			cmdRouter.post("/leave/:gameKey",
 					   (req, res, next) =>
 					   this.userManager.checkLoggedIn(req, res, next),
 					   (req, res) => this.request_leave(req, res));
 
 			// Handler for adding a robot to a game
-			cmdRouter.post("/addRobot",
+			cmdRouter.post("/addRobot/:gameKey",
 					   (req, res, next) =>
 					   this.userManager.checkLoggedIn(req, res, next),
 					   (req, res) => this.request_addRobot(req, res));
@@ -210,35 +206,25 @@ define("server/Server", [
 					   (req, res) => this.request_removeRobot(req, res));
 
 			// Request handler for a turn (or other game command)
-			cmdRouter.post("/command/:command/:gameKey/:playerKey",
+			cmdRouter.post("/command/:command/:gameKey",
 						(req, res, next) =>
 						this.userManager.checkLoggedIn(req, res, next),
 						(req, res) => this.request_command(req, res));
 
-			express.use(cmdRouter);
+			this.express.use(cmdRouter);
 
-			express.use((err, req, res, next) => {
+			/* istanbul ignore next */
+			this.express.use((err, req, res, next) => {
 				if (res.headersSent)
 					return next(err);
-				if (this.config.debug_comms)
-					console.debug("<-- 500 (unhandled)", err);
+				this._debug("<-- 500 (unhandled)", err);
 				return res.status(500).send(err);
 			});
 
-			express.use(ErrorHandler({
+			this.express.use(ErrorHandler({
 				dumpExceptions: true,
 				showStack: true
 			}));
-
-			const http = config.https
-				  ? Https.Server(config.https, express)
-				  : Http.Server(express);
-
-			http.listen(config.port);
-
-			const io = new SocketIO.Server(http);
-			io.sockets.on(
-				"connection", socket => this.attachSocketHandlers(socket));
 		}
 
 		/**
@@ -249,11 +235,11 @@ define("server/Server", [
 		 * @param {string?} context context of the failure
 		 * @private
 		 */
+		/* istanbul ignore next */
 		trap(e, req, res) {
 			if (typeof e === "object" && e.code === "ENOENT") {
 				// Special case of a database file load failure
-				if (this.config.debug_comms)
-					console.error(`<-- 404 ${req.url}`, e);
+				this._debug(`<-- 404 ${req.url}`, e);
 				return res.status(404).send([
 					"Database file load failed", req.url, e]);
 			} else {
@@ -268,6 +254,7 @@ define("server/Server", [
 		 * @return {Promise} Promise that resolves to a {@link Game}
 		 */
 		loadGame(key) {
+			/* istanbul ignore if */
 			if (typeof key === "undefined")
 				return Promise.reject("Game key is undefined");
 			if (this.games[key])
@@ -284,6 +271,7 @@ define("server/Server", [
 					game, "connections", { enumerable: false });
 
 				this.games[key] = game;
+				/* istanbul ignore if */
 				if (this.config.debug_game)
 					game._debug = console.debug;
 
@@ -305,14 +293,12 @@ define("server/Server", [
 
 			.on("connect", sk => {
 				// Player or monitor connecting
-				if (this.config.debug_comms)
-					console.debug("-S-> connect");
+				this._debug("-S-> connect");
 				this.updateObservers();
 			})
 
 			.on("disconnect", sk => {
-				if (this.config.debug_comms)
-					console.debug("-S-> disconnect");
+				this._debug("-S-> disconnect");
 
 				// Don't need to refresh players using this socket, because
 				// each Game has a 'disconnect' listener on each of the
@@ -323,27 +309,23 @@ define("server/Server", [
 				const i = this.monitors.indexOf(socket);
 				if (i >= 0) {
 					// Game monitor has disconnected
-					if (this.config.debug_comms)
-						console.debug("\tmonitor disconnected");
+					this._debug("\tmonitor disconnected");
 					this.monitors.slice(i, 1);
 				} else {
-					if (this.config.debug_comms)
-						console.debug("\tanonymous disconnect");
+					this._debug("\tanonymous disconnect");
 				}
 				this.updateObservers();
 			})
 
 			.on(Notify.MONITOR, () => {
 				// Games monitor has joined
-				if (this.config.debug_comms)
-					console.debug("-S-> monitor");
+				this._debug("-S-> monitor");
 				this.monitors.push(socket);
 			})
 
 			.on(Notify.JOIN, params => {
 				// Player joining
-				if (this.config.debug_comms)
-					console.debug(`-S-> join ${params.playerKey} joining ${params.gameKey}`);
+				this._debug(`-S-> join ${params.playerKey} joining ${params.gameKey}`);
 				this.loadGame(params.gameKey)
 				.then(game => {
 					return game.connect(socket, params.playerKey)
@@ -357,8 +339,7 @@ define("server/Server", [
 			.on(Notify.MESSAGE, message => {
 
 				// Chat message
-				if (this.config.debug_comms)
-					console.debug(`-S-> message ${message}`);
+				this._debug(`-S-> message ${message}`);
 				if (message.text === "hint")
 					socket.game.hint(socket.player);
 				else if (message.text === "advise")
@@ -374,8 +355,7 @@ define("server/Server", [
 		 * to montors.
 		 */
 		updateObservers(game) {
-			if (this.config.debug_comms)
-				console.debug("<-S- update", game ? game.key : "*");
+			this._debug("<-S- update", game ? game.key : "*");
 			this.monitors.forEach(socket => socket.emit(Notify.UPDATE));
 			if (game)
 				game.updateConnections();
@@ -409,13 +389,11 @@ define("server/Server", [
 								: a.lastActivity > b.lastActivity ? -1 : 0))
 			// Finally send the result
 			.then(data => {
-				if (this.config.debug_comms)
-					console.debug("<-- 200 simple", send);
+				this._debug("<-- 200 simple", send);
 				return res.status(200).send(data);
 			})
 			.catch(e => {
-				if (this.config.debug_comms)
-					console.debug("<-- 500", e);
+				this._debug("<-- 500", e);
 				return res.status(500).send([
 					/*i18n*/"Game load failed", e.toString()]);
 			});
@@ -528,7 +506,6 @@ define("server/Server", [
 			if (req.user && req.user.settings && req.user.settings.theme)
 				theme = req.user.settings.theme;
 			let file = requirejs.toUrl(`css/${theme}/${req.params.css}`);
-			console.log(file);
 			return Fs.readFile(file)
 			.then(css => res.status(200).contentType("text/css").send(css))
 			.catch(e => this.trap(e, req, res));
@@ -543,6 +520,7 @@ define("server/Server", [
 			.then(edition => new Game(req.body).create())
 			.then(game => game.onLoad(this.db))
 			.then(game => {
+				/* istanbul ignore if */
 				if (this.config.debug_game)
 					game._debug = console.debug;
 				return game.save();
@@ -567,7 +545,7 @@ define("server/Server", [
 			return this.userManager.getUser(
 				{key: req.session.passport.user.key})
 			.then(sender => `${sender.name}<${sender.email}>`)
-			.catch(e => this.config.email.sender)
+			.catch(e => this.config.mail.sender)
 			.then(sender =>
 				new Promise(
 					resolve => this.userManager.getUser(to, true)
@@ -581,11 +559,9 @@ define("server/Server", [
 					.then(uo => resolve(uo)))
 				.then(uo => {
 					if (!uo.email) // no email
-						return Promise.resolve(
-							Platform.i18n("($1 has no email address)",
-										  uo.name || uo.key));
-					if (this.config.debug_comms)
-						console.debug(
+						return Platform.i18n("($1 has no email address)",
+										  uo.name || uo.key);
+					this._debug(
 							subject,
 							`${uo.name}<${uo.email}> from `,
 							sender);
@@ -618,28 +594,25 @@ define("server/Server", [
 				  `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${req.body.gameKey}`;
 
 			let textBody = req.body.message || "";
-			if (textBody)
-				textBody += "\n";
-			textBody += Platform.i18n(
-				"Join the game by following this link: $1", gameURL);
-
 			// Handle XSS risk posed by HTML in the textarea
 			let htmlBody = req.body.message.replace(/</g, "&lt;") || "";
-			if (htmlBody)
-				htmlBody += "<br/>";
-			htmlBody += Platform.i18n(
-				"Click <a href='$1'>here</a> to join the game.", gameURL);
 			
-			return Promise.all(req.body.player.map(
+			return Promise.all([
+				Platform.i18n("You have been invited to play XANADO"),
+				Platform.i18n(
+					"Join the game by following this link: $1", gameURL),
+				Platform.i18n(
+				"Click <a href='$1'>here</a> to join the game.", gameURL)
+			])
+			.then(m => Promise.all(req.body.player.map(
 				to => this.sendMail(
 					to, req, res, req.body.gameKey,
-					Platform.i18n("You have been invited to play XANADO"),
-					textBody,
-					htmlBody)))
+					m[0],
+					[ textBody, m[1]].join("\n"),
+					[ htmlBody, m[2]].join("\n")))))
 			.then(list => {
 				const names = list.filter(uo => uo);
-				if (this.config.debug_comms)
-					console.debug("<-- 200 ", names);
+				this._debug("<-- 200 ", names);
 				return res.status(200).send(names);
 			})
 			.catch(e => this.trap(e, req, res));
@@ -651,7 +624,7 @@ define("server/Server", [
 		 */
 		request_sendReminder(req, res) {
 			const gameKey = req.params.gameKey;
-			console.log("Sending turn reminders");
+			this._debug("Sending turn reminders");
 			const gameURL =
 				  `${req.protocol}://${req.get("Host")}/game/${gameKey}`;
 
@@ -669,10 +642,9 @@ define("server/Server", [
 					const player = game.getPlayer();
 					if (!player)
 						return undefined;
-					console.log(`Sending reminder mail to ${player.key}/${player.name}`);
+					this._debug(`Sending reminder mail to ${player.key}/${player.name}`);
 
-					return this.sendMail(
-						player, req, res, game.key,
+					return Promise.all([
 						Platform.i18n(
 							"It is your turn in your XANADO game"),
 						Platform.i18n(
@@ -680,12 +652,15 @@ define("server/Server", [
 							gameURL),
 						Platform.i18n(
 							"Click <a href='$1'>here</a> to join the game.",
-							gameURL));
+							gameURL)
+					])
+					.then(m => this.sendMail(
+						player, req, res, game.key,
+						m[0], m[1], m[2]));
 				}))))
 			.then(reminders => reminders.filter(e => typeof e !== "undefined"))
 			.then(names=> {
-				if (this.config.debug_comms)
-					console.debug("<-- 200", names);
+				this._debug("<-- 200", names);
 				return res.status(200).send(names);
 			})
 			.catch(e => this.trap(e, req, res));
@@ -704,10 +679,10 @@ define("server/Server", [
 				let player = game.getPlayerWithKey(playerKey);
 				let prom;
 				if (player) {
-					console.log(`Player ${playerKey} opening ${gameKey}`);
+					this._debug(`Player ${playerKey} opening ${gameKey}`);
 					prom = Promise.resolve(game);
 				} else {
-					console.log(`Player ${playerKey} joining ${gameKey}`);
+					this._debug(`Player ${playerKey} joining ${gameKey}`);
 					player = new Player(
 						{
 							name: req.user.name, key: playerKey
@@ -734,14 +709,14 @@ define("server/Server", [
 		 * @return {Promise}
 		 */
 		request_addRobot(req, res) {
-			const gameKey = req.body.gameKey;
+			const gameKey = req.params.gameKey;
 			const dic = req.body.dictionary;
 			const canChallenge = req.body.canChallenge || false;
 			return this.loadGame(gameKey)
 			.then(game => {
 				if (game.hasRobot())
 					return res.status(500).send("Game already has a robot");
-				console.log(`Robot joining ${gameKey} with ${dic}`);
+				this._debug(`Robot joining ${gameKey} with ${dic}`);
 				// Robot always has the same player key
 				const robot = new Player(
 					{
@@ -775,7 +750,7 @@ define("server/Server", [
 				const robot = game.hasRobot();
 				if (!robot)
 					return res.status(500).send("Game doesn't have a robot");
-				console.log(`Robot leaving ${gameKey}`);
+				this._debug(`Robot leaving ${gameKey}`);
 				game.removePlayer(robot);
 				return game.save();
 			})
@@ -794,10 +769,10 @@ define("server/Server", [
 		 */
 		request_leave(req, res) {
 			const gameKey = req.params.gameKey;
-			const playerKey = req.params.playerKey;
+			const playerKey = req.user.key;
 			return this.loadGame(gameKey)
 			.then(game => {
-				console.log(`Player ${playerKey} leaving ${gameKey}`);
+				this._debug(`Player ${playerKey} leaving ${gameKey}`);
 				const player = game.getPlayerWithKey(playerKey);
 				if (player) {
 					// Note that if the player leaving dips the number
@@ -831,35 +806,13 @@ define("server/Server", [
 		}
 
 		/**
-		 * Handle /bestPlay/:gameKey/:playerKey
-		 * Find the best play for the player, given the current board
-		 * state. Note that it may not be their turn, that's OK, this is debug
-		 * @return {Promise}
-		 */
-		request_bestPlay(req, res) {
-			const gameKey = req.params.gameKey;
-			const playerKey = req.params.playerKey;
-			return this.loadGame(gameKey)
-			.then(game => {
-				const player = game.getPlayerWithKey(playerKey);
-				if (player)
-					return Platform.findBestPlay(game, player.rack.tiles);
-				return res.status(500).send([
-					/*i18n*/"Player $1 is not in game $2", playerKey, gameKey
-				]);
-			})
-			.then(play => res.status(200).send(Fridge.freeze(play)))
-			.catch(e => this.trap(e, req, res));
-		}
-
-		/**
 		 * Handle /deleteGame/:gameKey
 		 * Delete a game.
 		 * @return {Promise}
 		 */
 		request_deleteGame(req, res) {
 			const gameKey = req.params.gameKey;
-			console.log("Delete game",gameKey);
+			this._debug("Delete game",gameKey);
 			return this.loadGame(gameKey)
 			.then(() => this.db.rm(gameKey))
 			.then(() => res.status(200).send("OK"))
@@ -888,8 +841,8 @@ define("server/Server", [
 		request_command(req, res) {
 			const command = req.params.command;
 			const gameKey = req.params.gameKey;
-			const playerKey = req.params.playerKey;
-			//console.debug(`Handling ${command} ${gameKey} ${playerKey}`);
+			const playerKey = req.user.key;
+			//this._debug(`Handling ${command} ${gameKey} ${playerKey}`);
 			return this.loadGame(gameKey)
 			.then(game => {
 				if (game.hasEnded())
@@ -905,10 +858,11 @@ define("server/Server", [
 				// The command name and arguments
 				const args = req.body;
 				
-				if (this.config.debug_comms)
-					console.debug(`COMMAND ${command} player ${player.name} game ${game.key}`);
+				this._debug(`COMMAND ${command} player ${player.name} game ${game.key}`);
 
 				let promise;
+				// Istanbul can ignore next because it's just routing
+				/* istanbul ignore next */
 				switch (command) {
 
 				case Command.PLAY:
@@ -950,7 +904,7 @@ define("server/Server", [
 
 				return promise
 				.then(() => {
-					//console.debug(`${command} command handled`);
+					//this._debug(`${command} command handled`);
 					// Notify non-game monitors (games pages)
 					this.updateObservers();
 					return res.status(200).send("OK");
@@ -960,71 +914,5 @@ define("server/Server", [
 		}
 	}
 		
-	function mainProgram() {
-
-		// Command-line arguments
-		const cliopt = Getopt.create([
-			["h", "help", "Show this help"],
-			["C", "debug_comms", "output communications debug messages"],
-			["G", "debug_game", "output game logic messages"],
-			["c", "config=ARG", "Path to config file (default config.json)"]
-		])
-			.bindHelp()
-			.setHelp("Xanado server\n[[OPTIONS]]")
-			.parseSystem()
-			.options;
-
-		// Load config.json
-		Fs.readFile(cliopt.config || "config.json")
-		.then(json => JSON.parse(json))
-
-		// Configure email
-		.then(config => {
-
-			if (cliopt.debug_comms)
-				config.debug_comms = true;
-			if (cliopt.debug_game)
-				config.debug_game = true;
-			if (config.mail) {
-				let transport;
-				if (config.mail.transport === "mailgun") {
-					if (!process.env.MAILGUN_SMTP_SERVER)
-						console.error("mailgun configuration requested, but MAILGUN_SMTP_SERVER not defined");
-					else {
-						if (!config.mail.sender)
-							config.mail.sender = `wordgame@${process.env.MAILGUN_DOMAIN}`;
-						transport = {
-							host: process.env.MAILGUN_SMTP_SERVER,
-							port: process.env.MAILGUN_SMTP_PORT,
-							secure: false,
-							auth: {
-								user: process.env.MAILGUN_SMTP_LOGIN,
-								pass: process.env.MAILGUN_SMTP_PASSWORD
-							}
-						};
-					}
-				} else
-					// Might be SMTP, might be something else
-					transport = config.mail.transport;
-				
-				if (transport)
-					config.mail.transport = NodeMailer.createTransport(
-						transport);
-			}
-
-			const promises = [];
-			if (config.https) {
-				promises.push(
-					Fs.readFile(config.https.key)
-					.then(k => { config.https.key = k; }));
-				promises.push(
-					Fs.readFile(config.https.cert)
-					.then(c => { config.https.cert = c; }));
-			}
-			return Promise.all(promises)
-			.then(() => new Server(config));
-		});
-	}
-
-	return mainProgram;
+	return Server;
 });

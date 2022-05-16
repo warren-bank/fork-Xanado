@@ -60,6 +60,7 @@ define("test/TestSocket", [], () => {
 				this.listeners[event].push(listener);
 			else
 				this.listeners[event] = [listener];
+			return this;
 		}
 
 		/**

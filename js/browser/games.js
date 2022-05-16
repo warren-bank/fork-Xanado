@@ -7,12 +7,12 @@ and license information*/
  * Browser app for games.html; populate the list of live games
  */
 requirejs([
-	'platform',
+	'platform', "common/Utils",
 	'browser/UI', 'browser/Dialog',
 	'game/Player', 'game/Game', 'game/Notify',
 	'jquery'
 ], (
-	Platform,
+	Platform, Utils,
 	UI, Dialog,
 	Player, Game, Notify
 ) => {
@@ -155,7 +155,7 @@ requirejs([
 						content: $.i18n("tooltip-open-game")
 					}) .on('click', () => {
 						console.log(`Join game ${game.key}/${this.session.key}`);
-						$.post(`/join/${game.key}/${this.session.key}`)
+						$.post(`/join/${game.key}`)
 						.then(() => {
 							window.open(
 								`/html/game.html?game=${game.key}&player=${this.session.key}`,
@@ -173,7 +173,7 @@ requirejs([
 					})
 					.on('click', () => {
 						console.log(`Leave game ${game.key}`);
-						$.post(`/leave/${game.key}/${this.session.key}`)
+						$.post(`/leave/${game.key}`)
 						.then(() => this.refresh_game(game.key))
 						.catch(UI.report);
 					}));
@@ -258,10 +258,10 @@ requirejs([
 
 			if (game.timerType === Player.TIMER_TURN)
 				headline.push($.i18n("turn time limit $1",
-									 Game.formatTimeInterval(game.timeLimit)));
+									 Utils.formatTimeInterval(game.timeLimit)));
 			else if (game.timerType === Player.TIMER_GAME)
 				headline.push($.i18n("game time limit $1",
-									 Game.formatTimeInterval(game.timeLimit)));
+									 Utils.formatTimeInterval(game.timeLimit)));
 
 			const isActive = (game.state === Game.STATE_PLAYING
 							  || game.state === Game.STATE_WAITING);
@@ -358,8 +358,7 @@ requirejs([
 						.on('click', () =>
 							Dialog.open("AddRobotDialog", {
 								ui: this,
-								gameKey: game.key,
-								postAction: "/addRobot",
+								postAction: `/addRobot/${game.key}`,
 								postResult: () => this.refresh_game(game.key),
 								error: UI.report
 							})));

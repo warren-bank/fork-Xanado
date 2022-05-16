@@ -3,16 +3,12 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env browser, jquery */
 
-/**
- * Browser implementation of game/Platform. See js/game/Platform.js
- * for the abstract base class.  Note there is no Platform.Database
- * implementation for the browser.
- */
-define("platform", [ "game/Platform" ], (Platform) => {
+define("platform", [ "common/Platform" ], Platform => {
 
 	/**
-	 * Implementation of game/Platform
-	 * @implements Platform
+	 * Browser implementation of {@link Platform}
+	 * for the abstract base class.  Note there is no Platform.Database
+	 * implementation for the browser.
 	 */
 	class BrowserPlatform extends Platform {
 		/** See {@link Platform#trigger} for documentation */
@@ -32,7 +28,7 @@ define("platform", [ "game/Platform" ], (Platform) => {
 
 		/** See {@link Platform#i18n} for documentation */
 		static i18n() {
-			return $.i18n.apply(null, arguments);
+			return Promise.resolve($.i18n.apply(null, arguments));
 		}
 	}
 

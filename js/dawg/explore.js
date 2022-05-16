@@ -15,6 +15,7 @@ const requirejs = require("requirejs");
 requirejs.config({
 	baseUrl: `${__dirname}/../..`,
 	paths: {
+		common: "js/common",
 		dawg: "js/dawg",
 		game: "js/game",
 		platform: "js/server/ServerPlatform"

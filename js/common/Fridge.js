@@ -3,7 +3,7 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env browser, node */
 
-define("game/Fridge", () => {
+define("common/Fridge", () => {
 
 	const IB_ID = "_\u00CD";
 	const IB_CN = "_\u0106";

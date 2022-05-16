@@ -7,8 +7,13 @@ and license information*/
  */
 define("game/findBestPlayController", [
 	"worker_threads",
-	"game/Square", "game/Fridge", "game/Game", "game/Player"
-], (threads, Square, Fridge, Game, Player) => {
+	"common/Fridge",
+	"game/Square", "game/Game", "game/Player"
+], (
+	threads,
+	Fridge,
+	Square, Game, Player
+) => {
 
 	/**
 	 * Interface should be the same as for findBestPlay.js so they
@@ -32,6 +37,7 @@ define("game/findBestPlayController", [
 			// Apply the game time limit
 			let timer;
 			if (game.timerType === Player.TIMER_TURN) {
+				/* istanbul ignore next */
 				timer = setTimeout(() => {
 					console.log("findBestPlay timed out");
 					worker.terminate();
@@ -43,6 +49,7 @@ define("game/findBestPlayController", [
 				listener(Fridge.thaw(data, Game.classes));
 			});
 
+			/* istanbul ignore next */
 			worker.on("error", e => {
 				if (timer)
 					clearTimeout(timer);
@@ -51,9 +58,11 @@ define("game/findBestPlayController", [
 
 			worker.on("exit", (code) => {
 				if (timer)
+					/* istanbul ignore next */
 					clearTimeout(timer);
+				/* istanbul ignore if */
 				if (code !== 0)
-					console.log(`findBestPlayWorker reported code ${code}`);
+					console.error(`findBestPlayWorker reported code ${code}`);
 				resolve();
 			});
 		});

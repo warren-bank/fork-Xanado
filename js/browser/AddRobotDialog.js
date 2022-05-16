@@ -31,14 +31,6 @@ define("browser/AddRobotDialog", ["browser/Dialog"], Dialog => {
 			])
 			.then(() => super.createDialog());
 		}
-
-		openDialog() {
-			return super.openDialog()
-			.then(() => {
-				const $gk = this.$dlg.find("[name=gameKey]");
-				$gk.val(this.options.gameKey);
-			});
-		}
 	}
 
 	return AddRobotDialog;

@@ -15,11 +15,13 @@ global.navigator = { userAgent: "node.js" };
 const jQuery = require("jquery");
 global.jQuery = jQuery;
 global.$ = jQuery;
+jQuery.i18n = s => s;
 
 requirejs.config({
     baseUrl: `${__dirname}/..`,
 	nodeRequire: require,
 	paths: {
+		common: "js/common",
 		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
 		game: "js/game",
 		dawg: "js/dawg",
@@ -407,6 +409,41 @@ describe("Game - basic tests", () => {
 			const human = game.getPlayer("human");
 			return game.pass(human);
 		});
+	});
+
+	it("anotherGame", () => {
+		let game;
+		const db = new Platform.Database("test", "game");
+		return db.get("bad_robot", Game.classes)
+		.then(g => game = g)
+		.then(() => game.onLoad(this.db))
+		.then(() => game.anotherGame("human"))
+		.then(newgame => {
+			assert.notEqual(game.key, newgame.key);
+			return game.anotherGame("human")
+			.catch(e => {
+				assert.equal(e, "Next game already exists");
+			});
+		});
+	});
+
+	it("hint", () => {
+		let game;
+		const db = new Platform.Database("test", "game");
+		return db.get("bad_robot", Game.classes)
+		.then(g => game = g)
+		.then(() => game.onLoad(this.db))
+		.then(() => game.hint(game.getPlayer()));
+	});
+
+	it("advise", () => {
+		let game;
+		const db = new Platform.Database("test", "game");
+		return db.get("bad_robot", Game.classes)
+		.then(g => game = g)
+		.then(() => game.onLoad(this.db))
+		.then(() => game.anotherGame("human"))
+		.then(() => game.advise(game.getPlayer(), 1));
 	});
 });
 

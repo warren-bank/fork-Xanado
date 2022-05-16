@@ -22,21 +22,22 @@ requirejs.config({
 	nodeRequire: require,
     paths: {
 		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
-		game: 'js/game',
-		platform: 'js/server/ServerPlatform'
+		common: "js/common",
+		game: "js/game",
+		platform: "js/server/ServerPlatform"
     }
 });
 
 /**
  * Unit tests for Board class
  */
-describe('Rack class', () => {
+describe("Board class", () => {
 	const deps = [
-		{ Board: 'game/Board' },
-		{ Edition: 'game/Edition' },
-		{ Tile: 'game/Tile' },
+		{ Board: "game/Board" },
+		{ Edition: "game/Edition" },
+		{ Tile: "game/Tile" },
 		{ Square: "game/Square" },
-		{ jQueryUI: 'jquery-ui' }
+		{ jQueryUI: "jquery-ui" }
 	];
 
 	require("@wikimedia/jquery.i18n/src/jquery.i18n");
@@ -44,28 +45,28 @@ describe('Rack class', () => {
 	const Assert = require("./Assert.js");
 	before(required => Assert.depend(required, deps));
 
-	it('construct', () => {
-		return Edition.load('Tiny')
+	it("construct", () => {
+		return Edition.load("Tiny")
 		.then(edition => {
 			let b = new Board(edition);
 			b.parse(
-				'|Q| | | | | | | | | | | | | | |\n' +
-				'|U| | | | | | | | | | | | | | |\n' +
-				'|E| | | | | | | | | | | | | | |\n' +
-				'|S|C|I|E|N|C|E| | | | | | | | |\n' +
-				'|T| | | | | | | | | | | | | | |\n' +
-				'|I| | | | | | | | | | | | | | |\n' +
-				'|O|P|I|N|I|O|N| | | | | | | | |\n' +
-				'|N| | | | | |O|M| | | | | | | |\n' +
-				'| | | | | | | | | | | | | | | |\n' +
-				'| | | | | | | | | | | | | | | |\n' +
-				'| | | | | | | | | | | | | | | |\n' +
-				'| | | | | | | | | | | | | | | |\n' +
-				'| | | | | | | | | | | | | | | |\n' +
-				'| | | | | | | | | | | | | | | |\n' +
-				'| | | | | | | | | | | | | | | |\n', edition);
+				"|Q| | | | | | | | | | | | | | |\n" +
+				"|U| | | | | | | | | | | | | | |\n" +
+				"|E| | | | | | | | | | | | | | |\n" +
+				"|S|C|I|E|N|C|E| | | | | | | | |\n" +
+				"|T| | | | | | | | | | | | | | |\n" +
+				"|I| | | | | | | | | | | | | | |\n" +
+				"|O|P|I|N|I|O|N| | | | | | | | |\n" +
+				"|N| | | | | |O|M| | | | | | | |\n" +
+				"| | | | | | | | | | | | | | | |\n" +
+				"| | | | | | | | | | | | | | | |\n" +
+				"| | | | | | | | | | | | | | | |\n" +
+				"| | | | | | | | | | | | | | | |\n" +
+				"| | | | | | | | | | | | | | | |\n" +
+				"| | | | | | | | | | | | | | | |\n" +
+				"| | | | | | | | | | | | | | | |\n", edition);
 			b.at(6, 6).placeTile(null);
-			b.at(6, 6).placeTile(new Tile({letter: 'N', isBlank: true}), true);
+			b.at(6, 6).placeTile(new Tile({letter: "N", isBlank: true}), true);
 			assert.equal(b.toString(),
 						 "Board 11x11\n" +
 						 "|Q| | | | | | | | | |8|\n" +
@@ -82,8 +83,8 @@ describe('Rack class', () => {
 		});
 	});
 
-	it('touching old', () => {
-		return Edition.load('Tiny')
+	it("touching old", () => {
+		return Edition.load("Tiny")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)
@@ -92,16 +93,16 @@ describe('Rack class', () => {
 			const mr = Math.floor(b.rows / 2);
 			const mc = Math.floor(b.cols / 2);
 			let sq = b.at(mr, mc);
-			let t = new Tile({letter: '?'});
+			let t = new Tile({letter: "?"});
 			sq.placeTile(t, true);
 			assert.equal(t.row, mr);
 			assert.equal(t.col, mc);
 			assert(sq.tileLocked);
 
-			b.at(0, 0).placeTile(new Tile({letter: 't'}), true);
-			b.at(0, b.rows-1).placeTile(new Tile({letter: 'T'}), true);
-			b.at(b.cols-1, 0).placeTile(new Tile({letter: 'b'}), true);
-			b.at(b.cols-1, b.rows-1).placeTile(new Tile({letter: 'B'}), true);
+			b.at(0, 0).placeTile(new Tile({letter: "t"}), true);
+			b.at(0, b.rows-1).placeTile(new Tile({letter: "T"}), true);
+			b.at(b.cols-1, 0).placeTile(new Tile({letter: "b"}), true);
+			b.at(b.cols-1, b.rows-1).placeTile(new Tile({letter: "B"}), true);
 			//console.log(b.toString());
 			for (let r = 0; r < b.rows; r++) {
 				for (let c = 0; c < b.cols; c++) {
@@ -119,8 +120,8 @@ describe('Rack class', () => {
 		});
 	});
 
-	it('analysePlay and scorePlay', () => {
-		return Edition.load('Tiny')
+	it("analysePlay and scorePlay", () => {
+		return Edition.load("Tiny")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)
@@ -129,10 +130,10 @@ describe('Rack class', () => {
 			const mr = Math.floor(b.rows / 2);
 			const mc = Math.floor(b.cols / 2);
 			
-			const W = new Tile({letter: 'W', score:4});
-			const O = new Tile({letter: 'O', score:1});
-			const R = new Tile({letter: 'R', score:2, isBlank:true});
-			const D = new Tile({letter: 'D', score:3});
+			const W = new Tile({letter: "W", score:4});
+			const O = new Tile({letter: "O", score:1});
+			const R = new Tile({letter: "R", score:2, isBlank:true});
+			const D = new Tile({letter: "D", score:3});
 			
 			b.at(mr, mc).placeTile(W);
 			b.at(mr, mc+1).placeTile(O);
@@ -141,7 +142,7 @@ describe('Rack class', () => {
 
 			let move = b.analysePlay();
 			Assert.sparseEqual(move, {
-				words: [ { word: 'WORD', score: 20 } ],
+				words: [ { word: "WORD", score: 20 } ],
 				score: 35,
 				bonus: 0,
 				placements: [ W, O, R, D ]
@@ -160,9 +161,9 @@ describe('Rack class', () => {
 			b.at(mr, mc+3).placeTile(D, true);
 
 			// Score another play that extends the existing word
-			const S = new Tile({letter: 'S', score: 1});
-			const U = new Tile({letter: 'U', score: 1});
-			const N = new Tile({letter: 'N', isBlank:true, score: 2});
+			const S = new Tile({letter: "S", score: 1});
+			const U = new Tile({letter: "U", score: 1});
+			const N = new Tile({letter: "N", isBlank:true, score: 2});
 
 			b.at(mr, mc-1).placeTile(S);
 			b.at(mr+1, mc-1).placeTile(U);
@@ -170,12 +171,12 @@ describe('Rack class', () => {
 
 			const words = [];
 			const got = b.scorePlay(mc-1, mr+2, 1, 0, [ S, U, N ], words);
-			assert.deepEqual(words, [ { word: 'SWORD', score: 11 }, { word: 'SUN', score: 5 } ]);
+			assert.deepEqual(words, [ { word: "SWORD", score: 11 }, { word: "SUN", score: 5 } ]);
 			assert.equal(got, 26);
 
 			move = b.analysePlay();
 			Assert.sparseEqual(move, {
-				words: [ { word: 'SUN', score: 5 }, { word: 'SWORD', score: 11 } ],
+				words: [ { word: "SUN", score: 5 }, { word: "SWORD", score: 11 } ],
 				score: 26,
 				bonus: 0,
 				placements: [ S, U, N ]
@@ -192,12 +193,12 @@ describe('Rack class', () => {
 
 			const w2 = [];
 			const g2 = b.scorePlay(mc+3, mr+2, 1, 0, [ D, U, N ], w2);
-			assert.deepEqual(w2, [ { word: 'DUN', score: 6 } ]);
+			assert.deepEqual(w2, [ { word: "DUN", score: 6 } ]);
 			assert.equal(g2, 6);
 
 			move = b.analysePlay();
 			Assert.sparseEqual(move, {
-				words: [ { word: 'DUN', score: 6 } ],
+				words: [ { word: "DUN", score: 6 } ],
 				score: 6,
 				bonus: 0,
 				placements: [ U, N ]
@@ -206,8 +207,8 @@ describe('Rack class', () => {
 		});
 	});
 
-	it('analyse first play - disconnected', () => {
-		return Edition.load('Tiny')
+	it("analyse first play - disconnected", () => {
+		return Edition.load("Tiny")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)
@@ -216,10 +217,10 @@ describe('Rack class', () => {
 			const mr = Math.floor(b.rows / 2);
 			const mc = Math.floor(b.cols / 2);
 			
-			const W = new Tile({letter: 'W', score:4});
-			const O = new Tile({letter: 'O', score:1});
-			const R = new Tile({letter: 'R', score:2, isBlank:true});
-			const D = new Tile({letter: 'D', score:3});
+			const W = new Tile({letter: "W", score:4});
+			const O = new Tile({letter: "O", score:1});
+			const R = new Tile({letter: "R", score:2, isBlank:true});
+			const D = new Tile({letter: "D", score:3});
 			
 			b.at(mr, mc).placeTile(W);
 			b.at(mr, mc+1).placeTile(O);
@@ -231,8 +232,8 @@ describe('Rack class', () => {
 		});
 	});
 
-	it('analyse first play - centre missing', () => {
-		return Edition.load('Tiny')
+	it("analyse first play - centre missing", () => {
+		return Edition.load("Tiny")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)
@@ -241,10 +242,10 @@ describe('Rack class', () => {
 			const mr = Math.floor(b.rows / 2);
 			const mc = Math.floor(b.cols / 2);
 			
-			const W = new Tile({letter: 'W', score:4});
-			const O = new Tile({letter: 'O', score:1});
-			const R = new Tile({letter: 'R', score:2, isBlank:true});
-			const D = new Tile({letter: 'D', score:3});
+			const W = new Tile({letter: "W", score:4});
+			const O = new Tile({letter: "O", score:1});
+			const R = new Tile({letter: "R", score:2, isBlank:true});
+			const D = new Tile({letter: "D", score:3});
 			
 			b.at(mr, mc+1).placeTile(W);
 			b.at(mr, mc+2).placeTile(O);
@@ -256,8 +257,8 @@ describe('Rack class', () => {
 		});
 	});
 
-	it('analyse first play - single tile', () => {
-		return Edition.load('Tiny')
+	it("analyse first play - single tile", () => {
+		return Edition.load("Tiny")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)
@@ -266,10 +267,10 @@ describe('Rack class', () => {
 			const mr = Math.floor(b.rows / 2);
 			const mc = Math.floor(b.cols / 2);
 			
-			const W = new Tile({letter: 'W', score:4});
-			const O = new Tile({letter: 'O', score:1});
-			const R = new Tile({letter: 'R', score:2, isBlank:true});
-			const D = new Tile({letter: ' ', isBlank: true, score:3});
+			const W = new Tile({letter: "W", score:4});
+			const O = new Tile({letter: "O", score:1});
+			const R = new Tile({letter: "R", score:2, isBlank:true});
+			const D = new Tile({letter: " ", isBlank: true, score:3});
 			
 			b.at(mr, mc).placeTile(W);
 
@@ -281,18 +282,18 @@ describe('Rack class', () => {
 	it("$ui", () => {
 		const edition = new Edition({
 			layout: [
-				'Dd_',
-				'T_t',
-				'QqM' ],
+				"Dd_",
+				"T_t",
+				"QqM" ],
 			bag: [
 				{ score: 0, count: 1 },
-				{ letter: 'W', score: 1, count: 1 },
-				{ letter: 'O', score: 1, count: 1 },
-				{ letter: 'R', score: 1, count: 1 },
-				{ letter: 'D', score: 1, count: 1 },
-				{ letter: 'A', score: 1, count: 1 },
-				{ letter: 'L', score: 1, count: 1 },
-				{ letter: 'K', score: 1, count: 1 }
+				{ letter: "W", score: 1, count: 1 },
+				{ letter: "O", score: 1, count: 1 },
+				{ letter: "R", score: 1, count: 1 },
+				{ letter: "D", score: 1, count: 1 },
+				{ letter: "A", score: 1, count: 1 },
+				{ letter: "L", score: 1, count: 1 },
+				{ letter: "K", score: 1, count: 1 }
 			],
 			rackCount: 3,
 			swapCount: 1,
@@ -300,13 +301,13 @@ describe('Rack class', () => {
 		});
 
 		let b = new Board(edition);
-		const W = new Tile({letter: 'W', score:4});
-		const O = new Tile({letter: 'O', score:1});
-		const R = new Tile({letter: 'R', score:2, isBlank:true});
-		const D = new Tile({letter: 'D', score:3});
-		const A = new Tile({letter: 'A', score: 1});
-		const L = new Tile({letter: 'L', isBlank:true, score: 2});
-		const K = new Tile({letter: 'K', score: 5});
+		const W = new Tile({letter: "W", score:4});
+		const O = new Tile({letter: "O", score:1});
+		const R = new Tile({letter: "R", score:2, isBlank:true});
+		const D = new Tile({letter: "D", score:3});
+		const A = new Tile({letter: "A", score: 1});
+		const L = new Tile({letter: "L", isBlank:true, score: 2});
+		const K = new Tile({letter: "K", score: 5});
 			
 		// Lock down the play. This should not affect $ui!
 		b.at(0, 0).placeTile(W, true);

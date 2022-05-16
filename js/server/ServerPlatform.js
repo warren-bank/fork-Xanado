@@ -4,14 +4,15 @@ and license information*/
 /* eslint-env node */
 
 /**
- * This is the node.js implementation of game/Platform. There is an
+ * This is the node.js implementation of common/Platform. There is an
  * implementation for the browser, too, in js/browser/Platform.js
  */
 define("platform", [
 	"events", "fs", "proper-lockfile", "node-gzip", "get-user-locale", "path",
-	"game/Platform", "game/Fridge", "game/Platform"
+	"common/Platform", "common/Fridge"
 ], (
-	Events, fs, Lock, Gzip, Locale, Path, Platform, Fridge
+	Events, fs, Lock, Gzip, Locale, Path,
+	Platform, Fridge
 ) => {
 
 	const Fs = fs.promises;
@@ -101,6 +102,7 @@ define("platform", [
 		 * @param {string} lang Language to translate to
 		 */
 		constructor(lang) {
+			this.lang = lang;
 		}
 
 		// @private
@@ -113,7 +115,9 @@ define("platform", [
 			function findLangPath(path, lang) {
 				const f = Path.join(path, "i18n", "en.json");
 				return Fs.stat(f)
-				.then(() => path)
+				.then(() => {
+					return path;
+				})
 				.catch(e => {
 					if (path.length === 0)
 						return undefined;
@@ -122,18 +126,18 @@ define("platform", [
 			}
 
 			// process.argv[1] has the path to server.js
-			const path = Path.dirname(process.argv[1]);
+			// LANG_DIR lets us override it in unit tests
 			let langdir, langfile;
-			return findLangPath(path, lang)
+			return findLangPath(ServerPlatform.LANG_SEARCH_BASE, this.lang)
 			.then(path => {
 				langdir = Path.join(path, "i18n");
 				// Try the full locale e.g. "en-US"
-				langfile = Path.join(langdir, `${lang}.json`);
+				langfile = Path.join(langdir, `${this.lang}.json`);
 				return Fs.readFile(langfile);
 			})
 			.catch(e => {
 				// Try the first part of the locale i.e. "en" from "en-US"
-				langfile = Path.join(langdir, `${lang.split("-")[0]}.json`);
+				langfile = Path.join(langdir, `${this.lang.split("-")[0]}.json`);
 				return Fs.readFile(langfile);
 			})
 			.catch(e => {
@@ -144,23 +148,24 @@ define("platform", [
 			.then(buffer => {
 				this.data = JSON.parse(buffer.toString());
 				// Use lookup() to make sure it works
-				//console.debug(this.lookup([
-				//	/*i18n*/'Strings from $1', langfile]));
+				//console.debug(this.lookup([/*i18n*/'Strings from $1', langfile]));
 			});
 		}
 
 		/**
 		 * Implement `$.i18n()` in node.js
 		 */
-		async lookup(args) {
-			await this._getData();
-			let s = args[0];
-			if (this.data && typeof this.data[s] !== "undefined")
-				s = this.data[s];
-			// TODO: support PLURAL
-			return s.replace(
-				/\$(\d+)/g,
-				(m, index) => args[index]);
+		lookup(args) {
+			return this._getData()
+			.then(() => {
+				let s = args[0];
+				if (this.data && typeof this.data[s] !== "undefined")
+					s = this.data[s];
+				// TODO: support PLURAL
+				return s.replace(
+					/\$(\d+)/g,
+					(m, index) => args[index]);
+			});
 		}
 	}
 
@@ -210,11 +215,17 @@ define("platform", [
 
 		/** See {@link Platform#i18n} for documentation */
 		static i18n() {
-			return ServerPlatform.I18N.lookup(arguments);
+			// Returns a Promise
+			return ServerPlatform.TX.lookup(arguments);
 		}
 	}
 
-	ServerPlatform.I18N = new I18N(Locale.getUserLocale());
+	ServerPlatform.LANG_SEARCH_BASE = Path.dirname(process.argv[1]);
+
+	ServerPlatform.I18N = I18N;
+
+	// Allow override in unit tests
+	ServerPlatform.TX = new ServerPlatform.I18N(Locale.getUserLocale());
 	
     ServerPlatform.Database = FileDatabase;
 

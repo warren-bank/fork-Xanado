@@ -6,7 +6,7 @@
  * Extension of node.js assert for use in unit tests
  */
 assert = require("assert");
-assert.why_is_node_running = require('why-is-node-running');
+exports.why_is_node_running = require('why-is-node-running');
 
 exports.sparseEqual = (actual, expected, path) => {
 	if (!path) path = "";

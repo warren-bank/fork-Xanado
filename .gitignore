@@ -12,3 +12,7 @@ doc/fonts
 doc/scripts
 doc/styles
 games/*.game
+.nyc_output
+https.crt
+https.key
+passwd.json

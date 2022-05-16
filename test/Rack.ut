@@ -5,7 +5,7 @@
 
 requirejs = require('requirejs');
 // node.js
-const { JSDOM } = require('jsdom');
+const { JSDOM } = require("jsdom");
 /* eslint-disable no-global-assign */
 document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
 /* eslint-enable no-global-assign */
@@ -13,7 +13,7 @@ const { window } = document;
 global.window = window;
 global.document = window.document;
 global.navigator = { userAgent: "node.js" };
-const jQuery = require('jquery');
+const jQuery = require("jquery");
 global.jQuery = jQuery;
 global.$ = jQuery;
 
@@ -22,20 +22,21 @@ requirejs.config({
 	nodeRequire: require,
     paths: {
 		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
-		game: 'js/game',
-		platform: 'js/server/ServerPlatform'
+		common: "js/common",
+		game: "js/game",
+		platform: "js/server/ServerPlatform"
     }
 });
 
 /**
- * Unit tests for Rack class
+ * Unit tests for Rack
  */
 describe("Rack class", () => {
 	const deps = [
-		{ Rack: 'game/Rack' },
-		{ Tile: 'game/Tile' },
+		{ Rack: "game/Rack" },
+		{ Tile: "game/Tile" },
 		{ Square: "game/Square" },
-		{ jQeuryUI: 'jquery-ui' }
+		{ jQeuryUI: "jquery-ui" }
 	];
 
 	require("@wikimedia/jquery.i18n/src/jquery.i18n");
@@ -43,32 +44,32 @@ describe("Rack class", () => {
 	const Assert = require("./Assert.js");
 	before(required => Assert.depend(required, deps));
 
-	it('construct', () => {
-		let r = new Rack('base', 10);
+	it("construct", () => {
+		let r = new Rack("base", 10);
 		assert(r.isEmpty());
-		const aTile = new Tile({letter: 'A'});
+		const aTile = new Tile({letter: "A"});
 		assert.equal(r.addTile(aTile), 0);
 		assert(!r.isEmpty());
-		assert.equal(r.addTile(new Tile({letter: 'B'})), 1);
+		assert.equal(r.addTile(new Tile({letter: "B"})), 1);
 		assert(!r.isEmpty());
-		assert.deepEqual(r.letters().sort(), ['A', 'B']);
-		const t = new Tile({letter: 'A'});
+		assert.deepEqual(r.letters().sort(), ["A", "B"]);
+		const t = new Tile({letter: "A"});
 		assert.strictEqual(r.removeTile(t), aTile);
-		assert.deepEqual(r.letters().sort(), ['B']);
-		assert.equal(r.addTile(new Tile({letter: ' ', isBlank: true})), 0);
-		assert.equal(r.addTile(new Tile({letter: 'D'})), 2);
-		assert.equal(r.addTile(new Tile({letter: 'E'})), 3);
-		assert.equal(r.findSquare('D').col, 2);
+		assert.deepEqual(r.letters().sort(), ["B"]);
+		assert.equal(r.addTile(new Tile({letter: " ", isBlank: true})), 0);
+		assert.equal(r.addTile(new Tile({letter: "D"})), 2);
+		assert.equal(r.addTile(new Tile({letter: "E"})), 3);
+		assert.equal(r.findSquare("D").col, 2);
 		const before = r.letters();
 		r.shuffle();
 		// Probably won't be equal, but it might be!
 		assert.notDeepEqual(r.letters(), before);
-		assert(r.findSquare('X').tile.isBlank);
-		assert.deepEqual(r.lettersLeft().sort(), ['B', 'D', 'E']);
+		assert(r.findSquare("X").tile.isBlank);
+		assert.deepEqual(r.lettersLeft().sort(), ["B", "D", "E"]);
 	});
 
-	it('$ui empty', () => {
-		let r = new Rack('base', 2);
+	it("$ui empty", () => {
+		let r = new Rack("base", 2);
 
 		let $act = r.$ui();
 		assert($act.hasClass("Rack"));

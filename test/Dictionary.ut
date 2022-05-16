@@ -1,0 +1,122 @@
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
+/* eslint-env node, mocha */
+
+if (typeof requirejs === 'undefined') {
+    requirejs = require('requirejs');
+    // node.js
+}
+
+requirejs.config({
+    baseUrl: `${__dirname}/..`,
+    paths: {
+        common: "js/common",
+		dawg: "js/dawg",
+		platform: "js/server/ServerPlatform"
+    }
+});
+
+const fs = require("fs");
+
+describe("Dictionary class", () => {
+
+	const deps = [
+		{ Platform: "platform" },
+		{ Dictionary: 'dawg/Dictionary' }
+	];
+
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
+
+	const words = [
+		'QUICK', 'BROWN', 'FOX', 'JUMPED', 'OVER', 'THE',
+		'LAZY', 'DOG',
+
+		'QUIT', 'FROWN', 'FOR', 'LIMPED', 'UNDER', 'THEM',
+		'LADIES', 'GOD',
+
+		'QUILT', 'FORM', 'FOXED', 'LONELY', 'ABOVE', 'THEIR',
+		'SAD', 'GODS'
+	];
+		
+    it("loads words", () => {
+		let dic = new Dictionary("test");
+		dic.addWord('A');
+		dic.addWord('ANT');
+		dic.addWord('TAN');
+		let s = [];
+		dic.eachWord(w => s.push(w));
+		assert.deepEqual(s, [ 'A', 'ANT', 'TAN' ]);
+		dic.addWord('ANT');
+		s = [];
+		dic.eachWord(w => s.push(w));
+		assert.deepEqual(s, [ 'A', 'ANT', 'TAN' ]);
+		assert(dic.hasWord('ANT'));
+		assert(!dic.hasWord('TNA'));
+		dic.addWord('TA');
+		const anags = dic.findAnagrams('ANT');
+		assert.deepEqual(anags, { A: 'A', ANT: 'ANT', TA: 'TA', TAN: 'TAN' });
+		s = [];
+		dic.root.eachLongWord("", w => s.push(w));
+		assert.deepEqual(s, [ 'ANT', 'TAN' ]);
+	});
+
+	it("loads a dictionary", () => {
+		return Platform.getResource("dictionary.dict")
+		.then(data => new Dictionary("test").loadDAWG(data.buffer))
+		.then(dic => {
+			assert(dic.hasWord('AGONY'));
+		});
+	});
+
+	// Load and extend a dictionary with new words
+	it("extends a dictionary", () => {
+		return Platform.getResource("dictionary.dict")
+		.then(data => new Dictionary("test").loadDAWG(data.buffer))
+		.then(dic => {
+			assert(dic.hasWord("FUNGI"));
+			assert(!dic.hasWord("AARDVAARK"));
+			assert(!dic.hasSequence("VAAR"));
+
+			dic.addWord("AARDVAARK");
+			assert(dic.hasSequence("VAAR"));
+
+			dic.addWord("BISON");
+			dic.addWord("BISONIC");
+
+			assert(dic.hasWord("BISON"));
+			assert(dic.hasWord("BISONIC"));
+
+			assert(dic.hasSequence("VAAR"));
+		});
+	});
+
+	it("builds links", () => {
+		let dic = new Dictionary("test");
+		dic.addWord('A');
+		dic.addWord('ANT');
+		dic.addWord('TAN');
+
+		dic.addLinks();
+
+		const s = dic.getSequenceRoots('N');
+		assert(s.length === 2);
+		assert.equal(s[0].preNodes[0].letter, 'A');
+		assert.deepEqual(s[0].preLetters, ['A']);
+		assert.equal(s[0].postNodes[0].letter, 'T');
+		assert.deepEqual(s[0].postLetters, ['T']);
+
+		assert.equal(s[1].preNodes[0].letter, 'A');
+		assert.deepEqual(s[1].preLetters, ['A']);
+		assert.equal(s[1].postNodes.length, 0);
+		assert.deepEqual(s[1].postLetters.length, 0);
+	});
+
+	it("static loads", () => {
+		return Dictionary.load("Oxford_5000")
+		.then(dict => {
+			assert(dict.hasWord("QQQ"));
+		});
+	});
+});

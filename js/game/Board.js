@@ -297,7 +297,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 				topLeftY = row;
 				return true;
 			});
-			assert(tile, "No new tiles found");
+			require('assert')(tile, "No new tiles found");
 
 			// Remember which newly placed tile positions are legal
 			const legalPlacements = new Array(this.cols);

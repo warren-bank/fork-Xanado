@@ -4,14 +4,14 @@ and license information*/
 /* eslint-env browser, jquery */
 
 define("browser/game", [
-	"game/Fridge",
+	"common/Fridge", "common/Utils",
 	"game/Tile", "game/Rack", "game/Board",
 	"game/Game", "game/Player", "game/Turn",
 	"game/Command", "game/Notify",
 	"browser/UI", "browser/Dialog",
 	"jquery", "jqueryui", "cookie", "browser/icon_button"
 ], (
-	Fridge,
+	Fridge, Utils,
 	Tile, Rack, Board,
 	Game, Player, Turn,
 	Command, Notify,
@@ -448,7 +448,7 @@ define("browser/game", [
 			let remains = params.clock;
 			ticked.clock = remains;
 
-			const clocks = Game.formatTimeInterval(remains);
+			const clocks = Utils.formatTimeInterval(remains);
 			if (this.game.timerType === Player.TIMER_TURN) {
 				$(`.player-clock`)
 				.empty()

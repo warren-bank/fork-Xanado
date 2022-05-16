@@ -4,9 +4,9 @@ and license information*/
 /* eslint-env amd, jquery */
 
 define("game/Player", [
-	"platform", "game/GenKey", "game/Rack",
+	"platform", "game/Rack",
 ], (
-	Platform, GenKey, Rack
+	Platform, Rack
 ) => {
 
 	// Unicode characters
@@ -278,8 +278,7 @@ define("game/Player", [
 			$icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
 			$tr.append($("<td></td>").append($icon));
 			const who = curPlayer && this.key === curPlayer.key
-				? Platform.i18n("You")
-				  : this.name;
+				? $.i18n("You") : this.name;
 			const $name = $(`<td class="player-name">${who}</td>`);
 			if (this.missNextTurn)
 				$name.addClass("miss-turn");

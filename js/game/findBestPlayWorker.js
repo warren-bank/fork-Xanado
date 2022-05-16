@@ -8,6 +8,7 @@ requirejs.config({
 	baseUrl: `${__dirname}/../..`,
     nodeRequire: require,
 	paths: {
+		common: `js/common`,
 		game: `js/game`,
 		dawg: `js/dawg`,
 		platform: 'js/server/ServerPlatform'
@@ -19,13 +20,21 @@ requirejs.config({
  * found asynchronously, without blocking the main thread, so we can
  * time it out if necessary. See also findBestPlayController.js
  */
-requirejs(['worker_threads', 'game/Fridge', 'game/Game', 'game/findBestPlay'], (threads, Fridge, Game, findBestPlay) => {
+requirejs([
+	'worker_threads',
+	'common/Fridge',
+	'game/Game', 'game/findBestPlay'
+], (
+	threads,
+	Fridge,
+	Game, findBestPlay
+) => {
 
 	const info = Fridge.thaw(threads.workerData, Game.classes);
 
 	/**
 	 * Note that the game is NOT a Game, but just the fields. If methods
-	 * need to be called on it, then game/Fridge can be used to freeze-thaw.
+	 * need to be called on it, then Fridge can be used to freeze-thaw.
 	 */
 	findBestPlay(info.game, info.rack,
 				 bestPlay => threads.parentPort.postMessage(
@@ -37,7 +46,9 @@ requirejs(['worker_threads', 'game/Fridge', 'game/Game', 'game/findBestPlay'], (
 	})
 
 	.catch(e => {
+		/* istanbul ignore next */
 		threads.parentPort.postMessage('findBestPlayWorker error', e);
+		/* istanbul ignore next */
 		throw e;
 	});
 });

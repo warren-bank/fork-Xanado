@@ -157,6 +157,7 @@ define("game/Square", ["platform"], (Platform) => {
 		/**
 		 * Debug
 		 */
+		/* istanbul ignore next */
 		toString() {
 			// All squares have a col
 			let string = `${this.type} square @ ${this.col}`;

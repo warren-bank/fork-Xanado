@@ -260,7 +260,7 @@ define("game/findBestPlay", [
 			} else
 				wordSoFar.push(board.at(ecol, erow).tile);
 
-			for (let post of dNode.post) {
+			for (let post of dNode.postNodes) {
 				if (post.letter === letter) {
 					forward(ecol, erow,
 							dcol, drow,
@@ -350,7 +350,7 @@ define("game/findBestPlay", [
 				// Letter already on the board
 				wordSoFar.unshift(board.at(ecol, erow).tile);
 
-			for (let pre of dNode.pre) {
+			for (let pre of dNode.preNodes) {
 				if (pre.letter === letter) {
 					back(ecol, erow,
 						 dcol, drow,
@@ -366,7 +366,7 @@ define("game/findBestPlay", [
 		// If this is the start of a word in the dictionary, and
 		// we're at the edge of the board or the prior cell is
 		// empty, then we have a valid word start.
-		if (dNode.pre.length == 0
+		if (dNode.preNodes.length == 0
 			&& (erow < 0 || ecol < 0 || board.at(ecol, erow).isEmpty())) {
 			//console.log(`back word start ${ecol}:${dcol},${erow}:${drow}`);
 			// try extending down beyond the anchor, with the letters

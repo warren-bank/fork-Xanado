@@ -22,6 +22,7 @@ requirejs.config({
 	nodeRequire: require,
     paths: {
 		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
+		common: "js/common",
 		game: "js/game",
 		platform: "js/server/ServerPlatform"
     }

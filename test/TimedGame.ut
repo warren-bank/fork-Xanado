@@ -22,9 +22,10 @@ requirejs.config({
 	nodeRequire: require,
 	paths: {
 		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
-		game: 'js/game',
-		dawg: 'js/dawg',
-		platform: 'js/server/ServerPlatform'
+		common: "js/common",
+		game: "js/game",
+		dawg: "js/dawg",
+		platform: "js/server/ServerPlatform"
 	}
 });
 
@@ -33,20 +34,22 @@ requirejs.config({
  */
 describe("Timed games", () => {
 	const deps = [
-		{ TestSocket: 'test/TestSocket' },
-		{ Edition: 'game/Edition' },
-		{ Tile: 'game/Tile' },
-		{ Rack: 'game/Rack' },
-		{ Player: 'game/Player' },
-		{ Game: 'game/Game' },
-		{ Move: 'game/Move' },
-		{ Turn: 'game/Turn' },
-		{ findBestPlay: 'game/findBestPlay' },
-		{ Notify: 'game/Notify' }
+		{ TestSocket: "test/TestSocket" },
+		{ Edition: "game/Edition" },
+		{ Tile: "game/Tile" },
+		{ Rack: "game/Rack" },
+		{ Player: "game/Player" },
+		{ Game: "game/Game" },
+		{ Move: "game/Move" },
+		{ Turn: "game/Turn" },
+		{ findBestPlay: "game/findBestPlay" },
+		{ Notify: "game/Notify" }
 	];
 
 	const Assert = require("./Assert.js");
 	before(required => Assert.depend(required, deps));
+
+	function unit() {}
 
 	it('timeout and end game', () => {
 		const human1 = new Player({
@@ -142,7 +145,7 @@ describe("Timed games", () => {
 		.then(() => socket.wait());
 	});
 
-	it('pass and ovetime', () => {
+	it('pass and overtime', () => {
 		const human1 = new Player({
 			name: 'Human 1', key: "human1", isRobot: false});
 		const human2 = new Player({

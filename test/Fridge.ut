@@ -11,14 +11,14 @@ if (typeof requirejs === 'undefined') {
 requirejs.config({
     baseUrl: `${__dirname}/..`,
     paths: {
-        'game': 'js/game'
+        'common': 'js/common'
     }
 });
 
 describe("Fridge class", () => {
 
 	const deps = [
-		{ Fridge: 'game/Fridge' }
+		{ Fridge: 'common/Fridge' }
 	];
 
 	const Assert = require("./Assert.js");

@@ -23,19 +23,20 @@ requirejs.config({
     paths: {
 		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
 		i18n: "node_modules/jquery-i18n/index",
-		game: 'js/game',
-		platform: 'js/server/ServerPlatform'
+		common: "js/common",
+		game: "js/game",
+		platform: "js/server/ServerPlatform"
     }
 });
 
 /**
  * Unit tests for Square class
  */
-describe('Square class', () => {
+describe("Square class", () => {
 	const deps = [
-		{ Square: 'game/Square' },
-		{ Tile: 'game/Tile' },
-		{ jQueryUI: 'jquery-ui' }
+		{ Square: "game/Square" },
+		{ Tile: "game/Tile" },
+		{ jQueryUI: "jquery-ui" }
 	];
 
 	require("@wikimedia/jquery.i18n/src/jquery.i18n");

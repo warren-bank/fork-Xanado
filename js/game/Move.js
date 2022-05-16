@@ -86,6 +86,7 @@ define("game/Move", ["game/Tile"], Tile => {
 				this.replacements = [tile];
 		}
 
+		/* istanbul ignore next */
 		toString() {
 			const pl = this.placements.map(t => t.toString(true));
 			const w = this.words.map(w => `${w.word}(${w.score})`);

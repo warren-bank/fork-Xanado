@@ -13,6 +13,7 @@ requirejs.config({
 	baseUrl: "..",
     nodeRequire: require,
 	paths: {
+		common: "js/common",
 		game: "js/game",
 		server: "js/server",
 		dawg: "js/dawg",

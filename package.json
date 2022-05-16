@@ -23,7 +23,6 @@
 		"errorhandler": ">=1.5.1",
 		"express": ">=4.18.1",
 		"express-basic-auth": ">=1.2.1",
-		"express-negotiate": ">=0.0.6",
 		"express-session": "^1.17.2",
 		"get-user-locale": ">=1.4.0",
 		"https": ">=1.0.0",
@@ -40,22 +39,23 @@
 		"passport-google-oauth20": "^2.0.0",
 		"proper-lockfile": "^4.1.2",
 		"requirejs": ">=2.3.6",
-		"socket.io": ">=4.5.0",
-		"why-is-node-running": "^2.2.2"
+		"socket.io": ">=4.5.0"
 	},
 	"devDependencies": {
 		"chai": ">=4.3.6",
+		"chai-http": "^4.3.0",
 		"eslint": ">=8.15.0",
 		"istanbul": "^0.4.5",
 		"jsdoc": "^3.6.10",
 		"marked": "^4.0.15",
 		"mocha": ">=10.0.0",
-		"nyc": "^15.1.0"
+		"nyc": "^15.1.0",
+		"why-is-node-running": "^2.2.2"
 	},
 	"scripts": {
 		"web": "node server.js",
 		"test": "mocha --extension ut --timeout=5000",
-		"coverage": "nyc --hook-run-in-context --hook-run-in-this-context mocha --extension ut --timeout=5000"
+		"coverage": "nyc --hook-run-in-context --hook-run-in-this-context --reporter=html --reporter text mocha --extension ut --timeout=5000"
 	},
 	"eslintConfig": {
 		"extends": "eslint:recommended",
