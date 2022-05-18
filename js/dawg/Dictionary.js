@@ -269,7 +269,7 @@ define("dawg/Dictionary", [
 		 * both.
 		 * @param {string} name name of the dictionary to load
 		 * @param {string?} path path to dictionary files. If undefined,
-		 * defaults to requirejs.toUrl("dictionaries")`.
+		 * defaults to `Platform.getFilePath("dictionaries")`
 		 * @return {Promise} Promise that resolves to a new {@link Dictionary}
 		 * or undefined if a dictionary of that name could not be loaded.
 		 */
@@ -278,20 +278,19 @@ define("dawg/Dictionary", [
 				return Promise.resolve(dictionaries[name]);
 
 			if (!path)
-				path = requirejs.toUrl("dictionaries");
+				path = Platform.getFilePath("dictionaries");
 
 			let dict;
 			const dp = `${path}/${name}.dict`;
 
 			return Platform.readZip(dp)
-			.then(data => Platform.ungzip(data))
 			.then(buffer => {
 				dict = new Dictionary(name);
 				dict.loadDAWG(buffer.buffer);
 			})
 			.catch(e => {
 				// Mostly harmless, .dict load failed, relying on .white
-				//console.debug("Failed to read", dp);
+				console.debug("Failed to read", dp, e);
 			})
 			.then(() => {
 				const wp = `${path}/${name}.white`;

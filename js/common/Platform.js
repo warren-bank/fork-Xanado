@@ -67,7 +67,10 @@ define("common/Platform", () => {
 		 * event handler
 		 * @abstract
 		 */
-		static trigger(event, args) {}
+		/* istanbul ignore next */
+		static trigger(event, args) {
+			throw new Error("Pure virtual");
+		}
 
 		/**
 		 * @callback Platform~bestMoveCallback
@@ -91,7 +94,41 @@ define("common/Platform", () => {
 		 * have been tried
 		 * @abstract
 		 */
-		static findBestPlay(game, rack, cb, dictpath, dictionary) {}
+		/* istanbul ignore next */
+		static findBestPlay(game, rack, cb, dictpath, dictionary) {
+			throw new Error("Pure virtual");
+		}
+
+		/**
+		 * Get the absolute path to a file or directory within the
+		 * installation.
+		 * @param {string} p a path relative to the root of the installation
+		 * @abstract
+		 */
+		/* istanbul ignore next */
+		static getFilePath(p) {
+			throw new Error("Pure virtual");
+		}
+
+		/**
+		 * Read a file
+		 * @return {Promise} resolves to the file contents
+		 * @abstract
+		 */
+		/* istanbul ignore next */
+		static readFile(path) {
+			throw new Error("Pure virtual");
+		}
+
+		/**
+		 * Read a gz file
+		 * @return {Promise} resolves to the file contents
+		 * @abstract
+		 */
+		/* istanbul ignore next */
+		static readZip(path) {
+			throw new Error("Pure virtual");
+		}
 	}
 
 	/**

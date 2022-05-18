@@ -478,6 +478,8 @@ define("game/findBestPlay", [
 		report("Finding best play for rack " + rack.toString());
 
 		board = game.board;
+		report(`with dictionary ${dictionary || game.dictionary}`);
+		report(`in edition ${game.edition}`);
 		report(`on ${board}`);
 
 		const preamble = [
@@ -489,6 +491,10 @@ define("game/findBestPlay", [
 		.then(de => {
 			dict = de[0];
 			edition = de[1];
+
+			/* istanbul ignore if */
+			if (!dict || !edition)
+				throw new Error("Setup failure");
 
 			report("Starting findBestPlay computation", rackTiles);
 			bestScore = 0;

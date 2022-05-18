@@ -7,11 +7,11 @@ and license information*/
  */
 define("game/findBestPlayController", [
 	"worker_threads",
-	"common/Fridge",
+	"platform", "common/Fridge",
 	"game/Square", "game/Game", "game/Player"
 ], (
 	threads,
-	Fridge,
+	Platform, Fridge,
 	Square, Game, Player
 ) => {
 
@@ -32,7 +32,7 @@ define("game/findBestPlayController", [
 		};
 		return new Promise((resolve, reject) => {
 			const worker = new threads.Worker(
-				requirejs.toUrl("js/game/findBestPlayWorker.js"), ice);
+				Platform.getFilePath("js/game/findBestPlayWorker.js"), ice);
 
 			// Apply the game time limit
 			let timer;

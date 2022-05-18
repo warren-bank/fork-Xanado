@@ -58,7 +58,7 @@ describe("Dictionary class", () => {
 	});
 
 	it("loads a dictionary", () => {
-		return Fs.readFile(requirejs.toUrl("test/dictionary.dict"))
+		return Fs.readFile(Platform.getFilePath("test/dictionary.dict"))
 		.then(gz => Gzip.ungzip(gz))
 		.then(data => new Dictionary("test").loadDAWG(data.buffer))
 		.then(dic => {
@@ -70,7 +70,7 @@ describe("Dictionary class", () => {
 
 	// Load and extend a dictionary with new words
 	it("extends a dictionary", () => {
-		return Fs.readFile(requirejs.toUrl("test/dictionary.dict"))
+		return Fs.readFile(Platform.getFilePath("test/dictionary.dict"))
 		.then(gz => Gzip.ungzip(gz))
 		.then(data => new Dictionary("test").loadDAWG(data.buffer))
 		.then(dic => {
@@ -121,7 +121,7 @@ describe("Dictionary class", () => {
 	});
 
 	it("static load dict and white", () => {
-		return Dictionary.load("dictionary", requirejs.toUrl("test"))
+		return Dictionary.load("dictionary", Platform.getFilePath("test"))
 		.then(dict => {
 			assert(dict.hasWord("DOGS")); // dict
 			assert(dict.hasWord("WALRUS")); // whitelist
@@ -130,7 +130,7 @@ describe("Dictionary class", () => {
 	});
 
 	it("static load no dict just white", () => {
-		return Dictionary.load("white", requirejs.toUrl("test"))
+		return Dictionary.load("white", Platform.getFilePath("test"))
 		.then(dict => {
 			assert(!dict.hasWord("DOGS")); // dict
 			assert(dict.hasWord("WALRUS")); // whitelist
@@ -139,7 +139,7 @@ describe("Dictionary class", () => {
 	});
 
 	it("static load dict no white", () => {
-		return Dictionary.load("dict", requirejs.toUrl("test"))
+		return Dictionary.load("dict", Platform.getFilePath("test"))
 		.then(dict => {
 			assert(dict.hasWord("DOGS")); // dict
 			assert(!dict.hasWord("WALRUS")); // whitelist

@@ -133,6 +133,28 @@ describe("Server", () => {
 		});
 	}));
 
+	it("/simple/all", () => new Promise(resolve => {
+		const s = new Server(config);
+		chai.request(s.express)
+		.get("/simple/all")
+		.end((err, res) => {
+			assert.equal(res.status, 200);
+			//console.log(res.body);
+			resolve();
+		});
+	}));
+
+	it("/simple/active", () => new Promise(resolve => {
+		const s = new Server(config);
+		chai.request(s.express)
+		.get("/simple/active")
+		.end((err, res) => {
+			assert.equal(res.status, 200);
+			//console.log(res.body);
+			resolve();
+		});
+	}));
+
 	it("/locales", () => new Promise(resolve => {
 		const s = new Server(config);
 		chai.request(s.express)
@@ -220,7 +242,7 @@ describe("Server", () => {
 			},
 			games: "test/games"
 		};
-		let server, cookie, sessionkey, gamekey;
+		let server, cookie, gamekey;
 		return reset(config)
 		.then(s => server = s)
 		.then(() => register(server, {
@@ -323,7 +345,7 @@ describe("Server", () => {
 			},
 			games: "test/games"
 		};
-		let server, cookie, sessionkey, gamekey;
+		let server, cookie, gamekey;
 		return reset(config)
 		.then(s => server = s)
 		.then(() => register(server, {
@@ -397,7 +419,7 @@ describe("Server", () => {
 			},
 			games: "test/games"
 		};
-		let server, cookie, sessionkey, gamekey;
+		let server, cookie, gamekey;
 		return reset(config)
 		.then(s => server = s)
 		.then(() => register(server, {
@@ -450,21 +472,171 @@ describe("Server", () => {
 			.post(`/command/confirmGameOver/${gamekey}`)
 			.set('Cookie', cookie)
 			.end((err, res) => {
-				console.log(res.text);
+				//console.log(res.text);
 				assert.equal(res.status, 200, res.text);
 				resolve();
 			});
 		}));
 	});
 
-	it("/invitePlayers", () => new Promise(resolve => {
-		assert(false, "Not implemented");
-		resolve();
+	it("/invitePlayers", () => new Promise(done => {
+		let server, cookie, gamekey, playerkey;
+		return reset(config)
+		.then(s => server = s)
+		.then(() => register(server, {
+				register_username: "test_user",
+				register_password: "test_pass",
+				register_email: "test@email.com"
+			}))
+		.then(() => login(server, {
+			login_username: "test_user",
+			login_password: "test_pass"
+		}))
+		.then(c => cookie = c)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.get("/session")
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				assert.equal(res.status, 200);
+				playerkey = res.body.key;
+				resolve();
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/createGame")
+			.set('Cookie', cookie)
+			.send({
+				edition: "English_Scrabble",
+				dictionary:"CSW2019_English"
+			})
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}))
+		.then(g => gamekey = g)
+		.then(() => new Promise(resolve => {
+			// server.mail.transport hasn't been configured yet
+			assert(!server.config.mail);
+			//server._debug = console.debug;
+			let token;
+			server.config.mail = {
+				sender: "unit tests",
+				transport: {
+					sendMail: function(email) {
+						assert.equal(email.from, "test_user<test@email.com>");
+						assert.equal(email.to, "test@email.com");
+						assert.equal(email.subject, "You have been invited to play XANADO");
+						assert(email.text);
+						return Promise.resolve();
+					}
+				}
+			};
+			chai.request(server.express)
+			.post(`/invitePlayers`)
+			.send({player: [ {key: playerkey} ], message: "Hollow Wurld"})
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				assert.deepEqual(res.body, [ "test_user"]);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}))
+		.then(() => done());
 	}));
 
-	it("/sendReminder", () => new Promise(resolve => {
-		assert(false, "Not implemented");
-		resolve();
+	it("/sendReminder", () => new Promise(done => {
+		let server, cookie, gamekey, playerkey;
+		return reset(config)
+		.then(s => server = s)
+		.then(() => register(server, {
+				register_username: "test_user",
+				register_password: "test_pass",
+				register_email: "test@email.com"
+			}))
+		.then(() => login(server, {
+			login_username: "test_user",
+			login_password: "test_pass"
+		}))
+		.then(c => cookie = c)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.get("/session")
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				assert.equal(res.status, 200);
+				playerkey = res.body.key;
+				resolve();
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/createGame")
+			.set('Cookie', cookie)
+			.send({
+				edition: "English_Scrabble",
+				dictionary:"CSW2019_English"
+			})
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}))
+		.then(g => gamekey = g)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/join/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200, res.text);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post(`/addRobot/${gamekey}`)
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200, res.text);
+				resolve(res.text);
+			});
+		}))
+		.then(() => new Promise(resolve => {
+			// server.mail.transport hasn't been configured yet
+			//server._debug = console.debug;
+			let token;
+			server.config.mail = {
+				sender: "unit tests",
+				transport: {
+					sendMail: function(email) {
+						assert.equal(email.from, "test_user<test@email.com>");
+						assert.equal(email.to, "test@email.com");
+						assert.equal(email.subject, "It is your turn in your XANADO game");
+						assert(email.text);
+						return Promise.resolve();
+					}
+				}
+			};
+			//server._debug = console.debug;
+			// Because we haven't gone though playIfReady yet, the players
+			// will still be in the order they were added i.e. human first
+			chai.request(server.express)
+			.post(`/sendReminder/${gamekey}`)
+			.send()
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				assert.deepEqual(res.body, ['test_user']);
+				assert.equal(res.status, 200);
+				resolve(res.text);
+			});
+		}))
+		.then(() => done());
 	}));
 
 });

@@ -182,10 +182,17 @@ define("platform", [
 			return findBestPlayController.apply(null, arguments);
 		}
 
+		/** See {@link Platform#getFilePath} for documentation */
+		static getFilePath(p) {
+			return Path.normalize(requirejs.toUrl(p || ""));
+		}
+
+		/** See {@link Platform#readFile} for documentation */
 		static readFile(p) {
 			return Fs.readFile(p);
 		}
 
+		/** See {@link Platform#readZip} for documentation */
 		static readZip(p) {
 			return Fs.readFile(p)
 			.then(data => Gzip.ungzip(data));
@@ -201,3 +208,4 @@ define("platform", [
 
 	return ServerPlatform;
 });
+

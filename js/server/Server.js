@@ -43,9 +43,6 @@ define("server/Server", [
 				};
 			}
 
-			if (!config.root)
-				config.root = requirejs.toUrl("");
-
 			/* istanbul ignore if */
 			if (config.debug_server)
 				this._debug = console.debug;
@@ -56,7 +53,9 @@ define("server/Server", [
 			config.defaults.notification = config.defaults.notification &&
 			(typeof config.https !== "undefined");
 
-			this.db = new Platform.Database(requirejs.toUrl("games"), "game");
+			this.db = new Platform.Database(
+				Platform.getFilePath("games"), "game");
+
 			// Live games; map from game key to Game
 			this.games = {};
 			// Status-monitoring sockets (game pages)
@@ -79,7 +78,7 @@ define("server/Server", [
 			this.express.use(Express.json());
 
 			// Can't use __dirname, only available in top level
-			const staticRoot = requirejs.toUrl("");
+			const staticRoot = Platform.getFilePath();
 			// Grab all static files relative to the project root
 			// html, images, css etc. The Content-type should be set
 			// based on the file mime type (extension) but Express doesn't
@@ -108,7 +107,7 @@ define("server/Server", [
 			// Get the HTML for the main interface (the "games" page)
 			cmdRouter.get("/",
 					   (req, res) => res.sendFile(
-						   Path.normalize(requirejs.toUrl("html/games.html"))));
+						   Platform.getFilePath("html/games.html")));
 
 			// Get a simplified version of games list or a single game
 			// (no board, bag etc) for the "games" page. You can request
@@ -396,11 +395,7 @@ define("server/Server", [
 				this._debug("<-- 200 simple", send);
 				return res.status(200).send(data);
 			})
-			.catch(e => {
-				this._debug("<-- 500", e);
-				return res.status(500).send([
-					/*i18n*/"Game load failed", e.toString()]);
-			});
+			.catch(e => this.trap(e, req, res));
 		}
 
 		/**
@@ -470,7 +465,7 @@ define("server/Server", [
 		 * return {Promise} Promise to index available editions
 		 */
 		request_editions(req, res) {
-			return Fs.readdir(requirejs.toUrl("editions"))
+			return Fs.readdir(Platform.getFilePath("editions"))
 			.then(list => res.status(200).send(
 				list.filter(f => /^[^_].*\.js$/.test(f))
 				.map(fn => fn.replace(/\.js$/, ""))))
@@ -482,7 +477,7 @@ define("server/Server", [
 		 * return {Promise} Promise to index available dictionaries
 		 */
 		request_dictionaries(req, res) {
-			return Fs.readdir(requirejs.toUrl("dictionaries"))
+			return Fs.readdir(Platform.getFilePath("dictionaries"))
 			.then(list =>res.status(200).send(
 				list.filter(f => /\.dict$/.test(f))
 				.map(fn => fn.replace(/\.dict$/, ""))))
@@ -494,7 +489,7 @@ define("server/Server", [
 		 * return {Promise} Promise to index available themes
 		 */
 		request_themes(req, res) {
-			const dir = requirejs.toUrl("css");
+			const dir = Platform.getFilePath("css");
 			return Fs.readdir(dir)
 			.then(list => res.status(200).send(list))
 			.catch(e => this.trap(e, req, res));
@@ -509,7 +504,7 @@ define("server/Server", [
 			let theme = "default";
 			if (req.user && req.user.settings && req.user.settings.theme)
 				theme = req.user.settings.theme;
-			let path = requirejs.toUrl(`css/${theme}/${req.params.css}`);
+			let path = Platform.getFilePath(`css/${theme}/${req.params.css}`);
 			return res.sendFile(Path.normalize(path));
 		}
 
@@ -620,17 +615,19 @@ define("server/Server", [
 		 */
 		request_sendReminder(req, res) {
 			const gameKey = req.params.gameKey;
-			this._debug("Sending turn reminders");
+			this._debug("Sending turn reminders to", gameKey);
 			const gameURL =
 				  `${req.protocol}://${req.get("Host")}/game/${gameKey}`;
 
 			const prom = (gameKey === "*")
 				  ? this.db.keys() : Promise.resolve([gameKey]);
+
 			return prom
 			.then(keys => Promise.all(keys.map(
-				key => (Promise.resolve(this.games[key])
-						|| this.db.get(key, Game.classes))
-				.then(game => {
+				key => (this.games[key]
+						? Promise.resolve(this.games[key])
+						: this.db.get(key, Game.classes))
+			    .then(game => {
 					const pr = game.checkAge();
 					if (game.hasEnded())
 						return undefined;
@@ -706,8 +703,10 @@ define("server/Server", [
 			const gameKey = req.params.gameKey;
 			const dic = req.body.dictionary;
 			const canChallenge = req.body.canChallenge || false;
+			let game;
 			return this.loadGame(gameKey)
-			.then(game => {
+			.then(g => game = g)
+			.then(() => {
 				if (game.hasRobot())
 					return res.status(500).send("Game already has a robot");
 				this._debug(`Robot joining ${gameKey} with ${dic}`);
@@ -722,14 +721,12 @@ define("server/Server", [
 				if (dic && dic !== "none")
 					robot.dictionary = dic;
 				game.addPlayer(robot);
-				return game.save();
+				return game.save()
+				// Game may now be ready to start
+				.then(() => game.playIfReady())
+				.then(() => this.updateObservers(game))
+				.then(() => res.status(200).send("OK"));
 			})
-			// Game may now be ready to start
-			.then(game => {
-				return game.playIfReady()
-				.then(() => this.updateObservers(game));
-			})
-			.then(() => res.status(200).send("OK"))
 			.catch(e => this.trap(e, req, res));
 		}
 

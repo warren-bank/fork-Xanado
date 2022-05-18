@@ -4,18 +4,6 @@
 /*global document:writable*/
 
 requirejs = require('requirejs');
-// node.js
-const { JSDOM } = require('jsdom');
-/* eslint-disable no-global-assign */
-document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
-/* eslint-enable no-global-assign */
-const { window } = document;
-global.window = window;
-global.document = window.document;
-global.navigator = { userAgent: "node.js" };
-const jQuery = require('jquery');
-global.jQuery = jQuery;
-global.$ = jQuery;
 
 requirejs.config({
     baseUrl: `${__dirname}/..`,
@@ -24,6 +12,7 @@ requirejs.config({
 		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
 		common: "js/common",
 		game: "js/game",
+		dawg: "js/dawg",
 		platform: "js/server/ServerPlatform"
     }
 });
@@ -32,6 +21,18 @@ requirejs.config({
  * Unit tests for Square class
  */
 describe("Square class", () => {
+
+	// node.js
+	const { JSDOM } = require('jsdom');
+	const document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
+	const { window } = document;
+	global.window = window;
+	global.document = window.document;
+	global.navigator = { userAgent: "node.js" };
+	const jQuery = require('jquery');
+	global.jQuery = jQuery;
+	global.$ = jQuery;
+
 	const deps = [
 		{ Square: "game/Square" },
 		{ Tile: "game/Tile" },
@@ -39,7 +40,12 @@ describe("Square class", () => {
 	];
 	
 	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	before(required => {
+		// Why? No idea, except without it, it won't work in
+		// npm run
+		global.document = window.document;
+		return Assert.depend(required, deps);
+	});
 
 	it('construct', () => {
 		let sq = new Square('q', { id: 'base' }, 56, 42);
