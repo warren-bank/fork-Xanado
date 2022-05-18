@@ -103,18 +103,14 @@ define("game/Edition", () => {
 			return this.layout[coli].charAt(rowi);
 		}
 
-		toString() {
-			return this.name;
-		}
-
-		/**
-		 * Get the letter indices for the letters in the given word.
-		 * @private
-		 */
-		getLetterIndices(word) {
-			return word.split("")
-			.map(l => this.alphabet.indexOf(l.toUpperCase()));
-		}
+		///**
+		// * Get the letter indices for the letters in the given word.
+		// * @private
+		// */
+		//getLetterIndices(word) {
+		//	return word.split("")
+		//	.map(l => this.alphabet.indexOf(l.toUpperCase()));
+		//}
 
 		/**
 		 * Get the score of a tile with the given letter

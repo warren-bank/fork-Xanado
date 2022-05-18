@@ -3,7 +3,11 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, node */
 
-define("dawg/Dictionary", [ "platform", "dawg/LetterNode" ], (Platform, LetterNode) => {
+define("dawg/Dictionary", [
+	"platform", "dawg/LetterNode"
+], (
+	Platform, LetterNode
+) => {
 
 	// Constants used in interpreting the integer encoding of the DAWG
 	const END_OF_WORD_BIT_MASK = 0x1;
@@ -60,6 +64,7 @@ define("dawg/Dictionary", [ "platform", "dawg/LetterNode" ], (Platform, LetterNo
 		 * discarded.
 		 * @param {(Buffer|Array)?} data the DAWG data.
 		 * @return {Dictionary} this
+		 * @private
 		 */
 		loadDAWG(data) {
 			const dv = new DataView(data);
@@ -90,43 +95,6 @@ define("dawg/Dictionary", [ "platform", "dawg/LetterNode" ], (Platform, LetterNo
 			this.root = nodes[0];
 
 			return this;
-		}
-
-		/**
-		 * Promise to load a dictionary.
-		 * @param {string} name name of the dictionary to load
-		 * @return {Promise} Promise that resolves to a new {@link Dictionary}
-		 */
-		static load(name) {
-			if (dictionaries[name])
-				return Promise.resolve(dictionaries[name]);
-
-			const root = requirejs.toUrl("");
-			let dict;
-			return Platform.getResource(
-				`${root}/dictionaries/${name}.dict`)
-			.then(buffer => {
-				dict = new Dictionary(name);
-				dict.loadDAWG(buffer.buffer);
-			})
-			.then(() => Platform.getResource(
-				`${root}/dictionaries/${name}.white`))
-			.then(text => {
-				const words = text.toString().split("\n");
-				let added = 0;
-				words.forEach(w => {
-					if (dict.addWord(w)) added++;
-					return false;
-				});
-				//console.debug("Added", words.length, "whitelisted words");
-			})
-			.catch(e => { console.error(e) })
-			.then(() => {
-				dict.addLinks();
-				dictionaries[name] = dict;
-				//console.debug(`Loaded dictionary ${name}`);
-				return dict;
-			});
 		}
 
 		/*
@@ -184,6 +152,7 @@ define("dawg/Dictionary", [ "platform", "dawg/LetterNode" ], (Platform, LetterNo
 		findAnagrams(theChars) {
 			theChars = theChars.toUpperCase();
 
+			/* istanbul ignore if */
 			if (theChars.length < 2)
 				return [ theChars ];
 
@@ -231,9 +200,14 @@ define("dawg/Dictionary", [ "platform", "dawg/LetterNode" ], (Platform, LetterNo
 		 * Add a word to the dictionary. No attempt is made at compression.
 		 * Note that previously retrieved sequence roots will no longer
 		 * be valid after the word is added and will need to be recomputed.
-		 * @return {boolean} true if the word needed to be added
+		 * Note that we support single character words here, but
+		 * word games are limited to 2 letter or more. It's up to
+		 * the caller to enforce such constraints.
+		 * @return {boolean} true if the word needed to be added, false
+		 * if it was empty or already there.
 		 */
 		addWord(word) {
+			/* istanbul ignore if */
 			if (word.length === 0)
 				return false;
 			if (!this.root)
@@ -260,6 +234,7 @@ define("dawg/Dictionary", [ "platform", "dawg/LetterNode" ], (Platform, LetterNo
 			if (!this.sequenceRoots)
 				this.createSequenceRoots();
 			const roots = this.sequenceRoots[seq[0]];
+			/* istanbul ignore if */
 			if (!roots || roots.length == 0) {
 				console.log(`'${seq[0]}' has no roots`);
 				return false;
@@ -287,6 +262,74 @@ define("dawg/Dictionary", [ "platform", "dawg/LetterNode" ], (Platform, LetterNo
 		hasSequence(seq) {
 			return this.findSequence(seq) != null;
 		}
+
+		/**
+		 * Promise to load a dictionary. A dictionary can consist of a
+		 * `.dict` (DAWG) file, a `.white` (whitelist, text) file, or
+		 * both.
+		 * @param {string} name name of the dictionary to load
+		 * @param {string?} path path to dictionary files. If undefined,
+		 * defaults to requirejs.toUrl("dictionaries")`.
+		 * @return {Promise} Promise that resolves to a new {@link Dictionary}
+		 * or undefined if a dictionary of that name could not be loaded.
+		 */
+		static load(name, path) {
+			if (dictionaries[name])
+				return Promise.resolve(dictionaries[name]);
+
+			if (!path)
+				path = requirejs.toUrl("dictionaries");
+
+			let dict;
+			const dp = `${path}/${name}.dict`;
+
+			return Platform.readZip(dp)
+			.then(data => Platform.ungzip(data))
+			.then(buffer => {
+				dict = new Dictionary(name);
+				dict.loadDAWG(buffer.buffer);
+			})
+			.catch(e => {
+				// Mostly harmless, .dict load failed, relying on .white
+				//console.debug("Failed to read", dp);
+			})
+			.then(() => {
+				const wp = `${path}/${name}.white`;
+				return Platform.readFile(wp)
+				.then(text => {
+					if (!dict)
+						dict = new Dictionary(name);
+					const words = text
+						  .toString()
+						  .toUpperCase()
+						  .split(/\r?\n/)
+						  .map(w => w.replace(/\s.*$/, ""))
+						  .filter(line => line.length > 0)
+						  .sort();
+					let added = 0;
+					words.forEach(w => {
+						if (dict.addWord(w))
+							added++;
+						return false;
+					});
+					//console.debug("Added", added, "whitelisted words");
+				})
+				.catch(e => {
+					// Mostly harmless, whitelist load failed, relying on .dict
+					//console.debug("Failed to read", wp, e);
+				});
+			})
+			.then(() => {
+				if (dict) {
+					// one of .dict or .white (or both) loaded
+					dict.addLinks();
+					dictionaries[name] = dict;
+					//console.debug(`Loaded dictionary ${name}`);
+				}
+				return dict;
+			});
+		}
 	}
+
 	return Dictionary;
 });

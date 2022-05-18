@@ -68,7 +68,8 @@ define("common/Fridge", () => {
 						}
 					}
 				} catch (e) {
-					debugger;
+					/* istanbul ignore next */
+					throw new Error("Corrupt fridge");
 				}
 				const id = objectsFrozen.length;
 				// Working property will be removed later
@@ -144,6 +145,7 @@ define("common/Fridge", () => {
 					// been thawed
 					if (objectsThawed[object[IB_REF]])
 						return objectsThawed[object[IB_REF]];
+					/* istanbul ignore next */
 					throw Error(`Fridge: reference to unthawed ${object[IB_REF]}`);
 				}
 

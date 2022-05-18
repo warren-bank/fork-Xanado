@@ -16,23 +16,23 @@ define("game/findBestPlayController", [
 ) => {
 
 	/**
-	 * Interface should be the same as for findBestPlay.js so they
-	 * can be switched in and out for debug.
-	 * @param {Game} game game to analyse
-	 * @param {string[]} array of useable letters, " " means blank tile
-	 * @param {function} listener fn() taking a string or a best play
+	 * Interface is the same as for {@link findBestPlay} so they
+	 * can be switched in and out.
 	 */
-	function findBestPlayController(game, letters, listener, dictionary) {
+	function findBestPlayController(
+		game, letters, listener, dictpath, dictionary) {
+
+		const ice = {
+			workerData: Fridge.freeze({
+				game: game,
+				rack: letters,
+				dictpath: dictpath,
+				dictionary: dictionary
+			})
+		};
 		return new Promise((resolve, reject) => {
 			const worker = new threads.Worker(
-				requirejs.toUrl("js/game/findBestPlayWorker.js"),
-				{
-					workerData: Fridge.freeze({
-						game: game,
-						rack: letters,
-						dictionary: dictionary
-					})
-				});
+				requirejs.toUrl("js/game/findBestPlayWorker.js"), ice);
 
 			// Apply the game time limit
 			let timer;

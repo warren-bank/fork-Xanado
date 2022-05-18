@@ -6,15 +6,13 @@ and license information*/
 define("common/Platform", () => {
 
 	/**
-	 * A pure abstraction isolating platform details from the rest of
-	 * the code. The main purpose is to allow common code to run on
-	 * both browser and server, but it also provides an abstraction of
-	 * the server-side database (unused on the browser).
+	 * Interface to the server-side games database to allow for
+	 * plugging other database implementations.
 	 */
 	class Database {
 		/**
 		 * @param {string} id will be used as the name of a directory
-		 * under the requirejs root
+		 * under the root
 		 * @param {string} type identifier used to distinguish keys
 		 * relevant to this DB from other data that may be co-located
 		 * @abstract
@@ -56,7 +54,9 @@ define("common/Platform", () => {
 	}
 
 	/**
-	 * Abstraction of platform features.
+	 * Interface isolating platform details from the rest of
+	 * the code. The purpose is to allow common code to run on
+	 * both browser and server.
 	 */
 	class Platform {
 
@@ -70,15 +70,6 @@ define("common/Platform", () => {
 		static trigger(event, args) {}
 
 		/**
-		 * Get the given file resource.
-		 * @param {string} path the path to the resource, relative to
-		 * the resource root (the html root on a browser, or the file
-		 * system on server)
-		 * @abstract
-		 */
-		static getResource(path) {}
-
-		/**
 		 * @callback Platform~bestMoveCallback
 		 * @param {(Move|string)} best move found so far, or error string
 		 */
@@ -90,24 +81,17 @@ define("common/Platform", () => {
 		 * should be a NOP on a browser.
 		 * @param {Game} game the Game
 		 * @param {Tile[]} rack rack in the form of a simple list of Tile
-		 * @param {string?} dictionary name of dictionary to override the
-		 * game dictionary
 		 * @param {Platform~bestMoveCallback} cb accepts a best play whenever a new
 		 * one is found, or a string containing a message
+		 * @param {string?} dictpath path to dictionaries to override
+		 * the default
+		 * @param {string?} dictionary name of dictionary to override the
+		 * game dictionary
 		 * @return {Promise} Promise that resolves when all best moves
 		 * have been tried
 		 * @abstract
 		 */
-		static findBestPlay(game, rack, cb, dictionary) {}
-
-		/**
-		 * Platform-independent interface to i18n translation.
-		 * This is modelled on jQuery i18n, but differs in repect
-		 * returning a Promise.
-		 * @return {Promise} promise that resolves to the translation
-		 * @abstract
-		 */
-		static i18n() {}
+		static findBestPlay(game, rack, cb, dictpath, dictionary) {}
 	}
 
 	/**

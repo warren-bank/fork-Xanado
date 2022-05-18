@@ -21,7 +21,6 @@ requirejs.config({
     baseUrl: `${__dirname}/..`,
 	nodeRequire: require,
     paths: {
-		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
 		common: "js/common",
 		game: "js/game",
 		platform: "js/server/ServerPlatform"
@@ -36,11 +35,8 @@ describe("Board class", () => {
 		{ Board: "game/Board" },
 		{ Edition: "game/Edition" },
 		{ Tile: "game/Tile" },
-		{ Square: "game/Square" },
-		{ jQueryUI: "jquery-ui" }
+		{ Square: "game/Square" }
 	];
-
-	require("@wikimedia/jquery.i18n/src/jquery.i18n");
 
 	const Assert = require("./Assert.js");
 	before(required => Assert.depend(required, deps));

@@ -50,7 +50,7 @@ describe("Game - basic tests", () => {
 	const Assert = require("./Assert.js");
 	before(required => Assert.depend(required, deps));
 
-	it("construct", () => {
+	it("construct and simple", () => {
 		const p = {
 			edition:"English_Scrabble",
 			dictionary:"Oxford_5000",
@@ -65,9 +65,11 @@ describe("Game - basic tests", () => {
 			//_debug: console.debug,
 			maxPlayers: 10
 		};
+		let game;
 		return new Game(p)
 		.create()
-		.then(game => {
+		.then(g => game = g)
+		.then(() => {
 			assert.equal(game.edition, p.edition);
 			assert.equal(game.dictionary, p.dictionary);
 			assert.equal(game.timerType, Player.TIMER_GAME);
@@ -79,6 +81,30 @@ describe("Game - basic tests", () => {
 			assert.equal(game.minPlayers, 5);
 			assert.equal(game.maxPlayers, 10);
 			assert.equal(game.state, Game.STATE_WAITING);
+			return game.simple();
+		})
+		.then(s => {
+			assert.equal(s.key, game.key);
+			assert.equal(s.creationTimestamp, game.creationTimestamp);
+			assert.equal(s.edition, game.edition);
+			assert.equal(s.dictionary, game.dictionary);
+			assert.equal(s.predictScore, game.predictScore);
+			assert.equal(s.wordCheck, game.wordCheck);
+			assert.equal(s.allowTakeBack, game.allowTakeBack);
+			assert.equal(s.state, game.state);
+			assert.equal(s.turns, game.turns.length);
+			assert.equal(s.whosTurnKey, game.whosTurnKey);
+			assert.equal(s.timerType, game.timerType);
+			assert.equal(s.timeLimit, game.timeLimit);
+			assert.equal(s.timePenalty, game.timePenalty);
+			assert.equal(s.pausedBy, game.pausedBy);
+			assert.equal(s.minPlayers, game.minPlayers);
+			assert.equal(s.maxPlayers, game.maxPlayers);
+			assert.equal(s.penaltyType, game.penaltyType);
+			assert.equal(s.penaltyPoints, game.penaltyPoints);
+			assert.equal(s.nextGameKey, game.nextGameKey);
+			assert.equal(s.lastActivity, game.lastActivity());
+			assert.equal(s.players.length, 0);
 		});
 	});
 	
@@ -96,9 +122,19 @@ describe("Game - basic tests", () => {
 			maxPlayers: 1
 		};
 
-		return new Game(p)
-		.create()
-		.then(game => {
+		const game = new Game(p);
+		const robot1 = new Player({
+			name:"Robot 1", key:"robot1", isRobot: true});
+		const human2 = new Player({
+			name:"human2", key:"human2", isRobot: false});
+		const human3 = new Player({
+			name:"human3", key:"human3", isRobot: false});
+		const um = { // UserManager fixture
+			getUser: k => Promise.resolve({ email: k.key + "@players.com" })
+		};
+		
+		return game.create()
+		.then(() => {
 			assert.equal(game.edition, p.edition);
 			assert.equal(game.dictionary, p.dictionary);
 			assert.equal(game.timeLimit, 999*60);
@@ -108,14 +144,8 @@ describe("Game - basic tests", () => {
 			assert.equal(game.minPlayers, 30);
 			assert.equal(game.maxPlayers, 0);
 
-			const robot1 = new Player({
-				name:"Robot 1", key:"robot1", isRobot: true});
 			game.addPlayer(robot1);
-			const human2 = new Player({
-				name:"human2", key:"human2", isRobot: false});
 			game.addPlayer(human2);
-			const human3 = new Player({
-				name:"human3", key:"human3", isRobot: false});
 			game.addPlayer(human3);
 			game.whosTurnKey = human2.key;
 
@@ -134,6 +164,41 @@ describe("Game - basic tests", () => {
 			assert.equal(game.winningScore(), 3);
 			assert.equal(game.getPlayerWithNoTiles().key, human3.key);
 			assert.equal(game.state, Game.STATE_WAITING);
+			assert.equal(game.getPlayerWithNoTiles().key, human3.key);
+			return game.simple(um);
+		})
+		.then(s => {
+			assert.equal(s.key, game.key);
+			assert.equal(s.creationTimestamp, game.creationTimestamp);
+			assert.equal(s.edition, game.edition);
+			assert.equal(s.dictionary, game.dictionary);
+			assert.equal(s.predictScore, game.predictScore);
+			assert.equal(s.wordCheck, game.wordCheck);
+			assert.equal(s.allowTakeBack, game.allowTakeBack);
+			assert.equal(s.state, game.state);
+			assert.equal(s.turns, game.turns.length);
+			assert.equal(s.whosTurnKey, game.whosTurnKey);
+			assert.equal(s.timerType, game.timerType);
+			assert.equal(s.timeLimit, game.timeLimit);
+			assert.equal(s.timePenalty, game.timePenalty);
+			assert.equal(s.pausedBy, game.pausedBy);
+			assert.equal(s.minPlayers, game.minPlayers);
+			assert.equal(s.maxPlayers, game.maxPlayers);
+			assert.equal(s.penaltyType, game.penaltyType);
+			assert.equal(s.penaltyPoints, game.penaltyPoints);
+			assert.equal(s.nextGameKey, game.nextGameKey);
+			assert.equal(s.lastActivity, game.lastActivity());
+			assert.equal(s.players.length, 3);
+			return Promise.all([
+				robot1.simple(game, um),
+				human2.simple(game, um),
+				human3.simple(game, um)
+			])
+			.then(ps => {
+				assert.deepEqual(s.players[0], ps[0]);
+				assert.deepEqual(s.players[1], ps[1]);
+				assert.deepEqual(s.players[2], ps[2]);
+			});
 		});
 	});
 
@@ -399,8 +464,8 @@ describe("Game - basic tests", () => {
 	});
 
 	it("load from file", () => {
-		const db = new Platform.Database("test", "game");
-		return db.get("bad_robot", Game.classes)
+		const db = new Platform.Database(requirejs.toUrl("test"), "game");
+		return db.get("test_game", Game.classes)
 		.then(game => {
 			//game._debug = console.debug;
 			return game.onLoad(this.db);
@@ -413,8 +478,8 @@ describe("Game - basic tests", () => {
 
 	it("anotherGame", () => {
 		let game;
-		const db = new Platform.Database("test", "game");
-		return db.get("bad_robot", Game.classes)
+		const db = new Platform.Database(requirejs.toUrl("test"), "game");
+		return db.get("test_game", Game.classes)
 		.then(g => game = g)
 		.then(() => game.onLoad(this.db))
 		.then(() => game.anotherGame("human"))
@@ -429,8 +494,8 @@ describe("Game - basic tests", () => {
 
 	it("hint", () => {
 		let game;
-		const db = new Platform.Database("test", "game");
-		return db.get("bad_robot", Game.classes)
+		const db = new Platform.Database(requirejs.toUrl("test"), "game");
+		return db.get("test_game", Game.classes)
 		.then(g => game = g)
 		.then(() => game.onLoad(this.db))
 		.then(() => game.hint(game.getPlayer()));
@@ -438,11 +503,12 @@ describe("Game - basic tests", () => {
 
 	it("advise", () => {
 		let game;
-		const db = new Platform.Database("test", "game");
-		return db.get("bad_robot", Game.classes)
+		const db = new Platform.Database(requirejs.toUrl("test"), "game");
+		return db.get("test_game", Game.classes)
 		.then(g => game = g)
 		.then(() => game.onLoad(this.db))
 		.then(() => game.anotherGame("human"))
+		.then(() => game.toggleAdvice())
 		.then(() => game.advise(game.getPlayer(), 1));
 	});
 });

@@ -578,18 +578,13 @@ define("server/UserManager", [
 					if (!this.config.mail)
 						return this.sendResult(res, 500, [
 							/*i18n*/"um-mail-not-configured" ]);
-					return Promise.all([
-						Platform.i18n("um-password-reset"),
-						Platform.i18n("um-reset-text", url),
-						Platform.i18n("um-reset-html", url)
-					])
-					.then(m => this.config.mail.transport.sendMail({
+					return this.config.mail.transport.sendMail({
 						from: this.config.mail.sender,
 						to:  user.email,
-						subject: m[0],
-						text: m[1],
-						html: m[2]
-					}))
+						subject: Platform.i18n("um-password-reset"),
+						text: Platform.i18n("um-reset-text") + url,
+						html: Platform.i18n("um-reset-html", url)
+					})
 					.then(() => this.sendResult(
 						res, 200, [ /*i18n*/"um-reset-sent", user.name ]))
 					.catch(e => {

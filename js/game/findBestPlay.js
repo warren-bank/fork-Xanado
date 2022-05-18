@@ -448,15 +448,17 @@ define("game/findBestPlay", [
 	 * @function game/findBestPlay
 	 * @param {Game} game the Game
 	 * @param {Tile[]} rack rack in the form of a simple list of Tile
-	 * @param {string} dictionary name of dictionary to use
 	 * @param {function} listener Function that is called with a Move each time
 	 * a new best play is found, or a string containing a progress or error
 	 * message.
+	 * @param {string?} dictpath path to dictionaries, to override default
+	 * @param {string?} dictionary name of dictionary to use, defaults to
+	 * game dictionary
 	 * @return {Promise} Promise that resolves when all best moves have been
 	 * identified
      * @alias module:game/findBestPlay
 	 */
-    function findBestPlay(game, rack, listener, dictionary) {
+    function findBestPlay(game, rack, listener, dictpath, dictionary) {
 		report = listener;
 
 		if (!game.edition) {
@@ -473,13 +475,13 @@ define("game/findBestPlay", [
 			return a.letter < b.letter ? -1	: a.score > b.score ? 1 : 0;
 		}).reverse();
 
-		report("Finding best play for rack", rackTiles);
+		report("Finding best play for rack " + rack.toString());
 
 		board = game.board;
 		report(`on ${board}`);
 
 		const preamble = [
-			Dictionary.load(dictionary || game.dictionary),
+			Dictionary.load(dictionary || game.dictionary, dictpath),
 			Edition.load(game.edition)
 		];
 
@@ -488,7 +490,7 @@ define("game/findBestPlay", [
 			dict = de[0];
 			edition = de[1];
 
-			report("Starting computation", rackTiles);
+			report("Starting findBestPlay computation", rackTiles);
 			bestScore = 0;
 
 			// Has at least one anchor been explored? If there are

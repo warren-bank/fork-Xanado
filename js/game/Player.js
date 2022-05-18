@@ -278,7 +278,7 @@ define("game/Player", [
 			$icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
 			$tr.append($("<td></td>").append($icon));
 			const who = curPlayer && this.key === curPlayer.key
-				? $.i18n("You") : this.name;
+				? Platform.i18n("You") : this.name;
 			const $name = $(`<td class="player-name">${who}</td>`);
 			if (this.missNextTurn)
 				$name.addClass("miss-turn");

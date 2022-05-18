@@ -16,21 +16,9 @@ define("platform", [ "common/Platform" ], Platform => {
 			// Pass events straight to the document
 			return $(document).trigger(e, args);
 		}
-
-		/** See {@link Platform#getResource} for documentation */
-		static getResource(path) {
-			return $.get(path);
-		}
-
-		static findBestPlay() {
-			// NOP, not available in browser
-		}
-
-		/** See {@link Platform#i18n} for documentation */
-		static i18n() {
-			return Promise.resolve($.i18n.apply(null, arguments));
-		}
 	}
+
+	BrowserPlatform.i18n = $.i18n;
 
 	return BrowserPlatform;
 });

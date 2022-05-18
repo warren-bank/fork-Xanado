@@ -19,27 +19,22 @@ requirejs.config({
 
 const fs = require("fs");
 
+/**
+ * Unit tests for Dictionary (and inherently, for LetterNode)
+ */
 describe("Dictionary class", () => {
 
 	const deps = [
+		{ fs: "fs" },
+		{ Gzip: "node-gzip" },
 		{ Platform: "platform" },
 		{ Dictionary: 'dawg/Dictionary' }
 	];
+	const Fs = fs.promises;
 
 	const Assert = require("./Assert.js");
 	before(required => Assert.depend(required, deps));
 
-	const words = [
-		'QUICK', 'BROWN', 'FOX', 'JUMPED', 'OVER', 'THE',
-		'LAZY', 'DOG',
-
-		'QUIT', 'FROWN', 'FOR', 'LIMPED', 'UNDER', 'THEM',
-		'LADIES', 'GOD',
-
-		'QUILT', 'FORM', 'FOXED', 'LONELY', 'ABOVE', 'THEIR',
-		'SAD', 'GODS'
-	];
-		
     it("loads words", () => {
 		let dic = new Dictionary("test");
 		dic.addWord('A');
@@ -63,19 +58,23 @@ describe("Dictionary class", () => {
 	});
 
 	it("loads a dictionary", () => {
-		return Platform.getResource("dictionary.dict")
+		return Fs.readFile(requirejs.toUrl("test/dictionary.dict"))
+		.then(gz => Gzip.ungzip(gz))
 		.then(data => new Dictionary("test").loadDAWG(data.buffer))
 		.then(dic => {
-			assert(dic.hasWord('AGONY'));
+			assert(dic.hasWord('LAZY'));
+			assert(!dic.match("AXE"));
+			assert.equal(dic.match("LAZY").letter, 'Y');
 		});
 	});
 
 	// Load and extend a dictionary with new words
 	it("extends a dictionary", () => {
-		return Platform.getResource("dictionary.dict")
+		return Fs.readFile(requirejs.toUrl("test/dictionary.dict"))
+		.then(gz => Gzip.ungzip(gz))
 		.then(data => new Dictionary("test").loadDAWG(data.buffer))
 		.then(dic => {
-			assert(dic.hasWord("FUNGI"));
+			assert(dic.hasWord("QUICK"));
 			assert(!dic.hasWord("AARDVAARK"));
 			assert(!dic.hasSequence("VAAR"));
 
@@ -89,6 +88,14 @@ describe("Dictionary class", () => {
 			assert(dic.hasWord("BISONIC"));
 
 			assert(dic.hasSequence("VAAR"));
+
+			let s = {};
+			dic.root.eachNode(n => { s[n.letter] = true; return false; });
+			assert.equal(Object.keys(s).sort().join(""), "B");
+
+			dic.root.eachNode(n => s[n.letter] = true);
+			assert.equal(Object.keys(s).sort().join(""),
+						 "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 		});
 	});
 
@@ -113,10 +120,30 @@ describe("Dictionary class", () => {
 		assert.deepEqual(s[1].postLetters.length, 0);
 	});
 
-	it("static loads", () => {
-		return Dictionary.load("Oxford_5000")
+	it("static load dict and white", () => {
+		return Dictionary.load("dictionary", requirejs.toUrl("test"))
 		.then(dict => {
-			assert(dict.hasWord("QQQ"));
+			assert(dict.hasWord("DOGS")); // dict
+			assert(dict.hasWord("WALRUS")); // whitelist
+			assert(!dict.hasWord("AARDVAARK")); // neither
+		});
+	});
+
+	it("static load no dict just white", () => {
+		return Dictionary.load("white", requirejs.toUrl("test"))
+		.then(dict => {
+			assert(!dict.hasWord("DOGS")); // dict
+			assert(dict.hasWord("WALRUS")); // whitelist
+			assert(!dict.hasWord("AARDVAARK")); // neither
+		});
+	});
+
+	it("static load dict no white", () => {
+		return Dictionary.load("dict", requirejs.toUrl("test"))
+		.then(dict => {
+			assert(dict.hasWord("DOGS")); // dict
+			assert(!dict.hasWord("WALRUS")); // whitelist
+			assert(!dict.hasWord("AARDVAARK")); // neither
 		});
 	});
 });

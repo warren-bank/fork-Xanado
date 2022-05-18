@@ -40,6 +40,7 @@ requirejs.config({
 		'/js/browser/cldrpluralruleparser',
 
 		browser: '/js/browser',
+		common: "/js/common",
 		game: '/js/game',
 		dawg: '/js/dawg',
 		platform: '/js/browser/BrowserPlatform'

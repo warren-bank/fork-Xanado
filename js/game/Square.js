@@ -128,6 +128,7 @@ define("game/Square", ["platform"], (Platform) => {
 		 * the square (fixed on the board).
 		 */
 		placeTile(tile, locked) {
+			/* istanbul ignore if */
 			if (tile && this.tile && tile !== this.tile) {
 				console.error("Tile ", tile, " over ", this.tile);
 				throw Error(`Square already occupied: ${this}`);
@@ -190,6 +191,7 @@ define("game/Square", ["platform"], (Platform) => {
 		$refresh() {
 			const $div = $(`#${this.id}`);
 
+			/* istanbul ignore if */
 			if ($div.length === 0)
 				// No visual representation for this square - for
 				// example, a square in another player's rack
@@ -218,6 +220,7 @@ define("game/Square", ["platform"], (Platform) => {
 		 * @param {boolean} sel 
 		 */
 		setSelected(sel) {
+			/* istanbul ignore if */
 			if (sel && this.tile) {
 				if (this.tileLocked)
 					throw Error("Attempt to select locked tile");
@@ -233,6 +236,7 @@ define("game/Square", ["platform"], (Platform) => {
 		 */
 		refreshOccupied($div) {
 			if ($div.hasClass("ui-droppable"))
+				/* istanbul ignore next */
 				$div.droppable("destroy");
 
 			$div
@@ -247,14 +251,17 @@ define("game/Square", ["platform"], (Platform) => {
 			if (this.tileLocked) {
 				$div.addClass("Locked");
 				if ($div.hasClass("ui-draggable"))
+					/* istanbul ignore next */
 					$div.draggable("destroy");
 			} else {
 				// tile isn't locked, valid drag source
 				$div.removeClass("Locked");
+				/* istanbul ignore next */
 				$div
 				.addClass("temporary")
 				.on("click", () => Platform.trigger("SelectSquare", [ this ]));
 
+				/* istanbul ignore next */
 				$div.draggable({
 					revert: "invalid",
 					opacity: 1,
@@ -293,6 +300,7 @@ define("game/Square", ["platform"], (Platform) => {
 
 			// Not draggable
 			if ($div.hasClass("ui-draggable"))
+				/* istanbul ignore next */
 				$div.draggable("destroy");
 
 			// no tile on the square, valid drop target
@@ -302,6 +310,7 @@ define("game/Square", ["platform"], (Platform) => {
 			.removeClass("Locked")
 			.addClass("empty-square");
 
+			/* istanbul ignore next */
 			$div.on("click", () => Platform.trigger("SelectSquare", [ this ]))
 			// Handle something dropping on us
 			.droppable({
@@ -313,7 +322,7 @@ define("game/Square", ["platform"], (Platform) => {
 				}
 			});
 
-			const text = $.i18n(`square-${this.type}`);
+			const text = Platform.i18n(`square-${this.type}`);
 			$div.empty().append($("<a></a>").text(text));
 
 			if (typeof this.underlay !== "undefined")

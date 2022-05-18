@@ -157,7 +157,7 @@ define("browser/game", [
 			this.enableTurnButton(false);
 			this.cancelNotification();
 			$.ajax({
-				url: `/command/${command}/${this.game.key}/${this.player.key}`,
+				url: `/command/${command}/${this.game.key}`,
 				type: "POST",
 				contentType: "application/json",
 				data: JSON.stringify(args)

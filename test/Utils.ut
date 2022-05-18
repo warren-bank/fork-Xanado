@@ -39,5 +39,6 @@ describe("Utils class", () => {
 		assert.equal(Utils.formatTimeInterval(24 * 60 * 60 + 1), "1:00:00:01");
 		assert.equal(Utils.formatTimeInterval(2 * 24 * 60 * 60 + 1), "2:00:00:01");
 		assert.equal(Utils.formatTimeInterval(365 * 24 * 60 * 60 + 1), "365:00:00:01");
+		assert.equal(Utils.formatTimeInterval(-(60 * 60 + 1)), "-01:00:01");
 	});
 });

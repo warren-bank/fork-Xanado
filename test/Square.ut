@@ -22,7 +22,6 @@ requirejs.config({
 	nodeRequire: require,
     paths: {
 		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
-		i18n: "node_modules/jquery-i18n/index",
 		common: "js/common",
 		game: "js/game",
 		platform: "js/server/ServerPlatform"
@@ -38,8 +37,6 @@ describe("Square class", () => {
 		{ Tile: "game/Tile" },
 		{ jQueryUI: "jquery-ui" }
 	];
-
-	require("@wikimedia/jquery.i18n/src/jquery.i18n");
 	
 	const Assert = require("./Assert.js");
 	before(required => Assert.depend(required, deps));
@@ -72,6 +69,20 @@ describe("Square class", () => {
 		assert(!sq.isEmpty());
 		assert.equal(tile.col, sq.col);
 		assert.equal(tile.row, sq.row);
+		assert.equal(new Square('Q', { id: 'base' }).letterScoreMultiplier, 1);
+		assert.equal(new Square('Q', { id: 'base' }).wordScoreMultiplier, 4);
+
+		assert.equal(new Square('t', { id: 'base' }).letterScoreMultiplier, 3);
+		assert.equal(new Square('t', { id: 'base' }).wordScoreMultiplier, 1);
+		assert.equal(new Square('T', { id: 'base' }).letterScoreMultiplier, 1);
+		assert.equal(new Square('T', { id: 'base' }).wordScoreMultiplier, 3);
+
+		assert.equal(new Square('d', { id: 'base' }).letterScoreMultiplier, 2);
+		assert.equal(new Square('d', { id: 'base' }).wordScoreMultiplier, 1);
+		assert.equal(new Square('D', { id: 'base' }).letterScoreMultiplier, 1);
+		assert.equal(new Square('D', { id: 'base' }).wordScoreMultiplier, 2);
+		assert.equal(new Square('M', { id: 'base' }).letterScoreMultiplier, 1);
+		assert.equal(new Square('M', { id: 'base' }).wordScoreMultiplier, 2);
 	});
 	
 	it('$ui', () => {
@@ -127,6 +138,13 @@ describe("Square class", () => {
 		sq.setSelected(false);
 		assert(!$div.hasClass("selected"));
 		assert.equal($("div.underlay").length, 0);
+
+		sq.placeTile();
+		tile = new Tile({ letter:'Q', isBlank:true });
+		sq.placeTile(tile, false);
+		sq.$refresh();
+		assert(!$div.hasClass("blank-letter"));
+
 		$("body").empty();
 	});
 	

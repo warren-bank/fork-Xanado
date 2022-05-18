@@ -42,7 +42,6 @@ describe("Timed games", () => {
 		{ Game: "game/Game" },
 		{ Move: "game/Move" },
 		{ Turn: "game/Turn" },
-		{ findBestPlay: "game/findBestPlay" },
 		{ Notify: "game/Notify" }
 	];
 

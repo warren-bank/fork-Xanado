@@ -32,14 +32,10 @@ requirejs([
 
 	const info = Fridge.thaw(threads.workerData, Game.classes);
 
-	/**
-	 * Note that the game is NOT a Game, but just the fields. If methods
-	 * need to be called on it, then Fridge can be used to freeze-thaw.
-	 */
 	findBestPlay(info.game, info.rack,
 				 bestPlay => threads.parentPort.postMessage(
-					 Fridge.freeze(bestPlay)),
-				info.dictionary)
+					 Fridge.freeze(bestPlay),
+					 info.dictpath, info.dictionary))
 
 	.then(() => {
 		threads.parentPort.postMessage('findBestPlayWorker is exiting');

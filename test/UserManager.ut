@@ -4,6 +4,19 @@
 
 requirejs = require("requirejs");
 
+// All this for i18n
+const { JSDOM } = require('jsdom');
+/* eslint-disable no-global-assign */
+document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
+/* eslint-enable no-global-assign */
+const { window } = document;
+global.window = window;
+global.navigator = { userAgent: "node.js" };
+const jQuery = require("jquery");
+global.$ = jQuery;
+global.jQuery = jQuery;
+require("@wikimedia/jquery.i18n/src/jquery.i18n");
+
 requirejs.config({
     baseUrl: `${__dirname}/..`,
 	nodeRequire: require,
@@ -51,7 +64,7 @@ describe("UserManager class", () => {
 		}
 	};
 
-	it("/session whn not logged in", () => new Promise(resolve => {
+	it("/session when not logged in", () => new Promise(resolve => {
 		const s = new Server(config);
 		chai.request(s.express)
 		.get("/session")
@@ -255,7 +268,6 @@ describe("UserManager class", () => {
 
 	it("/reset-password", () => {
 		let server;
-		//config.debug_server = true;
 		return reset()
 		.then(s => server = s)
 		.then(() => register(server, {
@@ -270,6 +282,7 @@ describe("UserManager class", () => {
 		.then(session_cookie => new Promise(resolve => {
 			// server.mail.transport hasn't been configured yet
 			assert(!server.config.mail);
+			//server._debug = console.debug;
 			let token;
 			server.config.mail = {
 				sender: "unit tests",
@@ -278,10 +291,11 @@ describe("UserManager class", () => {
 						//console.log("Email", email);
 						assert.equal(email.from, "unit tests");
 						assert.equal(email.to, "test@email.com");
-						assert.equal(email.subject, "Password reset");
+						assert.equal(email.subject, "um-password-reset");
 						assert(email.text);
 						token = email.text.replace(
 							/^.*\/password-reset\/(\w+).*$/, "$1");
+						return Promise.resolve();
 					}
 				}
 			};
@@ -290,6 +304,7 @@ describe("UserManager class", () => {
 			.send({reset_email: "test@email.com"})
 			.set('Cookie', session_cookie)
 			.end((err, res) => {
+				//console.log(res.text, token);
 				assert.equal(res.status, 200);
 				Assert.sparseEqual(res.body, [
 					"um-reset-sent",

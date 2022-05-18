@@ -20,8 +20,8 @@ define("platform", [
 
 	/**
 	 * Simple file database implementing {@link Database} for use
-	 * server-side, where data is stored in
-	 * files named the same as the key. There are some basic assumptions here:
+	 * server-side, where data is stored in files named the same as
+	 * the key. There are some basic assumptions here:
 	 * 1. Callers will filter the set of keys based on their requirements
 	 * 2. Keys starting with . are forbidden
 	 * 3. Key names must be valid file names
@@ -29,13 +29,13 @@ define("platform", [
 	class FileDatabase extends Platform.Database {
 
 		/**
-		 * @param {string} id will be used as the name of a directory under
-		 * the requirejs root to store game files in.
+		 * @param {string} path name of a pre-existing
+		 * directory to store games in. 
 		 * @param {string} type will be used as the extension on file names
 		 */
-		constructor(id, type) {
-			super(id, type);
-			this.directory = requirejs.toUrl(id);
+		constructor(path, type) {
+			super(path, type);
+			this.directory = path;
 			this.type = type;
 			this.re = new RegExp(`\\.${type}$`);
 			this.locks = {};
@@ -91,83 +91,72 @@ define("platform", [
 		}
 	}
 
-	/**
+    /**
 	 * Partial implementation of jquery i18n to support server-side
 	 * string translations using the same data files as browser-side.
 	 * Language files will be located by looking up the path for
 	 * `./i18n/en.json`
 	 */
-	class I18N {
-		/**
-		 * @param {string} lang Language to translate to
-		 */
-		constructor(lang) {
-			this.lang = lang;
-		}
+	let I18N_data;
+	
+	// Recurse up the path to find the i18n directory,
+	// identified by the end path i18n/en.json
+	function findLangPath(path) {
+		const f = Path.join(path, "i18n", "en.json");
+		return Fs.stat(f)
+		.then(() => path)
+		.catch(e => {
+			if (path.length === 0)
+				return undefined;
+			return findLangPath(Path.dirname(path));
+		});
+	}
 
-		// @private
-		_getData() {
-			if (this.data)
-				return Promise.resolve();
-
-			// Recurse up the path to find the i18n directory,
-			// identified by the end path i18n/en.json
-			function findLangPath(path, lang) {
-				const f = Path.join(path, "i18n", "en.json");
-				return Fs.stat(f)
-				.then(() => {
-					return path;
-				})
-				.catch(e => {
-					if (path.length === 0)
-						return undefined;
-					return findLangPath(Path.dirname(path), lang);
-				});
-			}
-
-			// process.argv[1] has the path to server.js
-			// LANG_DIR lets us override it in unit tests
-			let langdir, langfile;
-			return findLangPath(ServerPlatform.LANG_SEARCH_BASE, this.lang)
-			.then(path => {
-				langdir = Path.join(path, "i18n");
-				// Try the full locale e.g. "en-US"
-				langfile = Path.join(langdir, `${this.lang}.json`);
-				return Fs.readFile(langfile);
-			})
-			.catch(e => {
-				// Try the first part of the locale i.e. "en" from "en-US"
-				langfile = Path.join(langdir, `${this.lang.split("-")[0]}.json`);
-				return Fs.readFile(langfile);
-			})
-			.catch(e => {
-				// Fall back to "en"
-				langfile = Path.join(langdir, "en.json");
-				return Fs.readFile(langfile);
-			})
-			.then(buffer => {
-				this.data = JSON.parse(buffer.toString());
-				// Use lookup() to make sure it works
-				//console.debug(this.lookup([/*i18n*/'Strings from $1', langfile]));
-			});
-		}
-
-		/**
-		 * Implement `$.i18n()` in node.js
-		 */
-		lookup(args) {
-			return this._getData()
-			.then(() => {
-				let s = args[0];
-				if (this.data && typeof this.data[s] !== "undefined")
-					s = this.data[s];
-				// TODO: support PLURAL
-				return s.replace(
-					/\$(\d+)/g,
-					(m, index) => args[index]);
-			});
+	function I18N() {
+		if (arguments.length === 0) {
+			return {
+				load: locale => {
+					// process.argv[1] has the path to server.js
+					// LANG_SEARCH_BASE lets us override it in unit tests
+					let langdir, langfile;
+					return findLangPath(
+						ServerPlatform.LANG_SEARCH_BASE || process.argv[1],
+						locale)
+					.then(path => langdir = Path.join(path, "i18n"))
+					.then(() => {
+						langdir = Path.join(langdir, `${locale}/json`);
+						// Try the full locale e.g. "en-US"
+						return Fs.readFile(langfile);
+					})
+					.catch(e => {
+						// Try the first part of the locale i.e. "en"
+						// from "en-US"
+						langfile = Path.join(langdir,
+											 `${this.lang.split("-")[0]}.json`);
+						return Fs.readFile(langfile);
+					})
+					.catch(e => {
+						// Fall back to "en"
+						langfile = Path.join(langdir, "en.json");
+						return Fs.readFile(langfile);
+					})
+					.then(buffer => {
+						I18N_data = JSON.parse(buffer.toString());
+					});
+				}
+			};
+		} else {
+			let s = arguments[0];
+			if (I18N_data && typeof I18N_data[s] !== "undefined")
+				s = I18N_data[s];
+			// TODO: support PLURAL
+			return s.replace(
+				/\$(\d+)/g,
+				(m, index) => arguments[index]);
 		}
 	}
+
+	let findBestPlayController;
 
 	/**
 	 * Implementation of {@link Platform} for use in node.js.
@@ -182,52 +171,33 @@ define("platform", [
 			emitter.emit(e, args);
 		}
 
-		/** See {@link Platform#getResource} for documentation */
-		static getResource(path) {
-			return Fs.readFile(path)
-			.then(data => {
-				// Is it a zip file? Header is 10 bytes
-				// see https://tools.ietf.org/html/rfc1952.html
-				if (data[0] === 0x1f
-					&& data[1] === 0x8b // magic number
-					&& data[2] === 0x08) { // DEFLATE
-					// This is a far from thorough analysis of the header,
-					// but given that the only binary files we deal with
-					// are gzip format, it's going to work for us.
-					return Gzip.ungzip(data);
-				}
-				return data;
-			});
-		}
-
 		/** See {@link Platform#findBestPlay} for documentation */
 		static findBestPlay() {
-			return new Promise(resolve => {
-				// game/findBestPlay will findBestPlay in this thread
-				// game/findBestPlayController will findBestPlay in
-				// a worker thread
-				requirejs(["game/findBestPlayController"], findBestPlay => {
-					findBestPlay.apply(null, arguments)
-					.then(() => resolve());
-				});
-			});
+			// block this thread
+			// return Game.findBestPlay.apply(arguments)
+
+			// OR
+
+			// use a worker thread
+			return findBestPlayController.apply(null, arguments);
 		}
 
-		/** See {@link Platform#i18n} for documentation */
-		static i18n() {
-			// Returns a Promise
-			return ServerPlatform.TX.lookup(arguments);
+		static readFile(p) {
+			return Fs.readFile(p);
+		}
+
+		static readZip(p) {
+			return Fs.readFile(p)
+			.then(data => Gzip.ungzip(data));
 		}
 	}
-
-	ServerPlatform.LANG_SEARCH_BASE = Path.dirname(process.argv[1]);
-
-	ServerPlatform.I18N = I18N;
-
-	// Allow override in unit tests
-	ServerPlatform.TX = new ServerPlatform.I18N(Locale.getUserLocale());
 	
     ServerPlatform.Database = FileDatabase;
+
+	ServerPlatform.i18n = I18N;
+
+	// Asynchronous load to break circular dependency
+	requirejs(["game/findBestPlayController"], mod => findBestPlayController = mod);
 
 	return ServerPlatform;
 });

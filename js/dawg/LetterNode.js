@@ -144,7 +144,7 @@ define("dawg/LetterNode", () => {
 
 		/**
 		 * Enumerate each node in the dictionary in depth-first order.
-		 * Calls cb on each node.
+		 * Calls cb on each node, stops if cb returns false.
 		 * @param {LetterNode~nodeCallback} cb the callback
 		 */
 		eachNode(cb) {

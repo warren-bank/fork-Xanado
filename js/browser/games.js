@@ -339,7 +339,7 @@ requirejs([
 					})
 					.on('click', () => {
 						console.log(`Join game ${game.key}`);
-						$.post(`/join/${game.key}/${this.session.key}`)
+						$.post(`/join/${game.key}`)
 						.then(info => {
 							window.open(`/html/game.html?game=${game.key}&player=${this.session.key}`, "_blank");
 							this.refresh_game(game.key);

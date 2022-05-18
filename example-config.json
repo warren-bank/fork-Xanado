@@ -6,10 +6,6 @@
 
     "baseUrl": "http://localhost:9093/",
 
-	// Name of a subdirectory under the server root to to store
-	// the games database in. Defaults to 'games'.
-	"games": "games",
-
 	// Optional mail configuration.
 	// Not required unless you are mailing out invitations.
     "mail": {

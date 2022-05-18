@@ -43,6 +43,9 @@ define("server/Server", [
 				};
 			}
 
+			if (!config.root)
+				config.root = requirejs.toUrl("");
+
 			/* istanbul ignore if */
 			if (config.debug_server)
 				this._debug = console.debug;
@@ -53,7 +56,7 @@ define("server/Server", [
 			config.defaults.notification = config.defaults.notification &&
 			(typeof config.https !== "undefined");
 
-			this.db = new Platform.Database(config.games || "games", "game");
+			this.db = new Platform.Database(requirejs.toUrl("games"), "game");
 			// Live games; map from game key to Game
 			this.games = {};
 			// Status-monitoring sockets (game pages)
@@ -75,13 +78,14 @@ define("server/Server", [
 			// Parse incoming requests with a JSON body
 			this.express.use(Express.json());
 
-			const staticFiles = Path.resolve(requirejs.toUrl(""));
+			// Can't use __dirname, only available in top level
+			const staticRoot = requirejs.toUrl("");
 			// Grab all static files relative to the project root
 			// html, images, css etc. The Content-type should be set
 			// based on the file mime type (extension) but Express doesn't
 			// always get it right.....
-			this._debug(`static files from ${staticFiles}`);
-			this.express.use(Express.static(staticFiles));
+			this._debug(`static files from ${staticRoot}`);
+			this.express.use(Express.static(staticRoot));
 
 			this.express.use((req, res, next) => {
 				this._debug(`--> ${req.method} ${req.url}`);
@@ -104,7 +108,7 @@ define("server/Server", [
 			// Get the HTML for the main interface (the "games" page)
 			cmdRouter.get("/",
 					   (req, res) => res.sendFile(
-						   `${staticFiles}/html/games.html`));
+						   Path.normalize(requirejs.toUrl("html/games.html"))));
 
 			// Get a simplified version of games list or a single game
 			// (no board, bag etc) for the "games" page. You can request
@@ -466,11 +470,10 @@ define("server/Server", [
 		 * return {Promise} Promise to index available editions
 		 */
 		request_editions(req, res) {
-			const db = new Platform.Database("editions", "js");
-			return db.keys()
-			.then(editions => res.status(200).send(
-				editions
-				.filter(e => !/^_/.test(e))))
+			return Fs.readdir(requirejs.toUrl("editions"))
+			.then(list => res.status(200).send(
+				list.filter(f => /^[^_].*\.js$/.test(f))
+				.map(fn => fn.replace(/\.js$/, ""))))
 			.catch(e => this.trap(e, req, res));
 		}
 
@@ -479,9 +482,10 @@ define("server/Server", [
 		 * return {Promise} Promise to index available dictionaries
 		 */
 		request_dictionaries(req, res) {
-			const db = new Platform.Database("dictionaries", "dict");
-			return db.keys()
-			.then(keys => res.status(200).send(keys))
+			return Fs.readdir(requirejs.toUrl("dictionaries"))
+			.then(list =>res.status(200).send(
+				list.filter(f => /\.dict$/.test(f))
+				.map(fn => fn.replace(/\.dict$/, ""))))
 			.catch(e => this.trap(e, req, res));
 		}
 
@@ -505,10 +509,8 @@ define("server/Server", [
 			let theme = "default";
 			if (req.user && req.user.settings && req.user.settings.theme)
 				theme = req.user.settings.theme;
-			let file = requirejs.toUrl(`css/${theme}/${req.params.css}`);
-			return Fs.readFile(file)
-			.then(css => res.status(200).contentType("text/css").send(css))
-			.catch(e => this.trap(e, req, res));
+			let path = requirejs.toUrl(`css/${theme}/${req.params.css}`);
+			return res.sendFile(Path.normalize(path));
 		}
 
 		/**
@@ -593,23 +595,17 @@ define("server/Server", [
 			const gameURL =
 				  `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${req.body.gameKey}`;
 
-			let textBody = req.body.message || "";
+			let textBody = (req.body.message || "") + "\n" + Platform.i18n(
+				"Join the game by following this link: $1", gameURL);
 			// Handle XSS risk posed by HTML in the textarea
-			let htmlBody = req.body.message.replace(/</g, "&lt;") || "";
-			
-			return Promise.all([
-				Platform.i18n("You have been invited to play XANADO"),
-				Platform.i18n(
-					"Join the game by following this link: $1", gameURL),
-				Platform.i18n(
-				"Click <a href='$1'>here</a> to join the game.", gameURL)
-			])
-			.then(m => Promise.all(req.body.player.map(
+			let htmlBody = (req.body.message.replace(/</g, "&lt;") || "")
+			+ "<br>" + Platform.i18n(
+				"Click <a href='$1'>here</a> to join the game.", gameURL);
+			let subject = Platform.i18n("You have been invited to play XANADO");
+			return Promise.all(req.body.player.map(
 				to => this.sendMail(
 					to, req, res, req.body.gameKey,
-					m[0],
-					[ textBody, m[1]].join("\n"),
-					[ htmlBody, m[2]].join("\n")))))
+					subject, textBody, htmlBody)))
 			.then(list => {
 				const names = list.filter(uo => uo);
 				this._debug("<-- 200 ", names);
@@ -644,19 +640,17 @@ define("server/Server", [
 						return undefined;
 					this._debug(`Sending reminder mail to ${player.key}/${player.name}`);
 
-					return Promise.all([
-						Platform.i18n(
-							"It is your turn in your XANADO game"),
-						Platform.i18n(
-							"Join the game by following this link: $1",
-							gameURL),
-						Platform.i18n(
-							"Click <a href='$1'>here</a> to join the game.",
-							gameURL)
-					])
-					.then(m => this.sendMail(
+					const subject = Platform.i18n(
+						"It is your turn in your XANADO game");
+					const textBody = Platform.i18n(
+						"Join the game by following this link: $1",
+						gameURL);
+					const htmlBody = Platform.i18n(
+						"Click <a href='$1'>here</a> to join the game.",
+						gameURL);
+					return this.sendMail(
 						player, req, res, game.key,
-						m[0], m[1], m[2]));
+						subject, textBody, htmlBody);
 				}))))
 			.then(reminders => reminders.filter(e => typeof e !== "undefined"))
 			.then(names=> {

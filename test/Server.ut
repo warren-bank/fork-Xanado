@@ -8,7 +8,6 @@ requirejs.config({
     baseUrl: `${__dirname}/..`,
 	nodeRequire: require,
 	paths: {
-		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
 		common: "js/common",
 		server: "js/server",
 		dawg: "js/dawg",
@@ -16,6 +15,8 @@ requirejs.config({
 		platform: "js/server/ServerPlatform"
 	}
 });
+
+global.$ = {};
 
 const chai = require("chai");
 chai.use(require("chai-http"));
@@ -27,7 +28,7 @@ const { exec } = require('child_process');
  * Basic unit tests for Server class.
  */
 describe("Server", () => {
-	
+
 	const deps = [
 		{ TestSocket: "test/TestSocket" },
 		{ Server: "server/Server" },
@@ -137,7 +138,7 @@ describe("Server", () => {
 		chai.request(s.express)
 		.get("/locales")
 		.end((err, res) => {
-			console.log(res.body);
+			//console.log(res.body);
 			assert(res.body.indexOf('en') >= 0);
 			assert(res.body.indexOf('fr') >= 0);
 			assert(res.body.indexOf('de') >= 0);
@@ -187,7 +188,9 @@ describe("Server", () => {
 		chai.request(s.express)
 		.get("/theme/games.css")
 		.end((err, res) => {
-			//console.log(res.text);
+			//console.log(res.headers);
+			assert.equal(
+				res.headers['content-type'], "text/css; charset=UTF-8");
 			assert.equal(res.status, 200);
 			resolve();
 		});

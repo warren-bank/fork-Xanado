@@ -35,11 +35,8 @@ describe("Rack class", () => {
 	const deps = [
 		{ Rack: "game/Rack" },
 		{ Tile: "game/Tile" },
-		{ Square: "game/Square" },
-		{ jQeuryUI: "jquery-ui" }
+		{ Square: "game/Square" }
 	];
-
-	require("@wikimedia/jquery.i18n/src/jquery.i18n");
 
 	const Assert = require("./Assert.js");
 	before(required => Assert.depend(required, deps));

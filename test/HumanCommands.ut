@@ -234,8 +234,8 @@ describe("Game - human commands - tests", () => {
 		const D = new Tile({letter:"D", score:1, col: 10, row: 7});
 		const move = new Move({
 			placements: [ W, O, R, D ],
-			words: [ { word: "WORD", score: 99 }],
-			score: 99
+			words: [ { word: "WORD", score: 10 }],
+			score: 20
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -249,9 +249,11 @@ describe("Game - human commands - tests", () => {
 			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
+		//game._debug = console.debug;
 		const socket = new TestSocket();
-		let turns = 0;
-		const handle = (event, turn) => {
+		let turns = 0, messages = 0;
+		socket.on(Notify.TURN, (event, turn) => {
+			//console.log(event, turn);
 			switch (turns++) {
 			case 0:
 				assert.equal(turn.type, Turn.PLAY);
@@ -261,18 +263,44 @@ describe("Game - human commands - tests", () => {
 				assert.deepEqual(turn.words, move.words);
 				assert.deepEqual(turn.placements, move.placements);
 				Assert.sparseEqual(turn.replacements, [ aTile ]);
-				socket.done();
 				break;
 			default:
-				console.error("UNEXPECTED TURN", event, turn);
-				assert.fail("UNEXPECTED TURN");
+				assert.fail("UNEXPECTED TURN " + turn);
 			}
-		};
-		socket.on(Notify.TURN, handle);
+			if (turns === 1 && messages === 4)
+				socket.done();
+		});
+		socket.on(Notify.MESSAGE, (e, m) => {
+			switch (messages++) {
+			case 0:
+				assert.equal(
+					m.text,
+					'Enabled');
+				break;
+			case 1:
+				assert.equal(
+					m.text,
+					'$1 has asked for advice from the robot');
+				break;
+			case 2:
+				assert.equal(
+					m.text,
+					'$1 at row $2 column $3 would have scored $4');
+				break;
+			case 3:
+				assert.equal(
+					m.text,
+					'$1 has received advice from the robot');
+				break;
+			default:
+				assert.fail("UNEXPECTED MESSAGE" + m);
+			}
+			if (turns === 1 && messages === 4)
+				socket.done();
+		});
 		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on("*", (event, data) => {
-			console.error("UNEXPECTED EVENT", event);
-			assert.fail(event);
+			assert.fail("UNEXPECTED EVENT " + event);
 		});
 		return game.create()
 		.then(game => {
@@ -287,7 +315,7 @@ describe("Game - human commands - tests", () => {
 			human1.rack.addTile(
 				new Tile({letter:"D", score:1}));
 			human1.rack.addTile(
-				new Tile({letter:"X", score:1}));
+				new Tile({letter:"S", score:10}));
 			game.addPlayer(human2);
 
 			// Empty the letter bag, put an "A" in, not enough to
@@ -296,8 +324,10 @@ describe("Game - human commands - tests", () => {
 				game.letterBag.remainingTileCount());
 			game.letterBag.returnTile(aTile);
 			game.whosTurnKey = human1.key;
+			game.wordCheck = Game.WORD_CHECK_AFTER;
 		})
 		.then(() => game.connect(socket, human1.key))
+		.then(() => game.toggleAdvice(human1))
 		.then(() => game.play(human1, move))
 		.then(g => assert.strictEqual(g, game))
 		.then(() => socket.wait())

@@ -79,14 +79,22 @@ define("game/Game", [
 			 * @member {string}
 			 */
 			this.edition = params.edition;
+
 			/* istanbul ignore if */
 			if (!this.edition)
 				throw new Error("Game must have an edition");
 
 			/**
-			 * We don't keep a pointer to the dictionary objects so we can
-			 * cheaply serialise and send to the games interface. We just
-			 * keep the name of the relevant object.
+			 * Optional override of the path used by {@link Dictionary}
+			 * to load dictionaries
+			 * @member {string?}
+			 */
+			this.dictpath = params.dictpath;
+
+			/**
+			 * We don't keep a pointer to dictionary objects so we can
+			 * cheaply serialise the game and send to the UI. We just
+			 * keep the name of the dictionary.
 			 * @member {string?}
 			 */
 			this.dictionary =
@@ -285,7 +293,7 @@ define("game/Game", [
 		 * loaded from so it knows where to save the game. The
 		 * database and connections are not serialised, and must be
 		 * reset. Only available server-side.
-		 * @param {Platform.Database} db the db to use
+		 * @param {Platform.Database} db the db to use to store games
 		 * @return {Promise} Promise that resolves to the game
 		 */
 		onLoad(db) {
@@ -426,7 +434,7 @@ define("game/Game", [
 		 */
 		getDictionary() {
 			if (this.dictionary)
-				return Dictionary.load(this.dictionary);
+				return Dictionary.load(this.dictionary, this.dictpath);
 
 			// Terminal, no point in translating
 			/* istanbul ignore next */
@@ -522,8 +530,9 @@ define("game/Game", [
 		 * Get the board square at [col][row]
 		 * @return {Square} at col,row
 		 */
+		/* istanbul ignore next */
 		at(col, row) {
-			throw new Error("Never called");
+			// Only used client-side
 			return this.board.at(col, row);
 		}
 
@@ -840,6 +849,7 @@ define("game/Game", [
 
 			// Make sure this is a valid (known) player
 			const player = this.players.find(p => p.key === playerKey);
+			/* istanbul ignore if */
 			if (!player) {
 				console.error(`WARNING: player key ${playerKey} not found in game ${this.key}`);
 			}
@@ -1003,7 +1013,7 @@ define("game/Game", [
 				});
 			})
 			.catch(e => {
-				console.error("Error", e);
+				/* istanbul ignore next */
 				this.notifyPlayers(Notify.MESSAGE, {
 					sender: /*i18n*/"Advisor",
 					text: e.toString(),
@@ -1043,7 +1053,9 @@ define("game/Game", [
 		 * @param {number} theirScore score they got from their play
 		 */
 		advise(player, theirScore) {
-			this._debug(`Computing advice for ${player.name} > ${theirScore}`);
+			this._debug(`Computing advice for ${player.name} > ${theirScore}`,
+						player.rack.tiles().map(t => t.letter),
+						this.board.toString());
 
 			let bestPlay = null;
 			Platform.findBestPlay(
@@ -1052,8 +1064,9 @@ define("game/Game", [
 						this._debug(data);
 					else
 						bestPlay = data;
-				})
+				}, this.dictpath, this.dictionary)
 			.then(() => {
+				//console.log("Incoming",bestPlay);
 				if (bestPlay && bestPlay.score > theirScore) {
 					this._debug(`Better play found for ${player.name}`);
 					const start = bestPlay.placements[0];
@@ -1076,6 +1089,7 @@ define("game/Game", [
 					this._debug(`No better plays found for ${player.name}`);
 			})
 			.catch(e => {
+				/* istanbul ignore next */
 				console.error("Error", e);
 			});
 		}
@@ -1132,10 +1146,10 @@ define("game/Game", [
 
 			if (player.wantsAdvice) {
 				// 'Post-move' alternatives analysis.
-				// We can't do this asynchronously because the advice
-				// depends on the board state, which the move might
-				// update while the advice was still being computed.
-				await this.advise(player, move.score);
+				// Do this before we place the tiles
+				// on the board, so that the game and tiles get frozen
+				// and passed to the findBestPlayWorker.
+				this.advise(player, move.score);
 			}
 
 			const game = this;
@@ -1212,9 +1226,9 @@ define("game/Game", [
 
 			// Before making a robot move, consider challenging the last
 			// player.
-			// challenge is a Promise that will resolve to a Turn if a
-			// challenge is made, or undefined otherwise.
-			let challenge = Promise.resolve(undefined);
+			// challenge is a Promise that will resolve to true if a
+			// challenge is made, or false otherwise.
+			let challenge = Promise.resolve(false);
 			if (this.lastPlay()
 				&& this.dictionary
 				&& player.canChallenge) {
@@ -1235,7 +1249,7 @@ define("game/Game", [
 							return this.takeBack(player, Turn.CHALLENGE_WON)
 							.then(() => true);
 						}
-						return false;
+						return false; // no challenge made
 					});
 				}
 			}
@@ -1265,7 +1279,7 @@ define("game/Game", [
 							bestPlay = data;
 							this._debug("Best", bestPlay);
 						}
-					}, player.dictionary)
+					}, this.dictpath, player.dictionary)
 				.then(() => {
 					if (bestPlay)
 						return this.play(player, bestPlay);

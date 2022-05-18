@@ -1,6 +1,6 @@
 {
-	"name": "html-scrabble",
-	"description": "Multi user Scrabble game",
+	"name": "Xanado",
+	"description": "Multi user crossword game",
 	"version": "1.0.0",
 	"author": {
 		"name": "Crawford Currie",
@@ -8,7 +8,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/cdot/CrosswordGame"
+		"url": "git://github.com/cdot/Xanado"
 	},
 	"main": "server",
 	"engines": {
@@ -23,7 +23,7 @@
 		"errorhandler": ">=1.5.1",
 		"express": ">=4.18.1",
 		"express-basic-auth": ">=1.2.1",
-		"express-session": "^1.17.2",
+		"express-session": "^1.17.3",
 		"get-user-locale": ">=1.4.0",
 		"https": ">=1.0.0",
 		"jquery": "^3.6.0",
@@ -34,12 +34,12 @@
 		"node-gzip": ">=1.1.2",
 		"nodemailer": ">=6.7.5",
 		"normalize.css": "^8.0.1",
-		"passport": "^0.5.2",
+		"passport": "^0.5.3",
 		"passport-facebook": "^3.0.0",
 		"passport-google-oauth20": "^2.0.0",
 		"proper-lockfile": "^4.1.2",
 		"requirejs": ">=2.3.6",
-		"socket.io": ">=4.5.0"
+		"socket.io": ">=4.5.1"
 	},
 	"devDependencies": {
 		"chai": ">=4.3.6",
@@ -47,7 +47,7 @@
 		"eslint": ">=8.15.0",
 		"istanbul": "^0.4.5",
 		"jsdoc": "^3.6.10",
-		"marked": "^4.0.15",
+		"marked": "^4.0.16",
 		"mocha": ">=10.0.0",
 		"nyc": "^15.1.0",
 		"why-is-node-running": "^2.2.2"

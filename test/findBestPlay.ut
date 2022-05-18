@@ -15,7 +15,7 @@ requirejs.config({
 	}
 });
 
-describe("best move from complex boards", () => {
+describe("best play on complex boards", () => {
 	const deps = [
 		{ Edition: "game/Edition" },
 		{ Tile: "game/Tile" },

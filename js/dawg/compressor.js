@@ -16,7 +16,7 @@ and license information*/
  * @module
  */
 
-const requirejs = require('requirejs');
+const requirejs = require("requirejs");
 
 requirejs.config({
 	baseUrl: `${__dirname}/../..`,
@@ -25,32 +25,36 @@ requirejs.config({
 	}
 });
 
-requirejs(['fs', 'node-gzip', 'dawg/Trie'], (fs, Gzip, Trie) => {
+requirejs(["fs", "node-gzip", "dawg/Trie"], (fs, Gzip, Trie) => {
 	const Fs = fs.promises;
 
 	const DESCRIPTION = [
-		'USAGE',
-		`node ${process.argv[1].replace(/.*\//, '')} <lexicon> <outfile>`,
-		'Create a directed acyclic word graph (DAWG) from a list of words.',
-		'<lexicon> is a text file containing a list of words, and <outfile>',
-		'is the binary file containing the compressed DAWG, as used by the',
-		'Dictionary.js module.' ];
+		"USAGE",
+		`node ${process.argv[1].replace(/.*\//, "")} <lexicon> <outfile>`,
+		"Create a directed acyclic word graph (DAWG) from a list of words.",
+		"<lexicon> is a text file containing a list of words, and <outfile>",
+		"is the binary file containing the compressed DAWG, as used by the",
+		"Dictionary.js module.\n",
+		"The lexicon is a simple list of case-insensitive words, one per line",
+		"Anything after a space character on a line is ignored."
+	];
 
 	if (process.argv.length < 4) {
-		console.log(DESCRIPTION.join('\n'));
+		console.log(DESCRIPTION.join("\n"));
 		return;
 	}
 
 	const infile = process.argv[2];
 	const outfile = process.argv[3];
 
-	Fs.readFile(infile, 'utf8')
+	Fs.readFile(infile, "utf8")
 	.then(async function(data) {
 		const lexicon = data
-			.toUpperCase()
-			.split(/\r?\n/)
-			.map(w => w.replace(/[\s].*$/, '')) // comments
-			.sort();
+			  .toUpperCase()
+			  .split(/\r?\n/)
+			  .map(w => w.replace(/\s.*$/, "")) // comments
+			  .filter(line => line.length > 0)
+			  .sort();
 
 		// First step; generate a Trie from the words in the lexicon
 		const trie = new Trie(lexicon);
@@ -59,7 +63,7 @@ requirejs(['fs', 'node-gzip', 'dawg/Trie'], (fs, Gzip, Trie) => {
 		trie.generateDAWG();
 		
 		// We have a DAWG. We could output it now like this:
-		//console.log(JSON.stringify(trie.first.simplify(), null, ' '));
+		//console.log(JSON.stringify(trie.first.simplify(), null, " "));
 
 		// Instead we want to generate an integer array for use with Dictionary
 		const dawg = trie.encodeDAWG();
@@ -81,6 +85,6 @@ requirejs(['fs', 'node-gzip', 'dawg/Trie'], (fs, Gzip, Trie) => {
 	})
 	.catch(e => {
 		console.log(e.toString());
-		console.log(DESCRIPTION.join('\n'));
+		console.log(DESCRIPTION.join("\n"));
 	});
 });
