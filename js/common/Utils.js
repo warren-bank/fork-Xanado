@@ -50,6 +50,21 @@ define("common/Utils", () => {
 			if (t === 0) return `${neg}${h}:${m}:${s}`;
 			return `${neg}${t}:${h}:${m}:${s}`;
 		}
+
+		/**
+		 * Construct a test string giving a friendly description of a list
+		 * of "things" e.g. `andList(["A","B","C"])` will return `A, B and C`
+		 */
+		static andList(list) {
+			if (list.length == 0)
+				return "";
+			if (list.length == 1)
+				return list[0];
+
+			return $.i18n("$1 and $2",
+							 list.slice(0, list.length - 1).join(", "),
+							 list[list.length - 1]);
+		}
 	}
 
 	return Utils;

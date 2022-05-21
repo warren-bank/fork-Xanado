@@ -249,19 +249,15 @@ requirejs([
 			
 			showHideTwist(this.isUntwisted && this.isUntwisted[game.key]);
 
-			const headline = [
-				//game.key, // debug only
-				$.i18n("edition $1", game.edition)
-			];
-			if (game.dictionary)
-				headline.push($.i18n("dictionary $1", game.dictionary));
+			const headline = [ game.edition ];
 
-			if (game.timerType === Player.TIMER_TURN)
-				headline.push($.i18n("turn time limit $1",
-									 Utils.formatTimeInterval(game.timeLimit)));
-			else if (game.timerType === Player.TIMER_GAME)
-				headline.push($.i18n("game time limit $1",
-									 Utils.formatTimeInterval(game.timeLimit)));
+			if (game.players && game.players.length > 0)
+				headline.push($.i18n(
+					"players $1",
+					Utils.andList(game.players.map(p => p.name))));
+			headline.push($.i18n(
+				"created $1",
+				new Date(game.creationTimestamp).toDateString()));
 
 			const isActive = (game.state === Game.STATE_PLAYING
 							  || game.state === Game.STATE_WAITING);
@@ -280,6 +276,14 @@ requirejs([
 			.append($twist);
 
 			const options = [];
+			if (game.dictionary)
+				options.push($.i18n("Dictionary $1", game.dictionary));
+			if (game.timerType === Player.TIMER_TURN)
+				options.push($.i18n("turn time limit $1",
+									 Utils.formatTimeInterval(game.timeLimit)));
+			else if (game.timerType === Player.TIMER_GAME)
+				options.push($.i18n("game time limit $1",
+									 Utils.formatTimeInterval(game.timeLimit)));
 			if (game.predictScore)
 				options.push($.i18n("Predict score"));
 			if (game.wordCheck && game.wordCheck !== Game.WORD_CHECK_NONE)
