@@ -27,11 +27,11 @@ define("game/Game", [
 		/**
 		 * A new game is constructed from scratch by
 		 * ```
-		 * new Game(...).create().then(game => { game.onLoad(db)...
+		 * new Game(...).create().then(game => game.onLoad(db)...
 		 * ```
 		 * A game identified by key is loaded from a db by
 		 * ```
-		 * db.get(key, Game.classes).then(game => { game.onLoad(db)...
+		 * db.get(key, Game.classes).then(game => game.onLoad(db)...
 		 * ```
 		 * (may be null)
 		 * @param {object} params Parameter object. This can be another
@@ -272,7 +272,8 @@ define("game/Game", [
 		 * Promise to finish construction of a new Game.
 		 * Load the edition and create the board and letter bag.
 		 * Not done in the constructor because we need to return
-		 * a Promise.
+		 * a Promise. Must be followed by onLoad to connect a
+		 * DB and complete initialisation of private fields.
 		 * @return {Promise} that resolves to this
 		 */
 		create() {
@@ -289,16 +290,23 @@ define("game/Game", [
 		}
 
 		/**
-		 * A game loaded by deserialisation has to know what DB it was
-		 * loaded from so it knows where to save the game. The
+		 * Promise to finish the construction or load from serialisation
+		 * of a game.
+		 * A game has to know what DB  so it knows where to save. The
 		 * database and connections are not serialised, and must be
 		 * reset. Only available server-side.
 		 * @param {Platform.Database} db the db to use to store games
 		 * @return {Promise} Promise that resolves to the game
 		 */
 		onLoad(db) {
-			this._debug = () => {};
-			this._connections = [];
+			// if this onLoad follows a load from serialisation,
+			// we will need to initialise private _debug and _connections
+			// fields.
+			if (!this._debug)
+				this._debug = () => {};
+			if (!this._connections)
+				this._connections = [];
+			// We always set the _db
 			this._db = db;
 			return Promise.resolve(this);
 		}

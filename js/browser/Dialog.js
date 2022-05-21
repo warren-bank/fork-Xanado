@@ -72,6 +72,11 @@ define("browser/Dialog", () => {
 		 * it is OK to populate the dialog. super.createDialog()
 		 * must be called as the LAST step in any subclass createDialog
 		 * so that selectmenus get correctly initialised.
+		 * IMPORTANT: event handlers added to elements in subclasses
+		 * that refer to `this` Dialog object must retrieve it using
+		 * `this = this.$dlg.data("this")`. Otherwise `this` will
+		 * refer to the Dialog object in scope when the Dialog was
+		 * first constructed.
 		 */
 		createDialog() {
 			this.$dlg
@@ -146,17 +151,18 @@ define("browser/Dialog", () => {
 			this.$dlg.find(".is-password")
 			.on("keyup", evt => {
 				if (evt.keyCode === 13)
-					this.submit();
+					this.$dlg.data("this").submit();
 			});
 
 			this.$dlg.find(".submit")
-			.on("click", () => this.submit());
+			.on("click", () => this.$dlg.data("this").submit());
 
 			this.enableSubmit();
 
 			this.$dlg.find("select")
 			.selectmenu()
-			.on("selectmenuchange", () => this.enableSubmit());
+			.on("selectmenuchange",
+				() => this.$dlg.data("this").enableSubmit());
 
 			this.created = true;
 			if (this.onCreation)
@@ -170,6 +176,7 @@ define("browser/Dialog", () => {
 		 * it is OK to populate the dialog.
 		 */
 		openDialog() {
+			this.$dlg.data("this", this);
 			if (this.created)
 				return Promise.resolve();
 			return new Promise(resolve => this.onCreation = resolve);
@@ -200,7 +207,6 @@ define("browser/Dialog", () => {
 		 */
 		submit(p) {
 			this.$dlg.dialog("close");
-
 			if (!p)
 				p = {};
 			this.$dlg
@@ -232,8 +238,7 @@ define("browser/Dialog", () => {
 					p[name].push(value);
 			});
 
-			if (typeof this.onSubmit === "function")
-				this.onSubmit(p);
+			this.onSubmit(p);
 		}
 
 		/**

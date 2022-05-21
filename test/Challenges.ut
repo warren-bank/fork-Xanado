@@ -407,7 +407,6 @@ describe("Game - challenges - tests", () => {
 	});
 
 	it("good challenge by not-next player", () => {
-		debugger;
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",

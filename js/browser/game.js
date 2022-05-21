@@ -914,11 +914,7 @@ define("browser/game", [
 			// Events raised by game components
 			$(document)
 			.on("SquareChanged",
-				(e, square) => {
-					if (!square.id)
-						debugger;
-					square.$refresh();
-				})
+				(e, square) => square.$refresh())
 
 			.on("SelectSquare",
 				(e, square) => this.selectSquare(square))

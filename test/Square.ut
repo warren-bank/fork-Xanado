@@ -149,7 +149,7 @@ describe("Square class", () => {
 		tile = new Tile({ letter:'Q', isBlank:true });
 		sq.placeTile(tile, false);
 		sq.$refresh();
-		assert(!$div.hasClass("blank-letter"));
+		assert($div.hasClass("blank-letter"));
 
 		$("body").empty();
 	});

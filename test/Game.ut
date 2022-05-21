@@ -466,10 +466,7 @@ describe("Game - basic tests", () => {
 	it("load from file", () => {
 		const db = new Platform.Database(Platform.getFilePath("test"), "game");
 		return db.get("test_game", Game.classes)
-		.then(game => {
-			//game._debug = console.debug;
-			return game.onLoad(this.db);
-		})
+		.then(game => game.onLoad(this.db))
 		.then(game => {
 			const human = game.getPlayer("human");
 			return game.pass(human);
@@ -508,7 +505,7 @@ describe("Game - basic tests", () => {
 		.then(g => game = g)
 		.then(() => game.onLoad(this.db))
 		.then(() => game.anotherGame("human"))
-		.then(() => game.toggleAdvice())
+		.then(() => game.toggleAdvice(game.getPlayer()))
 		.then(() => game.advise(game.getPlayer(), 1));
 	});
 });

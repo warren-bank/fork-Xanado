@@ -220,14 +220,25 @@ define("server/Server", [
 			this.express.use((err, req, res, next) => {
 				if (res.headersSent)
 					return next(err);
-				this._debug("<-- 500 (unhandled)", err);
-				return res.status(500).send(err);
+				return this.S00("Unhandled error " + err);
 			});
 
 			this.express.use(ErrorHandler({
 				dumpExceptions: true,
 				showStack: true
 			}));
+		}
+
+		/**
+		 * Response for 500 error
+		 * @param {Response} res the response object
+		 * @param {object} mess message to send, either a simple string
+		 * or an array with i18n id and params.
+		 * @return whatever gets returned by `express.send`
+		 */
+		S00(res, mess) {
+			this._debug("<-- 500", mess);
+			return res.status(500).send(mess);
 		}
 
 		/**
@@ -245,10 +256,8 @@ define("server/Server", [
 				this._debug(`<-- 404 ${req.url}`, e);
 				return res.status(404).send([
 					"Database file load failed", req.url, e]);
-			} else {
-				console.error("<-- 500 ", e);
-				return res.status(500).send(["Error", e]);
-			}
+			} else
+				return this.S00(res, ["Error", e]);
 		}
 
 		/**
@@ -520,6 +529,7 @@ define("server/Server", [
 				/* istanbul ignore if */
 				if (this.config.debug_game)
 					game._debug = console.debug;
+				this._debug("Created", game.key);
 				return game.save();
 			})
 			.then(game => res.status(200).send(game.key))
@@ -578,14 +588,10 @@ define("server/Server", [
 		 * @return {Promise}
 		 */
 		request_invitePlayers(req, res) {
-			if (!this.config.mail || !this.config.mail.transport) {
-				res.status(500).send("Mail is not configured");
-				return Promise.reject();
-			}
-			if (!req.body.player) {
-				res.status(500).send("Nobody to notify");
-				return Promise.reject();
-			}
+			if (!this.config.mail || !this.config.mail.transport)
+				return this.S00(res, "Mail is not configured");
+			if (!req.body.player)
+				return this.S00(res, "Nobody to notify");
 
 			const gameURL =
 				  `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${req.body.gameKey}`;
@@ -708,7 +714,8 @@ define("server/Server", [
 			.then(g => game = g)
 			.then(() => {
 				if (game.hasRobot())
-					return res.status(500).send("Game already has a robot");
+					return this.S00(res, "Game already has a robot");
+
 				this._debug(`Robot joining ${gameKey} with ${dic}`);
 				// Robot always has the same player key
 				const robot = new Player(
@@ -740,7 +747,7 @@ define("server/Server", [
 			.then(game => {
 				const robot = game.hasRobot();
 				if (!robot)
-					return res.status(500).send("Game doesn't have a robot");
+					return this.S00(res, "Game doesn't have a robot");
 				this._debug(`Robot leaving ${gameKey}`);
 				game.removePlayer(robot);
 				return game.save();
@@ -776,7 +783,7 @@ define("server/Server", [
 					.then(() => res.status(200).send("OK"))
 					.then(() => this.updateObservers());
 				}
-				return res.status(500).send([
+				return this.S00(res, [
 					/*i18n*/"Player $1 is not in game $2", playerKey, gameKey
 				]);
 			})
@@ -842,8 +849,9 @@ define("server/Server", [
 
 				const player = game.getPlayerWithKey(playerKey);
 				if (!player)
-					return res.status(500).send([
-						/*i18n*/"Player $1 is not in game $2", playerKey, gameKey
+					return this.S00(res, [
+						/*i18n*/"Player $1 is not in game $2",
+						playerKey, gameKey
 					]);
 
 				// The command name and arguments
