@@ -254,7 +254,7 @@ requirejs([
 			if (game.players && game.players.length > 0)
 				headline.push($.i18n(
 					"players $1",
-					andList(game.players.map(p => p.name))));
+					Utils.andList(game.players.map(p => p.name))));
 			headline.push($.i18n(
 				"created $1",
 				new Date(game.creationTimestamp).toDateString()));
