@@ -141,9 +141,10 @@ There are also a number of other keyboard shortcuts for the various buttons:
 
 ## Learning
 
-To assist learners, there are two special 'chat' messages that can be entered.
+To assist learners, there are some special 'chat' messages that can be entered.
 - `hint` tells you the highest scoring play the computer can find for you, before your play. Everyone in the game is told when you send this message (to prevent cheating.)
 - `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played. Everyone in the game is told when you enable analysis (to prevent cheating.)
+- `allow <word>` adds `<word>` to the dictionary. The new word will not be written back to the dictionary database, so will be lost when the server is restarted. If you want to keep the word forever, see [Whitelists](#Whitelists). Everyone in the game is told when someone allows a new word.
 
 # Editions
 
@@ -169,6 +170,10 @@ dictionaries. Included with the installation are a number of pre-built dictionar
 - `British_English` - a custom 68k word British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American spellings are also included, to reflect the flexible nature of our shared language.
 - `ODS8_French` - 411k word French SCRABBLE® competition dictionary.
 - `Oxford_5000` - 29K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
+
+## Whitelists
+Regenerating a docitionary can be time consuming, so dictionaries can be
+extended "on the fly" using a simple list of words in a file alongside the dictionary file, with the same name but the extension `.white`. For example, `Oxford_5000.white`. The file will be read each time the server is restarted.
 
 # Security
 The assumption is that you will be running the game on a private
