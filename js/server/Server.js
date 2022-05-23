@@ -215,7 +215,7 @@ define("server/Server", [
 			this.express.use((err, req, res, next) => {
 				if (res.headersSent)
 					return next(err);
-				return this.S00("Unhandled error " + err);
+				return this.S00(res, "Unhandled error " + err);
 			});
 
 			this.express.use(ErrorHandler({
@@ -243,7 +243,6 @@ define("server/Server", [
 		 * @param {Request} req the request object
 		 * @param {Response} res the response object
 		 * @param {string?} context context of the failure
-		 * @private
 		 */
 		/* istanbul ignore next */
 		trap(e, req, res) {
@@ -348,11 +347,36 @@ define("server/Server", [
 
 				// Chat message
 				this._debug(`-S-> message ${message}`);
+                let m;
 				if (message.text === "hint")
 					socket.game.hint(socket.player);
 				else if (message.text === "advise")
 					socket.game.toggleAdvice(socket.player);
-				else
+				else if ((m = /^allow\s+(\w+)\s*$/.exec(message.text))) {
+					socket.game.getDictionary()
+                    .then(dict => {
+                        const word = m[1].toUpperCase();
+                        if (dict.addWord(word)) {
+                            socket.game.notifyAllPlayers(
+                                Notify.MESSAGE, {
+                                    sender: /*i18n*/"Advisor",
+                                    text:
+                                    /*i18n*/"$1 has added '$2' to $3",
+                                    args: [
+                                        socket.player.name, word, dict.name
+                                    ]
+                                });
+                        } else {
+                            socket.game.notifyPlayer(
+                                socket.player,
+                                Notify.MESSAGE, {
+                                    sender: /*i18n*/"Advisor",
+                                    text: /*i18n*/"'$1' is already in $2",
+                                    args: [ word, dict.name ]
+                                });
+                        }
+                    });
+				} else
 					socket.game.notifyAllPlayers(Notify.MESSAGE, message);
 			});
 		}
@@ -543,7 +567,6 @@ define("server/Server", [
 		 * @param {string} html email html
 		 * @return {Promise} Promise that resolves to the user that was mailed,
 		 * either their game name or their email if there is no game name.
-		 * @private
 		 */
 		sendMail(to, req, res, gameKey, subject, text, html) {
 			return this.userManager.getUser(
