@@ -14,14 +14,12 @@ tests:
 coverage:
 	npm run coverage
 
-doc/index.html: $(JS) doc/README.md
-	node_modules/.bin/jsdoc -c doc/config.json -d doc $(JS)
-
 # Make HTML source-code documentation and README
-doc: doc/index.html README.html
+doc:
+	npm run doc
 
 lint:
-	node node_modules/.bin/eslint $(JS)
+	npm run lint
 
 # Make docker image, test
 docker:

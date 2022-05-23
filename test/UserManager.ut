@@ -329,7 +329,7 @@ describe("UserManager class", () => {
 	});
 
 	it("/change-password", () => {
-		let server;
+		let server, cookie;
 		//config.debug_server = true;
 		return reset()
 		.then(s => server = s)
@@ -342,24 +342,25 @@ describe("UserManager class", () => {
 			login_username: "test_user",
 			login_password: "test_pass"
 		}))
-		.then(session_cookie => new Promise(resolve => {
+		.then(session_cookie => cookie = session_cookie)
+        .then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.post("/change-password")
 			.send({password: "wtf"})
-			.set('Cookie', session_cookie)
+			.set('Cookie', cookie)
 			.end((err, res) => {
 				assert.equal(res.status, 200);
 				Assert.sparseEqual(res.body, [
 					"um-pass-changed",
 					"test_user"
 				]);
-				resolve(session_cookie);
+				resolve();
 			});
 		}))
-		.then(session_cookie => new Promise(resolve => {
+		.then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.post("/logout")
-			.set('Cookie', session_cookie)
+			.set('Cookie', cookie)
 			.end((err, res) => {
 				assert.equal(res.status, 200);
 				resolve();

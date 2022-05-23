@@ -72,7 +72,7 @@ describe("Player class", () => {
 			dictionary: 'NoDic',
 			key: 'playerkey',
 			score: 20,
-			clock: undefined,
+			clock: 0,
 			email: false,
 			isConnected: true,
 			missNextTurn: false

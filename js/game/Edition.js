@@ -105,7 +105,6 @@ define("game/Edition", () => {
 
 		///**
 		// * Get the letter indices for the letters in the given word.
-		// * @private
 		// */
 		//getLetterIndices(word) {
 		//	return word.split("")

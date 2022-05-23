@@ -23,7 +23,6 @@ define("game/Game", [
 	 * The Game object may be used server or browser side.
 	 */
 	class Game {
-	// Valid values for 'state'. Values are used in UI
 		static STATE_WAITING          = /*i18n*/"Waiting for players";
 		static STATE_PLAYING          = /*i18n*/"Playing";
 		static STATE_GAME_OVER        = /*i18n*/"Game over";
@@ -65,6 +64,220 @@ define("game/Game", [
 						   Game, Player, Move, Turn ];
 
 		/**
+		 * An i18n message identifier indicating the game state, one of
+		 * * `Game.STATE_WAITING` - until `playIfReady` starts the game
+		 * * `Game.STATE_PLAYING` - until the game is over, then
+		 * * `Game.STATE_GAME_OVER` - game was played to end, or
+		 * * `Game.STATE_2_PASSES` - all players passed twice, or
+		 * * `Game.STATE_CHALLENGE_FAILED` - a challenge on the final
+		 * play failed
+		 * @member {string}
+		 */
+        state = Game.STATE_WAITING;
+ 
+		/**
+		 * Key that uniquely identifies this game - generated
+		 * @member {string}
+		 */
+		key = undefined;
+
+        /**
+		 * The name of the edition.
+		 * We don't keep a pointer to the Edition object so we can
+		 * cheaply serialise and send to the games interface. 
+		 * @member {string}
+		 */
+		edition = undefined;
+
+        /**
+		 * Optional override of the path used by {@link Dictionary}
+		 * to load dictionaries
+		 * @member {string?}
+		 */
+		dictpath = undefined;
+
+		/**
+		 * We don't keep a pointer to dictionary objects so we can
+		 * cheaply serialise the game and send to the UI. We just
+		 * keep the name of the dictionary.
+		 * @member {string?}
+		 */
+        dictionary = undefined;
+
+		/**
+		 * Epoch ms when this game was created
+		 * @member {number}
+		 */
+		creationTimestamp = undefined;
+
+		/**
+		 * List of Player
+		 * @member {Player[]}
+		 */
+		players = [];
+
+		/**
+		 * Complete list of the turn history of this game
+		 * List of Turn objects.
+		 * @member {Turn[]}
+		 */
+		turns = [];
+
+		/**
+		 * Key of next player to play in this game. This is undefined
+		 * until playIfReady sets it.
+		 * @member {string}
+		 */
+		whosTurnKey = undefined;
+
+		/**
+		 * Pointer to Board object
+		 * @member {Board}
+		 */
+		board = null;
+
+		/**
+		 * Size of rack. Always the same as Edition.rackCount,
+		 * because we don't hold a pointer to the Edition. Note this
+		 * is saved with the game.
+		 * @member {number}
+		 */
+		rackSize = 0;
+
+		/**
+		 * LetterBag object
+		 * @member {LetterBag}
+		 */
+		letterBag = undefined;
+
+		/**
+		 * Timer type, one of:
+		 * * `Player.TIMER_NONE` - untimed game
+		 * * `Player.TIMER_GAME` - game timer
+		 * * `Player.TIMER_TURN` - turn timer
+		 */
+		timerType = Player.TIMER_NONE;
+
+		/**
+		 * Time limit for this game. Only valid if timerType is not
+         * TIMER_NONE
+		 * @member {number}
+		 */
+		timeLimit = 0;
+
+		/**
+		 * Time penalty for this game. Points lost per minute over
+		 * timeLimit.
+		 * @member {number}
+		 */
+		timePenalty = 0;
+
+		/**
+		 * Who paused the game (if it's paused)
+		 * @member {string?}
+		 */
+		pausedBy = undefined;
+
+		/**
+		 * Least number of players must have joined before this game
+		 * can start. Must be at least 2.
+		 * @member {number}
+		 */
+		minPlayers = 2;
+
+		/**
+		 * Most number of players who can join this game. 0 means no limit.
+		 * @member {number}
+		 */
+		maxPlayers = 0;
+
+		/**
+		 * When a game is ended, nextGameKey is the key for the
+		 * continuation game
+		 * @member {string}
+		 */
+		nextGameKey = undefined;
+
+		/**
+		 * Whether or not to show the predicted score from tiles
+		 * placed during the game. This should be false in tournament
+		 * play, true otherwise.
+		 * @member {boolean}
+		 */
+		predictScore = false;
+
+		/**
+		 * Whether or not to allow players to take back their most recent
+		 * move without penalty, so long as the next player hasn't
+		 * challenged or played.
+		 * @member {boolean}
+		 */
+		allowTakeBack = false;
+
+		/**
+		 * Whether or not to check plays against the dictionary. One
+		 * of:
+		 * * `Game.WORD_CHECK_NONE` for no checks
+		 * * `Game.WORD_CHECK_AFTER` for checks after play
+		 * * `Game.WORD_CHECK_REJECT` to reject bad plays
+		 * A bad play in this case does not result in a penalty, it
+		 * just forces the player to take the move back.
+		 */
+		wordCheck = Game.WORD_CHECK_NONE;
+
+		/**
+		 * The type of penalty to apply for a failed challenge,
+		 * one of:
+		 * * `Game.PENALTY_NONE` - no penalty
+		 * * `Game.PENALTY_MISS` - miss next turn
+		 * * `Game.PENALTY_PER_TURN` - simple points penalty
+		 * * `Game.PENALTY_PER_WORD` - points penalty per correct word
+		 * @member {string}
+		 */
+		penaltyType = Game.PENALTY_TYPE;
+
+		/**
+		 * The type of penalty to apply for a failed challenge
+		 * @member {number}
+		 */
+		penaltyPoints = Game.PENALTY_POINTS;
+
+        /**
+		 * Strictly internal, for debug
+		 * @member {boolean}
+         * @private
+		 */
+        _noPlayerShuffle = false;
+
+		/**
+		 * Timer object for ticking
+		 * @member {object}
+         * @private
+		 */
+        _intervalTimer = undefined;
+
+        /**
+		 * List of decorated sockets. Only available server-side, and
+         * not serialised
+		 * @member {WebSocket[]}
+         * @private
+		 */
+        _connections = [];
+
+        /**
+		 * Database containing this game. Only available server-side,
+         * and not serialised.
+		 * @member {Platform.Database}
+		 */
+        _db = undefined;
+
+        /**
+		 * Debug function
+		 * @member {function}
+		 */
+		_debug = () => {};
+
+		/**
 		 * A new game is constructed from scratch by
 		 * ```
 		 * new Game(...).create().then(game => game.onLoad(db)...
@@ -79,233 +292,39 @@ define("game/Game", [
 		 * or a generic object with fields the same name as Game fields.
 		 */
 		constructor(params) {
-			/**
-			 * Strictly internal, for debug
-			 * @member {function}
-			 * @private
-			 */
 			/* istanbul ignore if */
 			if (typeof params.debug === "function")
 				this._debug = params.debug;
-			else
-				this._debug = () => {};
-
-			/**
-			 * Strictly internal, for debug
-			 * @member {boolean}
-			 * @private
-			 */
-			this._noPlayerShuffle = params.noPlayerShuffle || false;
 
 			this._debug("Constructing new game", params);
 
-			/**
-			 * Key that uniquely identifies this game - generated
-			 * @member {string}
-			 */
-			this.key = Utils.genKey();
-
-			/**
-			 * Epoch ms when this game was created
-			 * @member {number}
-			 * @private
-			 */
-			this.creationTimestamp = Date.now();
-
-			/**
-			 * The name of the edition.
-			 * We don't keep a pointer to the Edition object so we can
-			 * cheaply serialise and send to the games interface. 
-			 * @member {string}
-			 */
+            this.key = Utils.genKey();
+            this.creationTimestamp = Date.now();
 			this.edition = params.edition;
-
-			/* istanbul ignore if */
-			if (!this.edition)
-				throw new Error("Game must have an edition");
-
-			/**
-			 * Optional override of the path used by {@link Dictionary}
-			 * to load dictionaries
-			 * @member {string?}
-			 */
 			this.dictpath = params.dictpath;
-
-			/**
-			 * We don't keep a pointer to dictionary objects so we can
-			 * cheaply serialise the game and send to the UI. We just
-			 * keep the name of the dictionary.
-			 * @member {string?}
-			 */
-			this.dictionary =
-			(params.dictionary && params.dictionary != "none") ?
-			params.dictionary : null;
-
-			/**
-			 * An i18n message identifier indicating the game state, one of
-			 * * `Game.STATE_WAITING` - until `playIfReady` starts the game
-			 * * `Game.STATE_PLAYING` - until the game is over, then
-			 * * `Game.STATE_GAME_OVER` - game was played to end, or
-			 * * `Game.STATE_2_PASSES` - all players passed twice, or
-			 * * `Game.STATE_CHALLENGE_FAILED` - a challenge on the final
-			 * play failed
-			 * @member {string}
-			 */
-			this.state = Game.STATE_WAITING;
-
-			/**
-			 * List of Player
-			 * @member {Player[]}
-			 * @private
-			 */
-			this.players = [];
-
-			/**
-			 * Complete list of the turn history of this game
-			 * List of Turn objects.
-			 * @member {Turn[]}
-			 */
-			this.turns = [];
-
-			/**
-			 * Key of next player to play in this game. This is undefined
-			 * until playIfReady sets it.
-			 * @member {string}
-			 */
-			this.whosTurnKey = undefined;
-
-			/**
-			 * Timer type, one of:
-			 * * `Player.TIMER_NONE` - untimed game
-			 * * `Player.TIMER_GAME` - game timer
-			 * * `Player.TIMER_TURN` - turn timer
-			 */
+			if (params.dictionary && params.dictionary != "none")
+			    this.dictionary = params.dictionary;
 			this.timerType = params.timerType || Player.TIMER_NONE;
-
-			/**
-			 * Time limit for this game.
-			 * @member {number}
-			 */
 			if (this.timerType !== Player.TIMER_NONE) {
 				this.timeLimit = params.timeLimit ||
 				(params.timeLimitMinutes || 0) * 60;
 			}
-
-			/**
-			 * Time penalty for this game. Points lost per minute over
-			 * timeLimit.
-			 * @member {number}
-			 */
 			if (this.timerType === Player.TIMER_GAME)
 				this.timePenalty = params.timePenalty || 0;
-
-			/**
-			 * Pointer to Board object
-			 * @member {Board}
-			 */
-			this.board = null;
-
-			/**
-			 * Size of rack. Always the same as Edition.rackCount,
-			 * because we don't hold a pointer to the Edition. Note this
-			 * is saved with the game.
-			 * @member {number}
-			 * @private
-			 */
-			this.rackSize = 0;
-
-			/**
-			 * LetterBag object
-			 * @member {LetterBag}
-			 */
-			this.letterBag = undefined;
-
-			/**
-			 * Who paused the game (if it's paused)
-			 * @member {string?}
-			 */
 			if (params.pausedBy)
 				this.pausedBy = params.pausedBy;
-
-			/**
-			 * Least number of players must have joined before this game
-			 * can start. Must be at least 2.
-			 * @member {number}
-			 */
 			this.minPlayers = Math.max(params.minPlayers || 0, 2);
-
-			/**
-			 * Most number of players who can join this game. 0 means no limit.
-			 * @member {number}
-			 */
 			this.maxPlayers = Math.max(params.maxPlayers || 0, 0);
 			if (this.maxPlayers < this.minPlayers)
 				this.maxPlayers = 0;
-
-			/**
-			 * When a game is ended, nextGameKey is the key for the
-			 * continuation game
-			 * @member {string}
-			 */
 			this.nextGameKey = undefined;
-
-			/**
-			 * Whether or not to show the predicted score from tiles
-			 * placed during the game. This should be false in tournament
-			 * play, true otherwise.
-			 * @member {boolean}
-			 */
 			this.predictScore = params.predictScore;
-
-			/**
-			 * Whether or not to allow players to take back their most recent
-			 * move without penalty, so long as the next player hasn't
-			 * challenged or played.
-			 * @member {boolean}
-			 */
 			this.allowTakeBack = params.allowTakeBack ||  false;
-
-			/**
-			 * Whether or not to check plays against the dictionary. One
-			 * of:
-			 * * `Game.WORD_CHECK_NONE` for no checks
-			 * * `Game.WORD_CHECK_AFTER` for checks after play
-			 * * `Game.WORD_CHECK_REJECT` to reject bad plays
-			 * A bad play in this case does not result in a penalty, it
-			 * just forces the player to take the move back.
-			 */
 			this.wordCheck = params.wordCheck || Game.WORD_CHECK_NONE;
-
-			/**
-			 * The type of penalty to apply for a failed challenge,
-			 * one of:
-			 * * `Game.PENALTY_NONE` - no penalty
-			 * * `Game.PENALTY_MISS` - miss next turn
-			 * * `Game.PENALTY_PER_TURN` - simple points penalty
-			 * * `Game.PENALTY_PER_WORD` - points penalty per correct word
-			 * @member {string}
-			 */
 			this.penaltyType = params.penaltyType || Game.PENALTY_TYPE;
-
-			/**
-			 * The type of penalty to apply for a failed challenge
-			 * @member {number}
-			 */
 			this.penaltyPoints = params.penaltyPoints || Game.PENALTY_POINTS;
-
-			/**
-			 * List of decorated sockets. Only available server-side.
-			 * @member {WebSocket[]}
-			 * @private
-			 */
-			this._connections = [];
-
-			/**
-			 * Database containing this game. Only available server-side.
-			 * @member {Platform.Database}
-			 * @private
-			 */
-			this._db = undefined;
+            if (params.noPlayerShuffle)
+                this._noPlayerShuffle = true;
 		}
 
 		/**
@@ -339,15 +358,12 @@ define("game/Game", [
 		 * @return {Promise} Promise that resolves to the game
 		 */
 		onLoad(db) {
-			// if this onLoad follows a load from serialisation,
-			// we will need to initialise private _debug and _connections
-			// fields.
-			if (!this._debug)
-				this._debug = () => {};
-			if (!this._connections)
-				this._connections = [];
+			// if this onLoad follows a load from serialisation, which
+            // does not invoke the constructor.
 			// We always set the _db
 			this._db = db;
+            this._connections = [];
+            this._debug = () => {};
 			return Promise.resolve(this);
 		}
 
@@ -809,7 +825,7 @@ define("game/Game", [
 		 * this is a restart of an unfinished turn, defaults to
 		 * this.timeLimit if undefined.
 		 * @return {Promise} a promise that resolves to undefined
-		 * @private
+         * @private
 		 */
 		startTurn(player, timeout) {
 			/* istanbul ignore if */
@@ -935,8 +951,7 @@ define("game/Game", [
 				this._debug(socket.player
 							? `${socket.player.toString()} disconnected`
 							: "'Anonymous' disconnected");
-				this._connections = this._connections.filter(
-					sock => sock !== socket);
+				this._connections.splice(this._connections.indexOf(socket), 1);
 				this.updateConnections();
 			});
 
@@ -974,7 +989,7 @@ define("game/Game", [
 		/**
 		 * Server side, tell all clients a tick has happened (or
 		 * remind them of the current number of seconds to play)
-		 * @private
+         * @private
 		 */
 		tick() {
 			const player = this.getPlayer();
@@ -1155,6 +1170,8 @@ define("game/Game", [
 		 * @return {Promise} resolving to a the game
 		 */
 		async play(player, move) {
+            if (!(move instanceof Move))
+                move = new Move(move);
 			/* istanbul ignore if */
 			if (player.key !== this.whosTurnKey)
 				return Promise.reject("Not your turn");
@@ -1675,7 +1692,7 @@ define("game/Game", [
 			const move = new Move();
 
 			// First get some new tiles
-			// Scrabble Rule #7: You may use a turn to exchange all,
+			// Scrabble Rule 7: You may use a turn to exchange all,
 			// some, or none of the letters. To do this, place your
 			// discarded letter(s) facedown. Draw the same number of
 			// letters from the pool, then mix your discarded
@@ -1729,8 +1746,8 @@ define("game/Game", [
 				// Copy players
 				this.players.forEach(p => newGame.addPlayer(new Player(p)));
 
-				if (this._noPlayerShuffle) // for unit tests
-					newGame._noPlayerShuffle = true;
+				// for unit tests
+				newGame._noPlayerShuffle = this._noPlayerShuffle;
 
 				// Players will be shuffled in playIfReady
 				newGame.whosTurnKey = undefined;

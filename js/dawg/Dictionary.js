@@ -64,9 +64,9 @@ define("dawg/Dictionary", [
 		 * discarded.
 		 * @param {(Buffer|Array)?} data the DAWG data.
 		 * @return {Dictionary} this
-		 * @private
+         * @private
 		 */
-		loadDAWG(data) {
+        loadDAWG(data) {
 			const dv = new DataView(data);
 			let index = 0;
 			const numberOfNodes = dv.getUint32(4 * index++);
@@ -170,7 +170,7 @@ define("dawg/Dictionary", [
 		 * For each letter of the alphabet, establish a list of valid
 		 * start points, such that at least one start point must match()
 		 * for any sequence of chars, or there can't possibly be a word.
-		 * @private
+         * @private
 		 */
 		createSequenceRoots() {
 			this.sequenceRoots = {};
@@ -228,7 +228,7 @@ define("dawg/Dictionary", [
 		 * sequence is a valid part of; that's not the point, this is
 		 * intended to help eliminate invalid sequences when extending
 		 * a word backwards from a seed letter.
-		 * @private
+         * @private
 		 */
 		findSequence(seq) {
 			if (!this.sequenceRoots)

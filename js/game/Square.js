@@ -232,7 +232,7 @@ define("game/Square", ["platform"], (Platform) => {
 		/**
 		 * Update a square that has a Tile dropped on it
 		 * @param {jQuery} $div the <div> for the square
-		 * @private
+         * @private
 		 */
 		refreshOccupied($div) {
 			if ($div.hasClass("ui-droppable"))
@@ -294,7 +294,7 @@ define("game/Square", ["platform"], (Platform) => {
 		/**
 		 * Update a square that doesn't have a Tile dropped on it
 		 * @param {jQuery} $div the <div> for the square
-		 * @private
+         * @private
 		 */
 		refreshEmpty($div) {
 

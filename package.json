@@ -34,7 +34,7 @@
 		"node-gzip": ">=1.1.2",
 		"nodemailer": ">=6.7.5",
 		"normalize.css": "^8.0.1",
-		"passport": "^0.5.3",
+		"passport": "^0.6.0",
 		"passport-facebook": "^3.0.0",
 		"passport-google-oauth20": "^2.0.0",
 		"proper-lockfile": "^4.1.2",
@@ -44,7 +44,7 @@
 	"devDependencies": {
 		"chai": ">=4.3.6",
 		"chai-http": "^4.3.0",
-		"eslint": ">=8.15.0",
+		"eslint": ">=8.16.0",
 		"istanbul": "^0.4.5",
 		"jsdoc": "^3.6.10",
 		"marked": "^4.0.16",
@@ -53,14 +53,16 @@
 		"why-is-node-running": "^2.2.2"
 	},
 	"scripts": {
-		"web": "node server.js",
+		"server": "node server.js",
+        "doc": "jsdoc --verbose -c doc/config.json -r -d doc js",
+        "lint": "eslint js",
 		"test": "mocha --extension ut --timeout=5000",
 		"coverage": "nyc --hook-run-in-context --hook-run-in-this-context --reporter=html --reporter text mocha --extension ut --timeout=5000"
 	},
 	"eslintConfig": {
 		"extends": "eslint:recommended",
 		"parserOptions": {
-			"ecmaVersion": 8
+			"ecmaVersion": 13
 		},
 		"env": {
 			"shared-node-browser": true,

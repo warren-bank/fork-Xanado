@@ -27,6 +27,95 @@ define("game/Player", [
 	class Player {
 
 		/**
+		 * Player unique key
+		 * @member {string}
+		 */
+		key = undefined;
+
+		/**
+		 * Is player a robot?
+		 * @member {boolean}
+		 */
+		isRobot = undefined;
+
+		/**
+		 * If isRobot, can it challenge?
+		 * @member {boolean}
+		 */
+		canChallenge = undefined;
+
+		/**
+		 * Player name
+		 * @member {string}
+		 */
+		name = undefined;
+
+		/**
+		 * Player doesn't have a rack until they join a game, as
+		 * it's only then we know how big it has to be.
+		 * @member {Rack}
+		 */
+		rack = undefined;
+
+		/**
+		 * Number of times this player has passed (or swapped)
+		 * since the last non-pass/swap play.
+		 * @member {number}
+		 */
+		passes = 0;
+
+		/**
+		 * Set true to advise player of better plays than the one
+		 * they used
+		 * @member {boolean}
+		 */
+		wantsAdvice = undefined;
+
+		/**
+		 * Player's current score
+		 * @member {number}
+		 */
+		score = 0;
+
+		/**
+		 * Player coutdown clock. In games with `timerType` `TIMER_TURN`,
+		 * this is the number of seconds before the player's turn times
+		 * out (if they are the current player). For `TIMER_GAME` it's
+		 * the number of seconds before the chess clock runs out.
+		 * @member {number?}
+		 */
+		clock = 0;
+
+		/**
+		 * We don't keep a pointer to the dictionary objects so we can
+		 * cheaply serialise and send to the games interface. We just
+		 * keep the name of the relevant object. This dictionary will
+		 * only be used for findBestPlay for robot players.
+		 * @member {string}
+		 */
+		dictionary = undefined;
+
+		/**
+		 * True if this player is due to miss their next play due
+		 * to a failed challenge
+		 * @member {boolean?}
+		 */
+		missNextTurn = undefined;
+
+		/**
+		 * The connected flag is set when the player is created
+		 * from a Player.simple structure. It is not used server-side.
+		 * @member {boolean?}
+		 */
+		isConnected = false;
+
+        /**
+		 * Debug function
+		 * @member {function}
+		 */
+        _debug = () => {};
+
+		/**
 		 * @param {object} params named parameters, or other layer or simple
 		 *  object to copy
 		 * @param {(string|Player)} params.name name of the player, or
@@ -44,97 +133,15 @@ define("game/Player", [
 		 * @param {function} params.debug pass console.debug to enable debug messages
 		 */
 		constructor(params) {
-			/**
-			 * Debug
-			 * @member {function}
-			 * @private
-			 */
 			if (typeof params.debug === "function")
 				this._debug = params.debug;
-			else
-				this._debug = () => {};
-
-			/**
-			 * Player unique key
-			 * @member {string}
-			 */
 			this.key = params.key;
-
-			/**
-			 * Is player a robot?
-			 * @member {boolean}
-			 */
 			this.isRobot = params.isRobot;
-
-			/**
-			 * If isRobot, can it challenge?
-			 * @member {boolean}
-			 */
 			this.canChallenge = params.canChallenge;
-
-			/**
-			 * Player name
-			 * @member {string}
-			 */
 			this.name = params.name;
-
-			/**
-			 * Player doesn't have a rack until they join a game, as
-			 * it's only then we know how big it has to be.
-			 * @member {Rack}
-			 */
-			this.rack = null;
-
-			/**
-			 * Number of times this player has passed (or swapped)
-			 * since the last non-pass/swap play.
-			 * @member {number}
-			 */
-			this.passes = 0;
-
-			/**
-			 * Set true to advise player of better plays than the one
-			 * they used
-			 * @member {boolean}
-			 */
 			this.wantsAdvice = params.wantsAdvice;
-
-			/**
-			 * Player's current score
-			 * @member {number}
-			 */
-			this.score = 0;
-
-			/**
-			 * Player coutdown clock. In games with `timerType` `TIMER_TURN`,
-			 * this is the number of seconds before the player's turn times
-			 * out (if they are the current player). For `TIMER_GAME` it's
-			 * the number of seconds before the chess clock runs out.
-			 * @member {number?}
-			 */
-			this.clock = undefined;
-
-			/**
-			 * We don't keep a pointer to the dictionary objects so we can
-			 * cheaply serialise and send to the games interface. We just
-			 * keep the name of the relevant object. This dictionary will
-			 * only be used for findBestPlay for robot players.
-			 * @member {string}
-			 */
 			this.dictionary = params.dictionary;
-
-			/**
-			 * True if this player is due to miss their next play due
-			 * to a failed challenge
-			 * @member {boolean?}
-			 */
 			this.missNextTurn = params.missNextTurn;
-
-			/**
-			 * The connected flag is set when the player is created
-			 * from a Player.simple structure. It is not used server-side.
-			 * @member {boolean?}
-			 */
 			if (params.isConnected)
 				this.isConnected = true;
 		}

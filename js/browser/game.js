@@ -368,16 +368,7 @@ define("browser/game", [
 				}
 			});
 
-			let who;
-			if (winners.length == 0)
-				who = "";
-			else if (winners.length == 1)
-				who = winners[0];
-			else
-				who = $.i18n("$1 and $2",
-							 winners.slice(0, winners.length - 1).join(", "),
-							 winners[winners.length - 1]);
-
+			let who = Utils.andList(winners);
 			let nWinners = 0;
 			if (iWon && winners.length === 1)
 				who = $.i18n("You");
@@ -1596,7 +1587,7 @@ define("browser/game", [
 		 */
 		action_nextGame() {
 			const key = this.game.nextGameKey;
-			$.post(`/join/${key}/${this.player.key}`)
+			$.post(`/join/${key}`)
 			.then(info => {
                 location.replace(
                     `/html/game.html?game=${key}&player=${this.player.key}`);

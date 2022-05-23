@@ -78,7 +78,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 * Each entry is an array that contains all the nodes with that
 		 * `maxChildDepth`.
 		 * @return {TrieNode[][]} the structure
-		 * @private
+         * @private
 		 */
 		createReductionStructure() {
 			console.log("\nCreate reduction structure");
@@ -128,7 +128,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 * the largest "maxChildDepth" to recursively reduce as many lower
 		 * nodes as possible.
 		 * @param {TrieNode[][]} red the reduction structure
-		 * @private
+         * @private
 		 */
 		findPrunedNodes(red) {
 			console.log("\nMark redundant nodes as pruned");
@@ -183,7 +183,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 * Label all of the remaining nodes in the Trie-turned-DAWG so that
 		 * they will fit contiguously into an unsigned integer array.
 		 * @return {TrieNode[]} all the nodes in the order they are indexed
-		 * @private
+         * @private
 		 */
 		assignIndices() {
 

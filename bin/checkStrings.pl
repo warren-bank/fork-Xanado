@@ -36,12 +36,15 @@ closedir($htmld);
 # Scan /*i18n*/ before a string, grab the string
 # Scan /*i18n prefix*/ before a string, grab prefixthestring e.g.
 # /*i18n namespace-$/'frood' will grab 'namespace-frood'
-foreach my $dir ("js/browser", "js/game", "js/server") {
-	my $jsd;
-	opendir($jsd, $dir);
-	foreach my $js (grep { /\.js$/ } readdir($jsd)) {
+my $jsd;
+opendir($jsd, "js");
+foreach my $dir (grep { -d $_ } readdir $jsd) {
+	my $jsdd;
+	opendir($jsdd, $dir);
+	foreach my $js (grep { /\.js$/ } readdir($jsdd)) {
 		my $data = path("$dir/$js")->slurp();
 		$data =~ s/[\r\n]+/ /g;
+        my $report = 0;
 		while ($data =~ /\.i18n\s*\(\s*(["'])(.*?)\1/g) {
 			push(@{$found{$2}}, $js);
 		}
@@ -49,9 +52,11 @@ foreach my $dir ("js/browser", "js/game", "js/server") {
 			my $key = ($1 || '') . $3;
 			push(@{$found{$key}}, $js);
 		}
+        $report = 0
 	}
-	closedir($jsd);
+	closedir($jsdd);
 }
+closedir($jsd);
 
 sub checkParameters {
 	my ($en, $qq) = @_;

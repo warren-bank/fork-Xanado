@@ -125,7 +125,7 @@ describe("Rack class", () => {
 
 		let $dact = $("<div></div>").append($act);
 
-		// Must be iun the body before refresh or #id's won't be found
+		// Must be in the body before refresh or #id's won't be found
 		$("body").append($dact);
 		r.$refresh();
 

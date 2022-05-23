@@ -37,6 +37,7 @@ define("server/UserManager", [
 	 * and we specifically want to support this.
 	 */
 	class XanadoPass extends Strategy {
+
 		constructor(checkUserPass, checkToken) {
 			super();
 			this.name = "xanado";
@@ -79,6 +80,12 @@ define("server/UserManager", [
 	class UserManager {
 
 		/**
+		 * Standard key for the robot user
+		 * @constant {string}
+		 */
+		static ROBOT_KEY = "babefacebabeface";
+
+		/**
 		 * Construct, adding relevant routes to the given Express application
 		 * @param {object} config system configuration object
 		 * @param {object} config.auth authentication options
@@ -93,6 +100,7 @@ define("server/UserManager", [
 		constructor(config, app) {
 			this.config = config;
 			this.db = undefined;
+
 			/* istanbul ignore if */
 			if (config.debug_server)
 				this._debug = console.debug;
@@ -232,7 +240,7 @@ define("server/UserManager", [
 		 * Promisify req.login to complete the login process
 		 * @param {object} uo user object
 		 * @return {Promise} promise that resolves when the login completes
-		 * @private
+         * @private
 		 */
 		passportLogin(req, res, uo) {
 			this._debug("passportLogin ", uo.name, uo.key);
@@ -248,7 +256,7 @@ define("server/UserManager", [
 		/**
 		 * Load the user DB
 		 * @return {Promise} promise that resolves to the DB
-		 * @private
+         * @private
 		 */
 		getDB() {
 			if (this.db)
@@ -273,7 +281,7 @@ define("server/UserManager", [
 		/**
 		 * Write the DB after an update e.g. user added, pw change etc
 		 * @return {Promise} that resolves when the write completes
-		 * @private
+         * @private
 		 */
 		writeDB() {
 			const s = JSON.stringify(this.db, null, 1);
@@ -297,7 +305,6 @@ define("server/UserManager", [
 		 * @param {string?} key optionally force the key to this
 		 * @param {boolean} ignorePass truw will ignore passwords
 		 * @return {Promise} resolve to user object, or throw
-		 * @private
 		 */
 		getUser(desc, ignorePass) {
 			return this.getDB()
@@ -348,7 +355,8 @@ define("server/UserManager", [
 		}
 
 		/**
-		 * @private
+		 * Configure an OAuth2 Passport strategy
+         * @private
 		 */
 		/* istanbul ignore next */
 		setUpOAuth2Strategy(strategy, provider, cfg, app) {
@@ -411,7 +419,7 @@ define("server/UserManager", [
 		/**
 		 * Make a one-time token for use in password resets
 		 * @param {Object} user user object
-		 * @private
+         * @private
 		 */
 		setToken(user) {
 			const token = Math.floor(1e16 + Math.random() * 9e15)
@@ -431,7 +439,6 @@ define("server/UserManager", [
 		 * @param {string?} desc.email user email
 		 * @param {string?} key optionally force the key to this
 		 * @return {Promise} resolve to user object, or reject if duplicate
-		 * @private
 		 */
 		addUser(desc) {
 			if (!desc.key)
@@ -448,7 +455,8 @@ define("server/UserManager", [
 		}
 
 		/**
-		 * @private
+		 * Send a result to the browser
+         * @private
 		 */
 		sendResult(res, status, info) {
 			this._debug(`<-- ${status}`, info);
@@ -456,7 +464,8 @@ define("server/UserManager", [
 		}
 
 		/**
-		 * @private
+		 * Handle registration of a user using Xanado password database
+         * @private
 		 */
 		handle_xanado_register(req, res, next) {
 			const username = req.body.register_username;
@@ -485,7 +494,7 @@ define("server/UserManager", [
 
 		/**
 		 * Get a list of oauth2 providers
-		 * @private
+         * @private
 		 */
 		/* istanbul ignore next */
 		handle_oauth2_providers(req, res) {
@@ -500,7 +509,7 @@ define("server/UserManager", [
 		/**
 		 * Simply forgets the user, doesn't log OAuth2 users out from
 		 * the provider.
-		 * @private
+         * @private
 		 */
 		handle_logout(req, res) {
 			if (req.session
@@ -509,9 +518,9 @@ define("server/UserManager", [
 				&& req.logout) {
 				const departed = req.session.passport.user.name;
 				this._debug("Logging out", departed);
-				req.logout();
-				return this.sendResult(res, 200, [
-					/*i18n*/"um-logged-out", departed ]);
+				return new Promise(resolve => req.logout(resolve))
+                .then(() => this.sendResult(res, 200, [
+					/*i18n*/"um-logged-out", departed ]));
 			}
 			return this.sendResult(
 				res, 500, [ /*i18n*/"um-not-logged-in" ]);
@@ -519,7 +528,7 @@ define("server/UserManager", [
 
 		/**
 		 * Gets a list of known users, user name and player key only
-		 * @private
+         * @private
 		 */
 		handle_users(req, res) {
 			if (req.isAuthenticated())
@@ -535,7 +544,8 @@ define("server/UserManager", [
 		}
 
 		/**
-		 * @private
+		 * Change the current users' password
+         * @private
 		 */
 		handle_xanado_change_password(req, res) {
 			if (req.session
@@ -560,7 +570,9 @@ define("server/UserManager", [
 		}
 
 		/**
-		 * @private
+		 * Reset the password for the given email address. A reset token will
+		 * be mailed to the user that they can then use to log in.
+         * @private
 		 */
 		handle_xanado_reset_password(req, res) {
 			const email = req.body.reset_email;
@@ -600,7 +612,7 @@ define("server/UserManager", [
 		/**
 		 * Report who is logged in. This will return a redacted user
 		 * object, with just the user name and uniqe key
-		 * @private
+         * @private
 		 */
 		handle_session(req, res) {
 			if (req.user)
@@ -616,7 +628,7 @@ define("server/UserManager", [
 
 		/**
 		 * Write new session settings for the user
-		 * @private
+         * @private
 		 */
 		handle_session_settings(req, res) {
 			if (req.user) {
@@ -636,7 +648,6 @@ define("server/UserManager", [
 		/**
 		 * Middleware to check if a user is signed in. Use it with
 		 * any route where a logged-in user is required.
-		 * @private
 		 */
 		checkLoggedIn(req, res, next) {
 			if (req.isAuthenticated())
@@ -644,8 +655,6 @@ define("server/UserManager", [
 			return this.sendResult(res, 401, [ /*i18n*/"um-not-logged-in" ]);
 		}
 	}
-
-	UserManager.ROBOT_KEY = "babefacebabeface";
 
 	return UserManager;
 });

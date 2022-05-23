@@ -16,9 +16,11 @@ define("platform", [ "common/Platform" ], Platform => {
 			// Pass events straight to the document
 			return $(document).trigger(e, args);
 		}
-	}
 
-	BrowserPlatform.i18n = $.i18n;
+		static i18n() {
+			return $.i18n.apply($.i18n, arguments);
+		}
+	}
 
 	return BrowserPlatform;
 });

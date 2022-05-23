@@ -100,7 +100,7 @@ define("common/Fridge", () => {
 					frozen[IB_DATA] = {};
 					for (let prop in unfrozen)
 						// Exclude _* to avoid _events etc
-						if (!/^_/.test(prop))
+						if (!/^#?_/.test(prop))
 							frozen[IB_DATA][prop] = _freeze(unfrozen[prop]);
 				}
 				return frozen;
@@ -171,9 +171,10 @@ define("common/Fridge", () => {
 					objectsThawed[object[IB_ID]] = thawed;
 
 				if (thawProps)
-					for (let prop in object[IB_DATA])
+					for (let prop in object[IB_DATA]) {
 						thawed[prop] = _thaw(
 							object[IB_DATA][prop], objectsThawed);
+                    }
 
 				return thawed;
 			}

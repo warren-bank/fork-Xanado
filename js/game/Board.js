@@ -111,7 +111,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		 * and difficult to analyse.
 		 * @param {Move.wordSpec[]} words list to update
 		 * @return {number} the total score
-		 * @private
+         * @private
 		 */
 		scoreNewWords(words) {
 			let totalScore = 0;
