@@ -105,7 +105,8 @@ describe("Server", () => {
 			edition: "Tiny",
 			dictionary: "Oxford_5000",
 			theme: "default"
-		}
+		},
+		games: "test/games"
 	};
 
 	function unit() {}

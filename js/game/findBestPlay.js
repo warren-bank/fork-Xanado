@@ -221,8 +221,6 @@ define("game/findBestPlay", [
 					score: score
 				}));
 			}
-			else if (col == 5 && row == 6)
-				report(`Reject "${pack(wordSoFar)}" at ${col},${row} ${score}`);
 		}
 
 		let available; // list of letters that can be extended with
@@ -462,7 +460,7 @@ define("game/findBestPlay", [
 		report = listener;
 
 		if (!game.edition) {
-			report("Error: Game has no edition", game);
+			report("Error: Game has no edition " + game);
 			// Terminal, no point in translating
 			return Promise.reject("Game has no edition");
 		}

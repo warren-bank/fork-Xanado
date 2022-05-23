@@ -32,7 +32,7 @@ requirejs([
 	Board, Move
 ) => {
 
-	let db = new Platform.Database("test", "testgame");
+	let db = new Platform.Database("test/games", "testgame");
 	let game = new Game({
 		//_debug: console.debug,
 		edition: "Tiny",

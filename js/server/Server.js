@@ -53,8 +53,10 @@ define("server/Server", [
 			config.defaults.notification = config.defaults.notification &&
 			(typeof config.https !== "undefined");
 
+			// Allow override of default /games path, primarily for
+			// testing. Path will be relative to requirejs.toUrl.
 			this.db = new Platform.Database(
-				Platform.getFilePath("games"), "game");
+				config.games || "games", "game");
 
 			// Live games; map from game key to Game
 			this.games = {};
@@ -457,12 +459,13 @@ define("server/Server", [
 
 		/**
 		 * Handler for GET /locales
-		 * Sends a list of available locales.  Used when selecting a
-		 * presentation language for the UI.
+		 * Sends a list of available translation locales.  Used when
+		 * selecting a presentation language for the UI.
 		 * @return {Promise} Promise to list locales
 		 */
 		request_locales(req, res) {
-			const db = new Platform.Database("i18n", "json");
+			const db = new Platform.Database(
+				"i18n", "json");
 			return db.keys()
 			.then(keys => res.status(200).send(keys))
 			.catch(e => this.trap(e, req, res));

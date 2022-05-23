@@ -11,8 +11,9 @@ define("common/Platform", () => {
 	 */
 	class Database {
 		/**
-		 * @param {string} id will be used as the name of a directory
-		 * under the root
+		 * @param {string} id a /-separated path name that will be used
+		 * as the name of a DB. How this is interpreted is up to the
+		 * implementation, but most will treat it as a directory or file path.
 		 * @param {string} type identifier used to distinguish keys
 		 * relevant to this DB from other data that may be co-located
 		 * @abstract
@@ -21,7 +22,7 @@ define("common/Platform", () => {
 		
 		/**
 		 * Promise to get a list of keys in the DB
-		 * @return {Promise} resolves to a list of key names
+		 * @return {Promise} resolves to a `string[]` list of key names
 		 * @abstract
 		 */
 		keys() {}
@@ -38,7 +39,8 @@ define("common/Platform", () => {
 		/**
 		 * Promise to get a key value
 		 * @param {string} key the entry key
-		 * @param {Object[]} classes list of classes passed to Fridge.thaw
+		 * @param {Object[]} classes list of classes that may occur in the
+		 * data, as passed to {@link Fridge#thaw}
 		 * @return {Promise} resolves to the key value
 		 * @abstract
 		 */
@@ -74,18 +76,19 @@ define("common/Platform", () => {
 
 		/**
 		 * @callback Platform~bestMoveCallback
-		 * @param {(Move|string)} best move found so far, or error string
+		 * @param {(Move|string)} best move found so far, or a
+		 * progress string for debug (only intended for developer)
 		 */
 
 		/**
 		 * If available, find the best play. This is used to abstract
 		 * the best play controller from the rest of the server code,
-		 * so it can be invoked either directly or asynchronously. It
-		 * should be a NOP on a browser.
+		 * so it can be invoked either directly or asynchronously.
 		 * @param {Game} game the Game
 		 * @param {Tile[]} rack rack in the form of a simple list of Tile
-		 * @param {Platform~bestMoveCallback} cb accepts a best play whenever a new
-		 * one is found, or a string containing a message
+		 * @param {Platform~bestMoveCallback} cb accepts a best play
+		 * whenever a new one is found, or a string containing a
+		 * message
 		 * @param {string?} dictpath path to dictionaries to override
 		 * the default
 		 * @param {string?} dictionary name of dictionary to override the

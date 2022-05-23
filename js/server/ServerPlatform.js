@@ -30,12 +30,12 @@ define("platform", [
 
 		/**
 		 * @param {string} path name of a pre-existing
-		 * directory to store games in. 
+		 * directory to store games in, relative to requirejs.toUrl. 
 		 * @param {string} type will be used as the extension on file names
 		 */
 		constructor(path, type) {
 			super(path, type);
-			this.directory = path;
+			this.directory = ServerPlatform.getFilePath(path);
 			this.type = type;
 			this.re = new RegExp(`\\.${type}$`);
 			this.locks = {};
