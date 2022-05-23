@@ -5,19 +5,26 @@ and license information*/
 
 define("game/Notify", () => {
 
-	return {
-		UNPAUSE: "unpause",
-		PAUSE: "pause",
-		JOIN: "join",
-		REJECT: "reject",
-		MESSAGE: "message",
-		NEXT_GAME: "nextGame",
-		ANOTHER_GAME: "anotherGame",
-		TICK: "tick",
-		TURN: "turn",
-		CONNECTIONS: "connections",
+	/**
+	 * Socket messgaes sent by the server and UI
+	 */
+	class Notify {
+		/* Notifications intended for all listeners */
+		static UNPAUSE      = "unpause";
+		static PAUSE        = "pause";
+		static JOIN         = "join";
+		static REJECT       = "reject";
+		static MESSAGE      = "message";
+		static NEXT_GAME    = "nextGame";
+		static ANOTHER_GAME = "anotherGame";
+		static TICK         = "tick";
+		static TURN         = "turn";
+		static CONNECTIONS  = "connections";
 
-		UPDATE: "update",
-		MONITOR: "monitor"
-	};
+		/* Notifications sent to monitors (games pages) */
+		static UPDATE       = "update";
+		static MONITOR      = "monitor";
+	}
+
+	return Notify;
 });

@@ -57,7 +57,7 @@ describe("Player class", () => {
 			isRobot: false,
 			canChallenge: false,
 			missNextTurn: false,
-			//_debug: console.debug,
+			//debug: console.debug,
 			dictionary: "NoDic"
 		};
 		const player = new Player(p);
@@ -86,7 +86,7 @@ describe("Player class", () => {
 			isRobot: true,
 			canChallenge: true,
 			missNextTurn: true,
-			//_debug: console.debug,
+			//debug: console.debug,
 			dictionary: "NoDic"
 		};
 		const player = new Player(p);
@@ -118,7 +118,7 @@ describe("Player class", () => {
 			isRobot: false,
 			canChallenge: false,
 			missNextTurn: false,
-			//_debug: console.debug,
+			//debug: console.debug,
 			dictionary: "NoDic"
 		};
 		const player = new Player(p);

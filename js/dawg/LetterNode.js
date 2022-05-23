@@ -216,8 +216,6 @@ define("dawg/LetterNode", () => {
 		 * @return {LetterNode} node found, or undefined
 		 */
 		match(chars, index) {
-			if (typeof index === "undefined")
-				index = 0;
 			let node = this;
 			while (node) {
 				if (node.letter === chars[index]) {

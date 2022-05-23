@@ -96,6 +96,20 @@ describe("Dictionary class", () => {
 			dic.root.eachNode(n => s[n.letter] = true);
 			assert.equal(Object.keys(s).sort().join(""),
 						 "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+			s = {};
+			dic.root.eachNode(n => {
+				s[n.letter] = true; return n.letter !== 'F';
+			});
+			assert.equal(Object.keys(s).sort().join(""),
+						 "ABCDFGIKNORSVW");
+
+			s = {};
+			dic.root.eachNode(n => {
+				s[n.letter] = true; return n.letter !== 'U';
+			});
+			assert.equal(Object.keys(s).sort().join(""),
+						 "ABCDFGIJKNORSUVWX");
 		});
 	});
 

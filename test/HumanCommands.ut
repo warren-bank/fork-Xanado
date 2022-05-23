@@ -41,7 +41,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const human1 = new Player({
@@ -128,7 +128,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const socket = new TestSocket();
@@ -177,7 +177,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const socket = new TestSocket();
@@ -246,14 +246,13 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true
 		});
-		//game._debug = console.debug;
 		const socket = new TestSocket();
 		let turns = 0, messages = 0;
 		socket.on(Notify.TURN, (event, turn) => {
-			//console.log(event, turn);
+			//console.debug(event, turn);
 			switch (turns++) {
 			case 0:
 				assert.equal(turn.type, Turn.PLAY);
@@ -267,35 +266,34 @@ describe("Game - human commands - tests", () => {
 			default:
 				assert.fail("UNEXPECTED TURN " + turn);
 			}
-			if (turns === 1 && messages === 4)
+			if (turns === 1 && messages === 3)
 				socket.done();
 		});
 		socket.on(Notify.MESSAGE, (e, m) => {
+			//console.debug(e, m);
 			switch (messages++) {
 			case 0:
+				assert.equal(m.sender, 'Advisor');
 				assert.equal(
 					m.text,
 					'Enabled');
 				break;
 			case 1:
+				assert.equal(m.sender, 'Advisor');
 				assert.equal(
 					m.text,
 					'$1 has asked for advice from the robot');
 				break;
 			case 2:
+				assert.equal(m.sender, 'Advisor');
 				assert.equal(
 					m.text,
 					'$1 at row $2 column $3 would have scored $4');
 				break;
-			case 3:
-				assert.equal(
-					m.text,
-					'$1 has received advice from the robot');
-				break;
 			default:
 				assert.fail("UNEXPECTED MESSAGE" + m);
 			}
-			if (turns === 1 && messages === 4)
+			if (turns === 1 && messages === 3)
 				socket.done();
 		});
 		socket.on(Notify.CONNECTIONS, () => {});
@@ -338,7 +336,7 @@ describe("Game - human commands - tests", () => {
 		const game =  new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const human1 = new Player({
@@ -391,7 +389,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const human1 = new Player({
@@ -488,7 +486,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const human1 = new Player({
@@ -525,7 +523,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const human1 = new Player({

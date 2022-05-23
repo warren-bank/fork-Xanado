@@ -38,7 +38,7 @@ describe('Game - robot plays - tests', () => {
 		const game = new Game({
 			edition: "Tiny",
 			dictionary: "Oxford_5000",
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true
 		});
 
@@ -85,7 +85,7 @@ describe('Game - robot plays - tests', () => {
 
 	it('robot can play first', () => {
 		const game = new Game({
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true,
 			edition:'English_Scrabble',
 			dictionary:'Oxford_5000'
@@ -164,7 +164,7 @@ describe('Game - robot plays - tests', () => {
 		const game = new Game({
 			edition:'English_Scrabble',
 			dictionary:'Oxford_5000',
-			//_debug: console.debug,
+			//debug: console.debug,
 			noPlayerShuffle: true
 		});
 		let human = new Player({
@@ -249,7 +249,7 @@ describe('Game - robot plays - tests', () => {
 
 	it('robot confirm game over', () => {
 		const game =  new Game({
-			//_debug: console.debug,
+			//debug: console.debug,
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true
@@ -324,7 +324,7 @@ describe('Game - robot plays - tests', () => {
 
 	it('robot challenge and make last play', () => {
 		const game = new Game({
-			//_debug: console.debug,
+			//debug: console.debug,
 			edition: "Tiny",
 			dictionary: "Oxford_5000",
 			noPlayerShuffle: true

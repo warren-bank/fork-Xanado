@@ -41,7 +41,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
@@ -119,7 +119,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_PER_TURN,
 			penaltyPoints: 5
 		});
@@ -197,7 +197,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_PER_WORD,
 			penaltyPoints: 6
 		});
@@ -272,7 +272,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-						//_debug: console.debug,
+						//debug: console.debug,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({name: "Human 1", key: "human1", isRobot: false});
@@ -343,7 +343,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-						//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
@@ -411,7 +411,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-						//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_PER_WORD,
 			penaltyPoints: 6
 		});
@@ -491,7 +491,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-						//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
@@ -550,7 +550,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-						//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({name: "Human 1", key:"sheep", isRobot: false});
@@ -613,7 +613,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-						//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
@@ -699,7 +699,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-						//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
@@ -775,7 +775,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-						//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({
@@ -860,7 +860,7 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//_debug: console.debug,
+			//debug: console.debug,
 			penaltyType: Game.PENALTY_MISS
 		});
 		const human1 = new Player({

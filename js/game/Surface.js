@@ -18,11 +18,6 @@ define("game/Surface", ["game/Square"], Square => {
 		 */
 		constructor(id, cols, rows, type) {
 
-			if (typeof id !== "string"
-				|| typeof cols !== "number"
-				|| typeof rows !== "number")
-				throw Error("Bad parameters to Surface");
-
 			/**
 			 * Unique id for the surface 
 			 * @member {string}
@@ -166,6 +161,7 @@ define("game/Surface", ["game/Square"], Square => {
 		 * Refresh the UI for all squares.  Must be implemented by
 		 * subclasses.
 		 */
+		/* istanbul ignore next */
 		$ui() {
 			throw Error("Pure virtual");
 		}

@@ -23,6 +23,7 @@ requirejs.config({
     paths: {
 		common: "js/common",
 		game: "js/game",
+		dawg: "js/dawg",
 		platform: "js/server/ServerPlatform"
     }
 });
@@ -76,6 +77,7 @@ describe("Board class", () => {
 						 "| | |7| | | | | |7| | |\n" +
 						 "| |4| | | | | | | |4| |\n" +
 						 "|8| | | | | | | | | |8|\n");
+			assert.equal(b.squaresUsed(), 22);
 		});
 	});
 

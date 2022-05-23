@@ -23,6 +23,46 @@ define("game/Game", [
 	 * The Game object may be used server or browser side.
 	 */
 	class Game {
+	// Valid values for 'state'. Values are used in UI
+		static STATE_WAITING          = /*i18n*/"Waiting for players";
+		static STATE_PLAYING          = /*i18n*/"Playing";
+		static STATE_GAME_OVER        = /*i18n*/"Game over";
+		static STATE_2_PASSES         = /*i18n*/"All players passed twice";
+		static STATE_CHALLENGE_FAILED = /*i18n*/"Challenge failed";
+		static STATE_TIMED_OUT        = /*i18n*/"Timed out";
+
+		// Valid values for 'penaltyType'. Values are used in UI
+		static PENALTY_NONE     = /*i18n*/"No penalty";
+		static PENALTY_MISS     = /*i18n*/"Miss next turn";
+		static PENALTY_PER_TURN = /*i18n*/"Lose points";
+		static PENALTY_PER_WORD = /*i18n*/"Lose points per word";
+
+		// Failed challenge penalty options for UI
+		static PENALTIES = [
+			Game.PENALTY_PER_WORD, Game.PENALTY_PER_TURN,
+			Game.PENALTY_MISS, Game.PENALTY_NONE
+		];
+
+		// defaults
+		static PENALTY_TYPE   = Game.PENALTY_PER_WORD;
+		static PENALTY_POINTS = 5; // points per correct word challenged
+
+		// Timer types
+		static TIMERS = [
+			Player.TIMER_NONE, Player.TIMER_TURN, Player.TIMER_GAME
+		];
+
+		// Word check types
+		static WORD_CHECK_NONE   = /*i18n*/"Don't check words";
+		static WORD_CHECK_AFTER  = /*i18n*/"Check words after play";
+		static WORD_CHECK_REJECT = /*i18n*/"Reject unknown words";
+		static WORD_CHECKS = [
+			Game.WORD_CHECK_NONE, Game.WORD_CHECK_AFTER, Game.WORD_CHECK_REJECT
+		];
+	
+		// Classes used in Freeze/Thaw
+		static classes = [ LetterBag, Square, Board, Tile, Rack,
+						   Game, Player, Move, Turn ];
 
 		/**
 		 * A new game is constructed from scratch by
@@ -319,7 +359,7 @@ define("game/Game", [
 			/* istanbul ignore if */
 			if (!this.letterBag)
 				throw Error("Cannot addPlayer() before create()");
-			/* istanbul ignore if */
+			/* istanbul ignore next */
 			if (this.maxPlayers > 1 && this.players.length === this.maxPlayers)
 				throw Error("Cannot addPlayer() to a full game");			
 			this.players.push(player);
@@ -368,8 +408,6 @@ define("game/Game", [
 				player = this.getPlayer(this.whosTurnKey);
 			else if (typeof player === "string")
 				player = this.getPlayer(player);
-			if (!player)
-				return undefined;
 			const index = this.players.findIndex(p => p.key === player.key);
 			/* istanbul ignore if */
 			if (index < 0)
@@ -585,6 +623,11 @@ define("game/Game", [
 		playIfReady() {
 			this._debug(`playIfReady game=${this.key} state=${this.state}`);
 
+			if (this.hasEnded()) {
+				this._debug("\tgame is over");
+				return Promise.resolve(this);
+			}
+
 			// Check preconditions for starting the game
 			if (this.players.length < this.minPlayers) {
 				this._debug("\tnot enough players");
@@ -660,7 +703,7 @@ define("game/Game", [
 		 * @param {string} message to send
 		 * @param {Object} data to send with message
 		 */
-		notifyPlayers(message, data) {
+		notifyAllPlayers(message, data) {
 			this._debug(`<-S- * ${message}`, data);
 			this._connections.forEach(socket => socket.emit(message, data));
 		}
@@ -702,7 +745,7 @@ define("game/Game", [
 			// one turn broadcast, and a different turn sent to the
 			// playing player.
 			return this.save()
-			.then(() => this.notifyPlayers(Notify.TURN, turn))
+			.then(() => this.notifyAllPlayers(Notify.TURN, turn))
 			.then(() => this);
 		}
 
@@ -720,6 +763,7 @@ define("game/Game", [
 			if (ageInDays <= 14)
 				return Promise.resolve(this); // still active
 
+			/* istanbul ignore next */
 			this._debug("Game timed out:",
 						this.players.map(({ name }) => name));
 
@@ -754,7 +798,7 @@ define("game/Game", [
 							 cat.nextToGo = true;
 						 return cat;
 					 })))
-			.then(res => this.notifyPlayers(Notify.CONNECTIONS, res));
+			.then(res => this.notifyAllPlayers(Notify.CONNECTIONS, res));
 		}
 
 		/**
@@ -787,6 +831,7 @@ define("game/Game", [
 			}
 
 			if (this.timeLimit <= 0) {
+				/* istanbul ignore next */
 				this._debug(
 						`\tuntimed game, wait for ${player.name} to play`);
 				return Promise.resolve(this);
@@ -941,7 +986,7 @@ define("game/Game", [
 			// Really should save(), otherwise the ticks won't
 			// survive a server restart. However it's expensive, and server
 			// restarts are rare, so let's not.
-			this.notifyPlayers(
+			this.notifyAllPlayers(
 				Notify.TICK,
 				{
 					gameKey: this.key,
@@ -1012,7 +1057,7 @@ define("game/Game", [
 				this.notifyPlayer(player, Notify.MESSAGE, hint);
 				
 				// Tell *everyone* that they asked for a hint
-				this.notifyPlayers(Notify.MESSAGE, {
+				this.notifyAllPlayers(Notify.MESSAGE, {
 					sender: /*i18n*/"Advisor",
 					text: /*i18n*/"$1 asked for a hint",
 					classes: "warning",
@@ -1022,7 +1067,7 @@ define("game/Game", [
 			})
 			.catch(e => {
 				/* istanbul ignore next */
-				this.notifyPlayers(Notify.MESSAGE, {
+				this.notifyAllPlayers(Notify.MESSAGE, {
 					sender: /*i18n*/"Advisor",
 					text: e.toString(),
 					timestamp: Date.now()
@@ -1045,7 +1090,7 @@ define("game/Game", [
 						   : /*i18n*/"Disabled")
 				});
 			if (player.wantsAdvice)
-				this.notifyPlayers(Notify.MESSAGE, {
+				this.notifyAllPlayers(Notify.MESSAGE, {
 					sender: /*i18n*/"Advisor",
 					text: /*i18n*/"$1 has asked for advice from the robot",
 					classes: "warning",
@@ -1086,7 +1131,7 @@ define("game/Game", [
 								bestPlay.score ]
 					};
 					this.notifyPlayer(player, Notify.MESSAGE, advice);
-					this.notifyPlayers(Notify.MESSAGE, {
+					this.notifyOtherPlayers(player, Notify.MESSAGE, {
 						sender: /*i18n*/"Advisor",
 						text: /*i18n*/"$1 has received advice from the robot",
 						classes: "warning",
@@ -1094,6 +1139,7 @@ define("game/Game", [
 						timestamp: Date.now()
 					});
 				} else
+					/* istanbul ignore next */
 					this._debug(`No better plays found for ${player.name}`);
 			})
 			.catch(e => {
@@ -1112,9 +1158,6 @@ define("game/Game", [
 			/* istanbul ignore if */
 			if (player.key !== this.whosTurnKey)
 				return Promise.reject("Not your turn");
-
-			if (!(move instanceof Move))
-				move = new Move(move);
 
 			this._debug(move);
 			//console.log(`Player's rack is ${player.rack}`);
@@ -1309,7 +1352,7 @@ define("game/Game", [
 			this.stopTheClock();
 			this.pausedBy = player.name;
 			this._debug(`${this.pausedBy} has paused game`);
-			this.notifyPlayers(Notify.PAUSE, {
+			this.notifyAllPlayers(Notify.PAUSE, {
 				key: this.key,
 				name: player.name,
 				timestamp: Date.now()
@@ -1327,7 +1370,7 @@ define("game/Game", [
 			if (!this.pausedBy)
 				return Promise.resolve(this); // not paused
 			this._debug(`${player.name} has unpaused game`);
-			this.notifyPlayers(Notify.UNPAUSE, {
+			this.notifyAllPlayers(Notify.UNPAUSE, {
 				key: this.key,
 				name: player.name,
 				timestamp: Date.now()
@@ -1695,7 +1738,7 @@ define("game/Game", [
 				this._debug(`Created follow-on game ${newGame.key}`);
 				return newGame.save()
 				.then(() => newGame.playIfReady()) // trigger robot
-				.then(() => this.notifyPlayers(Notify.NEXT_GAME, {
+				.then(() => this.notifyAllPlayers(Notify.NEXT_GAME, {
 					gameKey: newGame.key,
 					timestamp: Date.now()
 				}))
@@ -1716,45 +1759,6 @@ define("game/Game", [
 			return $tab;
 		}
 	}
-
-	// Valid values for 'state'. Values are used in UI
-	Game.STATE_WAITING          = /*i18n*/"Waiting for players";
-	Game.STATE_PLAYING          = /*i18n*/"Playing";
-	Game.STATE_GAME_OVER        = /*i18n*/"Game over";
-	Game.STATE_2_PASSES         = /*i18n*/"All players passed twice";
-	Game.STATE_CHALLENGE_FAILED = /*i18n*/"Challenge failed";
-	Game.STATE_TIMED_OUT        = /*i18n*/"Timed out";
-
-	// Valid values for 'penaltyType'. Values are used in UI
-	Game.PENALTY_NONE     = /*i18n*/"No penalty";
-	Game.PENALTY_MISS     = /*i18n*/"Miss next turn";
-	Game.PENALTY_PER_TURN = /*i18n*/"Lose points";
-	Game.PENALTY_PER_WORD = /*i18n*/"Lose points per word";
-
-	// Failed challenge penalty options for UI
-	Game.PENALTIES = [
-		Game.PENALTY_PER_WORD, Game.PENALTY_PER_TURN,
-		Game.PENALTY_MISS, Game.PENALTY_NONE
-	];
-
-	// defaults
-	Game.PENALTY_TYPE   = Game.PENALTY_PER_WORD;
-	Game.PENALTY_POINTS = 5; // points per correct word challenged
-
-	// Timer types
-	Game.TIMERS = [ Player.TIMER_NONE, Player.TIMER_TURN, Player.TIMER_GAME ];
-
-	// Word check types
-	Game.WORD_CHECK_NONE   = /*i18n*/"Don't check words";
-	Game.WORD_CHECK_AFTER  = /*i18n*/"Check words after play";
-	Game.WORD_CHECK_REJECT = /*i18n*/"Reject unknown words";
-	Game.WORD_CHECKS = [
-		Game.WORD_CHECK_NONE, Game.WORD_CHECK_AFTER, Game.WORD_CHECK_REJECT
-	];
-	
-	// Classes used in Freeze/Thaw
-	Game.classes = [ LetterBag, Square, Board, Tile, Rack,
-					 Game, Player, Move, Turn ];
 
 	return Game;
 });

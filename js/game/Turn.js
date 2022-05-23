@@ -12,6 +12,17 @@ define("game/Turn", ["game/Move"], Move => {
 	 * results from commands sent to the server, such as challenges.
 	 */
 	class Turn extends Move {
+
+		/* Turn types */
+		static PLAY           = "play";
+		static SWAP           = "swap";
+		static GAME_OVER      = "game-over";
+		static CHALLENGE_LOST = "challenge-lost";
+		static CHALLENGE_WON  = "challenge-won";
+		static TOOK_BACK      = "took-back";
+		static PASSED         = "passed";
+		static TIMED_OUT      = "timed-out";
+		
 		/**
 		 * @param {Game} game the Game
 		 * @param {object} params parameters. Any field with the same name
@@ -77,15 +88,6 @@ define("game/Turn", ["game/Move"], Move => {
 				this.endState = params.endState;
 		}
 	}
-
-	Turn.PLAY           = "play";
-	Turn.SWAP           = "swap";
-	Turn.GAME_OVER      = "game-over";
-	Turn.CHALLENGE_LOST = "challenge-lost";
-	Turn.CHALLENGE_WON  = "challenge-won";
-	Turn.TOOK_BACK      = "took-back";
-	Turn.PASSED         = "passed";
-	Turn.TIMED_OUT      = "timed-out";
 
 	return Turn;
 });

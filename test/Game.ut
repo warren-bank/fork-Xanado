@@ -50,6 +50,8 @@ describe("Game - basic tests", () => {
 	const Assert = require("./Assert.js");
 	before(required => Assert.depend(required, deps));
 
+	function unit() {}
+
 	it("construct and simple", () => {
 		const p = {
 			edition:"English_Scrabble",
@@ -62,7 +64,7 @@ describe("Game - basic tests", () => {
 			allowTakeBack: true,
 			wordCheck: Game.WORD_CHECK_AFTER,
 			minPlayers: 5,
-			//_debug: console.debug,
+			//debug: console.debug,
 			maxPlayers: 10
 		};
 		let game;
@@ -110,7 +112,7 @@ describe("Game - basic tests", () => {
 	
 	it("basics", () => {
 		const p = {
-			//_debug: console.debug,
+			//debug: console.debug,
 			edition:"English_Scrabble",
 			dictionary:"Oxford_5000",
 			timerType: Player.TIMER_TURN,
@@ -160,7 +162,11 @@ describe("Game - basic tests", () => {
 			assert.equal(player.key, human2.key);
 			assert.equal(game.nextPlayer().key, human3.key);
 			assert.equal(game.previousPlayer().key, robot1.key);
+			assert.equal(game.previousPlayer(robot1).key, human3.key);
+			assert.equal(game.previousPlayer(human2.key).key, robot1.key);
 			assert.equal(game.nextPlayer().key, human3.key);
+			assert.equal(game.nextPlayer(robot1).key, human2.key);
+			assert.equal(game.nextPlayer(human2.key).key, human3.key);
 			assert.equal(game.winningScore(), 3);
 			assert.equal(game.getPlayerWithNoTiles().key, human3.key);
 			assert.equal(game.state, Game.STATE_WAITING);
@@ -204,7 +210,7 @@ describe("Game - basic tests", () => {
 
 	it("$html", () => {
 		const p = {
-			//_debug: console.debug,
+			//debug: console.debug,
 			edition:"English_Scrabble",
 			dictionary:"Oxford_5000",
 			timeLimit: 999,
@@ -276,7 +282,7 @@ describe("Game - basic tests", () => {
 
 	it("last move in game", () => {
 		const game = new Game({
-			//_debug: console.debug,
+			//debug: console.debug,
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true
@@ -362,7 +368,7 @@ describe("Game - basic tests", () => {
 	// Clear missed turn flag set after challenge failed
 	it("clear missed turn", () => {
 		const game = new Game({
-			//_debug: console.debug,
+			//debug: console.debug,
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true
@@ -405,7 +411,7 @@ describe("Game - basic tests", () => {
 
 	it("verify human play", () => {
 		const game = new Game({
-			//_debug: console.debug,
+			//debug: console.debug,
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
@@ -495,7 +501,12 @@ describe("Game - basic tests", () => {
 		return db.get("test_game", Game.classes)
 		.then(g => game = g)
 		.then(() => game.onLoad(this.db))
-		.then(() => game.hint(game.getPlayer()));
+		.then(() => game.hint(game.getPlayer()))
+		.then(() => {
+			const p = game.getPlayer();
+			p.rack.empty();
+			return game.hint(game.getPlayer());
+		});
 	});
 
 	it("advise", () => {

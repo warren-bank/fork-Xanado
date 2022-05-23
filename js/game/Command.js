@@ -5,14 +5,19 @@ and license information*/
 
 define("game/Command", () => {
 
-	return {
-		UNPAUSE: "unpause",
-		PAUSE: "pause",
-		CHALLENGE: "challenge",
-		PLAY: "play",
-		TAKE_BACK: "takeBack",
-		PASS: "pass",
-		GAME_OVER: "confirmGameOver",
-		SWAP: "swap"
+	/**
+	 * Commands recognised by the /command route in {@link Server}
+	 */
+	class Command {
+		static UNPAUSE   = "unpause";
+		static PAUSE     = "pause";
+		static CHALLENGE = "challenge";
+		static PLAY      = "play";
+		static TAKE_BACK = "takeBack";
+		static PASS      = "pass";
+		static GAME_OVER = "confirmGameOver";
+		static SWAP      = "swap";
 	};
+
+	return Command;
 });

@@ -19,58 +19,6 @@ define("browser/game", [
 ) => {
 
 	/**
-	 * Format a move score summary.
-	 * @param turn {Move|Turn} the turn or move being scored.
-	 * @param {boolean} hideScore true to elide the score
-	 * @private
-	 */
-	function formatScore(turn, hideScore) {
-		let sum = 0;
-		const $span = $("<span></span>");
-		for (let word of turn.words) {
-			$span
-			.append(` <span class="word">${word.word}</span>`);
-			if (!hideScore) {
-				$span
-				.append(` (<span class="word-score">${word.score}</span>)`);
-			}
-			sum += word.score;
-		}
-		// .score will always be a number after a move
-		if (!hideScore && turn.words.length > 1 || turn.score > sum) {
-			$span
-			.append(" ")
-			.append($.i18n("total $1", turn.score));
-		}
-		return $span;
-	}
-
-	/**
-	 * Append to the log pane. Messages are wrapped in a div, which
-	 * may have the optional css class.
-	 * @param {boolean} interactive false if we are replaying messages into
-	 * the log, true if this is an interactive response to a player action.
-	 * @param {(jQuery|string)} mess thing to add
-	 * @param {string?} optional css class name
-	 * @return {jQuery} the div created
-	 * @private
-	 */
-	function addToLog(interactive, mess, css) {
-		const $div = $("<div></div>").addClass("logEntry");
-		if (css)
-			$div.addClass(css);
-		$div.append(mess);
-		const $lm = $("#logMessages");
-		$lm.append($div);
-		if (interactive)
-			$lm.animate({
-				scrollTop: $("#logMessages").prop("scrollHeight")
-			}, 300);
-		return $div;
-	}
-
-
-	/**
 	 * User interface to a game in a browser. The Ui reflects the game state as
 	 * communicated from the server, through the exchange of various messages.
 	 */
@@ -135,6 +83,58 @@ define("browser/game", [
 			})
 			.then(() => super.decorate())
 			.catch(UI.report);
+		}
+
+		/**
+		 * Format a move score summary.
+		 * @param turn {Move|Turn} the turn or move being scored.
+		 * @param {boolean} hideScore true to elide the score
+		 * @return {jquery} the span containing the score
+		 * @private
+		 */
+		static $score(turn, hideScore) {
+			let sum = 0;
+			const $span = $("<span></span>");
+			for (let word of turn.words) {
+				$span
+				.append(` <span class="word">${word.word}</span>`);
+				if (!hideScore) {
+					$span
+					.append(` (<span class="word-score">${word.score}</span>)`);
+				}
+				sum += word.score;
+			}
+			// .score will always be a number after a move
+			if (!hideScore && turn.words.length > 1 || turn.score > sum) {
+				$span
+				.append(" ")
+				.append($.i18n("total $1", turn.score));
+			}
+			return $span;
+		}
+
+		/**
+		 * Append to the log pane. Messages are wrapped in a div, which
+		 * may have the optional css class.
+		 * @param {boolean} interactive false if we are replaying messages into
+		 * the log, true if this is an interactive response to a player action.
+		 * @param {(jQuery|string)} mess thing to add
+		 * @param {string?} optional css class name
+		 * @return {jQuery} the div created
+		 * @private
+		 */
+		static $log(interactive, mess, css) {
+			const $div = $("<div></div>").addClass("logEntry");
+			if (css)
+				$div.addClass(css);
+			$div.append(mess);
+			const $lm = $("#logMessages");
+			$lm.append($div);
+			if (interactive)
+				$lm.animate({
+					scrollTop: $("#logMessages").prop("scrollHeight")
+				}, 300);
+			return $div;
 		}
 
 		/**
@@ -203,7 +203,7 @@ define("browser/game", [
 				else
 					who = $.i18n("$1's", player.name);
 			}
-			addToLog(interactive, $.i18n(
+			GameUI.$log(interactive, $.i18n(
 				"<span class='player-name'>$1</span> $2", who, what),
 					 "turn-player");
 
@@ -233,7 +233,7 @@ define("browser/game", [
 			switch (turn.type) {
 
 			case Turn.PLAY:
-				turnText = formatScore(turn, false);
+				turnText = GameUI.$score(turn, false);
 				break;
 
 			case Turn.SWAP:
@@ -283,7 +283,7 @@ define("browser/game", [
 				throw Error(`Unknown move type ${turn.type}`);
 			}
 
-			addToLog(interactive, turnText, "turn-detail");
+			GameUI.$log(interactive, turnText, "turn-detail");
 
 			if (isLatestTurn
 				&& turn.emptyPlayerKey
@@ -291,11 +291,11 @@ define("browser/game", [
 				&& turn.type !== Turn.CHALLENGE_LOST
 				&& turn.type !== Turn.GAME_OVER) {
 				if (this.isThisPlayer(turn.emptyPlayerKey)) {
-					addToLog(interactive, $.i18n(
+					GameUI.$log(interactive, $.i18n(
 						"You have no more tiles, game will be over if your play isn't challenged"),
 						"turn-narrative");
 				} else
-					addToLog(interactive, $.i18n(
+					GameUI.$log(interactive, $.i18n(
 						"$1 has no more tiles, game will be over unless you challenge",
 						this.game.getPlayer(turn.emptyPlayerKey).name),
 							 "turn-narrative");
@@ -324,7 +324,7 @@ define("browser/game", [
 			// we just need to present the results.
 			const unplayed = game.players.reduce(
 				(sum, player) => sum + player.rack.score(), 0);
-			addToLog(interactive, $.i18n(turn.endState || Game.STATE_GAME_OVER),
+			GameUI.$log(interactive, $.i18n(turn.endState || Game.STATE_GAME_OVER),
 					 "game-state");
 			const $narrative = $("<div></div>").addClass("game-outcome");
 			game.players.forEach(player => {
@@ -383,9 +383,9 @@ define("browser/game", [
 				who = $.i18n("You");
 			else
 				nWinners = winners.length;
-			addToLog(interactive, $.i18n("$1 {{PLURAL:$2|has|have}} won",
+			GameUI.$log(interactive, $.i18n("$1 {{PLURAL:$2|has|have}} won",
 										 who, nWinners));
-			addToLog(interactive, $narrative);
+			GameUI.$log(interactive, $narrative);
 		}
 
 		/**
@@ -400,7 +400,7 @@ define("browser/game", [
 		 * message
 		 * @param {object[]} args i18n arguments
 		 */
-		handle_message(message) {
+		static handle_message(message) {
 			console.debug("--> message");
 			let args = [ message.text ];
 			if (typeof message.args === "string")
@@ -422,7 +422,7 @@ define("browser/game", [
 			$msg.text($.i18n.apply(null, args));
 			$mess.append($msg);
 
-			addToLog(true, $mess);
+			GameUI.$log(true, $mess);
 
 			// Special handling for Hint, highlight square
 			if (message.sender === "Advisor"
@@ -501,7 +501,7 @@ define("browser/game", [
 			this.enableTurnButton(true);
 			if (this.getSetting("warnings"))
 				this.playAudio("oops");
-			addToLog(true, $.i18n(
+			GameUI.$log(true, $.i18n(
 				"The word{{PLURAL:$1||s}} $2 {{PLURAL:$1|was|were}} not found in the dictionary",
 				rejection.words.length,
 				rejection.words.join(", ")), "turn-narrative");
@@ -510,7 +510,7 @@ define("browser/game", [
 		/**
 		 * Handle a keydown. These are captured in the root of the UI and dispatched here.
 		 */
-		handleKeydown(event) {
+		handle_keydown(event) {
 			// Only handle events targeted when the board is not
 			// locked, and ignore events targeting the chatInput.
 			// Checks for selection status are performed in
@@ -705,12 +705,12 @@ define("browser/game", [
 			const $board = game.board.$ui();
 			$("#board").append($board);
 
-			addToLog(true, $.i18n("Game started"), "game-state");
+			GameUI.$log(true, $.i18n("Game started"), "game-state");
 
 			game.turns.forEach(
 				(turn, i) => this.describeTurn(
 					turn, i === game.turns.length - 1), false);
-			addToLog(true, ""); // Force scroll to end of log
+			GameUI.$log(true, ""); // Force scroll to end of log
 
 			if (game.hasEnded()) {
 				if (game.nextGameKey)
@@ -819,7 +819,7 @@ define("browser/game", [
 			.on(Notify.NEXT_GAME,	params => this.handle_nextGame(params))
 
 			// A message has been sent
-			.on(Notify.MESSAGE, message => this.handle_message(message))
+			.on(Notify.MESSAGE, message => GameUI.handle_message(message))
 
 			// Attempted play has been rejected
 			.on(Notify.REJECT, params => this.handle_reject(params))
@@ -828,7 +828,7 @@ define("browser/game", [
 			.on(Notify.PAUSE, params => this.handle_pause(params))
 
 			// Game has been unpaused
-			.on(Notify.UNPAUSE, params => this.handle_unpause(params))
+			.on(Notify.UNPAUSE, params => GameUI.handle_unpause(params))
 
 			.on(Notify.JOIN, () => console.debug("--> join"));
 		}
@@ -871,10 +871,8 @@ define("browser/game", [
 		 * @param {string} params.key game key
 		 * @param {string} params.name name of player who paused/released
 		 */
-		handle_unpause(params) {
+		static handle_unpause(params) {
 			console.debug(`--> unpause ${params.name}`);
-			if (params.key !== this.game.key)
-				console.error(`key mismatch ${this.game.key}`);
 			$(".Surface .letter").removeClass("hidden");
 			$(".Surface .score").removeClass("hidden");
 			$("#pauseDialog")
@@ -923,7 +921,7 @@ define("browser/game", [
 				(e, source, square) => this.dropSquare(source, square))
 
 			// Keydown anywhere in the document
-			.on("keydown", event => this.handleKeydown(event));
+			.on("keydown", event => this.handle_keydown(event));
 		}
 
 		/**
@@ -953,7 +951,7 @@ define("browser/game", [
 				else
 					this.moveTypingCursor(0, 1);
 			} else
-				addToLog($.i18n("'$1' is not on the rack", letter));
+				GameUI.$log($.i18n("'$1' is not on the rack", letter));
 		}
 
 		/**
@@ -1230,7 +1228,7 @@ define("browser/game", [
 					this.enableTurnButton(false);
 				} else {
 					// Play is legal
-					$move.append(formatScore(move, !this.game.predictScore));
+					$move.append(GameUI.$score(move, !this.game.predictScore));
 					this.enableTurnButton(true);
 				}
 
@@ -1500,7 +1498,7 @@ define("browser/game", [
 				  .addClass("moveAction")
 				  .button()
 				  .on("click", () => this.challenge());
-			addToLog(true, $button, "turn-control");
+			GameUI.$log(true, $button, "turn-control");
 		}
 
 		/**
@@ -1514,7 +1512,7 @@ define("browser/game", [
 				  .text($.i18n("Take back"))
 				  .button()
 				  .on("click", () => this.takeBackMove());
-			addToLog($button, "turn-control");
+			GameUI.$log($button, "turn-control");
 		}
 
 		/**

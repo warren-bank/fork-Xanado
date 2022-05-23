@@ -4,10 +4,10 @@ and license information*/
 /* eslint-env amd */
 
 /**
- * Simple function to generate a 8-byte random hex key
+ * Common utilities used on browser and server side
  * @return {string}
  */
-define("common/Utils", () => {
+define("common/Utils", [ "platform" ], Platform => {
 
 	class Utils {
 
@@ -61,7 +61,7 @@ define("common/Utils", () => {
 			if (list.length == 1)
 				return list[0];
 
-			return $.i18n("$1 and $2",
+			return Platform.i18n("$1 and $2",
 							 list.slice(0, list.length - 1).join(", "),
 							 list[list.length - 1]);
 		}

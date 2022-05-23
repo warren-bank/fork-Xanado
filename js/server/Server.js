@@ -29,34 +29,27 @@ define("server/Server", [
 		constructor(config) {
 			this.config = config;
 
-			if (!config.defaults) {
-				config.defaults = {
-					edition: config.defaultEdition || "English_Scrabble",
-					dictionary: config.defaultDictionary
-					|| "CSW2019_English",
-					theme: "default",
-					warnings: true,
-					cheers: true,
-					tile_click: true,
-					turn_alert: true,
-					notification: true
-				};
-			}
+			/* istanbul ignore if */
+			if (!config.defaults)
+				throw new Error("No config.defaults, see example-config.json for requirements");
 
 			/* istanbul ignore if */
 			if (config.debug_server)
 				this._debug = console.debug;
 			else
 				this._debug = () => {};
-			config.defaults.canEmail = (typeof config.mail !== "undefined");
 
+			// Add a couple of dynamically computed defaults that need to
+			// be sent with /defaults
+			config.defaults.canEmail = (typeof config.mail !== "undefined");
 			config.defaults.notification = config.defaults.notification &&
 			(typeof config.https !== "undefined");
 
-			// Allow override of default /games path, primarily for
-			// testing. Path will be relative to requirejs.toUrl.
 			this.db = new Platform.Database(
-				config.games || "games", "game");
+				// Allow (undocumented) override of default /games
+				// database path, primarily for unit testing.
+				config.games || "games",
+				"game");
 
 			// Live games; map from game key to Game
 			this.games = {};
@@ -238,6 +231,7 @@ define("server/Server", [
 		 * or an array with i18n id and params.
 		 * @return whatever gets returned by `express.send`
 		 */
+		/* istanbul ignore next */
 		S00(res, mess) {
 			this._debug("<-- 500", mess);
 			return res.status(500).send(mess);
@@ -359,7 +353,7 @@ define("server/Server", [
 				else if (message.text === "advise")
 					socket.game.toggleAdvice(socket.player);
 				else
-					socket.game.notifyPlayers(Notify.MESSAGE, message);
+					socket.game.notifyAllPlayers(Notify.MESSAGE, message);
 			});
 		}
 

@@ -34,7 +34,7 @@ requirejs([
 
 	let db = new Platform.Database("test/games", "testgame");
 	let game = new Game({
-		//_debug: console.debug,
+		//debug: console.debug,
 		edition: "Tiny",
 		dictionary: "CSW2019_English"
 	});
