@@ -205,6 +205,55 @@ describe("Board class", () => {
 		});
 	});
 
+	it("analysePlay - disconnected", () => {
+		return Edition.load("Tiny")
+		.then(edition => {
+			let b = new Board(edition);
+			for (let r = 0; r < b.rows; r++)
+				for (let c = 0; c < b.cols; c++)
+					assert(!b.touchingOld(r, c));
+			const mr = Math.floor(b.rows / 2);
+			const mc = Math.floor(b.cols / 2);
+			
+			const W = new Tile({letter: "W", score:4});
+			const O = new Tile({letter: "O", score:1});
+			const R = new Tile({letter: "R", score:2, isBlank:true});
+			const D = new Tile({letter: "D", score:3});
+			
+			b.at(mr, mc).placeTile(W);
+			b.at(mr, mc+1).placeTile(O);
+			b.at(mr, mc+2).placeTile(R);
+			b.at(mr, mc+3).placeTile(D);
+
+			let move = b.analysePlay();
+			Assert.sparseEqual(move, {
+				words: [ { word: "WORD", score: 20 } ],
+				score: 35,
+				bonus: 0,
+				placements: [ W, O, R, D ]
+			});
+
+			// Clear the temp tiles
+			b.at(mr, mc).placeTile();
+			b.at(mr, mc+1).placeTile();
+			b.at(mr, mc+2).placeTile();
+			b.at(mr, mc+3).placeTile();
+
+			// Lock down the play
+			b.at(mr, mc).placeTile(W, true);
+			b.at(mr, mc+1).placeTile(O, true);
+			b.at(mr, mc+2).placeTile(R, true);
+			b.at(mr, mc+3).placeTile(D, true);
+
+			const S = new Tile({letter: "S", score: 1});
+
+			b.at(1, 1).placeTile(S);
+
+			move = b.analysePlay();
+			assert.equal(move, "Disconnected placement");
+		});
+	});
+
 	it("analyse first play - disconnected", () => {
 		return Edition.load("Tiny")
 		.then(edition => {

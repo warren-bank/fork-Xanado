@@ -296,6 +296,7 @@ define("game/Game", [
 			if (typeof params.debug === "function")
 				this._debug = params.debug;
 
+            /* istanbul ignore next */
 			this._debug("Constructing new game", params);
 
             this.key = Utils.genKey();
@@ -380,6 +381,7 @@ define("game/Game", [
 				throw Error("Cannot addPlayer() to a full game");			
 			this.players.push(player);
 			player.fillRack(this.letterBag, this.rackSize);
+            /* istanbul ignore next */
 			this._debug("Added", player);
 			player.debug = this._debug;
 			if (this.timerType !== Player.TIMER_NONE)
@@ -398,6 +400,7 @@ define("game/Game", [
 			if (index < 0)
 				throw Error(`No such player ${player.key} in ${this.key}`);
 			this.players.splice(index, 1);
+            /* istanbul ignore next */
 			this._debug(`${player.key} left ${this.key}`);
 		}
 
@@ -619,6 +622,7 @@ define("game/Game", [
 		 */
 		save() {
 			if (!this._db) return Promise.resolve(this);
+            /* istanbul ignore next */
 			this._debug(`Saving game ${this.key}`);
 			return this._db.set(this.key, this)
 			.then(() => this);
@@ -637,15 +641,18 @@ define("game/Game", [
 		 * @return {Promise} promise that resolves to the game
 		 */
 		playIfReady() {
+            /* istanbul ignore next */
 			this._debug(`playIfReady game=${this.key} state=${this.state}`);
 
 			if (this.hasEnded()) {
+                /* istanbul ignore next */
 				this._debug("\tgame is over");
 				return Promise.resolve(this);
 			}
 
 			// Check preconditions for starting the game
 			if (this.players.length < this.minPlayers) {
+                /* istanbul ignore next */
 				this._debug("\tnot enough players");
 				// Result is not used
 				return Promise.resolve(this);
@@ -655,9 +662,11 @@ define("game/Game", [
 			// shuffle the players, and pick a random tile from the bag.
 			// The shuffle can be suppressed for unit testing.
 			if (this.state === Game.STATE_WAITING) {
+                /* istanbul ignore next */
 				this._debug("\tpreconditions met");
 
 				if (this.players.length > 1 && !this._noPlayerShuffle) {
+                    /* istanbul ignore next */
 					this._debug("\tshuffling player order");
 					for (let i = this.players.length - 1; i > 0; i--) {
 						const j = Math.floor(Math.random() * (i + 1));
@@ -688,6 +697,7 @@ define("game/Game", [
 			if (nextPlayer.isRobot)
 				return this.startTurn(nextPlayer);
 
+            /* istanbul ignore next */
 			this._debug(`\twaiting for ${this.getPlayer().name} to play`);
 
 			return Promise.resolve(this);
@@ -702,6 +712,7 @@ define("game/Game", [
 		 * @param {Object} data to send with message
 		 */
 		notifyPlayer(player, message, data) {
+            /* istanbul ignore next */
 			this._debug(`<-S- ${player.key} ${message}`, data);
 			// Player may be connected several times
 			this._connections.forEach(
@@ -720,6 +731,7 @@ define("game/Game", [
 		 * @param {Object} data to send with message
 		 */
 		notifyAllPlayers(message, data) {
+            /* istanbul ignore next */
 			this._debug(`<-S- * ${message}`, data);
 			this._connections.forEach(socket => socket.emit(message, data));
 		}
@@ -732,6 +744,7 @@ define("game/Game", [
 		 * @param {Object} data to send with message
 		 */
 		notifyOtherPlayers(player, message, data) {
+            /* istanbul ignore next */
 			this._debug(`<-S- !${player.key} ${message}`, data);
 			// Player may be connected several times
 			this._connections.forEach(
@@ -835,6 +848,7 @@ define("game/Game", [
 			if (!this.players.find(p => p.passes < 2))
 				return this.confirmGameOver(Game.STATE_2_PASSES);
 
+            /* istanbul ignore next */
 			this._debug(`startTurn ${player.name}'s turn`);
 
 			this.whosTurnKey = player.key;
@@ -855,6 +869,7 @@ define("game/Game", [
 
 			// For a timed game, make sure the clock is running and
 			// start the player's timer.
+            /* istanbul ignore next */
 			this._debug(`\ttimed game, ${player.name} has ${timeout || this.timeLimit}s left to play`);
 			this.startTheClock(); // does nothing if already started
 
@@ -930,6 +945,7 @@ define("game/Game", [
 							this.key);
 			} else if (player) {
 				// This player is just connecting, perhaps for the first time.
+                /* istanbul ignore next */
 				this._debug(`${player.name} connected to ${this.key}`);
 			}
 
@@ -940,6 +956,7 @@ define("game/Game", [
 			socket.player = player;
 
 			this._connections.push(socket);
+            /* istanbul ignore next */
 			this._debug(player ? `${player} connected` : "'Anonymous' connected");
 
 			// Tell players that the player is connected
@@ -948,6 +965,7 @@ define("game/Game", [
 			// Add disconnect listener
 			/* istanbul ignore next */
 			socket.on("disconnect", () => {
+                /* istanbul ignore next */
 				this._debug(socket.player
 							? `${socket.player.toString()} disconnected`
 							: "'Anonymous' disconnected");
@@ -1017,6 +1035,7 @@ define("game/Game", [
 		 */
 		startTheClock() {
 			if (!this._intervalTimer && this.timerType !== Player.TIMER_NONE) {
+                /* istanbul ignore next */
 				this._debug(`Started the clock`);
 				// Broadcast a ping every second
 				this._intervalTimer = setInterval(() => this.tick(), 1000);
@@ -1029,6 +1048,7 @@ define("game/Game", [
 		 */
 		stopTheClock() {
 			if (this._intervalTimer) {
+                /* istanbul ignore next */
 				this._debug("Stopped the clock");
 				clearInterval(this._intervalTimer);
 				this._intervalTimer = null;
@@ -1042,12 +1062,14 @@ define("game/Game", [
 		 * @param {Player} player to get a hint for
 		 */
 		hint(player) {
+            /* istanbul ignore next */
 			this._debug(`Player ${player.name} asked for a hint`);
 
 			let bestPlay = null;
 			Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
 					if (typeof data === "string")
+                        /* istanbul ignore next */
 						this._debug(data);
 					else
 						bestPlay = data;
@@ -1059,6 +1081,7 @@ define("game/Game", [
 				if (!bestPlay)
 					hint.text = /*i18n*/"Can't find a play";
 				else {
+                    /* istanbul ignore next */
 					this._debug(bestPlay);
 					const start = bestPlay.placements[0];
 					hint.text = /*i18n*/"Hint";
@@ -1121,6 +1144,7 @@ define("game/Game", [
 		 * @param {number} theirScore score they got from their play
 		 */
 		advise(player, theirScore) {
+            /* istanbul ignore next */
 			this._debug(`Computing advice for ${player.name} > ${theirScore}`,
 						player.rack.tiles().map(t => t.letter),
 						this.board.toString());
@@ -1129,13 +1153,16 @@ define("game/Game", [
 			Platform.findBestPlay(
 				this, player.rack.tiles(), data => {
 					if (typeof data === "string")
+                        /* istanbul ignore next */
 						this._debug(data);
 					else
 						bestPlay = data;
 				}, this.dictpath, this.dictionary)
 			.then(() => {
 				//console.log("Incoming",bestPlay);
+                /* istanbul ignore else */
 				if (bestPlay && bestPlay.score > theirScore) {
+                    /* istanbul ignore next */
 					this._debug(`Better play found for ${player.name}`);
 					const start = bestPlay.placements[0];
 					const words = bestPlay.words.map(w => w.word).join(",");
@@ -1154,7 +1181,6 @@ define("game/Game", [
 						timestamp: Date.now()
 					});
 				} else
-					/* istanbul ignore next */
 					this._debug(`No better plays found for ${player.name}`);
 			})
 			.catch(e => {
@@ -1176,6 +1202,7 @@ define("game/Game", [
 			if (player.key !== this.whosTurnKey)
 				return Promise.reject("Not your turn");
 
+            /* istanbul ignore next */
 			this._debug(move);
 			//console.log(`Player's rack is ${player.rack}`);
 
@@ -1183,6 +1210,7 @@ define("game/Game", [
 				&& !this.isRobot
 				&& this.wordCheck === Game.WORD_CHECK_REJECT) {
 
+                /* istanbul ignore next */
 				this._debug("Validating play");
 
 				// Check the play in the dictionary, and generate a
@@ -1198,6 +1226,7 @@ define("game/Game", [
 					}
 				});
 				if (badWords.length > 0) {
+                    /* istanbul ignore next */
 					this._debug("\trejecting", badWords);
 					// Reject the play. Nothing has been done to the
 					// game state yet, so we can just ping the
@@ -1240,6 +1269,7 @@ define("game/Game", [
 				}
 			}
 
+            /* istanbul ignore next */
 			this._debug("New rack", player.rack.toString());
 
 			//console.debug("words ", move.words);
@@ -1252,6 +1282,7 @@ define("game/Game", [
 				this.getDictionary()
 				.then(dict => {
 					for (let w of move.words) {
+                        /* istanbul ignore next */
 						this._debug("Checking ",w);
 						if (!dict.hasWord(w.word)) {
 							// Only want to notify the player
@@ -1290,6 +1321,7 @@ define("game/Game", [
 		 */
 		autoplay() {
 			const player = this.getPlayer();
+            /* istanbul ignore next */
 			this._debug(`Autoplaying ${player.name}`);
 
 			// Before making a robot move, consider challenging the last
@@ -1312,7 +1344,9 @@ define("game/Game", [
 							  .filter(word => !dict.hasWord(word.word));
 						if (bad.length > 0) {
 							// Challenge succeeded
+                            /* istanbul ignore next */
 							this._debug(`Challenging ${lastPlayer.name}`);
+                            /* istanbul ignore next */
 							this._debug(`Bad Words: `, bad);
 							return this.takeBack(player, Turn.CHALLENGE_WON)
 							.then(() => true);
@@ -1342,9 +1376,11 @@ define("game/Game", [
 					this, player.rack.tiles(),
 					data => {
 						if (typeof data === "string")
+                            /* istanbul ignore next */
 							this._debug(data);
 						else {
 							bestPlay = data;
+                            /* istanbul ignore next */
 							this._debug("Best", bestPlay);
 						}
 					}, this.dictpath, player.dictionary)
@@ -1352,6 +1388,7 @@ define("game/Game", [
 					if (bestPlay)
 						return this.play(player, bestPlay);
 
+                    /* istanbul ignore next */
 					this._debug(`${player.name} can't play, passing`);
 					return this.pass(player);
 				});
@@ -1368,6 +1405,7 @@ define("game/Game", [
 				return Promise.resolve(this); // already paused
 			this.stopTheClock();
 			this.pausedBy = player.name;
+            /* istanbul ignore next */
 			this._debug(`${this.pausedBy} has paused game`);
 			this.notifyAllPlayers(Notify.PAUSE, {
 				key: this.key,
@@ -1386,6 +1424,7 @@ define("game/Game", [
 			/* istanbul ignore if */
 			if (!this.pausedBy)
 				return Promise.resolve(this); // not paused
+            /* istanbul ignore next */
 			this._debug(`${player.name} has unpaused game`);
 			this.notifyAllPlayers(Notify.UNPAUSE, {
 				key: this.key,
@@ -1410,6 +1449,7 @@ define("game/Game", [
 		confirmGameOver(endState) {
 			this.state = endState || Game.STATE_GAME_OVER;
 
+            /* istanbul ignore next */
 			this._debug(`Confirming game over because ${endState}`);
 			this.stopTheClock();
 
@@ -1433,11 +1473,13 @@ define("game/Game", [
 					player.score -= rackScore;
 					deltas[player.key].tiles -= rackScore;
 					pointsRemainingOnRacks += rackScore;
+                    /* istanbul ignore next */
 					this._debug(`${player.name} has ${rackScore} left`);
 				} 
 				if (this.timerType === Player.TIMER_GAME && player.clock < 0) {
 					const points = Math.round(
 						player.clock * this.timePenalty / 60);
+                    /* istanbul ignore next */
 					this._debug(player.name, "over by", player.clock,
 							   "time penalty", player.clock * this.timePenalty / 60, "=", points);
 					if (Math.abs(points) > 0)
@@ -1448,6 +1490,7 @@ define("game/Game", [
 			if (playerWithNoTiles) {
 				playerWithNoTiles.score += pointsRemainingOnRacks;
 				deltas[playerWithNoTiles.key].tiles = pointsRemainingOnRacks;
+                /* istanbul ignore next */
 				this._debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
 			}
 			const turn = new Turn(this, {
@@ -1573,18 +1616,19 @@ define("game/Game", [
 				return Promise.reject("Cannot challenge your own play");
 
 			return this.getDictionary()
-			.catch(() => {
+			.catch(
 				/* istanbul ignore next */
-				this._debug("No dictionary, so challenge always succeeds");
-				/* istanbul ignore next */
-				return this.takeBack(challenger, Turn.CHALLENGE_WON);
-			})
+                () => {
+				    this._debug("No dictionary, so challenge always succeeds");
+				    return this.takeBack(challenger, Turn.CHALLENGE_WON);
+			    })
 			.then(dict => {
 				const bad = previousMove.words
 					  .filter(word => !dict.hasWord(word.word));
 
 				if (bad.length > 0) {
 					// Challenge succeeded
+                    /* istanbul ignore next */
 					this._debug("Bad Words: ", bad);
 
 					// Take back the challenged play. Irrespective of
@@ -1735,6 +1779,7 @@ define("game/Game", [
 			if (this.nextGameKey)
 				return Promise.reject("Next game already exists");
 
+            /* istanbul ignore next */
 			this._debug(`Create game to follow ${this.key}`);
 			const newGame = new Game(this);
 
@@ -1752,6 +1797,7 @@ define("game/Game", [
 				// Players will be shuffled in playIfReady
 				newGame.whosTurnKey = undefined;
 
+                /* istanbul ignore next */
 				this._debug(`Created follow-on game ${newGame.key}`);
 				return newGame.save()
 				.then(() => newGame.playIfReady()) // trigger robot

@@ -156,7 +156,7 @@ describe("UserManager class", () => {
 	});
 
 	it("login / logout", () => {
-		let server;
+		let server, cookie;
 		return reset()
 		.then(s => server = s)
 		.then(() => register(server, {
@@ -164,6 +164,8 @@ describe("UserManager class", () => {
 			register_password: "test_pass",
 			register_email: "test@email.com"
 		}))
+
+        // Wrong password
 		.then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.post("/login")
@@ -176,12 +178,42 @@ describe("UserManager class", () => {
 				resolve();
 			});
 		}))
+
+        // Right password
 		.then(() => login(server, {
 			login_username: "test_user", login_password: "test_pass"
 		}))
-		.then(session_cookie => {
-			assert(session_cookie);
-		});
+		.then(c => cookie = c)
+
+        // Logout
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/logout")
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				assert.equal(res.status, 200);
+				resolve();
+			});
+		}))
+
+        // User with null password
+		.then(() => register(server, {
+			register_username: "test2_user",
+			register_email: "test2@email.com"
+		}))
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/login")
+			.send({
+				login_username: "test2_user",
+				login_password: "wrong_pass"
+			})
+			.end((err, res) => {
+				assert.equal(res.status, 401);
+				resolve();
+			});
+		}))
+		.then(() => login(server, { login_username: "test2_user" }));
 	});
 
 	it("logged in /session-settings and /session", () => {
@@ -386,10 +418,6 @@ describe("UserManager class", () => {
 				assert.equal(res.status, 401);
 				resolve();
 			});
-		}))
-		.then(() => login(server, {
-			login_username: "test_user",
-			login_password: "wtf"
-		}));
-	});
+	    }));
+    });
 });

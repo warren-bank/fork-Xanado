@@ -251,6 +251,7 @@ define("server/UserManager", [
 			this._debug("passportLogin ", uo.name, uo.key);
 			return new Promise(resolve => {
 				req.login(uo, e => {
+                    /* istanbul ignore if */
 					if (e) throw e;
 					this._debug(uo.name, uo.key, "logged in");
 					resolve(uo);

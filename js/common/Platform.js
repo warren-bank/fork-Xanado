@@ -18,6 +18,7 @@ define("common/Platform", () => {
 		 * relevant to this DB from other data that may be co-located
 		 * @abstract
 		 */
+        /* istanbul ignore next */
 		constructor(id, type) {}
 		
 		/**
@@ -25,6 +26,7 @@ define("common/Platform", () => {
 		 * @return {Promise} resolves to a `string[]` list of key names
 		 * @abstract
 		 */
+        /* istanbul ignore next */
 		keys() {}
 
 		/**
@@ -34,6 +36,7 @@ define("common/Platform", () => {
 		 * @return {Promise} resolves to undefined
 		 * @abstract
 		 */
+        /* istanbul ignore next */
 		set(key, data) {}
 
 		/**
@@ -44,6 +47,7 @@ define("common/Platform", () => {
 		 * @return {Promise} resolves to the key value
 		 * @abstract
 		 */
+        /* istanbul ignore next */
 		get(key, classes) {}
 
 		/**
@@ -52,6 +56,7 @@ define("common/Platform", () => {
 		 * @return {Promise} resolves to undefined
 		 * @abstract
 		 */
+        /* istanbul ignore next */
 		rm(key) {}
 	}
 

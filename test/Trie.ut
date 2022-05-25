@@ -27,7 +27,7 @@ describe("Trie class", () => {
 	const Assert = require("./Assert.js");
 	before(required => Assert.depend(required, deps));
 
-    it("optimises", () => {
+    it("tries", () => {
         const lexicon = [
             "A",
             "AB",
@@ -43,7 +43,43 @@ describe("Trie class", () => {
         assert.equal(trie.numberOfWords, 8);
         assert.equal(trie.numberOfNodes, 12);
         assert(!trie.first.next);
-        assert(!trie.first.next);
+
+        const A = trie.first.child; assert.equal(A.letter, "A");
+        const B = trie.first.child.next; assert.equal(B.letter, "B");
+        const X = B.next; assert.equal(X.letter, "X");
+
+        assert(A.sameSubtrie(A));
+        
+        const AB = A.child;
+        const BA = B.child;
+        const BB = BA.next;
+        assert(AB.sameSubtrie(BB));
+
+        const XA = X.child;
+        assert(!XA.sameSubtrie(BA));
+
+        trie.addWord("ABZ");
+        assert(!AB.sameSubtrie(BB));
+
+        trie.addWord("ABA");
+    });
+
+    it("optimises", () => {
+        const lexicon = [
+            "A",
+            "AB",
+            "ABC",
+            "BAB",
+            "BB",
+            "BBC",
+            "XAB",
+            "XABC"
+        ];
+        // Generate a Trie from the lexicon
+		const trie = new Trie(lexicon);//, console.debug);
+        assert.equal(trie.numberOfWords, 8);
+        assert.equal(trie.numberOfNodes, 12);
+
         let words = [];
         trie.eachWord(nodes => {
             words.push(nodes.map(n => n.letter).filter(l => l !== -1).join(""));
