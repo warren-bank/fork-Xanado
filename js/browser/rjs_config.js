@@ -36,8 +36,7 @@ requirejs.config({
 
 		cookie: '/node_modules/jquery.cookie/jquery.cookie',
 
-		pluralRuleParser:
-		'/js/browser/cldrpluralruleparser',
+		cldrpluralruleparser: '/node_modules/cldrpluralruleparser/dist/cldrpluralruleparser',
 
 		browser: '/js/browser',
 		common: "/js/common",

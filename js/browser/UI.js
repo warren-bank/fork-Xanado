@@ -14,7 +14,7 @@ define("browser/UI", [
 	"i18n_language",
 	"i18n_messagestore",
 	"i18n_parser",
-	"pluralRuleParser"
+    "cldrpluralruleparser"
 ], (
 	io, Dialog
 ) => {
