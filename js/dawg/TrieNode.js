@@ -3,32 +3,90 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, node */
 
-define("dawg/TrieNode", () => {
-
-	// Second integer of node tuple is encoded
-	const END_OF_WORD_BIT_MASK = 0x1;
-	const END_OF_LIST_BIT_MASK = 0x2;
-	const CHILD_INDEX_SHIFT = 2;
+define("dawg/TrieNode", [ "dawg/LetterNode" ], LetterNode => {
 
 	let nodeIds = 0;
 
 	/**
 	 * A Trie/DAWG node.
-	 * Represents a letter in a set of words.
-	 * It has pointers to a child list representing the next letters that can
-	 * follow this letter, and a next pointer to the next alternative to this
-	 * letter in the child list of it's parent node.
-	 * Note this is only used while generating a DAWG from a lexicon. TrieNodes
-	 * are serialised using the above structure but are then rebuilt using
+	 * Represents a letter in a set of words.  It has pointers to a
+	 * child list representing the next letters that can follow this
+	 * letter, and a next pointer to the next alternative to this
+	 * letter in the child list of it's parent node.  Note this is
+	 * only used while generating a DAWG from a lexicon. TrieNodes are
+	 * serialised using the above structure but are then rebuilt using
 	 * {@link LetterNode}s at the sharp end.
 	 */
 	class TrieNode {
+        /**
+         * The letter at this node
+         * @member {string}
+         */
+        letter = undefined;
+
+        /**
+         * Unique ID for this node, purely used for debugging
+         * @member {number}
+         */
+        id = -1;
+
+        /**
+         * Pointer to the next alternative to this letter
+         * @member {TrieNode}
+         */
+        next = null;
+
+        /**
+         * Pointer to the first next letter if this letter is matched
+         * @member {TrieNode}
+         */
+        child = null;
+
+        /**
+         * Marker for a valid end-of-word node
+         * @member {boolean}
+         */
+        isEndOfWord = false;
+
+        /**
+         * Marker for the first child under a parent node
+         * @member {boolean}
+         */
+        isFirstChild = false;
+
+        /**
+         * Will be set if the node is to be pruned after DAWG generation
+         * @member {boolean}
+         */
+        isPruned = false;
+
+        /**
+         * Maximum number of nodes under this node (iei remaining length
+         * of the longest word this node partiipates in)
+         * @member {number}
+         */
+        maxChildDepth = 0;
+        
+        /**
+         * Number of child nodes under this node - used for optimisation
+         * @member {number}
+         */
+        numberOfChildren = 0;
+
+        /**
+         * Index of the node in the encoded DAWG, assigned when the
+         * encoding is generated
+         * @member {number}
+         */
+        index = -1;
+        
 		/**
 		 * @param {string} letter codepoint
 		 * @param {TrieNode} next next node pointer
 		 * @param {boolean} isWordEnding true if this is an end-of-word node
-		 * @param {number} starterDepth The maximum depth below this node before the
-		 * end-of-word is reached, for the first word added
+		 * @param {number} starterDepth The maximum depth below this
+		 * node before the end-of-word is reached, for the first word
+		 * added
 		 * @param {boolean} isFirstChild is the first child of the parent node
 		 */
 		constructor(letter, next, isWordEnding, starterDepth, isFirstChild) {
@@ -37,29 +95,29 @@ define("dawg/TrieNode", () => {
 			this.isEndOfWord = isWordEnding;
 			this.maxChildDepth = starterDepth;
 			this.isFirstChild = isFirstChild;
-
-			// first child node
-			this.child = null;
-
-			// optimisation for comparison
-			this.numberOfChildren = 0;
-			// will be set true if the node is to be pruned
-			this.isPruned = false;
-			// not assigned yet
-			this.index = -1;
-
 			this.id = nodeIds++;
 		}
 
-		toString() {
+        /**
+         * Debug
+         * @param {boolean} deeply true to expand child nodes
+         */
+        /* istanbul ignore next */
+		toString(deeply) {
 			let simpler = `{${this.id} ${this.letter}`;
 
 			if (this.isEndOfWord)
 				simpler += ".";
-			if (this.child)
+			if (this.child) {
 				simpler += "+";
-			if (this.next)
+                if (deeply)
+                    simpler += this.child.toString(deeply);
+            }
+			if (this.next) {
 				simpler += "-";
+                if (deeply)
+                    simpler += this.next.toString(deeply);
+            }
 
 			return `${simpler}}`;
 		}
@@ -72,7 +130,7 @@ define("dawg/TrieNode", () => {
 		prune() {
 			if (this.isPruned)
 				return 0;
-			//console.log(`Prune ${this}`);
+			//console.debug(`Pruning ${this}`);
 			this.isPruned = true;
 
 			let result = 0;
@@ -92,9 +150,10 @@ define("dawg/TrieNode", () => {
 
 		/**
 		 * Depth-first tree walk. Will visit ends of words in
-		 * sorted order. Caution; this is NOT the same as dawg/Node.eachWord.
+		 * sorted order.
 		 * @param {TrieNode[]} nodes list of nodes visited to create the word
 		 * @param {TrieNode~wordCallback} cb callback function
+         * @private
 		 */
 		eachWord(nodes, cb) {
 
@@ -111,6 +170,14 @@ define("dawg/TrieNode", () => {
 			if (this.next)
 				this.next.eachWord(nodes, cb);
 		}
+
+        eachNode(cb) {
+            cb(this);
+            if (this.next)
+                this.next.eachNode(cb);
+            if (this.child)
+                this.child.eachNode(cb);
+        }
 
 		/**
 		 * Search along this's child next chain for a node with the 
@@ -203,6 +270,7 @@ define("dawg/TrieNode", () => {
 		 * Trie.
 		 * @param {TrieNode[][]} red reduction structure
 		 * @return {TrieNode}
+         * @private
 		 */
 		findSameSubtrie(red) {
 			//return red[this.maxChildDepth].find(n => this.sameSubtrie(n));
@@ -210,6 +278,7 @@ define("dawg/TrieNode", () => {
 			for (x = 0; x < red[this.maxChildDepth].length; x++)
 				if (this.sameSubtrie(red[this.maxChildDepth][x]))
 					break;
+            /* istanbul ignore if */
 			if (red[this.maxChildDepth][x].isPruned)
 				throw Error("Same subtrie equivalent is pruned!");
 			return red[this.maxChildDepth][x];
@@ -230,11 +299,12 @@ define("dawg/TrieNode", () => {
 			let trimmed = 0;
 			if (this.child) {
 				if (this.child.isPruned) {
-					//console.log(`Trimming ${this.child}`);
+					//console.debug(`Trimming ${this.child}`);
 					// we have found a node that has been tagged for
 					// as pruned, so let us replace it with its first
 					// equivalent which isn't tagged.
 					this.child = this.child.findSameSubtrie(red);
+                    /* istanbul ignore if */
 					if (this.child === null)
 						throw Error("Something horrible");
 					trimmed++;
@@ -255,18 +325,19 @@ define("dawg/TrieNode", () => {
 		/**
 		 * Encode the node in a pair of integers. Requires node indices to have
 		 * been established.
-		 * @param {number[]} array array to accept the encoding
+		 * @return {number[]} array with the 2-integer encoding
 		 */
-		encode(array) {
-			array.push(this.letter.codePointAt(0));
+		encode() {
+			const array = [ this.letter.codePointAt(0) ];
 			let numb = 0;
 			if (this.child)
-				numb |= (this.child.index << CHILD_INDEX_SHIFT);
+				numb |= (this.child.index << LetterNode.CHILD_INDEX_SHIFT);
 			if (this.isEndOfWord)
-				numb |= END_OF_WORD_BIT_MASK;
+				numb |= LetterNode.END_OF_WORD_BIT_MASK;
 			if (!this.next)
-				numb |= END_OF_LIST_BIT_MASK;
+				numb |= LetterNode.END_OF_LIST_BIT_MASK;
 			array.push(numb);
+            return array;
 		}
 	}
 

@@ -1,0 +1,75 @@
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information*/
+/* eslint-env node, mocha */
+
+if (typeof requirejs === 'undefined') {
+    requirejs = require('requirejs');
+    // node.js
+}
+
+requirejs.config({
+    baseUrl: `${__dirname}/..`,
+    paths: {
+        'common': 'js/common',
+        'dawg': 'js/dawg',
+        'platform': 'js/server/ServerPlatform'
+    }
+});
+
+describe("Trie class", () => {
+
+	const deps = [
+        { Trie: "dawg/Trie" },
+        { Dictionary: "dawg/Dictionary" }
+	];
+
+	const Assert = require("./Assert.js");
+	before(required => Assert.depend(required, deps));
+
+    it("optimises", () => {
+        const lexicon = [
+            "A",
+            "AB",
+            "ABC",
+            "BAB",
+            "BB",
+            "BBC",
+            "XAB",
+            "XABC"
+        ];
+        // Generate a Trie from the lexicon
+		const trie = new Trie(lexicon);//, console.debug);
+        assert.equal(trie.numberOfWords, 8);
+        assert.equal(trie.numberOfNodes, 12);
+        assert(!trie.first.next);
+        assert(!trie.first.next);
+        let words = [];
+        trie.eachWord(nodes => {
+            words.push(nodes.map(n => n.letter).filter(l => l !== -1).join(""));
+        });
+        assert.deepEqual(words, lexicon);
+
+        const e = trie.encode();
+        const before = new Dictionary("before").loadDAWG(e);
+        const beforeWords = [];
+        before.eachWord(word => beforeWords.push(word));
+        assert.deepEqual(beforeWords, lexicon);
+
+        trie.generateDAWG();
+
+        words = [];
+        trie.eachWord(nodes => {
+            words.push(nodes.map(n => n.letter).filter(l => l !== -1).join(""));
+        });
+        assert.deepEqual(words, lexicon);
+        assert.equal(trie.numberOfWords, 8);
+        //console.log(trie.first.toString(true));
+        assert.equal(trie.numberOfNodes, 9);
+
+        const after = new Dictionary("after").loadDAWG(trie.encode());
+        const afterWords = [];
+        after.eachWord(word => afterWords.push(word));
+        assert.deepEqual(afterWords, lexicon);
+    });
+});

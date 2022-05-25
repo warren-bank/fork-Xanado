@@ -57,25 +57,14 @@ requirejs(["fs", "node-gzip", "dawg/Trie"], (fs, Gzip, Trie) => {
 			  .sort();
 
 		// First step; generate a Trie from the words in the lexicon
-		const trie = new Trie(lexicon);
+		const trie = new Trie(lexicon, console.debug);
 
-		// Second step; generate a graph from the tree
+		// Second step; generate a DAWG from the Trie
 		trie.generateDAWG();
 		
-		// We have a DAWG. We could output it now like this:
-		//console.log(JSON.stringify(trie.first.simplify(), null, " "));
-
-		// Instead we want to generate an integer array for use with Dictionary
-		const dawg = trie.encodeDAWG();
-
-		// Pack the array of encoded integers into an ArrayBuffer
-		const buffer = new ArrayBuffer(dawg.length * 4);
+		// Generate an integer array for use with Dictionary
+		const buffer = trie.encode();
 		const dv = new DataView(buffer);
-		for (let i = 0; i < dawg.length; i++) {
-			dv.setUint32(i * 4, dawg[i]); // Little endian
-		}
-		console.log(`Uncompressed ${dawg.length * 4} bytes`);
-
 		const z = await Gzip.gzip(dv);
 		console.log(`Compressed ${z.length} bytes`);
 
