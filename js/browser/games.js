@@ -378,8 +378,7 @@ requirejs([
 							content: $.i18n("tooltip-invite-players")
 						})
 						.on("click", () => Dialog.open("InvitePlayersDialog", {
-							gameKey: game.key,
-							postAction: "/invitePlayers",
+							postAction: `/invitePlayers/${game.key}`,
 							postResult: names => {
 								$('#alertDialog')
 								.text($.i18n("Invited $1", names.join(", ")))

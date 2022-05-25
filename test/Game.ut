@@ -48,7 +48,8 @@ describe("Game - basic tests", () => {
 	];
 
 	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	before(required =>
+           Assert.depend(() => Platform.i18n().load("qqq").then(required), deps));
 
 	function unit() {}
 
@@ -228,7 +229,9 @@ describe("Game - basic tests", () => {
 		const game = new Game(p);
 
 		const socket = new TestSocket();
-		return game.create()
+
+        return Platform.i18n().load("qqq")
+		.then(() => game.create())
 		.then(game => {
 			game.addPlayer(human1);
 			game.addPlayer(robot1);

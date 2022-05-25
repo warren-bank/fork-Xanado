@@ -78,10 +78,12 @@ define("server/Server", [
 			// html, images, css etc. The Content-type should be set
 			// based on the file mime type (extension) but Express doesn't
 			// always get it right.....
+			/* istanbul ignore next */
 			this._debug(`static files from ${staticRoot}`);
 			this.express.use(Express.static(staticRoot));
 
 			this.express.use((req, res, next) => {
+			    /* istanbul ignore next */
 				this._debug(`--> ${req.method} ${req.url}`);
 				next();
 			});
@@ -154,7 +156,7 @@ define("server/Server", [
 						   (req, res) => this.request_createGame(req, res));
 
 			// Invite players by email. Invoked from games.js
-			cmdRouter.post("/invitePlayers",
+			cmdRouter.post("/invitePlayers/:gameKey",
 						   (req, res, next) =>
 						   this.userManager.checkLoggedIn(req, res, next),
 						   (req, res) => this.request_invitePlayers(req, res));
@@ -233,6 +235,7 @@ define("server/Server", [
 		 */
 		/* istanbul ignore next */
 		S00(res, mess) {
+			/* istanbul ignore next */
 			this._debug("<-- 500", mess);
 			return res.status(500).send(mess);
 		}
@@ -248,6 +251,7 @@ define("server/Server", [
 		trap(e, req, res) {
 			if (typeof e === "object" && e.code === "ENOENT") {
 				// Special case of a database file load failure
+			    /* istanbul ignore next */
 				this._debug(`<-- 404 ${req.url}`, e);
 				return res.status(404).send([
 					"Database file load failed", req.url, e]);
@@ -300,11 +304,13 @@ define("server/Server", [
 
 			.on("connect", sk => {
 				// Player or monitor connecting
+			    /* istanbul ignore next */
 				this._debug("-S-> connect");
 				this.updateObservers();
 			})
 
 			.on("disconnect", sk => {
+			    /* istanbul ignore next */
 				this._debug("-S-> disconnect");
 
 				// Don't need to refresh players using this socket, because
@@ -316,22 +322,25 @@ define("server/Server", [
 				const i = this.monitors.indexOf(socket);
 				if (i >= 0) {
 					// Game monitor has disconnected
+			        /* istanbul ignore next */
 					this._debug("\tmonitor disconnected");
 					this.monitors.slice(i, 1);
-				} else {
+				} else
+			        /* istanbul ignore next */
 					this._debug("\tanonymous disconnect");
-				}
 				this.updateObservers();
 			})
 
 			.on(Notify.MONITOR, () => {
 				// Games monitor has joined
+			    /* istanbul ignore next */
 				this._debug("-S-> monitor");
 				this.monitors.push(socket);
 			})
 
 			.on(Notify.JOIN, params => {
 				// Player joining
+			    /* istanbul ignore next */
 				this._debug(`-S-> join ${params.playerKey} joining ${params.gameKey}`);
 				this.loadGame(params.gameKey)
 				.then(game => {
@@ -346,6 +355,7 @@ define("server/Server", [
 			.on(Notify.MESSAGE, message => {
 
 				// Chat message
+			    /* istanbul ignore next */
 				this._debug(`-S-> message ${message}`);
                 let m;
 				if (message.text === "hint")
@@ -387,6 +397,7 @@ define("server/Server", [
 		 * to montors.
 		 */
 		updateObservers(game) {
+			/* istanbul ignore next */
 			this._debug("<-S- update", game ? game.key : "*");
 			this.monitors.forEach(socket => socket.emit(Notify.UPDATE));
 			if (game)
@@ -421,10 +432,13 @@ define("server/Server", [
 								: a.lastActivity > b.lastActivity ? -1 : 0))
 			// Finally send the result
 			.then(data => {
+			    /* istanbul ignore next */
 				this._debug("<-- 200 simple", send);
 				return res.status(200).send(data);
 			})
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -472,7 +486,9 @@ define("server/Server", [
 			.then(list => list.sort((a, b) => a.score < b.score ? 1
 									: (a.score > b.score ? -1 : 0)))
 			.then(list => res.status(200).send(list))
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -486,7 +502,9 @@ define("server/Server", [
 				"i18n", "json");
 			return db.keys()
 			.then(keys => res.status(200).send(keys))
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -499,7 +517,9 @@ define("server/Server", [
 			.then(list => res.status(200).send(
 				list.filter(f => /^[^_].*\.js$/.test(f))
 				.map(fn => fn.replace(/\.js$/, ""))))
-			.catch(e => this.trap(e, req, res));
+			.catch(
+                /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -511,7 +531,9 @@ define("server/Server", [
 			.then(list =>res.status(200).send(
 				list.filter(f => /\.dict$/.test(f))
 				.map(fn => fn.replace(/\.dict$/, ""))))
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -522,7 +544,9 @@ define("server/Server", [
 			const dir = Platform.getFilePath("css");
 			return Fs.readdir(dir)
 			.then(list => res.status(200).send(list))
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -535,6 +559,8 @@ define("server/Server", [
 			if (req.user && req.user.settings && req.user.settings.theme)
 				theme = req.user.settings.theme;
 			let path = Platform.getFilePath(`css/${theme}/${req.params.css}`);
+            /* istanbul ignore next */
+            this._debug("Send theme", path);
 			return res.sendFile(Path.normalize(path));
 		}
 
@@ -550,6 +576,7 @@ define("server/Server", [
 				/* istanbul ignore if */
 				if (this.config.debug_game)
 					game._debug = console.debug;
+			    /* istanbul ignore next */
 				this._debug("Created", game.key);
 				return game.save();
 			})
@@ -572,7 +599,11 @@ define("server/Server", [
 			return this.userManager.getUser(
 				{key: req.session.passport.user.key})
 			.then(sender => `${sender.name}<${sender.email}>`)
-			.catch(e => this.config.mail.sender)
+			.catch(
+                // should never happen so long as only logged-in
+                // users can send mail
+                /* istanbul ignore next */
+                e => this.config.mail.sender)
 			.then(sender =>
 				new Promise(
 					resolve => this.userManager.getUser(to, true)
@@ -588,6 +619,7 @@ define("server/Server", [
 					if (!uo.email) // no email
 						return Platform.i18n("($1 has no email address)",
 										  uo.name || uo.key);
+			        /* istanbul ignore next */
 					this._debug(
 							subject,
 							`${uo.name}<${uo.email}> from `,
@@ -608,14 +640,15 @@ define("server/Server", [
 		 * @return {Promise}
 		 */
 		request_invitePlayers(req, res) {
+            /* istanbul ignore if */
 			if (!this.config.mail || !this.config.mail.transport)
 				return this.S00(res, "Mail is not configured");
+            /* istanbul ignore if */
 			if (!req.body.player)
 				return this.S00(res, "Nobody to notify");
 
 			const gameURL =
-				  `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${req.body.gameKey}`;
-
+				  `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${req.params.gameKey}`;
 			let textBody = (req.body.message || "") + "\n" + Platform.i18n(
 				"Join the game by following this link: $1", gameURL);
 			// Handle XSS risk posed by HTML in the textarea
@@ -629,10 +662,13 @@ define("server/Server", [
 					subject, textBody, htmlBody)))
 			.then(list => {
 				const names = list.filter(uo => uo);
+			    /* istanbul ignore next */
 				this._debug("<-- 200 ", names);
 				return res.status(200).send(names);
 			})
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -641,6 +677,7 @@ define("server/Server", [
 		 */
 		request_sendReminder(req, res) {
 			const gameKey = req.params.gameKey;
+			/* istanbul ignore next */
 			this._debug("Sending turn reminders to", gameKey);
 			const gameURL =
 				  `${req.protocol}://${req.get("Host")}/game/${gameKey}`;
@@ -661,6 +698,7 @@ define("server/Server", [
 					const player = game.getPlayer();
 					if (!player)
 						return undefined;
+			        /* istanbul ignore next */
 					this._debug(`Sending reminder mail to ${player.key}/${player.name}`);
 
 					const subject = Platform.i18n(
@@ -677,10 +715,13 @@ define("server/Server", [
 				}))))
 			.then(reminders => reminders.filter(e => typeof e !== "undefined"))
 			.then(names=> {
+			    /* istanbul ignore next */
 				this._debug("<-- 200", names);
 				return res.status(200).send(names);
 			})
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -696,16 +737,14 @@ define("server/Server", [
 				let player = game.getPlayerWithKey(playerKey);
 				let prom;
 				if (player) {
+			        /* istanbul ignore next */
 					this._debug(`Player ${playerKey} opening ${gameKey}`);
 					prom = Promise.resolve(game);
 				} else {
+			        /* istanbul ignore next */
 					this._debug(`Player ${playerKey} joining ${gameKey}`);
 					player = new Player(
-						{
-							name: req.user.name, key: playerKey
-						},
-						() => req.user.email
-					);
+						{ name: req.user.name, key: playerKey });
 					game.addPlayer(player);
 					prom = game.save();
 				}
@@ -715,7 +754,9 @@ define("server/Server", [
 			.then(() => res.status(200).send("OK"))
 			// Don't need to updateObservers, that will be done
 			// in the connect event handler
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -734,8 +775,10 @@ define("server/Server", [
 			.then(g => game = g)
 			.then(() => {
 				if (game.hasRobot())
+			        /* istanbul ignore next */
 					return this.S00(res, "Game already has a robot");
 
+			    /* istanbul ignore next */
 				this._debug(`Robot joining ${gameKey} with ${dic}`);
 				// Robot always has the same player key
 				const robot = new Player(
@@ -746,6 +789,7 @@ define("server/Server", [
 						canChallenge: canChallenge
 					});
 				if (dic && dic !== "none")
+			        /* istanbul ignore next */
 					robot.dictionary = dic;
 				game.addPlayer(robot);
 				return game.save()
@@ -754,7 +798,9 @@ define("server/Server", [
 				.then(() => this.updateObservers(game))
 				.then(() => res.status(200).send("OK"));
 			})
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -767,7 +813,9 @@ define("server/Server", [
 			.then(game => {
 				const robot = game.hasRobot();
 				if (!robot)
+			        /* istanbul ignore next */
 					return this.S00(res, "Game doesn't have a robot");
+			    /* istanbul ignore next */
 				this._debug(`Robot leaving ${gameKey}`);
 				game.removePlayer(robot);
 				return game.save();
@@ -778,7 +826,9 @@ define("server/Server", [
 				.then(() => this.updateObservers(game));
 			})
 			.then(() => res.status(200).send("OK"))
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -790,6 +840,7 @@ define("server/Server", [
 			const playerKey = req.user.key;
 			return this.loadGame(gameKey)
 			.then(game => {
+			    /* istanbul ignore next */
 				this._debug(`Player ${playerKey} leaving ${gameKey}`);
 				const player = game.getPlayerWithKey(playerKey);
 				if (player) {
@@ -803,11 +854,14 @@ define("server/Server", [
 					.then(() => res.status(200).send("OK"))
 					.then(() => this.updateObservers());
 				}
+			    /* istanbul ignore next */
 				return this.S00(res, [
 					/*i18n*/"Player $1 is not in game $2", playerKey, gameKey
 				]);
 			})
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -820,7 +874,9 @@ define("server/Server", [
 			const gameKey = req.params.gameKey;
 			return this.db.get(gameKey, Game.classes)
 			.then(game => res.status(200).send(Fridge.freeze(game)))
-			.catch(e => this.trap(e, req, res));
+			.catch(
+                /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -830,12 +886,15 @@ define("server/Server", [
 		 */
 		request_deleteGame(req, res) {
 			const gameKey = req.params.gameKey;
+			/* istanbul ignore next */
 			this._debug("Delete game",gameKey);
 			return this.loadGame(gameKey)
 			.then(() => this.db.rm(gameKey))
 			.then(() => res.status(200).send("OK"))
 			.then(() => this.updateObservers())
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -848,7 +907,9 @@ define("server/Server", [
 				return game.anotherGame()
 				.then(() => res.status(200).send(game.nextGameKey));
 			})
-			.catch(e => this.trap(e, req, res));
+			.catch(
+                /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 
 		/**
@@ -869,6 +930,7 @@ define("server/Server", [
 
 				const player = game.getPlayerWithKey(playerKey);
 				if (!player)
+			        /* istanbul ignore next */
 					return this.S00(res, [
 						/*i18n*/"Player $1 is not in game $2",
 						playerKey, gameKey
@@ -877,6 +939,7 @@ define("server/Server", [
 				// The command name and arguments
 				const args = req.body;
 				
+			    /* istanbul ignore next */
 				this._debug(`COMMAND ${command} player ${player.name} game ${game.key}`);
 
 				let promise;
@@ -929,7 +992,9 @@ define("server/Server", [
 					return res.status(200).send("OK");
 				});
 			})
-			.catch(e => this.trap(e, req, res));
+			.catch(
+			    /* istanbul ignore next */
+                e => this.trap(e, req, res));
 		}
 	}
 		

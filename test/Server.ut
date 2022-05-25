@@ -45,8 +45,8 @@ describe("Server", () => {
 	// Promise to create a new server and reset DB, resolve to Server.express.
 	function reset(config) {
 		const server = new Server(config);
-		Platform.LANG_SEARCH_BASE = __dirname;
-		return new Promise(resolve => {
+        return Platform.i18n().load("en")
+		.then(() => new Promise(resolve => {
 			const cmd = `rm -f ${__dirname}/games/*.game`;
 			exec(cmd,
 				 (err, stdout, stderr) => {
@@ -54,7 +54,7 @@ describe("Server", () => {
 						 console.debug(cmd, err);
 					 resolve();
 				 });
-		})
+		}))
 		.then(() => fs.unlink(config.auth.db_file))
 		.catch(e => {
 			console.debug(e);
@@ -110,7 +110,18 @@ describe("Server", () => {
 	};
 
 	function unit() {}
-	
+
+	it("i18n", () => new Promise(resolve => {
+        return Platform.i18n().load("qqq")
+        .then(() => {
+            assert.equal(
+                Platform.i18n("Unknown message $1", "X"), "Unknown message X");
+            assert.equal(
+                Platform.i18n("SWAP"), "Letters underlying the swap rack");
+            resolve();
+        });
+    }));
+    
 	it("handlers", () => new Promise(resolve => {
 		const s = new Server(config);
 		const ts = new TestSocket();
@@ -207,16 +218,42 @@ describe("Server", () => {
 	}));
 
 	it("/theme", () => new Promise(resolve => {
-		const s = new Server(config);
-		chai.request(s.express)
-		.get("/theme/games.css")
-		.end((err, res) => {
-			//console.log(res.headers);
-			assert.equal(
-				res.headers['content-type'], "text/css; charset=UTF-8");
-			assert.equal(res.status, 200);
-			resolve();
-		});
+		let server, cookie, gamekey;
+		return reset(config)
+		.then(s => server = s)
+		.then(() => register(server, {
+				register_username: "test_user",
+				register_password: "test_pass",
+				register_email: "test@email.com"
+			}))
+		.then(() => login(server, {
+			login_username: "test_user",
+			login_password: "test_pass"
+		}))
+		.then(c => cookie = c)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/session-settings")
+			.set('Cookie', cookie)
+			.send({theme: "exander77"})
+			.end((err, res) => {
+				assert.equal(res.status, 200);
+				resolve();
+			});
+		}))
+		.then(() => new Promise(resolve => {
+		    chai.request(server.express)
+		    .get("/theme/games.css")
+			.set('Cookie', cookie)
+		    .end((err, res) => {
+			    //console.log(res.headers);
+			    assert.equal(
+				    res.headers['content-type'], "text/css; charset=UTF-8");
+			    assert.equal(res.status, 200);
+			    resolve();
+		    });
+        }))
+        .then(() => resolve());
 	}));
 
 	it("/history", () => new Promise(resolve => {
@@ -485,6 +522,9 @@ describe("Server", () => {
 		return reset(config)
 		.then(s => server = s)
 		.then(() => register(server, {
+	        register_username: "no_email_user"
+		}))
+		.then(() => register(server, {
 				register_username: "test_user",
 				register_password: "test_pass",
 				register_email: "test@email.com"
@@ -528,20 +568,34 @@ describe("Server", () => {
 				sender: "unit tests",
 				transport: {
 					sendMail: function(email) {
+                        //console.log(email);
 						assert.equal(email.from, "test_user<test@email.com>");
-						assert.equal(email.to, "test@email.com");
-						assert.equal(email.subject, "You have been invited to play XANADO");
+						assert(email.to === "test@email.com"
+                               || email.to === "user@email.com");
+						assert.equal(email.subject,
+                                     "You have been invited to play XANADO");
 						assert(email.text);
+                        assert(email.text.indexOf("Hollow Wurld") >= 0);
+                        assert(email.text.indexOf(`/html/games.html?untwist=${gamekey}`) >= 0);
 						return Promise.resolve();
 					}
 				}
 			};
 			chai.request(server.express)
-			.post(`/invitePlayers`)
-			.send({player: [ {key: playerkey} ], message: "Hollow Wurld"})
+			.post(`/invitePlayers/${gamekey}`)
+			.send({player: [
+                { key: playerkey },
+                { name: "no_email_user" },
+                { email: "user@email.com" }
+            ], message: "Hollow Wurld"})
 			.set('Cookie', cookie)
 			.end((err, res) => {
-				assert.deepEqual(res.body, [ "test_user"]);
+                //console.log(res.body);
+				assert.deepEqual(res.body, [
+                    "test_user",
+                    "(no_email_user has no email address)",
+                    "user@email.com"
+                ]);
 				assert.equal(res.status, 200);
 				resolve(res.text);
 			});
@@ -554,10 +608,10 @@ describe("Server", () => {
 		return reset(config)
 		.then(s => server = s)
 		.then(() => register(server, {
-				register_username: "test_user",
-				register_password: "test_pass",
-				register_email: "test@email.com"
-			}))
+			register_username: "test_user",
+			register_password: "test_pass",
+			register_email: "test@email.com"
+		}))
 		.then(() => login(server, {
 			login_username: "test_user",
 			login_password: "test_pass"
