@@ -1338,7 +1338,7 @@ define("browser/game", [
 							this.playAudio("oops");
 						this.notify(
 							/*.i18n("ui-notify-title-succeeded")*/
-							/*i18n ui-notify-body-*/"succeeded",
+							/*.i18n("ui-notify-body-succeeded")*/
 							this.game.getPlayer(turn.playerKey).name,
 							-turn.score);
 					}
@@ -1346,7 +1346,8 @@ define("browser/game", [
 
 				if (turn.type == Turn.TOOK_BACK) {
 					/*.i18n("ui-notify-title-retracted")*/
-					this.notify(/*i18n ui-notify-body-*/"retracted",
+					/*.i18n("ui-notify-body-retracted")*/
+					this.notify("retracted",
 								this.game.getPlayer(turn.playerKey).name);
 				}
 				break;
@@ -1357,11 +1358,12 @@ define("browser/game", [
 				if (challenger === this.player) {
 					// Our challenge failed
 					/*.i18n("ui-notify-title-you-failed")*/
-					this.notify(/*i18n ui-notify-body-*/"you-failed");
+					/*.i18n("ui-notify-body-you-failed")*/
+					this.notify("you-failed");
 				} else {
 					/*.i18n("ui-notify-title-they-failed")*/
-					this.notify(/*i18n ui-notify-body-*/"they-failed",
-						player.name);
+					/*.i18n("ui-notify-body-they-failed")*/
+					this.notify("they-failed", player.name);
 				}
 				break;
 
@@ -1445,7 +1447,8 @@ define("browser/game", [
 					&& turn.type !== Turn.TOOK_BACK) {
 					// It's our turn next, and we didn't just take back
 					/*.i18n("ui-notify-title-your-turn")*/
-					this.notify(/*i18n ui-notify-body-*/"your-turn",
+					/*.i18n("ui-notify-body-your-turn")*/
+					this.notify("your-turn",
 								this.game.getPlayer(turn.playerKey).name);
 				}
 				this.game.whosTurnKey = turn.nextToGoKey;
@@ -1468,7 +1471,8 @@ define("browser/game", [
 			this.setAction("action_anotherGame", /*i18n*/"Another game?");
 			this.enableTurnButton(true);
 			/*.i18n("ui-notify-title-game-over")*/
-			this.notify(/*i18n ui-notify-body-*/"game-over");
+			/*.i18n("ui-notify-body-game-over")*/
+			this.notify("game-over");
 		}
 
 		/**

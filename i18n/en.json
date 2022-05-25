@@ -19,7 +19,6 @@
 	"square-T": "TRIPLE WORD SCORE",
 	"square-q": "QUAD LETTER SCORE",
 	"square-Q": "QUAD WORD SCORE",
-	"Strings from $1": "Strings from $1",
 
 	"tooltip-add-robot": "Add a robot player to this game.",
 	"tooltip-allow-take-back": "Let the player who has just played take their move back before the next player has challenged or played.",

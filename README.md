@@ -1,4 +1,4 @@
-# Multiplayer word grid game Server and Web Interface
+## Multiplayer word grid game Server and Web Interface
 
 Host your own web server to play crossword games according to most of the rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, or Lexulous. Or invent your own!
 Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian, with dictionaries in English, French, and German, and it's easy to add more.
@@ -60,6 +60,10 @@ in the root directory.  A template configuration file is included in
 Once you have a suitable configuration, run the server using:
 ```
 $ node server.js
+```
+or
+```
+$ npm run server
 ```
 You can then visit the games page at `http://localhost:9093`.
 

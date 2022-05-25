@@ -17,7 +17,7 @@ define("game/Command", () => {
 		static PASS      = "pass";
 		static GAME_OVER = "confirmGameOver";
 		static SWAP      = "swap";
-	};
+	}
 
 	return Command;
 });

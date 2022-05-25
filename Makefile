@@ -1,5 +1,3 @@
-JS := $(shell find js -name '*.js' )
-
 # Make html version of github markdown
 %.html : %.md
 	node node_modules/marked/bin/marked.js -gfm $< > $@
@@ -23,13 +21,13 @@ lint:
 
 # Make docker image, test
 docker:
-	docker build . --tag xword
+	npm run docker
 
 # Check translations
 tx:
-	perl bin/checkStrings.pl
+	npm run tx
 
 # Update package.json with latest packages
 # using npm-check-update (npm install -g npm-check-updates)
 update:
-	ncu -u
+	npm run update
