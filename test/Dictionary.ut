@@ -3,22 +3,6 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env node, mocha */
 
-if (typeof requirejs === 'undefined') {
-    requirejs = require('requirejs');
-    // node.js
-}
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-    paths: {
-        common: "js/common",
-		dawg: "js/dawg",
-		platform: "js/server/ServerPlatform"
-    }
-});
-
-const fs = require("fs");
-
 /**
  * Unit tests for Dictionary (and inherently, for LetterNode)
  */
@@ -30,10 +14,9 @@ describe("Dictionary class", () => {
 		{ Platform: "platform" },
 		{ Dictionary: 'dawg/Dictionary' }
 	];
-	const Fs = fs.promises;
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
 
     it("loads words", () => {
 		let dic = new Dictionary("test");
@@ -58,7 +41,7 @@ describe("Dictionary class", () => {
 	});
 
 	it("loads a dictionary", () => {
-		return Fs.readFile(Platform.getFilePath("test/dictionary.dict"))
+		return fs.promises.readFile(Platform.getFilePath("test/dictionary.dict"))
 		.then(gz => Gzip.ungzip(gz))
 		.then(data => new Dictionary("test").loadDAWG(data.buffer))
 		.then(dic => {
@@ -70,7 +53,7 @@ describe("Dictionary class", () => {
 
 	// Load and extend a dictionary with new words
 	it("extends a dictionary", () => {
-		return Fs.readFile(Platform.getFilePath("test/dictionary.dict"))
+		return fs.promises.readFile(Platform.getFilePath("test/dictionary.dict"))
 		.then(gz => Gzip.ungzip(gz))
 		.then(data => new Dictionary("test").loadDAWG(data.buffer))
 		.then(dic => {

@@ -2,19 +2,6 @@
    license information */
 /* eslint-env node */
 
-requirejs = require("requirejs");
-
-requirejs.config({
-	baseUrl: `${__dirname}/..`,
-    nodeRequire: require,
-	paths: {
-		common: "js/common",
-		game: "js/game",
-		dawg: "js/dawg",
-		platform: "js/server/ServerPlatform"
-	}
-});
-
 describe("best play on complex boards", () => {
 	const deps = [
 		{ Edition: "game/Edition" },
@@ -27,8 +14,8 @@ describe("best play on complex boards", () => {
 		{ findBestPlay: "game/findBestPlay" }
 	];
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
 
 	it("blanks", () => {
 		let bestMoves = [];
@@ -110,7 +97,7 @@ describe("best play on complex boards", () => {
 				"| | | | | | | | | | | | | | | |\n" +
 				"| | | | | | | | | | | | | | | |\n" +
 				"| | | | | | | | | | | | | | | |\n");
-			game.state = Game.STATE_PLAYING;
+			game.state = State.PLAYING;
 		})
 		.then(game => findBestPlay(
 			game, rack.tiles(),

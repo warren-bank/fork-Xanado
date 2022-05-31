@@ -77,6 +77,5 @@
 	"um-reset-html": "Click <a href='$1'>here</a> to reset your password.",
 	"um-reset-sent": "Password reset email has been sent",
 	"um-reset-text": "Follow this link to reset your password: ",
-	"um-unknown-email": "Couldn't find a player with that email address",
 	"um-user-exists": "'$1' is already registered"
 }

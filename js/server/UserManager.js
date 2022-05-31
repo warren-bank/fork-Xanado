@@ -497,7 +497,7 @@ define("server/UserManager", [
 			const pass = req.body.register_password;
 			if (!username)
 				return this.sendResult(
-					res, 500, [ /*i18n*/"um-bad-user", username ]);
+					res, 403, [ /*i18n*/"um-bad-user", username ]);
 			return this.getUser({name: username }, true)
 			.then(() => {
 				this.sendResult(
@@ -522,10 +522,7 @@ define("server/UserManager", [
          * @private
 		 */
 		handle_logout(req, res) {
-			if (req.session
-				&& req.session.passport
-				&& req.session.passport.user
-				&& req.logout) {
+			if (req.isAuthenticated()) {
 				const departed = req.session.passport.user.name;
 				this._debug("Logging out", departed);
 				return new Promise(resolve => req.logout(resolve))
@@ -533,7 +530,7 @@ define("server/UserManager", [
 					/*i18n*/"um-logged-out", departed ]));
 			}
 			return this.sendResult(
-				res, 500, [ /*i18n*/"um-not-logged-in" ]);
+				res, 401, [ /*i18n*/"um-not-logged-in" ]);
 		}
 
 		/**
@@ -550,7 +547,7 @@ define("server/UserManager", [
 					})));
 
 			return this.sendResult(
-				res, 500, [ /*i18n*/"um-not-logged-in" ]);
+				res, 401, [ /*i18n*/"um-not-logged-in" ]);
 		}
 
 		/**
@@ -576,7 +573,7 @@ define("server/UserManager", [
 					req.session.passport.user.name ]));
 			}
 			return this.sendResult(
-				res, 500, [ /*i18n*/"um-not-logged-in" ]);
+				res, 401, [ /*i18n*/"um-not-logged-in" ]);
 		}
 
 		/**
@@ -587,9 +584,6 @@ define("server/UserManager", [
 		handle_xanado_reset_password(req, res) {
 			const email = req.body.reset_email;
 			this._debug("/reset-password for", email);
-			if (!email)
-				return this.sendResult(
-					res, 500, [ /*i18n*/"um-unknown-email" ]);
 			const surly = `${req.protocol}://${req.get("Host")}`;
 			return this.getUser({email: email})
 			.then(user => {
@@ -597,6 +591,7 @@ define("server/UserManager", [
 				.then(token => {
 					const url = `${surly}/password-reset/${token}`;
 					this._debug(`Send password reset ${url} to ${user.email}`);
+                    /* istanbul ignore if */
 					if (!this.config.mail)
 						return this.sendResult(res, 500, [
 							/*i18n*/"um-mail-not-configured" ]);
@@ -609,12 +604,13 @@ define("server/UserManager", [
 					})
 					.then(() => this.sendResult(
 						res, 200, [ /*i18n*/"um-reset-sent", user.name ]))
-					.catch(e => {
+					.catch(
                         /* istanbul ignore next */
-						console.error("WARNING: Mail misconfiguration?", e);
-						return this.sendResult(
-							res, 500, [	/*i18n*/"um-mail-not-configured" ]);
-					});
+                        e => {
+						    console.error("WARNING: Mail misconfiguration?", e);
+						    return this.sendResult(
+							    res, 500, [	/*i18n*/"um-mail-not-configured" ]);
+					    });
 				});
 			})
 			.catch(e => this.sendResult(res, 403, [ e.message, email ]));
@@ -634,7 +630,7 @@ define("server/UserManager", [
 					key: req.user.key,
 					settings: req.user.settings
 				});
-			return this.sendResult(res, 401, [	"not-logged-in" ]);
+			return this.sendResult(res, 401, [	/*i18n*/"um-not-logged-in" ]);
 		}
 
 		/**
@@ -653,7 +649,7 @@ define("server/UserManager", [
 				});
 			}
 			/* istanbul ignore next */
-			return this.sendResult(res, 401, [	"not-logged-in" ]);
+			return this.sendResult(res, 401, [	/*i18n*/"um-not-logged-in" ]);
 		}
 
 		/**

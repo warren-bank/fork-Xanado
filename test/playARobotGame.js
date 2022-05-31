@@ -32,9 +32,9 @@ requirejs([
 	Board, Move
 ) => {
 
-	let db = new Platform.Database("test/games", "testgame");
+	let db = new Platform.Database("test/temp", "testgame");
 	let game = new Game({
-		//debug: console.debug,
+		//_debug: console.debug,
 		edition: "Tiny",
 		dictionary: "CSW2019_English"
 	});
@@ -42,6 +42,7 @@ requirejs([
 	let player = 0;
 
 	game.create()
+    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 	.then(game => {
 		let player1 = new Player({
 			name: "player one", key: "flay", isRobot: true});
@@ -59,13 +60,12 @@ requirejs([
 			await db.get(gameKey, Game.classes)
 			.then(game => game.onLoad(db))
 			.then(game => {
-				return game.autoplay(game.players[player])
+				return game.autoplay(game.getPlayer())
 				.then(turn => {
 					if (game.hasEnded()) {
 						console.log(game.state);
 						finished = true;
 					}
-					player = (player + 1) % game.players.length;
 					return game.save();
 				});
 			});

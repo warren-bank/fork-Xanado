@@ -49,7 +49,9 @@ define("dawg/TrieNode", [ "dawg/LetterNode" ], LetterNode => {
         isEndOfWord = false;
 
         /**
-         * Marker for the first child under a parent node
+         * Marker for the first child under a parent node. This is
+         * used when the node is arrived at other than through the
+         * parent
          * @member {boolean}
          */
         isFirstChild = false;
@@ -113,13 +115,14 @@ define("dawg/TrieNode", [ "dawg/LetterNode" ], LetterNode => {
                 if (deeply)
                     simpler += this.child.toString(deeply);
             }
+            simpler += "}";
 			if (this.next) {
 				simpler += "-";
                 if (deeply)
                     simpler += this.next.toString(deeply);
             }
 
-			return `${simpler}}`;
+			return simpler;
 		}
 
 		/**
@@ -128,14 +131,13 @@ define("dawg/TrieNode", [ "dawg/LetterNode" ], LetterNode => {
 		 * @return {number} the total number of nodes pruned as a result
 		 */
 		prune() {
-			if (this.isPruned)
-				return 0;
 			//console.debug(`Pruning ${this}`);
 			this.isPruned = true;
 
 			let result = 0;
 			if (this.next)
 				result += this.next.prune();
+
 			if (this.child)
 				result += this.child.prune();
 
@@ -240,6 +242,7 @@ define("dawg/TrieNode", [ "dawg/LetterNode" ], LetterNode => {
 		 * @return {boolean} if the are the same
 		 */
 		sameSubtrie(other) {
+            //console.debug("CMP",this.toString(), !other ? "null" : other.toString());
 			if (other === this) // identity
 				return true;
 
@@ -248,16 +251,16 @@ define("dawg/TrieNode", [ "dawg/LetterNode" ], LetterNode => {
 				|| other.maxChildDepth !== this.maxChildDepth
 				|| other.numberOfChildren !== this.numberOfChildren
 				|| other.isEndOfWord !== this.isEndOfWord
-				|| this.child === null && other.child !== null
-				|| this.child !== null && other.child === null
-				|| this.next === null && other.next !== null
-				|| this.next !== null && other.next === null)
+				|| !this.child && other.child
+				|| this.child && !other.child
+				|| !this.next && other.next
+				|| this.next && !other.next)
 				return false;
 
-			if (this.child != null && !this.child.sameSubtrie(other.child))
+			if (this.child && !this.child.sameSubtrie(other.child))
 				return false;
 
-			if (this.next != null && !this.next.sameSubtrie(other.next))
+			if (this.next && !this.next.sameSubtrie(other.next))
 				return false;
 
 			return true;

@@ -6,17 +6,22 @@ and license information*/
 define("browser/game", [
 	"common/Fridge", "common/Utils",
 	"game/Tile", "game/Rack", "game/Board",
-	"game/Game", "game/Player", "game/Turn",
-	"game/Command", "game/Notify",
+	"game/Types", "game/Game", "game/Player", "game/Turn",
 	"browser/UI", "browser/Dialog",
 	"jquery", "jqueryui", "cookie", "browser/icon_button"
 ], (
 	Fridge, Utils,
 	Tile, Rack, Board,
-	Game, Player, Turn,
-	Command, Notify,
+	Types, Game, Player, Turn,
 	UI, Dialog
 ) => {
+
+    // Enumerated types
+    const Command = Types.Command;
+    const Notify  = Types.Notify;
+    const Penalty = Types.Penalty;
+    const Timer   = Types.Timer;
+    const State   = Types.State;
 
 	/**
 	 * User interface to a game in a browser. The Ui reflects the game state as
@@ -265,13 +270,13 @@ define("browser/game", [
 					"$1 challenge of $2 play failed.",
 					challengerPossessive, playerPossessive);
 				switch (this.game.penaltyType) {
-				case Game.PENALTY_PER_WORD:
-				case Game.PENALTY_PER_TURN:
+				case Penalty.PER_WORD:
+				case Penalty.PER_TURN:
 					turnText += " " + $.i18n(
 						"$1 lost $2 points",
 						challengerIndicative, -turn.score);
 					break;
-				case Game.PENALTY_MISS:
+				case Penalty.MISS:
 					turnText += " "
 					+ $.i18n("$1 will miss a turn", challengerIndicative);
 					break;
@@ -322,12 +327,12 @@ define("browser/game", [
 			// unplayed letters is added to that player's score. The
 			// score adjustments are already done, on the server side,
 			// we just need to present the results.
-			const unplayed = game.players.reduce(
+			const unplayed = game.getPlayers().reduce(
 				(sum, player) => sum + player.rack.score(), 0);
-			GameUI.$log(interactive, $.i18n(turn.endState || Game.STATE_GAME_OVER),
+			GameUI.$log(interactive, $.i18n(turn.endState || State.GAME_OVER),
 					 "game-state");
 			const $narrative = $("<div></div>").addClass("game-outcome");
-			game.players.forEach(player => {
+			game.getPlayers().forEach(player => {
 				const isMe = this.isThisPlayer(player.key);
 				const name = isMe ? $.i18n("You") : player.name;
 				const $rackAdjust = $("<div></div>").addClass("rack-adjust");
@@ -440,7 +445,7 @@ define("browser/game", [
 			ticked.clock = remains;
 
 			const clocks = Utils.formatTimeInterval(remains);
-			if (this.game.timerType === Player.TIMER_TURN) {
+			if (this.game.timerType === Timer.TURN) {
 				$(`.player-clock`)
 				.empty()
 				.removeClass("tick-alert-low tick-alert-medium tick-alert-high");
@@ -449,7 +454,7 @@ define("browser/game", [
 			}
 
 			if (ticked === this.player
-				&& this.game.timerType === Player.TIMER_TURN
+				&& this.game.timerType === Timer.TURN
 				&& remains <= 10
 				&& this.getSetting("warnings"))
 				this.playAudio("tick");
@@ -624,7 +629,7 @@ define("browser/game", [
 			} else {
 				$("#letterbag").text($.i18n("The letter bag is empty"));
 				const countElements = $("#scoresBlock td.remaining-tiles");
-				this.game.players.forEach(
+				this.game.getPlayers().forEach(
 					(player, i) =>
 					$(countElements[i]).text(`(${player.rack.squaresUsed()})`));
 			}
@@ -645,8 +650,7 @@ define("browser/game", [
 			.then(session => {
 				if (session) {
 					// Find if they are a player
-					this.player = game.players.find(
-						p => p.key === session.key);
+					this.player = game.getPlayer(session.key);
 					if (this.player)
 						return this.player.key;
 					$("#bad-user>span")
@@ -698,9 +702,8 @@ define("browser/game", [
 
 			GameUI.$log(true, $.i18n("Game started"), "game-state");
 
-			game.turns.forEach(
-				(turn, i) => this.describeTurn(
-					turn, i === game.turns.length - 1), false);
+			game.forEachTurn(
+				(turn, isLast) => this.describeTurn(turn, isLast));
 			GameUI.$log(true, ""); // Force scroll to end of log
 
 			if (game.hasEnded()) {
@@ -1291,8 +1294,7 @@ define("browser/game", [
 					player.score += turn.score;
 				else if (typeof turn.score === "object")
 					Object.keys(turn.score).forEach(
-						k => this.game.players
-						.find(p => p.key === k)
+						k => this.game.getPlayer(k)
 						.score +=
 						(turn.score[k].tiles || 0) +
 						(turn.score[k].time || 0));
@@ -1465,7 +1467,7 @@ define("browser/game", [
 		 */
 		gameOverConfirmed(turn) {
 			console.debug(`--> gameOverConfirmed ${turn.gameKey}`);
-			this.game.state = Game.STATE_GAME_OVER;
+			this.game.state = State.GAME_OVER;
 			// unplace any pending move
 			this.takeBackTiles();
 			this.setAction("action_anotherGame", /*i18n*/"Another game?");

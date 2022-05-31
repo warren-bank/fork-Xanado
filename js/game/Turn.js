@@ -70,7 +70,7 @@ define("game/Turn", ["game/Move"], Move => {
 			if (params.challengerKey)
 				this.challengerKey = params.challengerKey;
 
-			let ep = game.players.find(p => p.rack.isEmpty());
+			let ep = game.getPlayers().find(p => p.rack.isEmpty());
 			/**
 			 * Player who's rack has been left empty by the play that
 			 * resulted in this turn

@@ -7,17 +7,19 @@ define("server/Server", [
 	"fs", "path", "events", "cookie", "cors", "express", "errorhandler",
 	"platform",	"common/Fridge",
 	"server/UserManager",
-	"game/Game", "game/Player", "game/Turn", "game/Edition",
-	"game/Command", "game/Notify"
+	"game/Types",
+	"game/Game", "game/Player", "game/Turn", "game/Edition"
 ], (
 	fs, Path, Events, Cookie, cors, Express, ErrorHandler,
 	Platform, Fridge,
-	UserManager,
-	Game, Player, Turn, Edition, Command, Notify
+	UserManager, Types,
+	Game, Player, Turn, Edition
 ) => {
 
 	const Fs = fs.promises;
-
+    const Command = Types.Command;
+    const Notify = Types.Notify;
+    
 	/**
 	 * Web server for crossword game.
 	 */
@@ -286,12 +288,7 @@ define("server/Server", [
 				if (this.config.debug_game)
 					game._debug = console.debug;
 
-				if (game.hasEnded())
-					return game;
-
-				game.playIfReady();
-
-				return game;
+				return game.playIfReady();
 			});
 		}
 
@@ -459,7 +456,7 @@ define("server/Server", [
 				.filter(game => game.hasEnded())
 				.map(game => {
 					const winScore = game.winningScore();
-					game.players.map(
+					game.getPlayers().forEach(
 						player => {
 							let result = results[player.key];
 							if (!result) {
@@ -848,8 +845,6 @@ define("server/Server", [
 					// of players below minPlayers for the game, the
 					// game state is reset to WAITING
 					game.removePlayer(player);
-					if (game.players.length < game.minPlayers)
-						game.state = Game.STATE_WAITING;
 					return game.save()
 					.then(() => res.status(200).send("OK"))
 					.then(() => this.updateObservers());

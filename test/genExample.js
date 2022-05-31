@@ -17,7 +17,7 @@ requirejs([
 	Platform, Edition, Game, Player
 ) => {
 
-	const db = new Platform.Database("test/games", "game");
+	const db = new Platform.Database("test/temp", "game");
 	Edition.load("English_Scrabble")
 	.then(edition => {
 		return new Game({edition: edition.name, dictionary: "Oxford_5000"})
@@ -43,6 +43,6 @@ requirejs([
 							  "| | | | | | | | | | | | |Y| |\n");
 	})
 	.then(game => game.save())
-	.then(game => console.log(`Saved test/games/${game.key}.game`));
+	.then(game => console.log(`Saved test/temp/${game.key}.game`));
 });
 

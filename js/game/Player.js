@@ -4,10 +4,12 @@ and license information*/
 /* eslint-env amd, jquery */
 
 define("game/Player", [
-	"platform", "game/Rack",
+	"platform", "game/Types", "game/Rack",
 ], (
-	Platform, Rack
+	Platform, Types, Rack
 ) => {
+
+    const Timer = Types.Timer;
 
 	// Unicode characters
 	const BLACK_CIRCLE = "\u25cf";
@@ -15,99 +17,92 @@ define("game/Player", [
 	/**
 	 * A player in a {@link Game}. Player objects are specific to
 	 * a single game, and are used on both browser and server sides.
-	 *
-	 * Player supports two different types of timed game; TIMER_TURN and
-	 * TIMER_GAME. In a game configured for TIMER_TURN, each player has
-	 * a turn timer, implemented in Player as a timeout that invokes
-	 * a callback when the timer decays - see `startTurnTimeout` /
-	 * `stopTurnTimeout`. For a TIMER_GAME, the player has a chess clock
-	 * that runs while it is the player's turn, that is stopped when
-	 * they are not making a play.
 	 */
 	class Player {
 
 		/**
-		 * Player unique key
+		 * Player unique key. Required.
 		 * @member {string}
 		 */
-		key = undefined;
+		key;
 
 		/**
-		 * Is player a robot?
-		 * @member {boolean}
-		 */
-		isRobot = undefined;
-
-		/**
-		 * If isRobot, can it challenge?
-		 * @member {boolean}
-		 */
-		canChallenge = undefined;
-
-		/**
-		 * Player name
+		 * Player name. Required.
 		 * @member {string}
 		 */
-		name = undefined;
+		name;
 
 		/**
 		 * Player doesn't have a rack until they join a game, as
 		 * it's only then we know how big it has to be.
 		 * @member {Rack}
 		 */
-		rack = undefined;
+		rack;
 
 		/**
 		 * Number of times this player has passed (or swapped)
-		 * since the last non-pass/swap play.
+		 * since the last non-pass/swap play. Default is 0.
 		 * @member {number}
 		 */
 		passes = 0;
 
 		/**
-		 * Set true to advise player of better plays than the one
-		 * they used
-		 * @member {boolean}
-		 */
-		wantsAdvice = undefined;
-
-		/**
-		 * Player's current score
+		 * Player's current score. Default is 0.
 		 * @member {number}
 		 */
 		score = 0;
 
 		/**
-		 * Player coutdown clock. In games with `timerType` `TIMER_TURN`,
+		 * Player countdown clock. In games with `timerType` `TIMER_TURN`,
 		 * this is the number of seconds before the player's turn times
 		 * out (if they are the current player). For `TIMER_GAME` it's
 		 * the number of seconds before the chess clock runs out.
+         * Default is undefined. Setting and management is done in
+         * {@link Game}
 		 * @member {number?}
 		 */
-		clock = 0;
-
-		/**
-		 * We don't keep a pointer to the dictionary objects so we can
-		 * cheaply serialise and send to the games interface. We just
-		 * keep the name of the relevant object. This dictionary will
-		 * only be used for findBestPlay for robot players.
-		 * @member {string}
-		 */
-		dictionary = undefined;
-
-		/**
-		 * True if this player is due to miss their next play due
-		 * to a failed challenge
-		 * @member {boolean?}
-		 */
-		missNextTurn = undefined;
+		clock;
 
 		/**
 		 * The connected flag is set when the player is created
 		 * from a Player.simple structure. It is not used server-side.
+         * Default is false.
 		 * @member {boolean?}
 		 */
-		isConnected = false;
+		isConnected;
+
+		/**
+		 * True if this player is due to miss their next play due
+		 * to a failed challenge. Default is false.
+		 * @member {boolean?}
+		 */
+		missNextTurn;
+
+		/**
+		 * Set true to advise human player of better plays than the one
+		 * they used. Default is false.
+		 * @member {boolean}
+		 */
+		wantsAdvice;
+
+		/**
+		 * Is player a robot? Default is false.
+		 * @member {boolean?}
+		 */
+		isRobot;
+
+		/**
+		 * Can robot player challenge? Default is false.
+		 * @member {boolean?}
+		 */
+		canChallenge;
+
+		/**
+		 * Name of the dictionary the robot will use. Defaults to
+         * the game dictionary. Only used for findBestPlay for robot players.
+		 * @member {string?} Default is undefined.
+		 */
+		dictionary;
 
         /**
 		 * Debug function
@@ -117,33 +112,26 @@ define("game/Player", [
 
 		/**
 		 * @param {object} params named parameters, or other layer or simple
-		 *  object to copy
-		 * @param {(string|Player)} params.name name of the player, or
-		 * a Player object to copy
-		 * @param {boolean} params.key unique key identifying the player. Names
-		 * may be duplicated, but keys never are.
-		 * @param {boolean} params.isRobot if name is a string and true then
-		 * it's a robot. If name is a Player object, ignored.
-		 * @param {boolean} params.canChallenge controls whether this player
-		 * can challenge if it's a robot
-		 * @param {string} params.dictionary dictionary to use to find moves
-		 * if this is a robot
-		 * @param {boolean} params.missNextTurn true if this player
-		 * has to miss their next turn due to a failed challenge
-		 * @param {function} params.debug pass console.debug to enable debug messages
+		 * object to copy. `name` and `key ` are required. Any of `debug`,
+         * `isRobot`, `canChallenge`, `wantsAdvice`, `dictionary` or
+         * `missNextTurn` can be passed to override the default.
+         * `
 		 */
 		constructor(params) {
-			if (typeof params.debug === "function")
-				this._debug = params.debug;
-			this.key = params.key;
-			this.isRobot = params.isRobot;
-			this.canChallenge = params.canChallenge;
 			this.name = params.name;
-			this.wantsAdvice = params.wantsAdvice;
-			this.dictionary = params.dictionary;
-			this.missNextTurn = params.missNextTurn;
-			if (params.isConnected)
-				this.isConnected = true;
+			this.key = params.key;
+			if (typeof params._debug === "function")
+				this._debug = params._debug;
+			if (params.isRobot)
+                this.isRobot = true;
+			if (params.canChallenge)
+                this.canChallenge = true;
+            if (params.wantsAdvice)
+			    this.wantsAdvice = true;
+			if (params.dictionary)
+                this.dictionary = params.dictionary;
+			if (params.missNextTurn)
+                this.missNextTurn = true;
 		}
 
 		/**
@@ -158,26 +146,29 @@ define("game/Player", [
 					? Promise.resolve(this)
 					: um.getUser({key: this.key}))
 			.then(ump => {
-				return {
-					name: this.name || "Unknown Player",
-					isRobot: this.isRobot,
-					dictionary: this.dictionary,
+                const simple = {
+					name: this.name,
 					key: this.key,
-					score: this.score,
-					clock: this.clock,
+                    score: this.score
+                };
+                if (this.isRobot) simple.isRobot = true;
+                if (this.isConnected) simple.isConnected = true;
+				if (this.dictionary) simple.dictionary = this.dictionary;
+                if (this.clock) simple.clock = this.clock;
 					
-					// Can they be emailed?
-					email: ump.email ? true : false,
+				// Can they be emailed?
+				if (ump.email) simple.email = true;
 
-					// Is the player currently connected through a socket.
-					// Set in Player.simple before transmission to the client,
-					// client creates a Player(simple), which initialises
-					// connected on the client. Not used server-side.
-					isConnected: this.isRobot
-					|| (game.getConnection(this) !== null),
+				// Is the player currently connected through a socket.
+				// Set in Player.simple before transmission to the client,
+				// client creates a Player(simple), which initialises
+				// connected on the client. Not used server-side.
+				if (this.isRobot || game.getConnection(this) !== null)
+                    simple.isRobot = true;
 
-					missNextTurn: this.missNextTurn
-				};
+				if (this.missNextTurn) simple.missNextTurn = true;
+
+                return simple;
 			})
 			.catch(e => {
 				// User key not found in the db. Not fatal, just pretend it's
@@ -294,7 +285,8 @@ define("game/Player", [
 
 			// Robots are always connected
 			const $status = $(`<td class='connect-state'>${BLACK_CIRCLE}</td>`);
-			$status.addClass(this.isConnected ? "online" : "offline");
+			$status.addClass(
+                this.isConnected || this.isRobot ? "online" : "offline");
 			$tr.append($status);
 			
 			$tr.append(`<td class='score'>${this.score}</td>`);
@@ -317,19 +309,16 @@ define("game/Player", [
 		 * @param {boolean} tf true/false
 		 */
 		online(tf) {
-			this.isConnected = tf;
-			let rem = tf ? "offline" : "online";
-			let add = tf ? "online" : "offline";
+            const conn = this.isRobot || tf;
+			if (!this.isRobot)
+                this.isConnected = conn;
+			let rem = conn ? "offline" : "online";
+			let add = conn ? "online" : "offline";
 			$(`#player${this.key} .connect-state`)
 			.removeClass(rem)
 			.addClass(add);
 		}
 	}
-
-	// Timer types
-	Player.TIMER_NONE = /*i18n*/"No timer";
-	Player.TIMER_TURN = /*i18n*/"Turn timer";
-	Player.TIMER_GAME = /*i18n*/"Game timer";
 
 	return Player;
 });

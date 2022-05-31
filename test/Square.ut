@@ -3,49 +3,20 @@
 /* eslint-env node, mocha */
 /*global document:writable*/
 
-requirejs = require('requirejs');
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-	nodeRequire: require,
-    paths: {
-		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
-		common: "js/common",
-		game: "js/game",
-		dawg: "js/dawg",
-		platform: "js/server/ServerPlatform"
-    }
-});
-
 /**
  * Unit tests for Square class
  */
 describe("Square class", () => {
 
-	// node.js
-	const { JSDOM } = require('jsdom');
-	const document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
-	const { window } = document;
-	global.window = window;
-	global.document = window.document;
-	global.navigator = { userAgent: "node.js" };
-	const jQuery = require('jquery');
-	global.jQuery = jQuery;
-	global.$ = jQuery;
-
 	const deps = [
 		{ Square: "game/Square" },
 		{ Tile: "game/Tile" },
-		{ jQueryUI: "jquery-ui" },
-        { Platform: "platform" }
+		{ jQueryUI: "jquery-ui" }
 	];
 	
-	const Assert = require("./Assert.js");
+	const TS = require("./TestSupport.js");
 	before(required => {
-		// Why? No idea, except without it, it won't work in
-		// npm run
-		global.document = window.document;
-		return Assert.depend(
+		return TS.depend(
             () => Platform.i18n().load("en").then(required), deps);
 	});
 

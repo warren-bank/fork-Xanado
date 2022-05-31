@@ -3,31 +3,6 @@
 /* eslint-env node, mocha */
 /*global document:writable*/
 
-requirejs = require('requirejs');
-// node.js
-const { JSDOM } = require('jsdom');
-/* eslint-disable no-global-assign */
-document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
-/* eslint-enable no-global-assign */
-const { window } = document;
-global.window = window;
-global.document = window.document;
-global.navigator = { userAgent: "node.js" };
-const jQuery = require('jquery');
-global.jQuery = jQuery;
-global.$ = jQuery;
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-	nodeRequire: require,
-    paths: {
-		common: "js/common",
-		game: "js/game",
-		dawg: "js/dawg",
-		platform: "js/server/ServerPlatform"
-    }
-});
-
 /**
  * Unit tests for Board class
  */
@@ -39,8 +14,8 @@ describe("Board class", () => {
 		{ Square: "game/Square" }
 	];
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
 
 	it("construct", () => {
 		return Edition.load("Tiny")
@@ -139,7 +114,7 @@ describe("Board class", () => {
 			b.at(mr, mc+3).placeTile(D);
 
 			let move = b.analysePlay();
-			Assert.sparseEqual(move, {
+			TS.sparseEqual(move, {
 				words: [ { word: "WORD", score: 20 } ],
 				score: 35,
 				bonus: 0,
@@ -173,7 +148,7 @@ describe("Board class", () => {
 			assert.equal(got, 26);
 
 			move = b.analysePlay();
-			Assert.sparseEqual(move, {
+			TS.sparseEqual(move, {
 				words: [ { word: "SUN", score: 5 }, { word: "SWORD", score: 11 } ],
 				score: 26,
 				bonus: 0,
@@ -195,7 +170,7 @@ describe("Board class", () => {
 			assert.equal(g2, 6);
 
 			move = b.analysePlay();
-			Assert.sparseEqual(move, {
+			TS.sparseEqual(move, {
 				words: [ { word: "DUN", score: 6 } ],
 				score: 6,
 				bonus: 0,
@@ -226,7 +201,7 @@ describe("Board class", () => {
 			b.at(mr, mc+3).placeTile(D);
 
 			let move = b.analysePlay();
-			Assert.sparseEqual(move, {
+			TS.sparseEqual(move, {
 				words: [ { word: "WORD", score: 20 } ],
 				score: 35,
 				bonus: 0,

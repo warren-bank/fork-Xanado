@@ -2,19 +2,6 @@
    license information */
 /* eslint-env node, mocha */
 
-requirejs = require("requirejs");
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-	nodeRequire: require,
-	paths: {
-		common: "js/common",
-		game: "js/game",
-		dawg: "js/dawg",
-		platform: "js/server/ServerPlatform"
-	}
-});
-
 /**
  * Unit tests for Game commands that are issued during gameplay.
  */
@@ -22,26 +9,22 @@ requirejs.config({
 describe("Game - human commands - tests", () => {
 
 	const deps = [
-		{ TestSocket: "test/TestSocket" },
-		
 		{ Tile: "game/Tile" },
 		{ Player: "game/Player" },
 		{ Game: "game/Game" },
 		
 		{ Move: "game/Move" },
-		{ Turn: "game/Turn" },
-		{ Command: "game/Command" },
-		{ Notify: "game/Notify" }
+		{ Turn: "game/Turn" }
 	];
 	
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
 
 	it("swap", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const human1 = new Player({
@@ -77,6 +60,7 @@ describe("Game - human commands - tests", () => {
 		});
 
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -103,7 +87,7 @@ describe("Game - human commands - tests", () => {
 				new Tile({letter:"R", score:1}));
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => assert.equal(game.state, Game.STATE_PLAYING))
+		.then(() => assert.equal(game.state, State.PLAYING))
 		.then(() => game.swap(
 			human1, [
 				new Tile({letter:"A", score:1}),
@@ -128,7 +112,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const socket = new TestSocket();
@@ -143,6 +127,7 @@ describe("Game - human commands - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			game.addPlayer(human2);
@@ -177,7 +162,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const socket = new TestSocket();
@@ -208,6 +193,7 @@ describe("Game - human commands - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(
@@ -246,7 +232,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const socket = new TestSocket();
@@ -261,7 +247,7 @@ describe("Game - human commands - tests", () => {
 				assert.equal(turn.score, move.score);
 				assert.deepEqual(turn.words, move.words);
 				assert.deepEqual(turn.placements, move.placements);
-				Assert.sparseEqual(turn.replacements, [ aTile ]);
+				TS.sparseEqual(turn.replacements, [ aTile ]);
 				break;
 			default:
 				assert.fail("UNEXPECTED TURN " + turn);
@@ -301,6 +287,7 @@ describe("Game - human commands - tests", () => {
 			assert.fail("UNEXPECTED EVENT " + event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -322,7 +309,7 @@ describe("Game - human commands - tests", () => {
 				game.letterBag.remainingTileCount());
 			game.letterBag.returnTile(aTile);
 			game.whosTurnKey = human1.key;
-			game.wordCheck = Game.WORD_CHECK_AFTER;
+			game.wordCheck = WordCheck.AFTER;
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.toggleAdvice(human1))
@@ -336,7 +323,7 @@ describe("Game - human commands - tests", () => {
 		const game =  new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const human1 = new Player({
@@ -363,6 +350,7 @@ describe("Game - human commands - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -389,7 +377,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const human1 = new Player({
@@ -412,7 +400,7 @@ describe("Game - human commands - tests", () => {
 			switch (turns++) {
 			case 0:
 				assert.equal(turn.type, Turn.PLAY);
-				Assert.sparseEqual(turn, move);
+				TS.sparseEqual(turn, move);
 				break;
 			case 1:
 				assert.equal(turn.type, Turn.TOOK_BACK);
@@ -431,6 +419,7 @@ describe("Game - human commands - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -486,7 +475,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const human1 = new Player({
@@ -504,6 +493,7 @@ describe("Game - human commands - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			game.addPlayer(human2);
@@ -523,7 +513,7 @@ describe("Game - human commands - tests", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
 		const human1 = new Player({
@@ -552,6 +542,7 @@ describe("Game - human commands - tests", () => {
 			}
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			game.addPlayer(human2);

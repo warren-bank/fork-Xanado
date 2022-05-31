@@ -2,19 +2,6 @@
    license information */
 /* eslint-env node, mocha */
 
-requirejs = require("requirejs");
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-	nodeRequire: require,
-	paths: {
-		common: "js/common",
-		game: "js/game",
-		dawg: "js/dawg",
-		platform: "js/server/ServerPlatform"
-	}
-});
-
 /**
  * Unit tests for correct handling of challenges at various stages of
  * the game.
@@ -26,38 +13,39 @@ describe("Game - challenges - tests", () => {
 		{ Player: "game/Player" },
 		{ Game: "game/Game" },
 		{ Move: "game/Move" },
-		{ Turn: "game/Turn" },
-		{ Notify: "game/Notify" }
+		{ Turn: "game/Turn" }
 	];
 	
 	function unit() {
 	}
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
 	
 	it("bad challenge by next player - miss turn", () => {
 		const game = new Game({
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_MISS
+			//_debug: console.debug,
+			penaltyType: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({
 			name: "Human 2", key: "human2", isRobot: false});
 		const move1 = new Move({
-			placements: [
-				new Tile({letter:"S", isBlank:false, score:1, col: 7, row: 7}),
-				new Tile({letter:"I", isBlank:false, score:1, col: 8, row: 7}),
-				new Tile({letter:"N", isBlank:false, score:1, col: 9, row: 7}),
-				new Tile({letter:"K", isBlank:false, score:1, col: 10, row: 7})
-			],
 			words: [ { word: "SINK", score: 99 }],
 			score: 99
 		});
+		move1.addPlacement(
+            new Tile({letter:"S", isBlank:false, score:1, col: 7, row: 7}));
+		move1.addPlacement(
+            new Tile({letter:"I", isBlank:false, score:1, col: 8, row: 7}));
+		move1.addPlacement(
+            new Tile({letter:"N", isBlank:false, score:1, col: 9, row: 7}));
+		move1.addPlacement(
+            new Tile({letter:"K", isBlank:false, score:1, col: 10, row: 7}));
 		const socket = new TestSocket();
 		let turns = 0;
 		const handle = (event, turn) => {
@@ -90,7 +78,8 @@ describe("Game - challenges - tests", () => {
 		});
 
 		return game.create()
-		.then(game => {
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+		.then(() => {
 			game.addPlayer(human1);
 			human1.rack.empty();
 			human1.rack.addTile(
@@ -119,8 +108,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_PER_TURN,
+			//_debug: console.debug,
+			penaltyType: Penalty.PER_TURN,
 			penaltyPoints: 5
 		});
 		const human1 = new Player({
@@ -171,6 +160,7 @@ describe("Game - challenges - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -197,8 +187,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_PER_WORD,
+			//_debug: console.debug,
+			penaltyType: Penalty.PER_WORD,
 			penaltyPoints: 6
 		});
 		const human1 = new Player({name: "Human 1", key: "human1"});
@@ -244,6 +234,7 @@ describe("Game - challenges - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -272,8 +263,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-						//debug: console.debug,
-			penaltyType: Game.PENALTY_MISS
+						//_debug: console.debug,
+			penaltyType: Penalty.MISS
 		});
 		const human1 = new Player({name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({name: "Human 2", key: "human2", isRobot: false});
@@ -314,6 +305,7 @@ describe("Game - challenges - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -343,8 +335,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_MISS
+			//_debug: console.debug,
+			penaltyType: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -385,6 +377,7 @@ describe("Game - challenges - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -411,8 +404,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_PER_WORD,
+			//_debug: console.debug,
+			penaltyType: Penalty.PER_WORD,
 			penaltyPoints: 6
 		});
 		const human1 = new Player({name: "Human 1", key: "human1"});
@@ -460,6 +453,7 @@ describe("Game - challenges - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -491,8 +485,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_MISS
+			//_debug: console.debug,
+			penaltyType: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -519,6 +513,7 @@ describe("Game - challenges - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -550,8 +545,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_MISS
+			//_debug: console.debug,
+			penaltyType: Penalty.MISS
 		});
 		const human1 = new Player({name: "Human 1", key:"sheep", isRobot: false});
 		const human2 = new Player({name: "Human 2", key:"wolf", isRobot: false});
@@ -571,7 +566,7 @@ describe("Game - challenges - tests", () => {
 		socket.on(Notify.TURN, (event, turn) => {
 			if (turns++ == 0) {
 				assert.equal(turn.type, Turn.PLAY);
-				Assert.sparseEqual(turn, move);
+				TS.sparseEqual(turn, move);
 			} else {
 				//console.debug("good challenge of final play", turn);
 				assert.equal(turn.type, Turn.CHALLENGE_WON);
@@ -588,6 +583,7 @@ describe("Game - challenges - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -613,8 +609,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_MISS
+			//_debug: console.debug,
+			penaltyType: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -663,6 +659,7 @@ describe("Game - challenges - tests", () => {
 		});
 
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -699,8 +696,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_MISS
+			//_debug: console.debug,
+			penaltyType: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -728,7 +725,7 @@ describe("Game - challenges - tests", () => {
 			} else {
 				//console.debug("bad challenge of final play", turn);
 				assert.equal(turn.type, Turn.GAME_OVER);
-				assert.equal(turn.endState, Game.STATE_CHALLENGE_FAILED);
+				assert.equal(turn.endState, State.CHALLENGE_FAILED);
 				assert.deepEqual(turn.score, {
 					human1: {tiles: 6 }, human2: {tiles: -6}});
 				assert.equal(turn.playerKey, human2.key);
@@ -745,6 +742,7 @@ describe("Game - challenges - tests", () => {
 		});
 
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -775,8 +773,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_MISS
+			//_debug: console.debug,
+			penaltyType: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -827,6 +825,7 @@ describe("Game - challenges - tests", () => {
 		});
 
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -860,8 +859,8 @@ describe("Game - challenges - tests", () => {
 			edition:"Tiny",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
-			//debug: console.debug,
-			penaltyType: Game.PENALTY_MISS
+			//_debug: console.debug,
+			penaltyType: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -928,6 +927,7 @@ describe("Game - challenges - tests", () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			human1.rack.empty();

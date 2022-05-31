@@ -7,8 +7,8 @@ and license information*/
  * Dialog for game creation. Demand loads the HTML.
  */
 define("browser/CreateGameDialog", [
-	"browser/Dialog", "game/Game"
-], (Dialog, Game) => {
+	"browser/Dialog", "game/Types", "game/Game"
+], (Dialog, Types, Game) => {
 
 	class CreateGameDialog extends Dialog {
 		
@@ -32,15 +32,15 @@ define("browser/CreateGameDialog", [
 
 		createDialog() {
 			const $pen = this.$dlg.find("[name=penaltyType]");
-			Game.PENALTIES.forEach(p => $pen.append(
+			Types.Penalty._types.forEach(p => $pen.append(
 				`<option value="${p}">${$.i18n(p)}</option>`));
 
 			const $tim = this.$dlg.find("[name=timerType]");
-			Game.TIMERS.forEach(t => $tim.append(
+			Types.Timer._types.forEach(t => $tim.append(
 				`<option value="${t}">${$.i18n(t)}</option>`));
 
 			const $wc = this.$dlg.find("[name=wordCheck]");
-			Game.WORD_CHECKS.forEach(c => $wc.append(
+			Types.WordCheck._types.forEach(c => $wc.append(
 				`<option value="${c}">${$.i18n(c)}</option>`));
 
 			let promise;

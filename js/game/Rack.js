@@ -30,8 +30,6 @@ define("game/Rack", ["game/Surface"], Surface => {
 			// player specific.
 			super(id, size, 1, () => "_");
 			if (typeof underlay !== "undefined") {
-				if (typeof underlay !== "string")
-					throw Error("Rack underlay must be string");
 				let idx = 0;
 				this.forEachSquare(square => {
 					square.setUnderlay(underlay.charAt(idx++));
@@ -107,6 +105,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 		 */
 		removeTile(remove) {
 			const square = this.findSquare(remove.letter);
+            /* istanbul ignore if */
 			if (!square)
 				throw Error("Cannot find '"
 							+ remove.letter + "' on " + this);

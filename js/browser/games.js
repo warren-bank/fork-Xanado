@@ -7,18 +7,24 @@ and license information*/
  * Browser app for games.html; populate the list of live games
  */
 requirejs([
-	'platform', "common/Utils",
-	'browser/UI', 'browser/Dialog',
-	'game/Player', 'game/Game', 'game/Notify',
-	'jquery'
+	"platform", "common/Utils",
+	"browser/UI", "browser/Dialog",
+	"game/Types", "game/Player", "game/Game",
+	"jquery"
 ], (
 	Platform, Utils,
 	UI, Dialog,
-	Player, Game, Notify
+	Types, Player, Game
 ) => {
 
-	const TWIST_OPEN = '\u25BC';
-	const TWIST_CLOSE = '\u25B2';
+	const TWIST_OPEN = "\u25BC";
+	const TWIST_CLOSE = "\u25B2";
+
+    const Notify    = Types.Notify;
+    const Penalty   = Types.Penalty;
+    const State     = Types.State;
+    const Timer     = Types.Timer;
+    const WordCheck = Types.WordCheck;
 
 	class GamesUI extends UI {
 
@@ -33,20 +39,20 @@ requirejs([
 			this.isUntwisted = {};
 
 			const untwist = location.search.replace(/^.*[?&;]untwist=([^&;]*).*$/,"$1");
-			if (untwist && untwist !== 'undefined')
+			if (untwist && untwist !== "undefined")
 				this.isUntwisted[untwist] = true;
 		}
 
 		// @Override
 		decorate() {
 			$("#showAllGames")
-			.on('change', () => this.refresh_games());
+			.on("change", () => this.refresh_games());
 
-			$('#reminder-button')
-			.on('click', () => {
+			$("#reminder-button")
+			.on("click", () => {
 				console.log("Send reminders");
 				$.post("/sendReminder/*")
-				.then(info => $('#alertDialog')
+				.then(info => $("#alertDialog")
 					  .text($.i18n.apply(null, info))
 					  .dialog({
 						  title: $.i18n("Email turn reminders"),
@@ -71,7 +77,7 @@ requirejs([
 			}));
 
 			$("#logout-button")
-			.on('click', () => {
+			.on("click", () => {
 				$.post("/logout")
 				.then(result => {
 					console.log("Logged out", result);
@@ -99,7 +105,7 @@ requirejs([
 		// @Override
 		attachSocketListeners(socket) {
 			socket
-			.on('update', () => {
+			.on("update", () => {
 				console.debug("--> update");
 				// Can be smarter than this!
 				this.refresh().catch(UI.report);
@@ -123,18 +129,18 @@ requirejs([
 					$tr.append(`<td>${dic}</td>`);
 				}
 
-				if (game.timerType !== Player.TIMER_NONE) {
+				if (game.timerType !== Timer.NONE && player.clock) {
 					const left = $.i18n("$1s left to play", player.clock);
 					$tr.append(`<td>${left}</td>`);
 				}
 				
 			} else {
-				const winningScore = game.players.reduce(
+				const winningScore = game.getPlayers().reduce(
 					(max, p) =>
 					Math.max(max, p.score), 0);
 				
 				if (player.score === winningScore) {
-					$tr.append('<td class="ui-icon icon-winner"></td>');
+					$tr.append("<td class="ui-icon icon-winner"></td>");
 				}
 
 				return $tr;
@@ -153,7 +159,7 @@ requirejs([
 					.button({ label: $.i18n("Open game") })
 					.tooltip({
 						content: $.i18n("tooltip-open-game")
-					}) .on('click', () => {
+					}) .on("click", () => {
 						console.log(`Join game ${game.key}/${this.session.key}`);
 						$.post(`/join/${game.key}`)
 						.then(() => {
@@ -171,7 +177,7 @@ requirejs([
 					.tooltip({
 						content: $.i18n("tooltip-leave-game")
 					})
-					.on('click', () => {
+					.on("click", () => {
 						console.log(`Leave game ${game.key}`);
 						$.post(`/leave/${game.key}`)
 						.then(() => this.refresh_game(game.key))
@@ -187,7 +193,7 @@ requirejs([
 					.tooltip({
 						content: $.i18n("tooltip-remove-robot")
 					})
-					.on('click', () => {
+					.on("click", () => {
 						console.log(`Remove robot from ${game.key}`);
 						$.post(`/removeRobot/${game.key}`)
 						.then(() => this.refresh_game(game.key))
@@ -197,7 +203,7 @@ requirejs([
 			}
 
 			// Not the signed in player
-			if (this.getSetting('canEmail')
+			if (this.getSetting("canEmail")
 				&& !player.isRobot
 				&& game.whosTurnKey === player.key) {
 				$box.append(
@@ -209,8 +215,8 @@ requirejs([
 					.on("click", () => {
 						console.log("Send reminder");
 						$.post(`/sendReminder/${game.key}`)
-						.then(names => $('#alertDialog')
-							  .text($.i18n(/*i18n*/'Reminded $1', names.join(", ")))
+						.then(names => $("#alertDialog")
+							  .text($.i18n(/*i18n*/"Reminded $1", names.join(", ")))
 							  .dialog({
 								  title: $.i18n("Reminded $1", player.name),
 								  modal: true
@@ -251,21 +257,21 @@ requirejs([
 
 			const headline = [ game.edition ];
 
-			if (game.players && game.players.length > 0)
+			if (game.getPlayers().length > 0)
 				headline.push($.i18n(
 					"players $1",
-					Utils.andList(game.players.map(p => p.name))));
+					Utils.andList(game.getPlayers().map(p => p.name))));
 			headline.push($.i18n(
 				"created $1",
 				new Date(game.creationTimestamp).toDateString()));
 
-			const isActive = (game.state === Game.STATE_PLAYING
-							  || game.state === Game.STATE_WAITING);
+			const isActive = (game.state === State.PLAYING
+							  || game.state === State.WAITING);
 
 			
 			const $headline = $("<span></span>");
 			$headline
-			.text(headline.join(', '));
+			.text(headline.join(", "));
 			if (!isActive)
 				$headline.append($("<span class='game-state'></span>").text($.i18n(game.state)));
 
@@ -278,15 +284,15 @@ requirejs([
 			const options = [];
 			if (game.dictionary)
 				options.push($.i18n("Dictionary $1", game.dictionary));
-			if (game.timerType === Player.TIMER_TURN)
+			if (game.timerType === Timer.TURN)
 				options.push($.i18n("turn time limit $1",
 									 Utils.formatTimeInterval(game.timeLimit)));
-			else if (game.timerType === Player.TIMER_GAME)
+			else if (game.timerType === Timer.GAME)
 				options.push($.i18n("game time limit $1",
 									 Utils.formatTimeInterval(game.timeLimit)));
 			if (game.predictScore)
 				options.push($.i18n("Predict score"));
-			if (game.wordCheck && game.wordCheck !== Game.WORD_CHECK_NONE)
+			if (game.wordCheck && game.wordCheck !== WordCheck.NONE)
 				options.push($.i18n(game.wordCheck));
 			if (game.allowTakeBack)
 				options.push($.i18n("Allow 'Take back'"));
@@ -299,16 +305,16 @@ requirejs([
 				options.push($.i18n("At least $1 players", game.minPlayers));
 
 			switch (game.penaltyType) {
-			case Game.PENALTY_PER_TURN:
+			case Penalty.PER_TURN:
 				options.push($.i18n("Lose $1 points for a failed challenge",
 									game.penaltyPoints));
 				break;
-			case Game.PENALTY_PER_WORD:
+			case Penalty.PER_WORD:
 				options.push($.i18n(
 					"Lose $1 points for each wrongly challenged word",
 					game.penaltyPoints));
 				break;
-			case Game.PENALTY_MISS:
+			case Penalty.MISS:
 				options.push($.i18n("Miss a turn after a failed challenge"));
 				break;
 			}
@@ -320,19 +326,19 @@ requirejs([
 			}
 			const $table = $("<table></table>").addClass("player-table");
 			$twist.append($table);
-			game.players.forEach(
+			game.getPlayers().forEach(
 				player => $table.append(this.$player(game, player, isActive)));
 
 			if (isActive)
 				// .find because it's not in the document yet
-				$table.find(`#player${game.whosTurnKey}`).addClass('whosTurn');
+				$table.find(`#player${game.whosTurnKey}`).addClass("whosTurn");
 
 			if (isActive
 				&& this.session
 				&& (game.maxPlayers === 0
-					|| game.players.length < game.maxPlayers)) {
+					|| game.getPlayers().length < game.maxPlayers)) {
 
-				if (!game.players.find(p => p.key === this.session.key)) {
+				if (!game.getPlayer(this.session.key)) {
 					// Can join game
 					const $join = $(`<button name="join" title=''></button>`);
 					$twist.append($join);
@@ -341,7 +347,7 @@ requirejs([
 					.tooltip({
 						content: $.i18n("tooltip-join-game")
 					})
-					.on('click', () => {
+					.on("click", () => {
 						console.log(`Join game ${game.key}`);
 						$.post(`/join/${game.key}`)
 						.then(info => {
@@ -352,14 +358,14 @@ requirejs([
 					});
 				}
 
-				if (!game.players.find(p => p.isRobot)) {
+				if (!game.getPlayers().find(p => p.isRobot)) {
 					$twist.append(
 						$(`<button name='robot' title=''></button>`)
 						.button({ label: $.i18n("Add robot") })
 						.tooltip({
 							content: $.i18n("tooltip-add-robot")
 						})
-						.on('click', () =>
+						.on("click", () =>
 							Dialog.open("AddRobotDialog", {
 								ui: this,
 								postAction: `/addRobot/${game.key}`,
@@ -370,7 +376,7 @@ requirejs([
 			}
 			
 			if (this.session) {
-				if (isActive && this.getSetting('canEmail')) {
+				if (isActive && this.getSetting("canEmail")) {
 					$twist.append(
 						$("<button name='invite' title=''></button>")
 						.button({ label: $.i18n("Invite players")})
@@ -380,7 +386,7 @@ requirejs([
 						.on("click", () => Dialog.open("InvitePlayersDialog", {
 							postAction: `/invitePlayers/${game.key}`,
 							postResult: names => {
-								$('#alertDialog')
+								$("#alertDialog")
 								.text($.i18n("Invited $1", names.join(", ")))
 								.dialog({
 									title: $.i18n("Invitations"),
@@ -395,7 +401,7 @@ requirejs([
 					$twist.append(
 						$("<button name='another' title=''></button>")
 						.button({ label: $.i18n("Another game like this") })
-						.on('click',
+						.on("click",
 							() => $.post(`/anotherGame/${game.key}`)
 							.then(() => this.refresh_games())
 							.catch(UI.report)));
@@ -407,7 +413,7 @@ requirejs([
 						content: $.i18n("tooltip-delete-game")
 					})
 					.button({ label: $.i18n("Delete") })
-					.on('click', () => $.post(`/deleteGame/${game.key}`)
+					.on("click", () => $.post(`/deleteGame/${game.key}`)
 						.then(() => this.refresh_games())
 						.catch(UI.report)));
 
@@ -446,29 +452,31 @@ requirejs([
 		 * Refresh the display of all games
 		 * @param {object[]} games array of Game.simple
 		 */
-		show_games(games) {
-			if (games.length === 0) {
-				$('#gamesList').hide();
+		show_games(simples) {
+			if (simples.length === 0) {
+				$("#gamesList").hide();
 				return;
 			}
 
-			const $gt = $('#gamesTable');
+			const $gt = $("#gamesTable");
 			$gt.empty();
+
+            const games = simples.map(simple => new Game(simple));
 
 			games.forEach(game => $gt.append(this.$game(game)));
 
-			$('#gamesList').show();
-			$('#reminder-button').hide();
-			if (this.session && this.getSetting('canEmail')) {
+			$("#gamesList").show();
+			$("#reminder-button").hide();
+			if (this.session && this.getSetting("canEmail")) {
 				if (games.reduce((em, game) => {
 					// game is Game.simple, not a Game object
 					// Can't remind a game that hasn't started or has ended.
-					if (game.state !== Game.STATE_PLAYING)
+					if (game.state !== State.PLAYING)
 						return em;
-					return em || game.players.find(p => p.key === game.whosTurnKey)
+					return em || game.getPlayer(game.whosTurnKey)
 					.email;
 				}, false))
-					$('#reminder-button').show();
+					$("#reminder-button").show();
 			}
 		}
 
@@ -479,7 +487,7 @@ requirejs([
 		 */
 		refresh_game(key) {
 			return $.get(`/simple/${key}`)
-			.then(simple => this.show_game(simple[0]))
+			.then(simple => this.show_game(new Game(simple[0])))
 			.catch(UI.report);
 		}
 
@@ -488,7 +496,7 @@ requirejs([
 		 */
 		refresh_games() {
 			console.debug("refresh_games");
-			const what = $('#showAllGames').is(':checked') ? 'all' : 'active';
+			const what = $("#showAllGames").is(":checked") ? "all" : "active";
 			return $.get(`/simple/${what}`)
 			.then(games => this.show_games(games))
 			.catch(UI.report);
@@ -506,7 +514,7 @@ requirejs([
 					if (session) {
 						console.log("Signed in as", this.session.name);
 						$("#create-game").show();
-						$("#chpw_button").toggle(session.provider === 'xanado');
+						$("#chpw_button").toggle(session.provider === "xanado");
 					} else {
 						$("#create-game").hide();
 					}
@@ -516,16 +524,16 @@ requirejs([
 				$.get("/history")
 				.then(data => {
 					if (data.length === 0) {
-						$('#gamesCumulative').hide();
+						$("#gamesCumulative").hide();
 						return;
 					}
 					let n = 1;
-					$('#gamesCumulative').show();
-					const $gt = $('#player-list');
+					$("#gamesCumulative").show();
+					const $gt = $("#player-list");
 					$gt.empty();
 					data.forEach(player => {
 						const s = $.i18n(
-							'games-scores', n++, player.name, player.score,
+							"games-scores", n++, player.name, player.score,
 							player.games, player.wins);
 						$gt.append(`<div class="player-cumulative">${s}</div>`);
 					});

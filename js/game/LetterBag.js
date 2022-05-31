@@ -10,18 +10,27 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 	 */
 	class LetterBag {
 
+        /**
+         * Array of Tiles in the bag
+         * @member {Tile[]}
+         */
+		tiles = [];
+
+		/**
+         * Array of all the letters in the bag, excluding blank.
+         * @member {string
+         */
+		legalLetters = [];
+
 		/**
 		 * Construct a new letter bag using the distribution for the
 		 * given edition
 		 * @param {Edition} edition the Edition defining the bag contents
 		 */
 		constructor(edition) {
-			// Tiles in the bag
-			this.tiles = [];
-			// Array of all the letters in the bag, excluding blank
-			this.legalLetters = [];
-
 			for (let letter of edition.bag) {
+                // legalLetters is an array, not a string, to support
+                // multi-character tiles
 				if (!letter.isBlank)
 					// Not blank
 					this.legalLetters.push(letter.letter);

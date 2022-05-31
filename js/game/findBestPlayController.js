@@ -8,12 +8,14 @@ and license information*/
 define("game/findBestPlayController", [
 	"worker_threads",
 	"platform", "common/Fridge",
-	"game/Square", "game/Game", "game/Player"
+	"game/Types", "game/Square", "game/Game", "game/Player"
 ], (
 	threads,
 	Platform, Fridge,
-	Square, Game, Player
+	Types, Square, Game, Player
 ) => {
+
+    const Timer = Types.Timer;
 
 	/**
 	 * Interface is the same as for {@link findBestPlay} so they
@@ -36,7 +38,7 @@ define("game/findBestPlayController", [
 
 			// Apply the game time limit
 			let timer;
-			if (game.timerType === Player.TIMER_TURN) {
+			if (game.timerType === Timer.TURN) {
 				/* istanbul ignore next */
 				timer = setTimeout(() => {
 					console.log("findBestPlay timed out");

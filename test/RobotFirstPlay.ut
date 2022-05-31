@@ -5,21 +5,9 @@
 /**
  * Test first play on an empty board.
  */
-requirejs = require("requirejs");
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-    nodeRequire: require,
-	paths: {
-		common: "js/common",
-		game: "js/game",
-		dawg: "js/dawg",
-		platform: "js/server/ServerPlatform"
-	}
-});
-
 describe("first plays", () => {
 	const deps = [
+        { Platform: "platform" },
 		{ Edition: "game/Edition" },
 		{ Tile: "game/Tile" },
 		{ Player: "game/Player" },
@@ -28,14 +16,16 @@ describe("first plays", () => {
 		{ findBestPlay: "game/findBestPlay" }
 	];
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
 
 	it("first play English Scrabble", () => {
 		let bestPlay;
 
-		return new Game({edition:"English_Scrabble", dictionary:"Oxford_5000"}).create()
-		.then(game => {
+		let game = new Game({edition:"English_Scrabble", dictionary:"Oxford_5000"});
+        return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+		.then(() => {
 			game.addPlayer(new Player({name:"test", key:"anonymous", isRobot:false}));
 			return game.loadBoard(
 				"| | | | | | | | | | | | | | | |\n" +
@@ -84,7 +74,9 @@ describe("first plays", () => {
 	it("first play English WWF", () => {
 		let bestPlay;
 
-		return new Game({edition:"English_WWF", dictionary:"Oxford_5000"}).create()
+		let game = new Game({edition:"English_WWF", dictionary:"Oxford_5000"});
+        return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(new Player({name:"test", key:"slight", isRobot:false}));
 			return game.loadBoard(

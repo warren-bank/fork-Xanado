@@ -3,26 +3,14 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env node, mocha */
 
-if (typeof requirejs === 'undefined') {
-    requirejs = require('requirejs');
-    // node.js
-}
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-    paths: {
-        'common': 'js/common'
-    }
-});
-
 describe("Fridge class", () => {
 
 	const deps = [
 		{ Fridge: 'common/Fridge' }
 	];
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
 
 	class Wibble {
 		constructor(wib) {

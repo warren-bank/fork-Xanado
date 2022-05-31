@@ -203,7 +203,6 @@
 	"um-reset-html": "HTML body of a password reset email, $1 is the url",
 	"um-reset-sent": "report that email was sent",
 	"um-reset-text": "plain text of password reset email",
-	"um-unknown-email": "error message sent when a password reset for an unknown email was requested",
 	"um-user-exists": "error when re-registering known user, $1 is the user name",
 	"using dictionary $1": "part of game description, $1 = dic",
 	"Waiting for players": "state: waiting for enough players to join to make a game",

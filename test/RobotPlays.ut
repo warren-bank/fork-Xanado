@@ -2,43 +2,63 @@
    license information */
 /* eslint-env node */
 
-requirejs = require("requirejs");
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-	nodeRequire: require,
-	paths: {
-		common: "js/common",
-		game: "js/game",
-		dawg: "js/dawg",
-		platform: "js/server/ServerPlatform"
-	}
-});
-
 /**
  * Unit tests for robot.
  */
 describe('Game - robot plays - tests', () => {
 	const deps = [
-		{ TestSocket: 'test/TestSocket' },
-		
 		{ Tile: 'game/Tile' },
 		{ Player: 'game/Player' },
 		{ Game: 'game/Game' },
 		
 		{ Move: 'game/Move' },
-		{ Turn: 'game/Turn' },
-		{ Notify: 'game/Notify' }
+		{ Turn: 'game/Turn' }
 	];
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
+
+    function UNit() {}
+    
+	it('robot to play when ready', () => {
+		const game = new Game({
+			edition: "Tiny",
+			dictionary: "Oxford_5000",
+			//_debug: console.debug,
+			noPlayerShuffle: true
+		});
+
+		const robot = new Player({name:'Machine', key:"robot",
+								  isRobot: true, canChallenge: true});
+		const human = new Player({name:'Man', key:"human", isRobot: false});
+
+		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+		.then(game => {
+			game.addPlayer(robot);
+			game.addPlayer(human);
+			robot.rack.empty();
+			robot.rack.addTile(
+				new Tile({letter:'M', isBlank:false, score:1}));
+			robot.rack.addTile(
+				new Tile({letter:'A', isBlank:false, score:1}));
+			robot.rack.addTile(
+				new Tile({letter:'N', isBlank:false, score:1}));
+            // Force the conditions that will pertain if a game is loaded
+            // and a robot is expected to play next. This is a different
+            // case to the preconditions being met and kicking off the
+            // robot.
+            game.state = State.PLAYING;
+            game.whosTurnKey = robot.key;
+		})
+		.then(() => game.playIfReady());
+	});
 
 	it('robot cannot play first', () => {
 		const game = new Game({
 			edition: "Tiny",
 			dictionary: "Oxford_5000",
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
 
@@ -66,6 +86,7 @@ describe('Game - robot plays - tests', () => {
 		});
 
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(robot);
 			game.addPlayer(human);
@@ -85,7 +106,7 @@ describe('Game - robot plays - tests', () => {
 
 	it('robot can play first', () => {
 		const game = new Game({
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true,
 			edition:'English_Scrabble',
 			dictionary:'Oxford_5000'
@@ -143,6 +164,7 @@ describe('Game - robot plays - tests', () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(robot);
 			game.addPlayer(human);
@@ -164,7 +186,7 @@ describe('Game - robot plays - tests', () => {
 		const game = new Game({
 			edition:'English_Scrabble',
 			dictionary:'Oxford_5000',
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true
 		});
 		let human = new Player({
@@ -220,6 +242,7 @@ describe('Game - robot plays - tests', () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human);
 			// Override the random rack
@@ -249,7 +272,7 @@ describe('Game - robot plays - tests', () => {
 
 	it('robot confirm game over', () => {
 		const game =  new Game({
-			//debug: console.debug,
+			//_debug: console.debug,
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true
@@ -275,7 +298,7 @@ describe('Game - robot plays - tests', () => {
 			} else {
 				assert.equal(event, Notify.TURN);
 				assert.equal(turn.type, Turn.GAME_OVER);
-				assert.equal(turn.endState, Game.STATE_GAME_OVER);
+				assert.equal(turn.endState, State.GAME_OVER);
 				const exp = {};
 				exp[human.key] = { tiles: 100 };
 				exp[robot.key] = { tiles: -100 };
@@ -295,6 +318,7 @@ describe('Game - robot plays - tests', () => {
 			assert.fail(event);
 		});
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			// Empty racks and bag => game over
 			game.addPlayer(human);
@@ -324,7 +348,7 @@ describe('Game - robot plays - tests', () => {
 
 	it('robot challenge and make last play', () => {
 		const game = new Game({
-			//debug: console.debug,
+			//_debug: console.debug,
 			edition: "Tiny",
 			dictionary: "Oxford_5000",
 			noPlayerShuffle: true
@@ -376,6 +400,7 @@ describe('Game - robot plays - tests', () => {
 		});
 
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human);
 			human.rack.empty();

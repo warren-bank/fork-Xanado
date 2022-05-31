@@ -2,34 +2,6 @@
    license information */
 /* eslint-env node, mocha */
 
-requirejs = require("requirejs");
-
-// All this for i18n
-const { JSDOM } = require('jsdom');
-/* eslint-disable no-global-assign */
-document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
-/* eslint-enable no-global-assign */
-const { window } = document;
-global.window = window;
-global.navigator = { userAgent: "node.js" };
-const jQuery = require("jquery");
-global.$ = jQuery;
-global.jQuery = jQuery;
-require("@wikimedia/jquery.i18n/src/jquery.i18n");
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-	nodeRequire: require,
-	paths: {
-		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
-		common: "js/common",
-		server: "js/server",
-		dawg: "js/dawg",
-		game: "js/game",
-		platform: "js/server/ServerPlatform"
-	}
-});
-
 const chai = require("chai");
 chai.use(require("chai-http"));
 const expect = chai.expect;
@@ -41,13 +13,11 @@ const fs = require("fs").promises;
 describe("UserManager class", () => {
 	
 	const deps = [
-		{ Server: "server/Server" },
-		{ Platform: "platform" }
+		{ Server: "server/Server" }
 	];
 
-	const Assert = require("./Assert.js");
-	before(required =>
-           Assert.depend(() => Platform.i18n().load("en-GB").then(required), deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
 
 	const assert = chai.assert;
 
@@ -56,7 +26,7 @@ describe("UserManager class", () => {
 	const config = {
 		auth: {
 			"sessionSecret": "cross words",
-			"db_file" : `${__dirname}/passwd.json`
+			"db_file" : `${__dirname}/temp/passwd.json`
 		},
 		defaults: {
 			edition: "Tiny",
@@ -71,7 +41,7 @@ describe("UserManager class", () => {
 		.get("/session")
 		.end((err, res) => {
 			assert.equal(res.status, 401);
-			chai.assert.deepEqual(res.body, ["not-logged-in"]);
+			chai.assert.deepEqual(res.body, ["um-not-logged-in"]);
 			resolve();
 		});
 	}));
@@ -86,12 +56,51 @@ describe("UserManager class", () => {
 			.set('content-type', 'application/x-www-form-urlencoded')
 			.send({})
 			.end((err, res) => {
-				assert.equal(res.status, 500);
+				assert.equal(res.status, 403);
 				chai.assert.deepEqual(res.body, ["um-bad-user", null]);
 				resolve();
 			});
 		}));
 	});
+
+	it("/register - again", () => {
+        const details = {
+			register_username: "test_user",
+			register_password: "test_pass",
+			register_email: "test@email.com"
+		};
+
+        const server = new Server(config);
+		return fs.unlink(config.auth.db_file)
+		.catch(e => undefined)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/register")
+			.set('content-type', 'application/x-www-form-urlencoded')
+			.send(details)
+			.end((err, res) => {
+				assert.equal(res.status, 200);
+				TS.sparseEqual(res.body, {
+					name: details.register_username,
+					provider: "xanado"
+				});
+				assert(res.body.key.length > 1);
+				assert(!res.body.email);
+				resolve();
+			});
+        })
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/register")
+			.set('content-type', 'application/x-www-form-urlencoded')
+			.send(details)
+			.end((err, res) => {
+				assert.equal(res.status, 403);
+				chai.assert.deepEqual(res.body, ["um-user-exists", "test_user"]);
+				resolve();
+			});
+		})));
+    });
 
 	// Shortcuts for remaining tests.
 	// Promise to create a new server and reset DB, resolve to Server.express.
@@ -112,7 +121,7 @@ describe("UserManager class", () => {
 			.send(user)
 			.end((err, res) => {
 				assert.equal(res.status, 200);
-				Assert.sparseEqual(res.body, {
+				TS.sparseEqual(res.body, {
 					name: user.register_username,
 					provider: "xanado"
 				});
@@ -123,7 +132,7 @@ describe("UserManager class", () => {
 		});
 	}
 	
-	// Promise to login user. Resolve to session_cookie.
+	// Promise to login user. Resolve to cookie.
 	function login(server, user) {
 		return new Promise(resolve => {
 			chai.request(server.express)
@@ -145,7 +154,7 @@ describe("UserManager class", () => {
 			.send({register_username: "test_user"})
 			.end((err, res) => {
 				assert.equal(res.status, 200);
-				Assert.sparseEqual(res.body, {
+				TS.sparseEqual(res.body, {
 					name: "test_user",
 					provider: "xanado"
 				});
@@ -168,13 +177,14 @@ describe("UserManager class", () => {
         // Wrong password
 		.then(() => new Promise(resolve => {
 			chai.request(server.express)
-			.post("/login")
+			.post("/login?origin=greatapes")
 			.send({
 				login_username: "test_user",
 				login_password: "wrong_pass"
 			})
 			.end((err, res) => {
 				assert.equal(res.status, 401);
+			    // NO! chai.assert.deepEqual(res.body, ["um-not-logged-in"]);
 				resolve();
 			});
 		}))
@@ -196,6 +206,18 @@ describe("UserManager class", () => {
 			});
 		}))
 
+        // not logged in Logout
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/logout")
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				assert.equal(res.status, 401);
+				chai.assert.deepEqual(res.body, ["um-not-logged-in"]);
+				resolve();
+			});
+		}))
+
         // User with null password
 		.then(() => register(server, {
 			register_username: "test2_user",
@@ -210,6 +232,7 @@ describe("UserManager class", () => {
 			})
 			.end((err, res) => {
 				assert.equal(res.status, 401);
+			    // NO! chai.assert.deepEqual(res.body, ["um-not-logged-in"]);
 				resolve();
 			});
 		}))
@@ -217,7 +240,7 @@ describe("UserManager class", () => {
 	});
 
 	it("logged in /session-settings and /session", () => {
-		let server;
+		let server, cookie;
 		return reset()
 		.then(s => server = s)
 		.then(() => register(server, {
@@ -225,52 +248,55 @@ describe("UserManager class", () => {
 			register_password: "test_pass",
 			register_email: "test@email.com"
 		}))
+        
 		.then(() => login(server, {
 			login_username: "test_user", login_password: "test_pass"
 		}))
-		.then(session_cookie => new Promise(resolve => {
+        
+		.then(c => cookie = c)
+        .then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.get("/session")
-			.set('Cookie', session_cookie)
+			.set('Cookie', cookie)
 			.end((err, res) => {
 				assert.equal(res.status, 200);
-				Assert.sparseEqual(res.body, {
+				TS.sparseEqual(res.body, {
 					name: "test_user",
 					provider: "xanado"
 				});
 				assert(res.body.key.length > 1);
-				resolve(session_cookie);
+				resolve();
 			});
 		}))
-		.then(session_cookie => new Promise(resolve => {
+		.then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.post("/session-settings")
-			.set('Cookie', session_cookie)
+			.set('Cookie', cookie)
 			.send({sausages: "bratwurst"})
 			.end((err, res) => {
 				assert.equal(res.status, 200);
-				resolve(session_cookie);
+				resolve();
 			});
 		}))
-		.then(session_cookie => new Promise(resolve => {
+		.then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.get("/session")
-			.set('Cookie', session_cookie)
+			.set('Cookie', cookie)
 			.end((err, res) => {
 				assert.equal(res.status, 200);
-				Assert.sparseEqual(res.body, {
+				TS.sparseEqual(res.body, {
 					name: "test_user",
 					provider: "xanado",
 					settings: { sausages: "bratwurst" }
 				});
 				assert(res.body.key.length > 1);
-				resolve(session_cookie);
+				resolve(cookie);
 			});
 		}));
 	});
 	
 	it("logged in /users", () => {
-		let server;
+		let server, cookie;
 		return reset()
 		.then(s => server = s)
 		.then(() => register(server, {
@@ -278,45 +304,44 @@ describe("UserManager class", () => {
 				register_password: "test_pass",
 				register_email: "test@email.com"
 			}))
+        .then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.get("/users")
+			.end((err, res) => {
+				//console.log(res.body);
+				assert.equal(res.status, 401);
+				TS.sparseEqual(res.body, [ 'um-not-logged-in']);
+				resolve();
+			});
+		})
 		.then(() => login(server, {
 			login_username: "test_user", login_password: "test_pass"
 		}))
-		.then(session_cookie => {
-			return new Promise(resolve => {
-				chai.request(server.express)
-				.get("/users")
-				.set('Cookie', session_cookie)
-				.end((err, res) => {
-					//console.log(res.body);
-					assert.equal(res.status, 200);
-					Assert.sparseEqual(res.body, [{
-						name: "test_user"
-					}]);
-					assert(res.body[0].key.length > 1);
-					resolve();
-				});
+		.then(c => cookie = c)
+        .then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.get("/users")
+			.set('Cookie', cookie)
+			.end((err, res) => {
+				//console.log(res.body);
+				assert.equal(res.status, 200);
+				TS.sparseEqual(res.body, [{
+					name: "test_user"
+				}]);
+				assert(res.body[0].key.length > 1);
+				resolve();
 			});
-		});
+		})));
 	});
 
 	it("/reset-password", () => {
-		let server;
+		let server, cookie, token;
 		return reset()
 		.then(s => server = s)
-		.then(() => register(server, {
-				register_username: "test_user",
-				register_password: "test_pass",
-				register_email: "test@email.com"
-			}))
-		.then(() => login(server, {
-			login_username: "test_user",
-			login_password: "test_pass"
-		}))
-		.then(session_cookie => new Promise(resolve => {
+        .then(() => {
 			// server.mail.transport hasn't been configured yet
 			assert(!server.config.mail);
 			//server._debug = console.debug;
-			let token;
 			server.config.mail = {
 				sender: "unit tests",
 				transport: {
@@ -332,22 +357,42 @@ describe("UserManager class", () => {
 					}
 				}
 			};
+        })
+		.then(() => register(server, {
+				register_username: "test_user",
+				register_password: "test_pass",
+				register_email: "test@email.com"
+			}))
+		.then(cookie => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/reset-password")
+			.send({reset_email: "unknown@email.com"})
+			.end((err, res) => {
+                //console.log(res.body);
+				assert.equal(res.status, 403);
+				TS.sparseEqual(res.body, [
+					"um-no-such-user",
+					"unknown@email.com"
+				]);
+				resolve();
+			});
+		}))
+		.then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.post("/reset-password")
 			.send({reset_email: "test@email.com"})
-			.set('Cookie', session_cookie)
 			.end((err, res) => {
 				//console.log(res.text, token);
 				assert.equal(res.status, 200);
-				Assert.sparseEqual(res.body, [
+				TS.sparseEqual(res.body, [
 					"um-reset-sent",
 					"test_user"
 				]);
 				assert(token);
-				resolve(token);
+				resolve();
 			});
 		}))
-		.then(token => new Promise(resolve => {
+		.then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.get(`/password-reset/${token}`)
 			.end((err, res) => {
@@ -371,11 +416,21 @@ describe("UserManager class", () => {
 				register_password: "test_pass",
 				register_email: "test@email.com"
 			}))
+        .then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/change-password")
+			.send({password: "wtf"})
+			.end((err, res) => {
+				assert.equal(res.status, 401);
+				TS.sparseEqual(res.body, ["um-not-logged-in"]);
+				resolve();
+			});
+		}))
 		.then(() => login(server, {
 			login_username: "test_user",
 			login_password: "test_pass"
 		}))
-		.then(session_cookie => cookie = session_cookie)
+		.then(c => cookie = c)
         .then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.post("/change-password")
@@ -383,7 +438,7 @@ describe("UserManager class", () => {
 			.set('Cookie', cookie)
 			.end((err, res) => {
 				assert.equal(res.status, 200);
-				Assert.sparseEqual(res.body, [
+				TS.sparseEqual(res.body, [
 					"um-pass-changed",
 					"test_user"
 				]);
@@ -416,6 +471,7 @@ describe("UserManager class", () => {
 			})
 			.end((err, res) => {
 				assert.equal(res.status, 401);
+			    // NO! chai.assert.deepEqual(res.body, ["um-not-logged-in"]);
 				resolve();
 			});
 	    }));

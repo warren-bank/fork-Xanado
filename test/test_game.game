@@ -5705,10 +5705,7 @@
     ]
    }
   },
-  "minPlayers": 2,
-  "maxPlayers": 0,
   "predictScore": true,
-  "allowTakeBack": false,
   "wordCheck": "Don't check words",
   "penaltyType": "Lose points per word",
   "penaltyPoints": 5

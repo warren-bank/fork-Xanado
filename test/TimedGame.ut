@@ -2,53 +2,26 @@
    license information */
 /* eslint-env node */
 
-requirejs = require('requirejs');
-
-// node.js
-const { JSDOM } = require('jsdom');
-/* eslint-disable no-global-assign */
-document = new JSDOM('<!doctype html><html><body id="working"></body></html>');
-/* eslint-enable no-global-assign */
-const { window } = document;
-global.window = window;
-global.document = window.document;
-global.navigator = { userAgent: "node.js" };
-const jQuery = require('jquery');
-global.jQuery = jQuery;
-global.$ = jQuery;
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-	nodeRequire: require,
-	paths: {
-		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
-		common: "js/common",
-		game: "js/game",
-		dawg: "js/dawg",
-		platform: "js/server/ServerPlatform"
-	}
-});
-
 /**
  * Unit tests for behavious specific to timed games
  */
-describe("Timed games", () => {
+describe("Timed games", function() {
 	const deps = [
-		{ TestSocket: "test/TestSocket" },
 		{ Edition: "game/Edition" },
 		{ Tile: "game/Tile" },
 		{ Rack: "game/Rack" },
 		{ Player: "game/Player" },
 		{ Game: "game/Game" },
 		{ Move: "game/Move" },
-		{ Turn: "game/Turn" },
-		{ Notify: "game/Notify" }
+		{ Turn: "game/Turn" }
 	];
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
 
-	function unit() {}
+    this.timeout(10000);
+    
+	function UNit() {}
 
 	it('timeout and end game', () => {
 		const human1 = new Player({
@@ -59,15 +32,16 @@ describe("Timed games", () => {
 		const game = new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true,
-			timerType: Player.TIMER_TURN,
+			timerType: Timer.TURN,
 			timeLimit: 1
 		});
 		let nextTurn = 0;
 		const socket = new TestSocket();
 		// Expected turns
 		const handle = (event, turn) => {
+            //console.log("Turn", nextTurn+1);
 			switch (nextTurn++) {
 			case 0:
 				assert.equal(turn.score, 0);
@@ -125,7 +99,8 @@ describe("Timed games", () => {
 			assert.fail(event);
 		});
 
-		return game.create() // no .onLoad because no DB
+		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();
@@ -153,9 +128,9 @@ describe("Timed games", () => {
 		const game = new Game({
 			edition:'Tiny',
 			dictionary:'Oxford_5000',
-			//debug: console.debug,
+			//_debug: console.debug,
 			noPlayerShuffle: true,
-			timerType: Player.TIMER_GAME,
+			timerType: Timer.GAME,
 			timeLimit: 0.001,
 			timePenalty: 60
 		});
@@ -242,6 +217,7 @@ describe("Timed games", () => {
 		// Players don't time out in a chess clock game, so we have to
 		// explicitly pass twice
 		return game.create()
+        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.empty();

@@ -1,39 +1,13 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env node, mocha */
-/*global document:writable*/
-
-requirejs = require("requirejs");
-// node.js
-const { JSDOM } = require("jsdom");
-/* eslint-disable no-global-assign */
-document = new JSDOM("<!doctype html><html><body id='working'></body></html>");
-/* eslint-enable no-global-assign */
-const { window } = document;
-global.window = window;
-global.document = window.document;
-global.navigator = { userAgent: "node.js" };
-const jQuery = require("jquery");
-global.jQuery = jQuery;
-global.$ = jQuery;
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-	nodeRequire: require,
-    paths: {
-		"jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
-		common: "js/common",
-		game: "js/game",
-		platform: "js/server/ServerPlatform"
-    }
-});
 
 describe("Player class", () => {
 
 	const deps = [ { Player: "game/Player" } ];
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
 
 	it("construct", () => {
 		const p = {
@@ -57,7 +31,7 @@ describe("Player class", () => {
 			isRobot: false,
 			canChallenge: false,
 			missNextTurn: false,
-			//debug: console.debug,
+			//_debug: console.debug,
 			dictionary: "NoDic"
 		};
 		const player = new Player(p);
@@ -71,11 +45,7 @@ describe("Player class", () => {
 			isRobot: true,
 			dictionary: 'NoDic',
 			key: 'playerkey',
-			score: 20,
-			clock: 0,
-			email: false,
-			isConnected: true,
-			missNextTurn: false
+			score: 20
 		}));
 	});
 	   
@@ -86,10 +56,11 @@ describe("Player class", () => {
 			isRobot: true,
 			canChallenge: true,
 			missNextTurn: true,
-			//debug: console.debug,
+			//_debug: console.debug,
 			dictionary: "NoDic"
 		};
 		const player = new Player(p);
+
 		const $tr = $("<tr></tr>").addClass("player-row");
 		$tr[0].id = `player${p.key}`;
 		$tr.append("<td class='turn-pointer'>&#10148;</td>");
@@ -100,7 +71,7 @@ describe("Player class", () => {
 		$tr.append("<td class='score'>0</td>");
 		$tr.append("<td class='player-clock'></td>");
 
-		player.isConnected = true; // muddy-boots client-side setting
+        player.online(false);
 
 		const $act = player.$ui();
 		assert($act[0].isEqualNode($tr[0]),
@@ -118,11 +89,12 @@ describe("Player class", () => {
 			isRobot: false,
 			canChallenge: false,
 			missNextTurn: false,
-			//debug: console.debug,
+			//_debug: console.debug,
 			dictionary: "NoDic"
 		};
 		const player = new Player(p);
 		player.score = 20;
+        player.online(true);
 
 		const $tr = $("<tr></tr>").addClass("player-row");
 		$tr[0].id = `player${p.key}`;
@@ -131,7 +103,7 @@ describe("Player class", () => {
 		$tr.append("<td><div class='ui-icon icon-person'></div></td>");
 		$tr.append(`<td class="player-name">${p.name}</td>`);
 		$tr.append("<td class='remaining-tiles'></td>");
-		$tr.append(`<td class='connect-state offline'>●</td>`);
+		$tr.append(`<td class='connect-state online'>●</td>`);
 		$tr.append("<td class='score'>20</td>");
 		$tr.append("<td class='player-clock'></td>");
 		const $act = player.$ui();

@@ -2,22 +2,6 @@
    license information */
 /* eslint-env node, mocha */
 
-requirejs = require("requirejs");
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-	nodeRequire: require,
-	paths: {
-		common: "js/common",
-		server: "js/server",
-		dawg: "js/dawg",
-		game: "js/game",
-		platform: "js/server/ServerPlatform"
-	}
-});
-
-global.$ = {};
-
 const chai = require("chai");
 chai.use(require("chai-http"));
 const expect = chai.expect;
@@ -30,39 +14,28 @@ const { exec } = require('child_process');
 describe("Server", () => {
 
 	const deps = [
-		{ TestSocket: "test/TestSocket" },
-		{ Server: "server/Server" },
-		{ Platform: "platform" }
+		{ Server: "server/Server" }
 	];
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+    const USER_DB_FILE = `${__dirname}/temp/passwd.json`;
+   
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
+    beforeEach(done => {
+		const cmd = `rm -f ${__dirname}/temp/*.game ${USER_DB_FILE}`;
+		exec(cmd,
+			 (err, stdout, stderr) => {
+				 if (err)
+					 console.debug(cmd, err);
+                 Platform.i18n().load("en-GB").then(done);
+			 });
+	});
 
-	//after(() => Assert.why_is_node_running());
+    afterEach(() => process.removeAllListeners("unhandledRejection"));
+    //after(() => TS.why_is_node_running());
 	
 	const assert = chai.assert;
 
-	// Promise to create a new server and reset DB, resolve to Server.express.
-	function reset(config) {
-		const server = new Server(config);
-        return Platform.i18n().load("en")
-		.then(() => new Promise(resolve => {
-			const cmd = `rm -f ${__dirname}/games/*.game`;
-			exec(cmd,
-				 (err, stdout, stderr) => {
-					 if (err)
-						 console.debug(cmd, err);
-					 resolve();
-				 });
-		}))
-		.then(() => fs.unlink(config.auth.db_file))
-		.catch(e => {
-			console.debug(e);
-			return undefined;
-		})
-		.then(() => server);
-	}
-	
 	// Promise to register user. Resolve to server.
 	function register(server, user) {
 		return new Promise(resolve => {
@@ -72,7 +45,7 @@ describe("Server", () => {
 			.send(user)
 			.end((err, res) => {
 				assert.equal(res.status, 200);
-				Assert.sparseEqual(res.body, {
+				TS.sparseEqual(res.body, {
 					name: user.register_username,
 					provider: "xanado"
 				});
@@ -99,14 +72,14 @@ describe("Server", () => {
 	const config = {
 		auth: {
 			"sessionSecret": "cross words",
-			"db_file" : `${__dirname}/passwd.json`
+			"db_file" : USER_DB_FILE
 		},
 		defaults: {
 			edition: "Tiny",
 			dictionary: "Oxford_5000",
 			theme: "default"
 		},
-		games: "test/games"
+		games: "test/temp"
 	};
 
 	function unit() {}
@@ -141,6 +114,7 @@ describe("Server", () => {
 				theme: "default",
 				canEmail: false
 			});
+            delete(s.express);
 			resolve();
 		});
 	}));
@@ -150,7 +124,7 @@ describe("Server", () => {
 		chai.request(s.express)
 		.get("/simple/all")
 		.end((err, res) => {
-			assert.equal(res.status, 200);
+			assert.equal(res.status, 200, res.body);
 			//console.log(res.body);
 			resolve();
 		});
@@ -161,7 +135,7 @@ describe("Server", () => {
 		chai.request(s.express)
 		.get("/simple/active")
 		.end((err, res) => {
-			assert.equal(res.status, 200);
+			assert.equal(res.status, 200, res.body);
 			//console.log(res.body);
 			resolve();
 		});
@@ -218,14 +192,12 @@ describe("Server", () => {
 	}));
 
 	it("/theme", () => new Promise(resolve => {
-		let server, cookie, gamekey;
-		return reset(config)
-		.then(s => server = s)
-		.then(() => register(server, {
-				register_username: "test_user",
-				register_password: "test_pass",
-				register_email: "test@email.com"
-			}))
+		let server = new Server(config), cookie, gamekey;
+		return register(server, {
+			register_username: "test_user",
+			register_password: "test_pass",
+			register_email: "test@email.com"
+		})
 		.then(() => login(server, {
 			login_username: "test_user",
 			login_password: "test_pass"
@@ -256,38 +228,25 @@ describe("Server", () => {
         .then(() => resolve());
 	}));
 
-	it("/history", () => new Promise(resolve => {
-		const s = new Server(config);
-		chai.request(s.express)
-		.get("/history")
-		.end((err, res) => {
-			//console.log(res.text);
-			assert.equal(res.status, 200);
-			resolve();
-		});
-	}));
-
-	it("/createGame - /join - /addRobot - /game - /leave - /removeRobot - /deleteGame", () => {
+	it("/createGame - /join - /addRobot - /game - /leave - /removeRobot - /history - /deleteGame", () => {
 		const config = {
 			auth: {
 				"sessionSecret": "cross words",
-				"db_file" : `${__dirname}/passwd.json`
+				"db_file" : `${__dirname}/temp/passwd.json`
 			},
 			defaults: {
 				edition: "Tiny",
 				dictionary: "Oxford_5000",
 				theme: "default"
 			},
-			games: "test/games"
+			games: "test/temp"
 		};
-		let server, cookie, gamekey;
-		return reset(config)
-		.then(s => server = s)
-		.then(() => register(server, {
-				register_username: "test_user",
-				register_password: "test_pass",
-				register_email: "test@email.com"
-			}))
+		let server = new Server(config), cookie, gamekey;
+		return register(server, {
+			register_username: "test_user",
+			register_password: "test_pass",
+			register_email: "test@email.com"
+		})
 		.then(() => login(server, {
 			login_username: "test_user",
 			login_password: "test_pass"
@@ -358,6 +317,15 @@ describe("Server", () => {
 				resolve(res.text);
 			});
 		}))
+	    .then(() => new Promise(resolve => {
+		    chai.request(server.express)
+		    .get("/history")
+		    .end((err, res) => {
+			    //console.log(res.text);
+			    assert.equal(res.status, 200);
+			    resolve();
+		    });
+	    }))
 		.then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.post(`/deleteGame/${gamekey}`)
@@ -374,23 +342,21 @@ describe("Server", () => {
 		const config = {
 			auth: {
 				"sessionSecret": "cross words",
-				"db_file" : `${__dirname}/passwd.json`
+				"db_file" : `${__dirname}/temp/passwd.json`
 			},
 			defaults: {
 				edition: "Tiny",
 				dictionary: "Oxford_5000",
 				theme: "default"
 			},
-			games: "test/games"
+			games: "test/temp"
 		};
-		let server, cookie, gamekey;
-		return reset(config)
-		.then(s => server = s)
-		.then(() => register(server, {
-				register_username: "test_user",
-				register_password: "test_pass",
-				register_email: "test@email.com"
-			}))
+		let server = new Server(config), cookie, gamekey;
+		return register(server, {
+			register_username: "test_user",
+			register_password: "test_pass",
+			register_email: "test@email.com"
+		})
 		.then(() => login(server, {
 			login_username: "test_user",
 			login_password: "test_pass"
@@ -448,23 +414,21 @@ describe("Server", () => {
 		const config = {
 			auth: {
 				"sessionSecret": "cross words",
-				"db_file" : `${__dirname}/passwd.json`
+				"db_file" : `${__dirname}/temp/passwd.json`
 			},
 			defaults: {
 				edition: "Tiny",
 				dictionary: "Oxford_5000",
 				theme: "default"
 			},
-			games: "test/games"
+			games: "test/temp"
 		};
-		let server, cookie, gamekey;
-		return reset(config)
-		.then(s => server = s)
-		.then(() => register(server, {
-				register_username: "test_user",
-				register_password: "test_pass",
-				register_email: "test@email.com"
-			}))
+		let server = new Server(config), cookie, gamekey;
+		return register(server, {
+			register_username: "test_user",
+			register_password: "test_pass",
+			register_email: "test@email.com"
+		})
 		.then(() => login(server, {
 			login_username: "test_user",
 			login_password: "test_pass"
@@ -517,18 +481,55 @@ describe("Server", () => {
 		}));
 	});
 
+	it("401", () => {
+		let server = new Server(config), cookie, gamekey, playerkey;
+        const proms = [
+            new Promise(resolve => {
+			    chai.request(server.express)
+			    .post("/createGame")
+			    .end((err, res) => {
+				    assert.equal(res.status, 401);
+				    resolve();
+			    });
+		    }),
+
+            new Promise(resolve => {
+			    chai.request(server.express)
+			    .post("/command/wibble/notakey")
+			    .end((err, res) => {
+				    assert.equal(res.status, 401);
+				    resolve();
+			    });
+		    })
+        ];
+
+        for (let route of [
+            "deleteGame", "anotherGame", "sendReminder",
+            "join", "leave", "addRobot", "removeRobot",
+            "invitePlayers"
+        ]) {
+            proms.push(new Promise(resolve => {                   
+			    chai.request(server.express)
+			    .post(`/${route}/:notakey`)
+			    .end((err, res) => {
+				    assert.equal(res.status, 401);
+				    resolve();
+			    });
+		    }));
+        }
+        return Promise.all(proms);
+    });
+       
 	it("/invitePlayers", () => new Promise(done => {
-		let server, cookie, gamekey, playerkey;
-		return reset(config)
-		.then(s => server = s)
-		.then(() => register(server, {
+		let server = new Server(config), cookie, gamekey, playerkey;
+		return register(server, {
 	        register_username: "no_email_user"
-		}))
+		})
 		.then(() => register(server, {
-				register_username: "test_user",
-				register_password: "test_pass",
-				register_email: "test@email.com"
-			}))
+			register_username: "test_user",
+			register_password: "test_pass",
+			register_email: "test@email.com"
+		}))
 		.then(() => login(server, {
 			login_username: "test_user",
 			login_password: "test_pass"
@@ -604,14 +605,13 @@ describe("Server", () => {
 	}));
 
 	it("/sendReminder", () => new Promise(done => {
-		let server, cookie, gamekey, playerkey;
-		return reset(config)
-		.then(s => server = s)
-		.then(() => register(server, {
+		let cookie, gamekey, playerkey;
+		let server = new Server(config);
+        return register(server, {
 			register_username: "test_user",
 			register_password: "test_pass",
 			register_email: "test@email.com"
-		}))
+		})
 		.then(() => login(server, {
 			login_username: "test_user",
 			login_password: "test_pass"

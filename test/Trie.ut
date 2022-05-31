@@ -3,20 +3,6 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env node, mocha */
 
-if (typeof requirejs === 'undefined') {
-    requirejs = require('requirejs');
-    // node.js
-}
-
-requirejs.config({
-    baseUrl: `${__dirname}/..`,
-    paths: {
-        'common': 'js/common',
-        'dawg': 'js/dawg',
-        'platform': 'js/server/ServerPlatform'
-    }
-});
-
 describe("Trie class", () => {
 
 	const deps = [
@@ -24,8 +10,10 @@ describe("Trie class", () => {
         { Dictionary: "dawg/Dictionary" }
 	];
 
-	const Assert = require("./Assert.js");
-	before(required => Assert.depend(required, deps));
+	const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, deps));
+
+    function UNit() {}
 
     it("tries", () => {
         const lexicon = [
@@ -40,7 +28,7 @@ describe("Trie class", () => {
         ];
         // Generate a Trie from the lexicon
 		const trie = new Trie(lexicon);//, console.debug);
-        assert.equal(trie.numberOfWords, 8);
+        assert.equal(trie.numberOfWords, lexicon.length);
         assert.equal(trie.numberOfNodes, 12);
         assert(!trie.first.next);
 
@@ -64,6 +52,27 @@ describe("Trie class", () => {
         trie.addWord("ABA");
     });
 
+    it("subtries", () => {
+        const lexicon = [
+            "AABC",
+            "BABD",
+            "CAA",
+            "CAB",
+            "CBA",
+            "CBC",
+        ];
+		const trie = new Trie(lexicon);//, console.debug);
+
+        const A = trie.first.child;
+        const B = A.next;
+        
+        assert(!A.child.sameSubtrie(B.child));
+
+        const C = B.next;
+        assert(!C.child.child.sameSubtrie(C.child.next.child));
+        
+    });
+
     it("optimises", () => {
         const lexicon = [
             "A",
@@ -73,24 +82,32 @@ describe("Trie class", () => {
             "BB",
             "BBC",
             "XAB",
-            "XABC"
+            "XABC",
+            "TIT",
+            "TITS",
+            "TOR",
+            "WIT",
+            "WITS",
+            "NIT",
+            "NITS",
+            "NOR"
         ];
         // Generate a Trie from the lexicon
 		const trie = new Trie(lexicon);//, console.debug);
-        assert.equal(trie.numberOfWords, 8);
-        assert.equal(trie.numberOfNodes, 12);
+        assert.equal(trie.numberOfWords, lexicon.length);
+        assert.equal(trie.numberOfNodes, 28);
 
         let words = [];
         trie.eachWord(nodes => {
             words.push(nodes.map(n => n.letter).filter(l => l !== -1).join(""));
         });
-        assert.deepEqual(words, lexicon);
+        assert.deepEqual(words, lexicon.sort());
 
         const e = trie.encode();
         const before = new Dictionary("before").loadDAWG(e);
         const beforeWords = [];
         before.eachWord(word => beforeWords.push(word));
-        assert.deepEqual(beforeWords, lexicon);
+        assert.deepEqual(beforeWords, lexicon.sort());
 
         trie.generateDAWG();
 
@@ -98,14 +115,14 @@ describe("Trie class", () => {
         trie.eachWord(nodes => {
             words.push(nodes.map(n => n.letter).filter(l => l !== -1).join(""));
         });
-        assert.deepEqual(words, lexicon);
-        assert.equal(trie.numberOfWords, 8);
+        assert.deepEqual(words, lexicon.sort());
+        assert.equal(trie.numberOfWords, lexicon.length);
         //console.log(trie.first.toString(true));
-        assert.equal(trie.numberOfNodes, 9);
+        assert.equal(trie.numberOfNodes, 18);
 
         const after = new Dictionary("after").loadDAWG(trie.encode());
         const afterWords = [];
         after.eachWord(word => afterWords.push(word));
-        assert.deepEqual(afterWords, lexicon);
+        assert.deepEqual(afterWords, lexicon.sort());
     });
 });

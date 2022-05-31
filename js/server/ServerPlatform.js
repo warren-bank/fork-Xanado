@@ -56,6 +56,7 @@ define("platform", [
 				throw Error(`Invalid DB key ${key}`);
 			const fn = Path.join(this.directory, `${key}.${this.type}`);
 			const s = JSON.stringify(Fridge.freeze(data), null, 1);
+            //console.log("Writing", fn);
 			return Fs.access(fn)
 			.then(acc => {
 				return Lock.lock(fn) // file exists
@@ -120,11 +121,13 @@ define("platform", [
 										 `${locale.split("-")[0]}.json`);
 					return Fs.readFile(langfile);
 				})
-				.catch(e => {
-					// Fall back to "en"
-					langfile = Path.join(langdir, "en.json");
-					return Fs.readFile(langfile);
-				})
+				.catch(
+                    /* istanbul ignore next */
+                    e => {
+					    // Fall back to "en"
+					    langfile = Path.join(langdir, "en.json");
+					    return Fs.readFile(langfile);
+				    })
 				.then(buffer => {
 					ServerPlatform.TX = JSON.parse(buffer.toString());
 				});
