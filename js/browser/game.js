@@ -247,7 +247,7 @@ define("browser/game", [
 					turn.replacements.length);
 				break;
 
-			case Turn.TIMEOUT:
+			case Turn.TIMED_OUT:
 				turnText = $.i18n("Timed out");
 				break;
 
@@ -713,7 +713,7 @@ define("browser/game", [
 					this.setAction("action_anotherGame", /*i18n*/"Another game?");
 			}
 
-			$("#pauseButton").toggle(game.timeLimit > 0);
+			$("#pauseButton").toggle(game.timerType !== Timer.NONE);
 
 			let myGo = this.isThisPlayer(game.whosTurnKey);
 			this.updateWhosTurn();

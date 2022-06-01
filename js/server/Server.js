@@ -884,6 +884,7 @@ define("server/Server", [
 			/* istanbul ignore next */
 			this._debug("Delete game",gameKey);
 			return this.loadGame(gameKey)
+            .then(game => game.stopTheClock()) // in case it's running
 			.then(() => this.db.rm(gameKey))
 			.then(() => res.status(200).send("OK"))
 			.then(() => this.updateObservers())

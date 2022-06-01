@@ -276,8 +276,9 @@ define("game/Game", [
 			if (typeof params._debug === "function")
 				this._debug = params._debug;
 
-            for (const k of Object.keys(params)) {
+            for (const k of Object.keys(this)) {
                 if (params.hasOwnProperty(k)
+                    && k.indexOf("_") !== 0
                     && k !== "players"
                     && k !== "turns") {
                     this[k] = params[k];
@@ -291,10 +292,14 @@ define("game/Game", [
                     this.timeLimit = params.timeLimit;
                 else if (typeof params.timeLimitMinutes !== "undefined")
 				    this.timeLimit = params.timeLimitMinutes * 60;
-                else if (this.timerType === Timer.GAME)
-                    this.timeLimit = 25 * 60; // 25 minutes
                 else
-                    this.timeLimit = 1 * 60; // 1 minute
+                    this.timeLimit = 0;
+                if (this.timeLimit < 1) {
+                    if (this.timerType === Timer.GAME)
+                        this.timeLimit = 25 * 60; // 25 minutes
+                    else
+                        this.timeLimit = 1 * 60; // 1 minute
+                }
 			}
 			if (params.minPlayers > 2)
                 this.minPlayers = params.minPlayers;
@@ -1608,7 +1613,7 @@ define("game/Game", [
 		 * can't play, or challenged and failed.
 		 * @param {Player} player player passing (must be current player)
 		 * @param {string} type pass type, `Turn.PASSED` or
-		 * `Turn.TIMEOUT`. If undefined, defaults to passed
+		 * `Turn.TIMED_OUT`. If undefined, defaults to `Turn.PASSED`
 		 * @return {Promise} resolving to the game
 		 */
 		pass(player, type) {

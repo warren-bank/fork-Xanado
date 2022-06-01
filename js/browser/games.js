@@ -140,7 +140,7 @@ requirejs([
 					Math.max(max, p.score), 0);
 				
 				if (player.score === winningScore) {
-					$tr.append("<td class="ui-icon icon-winner"></td>");
+					$tr.append('<td class="ui-icon icon-winner"></td>');
 				}
 
 				return $tr;
