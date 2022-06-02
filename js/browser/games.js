@@ -285,11 +285,14 @@ requirejs([
 			if (game.dictionary)
 				options.push($.i18n("Dictionary $1", game.dictionary));
 			if (game.timerType === Timer.TURN)
-				options.push($.i18n("turn time limit $1",
+				options.push($.i18n("Turn time limit $1",
 									 Utils.formatTimeInterval(game.timeLimit)));
-			else if (game.timerType === Timer.GAME)
-				options.push($.i18n("game time limit $1",
-									 Utils.formatTimeInterval(game.timeLimit)));
+			else if (game.timerType === Timer.GAME) {
+				options.push($.i18n("Game time limit $1",
+									Utils.formatTimeInterval(game.timeLimit)));
+				options.push($.i18n("Overtime penalty $1 points per minute",
+                                    game.timePenalty));
+            }
 			if (game.predictScore)
 				options.push($.i18n("Predict score"));
 			if (game.wordCheck && game.wordCheck !== WordCheck.NONE)
