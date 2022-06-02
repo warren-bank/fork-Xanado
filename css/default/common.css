@@ -124,3 +124,8 @@ button.hide-password {
 	font-weight: normal;
 	box-shadow: 0.1em 0.1em 0.3em rgba(0,0,0,0.9);
 }
+
+.ui-tooltip {
+    /* Allow the tooltip to expand beyond the borders of a containing dialog */
+    width: 100%;
+}

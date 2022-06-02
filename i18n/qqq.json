@@ -154,6 +154,7 @@
 	"tooltip-can-challenge": "checkbox tip",
 	"tooltip-delete-game": "tip for delete button",
 	"tooltip-dictionary": "tip for dictionary select",
+    "tooltip-edition": "tip for edition select",
 	"tooltip-email-reminder": "tip for button",
 	"tooltip-email-reminders": "tip for button",
 	"tooltip-invite-players": "tip for email invites",
@@ -222,13 +223,14 @@
 	"Miss a turn after a failed challenge": "select option",
 	"Miss next turn": "select option",
 	"No penalty": "select option",
+    "No dictionary": "Warning message used by Advisor",
 	"Penalty points": "input title",
 	"The word{{PLURAL:$1||s}} $2 {{PLURAL:$1|was|were}} not found in the dictionary": "Log message when a player word is auto-rejected $1 is just used for pluralisation, $2 is the missing word",
 	"$1 lost $2 points": "$1 is You or player, $2 is failed challenge points",
 	"$1 will miss a turn": "Failed challenge outcome, $1 is You or player",
 	"Game timer": "type of timer, total game time limit",
 	"No timer": "type of timer",
-	"Time allowed": "title for input",
+	"Minutes allowed": "title for input",
 	"Time penalty": "title for input",
 	"Timer": "title of fieldset",
 	"Turn timer": "type of timer",
@@ -240,6 +242,7 @@
 	"tooltip-timer-type": "tip for type of timer select",
 	"tooltip-word-check": "tip for word check type select",
 	"$1 lost $2 point{{PLURAL:$2||s}} to the clock": "$1 is You or a player name, $2 is points lost",
-	"game time limit $1": "part of game description, $1 is a formatted time",
-	"turn time limit $1": "part of game description, $1 is a formatted time"
+	"Game time limit $1": "part of game description, $1 is a formatted time",
+	"Turn time limit $1": "part of game description, $1 is a formatted time",
+    "Overtime penalty $1 points per minute": "part of game description, $1 is number of points"
 }

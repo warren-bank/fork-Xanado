@@ -109,24 +109,43 @@ define("browser/Dialog", () => {
 							`url("${$(this).data('image')}")`);
 			});
 
-			// Using tooltips with a selectmenu is horrible. Applying
-			// tooltip() to the select is useless, you have to apply it to
-			// the span that covers the select. However this span is not
-			// created until some indeterminate time in the future, and
-			// there is no event triggered. The alternative is to create
-			// the selectmenu now, but doing so blows away the browser's
-			// memory of previous selections, which we want. So instead we
-			// have to brute-force initialise the 'title' attribute from
-			// the 'data-i18n-tooltip' attribute. Later, when the
-			// selectmenus have (hopefully!) been created, map them to
-			// jquery tooltips.
-			this.$dlg.find('select[data-i18n-tooltip]').each(function() {
-				$(this).attr('title', $.i18n($(this).data('i18n-tooltip')));
-			});
-			setTimeout(() => this.$dlg
-					   .find('.ui-selectmenu-button')
-					   .tooltip(),
-					   100);
+			// Using tooltips with a selectmenu is tricky.
+            // Applying tooltip() to the select is useless, you have
+			// to apply it to the span that is inserted as next
+			// sibling after the select. However this span is not
+			// created until some indeterminate time in the future,
+			// and there is no event triggered.
+            //
+            // What have to do is to wait until the selectmenus
+            // have (hopefully!) been created before creating the
+            // tooltips.
+			this.$dlg
+            .find('select')
+			.selectmenu()
+			.on("selectmenuchange",
+				function() {
+                    $(this).blur();
+                    this.$dlg.data("this").enableSubmit();
+                });
+ 
+			setTimeout(
+                () => this.$dlg
+				.find('select[data-i18n-tooltip] ~ .ui-selectmenu-button')
+				.tooltip({
+                    items: ".ui-selectmenu-button",
+				    position: {
+					    my: "left+15 center",
+					    at: "right center",
+                        within: "body"
+				    },
+				    content: function() {
+				        return $.i18n(
+                            $(this)
+                            .prev()
+                            .data('i18n-tooltip'));
+				    }
+                }),
+				100);
 
 			// hide or show a password
 			this.$dlg.find('.hide-password')
@@ -158,11 +177,6 @@ define("browser/Dialog", () => {
 			.on("click", () => this.$dlg.data("this").submit());
 
 			this.enableSubmit();
-
-			this.$dlg.find("select")
-			.selectmenu()
-			.on("selectmenuchange",
-				() => this.$dlg.data("this").enableSubmit());
 
 			this.created = true;
 			if (this.onCreation)

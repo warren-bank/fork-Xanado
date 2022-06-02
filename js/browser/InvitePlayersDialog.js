@@ -24,7 +24,10 @@ define("browser/InvitePlayersDialog", ["browser/Dialog"], Dialog => {
 			const $email = this.$dlg.find("#playerEmail");
 			$email
 			.on('change', () => this.pick($email.val()));
-			const $select = this.$dlg.find("[name=knownUserSelect]");
+
+			const $select = this.$dlg.find("#knownUserSelect");
+			$select
+			.on("selectmenuchange", () => this.pick($select.val()));
 			return super.createDialog();
 		}
 
@@ -38,8 +41,7 @@ define("browser/InvitePlayersDialog", ["browser/Dialog"], Dialog => {
 				users.forEach(uo => $select.append(
 					`<option value="${uo.key}">${uo.name}</option>`));
 				$select
-				.selectmenu("refresh")
-				.on("selectmenuchange", () => this.pick($select.val()));
+				.selectmenu("refresh");
 				const $gk = this.$dlg.find("[name=gameKey]");
 				$gk.val(this.options.gameKey);
 				this.$dlg.find("#invitedPlayers").empty();
