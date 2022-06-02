@@ -300,7 +300,17 @@ define("game/Game", [
                     else
                         this.timeLimit = 1 * 60; // 1 minute
                 }
+
+                if (this.timerType === Timer.GAME
+                    && typeof this.timePenalty !== "number")
+                    this.timePenalty = 5;
 			}
+
+            if ((this.penaltyType === Penalty.PER_TURN
+                || this.penaltyType === Penalty.PER_WORD)
+                && typeof this.penaltyPoints !== "number")
+                this.penaltyPoints = 5;
+
 			if (params.minPlayers > 2)
                 this.minPlayers = params.minPlayers;
 			if (params.maxPlayers > 2)
@@ -890,9 +900,13 @@ define("game/Game", [
 
 			// For a timed game, make sure the clock is running and
 			// start the player's timer.
-            /* istanbul ignore next */
-			this._debug(`\ttimed game, ${player.name} has ${timeout || this.timeLimit}s left to play`);
-			this.startTheClock(); // does nothing if already started
+            
+            if (this.timerType !== Timer.NONE) {
+                /* istanbul ignore next */
+			    this._debug("\ttimed game,", player.name,
+                            "has", timeout || this.timeLimit,"left to play");
+			    this.startTheClock(); // does nothing if already started
+            }
 
 			if (this.timerType === Timer.TURN)
 				// Make the player pass when their clock reaches 0
@@ -1096,6 +1110,17 @@ define("game/Game", [
 		 * @param {Player} player to get a hint for
 		 */
 		hint(player) {
+            /* istanbul ignore if */
+            if (!this.dictionary) {
+				this.notifyPlayer(
+                    player, Notify.MESSAGE,
+                    {
+ 					    sender: /*i18n*/"Advisor",
+					    text: /*i18n*/"No dictionary"
+                    });
+                return;
+            }
+
             /* istanbul ignore next */
 			this._debug(`Player ${player.name} asked for a hint`);
 
@@ -1107,7 +1132,7 @@ define("game/Game", [
 						this._debug(data);
 					else
 						bestPlay = data;
-				})
+				}, this.dictpath, this.dictionary)
 			.then(() => {
 				const hint = {
 					sender: /*i18n*/"Advisor"
@@ -1178,6 +1203,17 @@ define("game/Game", [
 		 * @param {number} theirScore score they got from their play
 		 */
 		advise(player, theirScore) {
+            /* istanbul ignore if */
+            if (!this.dictionary) {
+				this.notifyPlayer(
+                    player, Notify.MESSAGE,
+                    {
+ 					    sender: /*i18n*/"Advisor",
+					    text: /*i18n*/"No dictionary"
+                    });
+                return;
+            }
+
             /* istanbul ignore next */
 			this._debug(`Computing advice for ${player.name} > ${theirScore}`,
 						player.rack.tiles().map(t => t.letter),
@@ -1356,7 +1392,8 @@ define("game/Game", [
 		autoplay() {
 			const player = this.getPlayer();
             /* istanbul ignore next */
-			this._debug(`Autoplaying ${player.name}`);
+			this._debug("Autoplaying", player.name,
+                        "using", player.dictionary || this.dictionary);
 
 			// Before making a robot move, consider challenging the last
 			// player.
@@ -1417,7 +1454,7 @@ define("game/Game", [
                             /* istanbul ignore next */
 							this._debug("Best", bestPlay);
 						}
-					}, this.dictpath, player.dictionary)
+					}, this.dictpath, player.dictionary || this.dictionary)
 				.then(() => {
 					if (bestPlay)
 						return this.play(player, bestPlay);
