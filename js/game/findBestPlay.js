@@ -465,6 +465,13 @@ define("game/findBestPlay", [
 			return Promise.reject("Game has no edition");
 		}
 
+		if (!dictionary) {
+            console.log(new Error().stack);
+			report("Error: No dictionary for findBestPlay ");
+			// Terminal, no point in translating
+			return Promise.reject("No dictionary for findbextPlay");
+		}
+
 		// sort and reverse to make sure high value letters come
 		// first and blanks come last. It's not going to make it
 		// any faster, but it will abort with a better result if
@@ -476,12 +483,12 @@ define("game/findBestPlay", [
 		report("Finding best play for rack " + rack.toString());
 
 		board = game.board;
-		report(`with dictionary ${dictionary || game.dictionary}`);
+		report(`with dictionary ${dictionary}`);
 		report(`in edition ${game.edition}`);
 		report(`on ${board}`);
 
 		const preamble = [
-			Dictionary.load(dictionary || game.dictionary, dictpath),
+			Dictionary.load(dictionary, dictpath),
 			Edition.load(game.edition)
 		];
 
