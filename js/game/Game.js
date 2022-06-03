@@ -900,7 +900,7 @@ define("game/Game", [
 
 			// For a timed game, make sure the clock is running and
 			// start the player's timer.
-            
+
             if (this.timerType !== Timer.NONE) {
                 /* istanbul ignore next */
 			    this._debug("\ttimed game,", player.name,

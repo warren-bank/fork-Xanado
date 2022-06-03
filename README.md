@@ -149,6 +149,7 @@ To assist learners, there are some special 'chat' messages that can be entered.
 - `hint` tells you the highest scoring play the computer can find for you, before your play. Everyone in the game is told when you send this message (to prevent cheating.)
 - `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played. Everyone in the game is told when you enable analysis (to prevent cheating.)
 - `allow <word>` adds `<word>` to the dictionary. The new word will not be written back to the dictionary database, so will be lost when the server is restarted. If you want to keep the word forever, see [Whitelists](#Whitelists). Everyone in the game is told when someone allows a new word.
+Note that these only work in games for which a dictionary has been selected.
 
 # Editions
 
@@ -206,10 +207,10 @@ See [DEVELOPER](doc/README.md) for more.
 - [SCRABBLE®](http://www.scrabble.com/) is a registered trademark. All
 intellectual property rights in and to the game are owned in the U.S.A
 and Canada by Hasbro Inc., and throughout the rest of the world by
-J.W. Spear & Sons Limited of Maidenhead, Berkshire, England, a
+J.W. Spear & Sons Limited of Maidenhead, Berkshire, U.K., a
 subsidiary of Mattel Inc. If you don't already own a SCRABBLE board,
 buy one today!
-- There is an offical computer version of [SCRABBLE® published by Ubisoft](https://www.ubisoft.com/en-gb/game/scrabble), which you are encouraged to purchase.
+- There is an offical computer version of [SCRABBLE® published by Ubisoft](https://www.ubisoft.com/en-gb/game/scrabble).
 - ["Words With Friends"](https://www.zynga.com/games/words-with-friends-2/)
 is the name of an online game produced by Zynga Inc. To
 the best of our knowledge this is not a registered trademark.
@@ -222,7 +223,8 @@ of the aforementioned brands.
 
 ## CODE COPYRIGHT AND LICENSE
 
-The code is Copyright &copy; 2021-2022 C-Dot Consultants. However it is
+The current code was written by Crawford Currie and is
+Copyright &copy; 2021-2022 Xanado Project. However it is
 built on the work of many people, most notably Hans Hübner, Daniel
 Weck, Elijah Sawyers, Andrew Appel, Guy Jacobsen, and Joshua Lewis, and
 the many people who they in turn based their work on. All these individuals
