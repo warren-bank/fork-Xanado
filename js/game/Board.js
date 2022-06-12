@@ -22,7 +22,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
          * @member {number}
          */
         midcol;
-        
+
 		/**
 		 * @param {Edition} edition the edition defining the board layout
 		 */
@@ -197,8 +197,8 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		scoreNewWords(words) {
 			let totalScore = 0;
 			let row, col;
-			
-			const taste = (dcol, drow) => {			
+
+			const taste = (dcol, drow) => {
 				let wordScore = 0;
 				let letters = "";
 				let wordMultiplier = 1;
