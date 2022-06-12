@@ -59,13 +59,11 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
             /* istanbul ignore if */
             if (typeof debug === "function")
                 this._debug = debug;
-            /* istanbul ignore next */
 			this._debug("\nConstruct Trie and fill from lexicon");
             
 			for (let word of lexicon)
 				this.addWord(word);
 
-            /* istanbul ignore next */
 			this._debug(`Trie of ${this.numberOfNodes} nodes built from ${this.numberOfWords} words`);
 		}
 
@@ -105,7 +103,6 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 				// a requirement.
                 /* istanbul ignore if */
 				if (x === word.length - 1) {
-                    /* istanbul ignore next */
 					this._debug(`WARNING input not in alphabetical order ${word}`);
 					current.isEndOfWord = true;
 				}
@@ -131,7 +128,6 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
          * @private
 		 */
 		createReductionStructure() {
-            /* istanbul ignore next */
 			this._debug("\nCreate reduction structure");
 
 			const counts = [];
@@ -161,12 +157,10 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 				}
 			}
 
-            /* istanbul ignore next */
 			for (let x = this.minWordLen; x < this.maxWordLen; x++)
 				if (counts[x] > 0)
 					this._debug(`${counts[x]} words of length ${x}`);
 
-            /* istanbul ignore next */
 			this._debug(`${added} nodes added to the reduction structure`);
 
 			return red;
@@ -185,7 +179,6 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
          * @private
 		 */
 		findPrunedNodes(red) {
-            /* istanbul ignore next */
 			this._debug("\nMark redundant nodes as pruned");
 
 			// Use recursion because only direct children are considered for
@@ -228,12 +221,10 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 						}
 					}
 				}
-                /* istanbul ignore next */
 				this._debug(`Pruned |${numberPruned}| nodes at depth |${y}|`);
 				totalPruned += numberPruned;
 			}
 
-            /* istanbul ignore next */
 			this._debug(`Identified a total of ${totalPruned} nodes for pruning`);
             return totalPruned;
 		}
@@ -246,7 +237,6 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 */
 		assignIndices() {
 
-            /* istanbul ignore next */
 			this._debug("\nAssign node indices");
 
             // Clear down any pre-existing indices
@@ -281,7 +271,6 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 				}
 			}
 
-            /* istanbul ignore next */
 			this._debug(`Assigned ${nextIndex} node indexes`);
 
 			return nodeList;
@@ -300,7 +289,6 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 			// Pruning is complete, so replace all pruned nodes with their
 			// first equivalent in the Trie
 			let trimmed = this.first.child.replaceRedundantNodes(red);
-            /* istanbul ignore next */
 			this._debug(`Decoupled ${trimmed} nodes to eliminate ${pruneable} nodes`);
 
             this.numberOfNodes -= pruneable;
@@ -311,7 +299,6 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 * @return {ArrayBuffer} array of 32-bit integers
 		 */
 		encode() {
-            /* istanbul ignore next */
 			this._debug("\nGenerate the unsigned integer array");
 
 			const nodelist = this.assignIndices();
@@ -320,7 +307,6 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 			if (nodelist.length > 0x3FFFFFFF)
 				throw Error(`Too many nodes remain for integer encoding`);
 
-            /* istanbul ignore next */
 			this._debug(`\t${nodelist.length} nodes`);
             const len = 2 * nodelist.length + 1;
 			const dawg = new ArrayBuffer(len * 4);
@@ -334,7 +320,6 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
                 dv.setUint32(offset, node[1]); offset += 4;
             }
 
-            /* istanbul ignore next */
 			this._debug(`\t${len} element Uint32Array generated`);
 
 			return dawg;

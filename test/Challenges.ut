@@ -13,7 +13,8 @@ describe("Game - challenges - tests", () => {
 		{ Player: "game/Player" },
 		{ Game: "game/Game" },
 		{ Move: "game/Move" },
-		{ Turn: "game/Turn" }
+		{ Turn: "game/Turn" },
+		{ Types: "game/Types" }
 	];
 	
 	function unit() {
@@ -51,13 +52,13 @@ describe("Game - challenges - tests", () => {
 		const handle = (event, turn) => {
 			if (turns++ === 0) {
 				// Human"s move
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 
 				assert.equal(game.whosTurnKey, human2.key);
 			} else {
-				assert.equal(turn.type, Turn.CHALLENGE_LOST);
+				assert.equal(turn.type, Turns.CHALLENGE_LOST);
 				assert.equal(turn.score, 0);
 				assert.equal(turn.playerKey, human1.key); // who was challenged
 				assert.equal(turn.challengerKey, human2.key); // who issued the challenged
@@ -133,7 +134,7 @@ describe("Game - challenges - tests", () => {
 		const handle = (event, turn) => {
 			switch (turns++) {
 			case 0: // Human"s move
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
@@ -141,7 +142,7 @@ describe("Game - challenges - tests", () => {
 
 			case 1: // challenge failed
 				assert.equal(game.whosTurnKey, human2.key);
-				assert.equal(turn.type, Turn.CHALLENGE_LOST);
+				assert.equal(turn.type, Turns.CHALLENGE_LOST);
 				assert.equal(turn.score, -5);
 				assert.equal(turn.playerKey, human1.key); // who was challenged
 				assert.equal(turn.challengerKey, human2.key); // who issued the challenged
@@ -212,14 +213,14 @@ describe("Game - challenges - tests", () => {
 			switch (turns++) {
 			case 0:
 				// Human"s move
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
 				break;
 			case 1:
 				//console.debug("bad challenge by not-next player", turn);
-				assert.equal(turn.type, Turn.CHALLENGE_LOST);
+				assert.equal(turn.type, Turns.CHALLENGE_LOST);
 				assert.equal(turn.score, -12);
 				assert.equal(turn.challengerKey, human3.key); // who challenged them
 				assert.equal(turn.playerKey, human1.key); // who was challenged
@@ -284,13 +285,13 @@ describe("Game - challenges - tests", () => {
 		const handle = (event, turn) => {
 			if (turns++ === 0) {
 				// Human"s move
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
 			} else {
 				//console.debug("bad challenge by not-next player", turn);
-				assert.equal(turn.type, Turn.CHALLENGE_LOST);
+				assert.equal(turn.type, Turns.CHALLENGE_LOST);
 				assert.equal(turn.score, 0);
 				assert.equal(turn.challengerKey, human3.key); // who challenged them
 				assert.equal(turn.playerKey, human1.key); // who was challenged
@@ -356,13 +357,13 @@ describe("Game - challenges - tests", () => {
 		const handle = (event, turn) => {
 			if (turns++ === 0) {
 				// Human"s move
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
 			} else {
 				//console.debug("good challenge by next player", turn);
-				assert.equal(turn.type, Turn.CHALLENGE_WON);
+				assert.equal(turn.type, Turns.CHALLENGE_WON);
 				assert.equal(turn.challengerKey, human2.key);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
@@ -429,14 +430,14 @@ describe("Game - challenges - tests", () => {
 			switch (turns++) {
 			case 0:
 				// Human"s move
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(game.whosTurnKey, human2.key);
 				break;
 			case 1:
 				//console.debug("good challenge by not-next player", turn);
-				assert.equal(turn.type, Turn.CHALLENGE_WON);
+				assert.equal(turn.type, Turns.CHALLENGE_WON);
 				assert.equal(turn.score, -99);
 				assert.equal(turn.challengerKey, human3.key); // who challenged them
 				assert.equal(turn.playerKey, human1.key); // who was challenged
@@ -565,11 +566,11 @@ describe("Game - challenges - tests", () => {
 		let turns = 0;
 		socket.on(Notify.TURN, (event, turn) => {
 			if (turns++ == 0) {
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				TS.sparseEqual(turn, move);
 			} else {
 				//console.debug("good challenge of final play", turn);
-				assert.equal(turn.type, Turn.CHALLENGE_WON);
+				assert.equal(turn.type, Turns.CHALLENGE_WON);
 				assert.equal(turn.challengerKey, human2.key);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
@@ -641,7 +642,7 @@ describe("Game - challenges - tests", () => {
 				break;
 			case 1:
 				//console.debug("good challenge of final play by not-next", turn);
-				assert.equal(turn.type, Turn.CHALLENGE_WON);
+				assert.equal(turn.type, Turns.CHALLENGE_WON);
 				assert.deepEqual(turn.score, -3);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.challengerKey, human3.key);
@@ -690,7 +691,7 @@ describe("Game - challenges - tests", () => {
 	});
 
 	// A bad challenge of the final play by the next player is treated
-	// as a Turn.GAME_OVER with appropriate end state.
+	// as a Turns.GAME_OVER with appropriate end state.
 	it("bad challenge of final play by next player - miss turn", () => {
 		const game = new Game({
 			edition:"Tiny",
@@ -724,7 +725,7 @@ describe("Game - challenges - tests", () => {
 				assert.equal(turn.nextToGoKey, human2.key);
 			} else {
 				//console.debug("bad challenge of final play", turn);
-				assert.equal(turn.type, Turn.GAME_OVER);
+				assert.equal(turn.type, Turns.GAME_OVER);
 				assert.equal(turn.endState, State.CHALLENGE_FAILED);
 				assert.deepEqual(turn.score, {
 					human1: {tiles: 6 }, human2: {tiles: -6}});
@@ -767,7 +768,7 @@ describe("Game - challenges - tests", () => {
 	});
 
 	// If the bad challenge is from a not-next player,
-	// it should generate a turn{type=Turn.CHALLENGE_LOST}.
+	// it should generate a turn{type=Turns.CHALLENGE_LOST}.
 	it("bad challenge of final play by not-next player - miss turn", () => {
 		const game = new Game({
 			edition:"Tiny",
@@ -805,7 +806,7 @@ describe("Game - challenges - tests", () => {
 				break;
 			case 1:
 				//console.debug("bad challenge of final play by not-next", turn);
-				assert.equal(turn.type, Turn.CHALLENGE_LOST);
+				assert.equal(turn.type, Turns.CHALLENGE_LOST);
 				// a failed challenge by not-next incurs no penalty under
 				// default rules.
 				assert.deepEqual(turn.score, 0);
@@ -889,27 +890,27 @@ describe("Game - challenges - tests", () => {
 		const handle = (event, turn) => {
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.score, move1.score);
 				assert.equal(game.whosTurnKey, human2.key);
 				break;
 			case 1:
-				assert.equal(turn.type, Turn.CHALLENGE_WON);
+				assert.equal(turn.type, Turns.CHALLENGE_WON);
 				assert.equal(turn.challengerKey, human2.key);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.score, -move1.score);
 				break;
 			case 2:
-				assert.equal(turn.type, Turn.PASSED);
+				assert.equal(turn.type, Turns.PASSED);
 				assert.equal(turn.playerKey, human2.key);
 				assert.equal(turn.nextToGoKey, human1.key);
 				assert.equal(turn.score, 0);
 				break;
 			case 3:
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.score, move2.score);

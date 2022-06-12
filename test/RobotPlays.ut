@@ -12,7 +12,8 @@ describe('Game - robot plays - tests', () => {
 		{ Game: 'game/Game' },
 		
 		{ Move: 'game/Move' },
-		{ Turn: 'game/Turn' }
+		{ Turn: 'game/Turn' },
+        { Types: "game/Types" }
 	];
 
 	const TS = require("./TestSupport.js");
@@ -71,7 +72,7 @@ describe('Game - robot plays - tests', () => {
 		socket.on(Notify.TURN, (event, turn) => {
 			switch(turns++) {
 			case 0:
-				assert.equal(turn.type, Turn.PASSED);
+				assert.equal(turn.type, Turns.PASSED);
 				assert.equal(turn.playerKey, robot.key);
 				assert.equal(turn.nextToGoKey, human.key);
 				socket.done();
@@ -128,7 +129,7 @@ describe('Game - robot plays - tests', () => {
 		const socket = new TestSocket();
 		const handle = (event, data) => {
 			assert.equal(event, Notify.TURN);
-			assert(data.type, Turn.PLAY);
+			assert(data.type, Turns.PLAY);
 			assert.deepEqual(data.words, [ { word: 'AGO', score: 4 } ]);
 			assert.equal(data.placements.length, 3);
 			assert.equal(data.placements[0].letter, 'A');
@@ -211,7 +212,7 @@ describe('Game - robot plays - tests', () => {
 		let turns = 0;
 		const handle = (event, data) => {
 			assert.equal(event, Notify.TURN);
-			assert.equal(data.type, Turn.PLAY);
+			assert.equal(data.type, Turns.PLAY);
 			assert.equal(data.words.length, 1);
 			if (turns++ == 0) {
 				assert.equal(data.placements.length, 4);
@@ -297,7 +298,7 @@ describe('Game - robot plays - tests', () => {
 			if (turns++ === 0) {
 			} else {
 				assert.equal(event, Notify.TURN);
-				assert.equal(turn.type, Turn.GAME_OVER);
+				assert.equal(turn.type, Turns.GAME_OVER);
 				assert.equal(turn.endState, State.GAME_OVER);
 				const exp = {};
 				exp[human.key] = { tiles: 100 };
@@ -374,17 +375,17 @@ describe('Game - robot plays - tests', () => {
 		socket.on(Notify.TURN, (event, turn) => {
 			switch(turns++) {
 			case 0:
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				break;
 			case 1:
-				assert.equal(turn.type, Turn.CHALLENGE_WON);
+				assert.equal(turn.type, Turns.CHALLENGE_WON);
 				assert.equal(turn.score, -3);
 				assert.equal(turn.bonus, 0);
 				assert.equal(turn.playerKey, human.key);
 				assert.equal(turn.challengerKey, robot.key);
 				break;
 			case 2:
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				assert.equal(turn.score, 16);
 				assert.equal(turn.playerKey, robot.key);
 				assert.equal(turn.nextToGoKey, human.key);

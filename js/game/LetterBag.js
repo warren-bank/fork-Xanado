@@ -3,12 +3,15 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd */
 
-define("game/LetterBag", ["game/Tile"], (Tile) => {
+define("game/LetterBag", [
+    "common/Debuggable", "game/Tile"
+], (Debuggable, Tile) => {
 
 	/**
 	 * The bag of letters during a game.
+     * @extends Debuggable
 	 */
-	class LetterBag {
+	class LetterBag extends Debuggable {
 
         /**
          * Array of Tiles in the bag
@@ -18,7 +21,7 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 
 		/**
          * Array of all the letters in the bag, excluding blank.
-         * @member {string
+         * @member {string}
          */
 		legalLetters = [];
 
@@ -105,9 +108,7 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 		 * @param {Tile} tile tile to return to bag
 		 */
 		returnTile(tile) {
-			delete tile.row;
-			delete tile.col;
-			this.tiles.push(tile);
+			this.tiles.push(tile.clean());
 			this.shake();
 		}
 
@@ -125,6 +126,14 @@ define("game/LetterBag", ["game/Tile"], (Tile) => {
 		letters() {
 			return this.tiles.map(tile => tile.letter);
 		}
+
+		/**
+		 * Generate a simple string representation of the player
+         * @override
+		 */
+		toString() {
+            return "(" + this.letters.join("") + ")";
+        }
 	}
 	return LetterBag;
 });

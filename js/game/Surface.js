@@ -3,12 +3,41 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, node, jquery */
 
-define("game/Surface", ["game/Square"], Square => {
+define("game/Surface", [
+    "common/Debuggable", "game/Square"
+], (Debuggable, Square) => {
 
 	/**
-	 * Base class of a 2D grid of {@link Sqaure} (a Rack or a Board)
+	 * Abstract base class of a 2D grid of {@link Sqaure} (a Rack or a Board)
+     * @extends Debuggable
 	 */
-	class Surface {
+	class Surface extends Debuggable {
+
+		/**
+		 * Unique id for the surface. This is used in the construction
+         * of HTML id attributes for the Squares it contains.
+		 * @member {string}
+		 */
+		id;
+
+		/**
+		 * Number of columns on the surface.
+		 * @member {number}
+		 */
+		cols;
+
+		/**
+		 * Number of rows on the surface. This will be 0 for a Rack.
+		 * @member {number}
+		 */
+		rows;
+
+		/**
+		 * rows X cols array of Square
+		 * @member {Square[][]}
+		 * @private
+		 */
+		squares = [];
 
 		/**
 		 * @param {string} id unique id for the surface 
@@ -17,31 +46,9 @@ define("game/Surface", ["game/Square"], Square => {
 		 * @param {function} type function(col, row) returning the square type
 		 */
 		constructor(id, cols, rows, type) {
-
-			/**
-			 * Unique id for the surface 
-			 * @member {string}
-			 */
 			this.id = id;
-
-			/**
-			 * Number of columns on the surface
-			 * @member {number}
-			 */
 			this.cols = cols;
-
-			/**
-			 * Number of rows on the surface
-			 * @member {number}
-			 */
 			this.rows = rows;
-
-			/**
-			 * rowsXcols array of Square
-			 * @member {Square[][]}
-			 * @private
-			 */
-			this.squares = [];
 
 			for (let i = 0; i < cols; i++) {
 				const row = [];

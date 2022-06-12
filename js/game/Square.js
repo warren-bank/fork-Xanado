@@ -3,7 +3,9 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, jquery */
 
-define("game/Square", ["platform"], (Platform) => {
+define("game/Square", [
+    "platform", "common/Debuggable"
+], (Platform, Debuggable) => {
 
 	// Map the characters in the board template to CSS classes
 	const CSS_CLASS =  {
@@ -22,8 +24,73 @@ define("game/Square", ["platform"], (Platform) => {
 	 * underlying attributes; a position, an owner, and a type that
 	 * dictates the score multipliers that apply. The owner will be a
 	 * subclass of {@link Surface} (a {@link Rack} or a {@link Board})
+     * @extends Debuggable
 	 */
-	class Square {
+	class Square extends Debuggable {
+
+        /**
+		 * /^[QqTtSs_]$/ see {@link Board}
+		 * @member {string}
+		 */
+		type;
+
+		/**
+		 * Rack or Board
+		 * @member {Surface?}
+		 */
+		owner; // Rack or Board
+
+		/**
+		 * 0-based column where the square is.
+		 * @member {number}
+		 */
+		col = -1;
+
+		/**
+		 * 0-based row where the square is (undefined on a 1D surface).
+		 * @member {number?}
+		 */
+		row;
+
+		/**
+		 * Unique id for this square
+		 * @member {string}
+		 */
+		id;
+
+		/**
+		 * Multiplier for letters using this square
+		 * @member {number}
+		 */
+		letterScoreMultiplier = 1;
+
+		/**
+		 * Multiplier for wordss using this square
+		 * @member {number}
+		 */
+		wordScoreMultiplier = 1;
+
+		/**
+		 * Tile placed on this square
+		 * @member {Tile?}
+		 */
+		tile;
+
+		/**
+		 * True if the tile cannot be moved i.e. it was
+		 * placed in a prior move. Locked tiles don't gather
+		 * bonuses.
+		 * @member {boolean}
+		 */
+		tileLocked = false;
+
+		/**
+		 * Underlay character to put in the background of the square when
+		 * there is no tile present.
+		 * @member {string}
+		 */
+		underlay;
+
 		/**
 		 * @param {string} type /^[QqTtSs_]$/ see {@link Board}
 		 * @param {Surface} owner the container this is in
@@ -32,73 +99,14 @@ define("game/Square", ["platform"], (Platform) => {
 		 * (undefined on a rack)
 		 */
 		constructor(type, owner, col, row) {
-			/**
-			 * /^[QqTtSs_]$/ see {@link Board}
-			 * @member {string}
-			 */
 			this.type = type;
-
-			/**
-			 * Rack or Board
-			 * @member {Surface?}
-			 */
 			this.owner = owner; // Rack or Board
-
-			/**
-			 * 0-based row where the square is (undefined on a 1D surface)
-			 * @member {number}
-			 */
 			this.col = col;
-
-			/**
-			 * 0-based row where the square is (undefined on a 1D surface)
-			 * @member {number}
-			 */
 			if (typeof row !== "undefined")
 				this.row = row;
-
-			let id = `${owner.id}_${col}`;
+			this.id = `${owner.id}_${col}`;
 			if (typeof row !== "undefined")
-				id += `x${row}`;
-
-			/**
-			 * Unique id for this square
-			 * @member {string}
-			 */
-			this.id = id;
-
-			/**
-			 * Multiplier for letters using this square
-			 * @member {number}
-			 */
-			this.letterScoreMultiplier = 1;
-
-			/**
-			 * Multiplier for wordss using this square
-			 * @member {number}
-			 */
-			this.wordScoreMultiplier = 1;
-
-			/**
-			 * Tile placed on this square
-			 * @member {Tile?}
-			 */
-			this.tile = null;
-
-			/**
-			 * True if the tile cannot be moved i.e. it was
-			 * placed in a prior move. Locked tiles don't gather
-			 * bonuses.
-			 * @member {boolean}
-			 */
-			this.tileLocked = false;
-
-			/**
-			 * Underlay character to put in the background of the square when
-			 * there is no tile present.
-			 * @member {string}
-			 */
-			this.underlay = undefined;
+				this.id += `x${row}`;
 
 			// Determine score multipliers from type
 			switch (this.type) {
@@ -128,7 +136,6 @@ define("game/Square", ["platform"], (Platform) => {
 		 * the square (fixed on the board).
 		 */
 		placeTile(tile, locked) {
-			/* istanbul ignore if */
 			if (tile && this.tile && tile !== this.tile) {
 				console.error("Tile ", tile, " over ", this.tile);
 				throw Error(`Square already occupied: ${this}`);
@@ -144,34 +151,13 @@ define("game/Square", ["platform"], (Platform) => {
 			else {
 				// Note that a locked tile might be unplaced as
 				// part of undoing a challenged play
-				if (this.tile) {
-					this.tile.row = -1;
-					this.tile.col = -1;
-				}
+				if (this.tile)
+					this.tile.clean();
 				delete this.tile;
 			}
 
 			// Used in the UI to update the square
 			Platform.trigger("SquareChanged", [ this ]);
-		}
-
-		/**
-		 * Debug
-		 */
-		/* istanbul ignore next */
-		toString() {
-			// All squares have a col
-			let string = `${this.type} square @ ${this.col}`;
-			// Squares on the board have a row too
-			if (this.row >= 0)
-				string += "," + this.row;
-
-			if (this.tile) {
-				string += ` => ${this.tile}`;
-				if (this.tileLocked)
-					string += " (Locked)";
-			}
-			return string;
 		}
 
 		/**
@@ -194,7 +180,7 @@ define("game/Square", ["platform"], (Platform) => {
 			/* istanbul ignore if */
 			if ($div.length === 0)
 				// No visual representation for this square - for
-				// example, a square in another player's rack
+				// example, might be a square in another player's rack
 				return;
 
 			$div.removeClass("selected")
@@ -327,6 +313,24 @@ define("game/Square", ["platform"], (Platform) => {
 
 			if (typeof this.underlay !== "undefined")
 				$div.append(`<div class="underlay">${this.underlay}</div>`);
+		}
+
+		/**
+		 * @override
+		 */
+		toString() {
+			// All squares have a col
+			let string = `${this.type} square @ ${this.col}`;
+			// Squares on the board have a row too
+			if (this.row >= 0)
+				string += "," + this.row;
+
+			if (this.tile) {
+				string += ` => ${this.tile}`;
+				if (this.tileLocked)
+					string += " (Locked)";
+			}
+			return string;
 		}
 	}		
 

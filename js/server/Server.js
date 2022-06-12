@@ -19,7 +19,8 @@ define("server/Server", [
 	const Fs = fs.promises;
     const Command = Types.Command;
     const Notify = Types.Notify;
-    
+    const Turns = Types.Turns;
+
 	/**
 	 * Web server for crossword game.
 	 */
@@ -80,12 +81,10 @@ define("server/Server", [
 			// html, images, css etc. The Content-type should be set
 			// based on the file mime type (extension) but Express doesn't
 			// always get it right.....
-			/* istanbul ignore next */
 			this._debug(`static files from ${staticRoot}`);
 			this.express.use(Express.static(staticRoot));
 
 			this.express.use((req, res, next) => {
-			    /* istanbul ignore next */
 				this._debug(`--> ${req.method} ${req.url}`);
 				next();
 			});
@@ -235,9 +234,7 @@ define("server/Server", [
 		 * or an array with i18n id and params.
 		 * @return whatever gets returned by `express.send`
 		 */
-		/* istanbul ignore next */
 		S00(res, mess) {
-			/* istanbul ignore next */
 			this._debug("<-- 500", mess);
 			return res.status(500).send(mess);
 		}
@@ -249,11 +246,9 @@ define("server/Server", [
 		 * @param {Response} res the response object
 		 * @param {string?} context context of the failure
 		 */
-		/* istanbul ignore next */
 		trap(e, req, res) {
 			if (typeof e === "object" && e.code === "ENOENT") {
 				// Special case of a database file load failure
-			    /* istanbul ignore next */
 				this._debug(`<-- 404 ${req.url}`, e);
 				return res.status(404).send([
 					"Database file load failed", req.url, e]);
@@ -301,13 +296,11 @@ define("server/Server", [
 
 			.on("connect", sk => {
 				// Player or monitor connecting
-			    /* istanbul ignore next */
 				this._debug("-S-> connect");
 				this.updateObservers();
 			})
 
 			.on("disconnect", sk => {
-			    /* istanbul ignore next */
 				this._debug("-S-> disconnect");
 
 				// Don't need to refresh players using this socket, because
@@ -319,25 +312,21 @@ define("server/Server", [
 				const i = this.monitors.indexOf(socket);
 				if (i >= 0) {
 					// Game monitor has disconnected
-			        /* istanbul ignore next */
 					this._debug("\tmonitor disconnected");
 					this.monitors.slice(i, 1);
 				} else
-			        /* istanbul ignore next */
 					this._debug("\tanonymous disconnect");
 				this.updateObservers();
 			})
 
 			.on(Notify.MONITOR, () => {
 				// Games monitor has joined
-			    /* istanbul ignore next */
 				this._debug("-S-> monitor");
 				this.monitors.push(socket);
 			})
 
 			.on(Notify.JOIN, params => {
 				// Player joining
-			    /* istanbul ignore next */
 				this._debug(`-S-> join ${params.playerKey} joining ${params.gameKey}`);
 				this.loadGame(params.gameKey)
 				.then(game => {
@@ -352,7 +341,6 @@ define("server/Server", [
 			.on(Notify.MESSAGE, message => {
 
 				// Chat message
-			    /* istanbul ignore next */
 				this._debug(`-S-> message ${message}`);
                 let m;
 				if (message.text === "hint")
@@ -394,7 +382,6 @@ define("server/Server", [
 		 * to montors.
 		 */
 		updateObservers(game) {
-			/* istanbul ignore next */
 			this._debug("<-S- update", game ? game.key : "*");
 			this.monitors.forEach(socket => socket.emit(Notify.UPDATE));
 			if (game)
@@ -402,11 +389,14 @@ define("server/Server", [
 		}
 
 		/**
+         * Hanel /simple/:send
 		 * Sends a simple description of active games (optionally with
-		 * completed games). Only parameter is 'send' which can be set
-		 * to a single game key to get a single game, 'active' to get
-		 * active games, or 'all' to get all games, including finished
-		 * games. Note: this sends Game.simple objects, not Game objects.
+		 * completed games). 'send' can be set to a single game key to
+		 * get a single game, 'active' to get active games, or 'all'
+		 * to get all games, including finished games. Note: this
+		 * sends Game.simple objects, not Game objects.
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise} Promise to send a list of games as requested
 		 */
 		request_simple(req, res) {
@@ -429,7 +419,6 @@ define("server/Server", [
 								: a.lastActivity > b.lastActivity ? -1 : 0))
 			// Finally send the result
 			.then(data => {
-			    /* istanbul ignore next */
 				this._debug("<-- 200 simple", send);
 				return res.status(200).send(data);
 			})
@@ -442,6 +431,8 @@ define("server/Server", [
 		 * Handler for GET /history
 		 * Sends a summary of cumulative player scores to date, for all
 		 * unique players.
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_history(req, res) {
@@ -492,6 +483,8 @@ define("server/Server", [
 		 * Handler for GET /locales
 		 * Sends a list of available translation locales.  Used when
 		 * selecting a presentation language for the UI.
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise} Promise to list locales
 		 */
 		request_locales(req, res) {
@@ -507,7 +500,9 @@ define("server/Server", [
 		/**
 		 * Handler for GET /editions
 		 * Promise to get an index of available editions.
-		 * return {Promise} Promise to index available editions
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
+		 * @return {Promise} Promise to index available editions
 		 */
 		request_editions(req, res) {
 			return Fs.readdir(Platform.getFilePath("editions"))
@@ -521,7 +516,9 @@ define("server/Server", [
 
 		/**
 		 * Handler for GET /dictionaries
-		 * return {Promise} Promise to index available dictionaries
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
+		 * @return {Promise} Promise to index available dictionaries
 		 */
 		request_dictionaries(req, res) {
 			return Fs.readdir(Platform.getFilePath("dictionaries"))
@@ -534,8 +531,10 @@ define("server/Server", [
 		}
 
 		/**
-		 * Handler for GET /themes
-		 * return {Promise} Promise to index available themes
+		 * Handler for GET /themes/:css
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
+		 * @return {Promise} Promise to index available themes
 		 */
 		request_themes(req, res) {
 			const dir = Platform.getFilePath("css");
@@ -550,19 +549,23 @@ define("server/Server", [
 		 * Handler for GET /theme
 		 * return {Promise} Promise to return css for current theme, if
 		 * a user is logged in and they have selected a theme.
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
+		 * @return {Promise} Promise to return the requested theme file
 		 */
-		request_theme(req, res, next) {
+		request_theme(req, res) {
 			let theme = "default";
 			if (req.user && req.user.settings && req.user.settings.theme)
 				theme = req.user.settings.theme;
 			let path = Platform.getFilePath(`css/${theme}/${req.params.css}`);
-            /* istanbul ignore next */
             this._debug("Send theme", path);
 			return res.sendFile(Path.normalize(path));
 		}
 
 		/**
 		 * Handler for POST /createGame
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_createGame(req, res) {
@@ -573,7 +576,6 @@ define("server/Server", [
 				/* istanbul ignore if */
 				if (this.config.debug_game)
 					game._debug = console.debug;
-			    /* istanbul ignore next */
 				this._debug("Created", game.key);
 				return game.save();
 			})
@@ -583,8 +585,8 @@ define("server/Server", [
 
 		/**
 		 * @param {object} to a lookup suitable for use with UserManager.getUser
-		 * @param {object} req request
-		 * @param {object} res response
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @param {string} gameKey game to which this applies
 		 * @param {string} subject subject
 		 * @param {string} text email text
@@ -616,7 +618,6 @@ define("server/Server", [
 					if (!uo.email) // no email
 						return Platform.i18n("($1 has no email address)",
 										  uo.name || uo.key);
-			        /* istanbul ignore next */
 					this._debug(
 							subject,
 							`${uo.name}<${uo.email}> from `,
@@ -633,7 +634,9 @@ define("server/Server", [
 		}
 
 		/**
-		 * Handle /invitePlayers
+		 * Handle /invitePlayers/:gameKey
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_invitePlayers(req, res) {
@@ -659,7 +662,6 @@ define("server/Server", [
 					subject, textBody, htmlBody)))
 			.then(list => {
 				const names = list.filter(uo => uo);
-			    /* istanbul ignore next */
 				this._debug("<-- 200 ", names);
 				return res.status(200).send(names);
 			})
@@ -671,10 +673,11 @@ define("server/Server", [
 		/**
 		 * Handler for POST /sendReminder
 		 * Email reminders to next human player in (each) game
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 */
 		request_sendReminder(req, res) {
 			const gameKey = req.params.gameKey;
-			/* istanbul ignore next */
 			this._debug("Sending turn reminders to", gameKey);
 			const gameURL =
 				  `${req.protocol}://${req.get("Host")}/game/${gameKey}`;
@@ -695,7 +698,6 @@ define("server/Server", [
 					const player = game.getPlayer();
 					if (!player)
 						return undefined;
-			        /* istanbul ignore next */
 					this._debug(`Sending reminder mail to ${player.key}/${player.name}`);
 
 					const subject = Platform.i18n(
@@ -712,7 +714,6 @@ define("server/Server", [
 				}))))
 			.then(reminders => reminders.filter(e => typeof e !== "undefined"))
 			.then(names=> {
-			    /* istanbul ignore next */
 				this._debug("<-- 200", names);
 				return res.status(200).send(names);
 			})
@@ -723,6 +724,8 @@ define("server/Server", [
 
 		/**
 		 * Handle /join/:gameKey player joining a game.
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_join(req, res) {
@@ -734,11 +737,9 @@ define("server/Server", [
 				let player = game.getPlayerWithKey(playerKey);
 				let prom;
 				if (player) {
-			        /* istanbul ignore next */
 					this._debug(`Player ${playerKey} opening ${gameKey}`);
 					prom = Promise.resolve(game);
 				} else {
-			        /* istanbul ignore next */
 					this._debug(`Player ${playerKey} joining ${gameKey}`);
 					player = new Player(
 						{ name: req.user.name, key: playerKey });
@@ -761,6 +762,8 @@ define("server/Server", [
 		 * It's an error to add a robot to a game that already has a robot.
 		 * Note the gameKey is passed in the request body, this is because it
 		 * comes from a dialog.
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_addRobot(req, res) {
@@ -775,7 +778,6 @@ define("server/Server", [
 			        /* istanbul ignore next */
 					return this.S00(res, "Game already has a robot");
 
-			    /* istanbul ignore next */
 				this._debug(`Robot joining ${gameKey} with ${dic}`);
 				// Robot always has the same player key
 				const robot = new Player(
@@ -802,6 +804,8 @@ define("server/Server", [
 
 		/**
 		 * Handle /removeRobot/:gameKey to remove the robot from a game
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_removeRobot(req, res) {
@@ -812,7 +816,6 @@ define("server/Server", [
 				if (!robot)
 			        /* istanbul ignore next */
 					return this.S00(res, "Game doesn't have a robot");
-			    /* istanbul ignore next */
 				this._debug(`Robot leaving ${gameKey}`);
 				game.removePlayer(robot);
 				return game.save();
@@ -830,6 +833,8 @@ define("server/Server", [
 
 		/**
 		 * Handle /leave/:gameKey player leaving a game.
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_leave(req, res) {
@@ -837,7 +842,6 @@ define("server/Server", [
 			const playerKey = req.user.key;
 			return this.loadGame(gameKey)
 			.then(game => {
-			    /* istanbul ignore next */
 				this._debug(`Player ${playerKey} leaving ${gameKey}`);
 				const player = game.getPlayerWithKey(playerKey);
 				if (player) {
@@ -863,6 +867,8 @@ define("server/Server", [
 		 * Handle /game/:gameKey request for a dump of the game information.
 		 * This sends the entire Game object, including the entire Turn history
 		 * and the Board
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_game(req, res) {
@@ -877,11 +883,12 @@ define("server/Server", [
 		/**
 		 * Handle /deleteGame/:gameKey
 		 * Delete a game.
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_deleteGame(req, res) {
 			const gameKey = req.params.gameKey;
-			/* istanbul ignore next */
 			this._debug("Delete game",gameKey);
 			return this.loadGame(gameKey)
             .then(game => game.stopTheClock()) // in case it's running
@@ -895,6 +902,8 @@ define("server/Server", [
 
 		/**
 		 * Create another game with the same players.
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_anotherGame(req, res) {
@@ -911,6 +920,8 @@ define("server/Server", [
 		/**
 		 * A good result is a 200, a bad result has a explanatory string.
 		 * Command results are broadcast in Turn objects.
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
 		 * @return {Promise}
 		 */
 		request_command(req, res) {
@@ -935,7 +946,6 @@ define("server/Server", [
 				// The command name and arguments
 				const args = req.body;
 				
-			    /* istanbul ignore next */
 				this._debug(`COMMAND ${command} player ${player.name} game ${game.key}`);
 
 				let promise;
@@ -961,10 +971,10 @@ define("server/Server", [
 
 				case Command.TAKE_BACK:
 					// Check that it was our turn
-					promise = game.takeBack(player, Turn.TOOK_BACK);
+					promise = game.takeBack(player, Turns.TOOK_BACK);
 					break;
 
-				case Command.GAME_OVER:
+				case Command.CONFIRM_GAME_OVER:
 					promise = game.confirmGameOver();
 					break;
 

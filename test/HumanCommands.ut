@@ -14,7 +14,8 @@ describe("Game - human commands - tests", () => {
 		{ Game: "game/Game" },
 		
 		{ Move: "game/Move" },
-		{ Turn: "game/Turn" }
+		{ Turn: "game/Turn" },
+		{ Types: "game/Types" }
 	];
 	
 	const TS = require("./TestSupport.js");
@@ -36,7 +37,7 @@ describe("Game - human commands - tests", () => {
 		const handle = (event, turn) => {
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, Turn.SWAP);
+				assert.equal(turn.type, Turns.SWAP);
 				assert(!turn.words);
 				assert(!turn.placements);
 				assert.deepEqual(turn.replacements.map(t=>t.letter).sort(),
@@ -170,7 +171,7 @@ describe("Game - human commands - tests", () => {
 		const handle = (event, turn) => {
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, Turn.PASSED);
+				assert.equal(turn.type, Turns.PASSED);
 				assert(!turn.words);
 				assert(!turn.placements);
 				assert(!turn.replacements);
@@ -241,7 +242,7 @@ describe("Game - human commands - tests", () => {
 			//console.debug(event, turn);
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.score, move.score);
@@ -333,7 +334,7 @@ describe("Game - human commands - tests", () => {
 		const socket = new TestSocket();
 		const handle = (event, turn) => {
 			assert.equal(event, Notify.TURN);
-			assert.equal(turn.type, Turn.GAME_OVER);
+			assert.equal(turn.type, Turns.GAME_OVER);
 			const exp = {};
 			exp[human1.key] = { tiles: -3 };
 			exp[human2.key] = { tiles: 3 };
@@ -399,11 +400,11 @@ describe("Game - human commands - tests", () => {
 		socket.on(Notify.TURN, (event, turn) => {
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, Turn.PLAY);
+				assert.equal(turn.type, Turns.PLAY);
 				TS.sparseEqual(turn, move);
 				break;
 			case 1:
-				assert.equal(turn.type, Turn.TOOK_BACK);
+				assert.equal(turn.type, Turns.TOOK_BACK);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human1.key);
 				assert.equal(turn.score, -3);
@@ -456,7 +457,7 @@ describe("Game - human commands - tests", () => {
 			
 		})
 		// Player 0 takes their move back, tils should return to the bag
-		.then(() => game.takeBack(human1, Turn.TOOK_BACK))
+		.then(() => game.takeBack(human1, Turns.TOOK_BACK))
 		.then(g => {
 			assert.strictEqual(g, game);
 			assert.deepEqual(game.letterBag.letters().sort(),

@@ -26,6 +26,10 @@ requirejs([
     const Timer     = Types.Timer;
     const WordCheck = Types.WordCheck;
 
+    /**
+     * Management interface for a database of games.
+     * @extends UI
+     */
 	class GamesUI extends UI {
 
 		constructor() {
@@ -290,7 +294,7 @@ requirejs([
 			else if (game.timerType === Timer.GAME) {
 				options.push($.i18n("Game time limit $1",
 									Utils.formatTimeInterval(game.timeLimit)));
-				options.push($.i18n("Overtime penalty $1 points per minute",
+				options.push($.i18n("Overtime penalty $1 point{{PLURAL:$1||s}} per minute",
                                     game.timePenalty));
             }
 			if (game.predictScore)
@@ -515,7 +519,6 @@ requirejs([
 				this.getSession()
 				.then(session => {
 					if (session) {
-						console.log("Signed in as", this.session.name);
 						$("#create-game").show();
 						$("#chpw_button").toggle(session.provider === "xanado");
 					} else {

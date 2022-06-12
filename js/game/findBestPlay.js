@@ -19,8 +19,9 @@ define("game/findBestPlay", [
 ], (Edition, Tile, Move, Dictionary) => {
 
 	// Shortcuts to game information during move computation
+    let game;        // class Game
 	let board;       // class Board
-	let edition;     // class Edition
+	let edition;     // class Edition name
 	let dict;        // Class Dictionary
 
 	let report;      // function to call when a new best play is found, or
@@ -210,13 +211,17 @@ define("game/findBestPlay", [
 				|| !board.at(ecol, erow).tile)) {
 			const words = [];
 			const score =
-				  board.scorePlay(col, row, dcol, drow, wordSoFar, words);
+				  board.scorePlay(col, row, dcol, drow,
+                                  wordSoFar, words)
+                  + game.calculateBonus(tilesPlayed);
 
+            
             if (score > bestScore) {
 				bestScore = score;
 				//console.log(drow > 0 ? "vertical" : "horizontal")
                 report(new Move({
-					placements: wordSoFar.filter(t => !board.at(t.col, t.row).tile),
+					placements: wordSoFar.filter(
+                        t => !board.at(t.col, t.row).tile),
 					words: words,
 					score: score
 				}));
@@ -425,8 +430,7 @@ define("game/findBestPlay", [
 					placements[i].row = drow == 0 ? board.midrow : pos * drow;
 				}
 
-				const score = board.scorePlay(
-					end, mid, dcol, drow, placements);
+				const score = board.scorePlay(end, mid, dcol, drow, placements);
 
 				if (score > bestScore) {
 					bestScore = score;
@@ -444,7 +448,7 @@ define("game/findBestPlay", [
 	/*
 	 * Given a user's letter rack, compute the best possible move.
 	 * @function game/findBestPlay
-	 * @param {Game} game the Game
+	 * @param {Game} gemm the Game
 	 * @param {Tile[]} rack rack in the form of a simple list of Tile
 	 * @param {function} listener Function that is called with a Move each time
 	 * a new best play is found, or a string containing a progress or error
@@ -456,7 +460,8 @@ define("game/findBestPlay", [
 	 * identified
      * @alias module:game/findBestPlay
 	 */
-    function findBestPlay(game, rack, listener, dictpath, dictionary) {
+    function findBestPlay(gemm, rack, listener, dictpath, dictionary) {
+        game = gemm;
 		report = listener;
 
 		if (!game.edition) {
@@ -480,7 +485,7 @@ define("game/findBestPlay", [
 			return a.letter < b.letter ? -1	: a.score > b.score ? 1 : 0;
 		}).reverse();
 
-		report("Finding best play for rack " + rack.toString());
+		report("Finding best play for rack " + rack);
 
 		board = game.board;
 		report(`with dictionary ${dictionary}`);

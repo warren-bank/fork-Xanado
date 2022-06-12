@@ -24,7 +24,7 @@ describe("Player class", () => {
 		}
 	});
 	
-	it("toString and simple", () => {
+	it("valueOf, toString, and simple", () => {
 		const p = {
 			name: "Player 1",
 			key: "playerkey",
@@ -38,7 +38,8 @@ describe("Player class", () => {
 		player.isRobot = true;
 		player.score = 20;
 
-		assert.equal(player.toString(), "Player 'Player 1' (Robot) key playerkey");
+		assert.equal(player.valueOf(), "Player 'Player 1' (Robot) key playerkey");
+		assert.equal(player.toString(), player.valueOf());
 		return player.simple()
 		.then(d => assert.deepEqual(d, {
 			name: 'Player 1',

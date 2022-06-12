@@ -252,7 +252,7 @@ define("browser/UI", [
 			$(".logged-in,.not-logged-in").hide();
 			return $.get("/session")
 			.then(session => {
- 				console.debug("Signed in as", session.name);
+ 				console.debug(`Signed in as '${session.name}'`);
 				$(".not-logged-in").hide();
 				$(".logged-in")
 				.show()

@@ -3,7 +3,9 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information*/
 /* eslint-env amd, node */
 
-define("dawg/TrieNode", [ "dawg/LetterNode" ], LetterNode => {
+define("dawg/TrieNode", [
+    "common/Debuggable", "dawg/LetterNode"
+], (Debuggable, LetterNode) => {
 
 	let nodeIds = 0;
 
@@ -16,8 +18,9 @@ define("dawg/TrieNode", [ "dawg/LetterNode" ], LetterNode => {
 	 * only used while generating a DAWG from a lexicon. TrieNodes are
 	 * serialised using the above structure but are then rebuilt using
 	 * {@link LetterNode}s at the sharp end.
+     * @extends Debuggable
 	 */
-	class TrieNode {
+	class TrieNode extends Debuggable {
         /**
          * The letter at this node
          * @member {string}
@@ -104,7 +107,6 @@ define("dawg/TrieNode", [ "dawg/LetterNode" ], LetterNode => {
          * Debug
          * @param {boolean} deeply true to expand child nodes
          */
-        /* istanbul ignore next */
 		toString(deeply) {
 			let simpler = `{${this.id} ${this.letter}`;
 

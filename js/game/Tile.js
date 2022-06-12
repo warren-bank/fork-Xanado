@@ -10,6 +10,42 @@ define("game/Tile", () => {
 	class Tile {
 
 		/**
+		 * Character(s) represented by this tile.
+		 * Caution; during gameplay, .letter for a blank will be cast
+		 * to a letter chosen by the player. When the tile is returned
+		 * to the rack, the letter will be reset to " " as isBlank is true.
+		 * However the letter will stick to the Tile when it is sent to
+		 * the server as part of a move. Henceforward that Tile will
+		 * be locked to the chosen letter.
+		 * @member {string}
+		 */
+		letter = " ";
+
+		/**
+		 * value of this tile
+		 * @member {number}
+		 */
+		score = 0;
+
+		/**
+		 * true if this tile is a blank (irresepective of letter)
+		 * @member {boolean}
+		 */
+		isBlank = false;
+
+		/**
+		 * Column where the tile is placed
+		 * @member {number}
+		 */
+		col = undefined;
+			
+		/**
+		 * Row where the tile is placed
+		 * @member {number}
+		 */
+		row = undefined;
+
+		/**
 		 * @param {Tile|object} spec optional Tile to copy or spec of tile
 		 * @param {string} spec.letter character(s) represented by this tile
 		 * @param {boolean} spec.isBlank true if this tile is a blank (irresepective of letter)
@@ -18,52 +54,42 @@ define("game/Tile", () => {
 		 * @param {number} spec.row optional row where the tile is placed
 		 */
 		constructor(spec) {
-			// Caution; during gameplay, .letter for a blank will be cast
-			// to a letter chosen by the player. When the tile is returned
-			// to the rack, the letter will be reset to " " as isBlank is true.
-			// However the letter will stick to the Tile when it is sent to
-			// the server as part of a move. Henceforward that Tile will
-			// be locked to the chosen letter.
-
-			/**
-			 * character(s) represented by this tile
-			 * @member {string}
-			 */
-			this.letter = " ";
-
-			/**
-			 * value of this tile
-			 * @member {number}
-			 */
-			this.score = 0;
-
-			/**
-			 * true if this tile is a blank (irresepective of letter)
-			 * @member {boolean}
-			 */
-			this.isBlank = false;
-
-			/**
-			 * Column where the tile is placed
-			 * @member {number}
-			 */
-			this.col = undefined;
-			
-			/**
-			 * Row where the tile is placed
-			 * @member {number}
-			 */
-			this.row = undefined;
-
 			if (spec)
 				Object.getOwnPropertyNames(spec).forEach(
 					p => this[p] = spec[p]);
 		}
 
-		toString(place) {
-			const pl = place ? `@${this.col},${this.row}` : "";
-			return `|${this.letter}${pl}(${this.score})|`;
+        /**
+         * Remove positional information from the tile e.g. before
+         * returning it to the bag.
+         * @return {Tile} this
+         */
+        clean() {
+			delete this.row;
+			delete this.col;
+            if (this.isBlank)
+                this.letter = " ";
+            return this;
+        }
+
+		/**
+		 * Generate a simple string representation of the tile
+		 */
+		toString() {
+			let pl = typeof this.col === "number" ? `@${this.col}` : "";
+            if (typeof this.row === "number")
+                pl += `,${this.row}`;
+            const b = this.isBlank ? "[]" : "";
+			return `[${this.letter}${b}${pl}(${this.score})]`;
 		}
+
+        /**
+         * {@see https://stackoverflow.com/questions/2485632/valueof-vs-tostring-in-javascript}
+         * @override
+         */
+        valueOf() {
+            return this.toString();
+        }
 	}
 
 	return Tile;

@@ -4,10 +4,8 @@ and license information*/
 /* eslint-env amd, jquery */
 
 define("game/Player", [
-	"platform", "game/Types", "game/Rack",
-], (
-	Platform, Types, Rack
-) => {
+	"platform", "common/Debuggable", "game/Types", "game/Rack",
+], (Platform, Debuggable, Types, Rack) => {
 
     const Timer = Types.Timer;
 
@@ -17,12 +15,13 @@ define("game/Player", [
 	/**
 	 * A player in a {@link Game}. Player objects are specific to
 	 * a single game, and are used on both browser and server sides.
+     * @extends Debuggable
 	 */
-	class Player {
+	class Player extends Debuggable {
 
 		/**
 		 * Player unique key. Required.
-		 * @member {string}
+		 * @member {Key}
 		 */
 		key;
 
@@ -100,7 +99,8 @@ define("game/Player", [
 		/**
 		 * Name of the dictionary the robot will use. Defaults to
          * the game dictionary. Only used for findBestPlay for robot players.
-		 * @member {string?} Default is undefined.
+         * Default is undefined.
+		 * @member {string?}
 		 */
 		dictionary;
 
@@ -241,7 +241,7 @@ define("game/Player", [
 		}
 
 		/**
-		 * Generate a simple string representation of the player
+         * @override
 		 */
 		toString() {
 			let s = `Player '${this.name}'`;

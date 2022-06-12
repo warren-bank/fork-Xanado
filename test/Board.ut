@@ -39,7 +39,7 @@ describe("Board class", () => {
 				"| | | | | | | | | | | | | | | |\n", edition);
 			b.at(6, 6).placeTile(null);
 			b.at(6, 6).placeTile(new Tile({letter: "N", isBlank: true}), true);
-			assert.equal(b.toString(),
+			assert.equal(b,
 						 "Board 11x11\n" +
 						 "|Q| | | | | | | | | |8|\n" +
 						 "|U|4| | | | | | | |4| |\n" +
@@ -76,7 +76,7 @@ describe("Board class", () => {
 			b.at(0, b.rows-1).placeTile(new Tile({letter: "T"}), true);
 			b.at(b.cols-1, 0).placeTile(new Tile({letter: "b"}), true);
 			b.at(b.cols-1, b.rows-1).placeTile(new Tile({letter: "B"}), true);
-			//console.log(b.toString());
+			//console.log(b);
 			for (let r = 0; r < b.rows; r++) {
 				for (let c = 0; c < b.cols; c++) {
 					if (r == mr && (c == mc-1 || c == mc+1)
@@ -117,7 +117,6 @@ describe("Board class", () => {
 			TS.sparseEqual(move, {
 				words: [ { word: "WORD", score: 20 } ],
 				score: 35,
-				bonus: 0,
 				placements: [ W, O, R, D ]
 			});
 
@@ -151,7 +150,6 @@ describe("Board class", () => {
 			TS.sparseEqual(move, {
 				words: [ { word: "SUN", score: 5 }, { word: "SWORD", score: 11 } ],
 				score: 26,
-				bonus: 0,
 				placements: [ S, U, N ]
 			});
 
@@ -173,7 +171,6 @@ describe("Board class", () => {
 			TS.sparseEqual(move, {
 				words: [ { word: "DUN", score: 6 } ],
 				score: 6,
-				bonus: 0,
 				placements: [ U, N ]
 			});
 			
@@ -204,7 +201,6 @@ describe("Board class", () => {
 			TS.sparseEqual(move, {
 				words: [ { word: "WORD", score: 20 } ],
 				score: 35,
-				bonus: 0,
 				placements: [ W, O, R, D ]
 			});
 

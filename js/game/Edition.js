@@ -7,6 +7,13 @@ define("game/Edition", () => {
 	// Static DB of loaded Editions, indexed by name
 	const editions = {};
 
+    /**
+     * @typedef {object} BagLetter
+     * @param {string} BagLetter.letter - a code point (undefined for blank)
+	 * @param {number} BagLetter.score - score for this letter
+	 * @param {number} BagLetter.count - number of tiles for this letter
+     */
+
 	/**
 	 * A Scrabble-like crossword game edition.
 	 *
@@ -19,31 +26,89 @@ define("game/Edition", () => {
 	 * and are not sent to the browser.
 	 */
 	class Edition {
-
 		/**
-		 * @param spec the specification for the edition
-		 * @param {Object[]} spec.bag the initial bag of letters at
+         * The initial bag of letters at
 		 * the start of a game. Note that the ordering is unimportant
 		 * but if a dictionary is used, then there has to be a 1:1
 		 * correspondence between the alphabet used to generate the
-		 * DAWG and the letters in the bag. Each letter is described in an
-		 * object thus:
-		 * @param {string} spec.bag.letter - a code point (undefined for blank)
-		 * @param {number} spec.bag.score - score for this letter
-		 * @param {number} spec.bag.count - number of tiles for this letter
-		 * @param {string[]} spec.layout each entry
-		 * representing a row of the Lower-right quadrant of the
+		 * DAWG and the letters in the bag.
+         * @member {BagLetter[]}
+         */
+        bag;
+
+        /**
+         * A quarter-board, where each entry
+		 * represents a row of the Lower-right quadrant of the
 		 * board, so 0,0 is the middle. Each character in the strings
 		 * represents the scoring for that square encoded as follows:
 		 * d = double letter, D = double word
 		 * t = triple letter, T = triple word
 		 *  q = quad letter, Q = quad word
 		 * _ = normal
-		 * @param {number} spec.rackCount the number of tiles on a players rack
-		 * @param {number} spec.swapCount number of tiles swappable in a turn
-		 * @param {number} spec.maxPlayers maximum number of players
-		 * @param {Object.<number, number>} spec.bonuses maps number of tiles
-		 * played in a turn to a bonus
+         * @member {string[]}
+         */
+        layout;
+
+        /**
+         * The number of tiles on a players rack
+         * @member {number}
+         */
+        rackCount;
+
+        /**
+         * Number of tiles swappable in a turn
+         * @member {number}
+         */
+        swapCount;
+
+        /**
+         * maximum number of players
+         * @member {number}
+         */
+        maxPlayers;
+
+        /**
+         * Map of bonuses, from number of tiles used in play to bonus
+         * number of points.
+         * @member {object.<number,number>}
+         */
+        bonuses;
+
+        /**
+         * Map from each letter in the bag to the score for that letter
+         * (computed)
+         * @member {object.<string,number>}
+         * @private
+         */
+		scores;
+
+        /**
+         * Number of rows on the board (computed)
+         * @member {string[]}
+         */
+		rows;
+
+        /**
+         * Number of columns on the board (computed)
+         * @member {string[]}
+         */
+		cols;
+
+        /**
+         * List of the letters in the bag (computed)
+         * @member {string[]}
+         */
+		alphabeta;
+
+        /**
+         * String containing all the letters in the bag, sorted (computed).
+         * @member {string[]}
+         */
+		alphabet;
+
+        /**
+         * @param {object} spec the specification for the edition. This is an
+         * object that contains all the non-computed fields of an edition.
 		 */
 		constructor(spec) {
 			Object.getOwnPropertyNames(spec).forEach(
@@ -70,6 +135,7 @@ define("game/Edition", () => {
 
 		/**
 		 * Promise to load this edition
+         * @param {string} name what to call the edition
 		 * @return {Promise} resolves to the Edition
 		 */
 		static load(name) {
@@ -102,14 +168,6 @@ define("game/Edition", () => {
 			const rowi = Math.abs(row - Math.floor(this.rows / 2));
 			return this.layout[coli].charAt(rowi);
 		}
-
-		///**
-		// * Get the letter indices for the letters in the given word.
-		// */
-		//getLetterIndices(word) {
-		//	return word.split("")
-		//	.map(l => this.alphabet.indexOf(l.toUpperCase()));
-		//}
 
 		/**
 		 * Get the score of a tile with the given letter

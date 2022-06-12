@@ -35,6 +35,7 @@ define("server/UserManager", [
 	 * This a Passport strategy, radically cut-down from passport-local.
 	 * It is required because `passport-local` logins fail on null password,
 	 * and we specifically want to support this.
+     * @extends Passport.Strategy
 	 */
 	class XanadoPass extends Strategy {
 
@@ -243,6 +244,8 @@ define("server/UserManager", [
 
 		/**
 		 * Promisify req.login to complete the login process
+         * @param {Request} req
+         * @param {Response} req
 		 * @param {object} uo user object
 		 * @return {Promise} promise that resolves when the login completes
          * @private
@@ -428,6 +431,8 @@ define("server/UserManager", [
 
 		/**
 		 * Get a list of oauth2 providers
+         * @param {Request} req
+         * @param {Response} res
          * @private
 		 */
 		/* istanbul ignore next */
@@ -489,6 +494,8 @@ define("server/UserManager", [
 
 		/**
 		 * Handle registration of a user using Xanado password database
+         * @param {Request} req
+         * @param {Response} res
          * @private
 		 */
 		handle_xanado_register(req, res, next) {
@@ -519,6 +526,8 @@ define("server/UserManager", [
 		/**
 		 * Simply forgets the user, doesn't log OAuth2 users out from
 		 * the provider.
+         * @param {Request} req
+         * @param {Response} res
          * @private
 		 */
 		handle_logout(req, res) {
@@ -535,6 +544,8 @@ define("server/UserManager", [
 
 		/**
 		 * Gets a list of known users, user name and player key only
+         * @param {Request} req
+         * @param {Response} res
          * @private
 		 */
 		handle_users(req, res) {
@@ -552,6 +563,8 @@ define("server/UserManager", [
 
 		/**
 		 * Change the current users' password
+         * @param {Request} req
+         * @param {Response} res
          * @private
 		 */
 		handle_xanado_change_password(req, res) {
@@ -579,6 +592,8 @@ define("server/UserManager", [
 		/**
 		 * Reset the password for the given email address. A reset token will
 		 * be mailed to the user that they can then use to log in.
+         * @param {Request} req
+         * @param {Response} res
          * @private
 		 */
 		handle_xanado_reset_password(req, res) {
@@ -619,6 +634,8 @@ define("server/UserManager", [
 		/**
 		 * Report who is logged in. This will return a redacted user
 		 * object, with just the user name and uniqe key
+         * @param {Request} req
+         * @param {Response} res
          * @private
 		 */
 		handle_session(req, res) {
@@ -635,6 +652,8 @@ define("server/UserManager", [
 
 		/**
 		 * Write new session settings for the user
+         * @param {Request} req
+         * @param {Response} res
          * @private
 		 */
 		handle_session_settings(req, res) {
@@ -654,6 +673,9 @@ define("server/UserManager", [
 
 		/**
 		 * Middleware to check if a user is signed in. Use it with
+         * @param {Request} req
+         * @param {Response} res
+         * @param {function} next skip to next route
 		 * any route where a logged-in user is required.
 		 */
 		checkLoggedIn(req, res, next) {

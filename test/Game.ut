@@ -283,7 +283,7 @@ describe("Game - basic tests", () => {
 			{
 				event: Notify.TURN,
 				data: {
-					type: Turn.PLAY,
+					type: Turns.PLAY,
 					playerKey: human1.key,
 					nextToGoKey: human2.key,
 					score: move.score,
@@ -361,7 +361,7 @@ describe("Game - basic tests", () => {
 		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on("*", (event, data) => {
 			if (event === Notify.TURN) {
-				assert.equal(data.type, Turn.PASSED);
+				assert.equal(data.type, Turns.PASSED);
 				socket.done();
 				return;
 			}
@@ -381,7 +381,7 @@ describe("Game - basic tests", () => {
 			assert.equal(game.whosTurnKey, human1.key);
 			assert(human2.missNextTurn);
 		})
-		.then(() => game.pass(human1, Turn.PASSED))
+		.then(() => game.pass(human1, Turns.PASSED))
 		.then(() => {
 			assert.equal(game.whosTurnKey, human3.key);
 			assert(!human3.missNextTurn);
@@ -576,42 +576,42 @@ describe("Game - basic tests", () => {
             game.turns = [];
             //game._debug = console.debug;
             game.finishTurn(new Turn(game, {
-                type: Turn.PLAY,
+                type: Turns.PLAY,
                 playerKey: 1
             }));
             game.finishTurn(new Turn(game, {
-                type: Turn.PLAY,
+                type: Turns.PLAY,
                 playerKey: 2
             }));
             assert.equal(game.lastTurn(), game.lastPlay());
             game.finishTurn(new Turn(game, {
-                type: Turn.TOOK_BACK,
+                type: Turns.TOOK_BACK,
                 playerKey: 3
             }));
             assert.equal(game.lastTurn().playerKey, 3);
             assert.equal(game.lastPlay().playerKey, 1);
             game.finishTurn(new Turn(game, {
-                type: Turn.PLAY,
+                type: Turns.PLAY,
                 playerKey: 4
             }));
             game.finishTurn(new Turn(game, {
-                type: Turn.CHALLENGE_WON,
+                type: Turns.CHALLENGE_WON,
                 playerKey: 5
             }));
             assert.equal(game.lastTurn().playerKey, 5);
             assert.equal(game.lastPlay().playerKey, 1);
             game.finishTurn(new Turn(game, {
-                type: Turn.PLAY,
+                type: Turns.PLAY,
                 playerKey: 6
             }));
             game.finishTurn(new Turn(game, {
-                type: Turn.CHALLENGE_LOST,
+                type: Turns.CHALLENGE_LOST,
                 playerKey: 7
             }));
             assert.equal(game.lastTurn().playerKey, 7);
             assert.equal(game.lastPlay().playerKey, 6);
             game.finishTurn(new Turn(game, {
-                type: Turn.GAME_OVER,
+                type: Turns.GAME_OVER,
                 playerKey: 8
             }));
             game.state = State.GAME_OVER;

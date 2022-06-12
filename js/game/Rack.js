@@ -11,6 +11,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 
 	/**
 	 * A Rack is a 1-column {@link Surface}
+     * @extends Surface
 	 */
 	class Rack extends Surface {
 
@@ -39,13 +40,6 @@ define("game/Rack", ["game/Surface"], Surface => {
 		}
 
 		/**
-		 * Debug
-		 */
-		toString() {
-			return `Rack ${this.tiles().join(",")}`;
-		}
-
-		/**
 		 * One dimensional
 		 * @override
 		 */
@@ -61,8 +55,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 		 */
 		addTile(tile) {
 			let col = -1;
-			if (tile.isBlank)
-				tile.letter = " ";
+			tile.clean();
 			this.forEachEmptySquare(square => {
 				square.placeTile(tile);
 				col = square.col;
@@ -137,7 +130,8 @@ define("game/Rack", ["game/Surface"], Surface => {
 		}
 
 		/**
-		 * Get a list of tiles that are not blanks
+		 * Get a list of letters on the rack that are not blanks
+         * @return {string[]}
 		 */
 		lettersLeft() {
 			return this.tiles().filter(tile => !tile.isBlank)
@@ -163,6 +157,13 @@ define("game/Rack", ["game/Surface"], Surface => {
 			});
 			$tbody.append($tr);
 			return $table;
+		}
+
+		/**
+		 * @override
+		 */
+		toString() {
+			return `Rack ${this.tiles().join(",")}`;
 		}
 	}
 

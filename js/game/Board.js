@@ -6,10 +6,23 @@ and license information*/
 define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile, Move) => {
 
 	/**
-	 * The square game board
+	 * The square game board.
+     * @extends Surface
 	 */
 	class Board extends Surface {
 
+		/**
+         * Row of middle square on board.
+         * @member {number}
+         */
+        midrow;
+
+		/**
+         * Column of middle square on board.
+         * @member {number}
+         */
+        midcol;
+        
 		/**
 		 * @param {Edition} edition the edition defining the board layout
 		 */
@@ -17,11 +30,6 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 			super("Board", edition.cols, edition.rows,
 				  (col, row) => edition.squareType(col, row));
 
-			// Copy essentials from the Edition, so we don't have
-			// to serialise it
-			this.bonuses = edition.bonuses;
-			this.rackCount = edition.rackCount;
-			this.swapCount = edition.swapCount;
 			this.midrow = Math.floor(edition.rows / 2);
 			this.midcol = Math.floor(edition.cols / 2);
 		}
@@ -55,38 +63,111 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 			}
 		}
 
-		/**
-		 * Debug
-		 */
-		toString() {
-			let s = `Board ${this.cols}x${this.rows}\n`;
 
-			for (let row = 0; row < this.rows; row++) {
-				const r = [];
-				for (let col = 0; col < this.cols; col++) {
-					const square = this.at(col, row);
-					const t = square.tile;
-					if (t) {
-						// Show cast blanks using lower case letters
-						// May not work in non-Latin languages.
-						if (t.isBlank)
-							r.push(t.letter.toLowerCase());
-						else
-							r.push(t.letter);
-					} else {
-						if (square.letterScoreMultiplier > 1)
-							r.push(square.letterScoreMultiplier);
-						else if (square.wordScoreMultiplier > 1)
-							r.push(4 + square.wordScoreMultiplier);
-						else
-							r.push(" ");
-					}
+		/**
+		 * Given a play at col, row, compute it's score. Used in
+         * findBestPlay, and must perform as well as possible. Read
+         * the description of `analysePlay` to understand the
+         * difference between these two related functions.
+         * Note: does *not* include any bonuses due to number of tiles played.
+		 * @param {number} col the col of the LAST letter
+		 * @param {number} row the row of the LAST letter
+		 * @param {number} dcol 1 if the word being played across
+		 * @param {number} drow 1 if the word is being played down
+		 * @param {Tile[]} tiles a list of tiles that are being placed
+		 * @param {string[]?} words optional list to be populated with
+		 * words that have been created by the play
+		 * @return {number} the score of the play.
+		 */
+		scorePlay(col, row, dcol, drow, tiles, words) {
+
+			// Accumulator for the primary word being formed by the tiles
+			let wordScore = 0;
+
+			// Accumulator for crossing words scores.
+			let crossWordsScore = 0;
+
+			// Multipler for the main word
+			let wordMultiplier = 1;
+
+			// Number of tiles being placed, for calculating bonus
+			let tilesPlaced = 0;
+			for (let tile of tiles) {
+				const c = tile.col;
+				const r = tile.row;
+				let letterScore = tile.score;
+				const square = this.at(c, r);
+				if (square.tileLocked) {
+					wordScore += letterScore;
+					continue; // pre-existing tile, no bonuses
 				}
-				s += `|${r.join("|")}|\n`;
+
+				// Letter is being placed, so letter multiplier applies to all
+				// new words created, including cross words
+				letterScore *= square.letterScoreMultiplier;
+
+				tilesPlaced++;
+
+				wordScore += letterScore;
+
+				// Multiplier for any new words that cross this letter
+				const crossWordMultiplier = square.wordScoreMultiplier;
+				wordMultiplier *= crossWordMultiplier;
+
+				// This is a new tile, need to analyse cross words and
+				// apply bonuses
+				let crossWord = "";
+				let crossWordScore = 0;
+
+				// Look left/up
+				for (let cp = c - drow, rp = r - dcol;
+					 cp >= 0 && rp >= 0 && this.at(cp, rp).tile;
+					 cp -= drow, rp -= dcol) {
+					const tile = this.at(cp, rp).tile;
+					crossWord = tile.letter + crossWord;
+					crossWordScore += tile.score;
+				}
+
+				crossWord += tile.letter;
+
+				// Look right/down
+				for (let cp = c + drow, rp = r + dcol;
+					 cp < this.cols && rp < this.rows
+					 && this.at(cp, rp).tile;
+					 cp += drow, rp += dcol) {
+					const tile = this.at(cp, rp).tile;
+					crossWord += tile.letter;
+					crossWordScore += tile.score;
+				}
+
+				if (crossWordScore > 0) {
+					// This tile (and bonuses) contribute to cross words
+					crossWordScore += letterScore;
+					crossWordScore *= crossWordMultiplier;
+					if (words)
+						words.push({
+                            word: crossWord,
+                            score: crossWordScore
+                        });
+
+					crossWordsScore += crossWordScore;
+				}
 			}
-			return s;
+
+			wordScore *= wordMultiplier;
+
+			if (words)
+				words.push({
+					word: tiles.map(tile => tile.letter).join(""),
+					score: wordScore
+				});
+
+			// Add cross word values to the main word value
+			wordScore += crossWordsScore;
+
+			return wordScore;
 		}
-		
+
 		/**
 		 * True if one of the neighbours of [col, row] is already occupied by
 		 * a tile that was placed in a previous move
@@ -161,127 +242,22 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		}
 
 		/**
-		 * Given a play at col, row, compute its score. Used in findBestPlay.
-		 * @param {number} col the col of the LAST letter
-		 * @param {number} row the row of the LAST letter
-		 * @param {number} dcol 1 if the word being played across
-		 * @param {number} drow 1 if the word is being played down
-		 * @param {Tile[]} tiles a list of Tiles that have been newly placed
-		 * @param {string[]} words optional list to be populated with
-		 * words that have been created by the play
-		 * @return {number} the score of the play.
-		 */
-		scorePlay(col, row, dcol, drow, tiles, words) {
-
-			// Accumulator for the primary word being formed by the tiles
-			let wordScore = 0;
-
-			// Accumulator for crossing words scores.
-			let crossWordsScore = 0;
-
-			// Multipler for the main word
-			let wordMultiplier = 1;
-
-			// Number of tiles being placed, for calculating bonus
-			let tilesPlaced = 0;
-			for (let tile of tiles) {
-				const c = tile.col;
-				const r = tile.row;
-				let letterScore = tile.score;
-				const square = this.at(c, r);
-				if (square.tileLocked) {
-					wordScore += letterScore;
-					continue; // pre-existing tile, no bonuses
-				}
-
-				// Letter is being placed, so letter multiplier applies to all
-				// new words created, including cross words
-				letterScore *= square.letterScoreMultiplier;
-
-				tilesPlaced++;
-
-				wordScore += letterScore;
-
-				// Multiplier for any new words that cross this letter
-				const crossWordMultiplier = square.wordScoreMultiplier;
-				wordMultiplier *= crossWordMultiplier;
-
-				// This is a new tile, need to analyse cross words and
-				// apply bonuses
-				let crossWord = "";
-				let crossWordScore = 0;
-
-				// Look left/up
-				for (let cp = c - drow, rp = r - dcol;
-					 cp >= 0 && rp >= 0 && this.at(cp, rp).tile;
-					 cp -= drow, rp -= dcol) {
-					const tile = this.at(cp, rp).tile;
-					crossWord = tile.letter + crossWord;
-					crossWordScore += tile.score;
-				}
-
-				crossWord += tile.letter;
-
-				// Look right/down
-				for (let cp = c + drow, rp = r + dcol;
-					 cp < this.cols && rp < this.rows
-					 && this.at(cp, rp).tile;
-					 cp += drow, rp += dcol) {
-					const tile = this.at(cp, rp).tile;
-					crossWord += tile.letter;
-					crossWordScore += tile.score;
-				}
-
-				if (crossWordScore > 0) {
-					// This tile (and bonuses) contribute to cross words
-					crossWordScore += letterScore;
-					crossWordScore *= crossWordMultiplier;
-					if (words && words.filter(w => w.word === crossWord).length === 0)
-						words.push({ word: crossWord, score: crossWordScore });
-
-					crossWordsScore += crossWordScore;
-				}
-			}
-
-			wordScore *= wordMultiplier;
-
-			if (words)
-				words.push({
-					word: tiles.map(tile => tile.letter).join(""),
-					score: wordScore
-				});
-
-			// Add cross word values to the main word value
-			wordScore += crossWordsScore;
-
-			return wordScore + this.calculateBonus(tilesPlaced);
-		}
-
-		/**
-		 * Calculate the bonus if tilesPlaced tiles are placed
-		 * Really belongs in Edition, but here because Edition is
-		 * not sent to the client.
-		 * @param {number} tilesPlaced
-		 */
-		calculateBonus(tilesPlaced) {
-			if (typeof this.bonuses[tilesPlaced] === "number")
-				return this.bonuses[tilesPlaced];
-			return 0;
-		}
-
-		/**
 		 * UI-side move calculation. Constructs a {@link Move}.
-		 * `analysePlay` and `scorePlay` do essentially the same job; given a board with
-		 * tiles placed but not locked, calculate the score and the words formed. They
-		 * differ in respect of their application; analysePlay is intended to
-		 * be used client-side to calculate a move made by a human, whereas scorePlay
-		 * is used to calculate the score for a play being constructed on the server
-		 * side by a robot.
-		 * @return {(Move|string)} Move or a string if there is a problem
+		 * `analysePlay` and `scorePlay` do essentially the same job;
+		 * calculate the score for a given play. They differ in
+		 * respect of their application; `analysePlay` is used
+		 * client-side to calculate a move made by a human and has to
+		 * be tolerant of disconnected plays and other errors. It
+		 * works on a board with tiles placed but not locked.
+		 * `scorePlay` is used to calculate the score for a play being
+		 * constructed on the server side by a robot, and has to
+		 * perform as well as possible. Note that neither
+		 * `analysePlay` nor `scorePlay` calculate bonuses for number
+		 * of tiles played.
+		 * @return {(Move|string)} Move, or a string if there is a problem
 		 */
 		analysePlay() {
 			// Check that the start field is occupied
-
 			if (!this.at(this.midcol, this.midrow).tile)
 				return /*i18n*/"Centre must be used";
 
@@ -354,14 +330,12 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 				}
 			});
 	
-			const bonus = this.calculateBonus(placements.length);
 			const words = [];
-			const score = this.scoreNewWords(words) + bonus;
+			const score = this.scoreNewWords(words);
 			return new Move(
 				{
 					placements: placements,
 					score: score,
-					bonus: bonus,
 					words: words
 				});
 		}
@@ -386,6 +360,38 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 				$table.append($tr);
 			}
 			return $table;
+		}
+
+		/**
+         * @override
+		 */
+		toString() {
+			let s = `Board ${this.cols}x${this.rows}\n`;
+
+			for (let row = 0; row < this.rows; row++) {
+				const r = [];
+				for (let col = 0; col < this.cols; col++) {
+					const square = this.at(col, row);
+					const t = square.tile;
+					if (t) {
+						// Show cast blanks using lower case letters
+						// May not work in non-Latin languages.
+						if (t.isBlank)
+							r.push(t.letter.toLowerCase());
+						else
+							r.push(t.letter);
+					} else {
+						if (square.letterScoreMultiplier > 1)
+							r.push(square.letterScoreMultiplier);
+						else if (square.wordScoreMultiplier > 1)
+							r.push(4 + square.wordScoreMultiplier);
+						else
+							r.push(" ");
+					}
+				}
+				s += `|${r.join("|")}|\n`;
+			}
+			return s;
 		}
 	}
 
