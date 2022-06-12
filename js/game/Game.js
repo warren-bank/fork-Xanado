@@ -927,7 +927,7 @@ define("game/Game", [
 					turns: this.turns.length, // just the length
 					whosTurnKey: this.whosTurnKey,
 					timerType: this.timerType,
-					// this.board is not sent                   
+					// this.board is not sent
 					// this.rackSize not sent
 					// this.swapSize not sent
                     // this.bonuses not sent
