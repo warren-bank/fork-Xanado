@@ -1,17 +1,16 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node, mocha */
 
 describe("Trie class", () => {
 
-	const deps = [
-        { Trie: "dawg/Trie" },
-        { Dictionary: "dawg/Dictionary" }
-	];
-
+    /* global Trie, Dictionary */
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required, {
+        Trie: "dawg/Trie",
+        Dictionary: "dawg/Dictionary"
+    }));
 
     function UNit() {}
 

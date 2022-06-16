@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
 define("game/Types", () => {
@@ -26,16 +26,16 @@ define("game/Types", () => {
 	 * * PLAYING - until the game is over, then
 	 * * GAME_OVER - game was played to end, or
 	 * * TWO_PASSES - all players passed twice, or
-	 * * CHALLENGE_FAILED - a challenge on the final play failed
+	 * * FAILED_CHALLENGE - a challenge on the final play failed
      * * TIMED_OUT - game is too old, will be pruned
-     * @typedef {WAITING|PLAYING|GAME_OVER|TWO_PASSES|CHALLENGE_FAILED|TIMED_OUT} State
+     * @typedef {WAITING|PLAYING|GAME_OVER|TWO_PASSES|FAILED_CHALLENGE|TIMED_OUT} State
      */
     const State = {
  		WAITING:          /*i18n*/"Waiting for players",
 		PLAYING:          /*i18n*/"Playing",
 		GAME_OVER:        /*i18n*/"Game over",
 		TWO_PASSES:       /*i18n*/"All players passed twice",
-		CHALLENGE_FAILED: /*i18n*/"Challenge failed",
+		FAILED_CHALLENGE: /*i18n*/"Challenge failed",
 		TIMED_OUT:        /*i18n*/"Timed out"
     };
  

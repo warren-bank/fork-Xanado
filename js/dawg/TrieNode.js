@@ -1,11 +1,11 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
 define("dawg/TrieNode", [
-    "common/Debuggable", "dawg/LetterNode"
-], (Debuggable, LetterNode) => {
+    "dawg/LetterNode"
+], LetterNode => {
 
 	let nodeIds = 0;
 
@@ -18,9 +18,8 @@ define("dawg/TrieNode", [
 	 * only used while generating a DAWG from a lexicon. TrieNodes are
 	 * serialised using the above structure but are then rebuilt using
 	 * {@link LetterNode}s at the sharp end.
-     * @extends Debuggable
 	 */
-	class TrieNode extends Debuggable {
+	class TrieNode {
         /**
          * The letter at this node
          * @member {string}

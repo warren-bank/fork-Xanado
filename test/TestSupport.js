@@ -1,6 +1,8 @@
-/*Copyright (C) 2019-2022 Crawford Currie http://c-dot.co.uk. License MIT*/
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node */
-/* global assert */
+/* global exports, assert */
 
 /**
  * Unit test support
@@ -50,14 +52,15 @@ exports.sparseEqual = (actual, expected, path) => {
 exports.assert = assert;
 
 exports.depend = (required, deps) => {
-	deps.push({ TestSocket: 'test/TestSocket' });
-	deps.push({ Types: 'game/Types' });
-	deps.push({ Platform: 'platform' });
-	const modules = Object.values(deps).map(f => Object.values(f)[0]);
+    /* global TestSocket, Types, Platform */
+	deps.TestSocket = 'test/TestSocket';
+	deps.Types = 'game/Types';
+	deps.Platform = 'platform';
+	const modnames = Object.keys(deps);
+    const modules = modnames.map(m => deps[m]);
 	requirejs(modules, function() {
 		let i = 0;
-		for (let dep of deps) {
-			const name = Object.keys(dep)[0];
+		for (let name of modnames) {
 			eval(`${name}=arguments[${i++}]`);
 		}
         for (let t of Object.keys(Types)) {

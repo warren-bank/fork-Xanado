@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
 define("dawg/Dictionary", [
@@ -220,6 +220,7 @@ define("dawg/Dictionary", [
 		 * sequence is a valid part of; that's not the point, this is
 		 * intended to help eliminate invalid sequences when extending
 		 * a word backwards from a seed letter.
+		 * @param {string} seq letter sequence
          * @private
 		 */
 		findSequence(seq) {

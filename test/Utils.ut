@@ -1,16 +1,13 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node, mocha */
 
 describe("Utils class", () => {
 
-	const deps = [
-		{ Utils: "common/Utils" }
-	];
-
-	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	/* global Utils */
+    const TS = require("./TestSupport.js");
+	before(required => TS.depend(required, { Utils: "common/Utils" }));
 
     it("genKey", () => {
 		const miss = [ Utils.genKey() ];

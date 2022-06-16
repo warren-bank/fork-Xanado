@@ -13,14 +13,14 @@ const { exec } = require('child_process');
  */
 describe("Server", () => {
 
-	const deps = [
-		{ Server: "server/Server" }
-	];
-
     const USER_DB_FILE = `${__dirname}/temp/passwd.json`;
    
+    /* global Platform, Server */;
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required, {
+        Server: "server/Server",
+        UserManager: "server/UserManager"
+    }));
     beforeEach(done => {
 		const cmd = `rm -f ${__dirname}/temp/*.game ${USER_DB_FILE}`;
 		exec(cmd,
@@ -36,7 +36,7 @@ describe("Server", () => {
 	
 	const assert = chai.assert;
 
-	// Promise to register user. Resolve to server.
+	// Promise to register user. Resolve to user key.
 	function register(server, user) {
 		return new Promise(resolve => {
 			chai.request(server.express)
@@ -51,7 +51,7 @@ describe("Server", () => {
 				});
 				assert(res.body.key.length > 1);
 				assert(!res.body.email);
-				resolve(server);
+				resolve(res.body.key);
 			});
 		});
 	}
@@ -75,14 +75,14 @@ describe("Server", () => {
 			"db_file" : USER_DB_FILE
 		},
 		defaults: {
-			edition: "Tiny",
+			edition: "Test",
 			dictionary: "Oxford_5000",
 			theme: "default"
 		},
 		games: "test/temp"
 	};
 
-	function unit() {}
+	function UNit() {}
 
 	it("i18n", () => new Promise(resolve => {
         return Platform.i18n().load("qqq")
@@ -95,13 +95,6 @@ describe("Server", () => {
         });
     }));
     
-	it("handlers", () => new Promise(resolve => {
-		const s = new Server(config);
-		const ts = new TestSocket();
-		s.attachSocketHandlers(ts);
-		resolve();
-	}));
-
 	it("/defaults", () => new Promise(resolve => {
 		const s = new Server(config);
 		chai.request(s.express)
@@ -109,7 +102,7 @@ describe("Server", () => {
 		.end((err, res) => {
 			assert.equal(res.status, 200);
 			assert.deepEqual(res.body, {
-				edition: "Tiny",
+				edition: "Test",
 				dictionary: "Oxford_5000",
 				theme: "default",
 				canEmail: false
@@ -235,18 +228,68 @@ describe("Server", () => {
 				"db_file" : `${__dirname}/temp/passwd.json`
 			},
 			defaults: {
-				edition: "Tiny",
+				edition: "Test",
 				dictionary: "Oxford_5000",
 				theme: "default"
 			},
-			games: "test/temp"
+			games: "test/temp",
+            //debug_server: true,
+            //debug_game: true
 		};
-		let server = new Server(config), cookie, gamekey;
+		let server = new Server(config), cookie, gamekey, playerkey;
+        
+		const serverSock = new TestSocket();
+		const clientSock = new TestSocket();
+		server.attachSocketHandlers(serverSock);
+
+        serverSock.connect(clientSock);
+
+        serverSock.on("disconnect", () => {
+            serverSock.done();
+        });
+        let sawTurn = false;
+        clientSock.on(Notify.MESSAGE, params => {
+            //assert(sawTurn); not if human ends up first player
+            //console.log("INCOMING message",params);
+            if (params.sender === "Advisor") {
+                switch (params.text) {
+                case "$1 has added '$2' to $3":
+                    assert.deepEqual(params.args, [
+                        "test_user", "FROBNOZZ", "Oxford_5000" ]);
+                    return;
+                
+                case "'$1' is already in $2":
+                    assert.deepEqual(params.args, [ "ABSTRACT", "Oxford_5000" ]);
+                    return;
+                
+                case "Hint":
+                    assert(params.args.length === 4);
+                    clientSock.done();
+                    return;
+                }
+            }
+            assert(false, params.text);
+        });
+
+        clientSock.on(Notify.TURN, params => {
+            //console.log("INCOMING turn");
+            assert.equal(params.playerKey, UserManager.ROBOT_KEY);
+            assert.equal(params.gameKey, gamekey);
+            sawTurn = true;
+        });
+        
+        clientSock.on(Notify.CONNECTIONS, (params, event) => {});
+
+        clientSock.on("*", (params, event) => {
+            console.log("CLIENT GOT", event, params);
+        });
+
 		return register(server, {
 			register_username: "test_user",
 			register_password: "test_pass",
 			register_email: "test@email.com"
 		})
+        .then(pk => playerkey = pk)
 		.then(() => login(server, {
 			login_username: "test_user",
 			login_password: "test_pass"
@@ -258,7 +301,7 @@ describe("Server", () => {
 			.set('Cookie', cookie)
 			.send({
 				edition: "English_Scrabble",
-				dictionary:"CSW2019_English"
+				dictionary:"Oxford_5000"
 			})
 			.end((err, res) => {
 				//console.log(res.text);
@@ -274,6 +317,14 @@ describe("Server", () => {
 			.end((err, res) => {
 				//console.log(res.text);
 				assert.equal(res.status, 200, res.text);
+                clientSock.emit(Notify.JOIN, {
+                    gameKey: gamekey,
+                    playerKey: playerkey
+                });
+                // Should silently go nowhere, not in a game yet
+                clientSock.emit(Notify.MESSAGE, {
+                    text: "yoohoo!"
+                });
 				resolve(res.text);
 			});
 		}))
@@ -284,6 +335,12 @@ describe("Server", () => {
 			.end((err, res) => {
 				//console.log(res.text);
 				assert.equal(res.status, 200, res.text);
+                clientSock.emit(Notify.MESSAGE, {
+                    text: "allow frobnozz"
+                });
+                clientSock.emit(Notify.MESSAGE, {
+                    text: "allow abstract"
+                });
 				resolve(res.text);
 			});
 		}))
@@ -294,6 +351,7 @@ describe("Server", () => {
 			.end((err, res) => {
 				//console.log(res.text);
 				assert.equal(res.status, 200);
+                clientSock.emit(Notify.MESSAGE, { text: "hint" });
 				resolve(res.text);
 			});
 		}))
@@ -335,8 +393,20 @@ describe("Server", () => {
 				assert.equal(res.status, 200);
 				resolve(res.text);
 			});
-		}));
+		}))
+        .then(() => serverSock.wait());
 	});
+
+	it("monitors", () => new Promise(resolve => {
+		const s = new Server(config);
+		const serverSock = new TestSocket();
+		s.attachSocketHandlers(serverSock);
+        serverSock.emit("connect");
+        serverSock.emit("disconnect");
+        serverSock.emit(Notify.MONITOR); // Add as monitor
+        serverSock.emit("disconnect"); // remove monitor
+		resolve();
+	}));
 
 	it("/anotherGame", () => {
 		const config = {
@@ -345,7 +415,7 @@ describe("Server", () => {
 				"db_file" : `${__dirname}/temp/passwd.json`
 			},
 			defaults: {
-				edition: "Tiny",
+				edition: "Test",
 				dictionary: "Oxford_5000",
 				theme: "default"
 			},
@@ -417,7 +487,7 @@ describe("Server", () => {
 				"db_file" : `${__dirname}/temp/passwd.json`
 			},
 			defaults: {
-				edition: "Tiny",
+				edition: "Test",
 				dictionary: "Oxford_5000",
 				theme: "default"
 			},

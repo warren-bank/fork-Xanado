@@ -6,15 +6,14 @@
  * Unit tests for Rack
  */
 describe("Rack class", () => {
-	const deps = [
-		{ Rack: "game/Rack" },
-		{ Tile: "game/Tile" },
-		{ Square: "game/Square" },
-		{ jQueryUI: "jquery-ui" }
-	];
 
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required, {
+    	Rack: "game/Rack",
+		Tile: "game/Tile",
+		Square: "game/Square",
+		jQueryUI: "jquery-ui"
+    }));
 
 	it("construct", () => {
 		let r = new Rack("base", 10);

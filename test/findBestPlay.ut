@@ -2,20 +2,19 @@
    license information */
 /* eslint-env node */
 
-describe("best play on complex boards", () => {
-	const deps = [
-		{ Edition: "game/Edition" },
-		{ Tile: "game/Tile" },
-		{ Rack: "game/Rack" },
-		
-		{ Player: "game/Player" },
-		{ Game: "game/Game" },
-		{ Move: "game/Move" },
-		{ findBestPlay: "game/findBestPlay" }
-	];
+describe("findBestPlay", () => {
 
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required, {
+		Edition: "game/Edition",
+		Tile: "game/Tile",
+		Rack: "game/Rack",
+		
+		Player: "game/Player",
+		Game: "game/Game",
+		Move: "game/Move",
+		findBestPlay: "game/findBestPlay"
+    }));
 
 	it("blanks", () => {
 		let bestMoves = [];
@@ -58,7 +57,8 @@ describe("best play on complex boards", () => {
 				//console.log(move);
 				if (move instanceof Move)
 					bestMoves.push(move);
-			}))
+			},
+            game.dictpath, game.dictionary))
 		.then(() => {
 			assert.equal(bestMoves[5].words[0].word, "HAIRIEST");
 			assert.equal(bestMoves[5].words.length, 1);
@@ -105,7 +105,8 @@ describe("best play on complex boards", () => {
 				//console.log(move);
 				if (move instanceof Move)
 					bestMoves.push(move);
-			}))
+			},
+            game.dictpath, game.dictionary))
 
 		.then(() => {
 			assert.equal(bestMoves.length, 3);
@@ -173,7 +174,8 @@ describe("best play on complex boards", () => {
 				//console.log(move);
 				if (move instanceof Move)
 					bestMoves.push(move);
-			}))
+			},
+            game.dictpath, game.dictionary))
 
 		.then(() => {
 			assert.equal(bestMoves.length, 2);
@@ -229,7 +231,8 @@ describe("best play on complex boards", () => {
 				//console.log(move);
 				if (move instanceof Move)
 					bestMoves.push(move);
-			}))
+			},
+            game.dictpath, game.dictionary))
 		.then(() => {
 			const last = bestMoves[bestMoves.length - 1];
 			assert.equal(last.words.length, 3);
@@ -278,7 +281,8 @@ describe("best play on complex boards", () => {
 				//console.log(move);
 				if (move instanceof Move)
 					bestMoves.push(move);
-			}))
+			},
+            game.dictpath, game.dictionary))
 		.then(() => {
 			//console.log(bestMoves[bestMoves.length-1]);
 		});

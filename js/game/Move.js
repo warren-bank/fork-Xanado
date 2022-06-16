@@ -1,20 +1,19 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
 define("game/Move", [
-    "common/Debuggable", "game/Tile"
-], (Debuggable, Tile) => {
+    "game/Tile"
+], Tile => {
 
 	/**
 	 * A Move is a collection of tile placements, and the delta score
 	 * achieved for the move. We also record the words created by the
 	 * move. It is used to send a human player's play to the server,
 	 * which then sends a matching {@link Turn} to every player.
-     * @extends Debuggable
 	 */
-	class Move extends Debuggable {
+	class Move {
 
 		/**
 		 * Score for the play.
@@ -27,36 +26,31 @@ define("game/Move", [
         score;
 
 		/**
-		 * List of tiles placed in this move. Tiles are required
-		 * to carry col, row positions where they were placed.  In
-		 * a Turn, for type=`move` it indicates the move. For
-		 * `Turns.TOOK_BACK` and `Turns.CHALLENGE_WON` it is
-		 * the move just taken back/challenged.
-		 * @member {Tile[]?}
-		 */
-        placements;
-
-		/**
 		 * @param {(Move|object)?} params Move to copy, or params, or undefined
 		 * Any member can be initialised by a corresponding field in
 		 * params.
 		 */
 		constructor(params) {
-			/**
-			 * List of words created by the play {word: string, score: number}
-			 * @member {object[]}
-			 */
-			if (params && params.words)
+			if (params.words)
+		        /**
+		         * List of words created by the play:
+                 * ```
+                 * { word: string, score: number }
+		         * @member {object[]?}
+		         */
 				this.words = params.words;
 
 			this.score = params ? (params.score || 0) : 0;
 
-			/**
-			 * Bonus for the play (included in score)
-			 * @member {number}
-			 */
-			this.bonus = 0;
-			if (params && params.placements)
+			if (params.placements)
+		        /**
+		         * List of tiles placed in this move. Tiles are required
+		         * to carry col, row positions where they were placed.  In
+		         * a Turn, for type=`move` it indicates the move. For
+		         * `Turns.TOOK_BACK` and `Turns.CHALLENGE_WON` it is
+		         * the move just taken back/challenged.
+		         * @member {Tile[]?}
+		         */
 				this.placements = params.placements.map(
 					tilespec => new Tile(tilespec));
 		}

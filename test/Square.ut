@@ -8,16 +8,15 @@
  */
 describe("Square class", () => {
 
-	const deps = [
-		{ Square: "game/Square" },
-		{ Tile: "game/Tile" },
-		{ jQueryUI: "jquery-ui" }
-	];
-	
+	/* global Platform, Square, Tile */
 	const TS = require("./TestSupport.js");
 	before(required => {
 		return TS.depend(
-            () => Platform.i18n().load("en").then(required), deps);
+            () => Platform.i18n().load("en").then(required), {
+		        Square: "game/Square",
+		        Tile: "game/Tile",
+		        jQueryUI: "jquery-ui"
+            });
 	});
 
 	it('construct', () => {

@@ -1,10 +1,10 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
 define("browser/UI", [
-	"socket.io",  "browser/Dialog",
+	"socket.io-client",  "browser/Dialog",
 
 	"jquery",
 	"jqueryui",
@@ -16,7 +16,7 @@ define("browser/UI", [
 	"i18n_parser",
     "cldrpluralruleparser"
 ], (
-	io, Dialog
+	Sockets, Dialog
 ) => {
 
 	/**
@@ -181,8 +181,9 @@ define("browser/UI", [
 				}
 			});
 
-			console.debug("Connecting to socket");
-			this.socket = io.connect(null);
+			console.debug("UI loaded, connecting to socket");
+            // The server URL will be deduced from the window.location
+			this.socket = Sockets.connect();
 			let $reconnectDialog = null;
 			this.socket
 			.on("connect", skt => {
@@ -264,8 +265,11 @@ define("browser/UI", [
 			})
 			.catch(e => {
 				$(".logged-in").hide();
-				$(".not-logged-in").show()
-				.find("button")
+				$(".not-logged-in").show();
+                if (typeof this.observer === "string")
+                    $(".observer").show().text($.i18n(
+                        "Observer '$1'", this.observer));
+				$(".not-logged-in>button")
 				.on("click", () => Dialog.open("LoginDialog", {
 					postResult: () => location.replace(location),
 					error: UI.report

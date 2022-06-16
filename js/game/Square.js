@@ -1,11 +1,11 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, jquery */
 
 define("game/Square", [
-    "platform", "common/Debuggable"
-], (Platform, Debuggable) => {
+    "platform"
+], Platform => {
 
 	// Map the characters in the board template to CSS classes
 	const CSS_CLASS =  {
@@ -24,9 +24,8 @@ define("game/Square", [
 	 * underlying attributes; a position, an owner, and a type that
 	 * dictates the score multipliers that apply. The owner will be a
 	 * subclass of {@link Surface} (a {@link Rack} or a {@link Board})
-     * @extends Debuggable
 	 */
-	class Square extends Debuggable {
+	class Square {
 
         /**
 		 * /^[QqTtSs_]$/ see {@link Board}
@@ -318,6 +317,7 @@ define("game/Square", [
 		/**
 		 * @override
 		 */
+        /* istanbul ignore next */
 		toString() {
 			// All squares have a col
 			let string = `${this.type} square @ ${this.col}`;

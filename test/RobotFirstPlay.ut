@@ -5,28 +5,32 @@
 /**
  * Test first play on an empty board.
  */
-describe("first plays", () => {
-	const deps = [
-        { Platform: "platform" },
-		{ Edition: "game/Edition" },
-		{ Tile: "game/Tile" },
-		{ Player: "game/Player" },
-		{ Game: "game/Game" },
-		{ Rack: "game/Rack" },
-		{ findBestPlay: "game/findBestPlay" }
-	];
+describe("RobotFirstPlay", () => {
 
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required, {
+        Platform: "platform",
+		Edition: "game/Edition",
+		Tile: "game/Tile",
+		Player: "game/Player",
+		Game: "game/Game",
+		Rack: "game/Rack",
+		findBestPlay: "game/findBestPlay"
+    }));
 
 	it("first play English Scrabble", () => {
 		let bestPlay;
 
-		let game = new Game({edition:"English_Scrabble", dictionary:"Oxford_5000"});
+		let game = new Game({
+            edition:"English_Scrabble",
+            dictionary:"Oxford_5000"
+        });
         return game.create()
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
-			game.addPlayer(new Player({name:"test", key:"anonymous", isRobot:false}));
+			game.addPlayer(new Player({
+                name:"test", key:"anonymous", isRobot:false
+            }));
 			return game.loadBoard(
 				"| | | | | | | | | | | | | | | |\n" +
 				"| | | | | | | | | | | | | | | |\n" +
@@ -58,7 +62,8 @@ describe("first plays", () => {
 			play => {
 				//console.debug(play);
 				bestPlay = play;
-			}))
+			},
+            game.dictpath, game.dictionary))
 
 		.then(() => {
 			assert.equal(bestPlay.words[0].word, "AUDIO");
@@ -104,7 +109,8 @@ describe("first plays", () => {
 					new Tile({letter:"B", isBlank:false, score:1}),
 					new Tile({letter:"U", isBlank:false, score:1})
 			],
-			play => bestPlay = play))
+			play => bestPlay = play,
+            game.dictpath, game.dictionary))
 
 		.then(() => {
 			assert.equal(bestPlay.words[0].word, "BE");

@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
 /**
@@ -303,7 +303,7 @@ requirejs([
 				options.push($.i18n(game.wordCheck));
 			if (game.allowTakeBack)
 				options.push($.i18n("Allow 'Take back'"));
-			if (game.maxPlayers === game.minPlayers)
+			if (game.minPlayers && game.maxPlayers === game.minPlayers)
 				options.push($.i18n("$1 players", game.minPlayers));
 			else if (game.maxPlayers > game.minPlayers)
 				options.push($.i18n("$1 to $2 players",
@@ -311,7 +311,7 @@ requirejs([
 			else if (game.minPlayers > 2)
 				options.push($.i18n("At least $1 players", game.minPlayers));
 
-			switch (game.penaltyType) {
+			switch (game.challengePenalty) {
 			case Penalty.PER_TURN:
 				options.push($.i18n("Lose $1 points for a failed challenge",
 									game.penaltyPoints));
@@ -342,8 +342,8 @@ requirejs([
 
 			if (isActive
 				&& this.session
-				&& (game.maxPlayers === 0
-					|| game.getPlayers().length < game.maxPlayers)) {
+				&& ((game.maxPlayers || 0) === 0
+				    || game.getPlayers().length < game.maxPlayers)) {
 
 				if (!game.getPlayer(this.session.key)) {
 					// Can join game
@@ -428,19 +428,35 @@ requirejs([
 			}
 
 			// Nobody logged in, offer to observe
+            const obs = $.i18n("Observe game");
 			$twist.append(
 				$("<button name='observe' title=''></button>")
-				.button({ label: $.i18n("Observe game") })
+				.button({ label: obs })
 				.tooltip({
 					content: $.i18n("tooltip-observe-game")
 				})
-				.on("click", () => {
-					console.log(`Observe game ${game.key}`);
-					window.open(
-						`/html/game.html?game=${game.key}`,
-						"_blank");
-					this.refresh_game(game.key);
-				}));
+                .on("click", () => $("#observeDialog")
+					.dialog({
+                        create: function () {
+                            $(this).find("button[type=submit]")
+                            .on("click", () => {
+                                $(this).dialog("close");
+                            });
+                        },
+						title: obs,
+						closeText: obs,
+						modal: true,
+					    close: function() {
+                            const name = encodeURIComponent(
+                                $(this).find("#observerName").val());
+                            console.log("Observe game", game.key,
+                                        "as", name);
+					        window.open(
+						        `/html/game.html?game=${game.key};observer=${name}`,
+						        "_blank");
+					        this.refresh_game(game.key);
+					    }
+                    })));
 
 			return $box;
 		}

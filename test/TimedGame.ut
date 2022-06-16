@@ -6,18 +6,19 @@
  * Unit tests for behavious specific to timed games
  */
 describe("Timed games", function() {
-	const deps = [
-		{ Edition: "game/Edition" },
-		{ Tile: "game/Tile" },
-		{ Rack: "game/Rack" },
-		{ Player: "game/Player" },
-		{ Game: "game/Game" },
-		{ Move: "game/Move" },
-		{ Turn: "game/Turn" }
-	];
 
+    /* global TestSocket, Platform */
+    /* global Edition, Tile, Rack, Player, Game, Move, Turn */
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required, {
+		Edition: "game/Edition",
+		Tile: "game/Tile",
+		Rack: "game/Rack",
+		Player: "game/Player",
+		Game: "game/Game",
+		Move: "game/Move",
+		Turn: "game/Turn"
+    }));
 
     this.timeout(10000);
     
@@ -30,7 +31,7 @@ describe("Timed games", function() {
 			name: 'Human 2', key: "human2", isRobot: false});
 
 		const game = new Game({
-			edition:'Tiny',
+			edition:"Test",
 			dictionary:'Oxford_5000',
 			//_debug: console.debug,
 			noPlayerShuffle: true,
@@ -40,12 +41,11 @@ describe("Timed games", function() {
 		let nextTurn = 0;
 		const socket = new TestSocket();
 		// Expected turns
-		const handle = (event, turn) => {
+		const handle = (turn, event) => {
             //console.log("Turn", nextTurn+1);
 			switch (nextTurn++) {
 			case 0:
 				assert.equal(turn.score, 0);
-				assert.equal(turn.bonus, 0);
 				assert.equal(turn.type, Turns.TIMED_OUT);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
@@ -53,7 +53,6 @@ describe("Timed games", function() {
 				break;
 			case 1:
 				assert.equal(turn.score, 0);
-				assert.equal(turn.bonus, 0);
 				assert.equal(turn.type, Turns.TIMED_OUT);
 				assert.equal(turn.playerKey, human2.key);
 				assert.equal(turn.nextToGoKey, human1.key);
@@ -61,7 +60,6 @@ describe("Timed games", function() {
 				break;
 			case 2:
 				assert.equal(turn.score, 0);
-				assert.equal(turn.bonus, 0);
 				assert.equal(turn.type, Turns.TIMED_OUT);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
@@ -69,7 +67,6 @@ describe("Timed games", function() {
 				break;
 			case 3:
 				assert.equal(turn.score, 0);
-				assert.equal(turn.bonus, 0);
 				assert.equal(turn.type, Turns.TIMED_OUT);
 				assert.equal(turn.playerKey, human2.key);
 				assert.equal(turn.nextToGoKey, human1.key);
@@ -78,7 +75,6 @@ describe("Timed games", function() {
 			case 4:
 				assert.deepEqual(turn.score, {
 					human1: { tiles: -1 }, human2: {tiles: -1 }});
-				assert.equal(turn.bonus, 0);
 				assert.equal(turn.type, Turns.GAME_OVER);
 				assert.equal(turn.endState, 'All players passed twice');
 				assert.equal(turn.gameKey, game.key);
@@ -94,7 +90,7 @@ describe("Timed games", function() {
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
 		socket.on(Notify.TICK, () => {});
-		socket.on('*', (event, data) => {
+		socket.on('*', (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -126,23 +122,22 @@ describe("Timed games", function() {
 			name: 'Human 2', key: "human2", isRobot: false});
 
 		const game = new Game({
-			edition:'Tiny',
+			edition:"Test",
 			dictionary:'Oxford_5000',
 			//_debug: console.debug,
 			noPlayerShuffle: true,
 			timerType: Timer.GAME,
-			timeLimit: 0.001,
+			timeLimit: 1,
 			timePenalty: 60
 		});
 		let nextTurn = 0;
 
 		const socket = new TestSocket();
 		// Expected turns
-		const handle = (event, turn) => {
+		const handle = (turn, event) => {
 			switch (nextTurn++) {
 			case 0:
 				assert.equal(turn.score, 0);
-				assert.equal(turn.bonus, 0);
 				assert.equal(turn.type, Turns.PASSED);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
@@ -150,7 +145,6 @@ describe("Timed games", function() {
 				break;
 			case 1:
 				assert.equal(turn.score, 0);
-				assert.equal(turn.bonus, 0);
 				assert.equal(turn.type, Turns.PASSED);
 				assert.equal(turn.playerKey, human2.key);
 				assert.equal(turn.nextToGoKey, human1.key);
@@ -158,7 +152,6 @@ describe("Timed games", function() {
 				break;
 			case 2:
 				assert.equal(turn.score, 0);
-				assert.equal(turn.bonus, 0);
 				assert.equal(turn.type, Turns.PASSED);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
@@ -166,25 +159,21 @@ describe("Timed games", function() {
 				break;
 			case 3:
 				assert.equal(turn.score, 0);
-				assert.equal(turn.bonus, 0);
 				assert.equal(turn.type, Turns.PASSED);
 				assert.equal(turn.playerKey, human2.key);
 				assert.equal(turn.nextToGoKey, human1.key);
 				assert.equal(turn.gameKey, game.key);
 				break;
 			case 4:
-				//console.debug(turn.score);
+				assert.equal(turn.type, Turns.GAME_OVER);
+				assert.equal(turn.endState, 'All players passed twice');
 				assert.equal(turn.score.human1.tiles, -1);
 				assert.equal(turn.score.human2.tiles, -1);
 				// Human 1 should be over-time by one clock tick, which
-				// is 1/60th of a minute. The penalty should therefore be
-				// 100/60 = 
-				assert.equal(turn.score.human1.time, -2);
+				// is 1/60th of a minute.
+				assert.equal(turn.score.human1.time, -1);
 				// human2 has no time penalty
 				assert(!turn.score.human2.time);
-				assert.equal(turn.bonus, 0);
-				assert.equal(turn.type, Turns.GAME_OVER);
-				assert.equal(turn.endState, 'All players passed twice');
 				assert.equal(turn.gameKey, game.key);
 				assert(!turn.nextToGoKey);
 				socket.done();
@@ -209,7 +198,7 @@ describe("Timed games", function() {
 			if (onTick)
 				onTick();
 		});
-		socket.on('*', (event, data) => {
+		socket.on('*', (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});

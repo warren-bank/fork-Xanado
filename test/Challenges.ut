@@ -6,30 +6,25 @@
  * Unit tests for correct handling of challenges at various stages of
  * the game.
  */
-describe("Game - challenges - tests", () => {
-
-	const deps = [
-		{ Tile: "game/Tile" },
-		{ Player: "game/Player" },
-		{ Game: "game/Game" },
-		{ Move: "game/Move" },
-		{ Turn: "game/Turn" },
-		{ Types: "game/Types" }
-	];
-	
-	function unit() {
-	}
+describe("Challenges", () => {
 
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required,           {
+		Tile: "game/Tile",
+		Player: "game/Player",
+		Game: "game/Game",
+		Move: "game/Move",
+		Turn: "game/Turn",
+		Types: "game/Types"
+    }));
 	
 	it("bad challenge by next player - miss turn", () => {
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.MISS
+			challengePenalty: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -49,7 +44,7 @@ describe("Game - challenges - tests", () => {
             new Tile({letter:"K", isBlank:false, score:1, col: 10, row: 7}));
 		const socket = new TestSocket();
 		let turns = 0;
-		const handle = (event, turn) => {
+		socket.on(Notify.TURN, turn => {
 			if (turns++ === 0) {
 				// Human"s move
 				assert.equal(turn.type, Turns.PLAY);
@@ -70,10 +65,9 @@ describe("Game - challenges - tests", () => {
 
 				socket.done();
 			}
-		};
-		socket.on(Notify.TURN, handle);
+		});
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on("*", (event, data) => {
+		socket.on("*", (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -106,11 +100,11 @@ describe("Game - challenges - tests", () => {
 	it("bad challenge by next player - points penalty", () => {
 		// Implicitly tests pass
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.PER_TURN,
+			challengePenalty: Penalty.PER_TURN,
 			penaltyPoints: 5
 		});
 		const human1 = new Player({
@@ -131,7 +125,7 @@ describe("Game - challenges - tests", () => {
 		});
 		const socket = new TestSocket();
 		let turns = 0;
-		const handle = (event, turn) => {
+		const handle = (turn, event) => {
 			switch (turns++) {
 			case 0: // Human"s move
 				assert.equal(turn.type, Turns.PLAY);
@@ -156,7 +150,7 @@ describe("Game - challenges - tests", () => {
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on("*", (event, data) => {
+		socket.on("*", (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -185,12 +179,12 @@ describe("Game - challenges - tests", () => {
 	it("bad challenge by not-next player - points penalty", () => {
 		// Implicitly tests pass
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.PER_WORD,
-			penaltyPoints: 6
+			challengePenalty: Penalty.PER_WORD,
+			penaltyPoints: 100
 		});
 		const human1 = new Player({name: "Human 1", key: "human1"});
 		const human2 = new Player({name: "Human 2", key: "human2"});
@@ -205,11 +199,11 @@ describe("Game - challenges - tests", () => {
 				new Tile({letter:"T", isBlank: true, score:0, col: 7, row: 10})
 			],
 			words: [ { word: "SINK", score: 4 }, { word: "SET", score: 2 }],
-			score: 99
+			score: 12
 		});
 		const socket = new TestSocket();
 		let turns = 0;
-		const handle = (event, turn) => {
+		const handle = (turn, event) => {
 			switch (turns++) {
 			case 0:
 				// Human"s move
@@ -221,7 +215,7 @@ describe("Game - challenges - tests", () => {
 			case 1:
 				//console.debug("bad challenge by not-next player", turn);
 				assert.equal(turn.type, Turns.CHALLENGE_LOST);
-				assert.equal(turn.score, -12);
+				assert.equal(turn.score, -200);
 				assert.equal(turn.challengerKey, human3.key); // who challenged them
 				assert.equal(turn.playerKey, human1.key); // who was challenged
 				assert(!human3.missNextTurn);
@@ -230,7 +224,7 @@ describe("Game - challenges - tests", () => {
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on("*", (event, data) => {
+		socket.on("*", (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -261,11 +255,11 @@ describe("Game - challenges - tests", () => {
 	it("bad challenge by not-next player - miss turn", () => {
 		// Implicitly tests pass
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 						//_debug: console.debug,
-			penaltyType: Penalty.MISS
+			challengePenalty: Penalty.MISS
 		});
 		const human1 = new Player({name: "Human 1", key: "human1", isRobot: false});
 		const human2 = new Player({name: "Human 2", key: "human2", isRobot: false});
@@ -282,7 +276,7 @@ describe("Game - challenges - tests", () => {
 		});
 		const socket = new TestSocket();
 		let turns = 0;
-		const handle = (event, turn) => {
+		const handle = (turn, event) => {
 			if (turns++ === 0) {
 				// Human"s move
 				assert.equal(turn.type, Turns.PLAY);
@@ -301,7 +295,7 @@ describe("Game - challenges - tests", () => {
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on("*", (event, data) => {
+		socket.on("*", (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -333,11 +327,11 @@ describe("Game - challenges - tests", () => {
 
 	it("good challenge by next player", () => {
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.MISS
+			challengePenalty: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -354,7 +348,7 @@ describe("Game - challenges - tests", () => {
 		});
 		const socket = new TestSocket();
 		let turns = 0;
-		const handle = (event, turn) => {
+		const handle = (turn, event) => {
 			if (turns++ === 0) {
 				// Human"s move
 				assert.equal(turn.type, Turns.PLAY);
@@ -373,7 +367,7 @@ describe("Game - challenges - tests", () => {
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on("*", (event, data) => {
+		socket.on("*", (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -402,11 +396,11 @@ describe("Game - challenges - tests", () => {
 
 	it("good challenge by not-next player", () => {
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.PER_WORD,
+			challengePenalty: Penalty.PER_WORD,
 			penaltyPoints: 6
 		});
 		const human1 = new Player({name: "Human 1", key: "human1"});
@@ -426,7 +420,7 @@ describe("Game - challenges - tests", () => {
 		});
 		const socket = new TestSocket();
 		let turns = 0;
-		const handle = (event, turn) => {
+		const handle = (turn, event) => {
 			switch (turns++) {
 			case 0:
 				// Human"s move
@@ -449,7 +443,7 @@ describe("Game - challenges - tests", () => {
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on("*", (event, data) => {
+		socket.on("*", (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -483,11 +477,11 @@ describe("Game - challenges - tests", () => {
 
 	it("challenge by same player", () => {
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.MISS
+			challengePenalty: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -505,7 +499,7 @@ describe("Game - challenges - tests", () => {
 		});
 		const socket = new TestSocket();
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on("*", (event, data) => {
+		socket.on("*", (data, event) => {
 			if (event === Notify.TURN) {
 				socket.done();
 				return;
@@ -543,11 +537,11 @@ describe("Game - challenges - tests", () => {
 
 	it("good challenge of final play by next player", () => {
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.MISS
+			challengePenalty: Penalty.MISS
 		});
 		const human1 = new Player({name: "Human 1", key:"sheep", isRobot: false});
 		const human2 = new Player({name: "Human 2", key:"wolf", isRobot: false});
@@ -564,7 +558,7 @@ describe("Game - challenges - tests", () => {
 		const socket = new TestSocket();
 		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on(Notify.TURN, (event, turn) => {
+		socket.on(Notify.TURN, (turn, event) => {
 			if (turns++ == 0) {
 				assert.equal(turn.type, Turns.PLAY);
 				TS.sparseEqual(turn, move);
@@ -579,7 +573,7 @@ describe("Game - challenges - tests", () => {
 				socket.done();
 			}
 		});
-		socket.on("*", (event, turn) => {
+		socket.on("*", (turn, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -607,11 +601,11 @@ describe("Game - challenges - tests", () => {
 
 	it("good challenge of final play by not-next player", () => {
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.MISS
+			challengePenalty: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -631,7 +625,7 @@ describe("Game - challenges - tests", () => {
 		const socket = new TestSocket();
 		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on(Notify.TURN, (event, turn) => {
+		socket.on(Notify.TURN, (turn, event) => {
 			switch (turns++) {
 			case 0:
 				assert.equal(turn.words.length, 1);
@@ -654,7 +648,7 @@ describe("Game - challenges - tests", () => {
 				assert.fail("UNEXPECTED TURN" + turn);
 			}
 		});
-		socket.on("*", (event, turn) => {
+		socket.on("*", (turn, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -694,11 +688,11 @@ describe("Game - challenges - tests", () => {
 	// as a Turns.GAME_OVER with appropriate end state.
 	it("bad challenge of final play by next player - miss turn", () => {
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.MISS
+			challengePenalty: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -716,7 +710,7 @@ describe("Game - challenges - tests", () => {
 		const socket = new TestSocket();
 		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on(Notify.TURN, (event, turn) => {
+		socket.on(Notify.TURN, (turn, event) => {
 			if (turns++ == 0) {
 				assert.equal(turn.words.length, 1);
 				assert.deepEqual(turn.words[0], { word: "ART", score: 3 });
@@ -726,7 +720,7 @@ describe("Game - challenges - tests", () => {
 			} else {
 				//console.debug("bad challenge of final play", turn);
 				assert.equal(turn.type, Turns.GAME_OVER);
-				assert.equal(turn.endState, State.CHALLENGE_FAILED);
+				assert.equal(turn.endState, State.FAILED_CHALLENGE);
 				assert.deepEqual(turn.score, {
 					human1: {tiles: 6 }, human2: {tiles: -6}});
 				assert.equal(turn.playerKey, human2.key);
@@ -737,7 +731,7 @@ describe("Game - challenges - tests", () => {
 				socket.done();
 			}
 		});
-		socket.on("*", (event, turn) => {
+		socket.on("*", (turn, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -771,11 +765,11 @@ describe("Game - challenges - tests", () => {
 	// it should generate a turn{type=Turns.CHALLENGE_LOST}.
 	it("bad challenge of final play by not-next player - miss turn", () => {
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.MISS
+			challengePenalty: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -795,7 +789,7 @@ describe("Game - challenges - tests", () => {
 		const socket = new TestSocket();
 		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on(Notify.TURN, (event, turn) => {
+		socket.on(Notify.TURN, (turn, event) => {
 			switch (turns++) {
 			case 0:
 				assert.equal(turn.words.length, 1);
@@ -820,7 +814,7 @@ describe("Game - challenges - tests", () => {
 				assert.fail("UNEXPECTED TURN" + turn);
 			}
 		});
-		socket.on("*", (event, turn) => {
+		socket.on("*", (turn, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -857,11 +851,11 @@ describe("Game - challenges - tests", () => {
 	 */
 	it("play, challenge, swap", () => {
 		const game = new Game({
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			//_debug: console.debug,
-			penaltyType: Penalty.MISS
+			challengePenalty: Penalty.MISS
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false});
@@ -887,7 +881,7 @@ describe("Game - challenges - tests", () => {
 		});
 		const socket = new TestSocket();
 		let turns = 0;
-		const handle = (event, turn) => {
+		const handle = (turn, event) => {
 			switch (turns++) {
 			case 0:
 				assert.equal(turn.type, Turns.PLAY);
@@ -923,7 +917,7 @@ describe("Game - challenges - tests", () => {
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on("*", (event, data) => {
+		socket.on("*", (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -933,7 +927,7 @@ describe("Game - challenges - tests", () => {
 			game.addPlayer(human1);
 			human1.rack.empty();
 			for (let tile of move1.placements)
-				human1.rack.addTile(tile);
+				human1.rack.addTile(new Tile(tile));
 			game.addPlayer(human2);
 			game.whosTurnKey = human1.key;
 		})

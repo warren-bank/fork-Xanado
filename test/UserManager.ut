@@ -12,16 +12,12 @@ const fs = require("fs").promises;
  */
 describe("UserManager class", () => {
 	
-	const deps = [
-		{ Server: "server/Server" }
-	];
-
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required, { Server: "server/Server" }));
 
 	const assert = chai.assert;
 
-	function unit() {}
+	function UNit() {}
 
 	const config = {
 		auth: {
@@ -29,7 +25,7 @@ describe("UserManager class", () => {
 			"db_file" : `${__dirname}/temp/passwd.json`
 		},
 		defaults: {
-			edition: "Tiny",
+			edition: "Test",
 			dictionary: "Oxford_5000",
 			theme: "default"
 		}

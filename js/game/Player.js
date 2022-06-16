@@ -1,11 +1,11 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, jquery */
 
 define("game/Player", [
-	"platform", "common/Debuggable", "game/Types", "game/Rack",
-], (Platform, Debuggable, Types, Rack) => {
+	"platform", "game/Types", "game/Rack",
+], (Platform, Types, Rack) => {
 
     const Timer = Types.Timer;
 
@@ -15,9 +15,8 @@ define("game/Player", [
 	/**
 	 * A player in a {@link Game}. Player objects are specific to
 	 * a single game, and are used on both browser and server sides.
-     * @extends Debuggable
 	 */
-	class Player extends Debuggable {
+	class Player {
 
 		/**
 		 * Player unique key. Required.
@@ -63,8 +62,8 @@ define("game/Player", [
 		clock;
 
 		/**
-		 * The connected flag is set when the player is created
-		 * from a Player.simple structure. It is not used server-side.
+		 * The connected flag may be set when the Player is created
+		 * from a simple structure. It is not used server-side.
          * Default is false.
 		 * @member {boolean?}
 		 */
@@ -136,15 +135,17 @@ define("game/Player", [
 
 		/**
 		 * Create simple flat structure describing a subset of the player
-		 * state
+		 * state. This is used for sending minimal player information to
+         * the `games` interface.
 		 * @param {Game} game the game the player is participating in
 		 * @param {UserManager?} um user manager for getting emails if wanted
-		 * @return {Promise} resolving to a simple structure describing the player
+		 * @return {Promise} resolving to a simple structure describing 
+         * the player
 		 */
 		simple(game, um) {
 			return ((this.isRobot || !um)
 					? Promise.resolve(this)
-					: um.getUser({key: this.key}))
+					: um.getUser({ key: this.key }).catch(e => this))
 			.then(ump => {
                 const simple = {
 					name: this.name,
@@ -159,32 +160,9 @@ define("game/Player", [
 				// Can they be emailed?
 				if (ump.email) simple.email = true;
 
-				// Is the player currently connected through a socket.
-				// Set in Player.simple before transmission to the client,
-				// client creates a Player(simple), which initialises
-				// connected on the client. Not used server-side.
-				if (this.isRobot || game.getConnection(this) !== null)
-                    simple.isRobot = true;
-
 				if (this.missNextTurn) simple.missNextTurn = true;
 
                 return simple;
-			})
-			.catch(e => {
-				// User key not found in the db. Not fatal, just pretend it's
-				// a robot.
-				return {
-					name: "Unknown",
-					isRobot: this.isRobot,
-					dictionary: this.dictionary,
-					key: this.key,
-					score: this.score,
-					clock: this.clock,
-					isConnected: this.isRobot
-					|| (game.getConnection(this) !== null)
-					// A robot never misses its next turn, because its
-					// challenges never fail
-				};
 			});
 		}
 
@@ -204,7 +182,8 @@ define("game/Player", [
 		}
 
 		/**
-		 * Return all tiles to the letter bag
+		 * Return all tiles to the letter bag.
+		 * @param {LetterBag} letterBag LetterBag to return tiles to
 		 */
 		returnTiles(letterBag) {
 			for (let tile of this.rack.tiles())
@@ -218,7 +197,7 @@ define("game/Player", [
 			this.clock--;
 			this._debug("Tick", this.name, this.clock);
 			if (this.clock <= 0 && typeof this._onTimeout === "function") {
-				this._debug(`${this.name} has timed out at ${Date.now()}`);
+				this._debug(this.name, "has timed out at", new Date());
 				this._onTimeout();
 				// Timeout only happens once!
 				delete this._onTimeout;
@@ -235,7 +214,7 @@ define("game/Player", [
 		 * timer expires, ignored if time undefined
 		 */
 		setTimeout(time, onTimeout) {
-			this._debug(`${this.name} turn timeout in ${time}s`);
+			this._debug(this.name, `turn timeout in ${time}s`);
 			this.clock = time;
 			this._onTimeout = onTimeout;
 		}

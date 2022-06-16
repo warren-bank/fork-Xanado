@@ -1,5 +1,7 @@
-/*Copyright (C) 2019-2022 Crawford Currie https://c-dot.co.uk. License MIT.*/
-/* eslint-env browser */
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information. Author Crawford Currie http://c-dot.co.uk*/
+/* eslint-env browser, jquery */
 
 define("browser/Dialog", () => {
 
@@ -119,13 +121,14 @@ define("browser/Dialog", () => {
             // What have to do is to wait until the selectmenus
             // have (hopefully!) been created before creating the
             // tooltips.
+            const self = this;
 			this.$dlg
             .find('select')
 			.selectmenu()
 			.on("selectmenuchange",
 				function() {
                     $(this).blur();
-                    this.$dlg.data("this").enableSubmit();
+                    self.$dlg.data("this").enableSubmit();
                 });
  
 			setTimeout(

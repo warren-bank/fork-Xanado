@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node, jquery */
 
 /**
@@ -162,6 +162,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 		/**
 		 * @override
 		 */
+        /* istanbul ignore next */
 		toString() {
 			return `Rack ${this.tiles().join(",")}`;
 		}

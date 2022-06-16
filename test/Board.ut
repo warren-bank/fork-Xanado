@@ -7,18 +7,19 @@
  * Unit tests for Board class
  */
 describe("Board class", () => {
-	const deps = [
-		{ Board: "game/Board" },
-		{ Edition: "game/Edition" },
-		{ Tile: "game/Tile" },
-		{ Square: "game/Square" }
-	];
 
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required, {
+		Board: "game/Board",
+		Edition: "game/Edition",
+		Tile: "game/Tile",
+		Square: "game/Square"
+	}));
 
+    function UNit() {}
+    
 	it("construct", () => {
-		return Edition.load("Tiny")
+		return Edition.load("Test")
 		.then(edition => {
 			let b = new Board(edition);
 			b.parse(
@@ -57,7 +58,7 @@ describe("Board class", () => {
 	});
 
 	it("touching old", () => {
-		return Edition.load("Tiny")
+		return Edition.load("Test")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)
@@ -94,7 +95,7 @@ describe("Board class", () => {
 	});
 
 	it("analysePlay and scorePlay", () => {
-		return Edition.load("Tiny")
+		return Edition.load("Test")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)
@@ -115,8 +116,12 @@ describe("Board class", () => {
 
 			let move = b.analysePlay();
 			TS.sparseEqual(move, {
-				words: [ { word: "WORD", score: 20 } ],
-				score: 35,
+				words: [ {
+                    word: "WORD",
+                    score: 20
+                } ],
+                /* score 10 for tiles, 2X for first play */
+				score: 20,
 				placements: [ W, O, R, D ]
 			});
 
@@ -129,6 +134,7 @@ describe("Board class", () => {
 			// Lock down the play
 			b.at(mr, mc).placeTile(W, true);
 			b.at(mr, mc+1).placeTile(O, true);
+            R.letter = "R";
 			b.at(mr, mc+2).placeTile(R, true);
 			b.at(mr, mc+3).placeTile(D, true);
 
@@ -144,12 +150,12 @@ describe("Board class", () => {
 			const words = [];
 			const got = b.scorePlay(mc-1, mr+2, 1, 0, [ S, U, N ], words);
 			assert.deepEqual(words, [ { word: "SWORD", score: 11 }, { word: "SUN", score: 5 } ]);
-			assert.equal(got, 26);
+			assert.equal(got, 16);
 
 			move = b.analysePlay();
 			TS.sparseEqual(move, {
 				words: [ { word: "SUN", score: 5 }, { word: "SWORD", score: 11 } ],
-				score: 26,
+				score: 16,
 				placements: [ S, U, N ]
 			});
 
@@ -160,6 +166,7 @@ describe("Board class", () => {
 
 			// Score another play that intersects the existing word
 			b.at(mr+1, mc+3).placeTile(U);
+            N.letter = "N";
 			b.at(mr+2, mc+3).placeTile(N);
 
 			const w2 = [];
@@ -178,7 +185,7 @@ describe("Board class", () => {
 	});
 
 	it("analysePlay - disconnected", () => {
-		return Edition.load("Tiny")
+		return Edition.load("Test")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)
@@ -200,7 +207,7 @@ describe("Board class", () => {
 			let move = b.analysePlay();
 			TS.sparseEqual(move, {
 				words: [ { word: "WORD", score: 20 } ],
-				score: 35,
+				score: 20,
 				placements: [ W, O, R, D ]
 			});
 
@@ -226,7 +233,7 @@ describe("Board class", () => {
 	});
 
 	it("analyse first play - disconnected", () => {
-		return Edition.load("Tiny")
+		return Edition.load("Test")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)
@@ -251,7 +258,7 @@ describe("Board class", () => {
 	});
 
 	it("analyse first play - centre missing", () => {
-		return Edition.load("Tiny")
+		return Edition.load("Test")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)
@@ -276,7 +283,7 @@ describe("Board class", () => {
 	});
 
 	it("analyse first play - single tile", () => {
-		return Edition.load("Tiny")
+		return Edition.load("Test")
 		.then(edition => {
 			let b = new Board(edition);
 			for (let r = 0; r < b.rows; r++)

@@ -1,17 +1,16 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node, jquery */
 
 define("game/Surface", [
-    "common/Debuggable", "game/Square"
-], (Debuggable, Square) => {
+    "game/Square"
+], Square => {
 
 	/**
 	 * Abstract base class of a 2D grid of {@link Sqaure} (a Rack or a Board)
-     * @extends Debuggable
 	 */
-	class Surface extends Debuggable {
+	class Surface {
 
 		/**
 		 * Unique id for the surface. This is used in the construction

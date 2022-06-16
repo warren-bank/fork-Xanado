@@ -1,17 +1,16 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
 define("game/LetterBag", [
-    "common/Debuggable", "game/Tile"
-], (Debuggable, Tile) => {
+    "game/Tile"
+], Tile => {
 
 	/**
 	 * The bag of letters during a game.
-     * @extends Debuggable
 	 */
-	class LetterBag extends Debuggable {
+	class LetterBag {
 
         /**
          * Array of Tiles in the bag

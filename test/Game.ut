@@ -6,19 +6,18 @@
  * Basic unit tests for Game class. More tests for Game methods are
  * in Challenges, HumanCommands, RobotPlays and TimedGame.
  */
-describe("Game - basic tests", () => {
-	
-	const deps = [
-		{ Tile: "game/Tile" },
-		{ Player: "game/Player" },
-		{ Game: "game/Game" },
-		{ Move: "game/Move" },
-		{ Turn: "game/Turn" }
-	];
+describe("Game", () => {
 
+    /* global Platform, Game, Player, Tile, Move, Turn */
 	const TS = require("./TestSupport.js");
 	before(required =>
-           TS.depend(() => Platform.i18n().load("qqq").then(required), deps));
+           TS.depend(() => Platform.i18n().load("qqq").then(required), {
+           	   Tile: "game/Tile",
+		       Player: "game/Player",
+		       Game: "game/Game",
+		       Move: "game/Move",
+		       Turn: "game/Turn"
+           }));
 
 	function UNit() {}
 
@@ -73,7 +72,7 @@ describe("Game - basic tests", () => {
 			assert.equal(s.pausedBy, game.pausedBy);
 			assert.equal(s.minPlayers, game.minPlayers);
 			assert.equal(s.maxPlayers, game.maxPlayers);
-			assert.equal(s.penaltyType, game.penaltyType);
+			assert.equal(s.challengePenalty, game.challengePenalty);
 			assert.equal(s.penaltyPoints, game.penaltyPoints);
 			assert.equal(s.nextGameKey, game.nextGameKey);
 			assert.equal(s.lastActivity, game.lastActivity());
@@ -116,7 +115,7 @@ describe("Game - basic tests", () => {
 			assert(!game.allowTakeBack);
 			assert.equal(game.wordCheck, WordCheck.AFTER);
 			assert.equal(game.minPlayers, 30);
-			assert.equal(game.maxPlayers, 30);
+			assert.equal(typeof game.maxPlayers, "undefined");
 
 			game.addPlayer(robot1);
 			game.addPlayer(human2);
@@ -162,7 +161,7 @@ describe("Game - basic tests", () => {
 			assert.equal(s.pausedBy, game.pausedBy);
 			assert.equal(s.minPlayers, game.minPlayers);
 			assert.equal(s.maxPlayers, game.maxPlayers);
-			assert.equal(s.penaltyType, game.penaltyType);
+			assert.equal(s.challengePenalty, game.challengePenalty);
 			assert.equal(s.penaltyPoints, game.penaltyPoints);
 			assert.equal(s.nextGameKey, game.nextGameKey);
 			assert.equal(s.lastActivity, game.lastActivity());
@@ -259,7 +258,7 @@ describe("Game - basic tests", () => {
 	it("last move in game", () => {
 		const game = new Game({
 			//_debug: console.debug,
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true
 		});
@@ -292,20 +291,21 @@ describe("Game - basic tests", () => {
 				}
 			}
 		];
-		const handle = (event, data) => {
-			const turn = turns.shift();
-			TS.sparseEqual(
-				{ event: event, data: data}, turn);
-			if (turns.length === 0) {
-				// Last play should have no replacements, so player rack
-				// will now be empty.
-				assert(!data.replacements);
-				socket.done();
-			}
-		};
-		socket.on(Notify.TURN, handle);
+		socket.on(
+            Notify.TURN,
+		    (data, event) => {
+			    const turn = turns.shift();
+			    TS.sparseEqual(
+				    { event: event, data: data}, turn);
+			    if (turns.length === 0) {
+				    // Last play should have no replacements, so player rack
+				    // will now be empty.
+				    assert.equal(data.replacements, 0);
+				    socket.done();
+			    }
+		    });
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on("*", (event, data) => {
+		socket.on("*", (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -347,7 +347,7 @@ describe("Game - basic tests", () => {
 	it("clear missed turn", () => {
 		const game = new Game({
 			//_debug: console.debug,
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true
 		});
@@ -359,7 +359,7 @@ describe("Game - basic tests", () => {
 			name:"Human 3", key:"human3", isRobot: false});
 		const socket = new TestSocket();
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on("*", (event, data) => {
+		socket.on("*", (data, event) => {
 			if (event === Notify.TURN) {
 				assert.equal(data.type, Turns.PASSED);
 				socket.done();
@@ -391,7 +391,7 @@ describe("Game - basic tests", () => {
 	it("verify human play", () => {
 		const game = new Game({
 			//_debug: console.debug,
-			edition:"Tiny",
+			edition:"Test",
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true,
 			wordCheck: WordCheck.REJECT
@@ -410,21 +410,21 @@ describe("Game - basic tests", () => {
 			score: 99
 		});
 		const socket1 = new TestSocket();
-		socket1.on(Notify.REJECT, (event, data) => {
+		socket1.on(Notify.REJECT, (data, event) => {
 			assert.deepEqual(data, {
 				playerKey: human1.key,
 				words: [ "XYZ" ] });
 			socket1.done();
 		});
 		socket1.on(Notify.CONNECTIONS, () => {});
-		socket1.on("*", (event, data) => {
+		socket1.on("*", (data, event) => {
 			console.error("Socket 1 UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
 
 		const socket2 = new TestSocket();
 		socket2.on(Notify.CONNECTIONS, () => {});
-		socket2.on("*", (event, data) => {
+		socket2.on("*", (data, event) => {
 			console.error("Socket 2 UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -496,6 +496,8 @@ describe("Game - basic tests", () => {
             assert.equal(game.nextGameKey, newgame.key);
 
             assert.equal(newgame.timerType, game.timerType);
+            assert.equal(newgame.challengePenalty, game.challengePenalty);
+            assert.equal(newgame.timePenalty, 5);
             assert.equal(newgame.timeLimit, 1500);
             assert.equal(newgame.state, State.PLAYING);
             assert.equal(newgame.whosTurnKey, "human");

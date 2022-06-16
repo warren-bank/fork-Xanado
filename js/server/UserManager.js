@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
 define("server/UserManager", [
@@ -420,7 +420,7 @@ define("server/UserManager", [
 				Passport.authenticate(provider, { assignProperty: "userObject" }),
 				(req, res) => {
 					// error will -> 401
-					//this._debug("OAuth2 user is", req.userObject);
+					//this._debug("OAuth2 user is", req.userObject.toString());
 					req.login(req.userObject, () => {
 						// Back to where we came from
 						//this._debug("Redirect to",req.session.origin);

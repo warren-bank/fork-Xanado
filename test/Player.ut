@@ -4,10 +4,8 @@
 
 describe("Player class", () => {
 
-	const deps = [ { Player: "game/Player" } ];
-
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required, { Player: "game/Player" }));
 
 	it("construct", () => {
 		const p = {

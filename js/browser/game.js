@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
 define("browser/game", [
@@ -75,6 +75,11 @@ define("browser/game", [
 				throw new Error(mess);
 			}
 			const gameKey = m[1];
+			m = document.URL.match(/[?;&]observer=([^;&]+)/);
+			if (m) {
+                this.observer = m[1];
+                console.debug(`OBSERVER "${this.observer}"`);
+            }
 
 			this.attachHandlers();
 
@@ -271,7 +276,7 @@ define("browser/game", [
 				turnText = $.i18n(
 					"$1 challenge of $2 play failed.",
 					challengerPossessive, playerPossessive);
-				switch (this.game.penaltyType) {
+				switch (this.game.challengePenalty) {
 				case Penalty.PER_WORD:
 				case Penalty.PER_TURN:
 					turnText += " " + $.i18n(
@@ -301,7 +306,7 @@ define("browser/game", [
 					GameUI.$log(interactive, $.i18n(
 						"You have no more tiles, game will be over if your play isn't challenged"),
 						"turn-narrative");
-				} else
+				} else if (this.player)
 					GameUI.$log(interactive, $.i18n(
 						"$1 has no more tiles, game will be over unless you challenge",
 						this.game.getPlayer(turn.emptyPlayerKey).name),
@@ -602,6 +607,23 @@ define("browser/game", [
 			}
 		}
 
+        /**
+         * Update the list of non-playing observers
+         * @param {object[]} non-playing observers
+         */
+        updateObservers(obs) {
+            if (obs.length > 0) {
+                $("#observerCount")
+                .show()
+                .text($.i18n("+ $1 observer{{PLURAL:$1||s}}",
+                             obs.length));
+            } else
+                $("#observerCount").hide();
+        }
+
+        /**
+         * Refresh the player table
+         */
 		updatePlayerTable() {
 			const $playerTable = this.game.$ui(this.player);
 			$("#playerList").html($playerTable);
@@ -655,18 +677,16 @@ define("browser/game", [
 					this.player = game.getPlayer(session.key);
 					if (this.player)
 						return this.player.key;
-					$("#bad-user>span")
-					.text($.i18n(
-						"You ($1) are not playing in this game",
-						this.session.name));
-					$("#bad-user")
-					.show()
-					.find("button")
-					.on("click", () => {
-						$.post("/logout")
-						.then(() => location.replace(location));
-					});
-				}
+				    $("#bad-user")
+				    .show()
+				    .find("button")
+				    .on("click", () => {
+					    $.post("/logout")
+					    .then(() => location.replace(location));
+				    });
+                    this.observer = this.session.name;
+                }
+				$("#notPlaying").show();
 				return undefined;
 			});
 		}
@@ -795,11 +815,13 @@ define("browser/game", [
 
 			// Custom messages
 
-			.on(Notify.CONNECTIONS, players => {
+			.on(Notify.CONNECTIONS, observers => {
 				// Update list of active connections. 'players' is a list of
 				// Player.simple
 				console.debug("--> connections");
-				this.game.updatePlayerList(players);
+				this.game.updatePlayerList(
+                    observers.filter(o => !o.isObserver));
+                this.updateObservers(observers.filter(o => o.isObserver));
 				this.updatePlayerTable();
 				let myGo = this.isThisPlayer(this.game.whosTurnKey);
 				this.lockBoard(!myGo);
@@ -1382,10 +1404,9 @@ define("browser/game", [
 				// lock them onto the board.
 				for (let i = 0; i < turn.placements.length; i++) {
 					const placement = turn.placements[i];
-					const square = this.game.at(
-						placement.col, placement.row);
-					player.rack.removeTile(placement);
-					square.placeTile(placement, true);
+					const square = this.game.at(placement.col, placement.row);
+					const tile = player.rack.removeTile(placement);
+					square.placeTile(tile, true);
 					if (wasUs)
 						square.$refresh();
 					else
@@ -1409,7 +1430,7 @@ define("browser/game", [
 				// in letter bag doesn't change.
 				if (turn.replacements) {
 					for (let newTile of turn.replacements)
-						player.rack.addTile(newTile);
+						player.rack.addTile(new Tile(newTile));
 
 					player.rack.$refresh();
 				}

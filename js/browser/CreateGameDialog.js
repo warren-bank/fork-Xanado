@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
 /**
@@ -59,7 +59,7 @@ define("browser/CreateGameDialog", [
         }
 
         showPenaltyFields() {
-            const type = this.$dlg.find("[name=penaltyType]").val();
+            const type = this.$dlg.find("[name=challengePenalty]").val();
             switch (type) {
             default:
                 this.$dlg.find("[name=penaltyPoints]")
@@ -80,7 +80,7 @@ define("browser/CreateGameDialog", [
         }
 
 		createDialog() {
-			const $pen = this.$dlg.find("[name=penaltyType]");
+			const $pen = this.$dlg.find("[name=challengePenalty]");
 			Penalty._types.forEach(p => $pen.append(
 				`<option value="${p}">${$.i18n(p)}</option>`));
             $pen.on("selectmenuchange", () => this.showPenaltyFields());

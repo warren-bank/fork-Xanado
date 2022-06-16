@@ -5,25 +5,24 @@
 /**
  * Unit tests for robot.
  */
-describe('Game - robot plays - tests', () => {
-	const deps = [
-		{ Tile: 'game/Tile' },
-		{ Player: 'game/Player' },
-		{ Game: 'game/Game' },
-		
-		{ Move: 'game/Move' },
-		{ Turn: 'game/Turn' },
-        { Types: "game/Types" }
-	];
+describe('RobotPlays', () => {
 
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, deps));
+	before(required => TS.depend(required, {
+ 		Tile: 'game/Tile',
+		Player: 'game/Player',
+		Game: 'game/Game',
+		
+		Move: 'game/Move',
+		Turn: 'game/Turn',
+        Types: "game/Types"
+    }));
 
     function UNit() {}
     
 	it('robot to play when ready', () => {
 		const game = new Game({
-			edition: "Tiny",
+			edition: "Test",
 			dictionary: "Oxford_5000",
 			//_debug: console.debug,
 			noPlayerShuffle: true
@@ -57,7 +56,7 @@ describe('Game - robot plays - tests', () => {
 
 	it('robot cannot play first', () => {
 		const game = new Game({
-			edition: "Tiny",
+			edition: "Test",
 			dictionary: "Oxford_5000",
 			//_debug: console.debug,
 			noPlayerShuffle: true
@@ -69,7 +68,7 @@ describe('Game - robot plays - tests', () => {
 		const socket = new TestSocket();
 		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on(Notify.TURN, (event, turn) => {
+		socket.on(Notify.TURN, (turn, event) => {
 			switch(turns++) {
 			case 0:
 				assert.equal(turn.type, Turns.PASSED);
@@ -81,7 +80,7 @@ describe('Game - robot plays - tests', () => {
 				assert.fail('too many turns');
 			}
 		});
-		socket.on('*', (event, turn) => {
+		socket.on('*', (turn, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -127,7 +126,7 @@ describe('Game - robot plays - tests', () => {
 		});
 
 		const socket = new TestSocket();
-		const handle = (event, data) => {
+		const handle = (data, event) => {
 			assert.equal(event, Notify.TURN);
 			assert(data.type, Turns.PLAY);
 			assert.deepEqual(data.words, [ { word: 'AGO', score: 4 } ]);
@@ -153,14 +152,13 @@ describe('Game - robot plays - tests', () => {
 			assert.equal(data.placements[2].row, ver ? 7 : 7);
 
 			assert.equal(data.score, 4);
-			assert.equal(data.bonus, 0);
 			assert.equal(data.playerKey, robot.key);
 			assert.equal(data.nextToGoKey, human.key);
 			socket.done();
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on('*', (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -210,7 +208,7 @@ describe('Game - robot plays - tests', () => {
 
 		const socket = new TestSocket();
 		let turns = 0;
-		const handle = (event, data) => {
+		const handle = (data, event) => {
 			assert.equal(event, Notify.TURN);
 			assert.equal(data.type, Turns.PLAY);
 			assert.equal(data.words.length, 1);
@@ -222,7 +220,6 @@ describe('Game - robot plays - tests', () => {
 				assert.equal(data.placements[3].letter, 'D');
 				assert.equal(data.replacements.length, 4);
 				assert.equal(data.score, 99);
-				assert.equal(data.bonus, 0);
 				assert.equal(data.playerKey, human.key);
 				assert.equal(data.nextToGoKey, robot.key);
 			} else {
@@ -230,7 +227,6 @@ describe('Game - robot plays - tests', () => {
 				assert.equal(data.placements[0].letter, 'T');
 				assert.equal(data.replacements.length, 1);
 				assert.equal(data.score, 3);
-				assert.equal(data.bonus, 0);
 				assert.equal(data.playerKey, robot.key);
 				assert.equal(data.nextToGoKey, human.key);
 				socket.done();
@@ -238,7 +234,7 @@ describe('Game - robot plays - tests', () => {
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on('*', (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -274,7 +270,7 @@ describe('Game - robot plays - tests', () => {
 	it('robot confirm game over', () => {
 		const game =  new Game({
 			//_debug: console.debug,
-			edition:'Tiny',
+			edition:"Test",
 			dictionary:'Oxford_5000',
 			noPlayerShuffle: true
 		});
@@ -294,7 +290,7 @@ describe('Game - robot plays - tests', () => {
 		});
 		const socket = new TestSocket();
 		let turns = 0;
-		const handle = (event, turn) => {
+		const handle = (turn, event) => {
 			if (turns++ === 0) {
 			} else {
 				assert.equal(event, Notify.TURN);
@@ -314,7 +310,7 @@ describe('Game - robot plays - tests', () => {
 		};
 		socket.on(Notify.TURN, handle);
 		socket.on(Notify.CONNECTIONS, () => {});
-		socket.on('*', (event, data) => {
+		socket.on('*', (data, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});
@@ -350,7 +346,7 @@ describe('Game - robot plays - tests', () => {
 	it('robot challenge and make last play', () => {
 		const game = new Game({
 			//_debug: console.debug,
-			edition: "Tiny",
+			edition: "Test",
 			dictionary: "Oxford_5000",
 			noPlayerShuffle: true
 		});
@@ -372,7 +368,7 @@ describe('Game - robot plays - tests', () => {
 		const socket = new TestSocket();
 		socket.on(Notify.CONNECTIONS, () => {});
 		let turns = 0;
-		socket.on(Notify.TURN, (event, turn) => {
+		socket.on(Notify.TURN, (turn, event) => {
 			switch(turns++) {
 			case 0:
 				assert.equal(turn.type, Turns.PLAY);
@@ -380,12 +376,12 @@ describe('Game - robot plays - tests', () => {
 			case 1:
 				assert.equal(turn.type, Turns.CHALLENGE_WON);
 				assert.equal(turn.score, -3);
-				assert.equal(turn.bonus, 0);
 				assert.equal(turn.playerKey, human.key);
 				assert.equal(turn.challengerKey, robot.key);
 				break;
 			case 2:
 				assert.equal(turn.type, Turns.PLAY);
+                // sum of tiles 3, first play X2 + bonus 10
 				assert.equal(turn.score, 16);
 				assert.equal(turn.playerKey, robot.key);
 				assert.equal(turn.nextToGoKey, human.key);
@@ -395,7 +391,7 @@ describe('Game - robot plays - tests', () => {
 				assert.fail('too many turns');
 			}
 		});
-		socket.on('*', (event, turn) => {
+		socket.on('*', (turn, event) => {
 			console.error("UNEXPECTED EVENT", event);
 			assert.fail(event);
 		});

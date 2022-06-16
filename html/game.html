@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information-->
+and license information. Author Crawford Currie http://c-dot.co.uk-->
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -47,20 +47,22 @@ and license information-->
 			  <span id="pauseButton" data-i18n-tooltip="tooltip-pause">&#128336;</img>
 			</div>
 		  </div>
-		  <div class="bad-user">
-			<span></span>
+		  <div id="bad-user" class="hidden">
 			<button data-i18n="Sign out"></button>
 		  </div>
+          <div id="notPlaying" class="hidden" data-i18n="You are not playing in this game"></div>
 		  <div class="not-logged-in">
-			<button id="login-button" data-i18n="Sign in"></button>
+		    <span class="observer hidden"></span>
+			<button id="login-button" data-i18n="Sign in" style="display:inline"></button>
 		  </div>
 		</div>
         <div id="scoresBlock">
 		  <div class="block-title" data-i18n="Scores"></div>
 		  <div id="playerList"></div>
+          <div id="observerCount" class="hidden"></div>
 		  <div id='letterbag'></div>
 		</div>
-        <div id="yourPlayBlock">
+        <div id="yourPlayBlock" class="logged-in">
 		  <div class="block-title" data-i18n="Play"></div>
 		  <div id="yourMove"></div>
 		  <div id="swapRack" class="Surface bottom-shade"></div>

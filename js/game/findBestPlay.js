@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
 /**
@@ -68,14 +68,13 @@ define("game/findBestPlay", [
 	 * @param {Tile[]} tiles
 	 * @return {string}
 	 * @private
-	 */
 	function pack(tiles) {
 		let word = tiles.map(l => l.letter).join("");
 		const blanks = tiles.map(l => l.isBlank ? " " : l.letter).join("");
 		if (blanks != word)
 			word += `/${blanks}`;
 		return word;
-	}
+	}*/
 
 	/**
 	 * Determine which letters can fit in each square and form a valid
@@ -134,7 +133,7 @@ define("game/findBestPlay", [
 				}
 
 				let wordRight = "";
-				c = col + 1
+				c = col + 1;
 				while (c != board.cols && board.at(c, row).tile) {
 					wordRight += board.at(c, row).tile.letter;
 					c++;
@@ -430,7 +429,9 @@ define("game/findBestPlay", [
 					placements[i].row = drow == 0 ? board.midrow : pos * drow;
 				}
 
-				const score = board.scorePlay(end, mid, dcol, drow, placements);
+				const score =
+                      board.scorePlay(end, mid, dcol, drow, placements)
+                      + game.calculateBonus(placements.length);
 
 				if (score > bestScore) {
 					bestScore = score;
@@ -471,8 +472,8 @@ define("game/findBestPlay", [
 		}
 
 		if (!dictionary) {
-            console.log(new Error().stack);
-			report("Error: No dictionary for findBestPlay ");
+            console.error("No dictionary", new Error().stack);
+			report("Error: No dictionary for findBestPlay");
 			// Terminal, no point in translating
 			return Promise.reject("No dictionary for findbextPlay");
 		}

@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 define("game/Tile", () => {
 	/**
@@ -73,8 +73,9 @@ define("game/Tile", () => {
         }
 
 		/**
-		 * Generate a simple string representation of the tile
+		 * @override
 		 */
+        /* istanbul ignore next */
 		toString() {
 			let pl = typeof this.col === "number" ? `@${this.col}` : "";
             if (typeof this.row === "number")
@@ -82,15 +83,7 @@ define("game/Tile", () => {
             const b = this.isBlank ? "[]" : "";
 			return `[${this.letter}${b}${pl}(${this.score})]`;
 		}
-
-        /**
-         * {@see https://stackoverflow.com/questions/2485632/valueof-vs-tostring-in-javascript}
-         * @override
-         */
-        valueOf() {
-            return this.toString();
-        }
-	}
+    }
 
 	return Tile;
 });

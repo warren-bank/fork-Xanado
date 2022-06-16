@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node, jquery */
 
 define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile, Move) => {
@@ -80,7 +80,6 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		 * @return {number} the score of the play.
 		 */
 		scorePlay(col, row, dcol, drow, tiles, words) {
-
 			// Accumulator for the primary word being formed by the tiles
 			let wordScore = 0;
 
@@ -90,8 +89,6 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 			// Multipler for the main word
 			let wordMultiplier = 1;
 
-			// Number of tiles being placed, for calculating bonus
-			let tilesPlaced = 0;
 			for (let tile of tiles) {
 				const c = tile.col;
 				const r = tile.row;
@@ -105,8 +102,6 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 				// Letter is being placed, so letter multiplier applies to all
 				// new words created, including cross words
 				letterScore *= square.letterScoreMultiplier;
-
-				tilesPlaced++;
 
 				wordScore += letterScore;
 
@@ -365,6 +360,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		/**
          * @override
 		 */
+        /* istanbul ignore next */
 		toString() {
 			let s = `Board ${this.cols}x${this.rows}\n`;
 

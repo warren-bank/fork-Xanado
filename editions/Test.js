@@ -1,7 +1,7 @@
 // Test edition
 // 11x11 board with all tile values
-// English letters, used with Custom_English.dict
-define("editions/Tiny", () => {
+// English alphabet
+define("editions/Test", () => {
 
 	const BOARD = [
 		"M_____",

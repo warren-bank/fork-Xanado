@@ -1009,6 +1009,7 @@
   ],
   "whosTurnKey": "human",
   "timerType": "No timer",
+  "timePenalty": 5,
   "board": {
    "_Í": 85,
    "_Ć": "Board",
@@ -5707,7 +5708,7 @@
   },
   "predictScore": true,
   "wordCheck": "Don't check words",
-  "penaltyType": "Lose points per word",
+  "challengePenalty": "Lose points per word",
   "penaltyPoints": 5
  }
 }
