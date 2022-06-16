@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
-and license information*/
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 /**
  * Styling for the "game" interface
  */
@@ -511,6 +511,10 @@ button.fat-button {
 /* The #controls > div with the scores and letter bag state */
 #scoresBlock {
     min-height: 4em;
+}
+
+#observerCount {
+    font-size: smaller;
 }
 
 /* The #scoresBlock > div that has the letter bag status */
