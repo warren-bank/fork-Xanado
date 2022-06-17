@@ -61,10 +61,10 @@ define("game/Tile", () => {
 
         /**
          * Remove positional information from the tile e.g. before
-         * returning it to the bag.
+         * returning it to the bag or rack.
          * @return {Tile} this
          */
-        clean() {
+        reset() {
 			delete this.row;
 			delete this.col;
             if (this.isBlank)

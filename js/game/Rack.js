@@ -50,22 +50,23 @@ define("game/Rack", ["game/Surface"], Surface => {
 		/**
 		 * Add a Tile to the rack
 		 * @param {Tile} tile the Tile to add, must != null
-		 * @return {number} the col of the added tile (or -1
-		 * if it couldn't be placed)
+		 * @return {Square?} the square where the tile was placed
+         * (undefined if it couldn't be placed)
 		 */
 		addTile(tile) {
-			let col = -1;
-			tile.clean();
+            let rackSquare;
+			tile.reset();
 			this.forEachEmptySquare(square => {
+                rackSquare = square;
 				square.placeTile(tile);
-				col = square.col;
 				return true;
 			});
-			return col;
+			return rackSquare;
 		}
 
 		/**
-		 * Get an unsorted list of the letters currently on the rack
+		 * Get an unsorted list of the letters currently on the rack.
+         * Blanks are represented by a space.
 		 * @return {string[]}
 		 */
 		letters() {
@@ -145,7 +146,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 		 * @return {jQuery}
 		 */
 		$ui(underlay) {
-			const $table = $('<table class="Rack"></table>');
+			const $table = $('<table class="rack"></table>');
 			const $tbody = $("<tbody></tbody>");
 			$table.append($tbody);
 			const $tr = $(`<tr></tr>`);

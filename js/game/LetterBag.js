@@ -107,7 +107,7 @@ define("game/LetterBag", [
 		 * @param {Tile} tile tile to return to bag
 		 */
 		returnTile(tile) {
-			this.tiles.push(tile.clean());
+			this.tiles.push(tile.reset());
 			this.shake();
 		}
 

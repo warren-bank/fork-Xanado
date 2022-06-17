@@ -133,6 +133,7 @@ define("game/Square", [
 		 * the placement.
 		 * @param {boolean} locked whether the tile is to be locked to
 		 * the square (fixed on the board).
+         * @return {Tile?} tile unplaced from the square, if any
 		 */
 		placeTile(tile, locked) {
 			if (tile && this.tile && tile !== this.tile) {
@@ -140,6 +141,7 @@ define("game/Square", [
 				throw Error(`Square already occupied: ${this}`);
 			}
 
+            const oldTile = this.tile;
 			if (tile) {
 				tile.col = this.col;
 				if (typeof this.row !== "undefined")
@@ -150,13 +152,16 @@ define("game/Square", [
 			else {
 				// Note that a locked tile might be unplaced as
 				// part of undoing a challenged play
-				if (this.tile)
-					this.tile.clean();
+				if (oldTile && this.tileLocked)
+					oldTile.reset();
 				delete this.tile;
+                delete this.tileLocked;
 			}
 
 			// Used in the UI to update the square
 			Platform.trigger("SquareChanged", [ this ]);
+
+            return oldTile;
 		}
 
 		/**
