@@ -136,15 +136,15 @@ define("browser/game", [
 		 * @private
 		 */
 		static $log(interactive, mess, css) {
-			const $div = $("<div></div>").addClass("logEntry");
+			const $div = $("<div class='message'></div>");
 			if (css)
 				$div.addClass(css);
 			$div.append(mess);
-			const $lm = $("#logMessages");
+			const $lm = $("#logBlock > .messages");
 			$lm.append($div);
 			if (interactive)
 				$lm.animate({
-					scrollTop: $("#logMessages").prop("scrollHeight")
+					scrollTop: $("#logBlock > .messages").prop("scrollHeight")
 				}, 300);
 			return $div;
 		}
@@ -515,7 +515,7 @@ define("browser/game", [
 		 */
 		handle_keydown(event) {
 			// Only handle events targeted when the board is not
-			// locked, and ignore events targeting the chatInput.
+			// locked, and ignore events targeting the chat input.
 			// Checks for selection status are performed in
 			// individual handler functions.
 			if (event.target.id !== "body" || this.boardLocked)
@@ -613,12 +613,12 @@ define("browser/game", [
          */
         updateObservers(obs) {
             if (obs.length > 0) {
-                $("#observerCount")
+                $("#scoresBlock > .observerCount")
                 .show()
                 .text($.i18n("+ $1 observer{{PLURAL:$1||s}}",
                              obs.length));
             } else
-                $("#observerCount").hide();
+                $("#scoresBlock > .observerCount").hide();
         }
 
         /**
@@ -626,7 +626,7 @@ define("browser/game", [
          */
 		updatePlayerTable() {
 			const $playerTable = this.game.$ui(this.player);
-			$("#playerList").html($playerTable);
+			$("#scoresBlock > .playerList").html($playerTable);
 			this.updateWhosTurn();
 		}
 
@@ -648,16 +648,17 @@ define("browser/game", [
 			if (remains > 0) {
 				const mess = $.i18n(
 					"$1 tile{{PLURAL:$1||s}} left in the bag", remains);
-				$("#letterbag").text(mess);
+				$("#scoresBlack > .letterbag").text(mess);
 				$("#scoresBlock td.remaining-tiles").empty();
 			} else {
-				$("#letterbag").text($.i18n("The letter bag is empty"));
+				$("#scoresBlack > .letterbag")
+                .text($.i18n("The letter bag is empty"));
 				const countElements = $("#scoresBlock td.remaining-tiles");
 				this.game.getPlayers().forEach(
 					(player, i) =>
 					$(countElements[i]).text(`(${player.rack.squaresUsed()})`));
 			}
-			$("#swapRack")
+			$(".swap-ack")
 			.toggle(remains >= this.game.rackSize);
 		}
 
@@ -677,7 +678,7 @@ define("browser/game", [
 					this.player = game.getPlayer(session.key);
 					if (this.player)
 						return this.player.key;
-				    $("#bad-user")
+				    $(".bad-user")
 				    .show()
 				    .find("button")
 				    .on("click", () => {
@@ -686,7 +687,7 @@ define("browser/game", [
 				    });
                     this.observer = this.session.name;
                 }
-				$("#notPlaying").show();
+				$(".notPlaying").show();
 				return undefined;
 			});
 		}
@@ -713,7 +714,7 @@ define("browser/game", [
 			if (this.player) {
 				$("#rackControls").prepend(this.player.rack.$ui());
 
-				$("#swapRack")
+				$(".swap-rack")
 				.append(this.swapRack.$ui("SWAP"));
 
 				this.swapRack.$refresh();
@@ -735,7 +736,7 @@ define("browser/game", [
 					this.setAction("action_anotherGame", /*i18n*/"Another game?");
 			}
 
-			$("#pauseButton").toggle(game.timerType !== Timer.NONE);
+			$(".pauseButton").toggle(game.timerType !== Timer.NONE);
 
 			let myGo = this.isThisPlayer(game.whosTurnKey);
 			this.updateWhosTurn();
@@ -758,32 +759,30 @@ define("browser/game", [
 			}
 
 			if (this.player) {
-				$("#shuffleButton")
+				$(".shuffle-button")
 				.button({
 					showLabel: false,
 					icon: "shuffle-icon",
-					title: $.i18n("Shuffle"),
 					classes: {
 						"ui-button-icon": "fat-icon"
 					}
 				})
 				.on("click", () => this.shuffleRack());
 			
-				$("#takeBackButton").button({
+				$(".unplace-button").button({
 					showLabel: false,
-					icon: "take-back-icon",
-					title: $.i18n("Take back"),
+					icon: "unplace-icon",
 					classes: {
 						"ui-button-icon": "fat-icon"
 					}				
 				})
 				.on("click", () => this.takeBackTiles());
 
-				$("#turnButton")
+				$(".turn-button")
 				.on("click", () => this.click_turnButton());
 			} else {
-				$("#shuffleButton").hide();
-				$("#turnButton").hide();
+				$(".shuffle-button").hide();
+				$(".turn-button").hide();
 			}
 			
 			this.$typingCursor = $("#typingCursor");
@@ -865,7 +864,7 @@ define("browser/game", [
 				console.error(`key mismatch ${this.game.key}`);
 			$(".Surface .letter").addClass("hidden");
 			$(".Surface .score").addClass("hidden");
-			$("#pauseBanner")
+			$("#pauseDialog > .banner")
 			.text($.i18n("$1 has paused the game", params.name));
 			$("#pauseDialog")
 			.dialog({
@@ -904,7 +903,7 @@ define("browser/game", [
 			const ui = this;
 
 			// Configure chat input
-			$("#chatInput input")
+			$("#chatBlock input")
 			.on("change", function() {
 				// Send chat
 				console.debug("<-- message");
@@ -923,8 +922,7 @@ define("browser/game", [
 					$("body").focus();
 			});
 
-			// clock button
-			$("#pauseButton")
+			$(".pauseButton")
 			.on("click", () => this.sendCommand(Command.PAUSE));
 
 			// Events raised by game components
@@ -1117,7 +1115,7 @@ define("browser/game", [
 		promptForLetter() {
 			return new Promise(resolve => {
 				const $dlg = $("#blankDialog");
-				const $tab = $("#blankLetterTable");
+				const $tab = $("#blankDialog .letterTable");
 				$tab.empty();
 				const ll = this.game.letterBag.legalLetters.slice().sort();
 				const dim = Math.ceil(Math.sqrt(ll.length));
@@ -1178,13 +1176,13 @@ define("browser/game", [
 			fromSquare.placeTile(null);
 			if (tile.isBlank) {			
 				if (!(toSquare.owner instanceof Board)) {
-					// blanks are permitted
-					tile.letter = " ";
+                    tile.reset();
+					toSquare.placeTile(tile);
 					toSquare.$refresh();
 				} else if (ifBlank) {
 					tile.letter = ifBlank;
 					toSquare.$refresh();
-				} else {
+				} else if (tile.letter === " ") {
 					this.promptForLetter()
 					.then(letter => {
 						tile.letter = letter;
@@ -1202,12 +1200,12 @@ define("browser/game", [
 		 * affect buttons embedded in the log.
 		 */
 		updateGameStatus() {
-			$("#yourMove").empty();
+			$("#playBlock > .your-move").empty();
 			this.updateTileCounts();
 
 			if (this.game.hasEnded()) {
 				// moveAction will be one of confirmGameOver, anotherGame
-				// or nextGame, so don't hide the turnButton
+				// or nextGame, so don't hide the turn button
 				this.lockBoard(true);
 				return;
 			}
@@ -1216,7 +1214,7 @@ define("browser/game", [
 			// allowable is a challenge, which is handled using a button
 			// in the log, so we can hide the turn button
 			if (!this.isThisPlayer(this.game.whosTurnKey)) {
-				$("#turnButton").hide();
+				$(".turn-button").hide();
 				return;
 			}
 
@@ -1229,7 +1227,7 @@ define("browser/game", [
 					this.setAction("action_confirmGameOver",
 									   /*i18n*/"Accept last move");
 				else
-					$("#turnButton").hide();
+					$(".turn-button").hide();
 				return;
 			}
 
@@ -1239,7 +1237,7 @@ define("browser/game", [
 				this.setAction("action_commitMove", /*i18n*/"Finished Turn");
 				// Check that the play is legal
 				const move = this.game.board.analysePlay();
-				const $move = $("#yourMove");
+				const $move = $("#playBlock > .your-move");
 				if (typeof move === "string") {
 					// Play is bad
 					$move.append($.i18n(move));
@@ -1254,8 +1252,8 @@ define("browser/game", [
 				}
 
 				// Use 'visibility' and not 'display' to keep the layout stable
-				$("#takeBackButton").css("visibility", "inherit");
-				$("#swapRack").hide();
+				$(".unplace-button").css("visibility", "inherit");
+				$(".swap-rack").hide();
 				return;
 			}
 
@@ -1264,7 +1262,7 @@ define("browser/game", [
 				this.setAction("action_swap", /*i18n*/"Swap");
 				$("#board .ui-droppable").droppable("disable");
 				this.enableTurnButton(true);
-				$("#takeBackButton").css("visibility", "inherit");
+				$(".unplace-button").css("visibility", "inherit");
 				return;
 			}
 
@@ -1272,7 +1270,7 @@ define("browser/game", [
 			this.setAction("action_pass", /*i18n*/"Pass");
 			$("#board .ui-droppable").droppable("enable");
 			this.enableTurnButton(true);
-			$("#takeBackButton").css("visibility", "hidden");
+			$(".unplace-button").css("visibility", "hidden");
 		}
 
 		/**
@@ -1290,7 +1288,7 @@ define("browser/game", [
 		 * @param {boolean} enable true to enable, disable otherwise
 		 */
 		enableTurnButton(enable) {
-			$("#turnButton").button(enable ? "enable" : "disable");
+			$(".turn-button").button(enable ? "enable" : "disable");
 		}
 
 		/**
@@ -1647,7 +1645,7 @@ define("browser/game", [
 		setAction(action, title) {
 			console.debug("setAction", action);
 			if (this.player) {
-				$("#turnButton")
+				$(".turn-button")
 				.data("action", action)
 				.empty()
 				.append($.i18n(title))
@@ -1667,7 +1665,7 @@ define("browser/game", [
 		 * This action will map to the matching function in 'this'.
 		 */
 		click_turnButton() {
-			const action = $("#turnButton").data("action");
+			const action = $(".turn-button").data("action");
 			console.debug("click_turnButton =>", action);
 			this[action]();
 		}
@@ -1696,19 +1694,8 @@ define("browser/game", [
 			if (!square.tile || square.tileLocked)
 				return false;
 
-			// Find a space on the rack for it
-			let freesquare = undefined;
-			this.player.rack.forEachSquare(square => {
-				if (!square.tile) {
-					freesquare = square;
-					return true;
-				}
-				return false;
-			});
-
-			// Move the tile back to the rack
-			freesquare.tile = square.tile.clean();
-			freesquare.$refresh();
+			const rackSquare = this.player.rack.addTile(square.tile);
+			rackSquare.$refresh();
 			square.tile = null;
 			square.$refresh();
 			return true;
