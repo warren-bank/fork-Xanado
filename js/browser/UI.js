@@ -157,7 +157,7 @@ define("browser/UI", [
 		 */
 		decorate() {
 			// gear button
-			$("#settingsButton")
+			$(".settingsButton")
 			.on("click", () => {
 				const curTheme = this.getSetting("theme");
 				Dialog.open("SettingsDialog", {
