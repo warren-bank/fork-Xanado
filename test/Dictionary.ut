@@ -19,9 +19,10 @@ describe("Dictionary class", () => {
 
     it("loads words", () => {
 		let dic = new Dictionary("test");
-		dic.addWord('A');
-		dic.addWord('ANT');
-		dic.addWord('TAN');
+		assert(dic.addWord('A'));
+		assert(dic.addWord('ANT'));
+		assert(dic.addWord('TAN'));
+		assert(!dic.addWord('ANT'));
 		let s = [];
 		dic.eachWord(w => s.push(w));
 		assert.deepEqual(s, [ 'A', 'ANT', 'TAN' ]);
@@ -32,11 +33,12 @@ describe("Dictionary class", () => {
 		assert(dic.hasWord('ANT'));
 		assert(!dic.hasWord('TNA'));
 		dic.addWord('TA');
+		dic.addWord('RANT');
 		const anags = dic.findAnagrams('ANT');
 		assert.deepEqual(anags, { A: 'A', ANT: 'ANT', TA: 'TA', TAN: 'TAN' });
 		s = [];
 		dic.root.eachLongWord("", w => s.push(w));
-		assert.deepEqual(s, [ 'ANT', 'TAN' ]);
+		assert.deepEqual(s, [ 'ANT', 'RANT', 'TAN' ]);        
 	});
 
 	it("loads a dictionary", () => {

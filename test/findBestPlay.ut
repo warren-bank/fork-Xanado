@@ -18,11 +18,13 @@ describe("findBestPlay", () => {
 
 	it("blanks", () => {
 		let bestMoves = [];
+        global.SPUTUM = true;
 		return new Game({
 			edition:"English_WWF",
 			dictionary:"Oxford_5000"
 		}).create()
 		.then(game => {
+            global.SYNC_FBP = true;
 			game.addPlayer(new Player({
 				name:"test", key:"creep", isRobot:true}));
 			return game.loadBoard(
@@ -64,6 +66,7 @@ describe("findBestPlay", () => {
 			assert.equal(bestMoves[5].words.length, 1);
 			assert.equal(bestMoves[5].score, 42);
 			assert.equal(bestMoves.length, 6);
+        global.SPUTUM = false;
 		});
 	});
 

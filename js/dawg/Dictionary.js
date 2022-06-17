@@ -28,12 +28,26 @@ define("dawg/Dictionary", [
         static cache = [];
 
 		/**
+		 * First node in the dictionary.
+		 * @member {LetterNode?}
+		 */
+		root;
+
+		/**
+         * List of valid start points, such that at least one
+		 * start point must match() for any sequence of chars, or
+		 * there can't possibly be a word. Map from letter to a
+		 * LetterNode or a list of LetterNode.
+		 * @private
+		 */
+        sequenceRoots;
+
+		/**
 		 * @param {string} name name of the dictionary
 		 * It's actually an array of little-endian 4-byte integers.
 		 * Note that this constructor is private.
 		 */
 		constructor(name) {
-			
 			/**
 			 * List of valid start points, such that at least one
 			 * start point must match() for any sequence of chars,
@@ -41,19 +55,6 @@ define("dawg/Dictionary", [
 			 * @member {string}
 			 */
 			this.name = name;
-
-			/**
-			 * First node in the dictionary.
-			 * @member {LetterNode?}
-			 */
-			this.root = undefined;
-
-			// List of valid start points, such that at least one
-			// start point must match() for any sequence of chars, or
-			// there can't possibly be a word. Map from letter to a
-			// LetterNode or a list of LetterNode.
-			// Private
-			//this.sequenceRoots = undefined;
 		}
 
 		/**
@@ -188,6 +189,22 @@ define("dawg/Dictionary", [
 			return this.sequenceRoots[ch] || [];
 		}
 
+        /**
+         * Do the work of adding a word, but don't do anything about
+         * pre-/post- links or sequence roots.
+         * @private
+         */
+		_addWord(word) {
+			/* istanbul ignore if */
+			if (word.length === 0)
+				return false;
+			if (this.root)
+			    return this.root.add(word);
+			this.root = new LetterNode(word.charAt(0));
+			this.root.add(word);
+            return true;
+		}
+
 		/**
 		 * Add a word to the dictionary. No attempt is made at compression.
 		 * Note that previously retrieved sequence roots will no longer
@@ -198,18 +215,17 @@ define("dawg/Dictionary", [
 		 * @return {boolean} true if the word needed to be added, false
 		 * if it was empty or already there.
 		 */
-		addWord(word) {
-			/* istanbul ignore if */
-			if (word.length === 0)
-				return false;
-			if (!this.root)
-				this.root = new LetterNode(word.charAt(0));
-			if (this.hasWord(word))
-				return false;
-			this.root.add(word);
-			delete this.sequenceRoots;
-			return true;
-		}
+        addWord(word) {
+            if (this._addWord(word)) {
+                // Don't recreate, that will be done on demand
+			    delete this.sequenceRoots;
+			    // Re-build forward and back lists. This could be done
+                // incrementally, but it's a reasonably cheap operation so....
+			    this.root.buildLists();
+                return true;
+            }
+            return false;
+        }
 
 		/**
 		 * Find start node for the character sequence in the sequence
@@ -300,7 +316,7 @@ define("dawg/Dictionary", [
 						  .sort();
 					let added = 0;
 					words.forEach(w => {
-						if (dict.addWord(w))
+						if (dict._addWord(w))
 							added++;
 						return false;
 					});
@@ -314,6 +330,7 @@ define("dawg/Dictionary", [
 			.then(() => {
 				if (dict) {
 					// one of .dict or .white (or both) loaded
+                    // Add bidirectional traversal links
 					dict.addLinks();
 					Dictionary.cache[name] = dict;
 					//console.debug(`Loaded dictionary ${name}`);

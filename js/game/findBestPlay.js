@@ -351,7 +351,12 @@ define("game/findBestPlay", [
 			} else
 				// Letter already on the board
 				wordSoFar.unshift(board.at(ecol, erow).tile);
-
+try {
+  if (typeof dNode.preNodes[Symbol.iterator] != "function")
+    throw("FUCK");
+} catch (e) {
+  debugger;
+}
 			for (let pre of dNode.preNodes) {
 				if (pre.letter === letter) {
 					back(ecol, erow,
@@ -531,11 +536,17 @@ define("game/findBestPlay", [
 						}
 						const anchorTile = board.at(col, row).tile;
 						const roots = dict.getSequenceRoots(anchorTile.letter);
+if (col == 3 && row == 7 && anchorTile.letter == "N")
+                            debugger;
 						for (let anchorNode of roots) {
 							// Try and back up then forward through
 							// the dictionary to find longer sequences
-
 							// across
+if (col == 3 && row == 7 && anchorTile.letter == "N"
+    && anchorNode.letter == "N"
+    && anchorNode.child && anchorNode.child.letter == "O"
+    && anchorNode.child.child && anchorNode.child.child.letter == "Z")
+    debugger;
 							back(
 								col, row,
 								1, 0,
