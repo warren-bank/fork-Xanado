@@ -135,7 +135,7 @@ define("platform", [
 		};
 	}
 
-	let findBestPlayController;
+	let asyncFindBestPlay, syncFindBestPlay;
 
 	/**
 	 * Implementation of {@link Platform} for use in node.js.
@@ -152,13 +152,12 @@ define("platform", [
 
 		/** See {@link Platform#findBestPlay} for documentation */
 		static findBestPlay() {
-			// block this thread
-			// return Game.findBestPlay.apply(arguments)
-
-			// OR
-
-			// use a worker thread
-			return findBestPlayController.apply(null, arguments);
+			if (global.SYNC_FBP) // used for debug
+			    // block this thread
+                return syncFindBestPlay.apply(arguments);
+            else
+			    // use a worker thread
+			    return asyncFindBestPlay.apply(null, arguments);
 		}
 
 		/** See {@link Platform#getFilePath} for documentation */
@@ -183,7 +182,12 @@ define("platform", [
 	ServerPlatform.i18n = I18N;
 
 	// Asynchronous load to break circular dependency
-	requirejs(["game/findBestPlayController"], mod => findBestPlayController = mod);
+	requirejs([
+        "game/findBestPlayController",
+        "game/findBestPlay" ], (afbp, sfbp) => {
+            asyncFindBestPlay = afbp;
+            syncFindBestPlay = sfbp;
+        });
 
 	return ServerPlatform;
 });
