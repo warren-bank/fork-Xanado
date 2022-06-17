@@ -556,14 +556,23 @@ define("server/Server", [
 			let theme = "default";
 			if (req.user && req.user.settings && req.user.settings.theme)
 				theme = req.user.settings.theme;
-			let path = Platform.getFilePath(`css/${theme}/${req.params.css}`);
+			const dpath = Platform.getFilePath(`css/default/${req.params.css}`);
+			const path = Platform.getFilePath(`css/${theme}/${req.params.css}`);
             this._debug("Send theme", path);
             return new Promise(
                 (resolve, reject) => res.sendFile(
                     Path.normalize(path), {
                         dotfiles: "deny"
                     },
-                    err => err ? reject(err) : resolve()));
+                    err => err ? reject(err) : resolve()))
+            .catch(e => new Promise(
+                // on error, fall back to default theme
+                (resolve, reject) => res.sendFile(
+                    Path.normalize(dpath), {
+                        dotfiles: "deny"
+                    },
+                    err => err ? reject(err) : resolve()))
+                  );
 		}
 
 		/**
