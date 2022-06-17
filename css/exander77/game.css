@@ -191,7 +191,7 @@ div.Surface td div a {
     text-align: center;
 }
 
-.Rack {
+.rack {
     border-width: 0.2em;
     padding: 0.2em;
 	margin-bottom: 0.5em;
@@ -467,12 +467,12 @@ button.fat-button {
 	background-image: url(../images/shuffle.png) !important;
 }
 
-.take-back-icon {
+.unplace-icon {
 	background-image: url(../images/take-back.png) !important;
 }
 
 /* Div that wraps all the individual control panels */
-#controls {
+#blocks {
     float: left;
     margin-top: 1em;
     width: 20em;
@@ -483,12 +483,8 @@ button.fat-button {
 	font-size: 1.3em;
 }
 
-/* Button for making a play */
-#turnButton {
-	font-size: 130%;
-}
-
-#controls > div {
+/* divs for each of the Scores, Play etc blocks */
+#blocks > div {
     background-color: #F7F7E3;
     border-color: #DCDCC6;
 
@@ -504,30 +500,35 @@ button.fat-button {
     padding: 0.4em;
 }
 
-/* The #controls div that contains login information and buttons */
+/* The #blocks div that contains login information and buttons */
 #loginBlock {
 }
 
-/* The #controls > div with the scores and letter bag state */
+/* The #blocks > div with the scores and letter bag state */
 #scoresBlock {
     min-height: 4em;
 }
 
 /* The #scoresBlock > div that has the letter bag status */
-#letterbag {
+#scoresBlock > .letterbag {
     margin: 0.5em;
 }
 
-/* The #controls > div with the swap rack and turn control buttons */
-#yourPlayBlock {
+/* The #blocks > div with the swap rack and turn control buttons */
+#playBlock {
 }
 
-/* #yourPlayBlock > div showing the proposed move */
-#yourMove {
+/* showing the proposed move */
+#playBlock > .your-move {
     margin-bottom: 0.5em;
 }
 
-/* The #controls > div with the chat */
+/* Button for making a play */
+#playBlock > .turn-button {
+	font-size: 130%;
+}
+
+/* The #blocks > div with the chat */
 #chatBlock {
     max-height: 3em;
 }
@@ -538,12 +539,12 @@ button.fat-button {
 }
 
 /* #chatBlock > div chat message capture */
-#chatInput {
+#chatBlock .chat-input {
     margin-top: 0.25em;
     width: 100%;
 }
 
-#chatInput input {
+#chatBlock input {
     width: 95%;
 }
 
@@ -555,18 +556,21 @@ button.fat-button {
 #logBlock {
 }
 
-#logMessages {
+/* Individual messages within the #logBlock */
+#logBlock > .messages {
 	font-size: 80%;
     overflow: auto;
     max-height: 14em;
 }
 
-#logMessages .game-state {
+/* Reporting game state within the #logBlock */
+#logBlock > .messages .game-state {
 	margin-top: 0.5em;
 	font-weight: bold;
 }
 
-#logMessages .game-outcome {
+/* Reporting game result within the #logBlock */
+#logBlock > .messages .game-outcome {
 }
 
 /* #rack > div, the rack with buttons used to control it */
@@ -579,21 +583,22 @@ button.fat-button {
 	display: flex;
 }
 
-#rackControls .Rack {
+#rackControls .rack {
 	margin-bottom: 0;
 }
 
 /* div that contains the rack control buttons - Shuffle, Take back */
-#rackControls .fat-buttons {
+#rackControls .fat-button {
     font-size: 1.2em;
 }
 
-#takeBackButton {
+/* Button for taking tiles back */
+#rackControls .unplace-button {
     visibility: hidden;
 }
 
 /* Blank letter requester dialog */
-#blankLetterTable td {
+#blankDialog letterTable td {
 	font-size: 1.5em;
 	text-align: center;
 	border-color: #DCDCC6;
@@ -611,6 +616,7 @@ button.fat-button {
     border-width: 0.1em;
 }
 
+/* Name of player in the player table #scoresBlock */
 .player-name {
 	font-weight: bold;
 }
