@@ -2,7 +2,7 @@
     "@metadata": {
 		"authors": [ "Crawford Currie" ],
         "locale": "en",
-		"NOTE": "English strings are in code. Only particulary long or complex strings are expanded here. Use bin/checkStrings.pl to determine what needs to be translated."
+		"NOTE": "English strings are in code. Only particulary long or complex strings are expanded here, where possible we use the full string rather than a token. Use checkStrings.js to determine what needs to be translated."
     },
 
 	"games-scores": "$1: <b>$2</b>: $3 ($5 win{{PLURAL:$5||s}} from $4 game{{PLURAL:$4||s}})",
