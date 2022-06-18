@@ -137,25 +137,27 @@ define("dawg/Dictionary", [
 		}
 
 		/**
-		 * Find anagrams of a set of letters.
-		 * @param {string} theChars the letters, ' ' for an any-letter wildcard
+		 * Find anagrams of a set of letters. An anagram is defined as any
+         * complete (2 or more characters) word that uses all or some of the
+         * letters passed in.
+		 * @param {string} theChars the letters, ' ' for an any-letter wildcard.
 		 * @return {Object<string, string>} a map of actual words to the letter
-		 * sequence (using ' ' for blanks) that matched
+		 * sequence (using ' ' for blanks) that matched.
 		 */
 		findAnagrams(theChars) {
 			theChars = theChars.toUpperCase();
 
 			/* istanbul ignore if */
 			if (theChars.length < 2)
-				return [ theChars ];
+                throw new Error("Too short to find anagrams");
 
-			// Sort the list of characters. Not strictly needed,
-			// just easier to debug.
-			const sortedChars = theChars.split("").sort();
+			// Sort the list of characters.
+			// Sorting makes it easier to debug.
+			const ac = theChars.split("");//.sort();
 
-			//console.log('Sorted chars', sortedChars);
+			//console.log('Sorted chars', ac);
 			const foundWords = {};
-			this.root.findAnagrams("", "", sortedChars, foundWords);
+			this.root.findWordsThatUse(ac, "", "", foundWords);
 			return foundWords;
 		}
 

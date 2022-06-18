@@ -94,38 +94,7 @@ define("game/Turn", [
 				this.endState = params.endState;
 		}
 
-		/**
-         * @override
-		 */
         /* istanbul ignore next */
-		toString() {
-            let s = `Turn ${this.type} ${this.playerKey}`;
-            if (this.challengerKey)
-                s += ` by ${this.challengerKey}`;
-            if (this.nextToGoKey && this.nextToGoKey !== this.playerKey)
-                s += ` ->${this.nextToGoKey}`;
-
-            if (typeof this.score !== "undefined")
-                s += ` (${this.score})`;
-
-            if (this.placements)
-                s += " <=" + this.placements.map(t => t.toString(true));
-            
-            if (this.words)
-                s += ' "' + this.words.map(w => w.word) + '"';
-
-            if (this.replacements)
-			    s += " =>" + this.replacements.map(t => t.toString(true));
-
-            if (this.penalty === Penalty.MISS)
-                s += ` MISS`;
-            
-            if (this.endState)
-                s += ` ${this.endState}`;
-
-            return s;
-		}
-
 		/**
          * @override
 		 */
@@ -156,11 +125,6 @@ define("game/Turn", [
 
             return s;
 		}
-     
-		/**
-         * @override
-		 */
-        valueOf() { return this.toString(); }
 	}
 
 	return Turn;

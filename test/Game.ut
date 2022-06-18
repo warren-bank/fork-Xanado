@@ -101,6 +101,12 @@ describe("Game", () => {
 			name:"human2", key:"human2", isRobot: false});
 		const human3 = new Player({
 			name:"human3", key:"human3", isRobot: false});
+
+		const human4 = new Player({
+			name:"human4", key:"human4", isRobot: false});
+		const robot2 = new Player({
+			name:"Robot 2", key:"robot2", isRobot: true});
+
 		const um = { // UserManager fixture
 			getUser: k => Promise.resolve({ email: k.key + "@players.com" })
 		};
@@ -126,7 +132,11 @@ describe("Game", () => {
 			robot1.score = 1;
 			human2.score = 2;
 			human3.score = 3;
-
+            human4.score = 4;
+            
+            human4.isConnected = true;
+            human4.isNextToGo = true;
+            
 			let player = game.getPlayer();
 			assert.equal(player.key, human2.key);
 			player = game.getPlayer(human2.key);
@@ -176,7 +186,14 @@ describe("Game", () => {
 				assert.deepEqual(s.players[1], ps[1]);
 				assert.deepEqual(s.players[2], ps[2]);
 			});
-		});
+		})
+        // Implicitly add player to the game
+        .then(() => game.updatePlayerList(
+            game.players.concat([ human4, robot2 ])))
+        .then(() => {
+			assert.equal(game.players[3].key, human4.key);
+			assert.equal(game.players[4].key, robot2.key);
+        });
 	});
 
 	it("$html", () => {

@@ -34,11 +34,17 @@ describe("Dictionary class", () => {
 		assert(!dic.hasWord('TNA'));
 		dic.addWord('TA');
 		dic.addWord('RANT');
-		const anags = dic.findAnagrams('ANT');
-		assert.deepEqual(anags, { A: 'A', ANT: 'ANT', TA: 'TA', TAN: 'TAN' });
+		const anags = dic.findAnagrams("nat ");
+		assert.deepEqual(anags, {
+            A: 'A',
+            ANT: 'ANT',
+            TA: 'TA',
+            TAN: 'TAN',
+            RANT: " ANT"
+        });
 		s = [];
 		dic.root.eachLongWord("", w => s.push(w));
-		assert.deepEqual(s, [ 'ANT', 'RANT', 'TAN' ]);        
+		assert.deepEqual(s, [ 'ANT', 'RANT', 'TAN' ]);
 	});
 
 	it("loads a dictionary", () => {

@@ -102,6 +102,7 @@ define("dawg/TrieNode", [
 			this.id = nodeIds++;
 		}
 
+        /* istanbul ignore next */
         /**
          * Debug
          * @param {boolean} deeply true to expand child nodes

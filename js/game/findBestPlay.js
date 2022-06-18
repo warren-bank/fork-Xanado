@@ -351,12 +351,7 @@ define("game/findBestPlay", [
 			} else
 				// Letter already on the board
 				wordSoFar.unshift(board.at(ecol, erow).tile);
-try {
-  if (typeof dNode.preNodes[Symbol.iterator] != "function")
-    throw("FUCK");
-} catch (e) {
-  debugger;
-}
+
 			for (let pre of dNode.preNodes) {
 				if (pre.letter === letter) {
 					back(ecol, erow,
@@ -401,18 +396,16 @@ try {
 		const dcol = (drow + 1) % 2;
 		let bestScore = 0;
 
-		for (let choice of Object.keys(choices)) {
+		for (const choice of Object.keys(choices)) {
 			// Keep track of the rack and played letters
 			const placements = [];
 			let shrunkRack = rackTiles;
-			for (let c of choice.split("")) {
+			for (const c of choice.split("")) {
 				const rackTile = shrunkRack.find(t => t.letter == c)
 					  || shrunkRack.find(t => t.isBlank);
-				if (!rackTile) {
-					// Can't do this with the available tiles
-					choice = "";
-					break;
-				}
+                /* istanbul ignore next */
+				if (!rackTile) // assert
+					throw new Error("Can't do this with the available tiles");
 				placements.push(new Tile({
 					letter: c,
 					isBlank: rackTile.isBlank,
@@ -470,12 +463,14 @@ try {
         game = gemm;
 		report = listener;
 
+        /* istanbul ignore if */
 		if (!game.edition) {
 			report("Error: Game has no edition " + game);
 			// Terminal, no point in translating
 			return Promise.reject("Game has no edition");
 		}
 
+        /* istanbul ignore if */
 		if (!dictionary) {
             console.error("No dictionary", new Error().stack);
 			report("Error: No dictionary for findBestPlay");

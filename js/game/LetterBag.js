@@ -126,6 +126,7 @@ define("game/LetterBag", [
 			return this.tiles.map(tile => tile.letter);
 		}
 
+        /* istanbul ignore next */
 		/**
 		 * Generate a simple string representation of the player
          * @override

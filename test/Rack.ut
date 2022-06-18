@@ -58,16 +58,15 @@ describe("Rack", () => {
 		let r = new Rack("base", 2);
 
 		let $act = r.$ui();
-		assert($act.hasClass("Rack"));
+		assert($act.hasClass("rack"));
 
 		let $dact = $("<div></div>").append($act);
 		$("body").append($dact);
 
-		let $exp = $('<table class="Rack"><tr><td class="square-_"><div id="base_0"><a></a></div></td><td class="square-_"><div id="base_1"><a></a></div></td></tr></table>');
+		let $exp = $('<table class="rack"><tr><td class="square-_"><div id="base_0"><a></a></div></td><td class="square-_"><div id="base_1"><a></a></div></td></tr></table>');
 
 		let $dexp = $("<div></div>").append($exp);
 		$("body").append($dexp);
-
 		assert($act[0].isEqualNode($exp[0]),
 			   "\nexpected:" + $dexp.html() + "\n" +
 			   "  actual:" + $dact.html());
@@ -78,12 +77,12 @@ describe("Rack", () => {
 		let r = new Rack('base', 2, "£");
 
 		let $act = r.$ui();
-		assert($act.hasClass("Rack"));
+		assert($act.hasClass("rack"));
 
 		let $dact = $("<div></div>").append($act);
 		$("body").append($dact);
 
-		let $exp = $('<table class="Rack"><tbody><tr><td class="square-_"><div id="base_0"><a></a></div></td><td class="square-_"><div id="base_1"><a></a></div></td></tr></tbody></table>');
+		let $exp = $('<table class="rack"><tbody><tr><td class="square-_"><div id="base_0"><a></a></div></td><td class="square-_"><div id="base_1"><a></a></div></td></tr></tbody></table>');
 
 		let $dexp = $("<div></div>").append($exp);
 		$("body").append($dexp);
@@ -103,7 +102,7 @@ describe("Rack", () => {
 		assert.deepEqual(r.letters().sort(), ['Q', 'S']);
 
 		let $act = r.$ui();
-		assert($act.hasClass("Rack"));
+		assert($act.hasClass("rack"));
 
 		let $dact = $("<div></div>").append($act);
 
@@ -111,7 +110,7 @@ describe("Rack", () => {
 		$("body").append($dact);
 		r.$refresh();
 
-		let $exp = $('<table class="Rack"><tbody><tr><td class="square-_"><div id="base_0" class="tiled-square temporary ui-draggable ui-draggable-handle"><a><span class="letter">S</span><span class="score">0</span></a></div></td><td class="square-_"><div id="base_1" class="tiled-square temporary ui-draggable ui-draggable-handle"><a><span class="letter">Q</span><span class="score">0</span></a></div></td></tr></tbody></table>');
+		let $exp = $('<table class="rack"><tbody><tr><td class="square-_"><div id="base_0" class="tiled-square temporary ui-draggable ui-draggable-handle"><a><span class="letter">S</span><span class="score">0</span></a></div></td><td class="square-_"><div id="base_1" class="tiled-square temporary ui-draggable ui-draggable-handle"><a><span class="letter">Q</span><span class="score">0</span></a></div></td></tr></tbody></table>');
 
 		let $dexp = $("<div></div>").append($exp);
 

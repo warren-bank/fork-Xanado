@@ -136,6 +136,7 @@ define("game/Square", [
          * @return {Tile?} tile unplaced from the square, if any
 		 */
 		placeTile(tile, locked) {
+            /* istanbul ignore if */
 			if (tile && this.tile && tile !== this.tile) {
 				console.error("Tile ", tile, " over ", this.tile);
 				throw Error(`Square already occupied: ${this}`);
@@ -319,10 +320,10 @@ define("game/Square", [
 				$div.append(`<div class="underlay">${this.underlay}</div>`);
 		}
 
-		/**
-		 * @override
-		 */
         /* istanbul ignore next */
+        /**
+         * @override
+         */
 		toString() {
 			// All squares have a col
 			let string = `${this.type} square @ ${this.col}`;

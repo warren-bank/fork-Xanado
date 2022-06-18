@@ -128,14 +128,17 @@ define("dawg/LetterNode", () => {
 		 * @param {LetterNode~wordCallback} cb the callback
 		 */
 		eachWord(s, cb) {
-			if (this.isEndOfWord)
-				cb(s + this.letter, this);
+            let node = this;
 
-			if (this.child)
-				this.child.eachWord(s + this.letter, cb);
+            while (node) {
+			    if (node.isEndOfWord)
+				    cb(s + node.letter, node);
 
-			if (this.next)
-				this.next.eachWord(s, cb);
+			    if (node.child)
+				    node.child.eachWord(s + node.letter, cb);
+
+                node = node.next;
+            }
 		}
 
 		/**
@@ -147,14 +150,16 @@ define("dawg/LetterNode", () => {
 		 * @param {wordCallback} cb the callback
 		 */
 		eachLongWord(s, cb) {
-			if (this.isEndOfWord && !this.child)
-				cb(s + this.letter, this);
+            let node = this;
 
-			if (this.child)
-				this.child.eachLongWord(s + this.letter, cb);
+            while (node) {
+                if (node.child)
+                    node.child.eachLongWord(s + node.letter, cb);
+                else if (node.isEndOfWord)
+                    cb(s + node.letter, node);
 
-			if (this.next)
-				this.next.eachLongWord(s, cb);
+                node = node.next;
+            }
 		}
 
 		/**
@@ -164,20 +169,22 @@ define("dawg/LetterNode", () => {
 		 */
 
 		/**
-		 * Enumerate each node in the dictionary in depth-first order.
+		 * Enumerate each node in the dictionary.
 		 * Calls cb on each node, stops if cb returns false.
 		 * @param {LetterNode~nodeCallback} cb the callback
 		 */
 		eachNode(cb) {
-			if (!cb(this))
-				return false;
+            let node = this;
 
-			if (this.child && !this.child.eachNode(cb))
-				return false;
+            while (node) {
+			    if (!cb(node))
+				    return false;
 
-			if (this.next && !this.next.eachNode(cb))
-				return false;
+			    if (node.child && !node.child.eachNode(cb))
+				    return false;
 
+			    node = node.next;
+            }
 			return true;
 		}
 
@@ -191,6 +198,7 @@ define("dawg/LetterNode", () => {
 		add(word) {
             //console.log("Adding", word);
             let node = this, added = false;
+
             while (node) {
 			    if (node.letter === word.charAt(0)) {
                     //console.log("Matched", node.letter);
@@ -217,6 +225,7 @@ define("dawg/LetterNode", () => {
 			    } else
 			        node = node.next;
             }
+            /* istanbul ignore next */
             throw new Error("Unreachable '", word);
 		}
 
@@ -227,20 +236,23 @@ define("dawg/LetterNode", () => {
          * re-done if the DAG is modified..
 		 */
 		buildLists(nodeBefore) {
-			this.preNodes = [];
-			this.preLetters = [];
-			this.postNodes = [];
-			this.postLetters = [];
-			if (nodeBefore) {
-				this.preNodes.push(nodeBefore);
-				this.preLetters.push(nodeBefore.letter);
-				nodeBefore.postNodes.push(this);
-				nodeBefore.postLetters.push(this.letter);
-			}
-			if (this.child)
-				this.child.buildLists(this);
-			if (this.next)
-				this.next.buildLists(nodeBefore);
+            let node = this;
+
+            while (node) {
+			    node.preNodes = [];
+			    node.preLetters = [];
+			    node.postNodes = [];
+			    node.postLetters = [];
+			    if (nodeBefore) {
+				    node.preNodes.push(nodeBefore);
+				    node.preLetters.push(nodeBefore.letter);
+				    nodeBefore.postNodes.push(node);
+				    nodeBefore.postLetters.push(node.letter);
+			    }
+			    if (node.child)
+				    node.child.buildLists(node);
+                node = node.next;
+            }
 		}
 
 		/**
@@ -253,6 +265,7 @@ define("dawg/LetterNode", () => {
 		 */
 		match(chars, index) {
 			let node = this;
+
 			while (node) {
 				if (node.letter === chars[index]) {
 					if (index === chars.length - 1)
@@ -266,50 +279,53 @@ define("dawg/LetterNode", () => {
 		}
 
 		/**
+         * Find words that can be made from a sorted set of letters.
+		 * @param {string} chars the available set of characters
 		 * @param {string} realWord the string built so far in this recursion
 		 * @param {string} blankedWord the string built using spaces for blanks
 		 * if they are used
-		 * @param {string} sortedChars the available set of characters, sorted
 		 * @param {string[]} foundWords list of words found
 		 */
-		findAnagrams(realWord, blankedWord, sortedChars, foundWords) {
+		findWordsThatUse(chars, realWord, blankedWord, foundWords) {
+            let node = this;
 
-			// is this character available from sortedChars?
-			// Only use blank if no other choice
-			let i = sortedChars.indexOf(this.letter);
-			if (i < 0) // not there, try blank
-				i = sortedChars.indexOf(" ");
+            while (node) {
+			    // is this character available from chars?
+			    // Only use blank if no other choice
+			    let i = chars.indexOf(node.letter);
+			    if (i < 0) // not there, try blank
+				    i = chars.indexOf(" ");
 
-			if (i >= 0) {
-				const match = sortedChars[i];
+			    if (i >= 0) {
+				    const match = chars[i];
 
-				// The char is available from sortedChars.
-				// Is this then a word?
-				if (this.isEndOfWord) {
-					// A word is found
-					foundWords[realWord + this.letter] = blankedWord + match;
-				}
+				    // The char is available from chars.
+				    // Is this then a word?
+				    if (node.isEndOfWord) {
+					    // A word is found
+					    foundWords[realWord + node.letter]
+                        = blankedWord + match;
+				    }
 
-				if (sortedChars.length == 1)
-					return;
+				    if (chars.length > 1) {
+				        // Cut the matched letter out of chars and recurse
+				        // over our child node chain
+				        chars.splice(i, 1);
+                        let child = node.child;
+                        while (child) {
+					        child.findWordsThatUse(
+						        chars,
+						        realWord + node.letter,
+						        blankedWord + match,
+						        foundWords);
+                            child = child.next;
+				        }
+				        chars.splice(i, 0, match);
+                    }
+			    }
 
-				// Cut the matched letter out of sortedChars and recurse
-				// over our child node chain
-				sortedChars.splice(i, 1);
-
-				for (let child = this.child; child; child = child.next) {
-					child.findAnagrams(
-						realWord + this.letter,
-						blankedWord + match,
-						sortedChars,
-						foundWords);
-				}
-				sortedChars.splice(i, 0, match);
-			}
-
-			if (this.next)
-				this.next.findAnagrams(
-					realWord, blankedWord, sortedChars, foundWords);
+			    node = node.next;
+            }
 		}
 
         /**
