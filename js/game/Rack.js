@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node, jquery */
 
 /**
@@ -11,7 +11,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 
 	/**
 	 * A Rack is a 1-column {@link Surface}
-     * @extends Surface
+   * @extends Surface
 	 */
 	class Rack extends Surface {
 
@@ -51,13 +51,13 @@ define("game/Rack", ["game/Surface"], Surface => {
 		 * Add a Tile to the rack
 		 * @param {Tile} tile the Tile to add, must != null
 		 * @return {Square?} the square where the tile was placed
-         * (undefined if it couldn't be placed)
+     * (undefined if it couldn't be placed)
 		 */
 		addTile(tile) {
-            let rackSquare;
+      let rackSquare;
 			tile.reset();
 			this.forEachEmptySquare(square => {
-                rackSquare = square;
+        rackSquare = square;
 				square.placeTile(tile);
 				return true;
 			});
@@ -66,7 +66,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 
 		/**
 		 * Get an unsorted list of the letters currently on the rack.
-         * Blanks are represented by a space.
+     * Blanks are represented by a space.
 		 * @return {string[]}
 		 */
 		letters() {
@@ -85,7 +85,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 			let square;
 			this.forEachTiledSquare(sq => {
 				if (!square && sq.tile.isBlank
-					|| sq.tile.letter === letter)
+					  || sq.tile.letter === letter)
 					square = sq;
 			});
 
@@ -99,10 +99,10 @@ define("game/Rack", ["game/Surface"], Surface => {
 		 */
 		removeTile(remove) {
 			const square = this.findSquare(remove.letter);
-            /* istanbul ignore if */
+      /* istanbul ignore if */
 			if (!square)
 				throw Error("Cannot find '"
-							+ remove.letter + "' on " + this);
+							      + remove.letter + "' on " + this);
 			const tile = square.tile;
 			// If the tile is a blank, set the letter to the remove letter
 			if (tile.isBlank)
@@ -132,11 +132,11 @@ define("game/Rack", ["game/Surface"], Surface => {
 
 		/**
 		 * Get a list of letters on the rack that are not blanks
-         * @return {string[]}
+     * @return {string[]}
 		 */
 		lettersLeft() {
 			return this.tiles().filter(tile => !tile.isBlank)
-			.map(tile => tile.letter);
+		  .map(tile => tile.letter);
 		}
 
 		/**
@@ -163,7 +163,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 		/**
 		 * @override
 		 */
-        /* istanbul ignore next */
+    /* istanbul ignore next */
 		toString() {
 			return `Rack ${this.tiles().join(",")}`;
 		}

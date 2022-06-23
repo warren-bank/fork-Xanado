@@ -1,13 +1,13 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, jquery */
 
 define("game/Player", [
 	"platform", "game/Types", "game/Rack",
 ], (Platform, Types, Rack) => {
 
-    const Timer = Types.Timer;
+  const Timer = Types.Timer;
 
 	// Unicode characters
 	const BLACK_CIRCLE = "\u25cf";
@@ -42,21 +42,21 @@ define("game/Player", [
 		 * since the last non-pass/swap play. Default is 0.
 		 * @member {number}
 		 */
-		passes = 0;
+		passes;
 
 		/**
 		 * Player's current score. Default is 0.
 		 * @member {number}
 		 */
-		score = 0;
+		score;
 
 		/**
 		 * Player countdown clock. In games with `timerType` `TIMER_TURN`,
 		 * this is the number of seconds before the player's turn times
 		 * out (if they are the current player). For `TIMER_GAME` it's
 		 * the number of seconds before the chess clock runs out.
-         * Default is undefined. Setting and management is done in
-         * {@link Game}
+     * Default is undefined. Setting and management is done in
+     * {@link Game}
 		 * @member {number?}
 		 */
 		clock;
@@ -64,7 +64,7 @@ define("game/Player", [
 		/**
 		 * The connected flag may be set when the Player is created
 		 * from a simple structure. It is not used server-side.
-         * Default is false.
+     * Default is false.
 		 * @member {boolean?}
 		 */
 		isConnected;
@@ -97,24 +97,24 @@ define("game/Player", [
 
 		/**
 		 * Name of the dictionary the robot will use. Defaults to
-         * the game dictionary. Only used for findBestPlay for robot players.
-         * Default is undefined.
+     * the game dictionary. Only used for findBestPlay for robot players.
+     * Default is undefined.
 		 * @member {string?}
 		 */
 		dictionary;
 
-        /**
+    /**
 		 * Debug function
 		 * @member {function}
 		 */
-        _debug = () => {};
+    _debug = () => {};
 
 		/**
 		 * @param {object} params named parameters, or other layer or simple
 		 * object to copy. `name` and `key ` are required. Any of `debug`,
-         * `isRobot`, `canChallenge`, `wantsAdvice`, `dictionary` or
-         * `missNextTurn` can be passed to override the default.
-         * `
+     * `isRobot`, `canChallenge`, `wantsAdvice`, `dictionary` or
+     * `missNextTurn` can be passed to override the default.
+     * `
 		 */
 		constructor(params) {
 			this.name = params.name;
@@ -122,47 +122,49 @@ define("game/Player", [
 			if (typeof params._debug === "function")
 				this._debug = params._debug;
 			if (params.isRobot)
-                this.isRobot = true;
+        this.isRobot = true;
 			if (params.canChallenge)
-                this.canChallenge = true;
-            if (params.wantsAdvice)
-			    this.wantsAdvice = true;
+        this.canChallenge = true;
+      if (params.wantsAdvice)
+			  this.wantsAdvice = true;
 			if (params.dictionary)
-                this.dictionary = params.dictionary;
+        this.dictionary = params.dictionary;
 			if (params.missNextTurn)
-                this.missNextTurn = true;
+        this.missNextTurn = true;
+      this.score = params.score || 0;
+      this.passes = params.passes || 0;
 		}
 
 		/**
 		 * Create simple flat structure describing a subset of the player
 		 * state. This is used for sending minimal player information to
-         * the `games` interface.
+     * the `games` interface.
 		 * @param {Game} game the game the player is participating in
 		 * @param {UserManager?} um user manager for getting emails if wanted
 		 * @return {Promise} resolving to a simple structure describing 
-         * the player
+     * the player
 		 */
 		simple(game, um) {
 			return ((this.isRobot || !um)
-					? Promise.resolve(this)
-					: um.getUser({ key: this.key }).catch(e => this))
+					    ? Promise.resolve(this)
+					    : um.getUser({ key: this.key }).catch(e => this))
 			.then(ump => {
-                const simple = {
+        const simple = {
 					name: this.name,
 					key: this.key,
-                    score: this.score
-                };
-                if (this.isRobot) simple.isRobot = true;
-                if (this.isConnected) simple.isConnected = true;
+          score: this.score
+        };
+        if (this.isRobot) simple.isRobot = true;
+        if (this.isConnected) simple.isConnected = true;
 				if (this.dictionary) simple.dictionary = this.dictionary;
-                if (this.clock) simple.clock = this.clock;
-					
+        if (this.clock) simple.clock = this.clock;
+				
 				// Can they be emailed?
 				if (ump.email) simple.email = true;
 
 				if (this.missNextTurn) simple.missNextTurn = true;
 
-                return simple;
+        return simple;
 			});
 		}
 
@@ -220,7 +222,7 @@ define("game/Player", [
 		}
 
 		/**
-         * @override
+     * @override
 		 */
 		toString() {
 			let s = `Player '${this.name}'`;
@@ -247,7 +249,7 @@ define("game/Player", [
 		 */
 		$ui(curPlayer) {
 			const $tr = $(`<tr id="player${this.key}"></tr>`)
-				  .addClass("player-row");
+				    .addClass("player-row");
 			if (curPlayer && this.key === curPlayer.key)
 				$tr.addClass("whosTurn");
 			$tr.append(`<td class="turn-pointer">&#10148;</td>`);
@@ -255,7 +257,7 @@ define("game/Player", [
 			$icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
 			$tr.append($("<td></td>").append($icon));
 			const who = curPlayer && this.key === curPlayer.key
-				? Platform.i18n("You") : this.name;
+				    ? Platform.i18n("You") : this.name;
 			const $name = $(`<td class="player-name">${who}</td>`);
 			if (this.missNextTurn)
 				$name.addClass("miss-turn");
@@ -265,7 +267,7 @@ define("game/Player", [
 			// Robots are always connected
 			const $status = $(`<td class='connect-state'>${BLACK_CIRCLE}</td>`);
 			$status.addClass(
-                this.isConnected || this.isRobot ? "online" : "offline");
+        this.isConnected || this.isRobot ? "online" : "offline");
 			$tr.append($status);
 			
 			$tr.append(`<td class='score'>${this.score}</td>`);
@@ -288,9 +290,9 @@ define("game/Player", [
 		 * @param {boolean} tf true/false
 		 */
 		online(tf) {
-            const conn = this.isRobot || tf;
+      const conn = this.isRobot || tf;
 			if (!this.isRobot)
-                this.isConnected = conn;
+        this.isConnected = conn;
 			let rem = conn ? "offline" : "online";
 			let add = conn ? "online" : "offline";
 			$(`#player${this.key} .connect-state`)

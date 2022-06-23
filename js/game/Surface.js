@@ -1,10 +1,10 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node, jquery */
 
 define("game/Surface", [
-    "game/Square"
+  "game/Square"
 ], Square => {
 
 	/**
@@ -14,7 +14,7 @@ define("game/Surface", [
 
 		/**
 		 * Unique id for the surface. This is used in the construction
-         * of HTML id attributes for the Squares it contains.
+     * of HTML id attributes for the Squares it contains.
 		 * @member {string}
 		 */
 		id;

@@ -1,18 +1,18 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
 define("game/Edition", () => {
 	// Static DB of loaded Editions, indexed by name
 	const editions = {};
 
-    /**
-     * @typedef {object} BagLetter
-     * @param {string} BagLetter.letter - a code point (undefined for blank)
+  /**
+   * @typedef {object} BagLetter
+   * @param {string} BagLetter.letter - a code point (undefined for blank)
 	 * @param {number} BagLetter.score - score for this letter
 	 * @param {number} BagLetter.count - number of tiles for this letter
-     */
+   */
 
 	/**
 	 * A Scrabble-like crossword game edition.
@@ -27,17 +27,17 @@ define("game/Edition", () => {
 	 */
 	class Edition {
 		/**
-         * The initial bag of letters at
+     * The initial bag of letters at
 		 * the start of a game. Note that the ordering is unimportant
 		 * but if a dictionary is used, then there has to be a 1:1
 		 * correspondence between the alphabet used to generate the
 		 * DAWG and the letters in the bag.
-         * @member {BagLetter[]}
-         */
-        bag;
+     * @member {BagLetter[]}
+     */
+    bag;
 
-        /**
-         * A quarter-board, where each entry
+    /**
+     * A quarter-board, where each entry
 		 * represents a row of the Lower-right quadrant of the
 		 * board, so 0,0 is the middle. Each character in the strings
 		 * represents the scoring for that square encoded as follows:
@@ -45,70 +45,70 @@ define("game/Edition", () => {
 		 * t = triple letter, T = triple word
 		 *  q = quad letter, Q = quad word
 		 * _ = normal
-         * @member {string[]}
-         */
-        layout;
+     * @member {string[]}
+     */
+    layout;
 
-        /**
-         * The number of tiles on a players rack
-         * @member {number}
-         */
-        rackCount;
+    /**
+     * The number of tiles on a players rack
+     * @member {number}
+     */
+    rackCount;
 
-        /**
-         * Number of tiles swappable in a turn
-         * @member {number}
-         */
-        swapCount;
+    /**
+     * Number of tiles swappable in a turn
+     * @member {number}
+     */
+    swapCount;
 
-        /**
-         * maximum number of players
-         * @member {number}
-         */
-        maxPlayers;
+    /**
+     * maximum number of players
+     * @member {number}
+     */
+    maxPlayers;
 
-        /**
-         * Map of bonuses, from number of tiles used in play to bonus
-         * number of points.
-         * @member {object.<number,number>}
-         */
-        bonuses;
+    /**
+     * Map of bonuses, from number of tiles used in play to bonus
+     * number of points.
+     * @member {object.<number,number>}
+     */
+    bonuses;
 
-        /**
-         * Map from each letter in the bag to the score for that letter
-         * (computed)
-         * @member {object.<string,number>}
-         * @private
-         */
+    /**
+     * Map from each letter in the bag to the score for that letter
+     * (computed)
+     * @member {object.<string,number>}
+     * @private
+     */
 		scores;
 
-        /**
-         * Number of rows on the board (computed)
-         * @member {string[]}
-         */
+    /**
+     * Number of rows on the board (computed)
+     * @member {string[]}
+     */
 		rows;
 
-        /**
-         * Number of columns on the board (computed)
-         * @member {string[]}
-         */
+    /**
+     * Number of columns on the board (computed)
+     * @member {string[]}
+     */
 		cols;
 
-        /**
-         * List of the letters in the bag (computed)
-         * @member {string[]}
-         */
+    /**
+     * List of the letters in the bag (computed)
+     * @member {string[]}
+     */
 		alphabeta;
 
-        /**
-         * String containing all the letters in the bag, sorted (computed).
-         * @member {string[]}
-         */
+    /**
+     * String containing all the letters in the bag, sorted (computed).
+     * @member {string[]}
+     */
 		alphabet;
 
-        /**
-         * @param {object} spec the specification for the edition. This is an
-         * object that contains all the non-computed fields of an edition.
+    /**
+     * @param {object} spec the specification for the edition. This is an
+     * object that contains all the non-computed fields of an edition.
 		 */
 		constructor(spec) {
 			Object.getOwnPropertyNames(spec).forEach(
@@ -135,7 +135,7 @@ define("game/Edition", () => {
 
 		/**
 		 * Promise to load this edition
-         * @param {string} name what to call the edition
+     * @param {string} name what to call the edition
 		 * @return {Promise} resolves to the Edition
 		 */
 		static load(name) {

@@ -1,66 +1,66 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
 define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 
 	/**
 	 * Root of a tree of {@link TrieNode}, and operations thereon required
-     * to convert the Trie into an optimal Directed Acyclic Word Graph (DAWG).
-     * As such this is mis-named; the structure starts life as a Trie but
-     * may also represent a DAWG.
+   * to convert the Trie into an optimal Directed Acyclic Word Graph (DAWG).
+   * As such this is mis-named; the structure starts life as a Trie but
+   * may also represent a DAWG.
 	 */
 	class Trie {
 
-        /**
-         * Total number of words in this trie (count of end nodes)
-         * @member {number}
-         */
+    /**
+     * Total number of words in this trie (count of end nodes)
+     * @member {number}
+     */
 		numberOfWords = 0;
 
-        /**
-         * Total number of nodes in this trie (count of all nodes)
-         * @member {number}
-         */
+    /**
+     * Total number of nodes in this trie (count of all nodes)
+     * @member {number}
+     */
 		numberOfNodes = 0;
-        
-        /**
-         * Maximum word length, computed during conversion to DAWG
-         * @member {number}
-         * @private
-         */
+    
+    /**
+     * Maximum word length, computed during conversion to DAWG
+     * @member {number}
+     * @private
+     */
 		maxWordLen = 0;
 
-        /**
-         * Minimum word length, computed during conversion to DAWG
-         * @member {number}
-         * @private
-         */
+    /**
+     * Minimum word length, computed during conversion to DAWG
+     * @member {number}
+     * @private
+     */
 		minWordLen = 1000000;
 
-        /**
-         * Root node (has no letter or next, just children)
-         * @members {TrieNode}
-         * @private
-         */
+    /**
+     * Root node (has no letter or next, just children)
+     * @members {TrieNode}
+     * @private
+     */
 		first = new TrieNode(-1, null, false, 0, 0, null, false);
 
-        /**
-         * Debug function
-         * @member {function}
-         */
-        _debug = () => {};
+    /**
+     * Debug function
+     * @member {function}
+     */
+    _debug = () => {};
 
 		/**
 		 * Construct a Trie from a simple word list
 		 */
 		constructor(lexicon, debug) {
-            /* istanbul ignore if */
-            if (typeof debug === "function")
-                this._debug = debug;
+      /* istanbul ignore if */
+      if (typeof debug === "function")
+        this._debug = debug;
 			this._debug("\nConstruct Trie and fill from lexicon");
-            
+      
 			for (let word of lexicon)
 				this.addWord(word);
 
@@ -74,11 +74,11 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		addWord(word) {
 			let current = this.first;
 			let nNew = 0;
-            this.maxWordLen = Math.max(this.maxWordLen, word.length);
-            this.minWordLen = Math.min(this.minWordLen, word.length);
+      this.maxWordLen = Math.max(this.maxWordLen, word.length);
+      this.minWordLen = Math.min(this.minWordLen, word.length);
 			for (let x = 0; x < word.length; x++) {
 				const hangPoint = current.child ?
-					current.findChild(word[x]) : null;
+					    current.findChild(word[x]) : null;
 
 				if (!hangPoint) {
 					current.insertChild(
@@ -101,7 +101,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 				// flying on the last node.  This should never happen if
 				// words are added in alphabetical order, but this is not
 				// a requirement.
-                /* istanbul ignore if */
+        /* istanbul ignore if */
 				if (x === word.length - 1) {
 					this._debug(`WARNING input not in alphabetical order ${word}`);
 					current.isEndOfWord = true;
@@ -111,7 +111,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 			this.numberOfWords++;
 		}
 
-        /**
+    /**
 		 * Visit all words in sorted order.
 		 * @param {TrieNode~wordCallback} cb callback function
 		 */
@@ -121,11 +121,11 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 
 		/**
 		 * Construct an array indexed on {@link TrieNode#maxChildDepth},
-         * which corresponds to max-rest-of-word length.
+     * which corresponds to max-rest-of-word length.
 		 * Each entry is an array that contains all the nodes with that
 		 * max-rest-of-word length.
 		 * @return {TrieNode[][]} the structure
-         * @private
+     * @private
 		 */
 		createReductionStructure() {
 			this._debug("\nCreate reduction structure");
@@ -171,12 +171,12 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 * requires the node comparison function that will take a very
 		 * long time for a big dictionary. This is especially true
 		 * when comparing the nodes with small {@link TrieNode#maxChildDepth}'s
-         * because there are so many of them. It is faster to start
+     * because there are so many of them. It is faster to start
 		 * with nodes of the largest `maxChildDepth` to recursively
 		 * reduce as many lower nodes as possible.
 		 * @param {TrieNode[][]} red the reduction structure
-         * @return {number} the number of pruned nodes
-         * @private
+     * @return {number} the number of pruned nodes
+     * @private
 		 */
 		findPrunedNodes(red) {
 			this._debug("\nMark redundant nodes as pruned");
@@ -214,7 +214,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 					// after, and below it.
 					for (let x = w + 1; x < nodesAtDepth.length; x++) {
 						if (!nodesAtDepth[x].isPruned
-							&& nodesAtDepth[x].isFirstChild) {
+							  && nodesAtDepth[x].isFirstChild) {
 							if (nodesAtDepth[w].sameSubtrie(nodesAtDepth[x])) {
 								numberPruned += nodesAtDepth[x].prune();
 							}
@@ -226,21 +226,21 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 			}
 
 			this._debug(`Identified a total of ${totalPruned} nodes for pruning`);
-            return totalPruned;
+      return totalPruned;
 		}
 
 		/**
 		 * Label all of the remaining nodes in the Trie-turned-DAWG so that
 		 * they will fit contiguously into an unsigned integer array.
 		 * @return {TrieNode[]} all the nodes in the order they are indexed
-         * @private
+     * @private
 		 */
 		assignIndices() {
 
 			this._debug("\nAssign node indices");
 
-            // Clear down any pre-existing indices
-            this.first.child.eachNode(node => node.index = -1);
+      // Clear down any pre-existing indices
+      this.first.child.eachNode(node => node.index = -1);
 
 			let current = this.first.child;
 			const queue = [];
@@ -291,7 +291,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 			let trimmed = this.first.child.replaceRedundantNodes(red);
 			this._debug(`Decoupled ${trimmed} nodes to eliminate ${pruneable} nodes`);
 
-            this.numberOfNodes -= pruneable;
+      this.numberOfNodes -= pruneable;
 		}
 
 		/**
@@ -303,22 +303,22 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 
 			const nodelist = this.assignIndices();
 
-            /* istanbul ignore if */
+      /* istanbul ignore if */
 			if (nodelist.length > 0x3FFFFFFF)
 				throw Error(`Too many nodes remain for integer encoding`);
 
 			this._debug(`\t${nodelist.length} nodes`);
-            const len = 2 * nodelist.length + 1;
+      const len = 2 * nodelist.length + 1;
 			const dawg = new ArrayBuffer(len * 4);
-            const dv = new DataView(dawg);
-            let offset = 0;
-            dv.setUint32(offset, nodelist.length); offset += 4;
+      const dv = new DataView(dawg);
+      let offset = 0;
+      dv.setUint32(offset, nodelist.length); offset += 4;
 			// Add nodes
 			for (let i = 0; i < nodelist.length; i++) {
-                const node = nodelist[i].encode();
-                dv.setUint32(offset, node[0]); offset += 4;
-                dv.setUint32(offset, node[1]); offset += 4;
-            }
+        const node = nodelist[i].encode();
+        dv.setUint32(offset, node[0]); offset += 4;
+        dv.setUint32(offset, node[1]); offset += 4;
+      }
 
 			this._debug(`\t${len} element Uint32Array generated`);
 

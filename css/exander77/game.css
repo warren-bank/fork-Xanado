@@ -29,8 +29,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 	color: brown;
 }
 
-div.surround-shade table,
-div.bottom-shade table {
+.surround-shade {
     -webkit-box-shadow: 0 0 0.5em #000000;
     -moz-box-shadow: 0 0 0.5em #000000;
     -ms-box-shadow: 0 0 0.5em #000000;

@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 define("game/Tile", () => {
 	/**
@@ -38,7 +38,7 @@ define("game/Tile", () => {
 		 * @member {number}
 		 */
 		col = undefined;
-			
+		
 		/**
 		 * Row where the tile is placed
 		 * @member {number}
@@ -48,7 +48,8 @@ define("game/Tile", () => {
 		/**
 		 * @param {Tile|object} spec optional Tile to copy or spec of tile
 		 * @param {string} spec.letter character(s) represented by this tile
-		 * @param {boolean} spec.isBlank true if this tile is a blank (irresepective of letter)
+		 * @param {boolean} spec.isBlank true if this tile is a blank
+     * (irresepective of letter)
 		 * @param {number} spec.score value of this tile
 		 * @param {number} spec.col optional column where the tile is placed
 		 * @param {number} spec.row optional row where the tile is placed
@@ -59,31 +60,31 @@ define("game/Tile", () => {
 					p => this[p] = spec[p]);
 		}
 
-        /**
-         * Remove positional information from the tile e.g. before
-         * returning it to the bag or rack.
-         * @return {Tile} this
-         */
-        reset() {
+    /**
+     * Remove positional information from the tile e.g. before
+     * returning it to the bag or rack.
+     * @return {Tile} this
+     */
+    reset() {
 			delete this.row;
 			delete this.col;
-            if (this.isBlank)
-                this.letter = " ";
-            return this;
-        }
+      if (this.isBlank)
+        this.letter = " ";
+      return this;
+    }
 
 		/**
 		 * @override
 		 */
-        /* istanbul ignore next */
+    /* istanbul ignore next */
 		toString() {
 			let pl = typeof this.col === "number" ? `@${this.col}` : "";
-            if (typeof this.row === "number")
-                pl += `,${this.row}`;
-            const b = this.isBlank ? "[]" : "";
+      if (typeof this.row === "number")
+        pl += `,${this.row}`;
+      const b = this.isBlank ? "[]" : "";
 			return `[${this.letter}${b}${pl}(${this.score})]`;
 		}
-    }
+  }
 
 	return Tile;
 });

@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
 define("browser/game", [
@@ -16,18 +16,18 @@ define("browser/game", [
 	UI, Dialog
 ) => {
 
-    // Enumerated types
-    const Command = Types.Command;
-    const Notify  = Types.Notify;
-    const Penalty = Types.Penalty;
-    const Timer   = Types.Timer;
-    const State   = Types.State;
-    const Turns   = Types.Turns;
+  // Enumerated types
+  const Command = Types.Command;
+  const Notify  = Types.Notify;
+  const Penalty = Types.Penalty;
+  const Timer   = Types.Timer;
+  const State   = Types.State;
+  const Turns   = Types.Turns;
 
 	/**
 	 * User interface to a game in a browser. The Ui reflects the game state as
 	 * communicated from the server, through the exchange of various messages.
-     * @extends UI
+   * @extends UI
 	 */
 	class GameUI extends UI {
 
@@ -77,9 +77,9 @@ define("browser/game", [
 			const gameKey = m[1];
 			m = document.URL.match(/[?;&]observer=([^;&]+)/);
 			if (m) {
-                this.observer = m[1];
-                console.debug(`OBSERVER "${this.observer}"`);
-            }
+        this.observer = m[1];
+        console.debug(`OBSERVER "${this.observer}"`);
+      }
 
 			this.attachHandlers();
 
@@ -199,7 +199,7 @@ define("browser/game", [
 			if (!player)
 				player = new Player({name: "Unknown player"});
 			const challenger = (typeof turn.challengerKey === "string")
-				  ? this.game.getPlayer(turn.challengerKey) : undefined;
+				    ? this.game.getPlayer(turn.challengerKey) : undefined;
 
 			let what, who;
 			if (turn.type === Turns.CHALLENGE_LOST) {
@@ -217,7 +217,7 @@ define("browser/game", [
 			}
 			GameUI.$log(interactive, $.i18n(
 				"<span class='player-name'>$1</span> $2", who, what),
-					 "turn-player");
+					        "turn-player");
 
 			// What did they do?
 			let turnText;
@@ -298,19 +298,19 @@ define("browser/game", [
 			GameUI.$log(interactive, turnText, "turn-detail");
 
 			if (isLatestTurn
-				&& turn.emptyPlayerKey
-				&& !this.game.hasEnded()
-				&& turn.type !== Turns.CHALLENGE_LOST
-				&& turn.type !== Turns.GAME_OVER) {
+				  && turn.emptyPlayerKey
+				  && !this.game.hasEnded()
+				  && turn.type !== Turns.CHALLENGE_LOST
+				  && turn.type !== Turns.GAME_OVER) {
 				if (this.isThisPlayer(turn.emptyPlayerKey)) {
 					GameUI.$log(interactive, $.i18n(
 						"You have no more tiles, game will be over if your play isn't challenged"),
-						"turn-narrative");
+						          "turn-narrative");
 				} else if (this.player)
 					GameUI.$log(interactive, $.i18n(
 						"$1 has no more tiles, game will be over unless you challenge",
 						this.game.getPlayer(turn.emptyPlayerKey).name),
-							 "turn-narrative");
+							        "turn-narrative");
 			}
 		}
 
@@ -337,7 +337,7 @@ define("browser/game", [
 			const unplayed = game.getPlayers().reduce(
 				(sum, player) => sum + player.rack.score(), 0);
 			GameUI.$log(interactive, $.i18n(turn.endState || State.GAME_OVER),
-					 "game-state");
+					        "game-state");
 			const $narrative = $("<div></div>").addClass("game-outcome");
 			game.getPlayers().forEach(player => {
 				const isMe = this.isThisPlayer(player.key);
@@ -358,7 +358,7 @@ define("browser/game", [
 					if (unplayed > 0) {
 						$rackAdjust.text($.i18n(
 							"$1 gained $2 point{{PLURAL:$2||s}} from the racks of other players",
-										 name, unplayed));
+							name, unplayed));
 					}
 				} else if (player.rack.score() > 0) {
 					// Lost sum of unplayed letters
@@ -387,7 +387,7 @@ define("browser/game", [
 			else
 				nWinners = winners.length;
 			GameUI.$log(interactive, $.i18n("$1 {{PLURAL:$2|has|have}} won",
-										 who, nWinners));
+										                  who, nWinners));
 			GameUI.$log(interactive, $narrative);
 		}
 
@@ -412,7 +412,7 @@ define("browser/game", [
 				args = args.concat(message.args);
 			
 			const sender = /^chat-/.test(message.sender)
-				  ? $.i18n(message.sender) : message.sender;
+				    ? $.i18n(message.sender) : message.sender;
 			const $pn = $("<span></span>").addClass("chat-sender");
 			$pn.text(sender);
 
@@ -429,7 +429,7 @@ define("browser/game", [
 
 			// Special handling for Hint, highlight square
 			if (message.sender === "Advisor"
-				&& args[0] === "Hint") {
+				  && args[0] === "Hint") {
 				let row = args[2] - 1, col = args[3] - 1;
 				$(`#Board_${col}x${row}`).addClass("hint-placement");
 			}
@@ -461,9 +461,9 @@ define("browser/game", [
 			}
 
 			if (ticked === this.player
-				&& this.game.timerType === Timer.TURN
-				&& remains <= 10
-				&& this.getSetting("warnings"))
+				  && this.game.timerType === Timer.TURN
+				  && remains <= 10
+				  && this.getSetting("warnings"))
 				this.playAudio("tick");
 
 			const $to = $(`#player${ticked.key} .player-clock`);
@@ -523,26 +523,26 @@ define("browser/game", [
 
 			switch (event.key) {
 
-            case "ArrowUp": case "Up":
-                this.moveTypingCursor(0, -1);
-                break;
+      case "ArrowUp": case "Up":
+        this.moveTypingCursor(0, -1);
+        break;
 
-            case "ArrowDown": case "Down":
-                this.moveTypingCursor(0, 1);
-                break;
+      case "ArrowDown": case "Down":
+        this.moveTypingCursor(0, 1);
+        break;
 
-            case "ArrowLeft": case "Left":
-                this.moveTypingCursor(-1, 0);
-                break;
+      case "ArrowLeft": case "Left":
+        this.moveTypingCursor(-1, 0);
+        break;
 
-            case "ArrowRight": case "Right":
-                this.moveTypingCursor(1, 0);
-                break;
+      case "ArrowRight": case "Right":
+        this.moveTypingCursor(1, 0);
+        break;
 
-            case "Backspace":
-            case "Delete": // Remove placement behind typing cursor
-                this.unplaceLastTyped();
-                break;
+      case "Backspace":
+      case "Delete": // Remove placement behind typing cursor
+        this.unplaceLastTyped();
+        break;
 
 			case "Home": // Take back letters onto the rack
 				this.takeBackTiles();
@@ -607,23 +607,23 @@ define("browser/game", [
 			}
 		}
 
-        /**
-         * Update the list of non-playing observers
-         * @param {object[]} non-playing observers
-         */
-        updateObservers(obs) {
-            if (obs.length > 0) {
-                $("#scoresBlock > .observerCount")
-                .show()
-                .text($.i18n("+ $1 observer{{PLURAL:$1||s}}",
-                             obs.length));
-            } else
-                $("#scoresBlock > .observerCount").hide();
-        }
+    /**
+     * Update the list of non-playing observers
+     * @param {object[]} non-playing observers
+     */
+    updateObservers(obs) {
+      if (obs.length > 0) {
+        $("#scoresBlock > .observerCount")
+        .show()
+        .text($.i18n("+ $1 observer{{PLURAL:$1||s}}",
+                     obs.length));
+      } else
+        $("#scoresBlock > .observerCount").hide();
+    }
 
-        /**
-         * Refresh the player table
-         */
+    /**
+     * Refresh the player table
+     */
 		updatePlayerTable() {
 			const $playerTable = this.game.$ui(this.player);
 			$("#scoresBlock > .playerList").html($playerTable);
@@ -652,7 +652,7 @@ define("browser/game", [
 				$("#scoresBlock td.remaining-tiles").empty();
 			} else {
 				$("#scoresBlack > .letterbag")
-                .text($.i18n("The letter bag is empty"));
+        .text($.i18n("The letter bag is empty"));
 				const countElements = $("#scoresBlock td.remaining-tiles");
 				this.game.getPlayers().forEach(
 					(player, i) =>
@@ -678,15 +678,15 @@ define("browser/game", [
 					this.player = game.getPlayer(session.key);
 					if (this.player)
 						return this.player.key;
-				    $(".bad-user")
-				    .show()
-				    .find("button")
-				    .on("click", () => {
-					    $.post("/logout")
-					    .then(() => location.replace(location));
-				    });
-                    this.observer = this.session.name;
-                }
+				  $(".bad-user")
+				  .show()
+				  .find("button")
+				  .on("click", () => {
+					  $.post("/logout")
+					  .then(() => location.replace(location));
+				  });
+          this.observer = this.session.name;
+        }
 				$(".notPlaying").show();
 				return undefined;
 			});
@@ -747,7 +747,7 @@ define("browser/game", [
 
 			const lastTurn = game.lastTurn();
 			if (lastTurn && (lastTurn.type === Turns.PLAY
-							 || lastTurn.type === Turns.CHALLENGE_LOST)) {
+							         || lastTurn.type === Turns.CHALLENGE_LOST)) {
 				if (this.isThisPlayer(lastTurn.playerKey)) {
 					// It isn't our turn, but we might still have time to
 					// change our minds on the last move we made
@@ -768,7 +768,7 @@ define("browser/game", [
 					}
 				})
 				.on("click", () => this.shuffleRack());
-			
+			  
 				$(".unplace-button").button({
 					showLabel: false,
 					icon: "unplace-icon",
@@ -819,8 +819,8 @@ define("browser/game", [
 				// Player.simple
 				console.debug("--> connections");
 				this.game.updatePlayerList(
-                    observers.filter(o => !o.isObserver));
-                this.updateObservers(observers.filter(o => o.isObserver));
+          observers.filter(o => !o.isObserver));
+        this.updateObservers(observers.filter(o => o.isObserver));
 				this.updatePlayerTable();
 				let myGo = this.isThisPlayer(this.game.whosTurnKey);
 				this.lockBoard(!myGo);
@@ -928,13 +928,13 @@ define("browser/game", [
 			// Events raised by game components
 			$(document)
 			.on("SquareChanged",
-				(e, square) => square.$refresh())
+				  (e, square) => square.$refresh())
 
 			.on("SelectSquare",
-				(e, square) => this.selectSquare(square))
+				  (e, square) => this.selectSquare(square))
 
 			.on("DropSquare",
-				(e, source, square) => this.dropSquare(source, square))
+				  (e, source, square) => this.dropSquare(source, square))
 
 			// Keydown anywhere in the document
 			.on("keydown", event => this.handle_keydown(event));
@@ -946,9 +946,9 @@ define("browser/game", [
 		 */
 		manuallyPlaceLetter(letter) {
 			if (!this.selectedSquare
-				|| !this.selectedSquare.isEmpty()
-				// Make sure the selected square is on the board!
-				|| !(this.selectedSquare.owner instanceof Board))
+				  || !this.selectedSquare.isEmpty()
+				  // Make sure the selected square is on the board!
+				  || !(this.selectedSquare.owner instanceof Board))
 				return;
 
 			// check it's supported
@@ -1020,8 +1020,8 @@ define("browser/game", [
 			}
 			this.selectedSquare = undefined;
 			if (square
-				// Only select empty squares on the board
-				&& (!square.isEmpty() || square.owner instanceof Board)) {
+				  // Only select empty squares on the board
+				  && (!square.isEmpty() || square.owner instanceof Board)) {
 				this.selectedSquare = square;
 				this.selectedSquare.setSelected(true);
 			}
@@ -1176,7 +1176,7 @@ define("browser/game", [
 			fromSquare.placeTile(null);
 			if (tile.isBlank) {			
 				if (!(toSquare.owner instanceof Board)) {
-                    tile.reset();
+          tile.reset();
 					toSquare.placeTile(tile);
 					toSquare.$refresh();
 				} else if (ifBlank) {
@@ -1225,7 +1225,7 @@ define("browser/game", [
 				this.lockBoard(true);
 				if (this.player.key === this.game.whosTurnKey)
 					this.setAction("action_confirmGameOver",
-									   /*i18n*/"Accept last move");
+									       /*i18n*/"Accept last move");
 				else
 					$(".turn-button").hide();
 				return;
@@ -1244,9 +1244,9 @@ define("browser/game", [
 					this.enableTurnButton(false);
 				} else {
 					// Play is legal, calculate bonus if any
-                    const bonus =
-                          this.game.calculateBonus(move.placements.length);
-                    move.score += bonus; 
+          const bonus =
+                this.game.calculateBonus(move.placements.length);
+          move.score += bonus; 
 					$move.append(GameUI.$score(move, !this.game.predictScore));
 					this.enableTurnButton(true);
 				}
@@ -1306,10 +1306,10 @@ define("browser/game", [
 						this.placedCount--;
 				});
 
-            this.removeMoveActionButtons();
+      this.removeMoveActionButtons();
 			const player = this.game.getPlayer(turn.playerKey);
 			const challenger = (typeof turn.challengerKey === "string")
-				  ? this.game.getPlayer(turn.challengerKey) : undefined;
+				    ? this.game.getPlayer(turn.challengerKey) : undefined;
 
 			if (turn.type === Turns.CHALLENGE_LOST) {
 				challenger.score += turn.score;
@@ -1375,7 +1375,7 @@ define("browser/game", [
 					/*.i18n("ui-notify-title-retracted")*/
 					/*.i18n("ui-notify-body-retracted")*/
 					this.notify("retracted",
-								this.game.getPlayer(turn.playerKey).name);
+								      this.game.getPlayer(turn.playerKey).name);
 				}
 				break;
 
@@ -1467,12 +1467,12 @@ define("browser/game", [
 				}
 
 				if (this.isThisPlayer(turn.nextToGoKey)
-					&& turn.type !== Turns.TOOK_BACK) {
+					  && turn.type !== Turns.TOOK_BACK) {
 					// It's our turn next, and we didn't just take back
 					/*.i18n("ui-notify-title-your-turn")*/
 					/*.i18n("ui-notify-body-your-turn")*/
 					this.notify("your-turn",
-								this.game.getPlayer(turn.playerKey).name);
+								      this.game.getPlayer(turn.playerKey).name);
 				}
 				this.game.whosTurnKey = turn.nextToGoKey;
 				this.updateWhosTurn();
@@ -1512,10 +1512,10 @@ define("browser/game", [
 			const text = $.i18n(
 				"Challenge $1's turn", player.name);
 			const $button =
-				  $(`<button name="challenge">${text}</button>`)
-				  .addClass("moveAction")
-				  .button()
-				  .on("click", () => this.challenge());
+				    $(`<button name="challenge">${text}</button>`)
+				    .addClass("moveAction")
+				    .button()
+				    .on("click", () => this.challenge());
 			GameUI.$log(true, $button, "turn-control");
 		}
 
@@ -1526,10 +1526,10 @@ define("browser/game", [
 		 */
 		addTakeBackPreviousButton(turn) {
 			const $button =
-				  $(`<button name="takeBack" class="moveAction"></button>`)
-				  .text($.i18n("Take back"))
-				  .button()
-				  .on("click", () => this.takeBackMove());
+				    $(`<button name="takeBack" class="moveAction"></button>`)
+				    .text($.i18n("Take back"))
+				    .button()
+				    .on("click", () => this.takeBackMove());
 			GameUI.$log($button, "turn-control");
 		}
 
@@ -1564,9 +1564,9 @@ define("browser/game", [
 				UI.report(move);
 				return;
 			}
-            const bonus = this.game.calculateBonus(move.placements.length);
-            move.score += bonus;
-            if (bonus > 0 && this.getSetting("cheers"))
+      const bonus = this.game.calculateBonus(move.placements.length);
+      move.score += bonus;
+      if (bonus > 0 && this.getSetting("cheers"))
 				this.playAudio("bonusCheer");
 
 			move.playerKey = this.player.key;
@@ -1621,9 +1621,9 @@ define("browser/game", [
 			const key = this.game.nextGameKey;
 			$.post(`/join/${key}`)
 			.then(info => {
-                location.replace(
-                    `/html/game.html?game=${key}&player=${this.player.key}`);
-            })
+        location.replace(
+          `/html/game.html?game=${key}&player=${this.player.key}`);
+      })
 			.catch(console.error);
 		}
 		

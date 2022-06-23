@@ -1,10 +1,10 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
 define("dawg/TrieNode", [
-    "dawg/LetterNode"
+  "dawg/LetterNode"
 ], LetterNode => {
 
 	let nodeIds = 0;
@@ -20,70 +20,70 @@ define("dawg/TrieNode", [
 	 * {@link LetterNode}s at the sharp end.
 	 */
 	class TrieNode {
-        /**
-         * The letter at this node
-         * @member {string}
-         */
-        letter = undefined;
+    /**
+     * The letter at this node
+     * @member {string}
+     */
+    letter = undefined;
 
-        /**
-         * Unique ID for this node, purely used for debugging
-         * @member {number}
-         */
-        id = -1;
+    /**
+     * Unique ID for this node, purely used for debugging
+     * @member {number}
+     */
+    id = -1;
 
-        /**
-         * Pointer to the next alternative to this letter
-         * @member {TrieNode}
-         */
-        next = null;
+    /**
+     * Pointer to the next alternative to this letter
+     * @member {TrieNode}
+     */
+    next = null;
 
-        /**
-         * Pointer to the first next letter if this letter is matched
-         * @member {TrieNode}
-         */
-        child = null;
+    /**
+     * Pointer to the first next letter if this letter is matched
+     * @member {TrieNode}
+     */
+    child = null;
 
-        /**
-         * Marker for a valid end-of-word node
-         * @member {boolean}
-         */
-        isEndOfWord = false;
+    /**
+     * Marker for a valid end-of-word node
+     * @member {boolean}
+     */
+    isEndOfWord = false;
 
-        /**
-         * Marker for the first child under a parent node. This is
-         * used when the node is arrived at other than through the
-         * parent
-         * @member {boolean}
-         */
-        isFirstChild = false;
+    /**
+     * Marker for the first child under a parent node. This is
+     * used when the node is arrived at other than through the
+     * parent
+     * @member {boolean}
+     */
+    isFirstChild = false;
 
-        /**
-         * Will be set if the node is to be pruned after DAWG generation
-         * @member {boolean}
-         */
-        isPruned = false;
+    /**
+     * Will be set if the node is to be pruned after DAWG generation
+     * @member {boolean}
+     */
+    isPruned = false;
 
-        /**
-         * Maximum number of nodes under this node (iei remaining length
-         * of the longest word this node partiipates in)
-         * @member {number}
-         */
-        maxChildDepth = 0;
-        
-        /**
-         * Number of child nodes under this node - used for optimisation
-         * @member {number}
-         */
-        numberOfChildren = 0;
+    /**
+     * Maximum number of nodes under this node (iei remaining length
+     * of the longest word this node partiipates in)
+     * @member {number}
+     */
+    maxChildDepth = 0;
+    
+    /**
+     * Number of child nodes under this node - used for optimisation
+     * @member {number}
+     */
+    numberOfChildren = 0;
 
-        /**
-         * Index of the node in the encoded DAWG, assigned when the
-         * encoding is generated
-         * @member {number}
-         */
-        index = -1;
-        
+    /**
+     * Index of the node in the encoded DAWG, assigned when the
+     * encoding is generated
+     * @member {number}
+     */
+    index = -1;
+    
 		/**
 		 * @param {string} letter codepoint
 		 * @param {TrieNode} next next node pointer
@@ -102,11 +102,11 @@ define("dawg/TrieNode", [
 			this.id = nodeIds++;
 		}
 
-        /* istanbul ignore next */
-        /**
-         * Debug
-         * @param {boolean} deeply true to expand child nodes
-         */
+    /* istanbul ignore next */
+    /**
+     * Debug
+     * @param {boolean} deeply true to expand child nodes
+     */
 		toString(deeply) {
 			let simpler = `{${this.id} ${this.letter}`;
 
@@ -114,15 +114,15 @@ define("dawg/TrieNode", [
 				simpler += ".";
 			if (this.child) {
 				simpler += "+";
-                if (deeply)
-                    simpler += this.child.toString(deeply);
-            }
-            simpler += "}";
+        if (deeply)
+          simpler += this.child.toString(deeply);
+      }
+      simpler += "}";
 			if (this.next) {
 				simpler += "-";
-                if (deeply)
-                    simpler += this.next.toString(deeply);
-            }
+        if (deeply)
+          simpler += this.next.toString(deeply);
+      }
 
 			return simpler;
 		}
@@ -157,7 +157,7 @@ define("dawg/TrieNode", [
 		 * sorted order.
 		 * @param {TrieNode[]} nodes list of nodes visited to create the word
 		 * @param {TrieNode~wordCallback} cb callback function
-         * @private
+     * @private
 		 */
 		eachWord(nodes, cb) {
 
@@ -175,13 +175,13 @@ define("dawg/TrieNode", [
 				this.next.eachWord(nodes, cb);
 		}
 
-        eachNode(cb) {
-            cb(this);
-            if (this.next)
-                this.next.eachNode(cb);
-            if (this.child)
-                this.child.eachNode(cb);
-        }
+    eachNode(cb) {
+      cb(this);
+      if (this.next)
+        this.next.eachNode(cb);
+      if (this.child)
+        this.child.eachNode(cb);
+    }
 
 		/**
 		 * Search along this's child next chain for a node with the 
@@ -244,19 +244,19 @@ define("dawg/TrieNode", [
 		 * @return {boolean} if the are the same
 		 */
 		sameSubtrie(other) {
-            //console.debug("CMP",this.toString(), !other ? "null" : other.toString());
+      //console.debug("CMP",this.toString(), !other ? "null" : other.toString());
 			if (other === this) // identity
 				return true;
 
 			if (other === null
-				|| other.letter !== this.letter
-				|| other.maxChildDepth !== this.maxChildDepth
-				|| other.numberOfChildren !== this.numberOfChildren
-				|| other.isEndOfWord !== this.isEndOfWord
-				|| !this.child && other.child
-				|| this.child && !other.child
-				|| !this.next && other.next
-				|| this.next && !other.next)
+				  || other.letter !== this.letter
+				  || other.maxChildDepth !== this.maxChildDepth
+				  || other.numberOfChildren !== this.numberOfChildren
+				  || other.isEndOfWord !== this.isEndOfWord
+				  || !this.child && other.child
+				  || this.child && !other.child
+				  || !this.next && other.next
+				  || this.next && !other.next)
 				return false;
 
 			if (this.child && !this.child.sameSubtrie(other.child))
@@ -275,7 +275,7 @@ define("dawg/TrieNode", [
 		 * Trie.
 		 * @param {TrieNode[][]} red reduction structure
 		 * @return {TrieNode}
-         * @private
+     * @private
 		 */
 		findSameSubtrie(red) {
 			//return red[this.maxChildDepth].find(n => this.sameSubtrie(n));
@@ -283,7 +283,7 @@ define("dawg/TrieNode", [
 			for (x = 0; x < red[this.maxChildDepth].length; x++)
 				if (this.sameSubtrie(red[this.maxChildDepth][x]))
 					break;
-            /* istanbul ignore if */
+      /* istanbul ignore if */
 			if (red[this.maxChildDepth][x].isPruned)
 				throw Error("Same subtrie equivalent is pruned!");
 			return red[this.maxChildDepth][x];
@@ -309,7 +309,7 @@ define("dawg/TrieNode", [
 					// as pruned, so let us replace it with its first
 					// equivalent which isn't tagged.
 					this.child = this.child.findSameSubtrie(red);
-                    /* istanbul ignore if */
+          /* istanbul ignore if */
 					if (this.child === null)
 						throw Error("Something horrible");
 					trimmed++;
@@ -342,7 +342,7 @@ define("dawg/TrieNode", [
 			if (!this.next)
 				numb |= LetterNode.END_OF_LIST_BIT_MASK;
 			array.push(numb);
-            return array;
+      return array;
 		}
 	}
 

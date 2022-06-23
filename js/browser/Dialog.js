@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
 define("browser/Dialog", () => {
@@ -44,7 +44,7 @@ define("browser/Dialog", () => {
 				$.get(`/html/${id}.html`)
 				.then(html_code => {
 					const $div = $(`<div id="${id}" class="dialog"></div>`)
-						  .html(html_code);
+						    .html(html_code);
 					$("body").append($div);
 					this.$dlg = $(`#${id}`);
 					this.$dlg.dialog({
@@ -108,46 +108,46 @@ define("browser/Dialog", () => {
 			.find("label[data-image]")
 			.each(function() {
 				$(this).css("background-image",
-							`url("${$(this).data('image')}")`);
+							      `url("${$(this).data('image')}")`);
 			});
 
 			// Using tooltips with a selectmenu is tricky.
-            // Applying tooltip() to the select is useless, you have
+      // Applying tooltip() to the select is useless, you have
 			// to apply it to the span that is inserted as next
 			// sibling after the select. However this span is not
 			// created until some indeterminate time in the future,
 			// and there is no event triggered.
-            //
-            // What have to do is to wait until the selectmenus
-            // have (hopefully!) been created before creating the
-            // tooltips.
-            const self = this;
+      //
+      // What have to do is to wait until the selectmenus
+      // have (hopefully!) been created before creating the
+      // tooltips.
+      const self = this;
 			this.$dlg
-            .find('select')
+      .find('select')
 			.selectmenu()
 			.on("selectmenuchange",
-				function() {
-                    $(this).blur();
-                    self.$dlg.data("this").enableSubmit();
-                });
- 
+				  function() {
+            $(this).blur();
+            self.$dlg.data("this").enableSubmit();
+          });
+      
 			setTimeout(
-                () => this.$dlg
+        () => this.$dlg
 				.find('select[data-i18n-tooltip] ~ .ui-selectmenu-button')
 				.tooltip({
-                    items: ".ui-selectmenu-button",
-				    position: {
-					    my: "left+15 center",
-					    at: "right center",
-                        within: "body"
-				    },
-				    content: function() {
-				        return $.i18n(
-                            $(this)
-                            .prev()
-                            .data('i18n-tooltip'));
-				    }
-                }),
+          items: ".ui-selectmenu-button",
+				  position: {
+					  my: "left+15 center",
+					  at: "right center",
+            within: "body"
+				  },
+				  content: function() {
+				    return $.i18n(
+              $(this)
+              .prev()
+              .data('i18n-tooltip'));
+				  }
+        }),
 				100);
 
 			// hide or show a password
@@ -306,5 +306,5 @@ define("browser/Dialog", () => {
 		}
 	}
 
-    return Dialog;
+  return Dialog;
 });

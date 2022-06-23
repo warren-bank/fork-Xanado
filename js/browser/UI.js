@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
 define("browser/UI", [
@@ -14,7 +14,7 @@ define("browser/UI", [
 	"i18n_language",
 	"i18n_messagestore",
 	"i18n_parser",
-    "cldrpluralruleparser"
+  "cldrpluralruleparser"
 ], (
 	Sockets, Dialog
 ) => {
@@ -106,10 +106,10 @@ define("browser/UI", [
 			}
 			catch(e) {
 				$(audio).on("canplaythrough", 
-					() => {
-						$(audio).off("canplaythrough");
-						audio.play();
-					}, true);
+					          () => {
+						          $(audio).off("canplaythrough");
+						          audio.play();
+					          }, true);
 			}
 		}
 
@@ -182,7 +182,7 @@ define("browser/UI", [
 			});
 
 			console.debug("UI loaded, connecting to socket");
-            // The server URL will be deduced from the window.location
+      // The server URL will be deduced from the window.location
 			this.socket = Sockets.connect();
 			let $reconnectDialog = null;
 			this.socket
@@ -266,9 +266,9 @@ define("browser/UI", [
 			.catch(e => {
 				$(".logged-in").hide();
 				$(".not-logged-in").show();
-                if (typeof this.observer === "string")
-                    $(".observer").show().text($.i18n(
-                        "Observer '$1'", this.observer));
+        if (typeof this.observer === "string")
+          $(".observer").show().text($.i18n(
+            "Observer '$1'", this.observer));
 				$(".not-logged-in>button")
 				.on("click", () => Dialog.open("LoginDialog", {
 					postResult: () => location.replace(location),
@@ -287,7 +287,7 @@ define("browser/UI", [
 		 */
 		getSetting(key) {
 			return (this.session && this.session.settings
-					&& typeof this.session.settings[key] !== "undefined")
+					    && typeof this.session.settings[key] !== "undefined")
 			? this.session.settings[key]
 			: this.defaults[key];
 		}
@@ -305,8 +305,8 @@ define("browser/UI", [
 		 */
 		canNotify() {
 			if (!(this.usingHttps
-				  && this.getSetting("notification")
-				  && "Notification" in window))
+				    && this.getSetting("notification")
+				    && "Notification" in window))
 				return Promise.reject();
 
 			switch (Notification.permission) {

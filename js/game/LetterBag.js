@@ -1,10 +1,10 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
 define("game/LetterBag", [
-    "game/Tile"
+  "game/Tile"
 ], Tile => {
 
 	/**
@@ -12,16 +12,16 @@ define("game/LetterBag", [
 	 */
 	class LetterBag {
 
-        /**
-         * Array of Tiles in the bag
-         * @member {Tile[]}
-         */
+    /**
+     * Array of Tiles in the bag
+     * @member {Tile[]}
+     */
 		tiles = [];
 
 		/**
-         * Array of all the letters in the bag, excluding blank.
-         * @member {string}
-         */
+     * Array of all the letters in the bag, excluding blank.
+     * @member {string}
+     */
 		legalLetters = [];
 
 		/**
@@ -31,8 +31,8 @@ define("game/LetterBag", [
 		 */
 		constructor(edition) {
 			for (let letter of edition.bag) {
-                // legalLetters is an array, not a string, to support
-                // multi-character tiles
+        // legalLetters is an array, not a string, to support
+        // multi-character tiles
 				if (!letter.isBlank)
 					// Not blank
 					this.legalLetters.push(letter.letter);
@@ -126,14 +126,14 @@ define("game/LetterBag", [
 			return this.tiles.map(tile => tile.letter);
 		}
 
-        /* istanbul ignore next */
+    /* istanbul ignore next */
 		/**
 		 * Generate a simple string representation of the player
-         * @override
+     * @override
 		 */
 		toString() {
-            return "(" + this.letters.join("") + ")";
-        }
+      return "(" + this.letters.join("") + ")";
+    }
 	}
 	return LetterBag;
 });

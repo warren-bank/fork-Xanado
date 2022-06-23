@@ -25,6 +25,15 @@ body {
     user-select: none;
 }
 
+/* Shaded box */
+.surround-shade {
+    -webkit-box-shadow: 0 0 0.5em #000000;
+    -moz-box-shadow: 0 0 0.5em #000000;
+    -ms-box-shadow: 0 0 0.5em #000000;
+    -o-box-shadow: 0 0 0.5em #000000;
+    box-shadow: 0 0 0.5em #000000;
+}
+
 .hidden {
 	display: none;
 }

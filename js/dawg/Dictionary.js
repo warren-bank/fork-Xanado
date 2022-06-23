@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
 define("dawg/Dictionary", [
@@ -20,12 +20,12 @@ define("dawg/Dictionary", [
 	 */
 	class Dictionary {
 
-	    /**
-         * Cache of dictionaries
-         * @member {Dictionary[]}
-         * @private
-         */
-        static cache = [];
+	  /**
+     * Cache of dictionaries
+     * @member {Dictionary[]}
+     * @private
+     */
+    static cache = [];
 
 		/**
 		 * First node in the dictionary.
@@ -34,13 +34,13 @@ define("dawg/Dictionary", [
 		root;
 
 		/**
-         * List of valid start points, such that at least one
+     * List of valid start points, such that at least one
 		 * start point must match() for any sequence of chars, or
 		 * there can't possibly be a word. Map from letter to a
 		 * LetterNode or a list of LetterNode.
 		 * @private
 		 */
-        sequenceRoots;
+    sequenceRoots;
 
 		/**
 		 * @param {string} name name of the dictionary
@@ -63,9 +63,9 @@ define("dawg/Dictionary", [
 		 * discarded.
 		 * @param {(Buffer|Array)?} data the DAWG data.
 		 * @return {Dictionary} this
-         * @private
+     * @private
 		 */
-        loadDAWG(data) {
+    loadDAWG(data) {
 			const dv = new DataView(data);
 			let index = 0;
 			const numberOfNodes = dv.getUint32(4 * index++);
@@ -138,8 +138,8 @@ define("dawg/Dictionary", [
 
 		/**
 		 * Find anagrams of a set of letters. An anagram is defined as any
-         * complete (2 or more characters) word that uses all or some of the
-         * letters passed in.
+     * complete (2 or more characters) word that uses all or some of the
+     * letters passed in.
 		 * @param {string} theChars the letters, ' ' for an any-letter wildcard.
 		 * @return {Object<string, string>} a map of actual words to the letter
 		 * sequence (using ' ' for blanks) that matched.
@@ -149,7 +149,7 @@ define("dawg/Dictionary", [
 
 			/* istanbul ignore if */
 			if (theChars.length < 2)
-                throw new Error("Too short to find anagrams");
+        throw new Error("Too short to find anagrams");
 
 			// Sort the list of characters.
 			// Sorting makes it easier to debug.
@@ -165,7 +165,7 @@ define("dawg/Dictionary", [
 		 * For each letter of the alphabet, establish a list of valid
 		 * start points, such that at least one start point must match()
 		 * for any sequence of chars, or there can't possibly be a word.
-         * @private
+     * @private
 		 */
 		createSequenceRoots() {
 			this.sequenceRoots = {};
@@ -191,20 +191,20 @@ define("dawg/Dictionary", [
 			return this.sequenceRoots[ch] || [];
 		}
 
-        /**
-         * Do the work of adding a word, but don't do anything about
-         * pre-/post- links or sequence roots.
-         * @private
-         */
+    /**
+     * Do the work of adding a word, but don't do anything about
+     * pre-/post- links or sequence roots.
+     * @private
+     */
 		_addWord(word) {
 			/* istanbul ignore if */
 			if (word.length === 0)
 				return false;
 			if (this.root)
-			    return this.root.add(word);
+			  return this.root.add(word);
 			this.root = new LetterNode(word.charAt(0));
 			this.root.add(word);
-            return true;
+      return true;
 		}
 
 		/**
@@ -217,17 +217,17 @@ define("dawg/Dictionary", [
 		 * @return {boolean} true if the word needed to be added, false
 		 * if it was empty or already there.
 		 */
-        addWord(word) {
-            if (this._addWord(word)) {
-                // Don't recreate, that will be done on demand
-			    delete this.sequenceRoots;
-			    // Re-build forward and back lists. This could be done
-                // incrementally, but it's a reasonably cheap operation so....
-			    this.root.buildLists();
-                return true;
-            }
-            return false;
-        }
+    addWord(word) {
+      if (this._addWord(word)) {
+        // Don't recreate, that will be done on demand
+			  delete this.sequenceRoots;
+			  // Re-build forward and back lists. This could be done
+        // incrementally, but it's a reasonably cheap operation so....
+			  this.root.buildLists();
+        return true;
+      }
+      return false;
+    }
 
 		/**
 		 * Find start node for the character sequence in the sequence
@@ -239,7 +239,7 @@ define("dawg/Dictionary", [
 		 * intended to help eliminate invalid sequences when extending
 		 * a word backwards from a seed letter.
 		 * @param {string} seq letter sequence
-         * @private
+     * @private
 		 */
 		findSequence(seq) {
 			if (!this.sequenceRoots)
@@ -310,12 +310,12 @@ define("dawg/Dictionary", [
 					if (!dict)
 						dict = new Dictionary(name);
 					const words = text
-						  .toString()
-						  .toUpperCase()
-						  .split(/\r?\n/)
-						  .map(w => w.replace(/\s.*$/, ""))
-						  .filter(line => line.length > 0)
-						  .sort();
+						    .toString()
+						    .toUpperCase()
+						    .split(/\r?\n/)
+						    .map(w => w.replace(/\s.*$/, ""))
+						    .filter(line => line.length > 0)
+						    .sort();
 					let added = 0;
 					words.forEach(w => {
 						if (dict._addWord(w))
@@ -332,7 +332,7 @@ define("dawg/Dictionary", [
 			.then(() => {
 				if (dict) {
 					// one of .dict or .white (or both) loaded
-                    // Add bidirectional traversal links
+          // Add bidirectional traversal links
 					dict.addLinks();
 					Dictionary.cache[name] = dict;
 					//console.debug(`Loaded dictionary ${name}`);

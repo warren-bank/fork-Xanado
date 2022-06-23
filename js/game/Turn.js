@@ -1,32 +1,32 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
 define("game/Turn", [
-    "game/Tile", "game/Move", "game/Types"
+  "game/Tile", "game/Move", "game/Types"
 ], (Tile, Move, Types) => {
 
-    const Penalty = Types.Penalty;
+  const Penalty = Types.Penalty;
 
 	/**
 	 * Despite the name, a Turn is used not just for a player's turn
 	 * (such as a play or a swap) but also for other results from
 	 * commands sent to the server, such as challenges.
-     * @extends Move
+   * @extends Move
 	 */
 	class Turn extends Move {
 		/**
 		 * The 'type' of the turn.
 		 * @member {Turns}
 		 */
-        type;
+    type;
 
 		/**
 		 * Key of the game
 		 * @member {Key}
 		 */
-        gameKey;
+    gameKey;
 
 		/**
 		 * Key of the player who has been affected by the turn. Normally
@@ -35,13 +35,13 @@ define("game/Turn", [
 		 * challenged.
 		 * @member {Key}
 		 */
-        playerKey;
+    playerKey;
 
 		/**
 		 * Key of the next player who's turn it is
 		 * @member {Key}
 		 */
-        nextToGoKey;
+    nextToGoKey;
 
 		/**
 		 * @param {Game} game the game this is a turn in.
@@ -58,72 +58,72 @@ define("game/Turn", [
 			this.nextToGoKey = params.nextToGoKey;
 
 			if (params.replacements)
-		        /**
-		         * List of tiles drawn from the bag to replace the tiles played
-		         * in this turn. These tiles will not have positions.
-		         * @member {Tile[]?}
-		         */
+		    /**
+		     * List of tiles drawn from the bag to replace the tiles played
+		     * in this turn. These tiles will not have positions.
+		     * @member {Tile[]?}
+		     */
 				this.replacements = params.replacements.map(
 					tilespec => new Tile(tilespec));
 
-		    if (params.challengerKey)
-                /**
-		         * For `Turns.CHALLENGE_WON` and `Turns.CHALLENGE_LOST`,
-		         * the key of the player who challenged. playerkey in this case
-		         * will be the player who's play was challenged (always the
-		         * previous player)
-		         * @member {Key?}
-		         */
+		  if (params.challengerKey)
+        /**
+		     * For `Turns.CHALLENGE_WON` and `Turns.CHALLENGE_LOST`,
+		     * the key of the player who challenged. playerkey in this case
+		     * will be the player who's play was challenged (always the
+		     * previous player)
+		     * @member {Key?}
+		     */
 				this.challengerKey = params.challengerKey;
 
 			let ep = game.getPlayers().find(p => p.rack.isEmpty());
 			if (ep)
-		        /**
-		         * Player who's rack has been left empty by the play that
-		         * resulted in this turn
-		         * @member {Key?}
-		         */
+		    /**
+		     * Player who's rack has been left empty by the play that
+		     * resulted in this turn
+		     * @member {Key?}
+		     */
 				this.emptyPlayerKey = ep.key;
 
 			if (params.endState)
-		        /**
-		         * String describing the reason the game ended. Only used when
-		         * type==Turns.GAME_OVER
-		         * @member {State?}
-		         */
+		    /**
+		     * String describing the reason the game ended. Only used when
+		     * type==Turns.GAME_OVER
+		     * @member {State?}
+		     */
 				this.endState = params.endState;
 		}
 
-        /* istanbul ignore next */
+    /* istanbul ignore next */
 		/**
-         * @override
+     * @override
 		 */
 		toString() {
-            let s = `Turn ${this.type} ${this.playerKey}`;
-            if (this.challengerKey)
-                s += ` by ${this.challengerKey}`;
-            if (this.nextToGoKey && this.nextToGoKey !== this.playerKey)
-                s += ` ->${this.nextToGoKey}`;
+      let s = `Turn ${this.type} ${this.playerKey}`;
+      if (this.challengerKey)
+        s += ` by ${this.challengerKey}`;
+      if (this.nextToGoKey && this.nextToGoKey !== this.playerKey)
+        s += ` ->${this.nextToGoKey}`;
 
-            if (typeof this.score !== "undefined")
-                s += ` (${this.score})`;
+      if (typeof this.score !== "undefined")
+        s += ` (${this.score})`;
 
-            if (this.placements)
-                s += " <=" + this.placements.map(t => t.toString(true));
-            
-            if (this.words)
-                s += ' "' + this.words.map(w => w.word) + '"';
+      if (this.placements)
+        s += " <=" + this.placements.map(t => t.toString(true));
+      
+      if (this.words)
+        s += ' "' + this.words.map(w => w.word) + '"';
 
-            if (this.replacements)
-			    s += " =>" + this.replacements.map(t => t.toString(true));
+      if (this.replacements)
+			  s += " =>" + this.replacements.map(t => t.toString(true));
 
-            if (this.penalty === Penalty.MISS)
-                s += ` MISS`;
-            
-            if (this.endState)
-                s += ` ${this.endState}`;
+      if (this.penalty === Penalty.MISS)
+        s += ` MISS`;
+      
+      if (this.endState)
+        s += ` ${this.endState}`;
 
-            return s;
+      return s;
 		}
 	}
 

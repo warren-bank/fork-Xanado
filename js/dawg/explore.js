@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node */
 
 /**
@@ -22,7 +22,7 @@ requirejs.config({
 });
 
 const DESCRIPTION = "USAGE\n  node explore.js [options] <.dict file> <words>\n"
-	  + "Explore a DAWG dictionary.";
+	    + "Explore a DAWG dictionary.";
 
 requirejs([
 	"fs", "node-getopt", "platform", "dawg/Dictionary"
@@ -48,7 +48,7 @@ requirejs([
 			}
 		} else if (root.node && root.node.isEndOfWord)
 			console.log(`"${root.word}" was found`,
-						root.node.child ? "& is a root" : "");
+						      root.node.child ? "& is a root" : "");
 		else if (root.node && root.node.child)
 			console.log(`"${root.word}" is a root`);
 		else
@@ -112,7 +112,7 @@ requirejs([
 	}
 
 	const opt = Getopt.create([
-        ["", "help", "Show this help"],
+    ["", "help", "Show this help"],
 		["", "list", "Without parameters, dump a complete list of the words in the DAWG. With parameters, dump all words that have the parameters word(s) as their root"],
 		["", "file=ARG", "Check all words read from file"],
 		["", "anagrams[=ARG]", "Find anagrams of the words. Optionally require sub-anagrams to be a minimum length."],
@@ -120,12 +120,12 @@ requirejs([
 	])
         .bindHelp()
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
-		.parseSystem();
+		    .parseSystem();
 
-    if (opt.argv.length == 0) {
-        opt.showHelp();
-        throw "No DAWG filename given";
-    } else {
+  if (opt.argv.length == 0) {
+    opt.showHelp();
+    throw "No DAWG filename given";
+  } else {
 		opt.dawgfile = opt.argv.shift();
 	}
 

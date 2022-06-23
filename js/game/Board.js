@@ -1,34 +1,36 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node, jquery */
 
-define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile, Move) => {
+define("game/Board", [
+  "game/Surface", "game/Tile", "game/Move"
+], (Surface, Tile, Move) => {
 
 	/**
 	 * The square game board.
-     * @extends Surface
+   * @extends Surface
 	 */
 	class Board extends Surface {
 
 		/**
-         * Row of middle square on board.
-         * @member {number}
-         */
-        midrow;
+     * Row of middle square on board.
+     * @member {number}
+     */
+    midrow;
 
 		/**
-         * Column of middle square on board.
-         * @member {number}
-         */
-        midcol;
+     * Column of middle square on board.
+     * @member {number}
+     */
+    midcol;
 
 		/**
 		 * @param {Edition} edition the edition defining the board layout
 		 */
 		constructor(edition) {
 			super("Board", edition.cols, edition.rows,
-				  (col, row) => edition.squareType(col, row));
+				    (col, row) => edition.squareType(col, row));
 
 			this.midrow = Math.floor(edition.rows / 2);
 			this.midcol = Math.floor(edition.cols / 2);
@@ -63,13 +65,13 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 			}
 		}
 
-
+    
 		/**
 		 * Given a play at col, row, compute it's score. Used in
-         * findBestPlay, and must perform as well as possible. Read
-         * the description of `analysePlay` to understand the
-         * difference between these two related functions.
-         * Note: does *not* include any bonuses due to number of tiles played.
+     * findBestPlay, and must perform as well as possible. Read
+     * the description of `analysePlay` to understand the
+     * difference between these two related functions.
+     * Note: does *not* include any bonuses due to number of tiles played.
 		 * @param {number} col the col of the LAST letter
 		 * @param {number} row the row of the LAST letter
 		 * @param {number} dcol 1 if the word being played across
@@ -116,8 +118,8 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 
 				// Look left/up
 				for (let cp = c - drow, rp = r - dcol;
-					 cp >= 0 && rp >= 0 && this.at(cp, rp).tile;
-					 cp -= drow, rp -= dcol) {
+					   cp >= 0 && rp >= 0 && this.at(cp, rp).tile;
+					   cp -= drow, rp -= dcol) {
 					const tile = this.at(cp, rp).tile;
 					crossWord = tile.letter + crossWord;
 					crossWordScore += tile.score;
@@ -127,9 +129,9 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 
 				// Look right/down
 				for (let cp = c + drow, rp = r + dcol;
-					 cp < this.cols && rp < this.rows
-					 && this.at(cp, rp).tile;
-					 cp += drow, rp += dcol) {
+					   cp < this.cols && rp < this.rows
+					   && this.at(cp, rp).tile;
+					   cp += drow, rp += dcol) {
 					const tile = this.at(cp, rp).tile;
 					crossWord += tile.letter;
 					crossWordScore += tile.score;
@@ -141,9 +143,9 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 					crossWordScore *= crossWordMultiplier;
 					if (words)
 						words.push({
-                            word: crossWord,
-                            score: crossWordScore
-                        });
+              word: crossWord,
+              score: crossWordScore
+            });
 
 					crossWordsScore += crossWordScore;
 				}
@@ -173,12 +175,12 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 			return (
 				(col > 0 && this.at(col - 1, row).tile
 				 && this.at(col - 1, row).tileLocked)
-				|| (col < this.cols - 1 && this.at(col + 1, row).tile
-					&& this.at(col + 1, row).tileLocked)
-				|| (row > 0 && this.at(col, row - 1).tile
-					&& this.at(col, row - 1).tileLocked)
-				|| (row < this.rows - 1 && this.at(col, row + 1).tile
-					&& this.at(col, row + 1).tileLocked));
+			  || (col < this.cols - 1 && this.at(col + 1, row).tile
+					  && this.at(col + 1, row).tileLocked)
+			  || (row > 0 && this.at(col, row - 1).tile
+					  && this.at(col, row - 1).tileLocked)
+			  || (row < this.rows - 1 && this.at(col, row + 1).tile
+					  && this.at(col, row + 1).tileLocked));
 		}
 
 		/**
@@ -187,7 +189,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		 * and difficult to analyse.
 		 * @param {Move.wordSpec[]} words list to update
 		 * @return {number} the total score
-         * @private
+     * @private
 		 */
 		scoreNewWords(words) {
 			let totalScore = 0;
@@ -199,8 +201,8 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 				let wordMultiplier = 1;
 				let isNewWord = false;
 				while (col < this.cols
-					   && row < this.rows
-					   && this.at(col, row).tile) {
+					     && row < this.rows
+					     && this.at(col, row).tile) {
 					const square = this.at(col, row);
 					let letterScore = square.tile.score;
 					isNewWord = isNewWord || !square.tileLocked;
@@ -285,7 +287,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 					legalPlacements[col][topLeftY] = true;
 					horizontal = true;
 					isTouchingOld =
-					isTouchingOld || this.touchingOld(col, topLeftY);
+				  isTouchingOld || this.touchingOld(col, topLeftY);
 				}
 			}
 
@@ -296,7 +298,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 					} else if (!this.at(topLeftX, row).tileLocked) {
 						legalPlacements[topLeftX][row] = true;
 						isTouchingOld =
-						isTouchingOld || this.touchingOld(topLeftX, row);
+					  isTouchingOld || this.touchingOld(topLeftX, row);
 					}
 				}
 			}
@@ -324,7 +326,7 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 					placements.push(square.tile);
 				}
 			});
-	
+	    
 			const words = [];
 			const score = this.scoreNewWords(words);
 			return new Move(
@@ -358,9 +360,9 @@ define("game/Board", ["game/Surface", "game/Tile", "game/Move"], (Surface, Tile,
 		}
 
 		/**
-         * @override
+     * @override
 		 */
-        /* istanbul ignore next */
+    /* istanbul ignore next */
 		toString() {
 			let s = `Board ${this.cols}x${this.rows}\n`;
 

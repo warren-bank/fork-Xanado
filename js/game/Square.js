@@ -1,10 +1,10 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, jquery */
 
 define("game/Square", [
-    "platform"
+  "platform"
 ], Platform => {
 
 	// Map the characters in the board template to CSS classes
@@ -27,7 +27,7 @@ define("game/Square", [
 	 */
 	class Square {
 
-        /**
+    /**
 		 * /^[QqTtSs_]$/ see {@link Board}
 		 * @member {string}
 		 */
@@ -133,16 +133,16 @@ define("game/Square", [
 		 * the placement.
 		 * @param {boolean} locked whether the tile is to be locked to
 		 * the square (fixed on the board).
-         * @return {Tile?} tile unplaced from the square, if any
+     * @return {Tile?} tile unplaced from the square, if any
 		 */
 		placeTile(tile, locked) {
-            /* istanbul ignore if */
+      /* istanbul ignore if */
 			if (tile && this.tile && tile !== this.tile) {
 				console.error("Tile ", tile, " over ", this.tile);
 				throw Error(`Square already occupied: ${this}`);
 			}
 
-            const oldTile = this.tile;
+      const oldTile = this.tile;
 			if (tile) {
 				tile.col = this.col;
 				if (typeof this.row !== "undefined")
@@ -156,13 +156,13 @@ define("game/Square", [
 				if (oldTile && this.tileLocked)
 					oldTile.reset();
 				delete this.tile;
-                delete this.tileLocked;
+        delete this.tileLocked;
 			}
 
 			// Used in the UI to update the square
 			Platform.trigger("SquareChanged", [ this ]);
 
-            return oldTile;
+      return oldTile;
 		}
 
 		/**
@@ -189,8 +189,8 @@ define("game/Square", [
 				return;
 
 			$div.removeClass("selected")
-				.removeClass("temporary")
-				.off("click");
+			.removeClass("temporary")
+			.off("click");
 
 			if (this.tile)
 				this.refreshOccupied($div);
@@ -223,7 +223,7 @@ define("game/Square", [
 		/**
 		 * Update a square that has a Tile dropped on it
 		 * @param {jQuery} $div the <div> for the square
-         * @private
+     * @private
 		 */
 		refreshOccupied($div) {
 			if ($div.hasClass("ui-droppable"))
@@ -285,7 +285,7 @@ define("game/Square", [
 		/**
 		 * Update a square that doesn't have a Tile dropped on it
 		 * @param {jQuery} $div the <div> for the square
-         * @private
+     * @private
 		 */
 		refreshEmpty($div) {
 
@@ -320,10 +320,10 @@ define("game/Square", [
 				$div.append(`<div class="underlay">${this.underlay}</div>`);
 		}
 
-        /* istanbul ignore next */
-        /**
-         * @override
-         */
+    /* istanbul ignore next */
+    /**
+     * @override
+     */
 		toString() {
 			// All squares have a col
 			let string = `${this.type} square @ ${this.col}`;

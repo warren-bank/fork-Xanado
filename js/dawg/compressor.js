@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /* eslint-env node */
 
@@ -50,11 +50,11 @@ requirejs(["fs", "node-gzip", "dawg/Trie"], (fs, Gzip, Trie) => {
 	Fs.readFile(infile, "utf8")
 	.then(async function(data) {
 		const lexicon = data
-			  .toUpperCase()
-			  .split(/\r?\n/)
-			  .map(w => w.replace(/\s.*$/, "")) // comments
-			  .filter(line => line.length > 0)
-			  .sort();
+			    .toUpperCase()
+			    .split(/\r?\n/)
+			    .map(w => w.replace(/\s.*$/, "")) // comments
+			    .filter(line => line.length > 0)
+			    .sort();
 
 		// First step; generate a Trie from the words in the lexicon
 		const trie = new Trie(lexicon, console.debug);

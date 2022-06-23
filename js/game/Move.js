@@ -1,10 +1,10 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
 define("game/Move", [
-    "game/Tile"
+  "game/Tile"
 ], Tile => {
 
 	/**
@@ -23,7 +23,7 @@ define("game/Move", [
 		 * in Turn.
 		 * @member {number|object}
 		 */
-        score;
+    score;
 
 		/**
 		 * @param {(Move|object)?} params Move to copy, or params, or undefined
@@ -32,25 +32,25 @@ define("game/Move", [
 		 */
 		constructor(params) {
 			if (params.words)
-		        /**
-		         * List of words created by the play:
-                 * ```
-                 * { word: string, score: number }
-		         * @member {object[]?}
-		         */
+		    /**
+		     * List of words created by the play:
+         * ```
+         * { word: string, score: number }
+		     * @member {object[]?}
+		     */
 				this.words = params.words;
 
 			this.score = params ? (params.score || 0) : 0;
 
 			if (params.placements)
-		        /**
-		         * List of tiles placed in this move. Tiles are required
-		         * to carry col, row positions where they were placed.  In
-		         * a Turn, for type=`move` it indicates the move. For
-		         * `Turns.TOOK_BACK` and `Turns.CHALLENGE_WON` it is
-		         * the move just taken back/challenged.
-		         * @member {Tile[]?}
-		         */
+		    /**
+		     * List of tiles placed in this move. Tiles are required
+		     * to carry col, row positions where they were placed.  In
+		     * a Turn, for type=`move` it indicates the move. For
+		     * `Turns.TOOK_BACK` and `Turns.CHALLENGE_WON` it is
+		     * the move just taken back/challenged.
+		     * @member {Tile[]?}
+		     */
 				this.placements = params.placements.map(
 					tilespec => new Tile(tilespec));
 		}
@@ -66,9 +66,9 @@ define("game/Move", [
 				this.placements = [tile];
 		}
 
-        /**
-         * @override
-         */
+    /**
+     * @override
+     */
 		toString() {
 			const pl = this.placements.map(t => t.toString(true));
 			const w = this.words.map(w => `${w.word}(${w.score})`);
