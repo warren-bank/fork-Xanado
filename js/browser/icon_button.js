@@ -19,30 +19,30 @@
  * ```
  */
 define("js/browser/icon_button", ["jqueryui"], function () {
-    $.widget("jquery.icon_button", $.ui.button, {
-        _create: function () {
-            this.options.icon = this.options.icon || this.element.data("icon");
-            if (this.options.icon && !/^ui-icon-/.test(this.options.icon)) {
-                this.options.icons = {
-                    primary: this.options.icon
-                };
-                this.options.classes = {
-                    "ui-button-icon": "icon_button"
-                };
-                delete this.options.icon;
-            }
-            this.options.text = false;
-            this._super();
-        },
+  $.widget("jquery.icon_button", $.ui.button, {
+    _create: function () {
+      this.options.icon = this.options.icon || this.element.data("icon");
+      if (this.options.icon && !/^ui-icon-/.test(this.options.icon)) {
+        this.options.icons = {
+          primary: this.options.icon
+        };
+        this.options.classes = {
+          "ui-button-icon": "icon_button"
+        };
+        delete this.options.icon;
+      }
+      this.options.text = false;
+      this._super();
+    },
 
-        _setOption: function (option, value) {
-            if (option === "icon" && !/^ui-icon-/.test(value)) {
-                option = "icons";
-                value = {
-                    primary: value
-                };
-            }
-            this._super(option, value);
-        }
-    });
+    _setOption: function (option, value) {
+      if (option === "icon" && !/^ui-icon-/.test(value)) {
+        option = "icons";
+        value = {
+          primary: value
+        };
+      }
+      this._super(option, value);
+    }
+  });
 });

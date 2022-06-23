@@ -5,7 +5,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /**
  * This is the requirejs configuration and top level invocation for the server
- * only. The actual code is in {@link Server}. Note that paths are relative
+ * only. The actual code is in {@linkcode Server}. Note that paths are relative
  * to the root of the distribution (where this script lives).
  * @module
  */

@@ -18,7 +18,7 @@ define("game/findBestPlayController", [
   const Timer = Types.Timer;
 
 	/**
-	 * Interface is the same as for {@link findBestPlay} so they
+	 * Interface is the same as for {@linkcode findBestPlay} so they
 	 * can be switched in and out.
 	 */
 	function findBestPlayController(

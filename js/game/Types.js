@@ -6,12 +6,12 @@
 define("game/Types", () => {
 
   /**
-   * See {@link https://nodejs.org/api/http.html|http.ServerRequest}
+   * See {@linkcode https://nodejs.org/api/http.html|http.ServerRequest}
    * @typedef {http.SereverRequest} Request
    */
 
   /**
-   * See {@link https://nodejs.org/api/http.html|http.ServerResponse}
+   * See {@linkcode https://nodejs.org/api/http.html|http.ServerResponse}
    * @typedef {http.ServerResponse} Response
    */
 
@@ -83,7 +83,7 @@ define("game/Types", () => {
    * @typedef {NONE|TURN|GAME} Timer
    */
   const Timer = {
-	  NONE:  /*i18n*/"No timer",
+	  NONE:  undefined,
 	  TURN:  /*i18n*/"Turn timer",
 	  GAME:  /*i18n*/"Game timer"
   };
@@ -97,14 +97,14 @@ define("game/Types", () => {
    * @typedef {NONE|MISS|PER_TURN|PER_WORD} Penalty
    */
   const Penalty = {
-		NONE:     /*i18n*/"No penalty",
+		NONE:     undefined,
 		MISS:     /*i18n*/"Miss next turn",
 		PER_TURN: /*i18n*/"Lose points",
 		PER_WORD: /*i18n*/"Lose points per word"
   };
 
   /**
-   * Different types of {@link Turn}
+   * Different types of {@linkcode Turn}
 	 * * PLAY - some tiles were placed on the board
 	 * * SWAP - player swapped for fresh tiles from the bag
 	 * * GAME_OVER - game is over
@@ -112,7 +112,7 @@ define("game/Types", () => {
 	 * * CHALLENGE_WON - player challenged, and won
 	 * * TOOK_BACK - player took back their play
 	 * * PASSED - player passed
-	 * * TIMED_OUT - player was timed out (if {@link Timer{ type is 'TURN')
+	 * * TIMED_OUT - player was timed out (if timer type is `TURN`)
    * @typedef {PLAY|SWAP|GAME_OVER|CHALLENGE_LOST|CHALLENGE_WON|TOOK_BACK|PASSED|TIMED_OUT} Turns
    */
   const Turns = {
@@ -136,7 +136,7 @@ define("game/Types", () => {
    * @typedef {NONE|AFTER|REJECT} WordCheck
    */
   const WordCheck = {
-		NONE:    /*i18n*/"Don't check words",
+		NONE:    undefined,
 		AFTER:   /*i18n*/"Check words after play",
 		REJECT:  /*i18n*/"Reject unknown words"
   };

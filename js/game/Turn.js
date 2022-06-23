@@ -46,7 +46,7 @@ define("game/Turn", [
 		/**
 		 * @param {Game} game the game this is a turn in.
 		 * @param {object} params parameters. Any field with the same name
-		 * as a member (or a member of {@link Move}) will initialise
+		 * as a member (or a member of {@linkcode Move}) will initialise
 		 * that member.
 		 */
 		constructor(game, params) {

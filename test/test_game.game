@@ -1008,7 +1008,6 @@
    }
   ],
   "whosTurnKey": "human",
-  "timerType": "No timer",
   "timePenalty": 5,
   "board": {
    "_Í": 85,

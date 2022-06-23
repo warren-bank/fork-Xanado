@@ -23,89 +23,89 @@ define("game/Square", [
 	 * A square on the game board or rack. A Tile holder with some
 	 * underlying attributes; a position, an owner, and a type that
 	 * dictates the score multipliers that apply. The owner will be a
-	 * subclass of {@link Surface} (a {@link Rack} or a {@link Board})
+	 * subclass of {@linkcode Surface} (a {@linkcode Rack} or a {@linkcode Board})
 	 */
 	class Square {
 
-    /**
-		 * /^[QqTtSs_]$/ see {@link Board}
-		 * @member {string}
-		 */
-		type;
-
 		/**
-		 * Rack or Board
-		 * @member {Surface?}
-		 */
-		owner; // Rack or Board
-
-		/**
-		 * 0-based column where the square is.
-		 * @member {number}
-		 */
-		col = -1;
-
-		/**
-		 * 0-based row where the square is (undefined on a 1D surface).
-		 * @member {number?}
-		 */
-		row;
-
-		/**
-		 * Unique id for this square
-		 * @member {string}
-		 */
-		id;
-
-		/**
-		 * Multiplier for letters using this square
-		 * @member {number}
-		 */
-		letterScoreMultiplier = 1;
-
-		/**
-		 * Multiplier for wordss using this square
-		 * @member {number}
-		 */
-		wordScoreMultiplier = 1;
-
-		/**
-		 * Tile placed on this square
-		 * @member {Tile?}
-		 */
-		tile;
-
-		/**
-		 * True if the tile cannot be moved i.e. it was
-		 * placed in a prior move. Locked tiles don't gather
-		 * bonuses.
-		 * @member {boolean}
-		 */
-		tileLocked = false;
-
-		/**
-		 * Underlay character to put in the background of the square when
-		 * there is no tile present.
-		 * @member {string}
-		 */
-		underlay;
-
-		/**
-		 * @param {string} type /^[QqTtSs_]$/ see {@link Board}
-		 * @param {Surface} owner the container this is in
-		 * @param {number} col 0-based column where the square is
-		 * @param {number?} row 0-based row where the square is
+     * @param {object} spec Specification
+		 * @param {string} spec.type /^[QqTtSs_]$/ see {@linkcode Board}
+		 * @param {Surface} spec.owner the container this is in
+		 * @param {number} spec.col 0-based column where the square is
+		 * @param {number?} spec.row 0-based row where the square is
 		 * (undefined on a rack)
 		 */
-		constructor(type, owner, col, row) {
-			this.type = type;
-			this.owner = owner; // Rack or Board
-			this.col = col;
-			if (typeof row !== "undefined")
-				this.row = row;
-			this.id = `${owner.id}_${col}`;
-			if (typeof row !== "undefined")
-				this.id += `x${row}`;
+		constructor(spec) {
+      /**
+		   * /^[QqTtSs_]$/ see {@linkcode Board}
+		   * @member {string}
+		   */
+			this.type = spec.type;
+
+			/**
+		   * Rack or Board
+		   * @member {Surface?}
+		   */
+      this.owner = spec.owner; // Rack or Board
+
+		  /**
+		   * 0-based column where the square is.
+		   * @member {number}
+		   */
+			this.col = spec.col;
+
+		  /**
+		   * Unique id for this square
+		   * @member {string}
+		   */
+			this.id = `${this.owner.id}_${this.col}`;
+
+			if (typeof spec.row !== "undefined") {
+		    /**
+		     * 0-based row where the square is (undefined on a 1D surface).
+		     * @member {number?}
+		     */
+				this.row = spec.row;
+				this.id += `x${this.row}`;
+      }
+
+      if (spec.tile) {
+		    /**
+		     * Tile placed on this square
+		     * @member {Tile?}
+		     */
+		    this.tile = spec.tile;
+
+		    if (spec.tileLocked)
+		      /**
+		       * True if the placed tile cannot be moved i.e. it was
+		       * placed in a prior move. Locked tiles don't gather
+		       * bonuses.
+		       * @member {boolean}
+           * @private
+		       */
+          this.tileLocked = true;
+      }
+
+		  if (spec.underlay)
+        /**
+		     * Underlay character to put in the background of the square when
+		     * there is no tile present.
+		     * @member {string}
+		     */
+		    this.underlay = spec.underlay;
+
+		  /**
+		   * Multiplier for letters using this square
+		   * @member {number}
+		   */
+		  this.letterScoreMultiplier = 1;
+
+		  /**
+		   * Multiplier for words using this square
+		   * @member {number}
+		   */
+		  this.wordScoreMultiplier = 1;
 
 			// Determine score multipliers from type
 			switch (this.type) {
@@ -120,22 +120,28 @@ define("game/Square", [
 		}
 
 		/**
-		 * Determine if the square has a tile or not
+		 * @return true if the square doesn't have a tile placed on it
 		 */
 		isEmpty() {
 			return !this.tile;
 		}
 
+    /**
+     * @return {boolean} true if a tile is placed and it is locked
+     */
+    isLocked() {
+      return this.tile && this.tileLocked;
+    }
+
 		/**
 		 * Place a tile on this square. Tiles are locked when a play is
 		 * committed to a Board.
-		 * @param {Tile?} tile the Tile to place, or undefined to remove
-		 * the placement.
-		 * @param {boolean} locked whether the tile is to be locked to
+		 * @param {Tile} tile the tile to place
+		 * @param {boolean} [lock] whether the tile is to be locked to
 		 * the square (fixed on the board).
      * @return {Tile?} tile unplaced from the square, if any
 		 */
-		placeTile(tile, locked) {
+		placeTile(tile, lock) {
       /* istanbul ignore if */
 			if (tile && this.tile && tile !== this.tile) {
 				console.error("Tile ", tile, " over ", this.tile);
@@ -143,27 +149,40 @@ define("game/Square", [
 			}
 
       const oldTile = this.tile;
-			if (tile) {
-				tile.col = this.col;
-				if (typeof this.row !== "undefined")
-					tile.row = this.row;
-				this.tile = tile;
-				this.tileLocked = locked;
-			}
-			else {
-				// Note that a locked tile might be unplaced as
-				// part of undoing a challenged play
-				if (oldTile && this.tileLocked)
-					oldTile.reset();
-				delete this.tile;
-        delete this.tileLocked;
-			}
+			tile.col = this.col;
+			if (typeof this.row !== "undefined")
+				tile.row = this.row;
+			this.tile = tile;
+
+      if (lock)
+        this.tileLocked = true;
 
 			// Used in the UI to update the square
 			Platform.trigger("SquareChanged", [ this ]);
 
       return oldTile;
 		}
+
+		/**
+		 * Remove the tile placed on this square.
+     * @return {Tile?} tile unplaced from the square, if any
+		 */
+    unplaceTile() {
+			// Note that a locked tile might be unplaced as
+			// part of undoing a challenged play. Only then should
+      // the tile letter be reset.
+			if (this.tile) {
+        if (this.tileLocked) {
+					this.tile.reset(); // clear letter
+          delete this.tileLocked;
+        }
+        delete this.tile.col;
+        delete this.tile.row;
+				delete this.tile;
+
+			  Platform.trigger("SquareChanged", [ this ]);
+      }
+    }
 
 		/**
 		 * Create the jquery representation

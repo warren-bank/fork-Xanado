@@ -38,7 +38,7 @@ define("game/Board", [
 
 		/**
 		 * Load the board from the string representation output by
-		 * toString. This is for use in tests.
+		 * {@linkcode Board#toString|toString}. This is for use in tests.
 		 * @param {string} sboard string representation of the board
 		 * @param {Edition} edition the edition defining the board layout.
 		 * This has to be provided because we don't cache the actual
@@ -69,8 +69,8 @@ define("game/Board", [
 		/**
 		 * Given a play at col, row, compute it's score. Used in
      * findBestPlay, and must perform as well as possible. Read
-     * the description of `analysePlay` to understand the
-     * difference between these two related functions.
+     * the description of {@linkcode Board#analysePlay|analysePlay}
+     * to understand the difference between these two related functions.
      * Note: does *not* include any bonuses due to number of tiles played.
 		 * @param {number} col the col of the LAST letter
 		 * @param {number} row the row of the LAST letter
@@ -96,7 +96,7 @@ define("game/Board", [
 				const r = tile.row;
 				let letterScore = tile.score;
 				const square = this.at(c, r);
-				if (square.tileLocked) {
+				if (square.isLocked()) {
 					wordScore += letterScore;
 					continue; // pre-existing tile, no bonuses
 				}
@@ -174,13 +174,13 @@ define("game/Board", [
 		touchingOld(col, row) {
 			return (
 				(col > 0 && this.at(col - 1, row).tile
-				 && this.at(col - 1, row).tileLocked)
+				 && this.at(col - 1, row).isLocked())
 			  || (col < this.cols - 1 && this.at(col + 1, row).tile
-					  && this.at(col + 1, row).tileLocked)
+					  && this.at(col + 1, row).isLocked())
 			  || (row > 0 && this.at(col, row - 1).tile
-					  && this.at(col, row - 1).tileLocked)
+					  && this.at(col, row - 1).isLocked())
 			  || (row < this.rows - 1 && this.at(col, row + 1).tile
-					  && this.at(col, row + 1).tileLocked));
+					  && this.at(col, row + 1).isLocked()));
 		}
 
 		/**
@@ -205,8 +205,8 @@ define("game/Board", [
 					     && this.at(col, row).tile) {
 					const square = this.at(col, row);
 					let letterScore = square.tile.score;
-					isNewWord = isNewWord || !square.tileLocked;
-					if (!square.tileLocked) {
+					isNewWord = isNewWord || !square.isLocked();
+					if (!square.isLocked()) {
 						letterScore *= square.letterScoreMultiplier;
 						wordMultiplier *= square.wordScoreMultiplier;
 					}
@@ -239,18 +239,17 @@ define("game/Board", [
 		}
 
 		/**
-		 * UI-side move calculation. Constructs a {@link Move}.
-		 * `analysePlay` and `scorePlay` do essentially the same job;
-		 * calculate the score for a given play. They differ in
-		 * respect of their application; `analysePlay` is used
-		 * client-side to calculate a move made by a human and has to
-		 * be tolerant of disconnected plays and other errors. It
-		 * works on a board with tiles placed but not locked.
-		 * `scorePlay` is used to calculate the score for a play being
-		 * constructed on the server side by a robot, and has to
-		 * perform as well as possible. Note that neither
-		 * `analysePlay` nor `scorePlay` calculate bonuses for number
-		 * of tiles played.
+		 * UI-side move calculation. Constructs a {@linkcode Move}.
+		 * `analysePlay` and {@linkcode Board#scorePlay|scorePlay} do
+     * essentially the same job; calculate the score for a given
+		 * play. They differ in respect of their application;
+		 * `analysePlay` is used client-side to calculate a move made by a
+		 * human and has to be tolerant of disconnected plays and other
+		 * errors. It works on a board with tiles placed but not locked.
+		 * `scorePlay` is used server-side to calculate the score for a
+		 * play being constructed on the server side by a robot, and has
+		 * to perform as well as possible. Note that neither `analysePlay`
+		 * nor `scorePlay` calculate bonuses for number of tiles played.
 		 * @return {(Move|string)} Move, or a string if there is a problem
 		 */
 		analysePlay() {
@@ -263,7 +262,7 @@ define("game/Board", [
 			// Find top-leftmost placed tile
 			let topLeftX, topLeftY, tile;
 			this.forEachTiledSquare((square, col, row) => {
-				if (square.tileLocked)
+				if (square.isLocked())
 					return false;
 				tile = square.tile;
 				topLeftX = col;
@@ -283,7 +282,7 @@ define("game/Board", [
 			for (let col = topLeftX + 1; col < this.cols; col++) {
 				if (this.at(col, topLeftY).isEmpty())
 					break;
-				if (!this.at(col, topLeftY).tileLocked) {
+				if (!this.at(col, topLeftY).isLocked()) {
 					legalPlacements[col][topLeftY] = true;
 					horizontal = true;
 					isTouchingOld =
@@ -295,7 +294,7 @@ define("game/Board", [
 				for (let row = topLeftY + 1; row < this.rows; row++) {
 					if (!this.at(topLeftX, row).tile) {
 						break;
-					} else if (!this.at(topLeftX, row).tileLocked) {
+					} else if (!this.at(topLeftX, row).isLocked()) {
 						legalPlacements[topLeftX][row] = true;
 						isTouchingOld =
 					  isTouchingOld || this.touchingOld(topLeftX, row);
@@ -311,7 +310,7 @@ define("game/Board", [
 			let disco = false;
 			this.forEachTiledSquare((square, col, row) => {
 				totalTiles++;
-				disco = disco || (!square.tileLocked && !legalPlacements[col][row]);
+				disco = disco || (!square.isLocked() && !legalPlacements[col][row]);
 			});
 			
 			if (disco)
@@ -322,7 +321,7 @@ define("game/Board", [
 
 			const placements = [];
 			this.forEachTiledSquare(square => {
-				if (!square.tileLocked) {
+				if (!square.isLocked()) {
 					placements.push(square.tile);
 				}
 			});
@@ -359,10 +358,12 @@ define("game/Board", [
 			return $table;
 		}
 
+    /* istanbul ignore next */
 		/**
+     * Generate a string representation of the board in the format
+     * readable by {@linkcode Board#parse|parse}
      * @override
 		 */
-    /* istanbul ignore next */
 		toString() {
 			let s = `Board ${this.cols}x${this.rows}\n`;
 

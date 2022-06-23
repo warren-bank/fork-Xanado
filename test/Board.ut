@@ -38,7 +38,7 @@ describe("Board class", () => {
 				"| | | | | | | | | | | | | | | |\n" +
 				"| | | | | | | | | | | | | | | |\n" +
 				"| | | | | | | | | | | | | | | |\n", edition);
-			b.at(6, 6).placeTile(null);
+			b.at(6, 6).unplaceTile();
 			b.at(6, 6).placeTile(new Tile({letter: "N", isBlank: true}), true);
 			assert.equal(b,
 						 "Board 11x11\n" +
@@ -71,7 +71,7 @@ describe("Board class", () => {
 			sq.placeTile(t, true);
 			assert.equal(t.row, mr);
 			assert.equal(t.col, mc);
-			assert(sq.tileLocked);
+			assert(sq.isLocked());
 
 			b.at(0, 0).placeTile(new Tile({letter: "t"}), true);
 			b.at(0, b.rows-1).placeTile(new Tile({letter: "T"}), true);
@@ -126,10 +126,10 @@ describe("Board class", () => {
 			});
 
 			// Clear the temp tiles
-			b.at(mr, mc).placeTile();
-			b.at(mr, mc+1).placeTile();
-			b.at(mr, mc+2).placeTile();
-			b.at(mr, mc+3).placeTile();
+			b.at(mr, mc).unplaceTile();
+			b.at(mr, mc+1).unplaceTile();
+			b.at(mr, mc+2).unplaceTile();
+			b.at(mr, mc+3).unplaceTile();
 
 			// Lock down the play
 			b.at(mr, mc).placeTile(W, true);
@@ -160,9 +160,9 @@ describe("Board class", () => {
 			});
 
 			// clear temp tiles
-			b.at(mr, mc-1).placeTile();
-			b.at(mr+1, mc-1).placeTile();
-			b.at(mr+2, mc-1).placeTile();
+			b.at(mr, mc-1).unplaceTile();
+			b.at(mr+1, mc-1).unplaceTile();
+			b.at(mr+2, mc-1).unplaceTile();
 
 			// Score another play that intersects the existing word
 			b.at(mr+1, mc+3).placeTile(U);
@@ -212,10 +212,10 @@ describe("Board class", () => {
 			});
 
 			// Clear the temp tiles
-			b.at(mr, mc).placeTile();
-			b.at(mr, mc+1).placeTile();
-			b.at(mr, mc+2).placeTile();
-			b.at(mr, mc+3).placeTile();
+			b.at(mr, mc).unplaceTile();
+			b.at(mr, mc+1).unplaceTile();
+			b.at(mr, mc+2).unplaceTile();
+			b.at(mr, mc+3).unplaceTile();
 
 			// Lock down the play
 			b.at(mr, mc).placeTile(W, true);

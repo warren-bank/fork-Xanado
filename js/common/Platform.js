@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
 define("common/Platform", () => {
@@ -10,6 +10,7 @@ define("common/Platform", () => {
 	 * plugging other database implementations.
 	 */
 	class Database {
+    /* istanbul ignore next */
 		/**
 		 * @param {string} id a /-separated path name that will be used
 		 * as the name of a DB. How this is interpreted is up to the
@@ -18,17 +19,17 @@ define("common/Platform", () => {
 		 * relevant to this DB from other data that may be co-located
 		 * @abstract
 		 */
-        /* istanbul ignore next */
 		constructor(id, type) {}
 		
+    /* istanbul ignore next */
 		/**
 		 * Promise to get a list of keys in the DB
 		 * @return {Promise} resolves to a `string[]` list of key names
 		 * @abstract
 		 */
-        /* istanbul ignore next */
 		keys() {}
 
+    /* istanbul ignore next */
 		/**
 		 * Promise to set a key value
 		 * @param {string} key the entry key
@@ -36,27 +37,26 @@ define("common/Platform", () => {
 		 * @return {Promise} resolves to undefined
 		 * @abstract
 		 */
-        /* istanbul ignore next */
 		set(key, data) {}
 
+    /* istanbul ignore next */
 		/**
 		 * Promise to get a key value
 		 * @param {string} key the entry key
 		 * @param {Object[]} classes list of classes that may occur in the
-		 * data, as passed to {@link Fridge#thaw}
+		 * data, as passed to {@linkcode Fridge#thaw|Fridge.thaw}
 		 * @return {Promise} resolves to the key value
 		 * @abstract
 		 */
-        /* istanbul ignore next */
 		get(key, classes) {}
 
+    /* istanbul ignore next */
 		/**
 		 * Remove a key and all associated data
 		 * @param {string} key the entry key
 		 * @return {Promise} resolves to undefined
 		 * @abstract
 		 */
-        /* istanbul ignore next */
 		rm(key) {}
 	}
 
@@ -67,6 +67,7 @@ define("common/Platform", () => {
 	 */
 	class Platform {
 
+		/* istanbul ignore next */
 		/**
 		 * Emit the given event for handling by the platform's event system
 		 * @param {string} event name of event to emit
@@ -74,7 +75,6 @@ define("common/Platform", () => {
 		 * event handler
 		 * @abstract
 		 */
-		/* istanbul ignore next */
 		static trigger(event, args) {
 			throw new Error("Pure virtual");
 		}
@@ -85,6 +85,7 @@ define("common/Platform", () => {
 		 * progress string for debug (only intended for developer)
 		 */
 
+		/* istanbul ignore next */
 		/**
 		 * If available, find the best play. This is used to abstract
 		 * the best play controller from the rest of the server code,
@@ -102,45 +103,44 @@ define("common/Platform", () => {
 		 * have been tried
 		 * @abstract
 		 */
-		/* istanbul ignore next */
 		static findBestPlay(game, rack, cb, dictpath, dictionary) {
 			throw new Error("Pure virtual");
 		}
 
+		/* istanbul ignore next */
 		/**
 		 * Get the absolute path to a file or directory within the
 		 * installation.
 		 * @param {string} p a path relative to the root of the installation
 		 * @abstract
 		 */
-		/* istanbul ignore next */
 		static getFilePath(p) {
 			throw new Error("Pure virtual");
 		}
 
+		/* istanbul ignore next */
 		/**
 		 * Read a file
 		 * @return {Promise} resolves to the file contents
 		 * @abstract
 		 */
-		/* istanbul ignore next */
 		static readFile(path) {
 			throw new Error("Pure virtual");
 		}
 
+		/* istanbul ignore next */
 		/**
 		 * Read a gz file
 		 * @return {Promise} resolves to the file contents
 		 * @abstract
 		 */
-		/* istanbul ignore next */
 		static readZip(path) {
 			throw new Error("Pure virtual");
 		}
 	}
 
 	/**
-	 * Implementation of {@link Database} for this platform
+	 * Implementation of {@linkcode Database} for this platform
 	 * @member {Database}
 	 * @memberof Platform
 	 */

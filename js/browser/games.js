@@ -311,7 +311,7 @@ requirejs([
       }
 			if (game.predictScore)
 				options.push($.i18n("Predict score"));
-			if (game.wordCheck && game.wordCheck !== WordCheck.NONE)
+			if (game.wordCheck)
 				options.push($.i18n(game.wordCheck));
 			if (game.allowTakeBack)
 				options.push($.i18n("Allow 'Take back'"));

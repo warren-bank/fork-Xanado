@@ -22,7 +22,7 @@ requirejs.config({
 
 		i18n_language:
 		"/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.language",
-
+    
 		i18n_messagestore:
 		"/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.messagestore",
 		
@@ -33,13 +33,13 @@ requirejs.config({
 		"/node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch.min",
 		
 		"socket.io-client":
-        "/node_modules/socket.io/client-dist/socket.io",
+    "/node_modules/socket.io/client-dist/socket.io",
 
 		cookie:
-        "/node_modules/jquery.cookie/jquery.cookie",
+    "/node_modules/jquery.cookie/jquery.cookie",
 
 		cldrpluralruleparser:
-        "/node_modules/cldrpluralruleparser/dist/cldrpluralruleparser",
+    "/node_modules/cldrpluralruleparser/dist/cldrpluralruleparser",
 
 		browser: "/js/browser",
 		common: "/js/common",

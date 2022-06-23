@@ -20,22 +20,23 @@ describe("Square class", () => {
 	});
 
 	it('construct', () => {
-		let sq = new Square('q', { id: 'base' }, 56, 42);
+		let sq = new Square({type:'q', owner:{ id: 'base' }, col: 56, row: 42});
 		assert.equal(sq.letterScoreMultiplier, 4);
 		assert.equal(sq.wordScoreMultiplier, 1);
 		assert(!sq.tile);
 		assert(!sq.tileLocked);
+		assert(!sq.isLocked());
 		assert(sq.isEmpty());
 		let tile = new Tile({
 			letter:'S', isBlank:false, score:1, col: 7, row: 7});
-		sq.placeTile(tile, false);
+		sq.placeTile(tile);
 		assert.strictEqual(sq.tile, tile);
 		assert(!sq.tileLocked);
 		assert(!sq.isEmpty());
 		assert.equal(tile.col, sq.col);
 		assert.equal(tile.row, sq.row);
 
-		sq.placeTile();
+		sq.unplaceTile();
 		assert(!sq.tile);
 		assert(!sq.tileLocked);
 		assert(sq.isEmpty());
@@ -43,37 +44,36 @@ describe("Square class", () => {
 		sq.placeTile(tile, true);
 		assert.strictEqual(sq.tile, tile);
 		assert(sq.tileLocked);
+		assert(sq.isLocked());
 		assert(!sq.isEmpty());
 		assert.equal(tile.col, sq.col);
 		assert.equal(tile.row, sq.row);
-		assert.equal(new Square('Q', { id: 'base' }).letterScoreMultiplier, 1);
-		assert.equal(new Square('Q', { id: 'base' }).wordScoreMultiplier, 4);
-
-		assert.equal(new Square('t', { id: 'base' }).letterScoreMultiplier, 3);
-		assert.equal(new Square('t', { id: 'base' }).wordScoreMultiplier, 1);
-		assert.equal(new Square('T', { id: 'base' }).letterScoreMultiplier, 1);
-		assert.equal(new Square('T', { id: 'base' }).wordScoreMultiplier, 3);
-
-		assert.equal(new Square('d', { id: 'base' }).letterScoreMultiplier, 2);
-		assert.equal(new Square('d', { id: 'base' }).wordScoreMultiplier, 1);
-		assert.equal(new Square('D', { id: 'base' }).letterScoreMultiplier, 1);
-		assert.equal(new Square('D', { id: 'base' }).wordScoreMultiplier, 2);
-		assert.equal(new Square('M', { id: 'base' }).letterScoreMultiplier, 1);
-		assert.equal(new Square('M', { id: 'base' }).wordScoreMultiplier, 2);
+		assert.equal(new Square({type: 'Q', owner: { id: 'base' }}).letterScoreMultiplier, 1);
+		assert.equal(new Square({type:'Q', owner:{ id: 'base' }}).wordScoreMultiplier, 4);
+		assert.equal(new Square({type:'t', owner:{ id: 'base' }}).letterScoreMultiplier, 3);
+		assert.equal(new Square({type:'t', owner:{ id: 'base' }}).wordScoreMultiplier, 1);
+		assert.equal(new Square({type:'T', owner:{ id: 'base' }}).letterScoreMultiplier, 1);
+		assert.equal(new Square({type:'T', owner:{ id: 'base' }}).wordScoreMultiplier, 3);
+		assert.equal(new Square({type:'d', owner:{ id: 'base' }}).letterScoreMultiplier, 2);
+		assert.equal(new Square({type:'d', owner:{ id: 'base' }}).wordScoreMultiplier, 1);
+		assert.equal(new Square({type:'D', owner:{ id: 'base' }}).letterScoreMultiplier, 1);
+		assert.equal(new Square({type:'D', owner:{ id: 'base' }}).wordScoreMultiplier, 2);
+		assert.equal(new Square({type:'M', owner:{ id: 'base' }}).letterScoreMultiplier, 1);
+		assert.equal(new Square({type:'M', owner:{ id: 'base' }}).wordScoreMultiplier, 2);
 	});
 	
 	it('$ui', () => {
-		let sq = new Square('q', { id: 'base' }, 56, 42);
+		let sq = new Square({type: 'q', owner: { id: 'base' }, col: 56, row: 42});
 		assert.equal(sq.$ui().html(),
 					 '<div id="base_56x42"><a></a></div>');
-		sq = new Square('_', { id: 'base' }, 56);
+		sq = new Square({type: '_', owner: { id: 'base' }, col: 56});
 		assert.equal(sq.$ui().html(),
 					 '<div id="base_56"><a></a></div>');
 		$("body").empty();
 	});
 
 	it("refresh empty", () => {
-		let sq = new Square('q', { id: 'base' }, 56, 42);
+		let sq = new Square({type: 'q', owner: { id: 'base' }, col: 56, row: 42});
 		sq.setUnderlay('T');
 		let $td = sq.$ui();
 		$("body").append($td);
@@ -91,11 +91,11 @@ describe("Square class", () => {
 	});
 	
 	it("refresh occupied unlocked", () => {
-		let sq = new Square('q', { id: 'surface' }, 56, 42);
+		let sq = new Square({type: 'q', owner: { id: 'surface' }, col: 56, row: 42});
 		sq.setUnderlay('T');
 		assert(!sq.tileLocked);
 		let tile = new Tile({ letter:'S', isBlank:false });
-		sq.placeTile(tile, false);
+		sq.placeTile(tile);
 		assert(!sq.tileLocked);
 		let $td = sq.$ui();
 		$("body").append($td);
@@ -116,9 +116,9 @@ describe("Square class", () => {
 		assert(!$div.hasClass("selected"));
 		assert.equal($("div.underlay").length, 0);
 
-		sq.placeTile();
+		sq.unplaceTile();
 		tile = new Tile({ letter:'Q', isBlank:true });
-		sq.placeTile(tile, false);
+		sq.placeTile(tile);
 		sq.$refresh();
 		assert($div.hasClass("blank-letter"));
 
@@ -126,11 +126,11 @@ describe("Square class", () => {
 	});
 	
 	it("refresh occupied locked", () => {
-		let sq = new Square('q', { id: 'surface' }, 56, 42);
+		let sq = new Square({type:'q', owner:{ id: 'surface' }, col:56, row:42});
 		assert(!sq.tileLocked);
 		let tile = new Tile({ letter:'S', isBlank:false });
 		sq.placeTile(tile, true);
-		assert(sq.tileLocked);
+		assert(sq.isLocked());
 		let $td = sq.$ui();
 		$("body").append($td);
 		sq.$refresh();
@@ -148,6 +148,10 @@ describe("Square class", () => {
 		sq.setSelected(false);
 		assert(!$div.hasClass("selected"));
 		$("body").empty();
+
+    sq.unplaceTile();
+    assert(sq.isEmpty());
+    assert(!sq.isLocked());
 	});
 });
 

@@ -80,7 +80,7 @@ describe("Game", () => {
 		});
 	});
 	
-	UNit("basics", () => {
+	it("basics", () => {
 		const p = {
 			//_debug: console.debug,
 			edition:"English_Scrabble",
@@ -196,7 +196,7 @@ describe("Game", () => {
         });
 	});
 
-	UNit("$html", () => {
+	it("$html", () => {
 		const p = {
 			//_debug: console.debug,
 			edition:"English_Scrabble",
@@ -272,7 +272,7 @@ describe("Game", () => {
 		});
 	});
 
-	UNit("last move in game", () => {
+	it("last move in game", () => {
 		const game = new Game({
 			//_debug: console.debug,
 			edition:"Test",
@@ -361,7 +361,7 @@ describe("Game", () => {
 	});
 
 	// Clear missed turn flag set after challenge failed
-	UNit("clear missed turn", () => {
+	it("clear missed turn", () => {
 		const game = new Game({
 			//_debug: console.debug,
 			edition:"Test",
@@ -405,7 +405,7 @@ describe("Game", () => {
 		});
 	});
 
-	UNit("verify human play", () => {
+	it("verify human play", () => {
 		const game = new Game({
 			//_debug: console.debug,
 			edition:"Test",
@@ -466,17 +466,18 @@ describe("Game", () => {
 		.then(() => socket1.wait());
 	});
 
-	UNit("load from file", () => {
+	it("load from file", () => {
 		const db = new Platform.Database("test", "game");
 		return db.get("test_game", Game.classes)
-        .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
+      //game._debug = console.debug;
 			const human = game.getPlayer("human");
 			return game.pass(human);
 		});
 	});
 
-	UNit("anotherGame", () => {
+	it("anotherGame", () => {
 		let game, newgame, reload;
 		const db = new Platform.Database("test/temp", "game");
         // Load from the test dir, but save to test/temp
@@ -560,7 +561,7 @@ describe("Game", () => {
               .then(s => assert.deepEqual(s[0], s[1])));
 	});
 
-	UNit("hint", () => {
+	it("hint", () => {
 		let game;
 		const db = new Platform.Database("test", "game");
 		return db.get("test_game", Game.classes)
@@ -574,7 +575,7 @@ describe("Game", () => {
 		});
 	});
 
-	UNit("advise", () => {
+	it("advise", () => {
 		let game;
 		const db = new Platform.Database("test", "game");
 		return db.get("test_game", Game.classes)
@@ -585,7 +586,7 @@ describe("Game", () => {
 		.then(() => game.advise(game.getPlayer(), 1));
 	});
 
-	UNit("last play", () => {
+	it("last play", () => {
 		let game;
 		const db = new Platform.Database("test", "game");
 		return db.get("test_game", Game.classes)

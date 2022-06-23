@@ -159,7 +159,7 @@ define("browser/game", [
 		}
 
 		/**
-		 * Send a game command to the server. Game commands are listed in the {@link Command} type
+		 * Send a game command to the server. Game commands are listed in the {@linkcode Command} type
 		 * @param {string} command command name
 		 * @param {object} args arguments for the request body
 		 */
@@ -1073,8 +1073,8 @@ define("browser/game", [
 					// off the board
 					sq = undefined;
 				}
-			} while (sq && sq.tileLocked);
-			if (sq && sq.tile) {
+			} while (sq && sq.isLocked());
+			if (sq && !sq.isEmpty()) {
 				// Unplace the tile, returning it to the rack
 				this.takeBackTile(sq);
 				this.selectSquare(sq);
@@ -1173,7 +1173,7 @@ define("browser/game", [
 				this.placedCount++;
 			}
 
-			fromSquare.placeTile(null);
+			fromSquare.unplaceTile();
 			if (tile.isBlank) {			
 				if (!(toSquare.owner instanceof Board)) {
           tile.reset();
@@ -1352,7 +1352,7 @@ define("browser/game", [
 						const square = this.game.at(
 							placement.col, placement.row);
 						const recoveredTile = square.tile;
-						square.placeTile(null);
+						square.unplaceTile();
 						player.rack.addTile(recoveredTile);
 					}
 
@@ -1691,14 +1691,17 @@ define("browser/game", [
 		 * @return {boolean} true if a tile was returned
 		 */
 		takeBackTile(square) {
-			if (!square.tile || square.tileLocked)
+			if (square.isLocked())
 				return false;
 
-			const rackSquare = this.player.rack.addTile(square.tile);
-			rackSquare.$refresh();
-			square.tile = null;
-			square.$refresh();
-			return true;
+			const tile = square.unplaceTile();
+      if (tile) {
+			  const rackSquare = this.player.rack.addTile(tile);
+			  rackSquare.$refresh();
+			  square.$refresh();
+			  return true;
+      }
+      return false;
 		}
 
 		/**

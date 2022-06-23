@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /* eslint-env node */
 
@@ -8,7 +8,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
  * Command-line invocation of the Valett word corpus analyser
  * Based on code from https://github.com/jmlewis/valett
  *
-* `node js/design/valett.js` will tell you how to use it.
+ * `node js/design/valett.js` will tell you how to use it.
  * @module
  */
 const requirejs = require('requirejs');
@@ -69,7 +69,7 @@ requirejs(['node-getopt', 'fs', 'design/ValettCore'], (Getopt, fs, Valett) => {
 	])
         .bindHelp()
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
-		.parseSystem();
+		    .parseSystem();
 
 	if (opt.options.config) {
 		// Read config from file (JSON)
@@ -83,10 +83,10 @@ requirejs(['node-getopt', 'fs', 'design/ValettCore'], (Getopt, fs, Valett) => {
 		});
 	}
 	console.log(opt);
-    if (opt.argv.length == 0) {
-        opt.showHelp();
-        throw 'No word corpus filename given';
-    }
+  if (opt.argv.length == 0) {
+    opt.showHelp();
+    throw 'No word corpus filename given';
+  }
 	const infile = opt.argv.shift();
 
 	console.log(`Analyse ${infile}`);
@@ -102,12 +102,12 @@ requirejs(['node-getopt', 'fs', 'design/ValettCore'], (Getopt, fs, Valett) => {
 				c => chars[c] = true));
 		const letters = Object.keys(chars);
 		letters.sort();
-						  
+		
 		const v = new Valett(words, letters); 
 		const values = v.analyze(config.maxPoints - config.minPoints,
-				  config.weights,
-				  config.frequencyByLengthWeights,
-				  config.entropyWeights);
+				                     config.weights,
+				                     config.frequencyByLengthWeights,
+				                     config.entropyWeights);
 		let sum;
 		const count = [];
 		let factor = config.tileCount;

@@ -13,126 +13,118 @@ define("game/Player", [
 	const BLACK_CIRCLE = "\u25cf";
 
 	/**
-	 * A player in a {@link Game}. Player objects are specific to
+	 * A player in a {@linkcode Game}. Player objects are specific to
 	 * a single game, and are used on both browser and server sides.
 	 */
 	class Player {
 
 		/**
-		 * Player unique key. Required.
-		 * @member {Key}
-		 */
-		key;
-
-		/**
-		 * Player name. Required.
-		 * @member {string}
-		 */
-		name;
-
-		/**
-		 * Player doesn't have a rack until they join a game, as
-		 * it's only then we know how big it has to be.
-		 * @member {Rack}
-		 */
-		rack;
-
-		/**
-		 * Number of times this player has passed (or swapped)
-		 * since the last non-pass/swap play. Default is 0.
-		 * @member {number}
-		 */
-		passes;
-
-		/**
-		 * Player's current score. Default is 0.
-		 * @member {number}
-		 */
-		score;
-
-		/**
-		 * Player countdown clock. In games with `timerType` `TIMER_TURN`,
-		 * this is the number of seconds before the player's turn times
-		 * out (if they are the current player). For `TIMER_GAME` it's
-		 * the number of seconds before the chess clock runs out.
-     * Default is undefined. Setting and management is done in
-     * {@link Game}
-		 * @member {number?}
-		 */
-		clock;
-
-		/**
-		 * The connected flag may be set when the Player is created
-		 * from a simple structure. It is not used server-side.
-     * Default is false.
-		 * @member {boolean?}
-		 */
-		isConnected;
-
-		/**
-		 * True if this player is due to miss their next play due
-		 * to a failed challenge. Default is false.
-		 * @member {boolean?}
-		 */
-		missNextTurn;
-
-		/**
-		 * Set true to advise human player of better plays than the one
-		 * they used. Default is false.
-		 * @member {boolean}
-		 */
-		wantsAdvice;
-
-		/**
-		 * Is player a robot? Default is false.
-		 * @member {boolean?}
-		 */
-		isRobot;
-
-		/**
-		 * Can robot player challenge? Default is false.
-		 * @member {boolean?}
-		 */
-		canChallenge;
-
-		/**
-		 * Name of the dictionary the robot will use. Defaults to
-     * the game dictionary. Only used for findBestPlay for robot players.
-     * Default is undefined.
-		 * @member {string?}
-		 */
-		dictionary;
-
-    /**
-		 * Debug function
-		 * @member {function}
-		 */
-    _debug = () => {};
-
-		/**
-		 * @param {object} params named parameters, or other layer or simple
-		 * object to copy. `name` and `key ` are required. Any of `debug`,
-     * `isRobot`, `canChallenge`, `wantsAdvice`, `dictionary` or
-     * `missNextTurn` can be passed to override the default.
-     * `
+		 * @param {object} params named parameters, or other player or simple
+		 * object to copy. `name` and `key ` are required. Any of `_debug`,
+     * `isRobot`, `passes`, `score`, `clock`, `canChallenge`,
+     * `wantsAdvice`,`dictionary`, `isConnected` or
+     * `missNextTurn` can be passed.
 		 */
 		constructor(params) {
-			this.name = params.name;
-			this.key = params.key;
+		  /**
+		   * Player unique key. Required.
+		   * @member {Key}
+		   */
+		  this.key = params.key;
+
+		  /**
+		   * Player name. Required.
+		   * @member {string}
+		   */
+		  this.name = params.name;
+
+		  /**
+		   * Player doesn't have a rack until they join a game, as
+		   * it's only then we know how big it has to be.
+		   * @member {Rack}
+		   */
+		  this.rack = undefined;
+
+		  /**
+		   * Number of times this player has passed (or swapped)
+		   * since the last non-pass/swap play. Default is 0.
+		   * @member {number}
+		   */
+		  this.passes = params.passes || 0;
+
+		  /**
+		   * Player's current score.
+		   * @member {number}
+		   */
+		  this.score = params.score || 0;
+
+      if (params.clock)
+		    /**
+		     * Player countdown clock. In games with `timerType` `TIMER_TURN`,
+		     * this is the number of seconds before the player's turn times
+		     * out (if they are the current player). For `TIMER_GAME` it's
+		     * the number of seconds before the chess clock runs out.
+         * Default is undefined. Setting and management is done in
+         * {@linkcode Game}
+		     * @member {number?}
+		     */
+		    this.clock = params.clock;
+
+		  if (params.isConnected)
+        /**
+		     * The connected flag may be set when the Player is created
+		     * from a simple structure. It is not used server-side.
+		     * @member {boolean}
+		     */
+		    this.isConnected = true;
+
+		  if (params.missNextTurn)
+        /**
+		     * True if this player is due to miss their next play due
+		     * to a failed challenge. Default is false.
+		     * @member {boolean?}
+		     */
+		    this.missNextTurn = true;
+
+		  if (params.wantsAdvice)
+        /**
+		     * Set true to advise human player of better plays than the one
+		     * they used. Default is false.
+		     * @member {boolean}
+		     */
+		    this.wantsAdvice = true;
+
+      if (params.isRobot)
+		    /**
+		     * Is player a robot? Default is false.
+		     * @member {boolean}
+		     */
+		    this.isRobot = true;
+
+      if (params.canChallenge)
+		    /**
+		     * Can robot player challenge? Default is false.
+		     * @member {boolean}
+		     */
+		    this.canChallenge = true;
+
+		  if (params.dictionary)
+        /**
+		     * Name of the dictionary the robot will use. Defaults to
+         * the game dictionary. Only used for findBestPlay for robot players.
+         * Default is undefined.
+		     * @member {string?}
+		     */
+		    this.dictionary = params.dictionary;
+
 			if (typeof params._debug === "function")
+      /**
+		   * Debug function
+		   * @member {function}
+		   */
 				this._debug = params._debug;
-			if (params.isRobot)
-        this.isRobot = true;
-			if (params.canChallenge)
-        this.canChallenge = true;
-      if (params.wantsAdvice)
-			  this.wantsAdvice = true;
-			if (params.dictionary)
-        this.dictionary = params.dictionary;
-			if (params.missNextTurn)
-        this.missNextTurn = true;
-      this.score = params.score || 0;
-      this.passes = params.passes || 0;
+      else
+        this._debug = () => {};
 		}
 
 		/**

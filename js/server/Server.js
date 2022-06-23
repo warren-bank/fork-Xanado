@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
 define("server/Server", [
@@ -17,9 +17,9 @@ define("server/Server", [
 ) => {
 
 	const Fs = fs.promises;
-    const Command = Types.Command;
-    const Notify = Types.Notify;
-    const Turns = Types.Turns;
+  const Command = Types.Command;
+  const Notify = Types.Notify;
+  const Turns = Types.Turns;
 
 	/**
 	 * Web server for crossword game.
@@ -84,7 +84,7 @@ define("server/Server", [
 			this._debug("static files from", staticRoot);
 			this.express.use(Express.static(staticRoot));
 
-            // Debug report incoming requests
+      // Debug report incoming requests
 			this.express.use((req, res, next) => {
 				this._debug("-->", req.method, req.url);
 				next();
@@ -98,7 +98,7 @@ define("server/Server", [
 
 			// Get the HTML for the main interface (the "games" page)
 			cmdRouter.get(
-                "/",
+        "/",
 				(req, res) => res.sendFile(
 					Platform.getFilePath("html/games.html")));
 
@@ -107,158 +107,158 @@ define("server/Server", [
 			// "active" games (those still in play), "all" games (for
 			// finished games too), or a single game key
 			cmdRouter.get(
-                "/simple/:send",
+        "/simple/:send",
 				(req, res, next) => this.request_simple(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Get a games history. Sends a summary of cumulative player
 			// scores to date, for each unique player.
 			cmdRouter.get(
-                "/history",
+        "/history",
 				(req, res, next) => this.request_history(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Get a list of available locales
 			cmdRouter.get(
-                "/locales",
+        "/locales",
 				(req, res, next) => this.request_locales(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Get a list of of available editions
 			cmdRouter.get(
-                "/editions",
+        "/editions",
 				(req, res, next) => this.request_editions(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Get a description of the available dictionaries
 			cmdRouter.get(
-                "/dictionaries",
+        "/dictionaries",
 				(req, res, next) => this.request_dictionaries(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Get a description of the available themes
 			cmdRouter.get(
-                "/themes",
+        "/themes",
 				(req, res, next) => this.request_themes(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Get a css for the current theme.
 			cmdRouter.get(
-                "/theme/:css",
+        "/theme/:css",
 				(req, res, next) => this.request_theme(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Defaults for user session settings.
 			// Some of these can be overridden by a user.
 			cmdRouter.get(
-                "/defaults",
+        "/defaults",
 				(req, res, next) => res.send(config.defaults));
 
 			// Get Game. This is a full description of the game, including
 			// the Board. c.f. /simple which provides a cut-down version
 			// of the same thing.
 			cmdRouter.get(
-                "/game/:gameKey",
+        "/game/:gameKey",
 				(req, res, next) => this.request_game(req, res));
 
 			// Construct a new game. Invoked from games.js
 			cmdRouter.post(
-                "/createGame",
+        "/createGame",
 				(req, res, next) =>
 				this.userManager.checkLoggedIn(req, res, next),
 				(req, res, next) => this.request_createGame(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Invite players by email. Invoked from games.js
 			cmdRouter.post(
-                "/invitePlayers/:gameKey",
+        "/invitePlayers/:gameKey",
 				(req, res, next) =>
 				this.userManager.checkLoggedIn(req, res, next),
 				(req, res, next) => this.request_invitePlayers(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Delete an active or old game. Invoked from games.js
 			cmdRouter.post(
-                "/deleteGame/:gameKey",
+        "/deleteGame/:gameKey",
 				(req, res, next) =>
 				this.userManager.checkLoggedIn(req, res, next),
 				(req, res, next) => this.request_deleteGame(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Request another game in a series
 			// Note this is NOT auth-protected, it is invoked
 			// from the game interface to create a follow-on game
 			cmdRouter.post(
-                "/anotherGame/:gameKey",
+        "/anotherGame/:gameKey",
 				(req, res, next) =>
 				this.userManager.checkLoggedIn(req, res, next),
 				(req, res, next) => this.request_anotherGame(req, res)
-                .catch(next));
+        .catch(next));
 
 			// send email reminders about active games
 			cmdRouter.post(
-                "/sendReminder/:gameKey",
+        "/sendReminder/:gameKey",
 				(req, res, next) =>
 				this.userManager.checkLoggedIn(req, res, next),
 				(req, res, next) => this.request_sendReminder(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Handler for player joining a game.
 			cmdRouter.post(
-                "/join/:gameKey",
-                (req, res, next) =>
-	            this.userManager.checkLoggedIn(req, res, next),
+        "/join/:gameKey",
+        (req, res, next) =>
+	      this.userManager.checkLoggedIn(req, res, next),
 				(req, res, next) => this.request_join(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Handler for player leaving a game
 			cmdRouter.post(
-                "/leave/:gameKey",
+        "/leave/:gameKey",
 				(req, res, next) =>
 				this.userManager.checkLoggedIn(req, res, next),
 				(req, res, next) => this.request_leave(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Handler for adding a robot to a game
 			cmdRouter.post(
-                "/addRobot/:gameKey",
+        "/addRobot/:gameKey",
 				(req, res, next) =>
 				this.userManager.checkLoggedIn(req, res, next),
 				(req, res, next) => this.request_addRobot(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Handler for adding a robot to a game
 			cmdRouter.post(
-                "/removeRobot/:gameKey",
+        "/removeRobot/:gameKey",
 				(req, res, next) =>
 				this.userManager.checkLoggedIn(req, res, next),
 				(req, res, next) => this.request_removeRobot(req, res)
-                .catch(next));
+        .catch(next));
 
 			// Request handler for a turn (or other game command)
 			cmdRouter.post(
-                "/command/:command/:gameKey",
+        "/command/:command/:gameKey",
 				(req, res, next) =>
 				this.userManager.checkLoggedIn(req, res, next),
 				(req, res, next) => this.request_command(req, res)
-                .catch(next));
+        .catch(next));
 
 			this.express.use(cmdRouter);
 
 			// Install error handler
 			this.express.use((err, req, res, next) => {
-			    if (typeof err === "object" && err.code === "ENOENT") {
-				    // Special case of a database file load failure
-				    this._debug("<-- 404", req.url, err.toString());
-				    res.status(404).send([
-					    "Database file load failed", req.url, err]);
-			    } else {
-			        this._debug("<-- 500", err.toString());
-				    res.status(500).send(err);
-                }
+			  if (typeof err === "object" && err.code === "ENOENT") {
+				  // Special case of a database file load failure
+				  this._debug("<-- 404", req.url, err.toString());
+				  res.status(404).send([
+					  "Database file load failed", req.url, err]);
+			  } else {
+			    this._debug("<-- 500", err.toString());
+				  res.status(500).send(err);
+        }
 			});
 
-            // Finally handle otherwise unhandled errors
+      // Finally handle otherwise unhandled errors
 			this.express.use(ErrorHandler({
 				dumpExceptions: true,
 				showStack: true
@@ -268,7 +268,7 @@ define("server/Server", [
 		/**
 		 * Load the game from the DB, if not already in server memory
 		 * @param {string} key game key
-		 * @return {Promise} Promise that resolves to a {@link Game}
+		 * @return {Promise} Promise that resolves to a {@linkcode Game}
 		 */
 		loadGame(key) {
 			/* istanbul ignore if */
@@ -290,7 +290,7 @@ define("server/Server", [
 				this.games[key] = game;
 				/* istanbul ignore if */
 				if (this.config.debug_game)
-				    game._debug = console.debug;
+				  game._debug = console.debug;
 
 				return game.playIfReady();
 			});
@@ -336,12 +336,12 @@ define("server/Server", [
 
 			.on(Notify.JOIN, params => {
 				// Player joining.
-                // When the game interface is opened in a browser, the
-                // interface initiates a socket connection. WebSockets then
-                // sends "connect" to the UI. JOIN is then sent by the UI,
-                // which connects the UI to the game.
+        // When the game interface is opened in a browser, the
+        // interface initiates a socket connection. WebSockets then
+        // sends "connect" to the UI. JOIN is then sent by the UI,
+        // which connects the UI to the game.
 				this._debug(
-                    "-S-> join", params.playerKey, "joining", params.gameKey);
+          "-S-> join", params.playerKey, "joining", params.gameKey);
 				this.loadGame(params.gameKey)
 				.then(game => {
 					return game.connect(socket, params.playerKey)
@@ -354,40 +354,40 @@ define("server/Server", [
 
 			.on(Notify.MESSAGE, message => {
 
-                if (!socket.game)
-                    return;
+        if (!socket.game)
+          return;
 
 				// Chat message
 				this._debug("-S-> message", message);
-                let m;
+        let m;
 				if (message.text === "hint")
 					socket.game.hint(socket.player);
 				else if (message.text === "advise")
 					socket.game.toggleAdvice(socket.player);
 				else if ((m = /^allow\s+(\w+)\s*$/.exec(message.text))) {
 					socket.game.getDictionary()
-                    .then(dict => {
-                        const word = m[1].toUpperCase();
-                        if (dict.addWord(word)) {
-                            socket.game.notifyAll(
-                                Notify.MESSAGE, {
-                                    sender: /*i18n*/"Advisor",
-                                    text:
-                                    /*i18n*/"$1 has added '$2' to $3",
-                                    args: [
-                                        socket.player.name, word, dict.name
-                                    ]
-                                });
-                        } else {
-                            socket.game.notifyPlayer(
-                                socket.player,
-                                Notify.MESSAGE, {
-                                    sender: /*i18n*/"Advisor",
-                                    text: /*i18n*/"'$1' is already in $2",
-                                    args: [ word, dict.name ]
-                                });
-                        }
-                    });
+          .then(dict => {
+            const word = m[1].toUpperCase();
+            if (dict.addWord(word)) {
+              socket.game.notifyAll(
+                Notify.MESSAGE, {
+                  sender: /*i18n*/"Advisor",
+                  text:
+                  /*i18n*/"$1 has added '$2' to $3",
+                  args: [
+                    socket.player.name, word, dict.name
+                  ]
+                });
+            } else {
+              socket.game.notifyPlayer(
+                socket.player,
+                Notify.MESSAGE, {
+                  sender: /*i18n*/"Advisor",
+                  text: /*i18n*/"'$1' is already in $2",
+                  args: [ word, dict.name ]
+                });
+            }
+          });
 				} else
 					socket.game.notifyAll(Notify.MESSAGE, message);
 			});
@@ -406,12 +406,12 @@ define("server/Server", [
 		}
 
 		/**
-         * Handle /simple/:send
+     * Handle /simple/:send
 		 * Sends a simple description of active games (optionally with
 		 * completed games). `send` can be a single game key to
 		 * get a single game, `active` to get active games, or `all`
 		 * to get all games, including finished games. Note: this
-		 * sends simple objects, not {@link Game}s.
+		 * sends simple objects, not {@linkcode Game}s.
 		 * @param {Request} req the request object
 		 * @param {Response} res the response object
 		 * @return {Promise} Promise to send a list of games as requested
@@ -421,8 +421,8 @@ define("server/Server", [
 			const send = req.params.send;
 			// Make list of keys we are interested in
 			return ((send === "all" || send === "active")
-				? this.db.keys()
-				: Promise.resolve([send]))
+				      ? this.db.keys()
+				      : Promise.resolve([send]))
 			// Load those games
 			.then(keys => Promise.all(keys.map(key => this.loadGame(key))))
 			// Filter the list and generate simple data
@@ -433,7 +433,7 @@ define("server/Server", [
 			// Sort the resulting list by last activity, so the most
 			// recently active game bubbles to the top
 			.then(gs => gs.sort((a, b) => a.lastActivity < b.lastActivity ? 1
-								: a.lastActivity > b.lastActivity ? -1 : 0))
+								          : a.lastActivity > b.lastActivity ? -1 : 0))
 			// Finally send the result
 			.then(data => {
 				this._debug("<-- 200 simple", send);
@@ -486,7 +486,7 @@ define("server/Server", [
 				return list;
 			})
 			.then(list => list.sort((a, b) => a.score < b.score ? 1
-									: (a.score > b.score ? -1 : 0)))
+									            : (a.score > b.score ? -1 : 0)))
 			.then(list => res.status(200).send(list));
 		}
 
@@ -558,21 +558,21 @@ define("server/Server", [
 				theme = req.user.settings.theme;
 			const dpath = Platform.getFilePath(`css/default/${req.params.css}`);
 			const path = Platform.getFilePath(`css/${theme}/${req.params.css}`);
-            this._debug("Send theme", path);
-            return new Promise(
-                (resolve, reject) => res.sendFile(
-                    Path.normalize(path), {
-                        dotfiles: "deny"
-                    },
-                    err => err ? reject(err) : resolve()))
-            .catch(e => new Promise(
-                // on error, fall back to default theme
-                (resolve, reject) => res.sendFile(
-                    Path.normalize(dpath), {
-                        dotfiles: "deny"
-                    },
-                    err => err ? reject(err) : resolve()))
-                  );
+      this._debug("Send theme", path);
+      return new Promise(
+        (resolve, reject) => res.sendFile(
+          Path.normalize(path), {
+            dotfiles: "deny"
+          },
+          err => err ? reject(err) : resolve()))
+      .catch(e => new Promise(
+        // on error, fall back to default theme
+        (resolve, reject) => res.sendFile(
+          Path.normalize(dpath), {
+            dotfiles: "deny"
+          },
+          err => err ? reject(err) : resolve()))
+            );
 		}
 
 		/**
@@ -612,38 +612,38 @@ define("server/Server", [
 				{key: req.session.passport.user.key})
 			.then(sender => `${sender.name}<${sender.email}>`)
 			.catch(
-                // should never happen so long as only logged-in
-                // users can send mail
-                /* istanbul ignore next */
-                e => this.config.mail.sender)
+        // should never happen so long as only logged-in
+        // users can send mail
+        /* istanbul ignore next */
+        e => this.config.mail.sender)
 			.then(sender =>
-				new Promise(
-					resolve => this.userManager.getUser(to, true)
-					.catch(e => {
-						// Not a known user, rely on email in the
-						// getUser query
-						resolve({
-							name: to.email, email: to.email
-						});
-					})
-					.then(uo => resolve(uo)))
-				.then(uo => {
-					if (!uo.email) // no email
-						return Platform.i18n("($1 has no email address)",
-										  uo.name || uo.key);
-					this._debug(
-							subject,
-							`${uo.name}<${uo.email}> from `,
-							sender);
-					return this.config.mail.transport.sendMail({
-						from: sender,
-						to: uo.email,
-						subject: subject,
-						text: text,
-						html: html
-					})
-					.then(() => uo.name || uo.email);
-				}));
+				    new Promise(
+					    resolve => this.userManager.getUser(to, true)
+					    .catch(e => {
+						    // Not a known user, rely on email in the
+						    // getUser query
+						    resolve({
+							    name: to.email, email: to.email
+						    });
+					    })
+					    .then(uo => resolve(uo)))
+				    .then(uo => {
+					    if (!uo.email) // no email
+						    return Platform.i18n("($1 has no email address)",
+										                 uo.name || uo.key);
+					    this._debug(
+							  subject,
+							  `${uo.name}<${uo.email}> from `,
+							  sender);
+					    return this.config.mail.transport.sendMail({
+						    from: sender,
+						    to: uo.email,
+						    subject: subject,
+						    text: text,
+						    html: html
+					    })
+					    .then(() => uo.name || uo.email);
+				    }));
 		}
 
 		/**
@@ -653,21 +653,21 @@ define("server/Server", [
 		 * @return {Promise}
 		 */
 		request_invitePlayers(req, res, next) {
-            /* istanbul ignore if */
+      /* istanbul ignore if */
 			if (!this.config.mail || !this.config.mail.transport)
 				throw new Error("Mail is not configured");
-            /* istanbul ignore if */
+      /* istanbul ignore if */
 			if (!req.body.player)
 				throw new Error("Nobody to notify");
 
 			const gameURL =
-				  `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${req.params.gameKey}`;
+				    `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${req.params.gameKey}`;
 			let textBody = (req.body.message || "") + "\n" + Platform.i18n(
 				"Join the game by following this link: $1", gameURL);
 			// Handle XSS risk posed by HTML in the textarea
 			let htmlBody = (req.body.message.replace(/</g, "&lt;") || "")
-			+ "<br>" + Platform.i18n(
-				"Click <a href='$1'>here</a> to join the game.", gameURL);
+			    + "<br>" + Platform.i18n(
+				    "Click <a href='$1'>here</a> to join the game.", gameURL);
 			let subject = Platform.i18n("You have been invited to play XANADO");
 			return Promise.all(req.body.player.map(
 				to => this.sendMail(
@@ -690,17 +690,17 @@ define("server/Server", [
 			const gameKey = req.params.gameKey;
 			this._debug("Sending turn reminders to", gameKey);
 			const gameURL =
-				  `${req.protocol}://${req.get("Host")}/game/${gameKey}`;
+				    `${req.protocol}://${req.get("Host")}/game/${gameKey}`;
 
 			const prom = (gameKey === "*")
-				  ? this.db.keys() : Promise.resolve([gameKey]);
+				    ? this.db.keys() : Promise.resolve([gameKey]);
 
 			return prom
 			.then(keys => Promise.all(keys.map(
 				key => (this.games[key]
-						? Promise.resolve(this.games[key])
-						: this.db.get(key, Game.classes))
-			    .then(game => {
+						    ? Promise.resolve(this.games[key])
+						    : this.db.get(key, Game.classes))
+			  .then(game => {
 					const pr = game.checkAge();
 					if (game.hasEnded())
 						return undefined;
@@ -709,7 +709,7 @@ define("server/Server", [
 					if (!player)
 						return undefined;
 					this._debug("Sending reminder mail to",
-                                `${player.name}/${player.key}`);
+                      `${player.name}/${player.key}`);
 
 					const subject = Platform.i18n(
 						"It is your turn in your XANADO game");
@@ -732,9 +732,9 @@ define("server/Server", [
 
 		/**
 		 * Handle /join/:gameKey player joining a game. /join is requested
-         * by the games interface, and by the "Next game" button in
-         * the game UI. It ensures the game is loaded and adds the player
-         * indicated by the session indicated in the request (if necessary).
+     * by the games interface, and by the "Next game" button in
+     * the game UI. It ensures the game is loaded and adds the player
+     * indicated by the session indicated in the request (if necessary).
 		 * @param {Request} req the request object
 		 * @param {Response} res the response object
 		 * @return {Promise}
@@ -783,7 +783,7 @@ define("server/Server", [
 			.then(g => game = g)
 			.then(() => {
 				if (game.hasRobot())
-			        /* istanbul ignore next */
+			    /* istanbul ignore next */
 					throw new Error("Game already has a robot");
 
 				this._debug("Robot joining", gameKey, "with", dic);
@@ -796,7 +796,7 @@ define("server/Server", [
 						canChallenge: canChallenge
 					});
 				if (dic && dic !== "none")
-			        /* istanbul ignore next */
+			    /* istanbul ignore next */
 					robot.dictionary = dic;
 				game.addPlayer(robot);
 				return game.save()
@@ -819,7 +819,7 @@ define("server/Server", [
 			.then(game => {
 				const robot = game.hasRobot();
 				if (!robot)
-			        /* istanbul ignore next */
+			    /* istanbul ignore next */
 					throw new Error("Game doesn't have a robot");
 				this._debug("Robot leaving", gameKey);
 				game.removePlayer(robot);
@@ -855,7 +855,7 @@ define("server/Server", [
 					.then(() => res.status(200).send("OK"))
 					.then(() => this.updateObservers());
 				}
-			    /* istanbul ignore next */
+			  /* istanbul ignore next */
 				throw new Error(
 					`Player ${playerKey} is not in game ${gameKey}`);
 			});
@@ -863,13 +863,13 @@ define("server/Server", [
 
 		/**
 		 * Handle /game/:gameKey request for a dump of the game.
-         * This is designed for use when opening the `game` interface.
-         * The game is frozen using {@link Fridge} before sending to fully
-         * encode the entire {@link Game} object, including the
-         * {@link Player}s, {@link Turn} history, and the {@link Board}
-         * so they can be recreated client-side. Subsequent commands and
-         * notifications maintain the client-side game object in synch
-         * with the server game object.
+     * This is designed for use when opening the `game` interface.
+     * The game is frozen using {@linkcode Fridge} before sending to fully
+     * encode the entire {@linkcode Game} object, including the
+     * {@linkcode Player}s, {@linkcode Turn} history, and the {@linkcode Board}
+     * so they can be recreated client-side. Subsequent commands and
+     * notifications maintain the client-side game object in synch
+     * with the server game object.
 		 * @param {Request} req the request object
 		 * @param {Response} res the response object
 		 * @return {Promise} promise that resolves to the frozen game
@@ -891,7 +891,7 @@ define("server/Server", [
 			const gameKey = req.params.gameKey;
 			this._debug("Delete game", gameKey);
 			return this.loadGame(gameKey)
-            .then(game => game.stopTheClock()) // in case it's running
+      .then(game => game.stopTheClock()) // in case it's running
 			.then(() => this.db.rm(gameKey))
 			.then(() => res.status(200).send("OK"))
 			.then(() => this.updateObservers());
@@ -931,7 +931,7 @@ define("server/Server", [
 
 				const player = game.getPlayerWithKey(playerKey);
 				if (!player)
-			        /* istanbul ignore next */
+			    /* istanbul ignore next */
 					throw new Error(
 						`Player ${playerKey} is not in game ${gameKey}`);
 
@@ -939,8 +939,8 @@ define("server/Server", [
 				const args = req.body;
 				
 				this._debug("COMMAND", command,
-                            "player", player.name,
-                            "game", game.key);
+                    "player", player.name,
+                    "game", game.key);
 
 				// Istanbul can ignore next because it's just routing
 				/* istanbul ignore next */
@@ -973,7 +973,7 @@ define("server/Server", [
 				default:
 					throw Error(`unrecognized command: ${command}`);
 				}
-            })
+      })
 			.then(() => {
 				//this._debug(command, "handled`);
 				// Notify non-game monitors (games pages)
@@ -982,6 +982,6 @@ define("server/Server", [
 			});
 		}
 	}
-		
+	
 	return Server;
 });

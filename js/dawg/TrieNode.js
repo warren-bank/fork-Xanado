@@ -17,7 +17,7 @@ define("dawg/TrieNode", [
 	 * letter in the child list of it's parent node.  Note this is
 	 * only used while generating a DAWG from a lexicon. TrieNodes are
 	 * serialised using the above structure but are then rebuilt using
-	 * {@link LetterNode}s at the sharp end.
+	 * {@linkcode LetterNode}s at the sharp end.
 	 */
 	class TrieNode {
     /**

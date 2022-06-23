@@ -63,18 +63,19 @@ define("game/findBestPlay", [
 	}
 
 	/**
-	 * Mainly for debug, return a list of tiles as a string.
+	 * For debug, return a list of tiles as a string.
 	 * This lets us see how/if blanks have been used.
 	 * @param {Tile[]} tiles
 	 * @return {string}
 	 * @private
-	 function pack(tiles) {
-	 let word = tiles.map(l => l.letter).join("");
-	 const blanks = tiles.map(l => l.isBlank ? " " : l.letter).join("");
-	 if (blanks != word)
-	 word += `/${blanks}`;
-	 return word;
-	 }*/
+   */
+	function pack(tiles) {
+	  let word = tiles.map(l => l.letter).join("");
+	  const blanks = tiles.map(l => l.isBlank ? " " : l.letter).join("");
+	  if (blanks != word)
+	    word += `/${blanks}`;
+	  return word;
+	}
 
 	/**
 	 * Determine which letters can fit in each square and form a valid

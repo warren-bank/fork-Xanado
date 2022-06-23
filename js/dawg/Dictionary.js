@@ -281,7 +281,7 @@ define("dawg/Dictionary", [
 		 * @param {string} name name of the dictionary to load
 		 * @param {string?} path path to dictionary files. If undefined,
 		 * defaults to `Platform.getFilePath("dictionaries")`
-		 * @return {Promise} Promise that resolves to a new {@link Dictionary}
+		 * @return {Promise} Promise that resolves to a new {@linkcode Dictionary}
 		 * or undefined if a dictionary of that name could not be loaded.
 		 */
 		static load(name, path) {

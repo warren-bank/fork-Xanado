@@ -82,28 +82,28 @@ define("dawg/LetterNode", () => {
 
 		/**
 		 * List of nodes that link forward to this node. Set up
-		 * by {@link LetterNode#buildLists}.
+		 * by {@linkcode LetterNode#buildLists|buildLists}.
 		 * @member {LetterNode[]?}
 		 */
 		preNodes;
 
 		/**
 		 * List of letters that are in the nodes listed in `preNodes`.
-		 * Set up by {@link LetterNode#buildLists}.
+		 * Set up by {@linkcode LetterNode#buildLists|buildLiss}.
 		 * @member {string[]?}
 		 */
 		preLetters;
 		
 		/**
 		 * List of nodes that are linked to from this node. Set up
-		 * by {@link LetterNode#buildLists}.
+		 * by {@linkcode LetterNode#buildLists|buildLists}.
 		 * @member {LetterNode[]?}
 		 */
 		postNodes;
 
 		/**
 		 * List of letters that are in the nodes listed in `postNode`.
-		 * Set up by {@link LetterNode#buildLists}.
+		 * Set up by {@linkcode LetterNode#buildLists|buildLists}.
 		 * @member {LetterNode[]?}
 		 */
 		postLetters;

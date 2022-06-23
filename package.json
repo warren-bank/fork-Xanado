@@ -44,6 +44,7 @@
 	"devDependencies": {
 		"chai": ">=4.3.6",
 		"chai-http": "^4.3.0",
+		"docdash": "^1.2.0",
 		"eslint": ">=8.17.0",
 		"istanbul": "^0.4.5",
 		"jsdoc": "^3.6.10",
@@ -54,13 +55,13 @@
 	},
 	"scripts": {
 		"server": "node server.js",
-        "doc": "jsdoc --verbose -c doc/config.json -r -d doc js",
-        "lint": "eslint js",
+		"doc": "jsdoc --verbose -c doc/config.json -r -d doc js",
+		"lint": "eslint js",
 		"test": "mocha --extension ut --timeout=5000",
 		"coverage": "nyc --hook-run-in-context --hook-run-in-this-context --reporter=html --reporter text mocha --extension ut --timeout=5000",
-        "tx": "node bin/checkStrings.js",
-        "update": "ncu -u ",
-        "docker": "docker build . --tag xword"
+		"tx": "node bin/checkStrings.js",
+		"update": "ncu -u ",
+		"docker": "docker build . --tag xword"
 	},
 	"eslintConfig": {
 		"extends": "eslint:recommended",
@@ -90,6 +91,7 @@
 			"no-loop-func": 1,
 			"no-mixed-spaces-and-tabs": 0,
 			"no-new": 0,
+			"no-prototype-builtins": 0,
 			"no-redeclare": [
 				"error",
 				{

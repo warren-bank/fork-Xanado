@@ -82,8 +82,8 @@ define("design/ValettCore", () => {
 					this.frequencyByLength[i][j] = 0;
 			}
 			for (let i = 0; i < this.maxLength; i++)
-				this.totalFrequencyByLength[i] = 0
-		
+				this.totalFrequencyByLength[i] = 0;
+		  
 			for (let word of words) {
 				this.totalFrequencyByLength[word.length - 1] += word.length;
 				for (let letter of word.split("")) {
@@ -107,7 +107,7 @@ define("design/ValettCore", () => {
 				frequencyByLengthWeights.push(0);
 			const normedFrequencyByLengthWeights = norm(frequencyByLengthWeights);
 			const normedEntropyWeights = norm(entropyWeights);
-		
+		  
 			const entropyValues = [];
 
 			const frequencyValues = norm(this.frequency);
@@ -126,7 +126,7 @@ define("design/ValettCore", () => {
 			for (let i = 0; i < this.maxLength; i++)
 				for (let j = 0; j < this.letters.length; j++)
 					utility[j].score += frequencyByLengthValues[j][i] * normedFrequencyByLengthWeights[i] * weights.frequencyByLength;
-				
+			
 
 			for (let j = 0; j < this.letters.length; j++) {
 				utility[j].score += entropyValues[0][j] * normedEntropyWeights[0] * weights.entropy;
@@ -134,18 +134,18 @@ define("design/ValettCore", () => {
 			}
 
 			// Invert and scale to [0, 1]
-			let maxUtility = 0
+			let maxUtility = 0;
 			for (let i = 0; i < this.letters.length; i++) {
 				utility[i].score = 1 / utility[i].score;
 				maxUtility = Math.max(maxUtility, utility[i].score);
 			}
 			for (let i = 0; i < this.letters.length; i++)
 				utility[i].score /= maxUtility;
-		
+		  
 			// Scale to desired range, could end up with zeros
 			for (let i = 0; i < this.letters.length; i++)
 				utility[i].score = Math.round(utility[i].score * maxValue);
-		
+		  
 			return utility;
 		}
 		
@@ -164,7 +164,7 @@ define("design/ValettCore", () => {
 					let prevLetter = null;
 					let nextLetter = null;
 					let curLetter = null;
-				
+				  
 					if (i == 0) // Start of word
 						prevLetter = this.letters.length;
 					else
@@ -188,7 +188,7 @@ define("design/ValettCore", () => {
 		}
 
 		_entropy() {
-			const inOut = []
+			const inOut = [];
 			inOut[0] = normMatrix(transposeMatrix(this.transitionFrequency));
 			inOut[1] = normMatrix(this.transitionFrequency);
 			
@@ -209,6 +209,6 @@ define("design/ValettCore", () => {
 			}
 		}
 	}		
-		
+	
 	return Valett;
 });

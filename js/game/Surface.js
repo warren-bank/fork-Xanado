@@ -8,7 +8,7 @@ define("game/Surface", [
 ], Square => {
 
 	/**
-	 * Abstract base class of a 2D grid of {@link Sqaure} (a Rack or a Board)
+	 * Abstract base class of a 2D grid of {@linkcode Sqaure} (a Rack or a Board)
 	 */
 	class Surface {
 
@@ -51,9 +51,16 @@ define("game/Surface", [
 
 			for (let i = 0; i < cols; i++) {
 				const row = [];
-				for (let j = 0; j < rows; j++)
-					row.push(new Square(
-						type(i, j), this, i, rows > 1 ? j : undefined));
+				for (let j = 0; j < rows; j++) {
+          const spec = {
+						type: type(i, j),
+            owner: this,
+            col: i
+          };
+          if (rows > 1)
+            spec.row = j;
+					row.push(new Square(spec));
+        }
 				this.squares.push(row);
 			}
 		}
@@ -141,7 +148,7 @@ define("game/Surface", [
 			const removed = [];
 			this.forEachTiledSquare(square => {
 				removed.push(square.tile);
-				square.placeTile(null);
+				square.unplaceTile();
 			});
 			return removed;
 		}
@@ -163,11 +170,11 @@ define("game/Surface", [
 			return this.tiles().length === 0;
 		}
 
+		/* istanbul ignore next */
 		/**
 		 * Refresh the UI for all squares.  Must be implemented by
 		 * subclasses.
 		 */
-		/* istanbul ignore next */
 		$ui() {
 			throw Error("Pure virtual");
 		}

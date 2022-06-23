@@ -10,7 +10,7 @@
 define("game/Rack", ["game/Surface"], Surface => {
 
 	/**
-	 * A Rack is a 1-column {@link Surface}
+	 * A Rack is a 1-column {@linkcode Surface}
    * @extends Surface
 	 */
 	class Rack extends Surface {
@@ -107,7 +107,7 @@ define("game/Rack", ["game/Surface"], Surface => {
 			// If the tile is a blank, set the letter to the remove letter
 			if (tile.isBlank)
 				tile.letter = remove.letter;
-			square.placeTile(null);
+			square.unplaceTile();
 			return tile;
 		}
 
@@ -160,10 +160,10 @@ define("game/Rack", ["game/Surface"], Surface => {
 			return $table;
 		}
 
+    /* istanbul ignore next */
 		/**
 		 * @override
 		 */
-    /* istanbul ignore next */
 		toString() {
 			return `Rack ${this.tiles().join(",")}`;
 		}

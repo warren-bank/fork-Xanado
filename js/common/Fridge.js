@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, node */
 
 define("common/Fridge", () => {
@@ -83,8 +83,8 @@ define("common/Fridge", () => {
 				frozen[IB_ID] = id;
 
 				if (unfrozen.constructor
-					&& unfrozen.constructor.name
-					&& unfrozen.constructor.name !== "Object")
+					  && unfrozen.constructor.name
+					  && unfrozen.constructor.name !== "Object")
 					frozen[IB_CN] = unfrozen.constructor.name;
 
 				const proto = Object.getPrototypeOf(unfrozen);
@@ -174,7 +174,7 @@ define("common/Fridge", () => {
 					for (let prop in object[IB_DATA]) {
 						thawed[prop] = _thaw(
 							object[IB_DATA][prop], objectsThawed);
-                    }
+          }
 
 				return thawed;
 			}

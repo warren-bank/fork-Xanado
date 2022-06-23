@@ -6,7 +6,7 @@
 define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 
 	/**
-	 * Root of a tree of {@link TrieNode}, and operations thereon required
+	 * Root of a tree of {@linkcode TrieNode}, and operations thereon required
    * to convert the Trie into an optimal Directed Acyclic Word Graph (DAWG).
    * As such this is mis-named; the structure starts life as a Trie but
    * may also represent a DAWG.
@@ -120,7 +120,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		}
 
 		/**
-		 * Construct an array indexed on {@link TrieNode#maxChildDepth},
+		 * Construct an array indexed on {@linkcode TrieNode#maxChildDepth},
      * which corresponds to max-rest-of-word length.
 		 * Each entry is an array that contains all the nodes with that
 		 * max-rest-of-word length.
@@ -170,7 +170,7 @@ define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
 		 * Flag all of the redundant nodes in the Trie.  Flagging
 		 * requires the node comparison function that will take a very
 		 * long time for a big dictionary. This is especially true
-		 * when comparing the nodes with small {@link TrieNode#maxChildDepth}'s
+		 * when comparing the nodes with small {@linkcode TrieNode#maxChildDepth|TrieNode.maxChildDepth}'s
      * because there are so many of them. It is faster to start
 		 * with nodes of the largest `maxChildDepth` to recursively
 		 * reduce as many lower nodes as possible.

@@ -11,7 +11,7 @@ define("game/Move", [
 	 * A Move is a collection of tile placements, and the delta score
 	 * achieved for the move. We also record the words created by the
 	 * move. It is used to send a human player's play to the server,
-	 * which then sends a matching {@link Turn} to every player.
+	 * which then sends a matching {@linkcode Turn} to every player.
 	 */
 	class Move {
 

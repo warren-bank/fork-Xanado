@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
 define("browser/LoginDialog", ["browser/Dialog"], Dialog => {
@@ -11,8 +11,8 @@ define("browser/LoginDialog", ["browser/Dialog"], Dialog => {
 			if (this.getAction() === "register") {
 				const user = this.$dlg.find("#register_username").val();
 				return (user
-						&& user !== $.i18n("Advisor")
-						&& user !== $.i18n("Robot"));
+						    && user !== $.i18n("Advisor")
+						    && user !== $.i18n("Robot"));
 			}
 			return true;
 		}
@@ -52,8 +52,8 @@ define("browser/LoginDialog", ["browser/Dialog"], Dialog => {
 				const $table = $("<table width='100%'></table>");
 				for (let provider of list) {
 					const $td = $("<td></td>")
-						  .addClass("provider-logo")
-						  .attr("title", $.i18n("Sign in using $1", provider.name));
+						    .addClass("provider-logo")
+						    .attr("title", $.i18n("Sign in using $1", provider.name));
 					const $logo = $(`<img src="${provider.logo}" />`);
 					// Note: this MUST be done using from an href and
 					// not an AJAX request, or CORS will foul up.
@@ -66,8 +66,8 @@ define("browser/LoginDialog", ["browser/Dialog"], Dialog => {
 				}
 				$("#login-tab")
 				.prepend($(`<div class="sign-in-using">${$.i18n("Sign in using:")}</div>`)
-						 .append($table)
-						 .append(`<br /><div class="sign-in-using">${$.i18n("or sign in as XANADO user:")}</div>`));
+						     .append($table)
+						     .append(`<br /><div class="sign-in-using">${$.i18n("or sign in as XANADO user:")}</div>`));
 			})
 			.then(() => super.createDialog());
 		}
