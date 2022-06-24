@@ -171,17 +171,20 @@ define("game/Square", [
 			// Note that a locked tile might be unplaced as
 			// part of undoing a challenged play. Only then should
       // the tile letter be reset.
-			if (this.tile) {
+      const unplaced = this.tile;
+			if (unplaced) {
         if (this.tileLocked) {
-					this.tile.reset(); // clear letter
+					unplaced.reset(); // clear letter
           delete this.tileLocked;
         }
-        delete this.tile.col;
-        delete this.tile.row;
+        delete unplaced.col;
+        delete unplaced.row;
 				delete this.tile;
 
 			  Platform.trigger("SquareChanged", [ this ]);
+        return unplaced;
       }
+      return undefined;
     }
 
 		/**

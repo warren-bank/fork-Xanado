@@ -102,6 +102,7 @@ div.board-wrap {
 
 /* Clock in timed games */
 .player-clock {
+    visibility: none;
 	color: #080;
 }
 

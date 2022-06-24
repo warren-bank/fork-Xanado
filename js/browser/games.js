@@ -133,7 +133,7 @@ requirejs([
 					$tr.append(`<td>${dic}</td>`);
 				}
 
-				if (game.timerType !== Timer.NONE && player.clock) {
+				if (game.timerType && player.clock) {
 					const left = $.i18n("$1s left to play", player.clock);
 					$tr.append(`<td>${left}</td>`);
 				}

@@ -80,21 +80,23 @@ define("browser/CreateGameDialog", [
     }
 
 		createDialog() {
+      function makeOptions(list, $sel) {
+        for (const p of list)
+          $sel.append(
+				    `<option value="${p}">${p ? $.i18n(p) : $.i18n("None")}</option>`);
+      }
 			const $pen = this.$dlg.find("[name=challengePenalty]");
-			Penalty._types.forEach(p => $pen.append(
-				`<option value="${p}">${p ? $.i18n(p) : $.i18n("None")}</option>`));
+			makeOptions(Penalty._types, $pen);
       $pen.on("selectmenuchange", () => this.showPenaltyFields());
       this.showPenaltyFields();
 
 			const $tim = this.$dlg.find("[name=timerType]");
-			Timer._types.forEach(t => $tim.append(
-				`<option value="${t}">${$.i18n(t)}</option>`));
+			makeOptions(Timer._types, $tim);
       $tim.on("selectmenuchange", () => this.showTimerFields());
       this.showTimerFields();
 
 			const $wc = this.$dlg.find("[name=wordCheck]");
-			WordCheck._types.forEach(c => $wc.append(
-				`<option value="${c}">${$.i18n(c)}</option>`));
+			makeOptions(WordCheck._types, $wc);
 
 			let promise;
 			Promise.all([

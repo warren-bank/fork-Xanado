@@ -452,28 +452,32 @@ define("browser/game", [
 			ticked.clock = remains;
 
 			const clocks = Utils.formatTimeInterval(remains);
+
+      let extraClass = "tick-alert-none";
 			if (this.game.timerType === Timer.TURN) {
-				$(`.player-clock`)
-				.empty()
-				.removeClass("tick-alert-low tick-alert-medium tick-alert-high");
-				if (remains <= 0)
-					return;
-			}
+			  if (ticked === this.player
+				    && remains <= 10
+				    && this.getSetting("warnings"))
+				  this.playAudio("tick");
 
-			if (ticked === this.player
-				  && this.game.timerType === Timer.TURN
-				  && remains <= 10
-				  && this.getSetting("warnings"))
-				this.playAudio("tick");
+			  if (remains < this.game.timeLimit / 6)
+				  extraClass = "tick-alert-high";
+			  else if (remains < this.game.timeLimit / 3)
+				  extraClass = "tick-alert-medium";
+			  else if (remains < this.game.timeLimit / 2)
+				  extraClass = "tick-alert-low";
+      }
+      else if (this.game.timerType === Timer.GAME) {
+			  if (remains < this.game.timeLimit / 10) // 2.5 mins
+				  extraClass = "tick-alert-high";
+			  else if (remains < this.game.timeLimit / 5) // 5 mins
+				  extraClass = "tick-alert-medium";
+      }
 
-			const $to = $(`#player${ticked.key} .player-clock`);
-			if (remains < this.game.timeLimit / 6) {
-				$to.addClass("tick-alert-high");
-			} else if (remains < this.game.timeLimit / 3)
-				$to.addClass("tick-alert-medium");
-			else if (remains < this.game.timeLimit / 2)
-				$to.addClass("tick-alert-low");
-			$to.text(clocks);
+			$(`#player${ticked.key} .player-clock`)
+			.removeClass("tick-alert-low tick-alert-medium tick-alert-high")
+      .addClass(extraClass)
+      .text(clocks);
 		}
 
 		/**
@@ -627,6 +631,7 @@ define("browser/game", [
 		updatePlayerTable() {
 			const $playerTable = this.game.$ui(this.player);
 			$("#scoresBlock > .playerList").html($playerTable);
+      $(".player-clock").toggle(this.game.timerType);
 			this.updateWhosTurn();
 		}
 
@@ -736,7 +741,7 @@ define("browser/game", [
 					this.setAction("action_anotherGame", /*i18n*/"Another game?");
 			}
 
-			$(".pauseButton").toggle(game.timerType !== Timer.NONE);
+			$(".pauseButton").toggle(game.timerType);
 
 			let myGo = this.isThisPlayer(game.whosTurnKey);
 			this.updateWhosTurn();

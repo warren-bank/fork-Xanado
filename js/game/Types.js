@@ -23,10 +23,10 @@ define("game/Types", () => {
   /**
    * Game states.
    * * WAITING - until enough players join the game
-	 * * PLAYING - until the game is over, then
+	 * * PLAYING - until the game is over, then one of:
 	 * * GAME_OVER - game was played to end, or
 	 * * TWO_PASSES - all players passed twice, or
-	 * * FAILED_CHALLENGE - a challenge on the final play failed
+	 * * FAILED_CHALLENGE - a challenge on the final play failed, or
    * * TIMED_OUT - game is too old, will be pruned
    * @typedef {WAITING|PLAYING|GAME_OVER|TWO_PASSES|FAILED_CHALLENGE|TIMED_OUT} State
    */

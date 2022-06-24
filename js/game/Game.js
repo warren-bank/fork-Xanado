@@ -234,7 +234,7 @@ define("game/Game", [
 		     */
         this.penaltyPoints = params.penaltyPoints || 5;
 
-      if (params.wordCheck && params.wordCheck !== WordCheck.NONE)
+      if (params.wordCheck)
         		/**
 		         * Whether or not to check plays against the dictionary.
              * @member {WordCheck}
@@ -385,7 +385,7 @@ define("game/Game", [
 			this.players.push(player);
 			player.fillRack(this.letterBag, this.rackSize);
 			this._debug(this.key, "added player", player.toString());
-			if (this.timerType !== Timer.NONE)
+			if (this.timerType)
 				player.clock = this.timeLimit;
 		}
 
@@ -533,6 +533,16 @@ define("game/Game", [
 		winningScore() {
 			return this.players.reduce(
 				(max, player) => Math.max(max, player.score), 0);
+		}
+
+		/**
+		 * Get the current winning player
+		 * @return {Player} player in the lead
+		 */
+		getWinner() {
+			return this.players.reduce(
+				(best, player) => (player.score > best.score ? player : best),
+        this.players[0]);
 		}
 
 		/**
@@ -1081,19 +1091,21 @@ define("game/Game", [
 		 * @private
 		 */
 		startTheClock() {
-			if (typeof this._intervalTimer !== "undefined"
-          || !this.timerType || this.timerType === Timer.NONE)
-        return false;
+			if (typeof this._intervalTimer === "undefined"
+          && this.timerType
+          && this.state === State.PLAYING) {
       
-			// Broadcast a ping every second
-		  /**
-		   * Timer object for ticking.
-		   * @member {object?}
-       * @private
-		   */
-			this._intervalTimer = setInterval(() => this.tick(), 1000);
-			this._debug(this.key, "started the clock");
-			return true;
+			  // Broadcast a ping every second
+		    /**
+		     * Timer object for ticking.
+		     * @member {object?}
+         * @private
+		     */
+			  this._intervalTimer = setInterval(() => this.tick(), 1000);
+			  this._debug(this.key, "started the clock");
+			  return true;
+      }
+      return false;
 		}
 
 		/**
@@ -1742,10 +1754,8 @@ define("game/Game", [
 					lostPoints = -this.penaltyPoints;
 					break;
 				case Penalty.PER_WORD:
-					lostPoints = -this.penaltyPoints
-					* previousMove.words.length;
+					lostPoints = -this.penaltyPoints * previousMove.words.length;
 					break;
-				default: // Penalty.NONE
 				}
 
 				challenger.score += lostPoints;
