@@ -1,7 +1,6 @@
 {
 	"opts": {
-		"readme": "doc/README.md",
-        "template": "doc/docdash"
+		"readme": "doc/README.md"
 	},
     "plugins": ["plugins/markdown"]
 }
