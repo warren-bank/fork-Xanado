@@ -446,6 +446,8 @@ define("browser/game", [
 			// console.debug("--> tick");
 			if (params.gameKey !== this.game.key)
 				console.error(`key mismatch ${this.game.key}`);
+      $(".player-clock")
+      .hide();
 
 			const ticked = this.game.getPlayer(params.playerKey);
 			let remains = params.clock;
@@ -455,7 +457,7 @@ define("browser/game", [
 
       let extraClass = "tick-alert-none";
 			if (this.game.timerType === Timer.TURN) {
-			  if (ticked === this.player
+			  if (ticked.key === this.player.key
 				    && remains <= 10
 				    && this.getSetting("warnings"))
 				  this.playAudio("tick");
@@ -475,6 +477,7 @@ define("browser/game", [
       }
 
 			$(`#player${ticked.key} .player-clock`)
+      .show()
 			.removeClass("tick-alert-low tick-alert-medium tick-alert-high")
       .addClass(extraClass)
       .text(clocks);
