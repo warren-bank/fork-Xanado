@@ -666,7 +666,7 @@ define("browser/game", [
 					(player, i) =>
 					$(countElements[i]).text(`(${player.rack.squaresUsed()})`));
 			}
-			$(".swap-ack")
+			$(".swap-rack")
 			.toggle(remains >= this.game.rackSize);
 		}
 
