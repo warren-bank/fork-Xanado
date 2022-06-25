@@ -1,6 +1,6 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /**
  * Styling for the "game" interface
@@ -8,20 +8,24 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /* Button in the log area; challenge, take back */
 .turn-control button {
-	font-size: 120%;
+  font-size: 120%;
+}
+
+#blocks {
+  width: 25em;
 }
 
 /* Title in one of the block areas - Scores, Play, Chat etc */
 .block-title {
-	font-size: 1em;
-	font-weight: bold;
-	color: brown;
+  font-size: 1em;
+  font-weight: bold;
+  color: brown;
 }
 
 /* Wraps everything */
 div.user-interface {
-	display: flex;
-	justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 /* Description of points gained and lost from final racks */
@@ -32,140 +36,140 @@ div.user-interface {
 
 /* The player who just had a turn */
 .turn-player {
-    margin-top: 0.4em;
-    padding-left: 0.5em;
+  margin-top: 0.4em;
+  padding-left: 0.5em;
 }
 
 /* Details about the turn */
 .turn-detail {
-    margin-left: 2em;
+  margin-left: 2em;
 }
 
 /* Narrative desription of the outcome of the turn */
 .turn-narrative {
-	font-size: 110%;
-	margin-top: 0.5em;
-	color: #950000
+  font-size: 110%;
+  margin-top: 0.5em;
+  color: #950000
 }
 
 /* A control placed in the log */
 .turn-control {
-	margin: 0.3em 0 0.3em 0;
+  margin: 0.3em 0 0.3em 0;
 }
 
 /* Wrapper around the Board */
 div.board-wrap {
-    margin-top: 1em;
-	margin-left: 1em;
-    float: left;
-    /*width: 37em;*/
+  margin-top: 1em;
+  margin-left: 1em;
+  float: left;
+  /*width: 37em;*/
 }
 
 /* A tile rack */
 .rack {
-    border-width: 0.2em;
-    padding: 0.2em;
-	margin-bottom: 0.5em;
+  border-width: 0.2em;
+  padding: 0.2em;
+  margin-bottom: 0.5em;
 }
 
 /* Background letters behind the swap rack */
 .underlay {
-	width: 100%;
-	height: 100%;
-	font-size: 1.7em;
-	line-height: 100%;
-	text-align: center;
-	vertical-align: middle;
-	display: flow-root list-item;
-	color: rgba(60, 60, 80, 0.3);
+  width: 100%;
+  height: 100%;
+  font-size: 1.7em;
+  line-height: 100%;
+  text-align: center;
+  vertical-align: middle;
+  display: flow-root list-item;
+  color: rgba(60, 60, 80, 0.3);
 }
 
 /* Highlight for the last played word */
 .last-placement {
-	background-color: #E2E298!important;
+  background-color: #E2E298!important;
 }
 
 /* Highlight for a hint placement */
 .hint-placement {
-	background-color: #E2FF98!important;
+  background-color: #E2FF98!important;
 }
 
 /* an individual word in a list of words in the log */
 .word {
-	font-style: italic
+  font-style: italic
 }
 
 /* an individual word score in a list of words in the log */
 .word-score {
-	font-size: 0.75em;
+  font-size: 0.75em;
 }
 
 /* Clock in timed games */
 .player-clock {
-    visibility: none;
-	color: #080;
+  visibility: none;
+  color: #080;
 }
 
 /* Clock highlights */
 .tick-alert-low {
-	color: #cc5801 !important;
+  color: #cc5801 !important;
 }
 
 .tick-alert-medium {
-	color:#fcae1e !important;
+  color:#fcae1e !important;
 }
 
 .tick-alert-high {
-	color: red !important;
+  color: red !important;
 }
 
 /* Override jquery-ui for shuffle and take-back buttons */
 button.fat-button {
-	width: 2em;
-	height: 2em;
+  width: 2em;
+  height: 2em;
 }
 
 /* typing cursor on the board (there can be only one) */
 #typingCursor {
-	font-family: symbol;
-	font-size: 1.5em;
-	font-weight: bold;
-	color: green;
-	width: 80%;
-	height: 80%;
-	text-align: center;
-	position: relative;
-	z-index: 2;
+  font-family: symbol;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: green;
+  width: 80%;
+  height: 80%;
+  text-align: center;
+  position: relative;
+  z-index: 2;
 }
 
 /* Div that wraps all the individual control panels */
 #controls {
-    float: left;
-    margin-top: 1em;
-    width: 20em;
+  float: left;
+  margin-top: 1em;
+  width: 20em;
 }
 
 /* Settings and signout div */
 #toolbox {
-	float: right;
-	font-size: 1.3em;
+  float: right;
+  font-size: 1.3em;
 }
 
 /* All divs within the controls area */
 .block {
-    background-color: #F7F7E3;
-    border-color: #DCDCC6;
+  background-color: #F7F7E3;
+  border-color: #DCDCC6;
 
-    border-style: solid;
-	
-    -webkit-border-radius: 0.4em;
-    -moz-border-radius: 0.4em;
-    -ms-border-radius: 0.4em;
-    -o-border-radius: 0.4em;
-    border-radius: 0.4em;
+  border-style: solid;
+  
+  -webkit-border-radius: 0.4em;
+  -moz-border-radius: 0.4em;
+  -ms-border-radius: 0.4em;
+  -o-border-radius: 0.4em;
+  border-radius: 0.4em;
 
-    margin: 0.4em;
-    padding: 0.4em;
+  margin: 0.4em;
+  padding: 0.4em;
 }
 
 /* The #controls div that contains login information and buttons */
@@ -174,16 +178,16 @@ button.fat-button {
 
 /* The #controls > div with the scores and letter bag state */
 #scoresBlock {
-    min-height: 4em;
+  min-height: 4em;
 }
 
 #scoresBlock > .observerCount {
-    font-size: smaller;
+  font-size: smaller;
 }
 
 /* The #scoresBlock > div that has the letter bag status */
 #scoresBlock > .letterbag {
-    margin: 0.5em;
+  margin: 0.5em;
 }
 
 /* The #controls > div with the swap rack and turn control buttons */
@@ -192,36 +196,36 @@ button.fat-button {
 
 /* #yourPlayBlock > div showing the proposed move */
 #playBlock > .your-move {
-    margin-bottom: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 /* Button for making a play */
 #playBlock > .turn-button {
-	font-size: 130%;
+  font-size: 130%;
 }
 
 /* The #controls > div with the chat */
 #chatBlock {
-    max-height: 3em;
+  max-height: 3em;
 }
 
 /* #chatBlock > div chat message capture */
 #chatBlock > .chat-input {
-    margin-top: 0.25em;
-    width: 100%;
+  margin-top: 0.25em;
+  width: 100%;
 }
 
 #chatBlock input {
-    width: 95%;
+  width: 95%;
 }
 
 /* Who sent a chat message */
 #chatBlock .chat-sender {
-	font-weight: bold;
+  font-weight: bold;
 }
 
 #chatBlock .chat-message.warning {
-	color: #B00;
+  color: #B00;
 }
 
 /* The div with the game events log */
@@ -230,9 +234,9 @@ button.fat-button {
 
 /* container around all messages */
 #logBlock .messages {
-	font-size: 80%;
-    overflow: auto;
-    max-height: 14em;
+  font-size: 80%;
+  overflow: auto;
+  max-height: 14em;
 }
 
 /* Wrapper around each individual entry in the log */
@@ -240,8 +244,8 @@ button.fat-button {
 }
 
 #logBlock .game-state {
-	margin-top: 0.5em;
-	font-weight: bold;
+  margin-top: 0.5em;
+  font-weight: bold;
 }
 
 #logBlock .game-outcome {
@@ -249,47 +253,47 @@ button.fat-button {
 
 /* #rack > div, the rack and buttons used to control it */
 #rackControls {
-	margin-top: 0.5em;
-	width: 100%;
-	flex-direction: row;
-	justify-content: space-evenly;
-	align-items: center;
-	display: flex;
+  margin-top: 0.5em;
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  display: flex;
 }
 
 /* the rack */
 #rackControls .rack {
-	margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 /* rack control buttons - shuffle, unplace */
 #rackControls .fat-button {
-    font-size: 1.2em;
+  font-size: 1.2em;
 }
 
 .unplace-button {
-    visibility: hidden;
+  visibility: hidden;
 }
 
 /* Blank letter requester dialog */
 #blankDialog .letterTable td {
-	font-size: 1.5em;
-	text-align: center;
-	border-color: #DCDCC6;
-    border-style: solid;
-	
-    -webkit-border-radius: 0.4em;
-    -moz-border-radius: 0.4em;
-    -ms-border-radius: 0.4em;
-    -o-border-radius: 0.4em;
+  font-size: 1.5em;
+  text-align: center;
+  border-color: #DCDCC6;
+  border-style: solid;
+  
+  -webkit-border-radius: 0.4em;
+  -moz-border-radius: 0.4em;
+  -ms-border-radius: 0.4em;
+  -o-border-radius: 0.4em;
 
-    border-radius: 0.4em;
-    border-collapse: separate;
-    border-spacing: 0 0;
+  border-radius: 0.4em;
+  border-collapse: separate;
+  border-spacing: 0 0;
 
-    border-width: 0.1em;
+  border-width: 0.1em;
 }
 
 .player-name {
-	font-weight: bold;
+  font-weight: bold;
 }

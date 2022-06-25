@@ -1,321 +1,321 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-License MIT. See README.md at the root of this distribution for full copyright
-and license information. Author Crawford Currie http://c-dot.co.uk*/
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /* Surface is the base class for Board and Rack */
 div.Surface {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 div.Surface table {
-    border-collapse: separate;
-    border-spacing: 0 0;
+  border-collapse: separate;
+  border-spacing: 0 0;
 
-    border-width: 0.2em;
-    border-style: solid;
-    border-color:  #54534A;
+  border-width: 0.2em;
+  border-style: solid;
+  border-color:  #54534A;
 
-    padding: 0.2em;
+  padding: 0.2em;
 
-    background-color: #AAA38E;
+  background-color: #AAA38E;
 }
 
 div.Surface tr {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 
-    border: none;
+  border: none;
 }
 
 div.Surface td,
 div.Surface th {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 
-    border: none;
+  border: none;
 
-    white-space: normal;
-    overflow: hidden;
+  white-space: normal;
+  overflow: hidden;
 
-    border-width: 0.122em;
-    border-style: dotted;
+  border-width: 0.122em;
+  border-style: dotted;
 
-    background-color: #BEB9A6;
+  background-color: #BEB9A6;
 }
 
 div.Surface td.square-_ {
-    border-style: solid;
-    border-color: #AAA38E;
+  border-style: solid;
+  border-color: #AAA38E;
 }
 
 div.Surface td.square-D,
 div.Surface td.square-M {
-    border-color: #FBBBB9;
+  border-color: #FBBBB9;
 }
 
 div.Surface td.square-T {
-    border-color: #F75D59;
+  border-color: #F75D59;
 }
 
 div.Surface td.square-Q {
-	border-color: #a21505;
+  border-color: #a21505;
 }
 
 div.Surface td.square-d {
-    border-color: #A0CFEC;
+  border-color: #A0CFEC;
 }
 
 div.Surface td.square-t {
-    border-color: #157DEC;
+  border-color: #157DEC;
 }
 
 div.Surface td.square-q {
-    border-color: #0e6993;
+  border-color: #0e6993;
 }
 
 div.Surface td div[id], div.Surface td div.temporary {
-    display: block;
+  display: block;
 
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 
-    border: none;
+  border: none;
 
-    width: 2em;
-    height: 2em;
+  width: 2em;
+  height: 2em;
 
-    border-style: solid;
-    border-width: 0.15em;
+  border-style: solid;
+  border-width: 0.15em;
 
-    background-color: red;
-    color: #333333;
+  background-color: red;
+  color: #333333;
 
-    cursor: crosshair;
+  cursor: crosshair;
 }
 
 div.Surface td div a {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -o-user-select: none;
-    user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
 
-    text-decoration: none;
+  text-decoration: none;
 
-    display: block;
+  display: block;
 
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 
-    border: none;
+  border: none;
 
-    text-align: center;
+  text-align: center;
 }
 
 /* "glow" type animation - used for dragging tiles */
 @-webkit-keyframes glow {
-    0% {
-        border: 0.15em solid #FF9900;
-    }
-    100% {
-        border: 0.15em solid #DC143C;
-    }
+  0% {
+    border: 0.15em solid #FF9900;
+  }
+  100% {
+    border: 0.15em solid #DC143C;
+  }
 }
 
 @-moz-keyframes glow {
-    0% {
-        border: 0.15em solid #FF9900;
-    }
-    100% {
-        border: 0.15em solid #DC143C;
-    }
+  0% {
+    border: 0.15em solid #FF9900;
+  }
+  100% {
+    border: 0.15em solid #DC143C;
+  }
 }
 
 @keyframes glow {
-    0% {
-        border: 0.15em solid #FFFFFF;
-    }
-    100% {
-        border: 0.15em solid #333333;
-    }
+  0% {
+    border: 0.15em solid #FFFFFF;
+  }
+  100% {
+    border: 0.15em solid #333333;
+  }
 }
 
 div.Surface td.square-D div,
 div.Surface td.square-M div {
-    background-color: #FBBBB9;
-    border-color: #FBBBB9;
-    color: #F75D59;
+  background-color: #FBBBB9;
+  border-color: #FBBBB9;
+  color: #F75D59;
 }
 
 div.Surface td.square-T div {
-    background-color: #F75D59;
-    border-color: #F75D59;
-    color: #8B0000;
+  background-color: #F75D59;
+  border-color: #F75D59;
+  color: #8B0000;
 }
 
 div.Surface td.square-Q div {
-	background-color: #a21505;
-	border-color: #a21505;
-    color: #eeeeee;
+  background-color: #a21505;
+  border-color: #a21505;
+  color: #eeeeee;
 }
 
 div.Surface td.square-_ div {
-    background-color: #BEB9A6;
-    border-color: #BEB9A6;
+  background-color: #BEB9A6;
+  border-color: #BEB9A6;
 }
 
 div.Surface td.square-d div {
-    background-color: #A0CFEC;
-    border-color: #A0CFEC;
-    color: #157DEC;
+  background-color: #A0CFEC;
+  border-color: #A0CFEC;
+  color: #157DEC;
 }
 
 div.Surface td.square-t div {
-    background-color: #157DEC;
-    border-color: #157DEC;
-    color: #000080;
+  background-color: #157DEC;
+  border-color: #157DEC;
+  color: #000080;
 }
 
 div.Surface td.square-q div {
-    background-color: #0e6993;
-    border-color: #0e6993;
-	color: #eeeeee;
+  background-color: #0e6993;
+  border-color: #0e6993;
+  color: #eeeeee;
 }
 
 div.Surface td.score-multiplier div.empty-square a {
-    font-size: 0.50em;
-    padding-top: 0.0em;
-    line-height: 1.4em;
-    letter-spacing: 0.0em;
+  font-size: 0.50em;
+  padding-top: 0.0em;
+  line-height: 1.4em;
+  letter-spacing: 0.0em;
 }
 
 div.Surface td.square-M div.empty-square a {
-    font-size: 2em;
+  font-size: 2em;
 }
 
 div.Surface td div.tiled-square {
-    cursor: move;
-    background-color: #F7F7E3;
-    border-color: #DCDCC6;
-    border-style: solid;
+  cursor: move;
+  background-color: #F7F7E3;
+  border-color: #DCDCC6;
+  border-style: solid;
 
-	color: #333333;
+  color: #333333;
 
-    -webkit-border-radius: 0.2em;
-    -moz-border-radius: 0.2em;
-    -ms-border-radius: 0.2em;
-    -o-border-radius: 0.2em;
-    border-radius: 0.2em;
+  -webkit-border-radius: 0.2em;
+  -moz-border-radius: 0.2em;
+  -ms-border-radius: 0.2em;
+  -o-border-radius: 0.2em;
+  border-radius: 0.2em;
 }
 
 div.Surface td div.tiled-square a {
 }
 
 div.Surface td div.Locked {
-    cursor: default;
-    color: #474633;
+  cursor: default;
+  color: #474633;
 }
 
 div.Surface td div.temporary {
-    border-color: #626258;
+  border-color: #626258;
 }
 
 div.Surface td div.temporary:hover {
-    color: #000000 !important;
+  color: #000000 !important;
 
-    border-color: #FF9900;
+  border-color: #FF9900;
 }
 
 div.Surface td div.selected,
 .drag-border {
-    color: #000000 !important;
+  color: #000000 !important;
 
-    -webkit-animation-name: glow;
-    -webkit-animation-duration: 0.5s;
-    -webkit-animation-iteration-count: infinite;
-    -webkit-animation-direction: alternate;
-    -webkit-animation-timing-function: linear;
+  -webkit-animation-name: glow;
+  -webkit-animation-duration: 0.5s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-direction: alternate;
+  -webkit-animation-timing-function: linear;
 
-    -moz-animation-name: glow;
-    -moz-animation-duration: 0.5s;
-    -moz-animation-iteration-count: infinite;
-    -moz-animation-direction: alternate;
-    -moz-animation-timing-function: linear;
+  -moz-animation-name: glow;
+  -moz-animation-duration: 0.5s;
+  -moz-animation-iteration-count: infinite;
+  -moz-animation-direction: alternate;
+  -moz-animation-timing-function: linear;
 
-    -ms-animation-name: glow;
-    -ms-animation-duration: 0.5s;
-    -ms-animation-iteration-count: infinite;
-    -ms-animation-direction: alternate;
-    -ms-animation-timing-function: linear;
+  -ms-animation-name: glow;
+  -ms-animation-duration: 0.5s;
+  -ms-animation-iteration-count: infinite;
+  -ms-animation-direction: alternate;
+  -ms-animation-timing-function: linear;
 
-    -o-animation-name: glow;
-    -o-animation-duration: 0.5s;
-    -o-animation-iteration-count: infinite;
-    -o-animation-direction: alternate;
-    -o-animation-timing-function: linear;
-	
-    animation-name: glow;
-    animation-duration: 0.5s;
-    animation-iteration-count: infinite;
-    animation-direction: alternate;
-    animation-timing-function: linear;
+  -o-animation-name: glow;
+  -o-animation-duration: 0.5s;
+  -o-animation-iteration-count: infinite;
+  -o-animation-direction: alternate;
+  -o-animation-timing-function: linear;
+  
+  animation-name: glow;
+  animation-duration: 0.5s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-timing-function: linear;
 
-    border-color: #DC143C !important;
+  border-color: #DC143C !important;
 }
 
 .drag-border {
-    -webkit-box-shadow: 0px 0px 0.5em #333333;
-    -moz-box-shadow: 0px 0px 0.5em #333333;
-    -ms-box-shadow: 0px 0px 0.5em #333333;
-    -o-box-shadow: 0px 0px 0.5em #333333;
-    box-shadow: 0px 0px 0.5em #333333;
+  -webkit-box-shadow: 0px 0px 0.5em #333333;
+  -moz-box-shadow: 0px 0px 0.5em #333333;
+  -ms-box-shadow: 0px 0px 0.5em #333333;
+  -o-box-shadow: 0px 0px 0.5em #333333;
+  box-shadow: 0px 0px 0.5em #333333;
 
-    z-index: 1000;
+  z-index: 1000;
 }
 
 div.Surface td div.drop-active {
-    cursor: pointer;
+  cursor: pointer;
 
-    border-color: #333333 !important;
+  border-color: #333333 !important;
 }
 
 div.Surface td div a span {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 div.Surface td div.tiled-square a span.letter,
 div.Surface td div.tiled-square a span.blank-letter {
-    font-size: 1.2em;
-    font-weight: normal;
+  font-size: 1.2em;
+  font-weight: normal;
 
-    line-height: 1.6em;
+  line-height: 1.6em;
 
-    padding-left: 0.2em;
+  padding-left: 0.2em;
 }
 
 @-moz-document url-prefix(//) {
-	div.Surface td div.tiled-square a span.letter,
-	div.Surface td div.tiled-square a span.blank-letter {
-	    line-height: 1.8em;
-    }
+  div.Surface td div.tiled-square a span.letter,
+  div.Surface td div.tiled-square a span.blank-letter {
+	line-height: 1.8em;
+  }
 }
 
 div.Surface td div.tiled-square a span.score {
-    font-size: 0.8em;
-    vertical-align: sub;
-    padding-left: 0.2em;
+  font-size: 0.8em;
+  vertical-align: sub;
+  padding-left: 0.2em;
 }
 
 div.Surface td div.Cursor a {
-    line-height: 1.0em;
-    font-size: 2.0em;
-    font-weight: normal;
-    color: #54534A;
+  line-height: 1.0em;
+  font-size: 2.0em;
+  font-weight: normal;
+  color: #54534A;
 }
 
 div.Surface td div.blank-letter a {
-    border-left: 0.2em solid #ADFF2F;
-    border-right: 0.2em solid #ADFF2F;
+  border-left: 0.2em solid #ADFF2F;
+  border-right: 0.2em solid #ADFF2F;
 }
