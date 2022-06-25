@@ -656,10 +656,10 @@ define("browser/game", [
 			if (remains > 0) {
 				const mess = $.i18n(
 					"$1 tile{{PLURAL:$1||s}} left in the bag", remains);
-				$("#scoresBlack > .letterbag").text(mess);
+				$("#scoresBlock > .letterbag").text(mess);
 				$("#scoresBlock td.remaining-tiles").empty();
 			} else {
-				$("#scoresBlack > .letterbag")
+				$("#scoresBlock > .letterbag")
         .text($.i18n("The letter bag is empty"));
 				const countElements = $("#scoresBlock td.remaining-tiles");
 				this.game.getPlayers().forEach(
