@@ -83,7 +83,7 @@ define("browser/CreateGameDialog", [
       function makeOptions(list, $sel) {
         for (const p of list)
           $sel.append(
-				    `<option value="${p}">${p ? $.i18n(p) : $.i18n("None")}</option>`);
+				    `<option value="${p ? p : 'none'}">${p ? $.i18n(p) : $.i18n("None")}</option>`);
       }
 			const $pen = this.$dlg.find("[name=challengePenalty]");
 			makeOptions(Penalty._types, $pen);

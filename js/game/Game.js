@@ -184,7 +184,7 @@ define("game/Game", [
 		     */
 			  this.dictionary = params.dictionary;
 
-      if (params.timerType)
+      if (params.timerType && params.timerType !== "none")
 		    /**
          * Type of timer for this game.
 		     * @member {Timer}
@@ -223,7 +223,10 @@ define("game/Game", [
 		   * The type of penalty to apply for a failed challenge.
        * @member {Penalty}
 		   */
-		  this.challengePenalty = params.challengePenalty || Penalty.MISS;
+		  if (!params.challengePenatly || params.challengePenalty === "none")
+        this.challengePenalty = Penalty.NONE;
+      else
+        this.challengePenalty = params.challengePenalty;
 
       if (this.challengePenalty === Penalty.PER_TURN
           || this.challengePenalty === Penalty.PER_WORD)
@@ -234,11 +237,11 @@ define("game/Game", [
 		     */
         this.penaltyPoints = params.penaltyPoints || 5;
 
-      if (params.wordCheck)
-        		/**
-		         * Whether or not to check plays against the dictionary.
-             * @member {WordCheck}
-		         */
+      if (params.wordCheck && params.wordCheck !== "none")
+        /**
+		     * Whether or not to check plays against the dictionary.
+         * @member {WordCheck}
+		     */
 		    this.wordCheck = params.wordCheck;
 
 			if (params.minPlayers > 2)
