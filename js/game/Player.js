@@ -72,8 +72,7 @@ define("game/Player", [
 
 		  if (params.isConnected)
         /**
-		     * The connected flag may be set when the Player is created
-		     * from a simple structure. It is not used server-side.
+		     * Whether the server thinks the player is connected or not.
 		     * @member {boolean}
 		     */
 		    this.isConnected = true;

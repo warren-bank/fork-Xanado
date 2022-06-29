@@ -589,7 +589,7 @@ define("server/Server", [
 				/* istanbul ignore if */
 				if (this.config.debug_game)
 					game._debug = console.debug;
-				this._debug("Created", game.key);
+				this._debug("Created", game.toString());
 				return game.save();
 			})
 			.then(game => res.status(200).send(game.key))

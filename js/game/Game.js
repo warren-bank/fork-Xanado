@@ -223,9 +223,7 @@ define("game/Game", [
 		   * The type of penalty to apply for a failed challenge.
        * @member {Penalty}
 		   */
-		  if (!params.challengePenatly || params.challengePenalty === "none")
-        this.challengePenalty = Penalty.NONE;
-      else
+		  if (params.challengePenalty && params.challengePenalty !== "none")
         this.challengePenalty = params.challengePenalty;
 
       if (this.challengePenalty === Penalty.PER_TURN
@@ -326,7 +324,6 @@ define("game/Game", [
 		  this.key = Utils.genKey();
       this.state = State.WAITING;
       this.players = [];
-			this._debug("create()ed new game", this.toString());
 			return this.getEdition(this.edition)
 			.then(edo => {
 				this.board = new Board(edo);
@@ -649,13 +646,40 @@ define("game/Game", [
 		 * @override
 		 */
 		toString() {
-			const options = [];
-			if (this.predictScore) options.push("P");
-			if (this.wordCheck === WordCheck.AFTER) options.push("A");
-			if (this.wordCheck === WordCheck.REJECT) options.push("R");
-			if (this.allowTakeBack) options.push("T");
-			const ps = this.players.map(p => p.toString()).join(", ");
-			return `Game ${options.join("")} ${this.key} edition "${this.edition}" dictionary "${this.dictionary}" players [ ${ps} ] player ${this.whosTurnKey}`;
+			const options = [ `edition:${this.edition}` ];
+      if (this.dictionary)
+        options.push(`dictionary:${this.dictionary}`);
+      if (this.dictpath)
+        options.push(`dictpath:${this.dictpath}`);
+			if (this.timerType) {
+        options.push(`${this.timerType}:${this.timeLimit}`);
+        if (this.timerType === Timer.GAME)
+        options.push(`timePenalty:${this.timePenalty}`);
+      }
+      if (this.challengePenalty) {
+        options.push(this.challengePenalty);
+        if (this.challengePenalty === Penalty.PER_TURN
+            || this.challengePenalty === Penalty.PER_WORD)
+          options.push(`lose:${this.penaltyPoints}`);
+      }
+      if (this.whosTurnKey)
+        options.push(`next:${this.whosTurnKey}`);
+
+			if (this.wordCheck) options.push(this.wordCheck);
+			if (this.challengePenalty) options.push(this.challengePenalty);
+			if (this.predictScore) options.push("Predict");
+			if (this.allowTakeBack) options.push("Allow takeback");
+      if (this.minPlayers)
+        options.push(`>=${this.minPlayers}`);
+			const ps = this.players.map(p => p.toString()).join(",");
+      options.push(`players:[${ps}]`);
+      if (this.maxPlayers)
+        options.push(`<=${this.maxPlayers}`);
+      if (this.nextGameKey)
+        options.push(`Next game ${this.nextGameKey}`);
+      if (this.pausedBy)
+        options.push(`Paused by ${this.pausedBy}`);
+		  return `Game ${this.key} {${options.join(", ")}}`;
 		}
 
 		/**
@@ -845,9 +869,12 @@ define("game/Game", [
 		 */
 		getConnection(player) {
 			for (let socket of this._connections) {
-				if (socket.player === player)
+				if (socket.player === player) {
+          player.isConnected = true;
 					return socket;
+        }
 			}
+      player.isConnected = false;
 			return null;
 		}
 
@@ -1000,14 +1027,15 @@ define("game/Game", [
 				console.error("WARNING: player key", playerKey,
                       "not found in game", this.key);
 
-			const knownSocket = this.getConnection(player);
 			/* istanbul ignore if */
-			if (playerKey && knownSocket !== null) {
+			if (this.getConnection(player)) {
 				console.error("WARNING:", playerKey, "already connected to",
 							        this.key);
+        player.isConnected = true;
 			} else if (player) {
 				// This player is just connecting
 				this._debug(`\t${player.name} connected to ${this.key}`);
+        player.isConnected = true;
 			} else
         this._debug("\tconnected non-player");
 
@@ -1025,9 +1053,10 @@ define("game/Game", [
 			// Add disconnect listener
 			/* istanbul ignore next */
 			socket.on("disconnect", () => {
-				if (socket.player)
+				if (socket.player) {
+          socket.player.isConnected = false;
           this._debug(socket.player.name, "disconnected");
-				else
+				} else
           this._debug("non-player disconnected");
 				this._connections.splice(this._connections.indexOf(socket), 1);
 				this.updateConnections();
@@ -1617,7 +1646,7 @@ define("game/Game", [
 				: previousMove.playerKey,
 				score: -previousMove.score,
 				placements: previousMove.placements,
-				replacements: previousMove.replacements,
+				replacements: previousMove.replacements
 			});
 
 			if (type === Turns.TOOK_BACK) {
