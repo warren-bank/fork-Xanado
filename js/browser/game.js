@@ -225,7 +225,7 @@ define("browser/game", [
 			let playerPossessive;
 			let playerIndicative;
 			if (this.player === player) {
-				playerPossessive = $.i18n("Your");
+				playerPossessive = $.i18n("your");
 				playerIndicative = $.i18n("You");
 			} else {
 				playerPossessive = $.i18n("$1's", player.name);
@@ -268,8 +268,12 @@ define("browser/game", [
 
 			case Turns.CHALLENGE_WON:
 				turnText = $.i18n(
-					"$1 successfully challenged $2 play",
-					challengerIndicative, playerPossessive);
+					"$1 successfully challenged $2 play.",
+					challengerIndicative, playerPossessive)
+				+ " "
+        + $.i18n(
+					"$1 lost $2 point{{PLURAL:$2||s}}",
+					playerIndicative, -turn.score);
 				break;
 
 			case Turns.CHALLENGE_LOST:
