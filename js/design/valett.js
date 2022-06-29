@@ -19,7 +19,7 @@ requirejs.config({
 
 requirejs(['node-getopt', 'fs', 'design/ValettCore'], (Getopt, fs, Valett) => {
 	const Fs = fs.promises;
-	const config = { // default config for Scrabble(R)
+	let config = { // default config for Scrabble(R)
 		weights: {
 			frequency: .34,
 			frequencyByLength: .33,
@@ -41,26 +41,26 @@ requirejs(['node-getopt', 'fs', 'design/ValettCore'], (Getopt, fs, Valett) => {
 		'for use in an Edition.',
 		'Optional config is a JSON file allowing you to override the following:',
 		'{',
-		'minPoints: minimum point value for a tile.',
-		`\tDefault: ${config.minPoints}`,
-		'maxPoints: maximum point value for a tile.',
-		`\tDefault: ${config.maxPoints}`,
-		'tileCount: number of tiles in the initial bag, not including blanks.',
-		`\tDefault: ${config.tileCount}`,
-		'weights: relative weighting of frequency, frequency by length, and',
-		'\tentropy when calculating letter values. Fields should sum to 1.',
-		`\tDefault: ${JSON.stringify(config.weights)}`,
-		'frequencyByLengthWeights: relative value of a letter\'s occurrence',
-		'\tin words of different length. For example, in Scrabble',
-		'\tit is particularly valuable for a letter to appear in 2,',
-		'\t3, 7 and 8 tile words.',
-		`\tDefault: ${JSON.stringify(config.frequencyByLengthWeights)}`,
-		'entropyWeights: relative value of the ease of transitioning into',
-		'\ta letter (how evenly the transition probabilities toward',
-		'\ta letter are distributed) and out of a letter. For example,',
-		'\tQ has a low entropy out since its transition probability',
-		'\tdistribution is highly peaked at U.',
-		`\tDefault: [${config.entropyWeights}]`,
+		'  minPoints: minimum point value for a tile.',
+		`    Default: ${config.minPoints}`,
+		'  maxPoints: maximum point value for a tile.',
+		`    Default: ${config.maxPoints}`,
+		'  tileCount: number of tiles in the initial bag, not including blanks.',
+		`    Default: ${config.tileCount}`,
+		'  weights: relative weighting of frequency, frequency by length, and',
+		'    entropy when calculating letter values. Fields should sum to 1.',
+		`    Default: ${JSON.stringify(config.weights)}`,
+		'  frequencyByLengthWeights: relative value of a letter\'s occurrence',
+		'    in words of different length. For example, in Scrabble',
+		'    it is particularly valuable for a letter to appear in 2,',
+		'    3, 7 and 8 tile words.',
+		`    Default: ${JSON.stringify(config.frequencyByLengthWeights)}`,
+		'  entropyWeights: relative value of the ease of transitioning into',
+		'    a letter (how evenly the transition probabilities toward',
+		'    a letter are distributed) and out of a letter. For example,',
+		'    Q has a low entropy out since its transition probability',
+		'    distribution is highly peaked at U.',
+		`    Default: [${config.entropyWeights}]`,
 		'}'
 	].join('\n');
 
@@ -71,28 +71,31 @@ requirejs(['node-getopt', 'fs', 'design/ValettCore'], (Getopt, fs, Valett) => {
         .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
 		    .parseSystem();
 
-	if (opt.options.config) {
-		// Read config from file (JSON)
-		Fs.readFile(opt.options.config)
-		.then(data => {
-			let reconfig;
-			eval(`reconfig=${data.toString()}`);
-			console.log(`Config from ${opt.options.config}`);
-			for (let key of Object.keys(reconfig))
-				config[key] = reconfig[key];
-		});
-	}
-	console.log(opt);
+	//console.log(opt);
   if (opt.argv.length == 0) {
     opt.showHelp();
     throw 'No word corpus filename given';
   }
 	const infile = opt.argv.shift();
 
-	console.log(`Analyse ${infile}`);
-	console.log(config);
+  let premonition;
+	if (opt.options.config) {
+		// Read config from file (JSON)
+		console.log(`Config from ${opt.options.config}`);
+		premonition = Fs.readFile(opt.options.config)
+		.then(json => config = JSON.parse(json));
+	}
+  else
+    premonition = Promise.resolve();
 
-	Fs.readFile(infile)
+
+	premonition
+  .then(() => {
+	  console.log(`Analyse ${infile}`);
+	  console.log(config);
+
+    return Fs.readFile(infile);
+  })
 	.then(data => {
 		const words = data.toString().toUpperCase().split(/\r?\n/);
 		// Extract the alphabet from the corpus
@@ -138,6 +141,6 @@ requirejs(['node-getopt', 'fs', 'design/ValettCore'], (Getopt, fs, Valett) => {
 	})
 	.catch(e => {
 		console.log(e);
-		console.log(DESCRIPTION.join('\n'));
+		console.log(DESCRIPTION);
 	});
 });
