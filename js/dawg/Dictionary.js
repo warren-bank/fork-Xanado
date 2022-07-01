@@ -147,9 +147,7 @@ define("dawg/Dictionary", [
 		findAnagrams(theChars) {
 			theChars = theChars.toUpperCase();
 
-			/* istanbul ignore if */
-			if (theChars.length < 2)
-        throw new Error("Too short to find anagrams");
+			Platform.assert(theChars.length >= 2, "Too short to find anagrams");
 
 			// Sort the list of characters.
 			// Sorting makes it easier to debug.

@@ -3,7 +3,9 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
-define("dawg/LetterNode", () => {
+define("dawg/LetterNode", [
+  "platform"
+], Platform => {
 
 	/**
 	 * Letter node in a Dictionary. Each node has multiple links and helpers
@@ -226,7 +228,7 @@ define("dawg/LetterNode", () => {
 			    node = node.next;
       }
       /* istanbul ignore next */
-      throw new Error("Unreachable '", word);
+      return Platform.fail(`Unreachable '${word}`);
 		}
 
 		/**

@@ -15,8 +15,8 @@
  * @exports game/findBestPlay
  */
 define("game/findBestPlay", [
-	"game/Edition", "game/Tile", "game/Move", "dawg/Dictionary"
-], (Edition, Tile, Move, Dictionary) => {
+	"platform", "game/Edition", "game/Tile", "game/Move", "dawg/Dictionary"
+], (Platform, Edition, Tile, Move, Dictionary) => {
 
 	// Shortcuts to game information during move computation
   let game;        // class Game
@@ -405,8 +405,8 @@ define("game/findBestPlay", [
 				const rackTile = shrunkRack.find(t => t.letter == c)
 					    || shrunkRack.find(t => t.isBlank);
         /* istanbul ignore next */
-				if (!rackTile) // assert
-					throw new Error("Can't do this with the available tiles");
+				Platform.assert(rackTile,
+					              "Can't do this with the available tiles");
 				placements.push(new Tile({
 					letter: c,
 					isBlank: rackTile.isBlank,
@@ -471,13 +471,7 @@ define("game/findBestPlay", [
 			return Promise.reject("Game has no edition");
 		}
 
-    /* istanbul ignore if */
-		if (!dictionary) {
-      console.error("No dictionary", new Error().stack);
-			report("Error: No dictionary for findBestPlay");
-			// Terminal, no point in translating
-			return Promise.reject("No dictionary for findbextPlay");
-		}
+		Platform.assert(dictionary, "No dictionary for findBestPlay");
 
 		// sort and reverse to make sure high value letters come
 		// first and blanks come last. It's not going to make it
@@ -504,9 +498,7 @@ define("game/findBestPlay", [
 		  dict = de[0];
 		  edition = de[1];
 
-		  /* istanbul ignore if */
-		  if (!dict || !edition)
-			  throw new Error("Setup failure");
+		  Platform.assert(dict && edition, "Setup failure");
 
 		  report("Starting findBestPlay computation", rackTiles);
 		  bestScore = 0;

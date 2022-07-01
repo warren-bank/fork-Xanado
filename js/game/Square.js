@@ -142,11 +142,8 @@ define("game/Square", [
      * @return {Tile?} tile unplaced from the square, if any
 		 */
 		placeTile(tile, lock) {
-      /* istanbul ignore if */
-			if (tile && this.tile && tile !== this.tile) {
-				console.error("Tile ", tile, " over ", this.tile);
-				throw Error(`Square already occupied: ${this}`);
-			}
+			Platform.assert(!this.tile || tile !== this.tile,
+				              `Square already occupied: ${this}`);
 
       const oldTile = this.tile;
 			tile.col = this.col;
@@ -235,8 +232,7 @@ define("game/Square", [
 		setSelected(sel) {
 			/* istanbul ignore if */
 			if (sel && this.tile) {
-				if (this.tileLocked)
-					throw Error("Attempt to select locked tile");
+				Platform.assert(!this.tileLocked, "Attempt to select locked tile");
 				$(`#${this.id}`).addClass("selected");
 			} else
 				$(`#${this.id}`).removeClass("selected");

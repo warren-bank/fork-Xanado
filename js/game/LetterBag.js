@@ -4,8 +4,8 @@
 /* eslint-env amd */
 
 define("game/LetterBag", [
-  "game/Tile"
-], Tile => {
+  "platform", "game/Tile"
+], (Platform, Tile) => {
 
 	/**
 	 * The bag of letters during a game.
@@ -94,8 +94,7 @@ define("game/LetterBag", [
 		getRandomTiles(count) {
 			const tiles = [];
 			/* istanbul ignore if */
-			if (count < 0)
-				throw Error("Negative count");
+			Platform.assert(count >= 0);
 			for (let i = 0; this.tiles.length > 0 && i < count; i++)
 				tiles.push(this.tiles.pop());
 			return tiles;

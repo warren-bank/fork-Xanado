@@ -7,7 +7,9 @@
  * A Rack is a set of tiles that a player can play from. It's
  * a 1D array of Square.
  */
-define("game/Rack", ["game/Surface"], Surface => {
+define("game/Rack", [
+  "platform", "game/Surface"
+], (Platform, Surface) => {
 
 	/**
 	 * A Rack is a 1-column {@linkcode Surface}
@@ -99,10 +101,8 @@ define("game/Rack", ["game/Surface"], Surface => {
 		 */
 		removeTile(remove) {
 			const square = this.findSquare(remove.letter);
-      /* istanbul ignore if */
-			if (!square)
-				throw Error("Cannot find '"
-							      + remove.letter + "' on " + this);
+			Platform.assert(square,
+			`Cannot find '${remove.letter}' on ${this.toString()}`);
 			const tile = square.tile;
 			// If the tile is a blank, set the letter to the remove letter
 			if (tile.isBlank)

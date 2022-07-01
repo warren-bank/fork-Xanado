@@ -380,16 +380,16 @@ define("server/UserManager", [
      * @private
 		 */
 		setUpOAuth2Strategy(strategy, provider, cfg, app) {
-			if (!cfg.clientID || !cfg.clientSecret || !cfg.callbackURL)
-				throw new Error("Misconfiguration", cfg);
+			Platform.assert(cfg.clientID && cfg.clientSecret && cfg.callbackURL,
+				              `Misconfiguration ${cfg}`);
 			Passport.use(new strategy(
 				cfg,
 				(accessToken, refreshToken, profile, done) => {
 					//this._debug("Logging in", profile.displayName);
 					if (profile.emails && profile.emails.length > 0)
 						profile.email = profile.emails[0].value;
-					if (!profile.id || !profile.displayName)
-						throw new Error("Misconfiguration .reprofile", profile);
+					Platform.assert(profile.id && profile.displayName,
+						              `Misconfiguration ${profile}`);
 					const key = `${provider}-${profile.id}`;
 					this.getUser({ key: key })
 					.catch(() => {
@@ -406,8 +406,8 @@ define("server/UserManager", [
 						if (!profile.email || uo.email === profile.email)
 							return uo;
 						uo.email = profile.email;
-						if (!uo.provider)
-							throw new Error("Provider expected in user object");
+						Platform.assert(uo.provider,
+							              "Provider expected in user object");
 						return this.writeDB();
 					})
 					.then(uo => done(null, uo));

@@ -17,6 +17,15 @@ define("platform", [ "common/Platform" ], Platform => {
 			return $(document).trigger(e, args);
 		}
 
+    static assert(cond, desc) {
+      if (!cond)
+        throw new Error(desc || "Internal error");
+    }
+
+    static fail(desc) {
+        throw new Error(desc || "Internal error");
+    }
+
 		static i18n() {
 			return $.i18n.apply($.i18n, arguments);
 		}

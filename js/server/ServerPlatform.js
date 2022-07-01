@@ -8,10 +8,12 @@
  * implementation for the browser, too, in js/browser/Platform.js
  */
 define("platform", [
-	"events", "fs", "proper-lockfile", "node-gzip", "get-user-locale", "path",
+	"assert", "fs", "path",
+  "events", "proper-lockfile", "node-gzip", "get-user-locale",
 	"common/Platform", "common/Fridge"
 ], (
-	Events, fs, Lock, Gzip, Locale, Path,
+	Assert, fs, Path,
+  Events, Lock, Gzip, Locale,
 	Platform, Fridge
 ) => {
 
@@ -51,9 +53,7 @@ define("platform", [
 
 		/** See {@linkcode Database#set|Database.set} for documentation */
 		set(key, data) {
-      /* istanbul ignore if */
-			if (/^\./.test(key))
-				throw Error(`Invalid DB key ${key}`);
+			Assert(!/^\./.test(key));
 			const fn = Path.join(this.directory, `${key}.${this.type}`);
 			const s = JSON.stringify(Fridge.freeze(data), null, 1);
       //console.log("Writing", fn);
@@ -150,6 +150,11 @@ define("platform", [
 			emitter.emit(e, args);
 		}
 
+		/** See {@linkcode Platform#fail|Platform.fail} for documentation */
+    static fail(descr) {
+      Assert(false, descr);
+    }
+
 		/** See {@linkcode Platform#findBestPlay|Platform.findBestPlay} for documentation */
 		static findBestPlay() {
 			if (global.SYNC_FBP) // used for debug
@@ -176,7 +181,10 @@ define("platform", [
 			.then(data => Gzip.ungzip(data));
 		}
 	}
-	
+
+	/** See {@linkcode Platform#assert|Platform.assert} for documentation */
+	ServerPlatform.assert = Assert;
+
   ServerPlatform.Database = FileDatabase;
 
 	ServerPlatform.i18n = I18N;

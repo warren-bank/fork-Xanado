@@ -20,7 +20,7 @@ define("common/Platform", () => {
 		 * @abstract
 		 */
 		constructor(id, type) {}
-		
+
     /* istanbul ignore next */
 		/**
 		 * Promise to get a list of keys in the DB
@@ -66,6 +66,21 @@ define("common/Platform", () => {
 	 * both browser and server.
 	 */
 	class Platform {
+
+		/* istanbul ignore next */
+		/**
+     * Platform-specific assert
+     * @param {boolean} condition must be true or will throw an Error
+     * @param {string} descr Error description
+     */
+    static assert(condition, descr) {}
+
+		/* istanbul ignore next */
+    /**
+     * assert(false)
+     * @param {string} descr Error description
+     */
+    static fail(descr) {}
 
 		/* istanbul ignore next */
 		/**

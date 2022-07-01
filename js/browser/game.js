@@ -4,13 +4,13 @@
 /* eslint-env browser, jquery */
 
 define("browser/game", [
-	"common/Fridge", "common/Utils",
+	"platform", "common/Fridge", "common/Utils",
 	"game/Tile", "game/Rack", "game/Board",
 	"game/Types", "game/Game", "game/Player", "game/Turn",
 	"browser/UI", "browser/Dialog",
 	"jquery", "jqueryui", "cookie", "browser/icon_button"
 ], (
-	Fridge, Utils,
+	Platform, Fridge, Utils,
 	Tile, Rack, Board,
 	Types, Game, Player, Turn,
 	UI, Dialog
@@ -69,11 +69,7 @@ define("browser/game", [
 		// @Override
 		decorate() {
 			let m = document.URL.match(/[?;&]game=([^;&]+)/);
-			if (!m) {
-				const mess = `no game in ${document.URL}`;
-				console.error(mess);
-				throw new Error(mess);
-			}
+			Platform.assert(m, `No game in ${document.URL}`);
 			const gameKey = m[1];
 			m = document.URL.match(/[?;&]observer=([^;&]+)/);
 			if (m) {
@@ -295,8 +291,7 @@ define("browser/game", [
 				break;
 
 			default:
-				// Terminal, no point in translating
-				throw Error(`Unknown move type ${turn.type}`);
+				Platform.fail(`Unknown move type ${turn.type}`);
 			}
 
 			GameUI.$log(interactive, turnText, "turn-detail");

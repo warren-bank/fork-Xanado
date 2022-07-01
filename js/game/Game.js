@@ -375,12 +375,10 @@ define("game/Game", [
 		 * @param {Player} player
 		 */
 		addPlayer(player) {
-			/* istanbul ignore if */
-			if (!this.letterBag)
-				throw Error("Cannot addPlayer() before create()");
-			/* istanbul ignore next */
-			if (this.maxPlayers && this.players.length === this.maxPlayers)
-				throw Error("Cannot addPlayer() to a full game");			
+			Platform.assert(this.letterBag, "Cannot addPlayer() before create()");
+			Platform.assert(
+        !this.maxPlayers || this.players.length < this.maxPlayers,
+				"Cannot addPlayer() to a full game");
 			player.debug = this._debug;
 			this.players.push(player);
 			player.fillRack(this.letterBag, this.rackSize);
@@ -397,9 +395,8 @@ define("game/Game", [
 		removePlayer(player) {
 			player.returnTiles(this.letterBag);
 			const index = this.players.findIndex(p => p.key === player.key);
-			/* istanbul ignore if */
-			if (index < 0)
-				throw Error(`No such player ${player.key} in ${this.key}`);
+			Platform.assert(index >= 0,
+				              `No such player ${player.key} in ${this.key}`);
 			this.players.splice(index, 1);
 			this._debug(player.key, "left", this.key);
 			if (this.players.length < (this.minPlayers || 2)
@@ -439,9 +436,8 @@ define("game/Game", [
 			else if (typeof player === "string")
 				player = this.getPlayer(player);
 			const index = this.players.findIndex(p => p.key === player.key);
-			/* istanbul ignore if */
-			if (index < 0)
-				throw new Error(`${player.key} not found in ${this.key}`);
+			Platform.assert(index >= 0,
+				              `${player.key} not found in ${this.key}`);
 			return this.players[
 				(index + this.players.length - 1) % this.players.length];
 		}
@@ -460,9 +456,8 @@ define("game/Game", [
 			else if (typeof player === "string")
 				player = this.getPlayer(player);
 			let index = this.players.findIndex(p => p.key === player.key);
-			/* istanbul ignore if */
-			if (index < 0)
-				throw new Error(`${player.key} not found in ${this.key}`);
+			Platform.assert(index >= 0,
+				             `${player.key} not found in ${this.key}`);
 			for (let i = 0; i < this.players.length; i++) {
 				let nextPlayer = this.players[(index + 1) % this.players.length];
 				if (nextPlayer.missNextTurn) {
@@ -471,9 +466,9 @@ define("game/Game", [
 				} else
 					return nextPlayer;
 			}
-			/* istanbul ignore next */
-			throw new Error(
-				`Unable to determine next player after ${player.key}`);
+      /* istanbul ignore next */
+			return Platform.fail(
+        `Unable to determine next player after ${player.key}`);
 		}
 
 		/**
@@ -687,9 +682,7 @@ define("game/Game", [
 		 * @return {Promise} that resolves to the game when it has been saved
 		 */
 		save() {
-      /* istanbul ignore if */
-			if (!this._db)
-			  throw new Error("No _db for save()");
+			Platform.assert(this._db, "No _db for save()");
 			this._debug("Saving game", this.key);
 			return this._db.set(this.key, this)
 			.then(() => this);
@@ -922,8 +915,7 @@ define("game/Game", [
 		 */
 		startTurn(player, timeout) {
 			/* istanbul ignore if */
-			if (!player)
-				throw Error("No player");
+			Platform.assert(player, "No player");
 
 			if (!this.players.find(p => p.passes < 2))
 				return this.confirmGameOver(State.TWO_PASSES);
@@ -1425,7 +1417,7 @@ define("game/Game", [
 			}))
 			.then(() => this.startTurn(nextPlayer));
 		}
-		
+
 		/**
 		 * Robot play for the current player. This may result in a challenge.
 		 * @return {Promise} resolving to this
@@ -1567,8 +1559,9 @@ define("game/Game", [
 				deltas[player.key] = { tiles: 0 };
 				if (player.rack.isEmpty()) {
 					/* istanbul ignore if */
-					if (playerWithNoTiles)
-						throw Error("Found more than one player with no tiles when finishing game");
+					Platform.assert(
+            !playerWithNoTiles,
+						"Found more than one player with no tiles when finishing game");
 					playerWithNoTiles = player;
 				}
 				else {
@@ -1817,14 +1810,10 @@ define("game/Game", [
 		 * @return {Promise} resolving to the game
 		 */
 		swap(player, tiles) {
-			/* istanbul ignore if */
-			if (player.key !== this.whosTurnKey)
-				return Promise.reject("Not your turn");
-
-			/* istanbul ignore if */
-			if (this.letterBag.remainingTileCount() < tiles.length)
-				// Terminal, no point in translating
-				throw Error(`Cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
+			Platform.assert(player.key === this.whosTurnKey, "Not your turn");
+			Platform.assert(
+        this.letterBag.remainingTileCount() >= tiles.length,
+				`Cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
 
 			// A swap counts as a pass. If the other player is also swapping
 			// or passing, that means two swaps at most.
@@ -1841,10 +1830,9 @@ define("game/Game", [
       // on the player's rack
 			for (const tile of tiles) {
 				const removed = player.rack.removeTile(tile);
-				/* istanbul ignore if */
-				if (!removed)
-					// Terminal, no point in translating
-					throw Error(`Cannot swap, player rack does not contain letter ${tile.letter}`);
+				Platform.assert(
+          removed,
+					`Cannot swap, player rack does not contain letter ${tile.letter}`);
 				this.letterBag.returnTile(removed);
 			}
 

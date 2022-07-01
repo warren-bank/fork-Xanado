@@ -176,7 +176,7 @@ define("game/Surface", [
 		 * subclasses.
 		 */
 		$ui() {
-			throw Error("Pure virtual");
+			throw new Error("Pure virtual");
 		}
 
 		/**

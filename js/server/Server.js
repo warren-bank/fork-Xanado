@@ -33,8 +33,9 @@ define("server/Server", [
 			this.config = config;
 
 			/* istanbul ignore if */
-			if (!config.defaults)
-				throw new Error("No config.defaults, see example-config.json for requirements");
+			Platform.assert(
+        config.defaults,
+				"No config.defaults, see example-config.json for requirements");
 
 			/* istanbul ignore if */
 			if (config.debug_server)
@@ -653,12 +654,9 @@ define("server/Server", [
 		 * @return {Promise}
 		 */
 		request_invitePlayers(req, res, next) {
-      /* istanbul ignore if */
-			if (!this.config.mail || !this.config.mail.transport)
-				throw new Error("Mail is not configured");
-      /* istanbul ignore if */
-			if (!req.body.player)
-				throw new Error("Nobody to notify");
+			Platform.assert(this.config.mail && this.config.mail.transport,
+				              "Mail is not configured");
+			Platform.assert(req.body.player, "Nobody to notify");
 
 			const gameURL =
 				    `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${req.params.gameKey}`;
@@ -782,9 +780,7 @@ define("server/Server", [
 			return this.loadGame(gameKey)
 			.then(g => game = g)
 			.then(() => {
-				if (game.hasRobot())
-			    /* istanbul ignore next */
-					throw new Error("Game already has a robot");
+				Platform.assert(!game.hasRobot(), "Game already has a robot");
 
 				this._debug("Robot joining", gameKey, "with", dic);
 				// Robot always has the same player key
@@ -818,9 +814,7 @@ define("server/Server", [
 			return this.loadGame(gameKey)
 			.then(game => {
 				const robot = game.hasRobot();
-				if (!robot)
-			    /* istanbul ignore next */
-					throw new Error("Game doesn't have a robot");
+				Platform.assert(robot, "Game doesn't have a robot");
 				this._debug("Robot leaving", gameKey);
 				game.removePlayer(robot);
 				return game.save();
@@ -856,7 +850,7 @@ define("server/Server", [
 					.then(() => this.updateObservers());
 				}
 			  /* istanbul ignore next */
-				throw new Error(
+				return Platform.fail(
 					`Player ${playerKey} is not in game ${gameKey}`);
 			});
 		}
@@ -930,9 +924,7 @@ define("server/Server", [
 					return Promise.resolve();
 
 				const player = game.getPlayerWithKey(playerKey);
-				if (!player)
-			    /* istanbul ignore next */
-					throw new Error(
+				Platform.assert(player,
 						`Player ${playerKey} is not in game ${gameKey}`);
 
 				// The command name and arguments
@@ -971,7 +963,7 @@ define("server/Server", [
 					return game.unpause(player);
 
 				default:
-					throw Error(`unrecognized command: ${command}`);
+					return Platform.fail(`unrecognized command: ${command}`);
 				}
       })
 			.then(() => {
