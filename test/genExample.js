@@ -25,7 +25,7 @@ requirejs([
 	})
 	.then(game => game.onLoad(db))
 	.then(game => {
-		game.addPlayer(new Player({name:"Player", key: "shuggie"}));
+		game.addPlayer(new Player({name:"Player", key: "shuggie"}), true);
 		return game.loadBoard("| | | | | | | | | | | | | | |\n" +
 							  "|W|O|R|D|S| | | | |C| | | | |\n" +
 							  "|I| | | |C| | | | |U| | | | |\n" +

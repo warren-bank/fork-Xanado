@@ -3,9 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, node */
 
-define("common/Fridge", [
-  "platform"
-], Platform => {
+define("common/Fridge", () => {
 
 	const IB_ID = "_\u00CD";
 	const IB_CN = "_\u0106";
@@ -71,7 +69,7 @@ define("common/Fridge", [
 					}
 				} catch (e) {
           /* istanbul ignore next */
-					Platform.fail("Corrupt fridge");
+					throw new Error("Corrupt fridge");
 				}
 				const id = objectsFrozen.length;
 				// Working property will be removed later
@@ -147,7 +145,7 @@ define("common/Fridge", [
 					// been thawed
 					if (objectsThawed[object[IB_REF]])
 						return objectsThawed[object[IB_REF]];
-					Platform.fail(`reference to unthawed ${object[IB_REF]}`);
+					throw new Error(`reference to unthawed ${object[IB_REF]}`);
 				}
 
 				let thawed, thawProps = false;

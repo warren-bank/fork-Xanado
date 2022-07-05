@@ -243,11 +243,7 @@ define("dawg/Dictionary", [
 			if (!this.sequenceRoots)
 				this.createSequenceRoots();
 			const roots = this.sequenceRoots[seq[0]];
-			/* istanbul ignore if */
-			if (!roots || roots.length == 0) {
-				console.log(`'${seq[0]}' has no roots`);
-				return false;
-			}
+			Platform.assert(roots && roots.length > 0, `'${seq[0]}' has no roots`);
 			for (let root of roots) {
 				if (root.match(seq, 0))
 					return root;

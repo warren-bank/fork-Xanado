@@ -52,25 +52,25 @@ exports.sparseEqual = (actual, expected, path) => {
 exports.assert = assert;
 
 exports.depend = (required, deps) => {
-    /* global TestSocket, Types, Platform */
+  /* global TestSocket, Types, Platform */
 	deps.TestSocket = 'test/TestSocket';
 	deps.Types = 'game/Types';
 	deps.Platform = 'platform';
 	const modnames = Object.keys(deps);
-    const modules = modnames.map(m => deps[m]);
+  const modules = modnames.map(m => deps[m]);
 	requirejs(modules, function() {
 		let i = 0;
 		for (let name of modnames) {
 			eval(`${name}=arguments[${i++}]`);
 		}
-        for (let t of Object.keys(Types)) {
+    for (let t of Object.keys(Types)) {
 			eval(`${t}=Types.${t}`);
         }
 		// Why? No idea, except without it, it won't work in
 		// npm run
 		global.document = window.document;
         
-        Platform.i18n().load("en-GB").then(required);
+    Platform.i18n().load("en-GB").then(required);
 	});
 };
 

@@ -32,7 +32,6 @@ define("server/Server", [
 		constructor(config) {
 			this.config = config;
 
-			/* istanbul ignore if */
 			Platform.assert(
         config.defaults,
 				"No config.defaults, see example-config.json for requirements");
@@ -360,15 +359,29 @@ define("server/Server", [
 
 				// Chat message
 				this._debug("-S-> message", message);
-        let m;
-				if (message.text === "hint")
+        const mess = message.text.split(/\s+/);
+        const verb = mess[0];
+        switch (verb) {
+				case "hint":
 					socket.game.hint(socket.player);
-				else if (message.text === "advise")
+          break;
+
+				case "advise":
 					socket.game.toggleAdvice(socket.player);
-				else if ((m = /^allow\s+(\w+)\s*$/.exec(message.text))) {
+          break;
+
+        case "undo":
+          socket.game.undo();
+          break;
+
+        case "undoall":
+          socket.game.undo_all();
+          break;
+
+        case "allow":
+          const word = mess[1].toUpperCase();
 					socket.game.getDictionary()
           .then(dict => {
-            const word = m[1].toUpperCase();
             if (dict.addWord(word)) {
               socket.game.notifyAll(
                 Notify.MESSAGE, {
@@ -389,8 +402,11 @@ define("server/Server", [
                 });
             }
           });
-				} else
-					socket.game.notifyAll(Notify.MESSAGE, message);
+          break;
+
+        default:
+					  socket.game.notifyAll(Notify.MESSAGE, message);
+        }
 			});
 		}
 
@@ -752,7 +768,7 @@ define("server/Server", [
 					this._debug("Player", playerKey, "joining", gameKey);
 					player = new Player(
 						{ name: req.user.name, key: playerKey });
-					game.addPlayer(player);
+					game.addPlayer(player, true);
 					prom = game.save();
 				}
 				// The game may now be ready to start
@@ -794,7 +810,7 @@ define("server/Server", [
 				if (dic && dic !== "none")
 			    /* istanbul ignore next */
 					robot.dictionary = dic;
-				game.addPlayer(robot);
+				game.addPlayer(robot, true);
 				return game.save()
 				// Game may now be ready to start
 				.then(() => game.playIfReady())

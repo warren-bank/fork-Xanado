@@ -59,16 +59,17 @@ define("game/Types", () => {
    * @typedef {UNPAUSE|PAUSE|JOIN|REJECT|MESSAGE|NEXT_GAME|ANOTHER_GAME|TICK|TURN|CONNECTIONS|UPDATE|MONITOR} Notify
 	 */
   const Notify = {
-		UNPAUSE:      "unpause",
-		PAUSE:        "pause",
+		ANOTHER_GAME: "anotherGame",
+		CONNECTIONS:  "connections",
 		JOIN:         "join",
-		REJECT:       "reject",
 		MESSAGE:      "message",
 		NEXT_GAME:    "nextGame",
-		ANOTHER_GAME: "anotherGame",
+		PAUSE:        "pause",
+		REJECT:       "reject",
+    RELOAD:       "reload",
 		TICK:         "tick",
 		TURN:         "turn",
-		CONNECTIONS:  "connections",
+		UNPAUSE:      "unpause",
 
 		/* Notifications sent to monitors (games pages) */
 		UPDATE:       "update",
@@ -116,9 +117,9 @@ define("game/Types", () => {
    * @typedef {PLAY|SWAP|GAME_OVER|CHALLENGE_LOST|CHALLENGE_WON|TOOK_BACK|PASSED|TIMED_OUT} Turns
    */
   const Turns = {
-		PLAY:           "play",
-		SWAP:           "swap",
-		GAME_OVER:      "game-over",
+		PLAYED:         "play",
+		SWAPPED:        "swap",
+		GAME_ENDED:     "game-over",
 		CHALLENGE_LOST: "challenge-lost",
 		CHALLENGE_WON:  "challenge-won",
 		TOOK_BACK:      "took-back",

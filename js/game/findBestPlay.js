@@ -464,13 +464,7 @@ define("game/findBestPlay", [
     game = gemm;
 		report = listener;
 
-    /* istanbul ignore if */
-		if (!game.edition) {
-			report("Error: Game has no edition " + game);
-			// Terminal, no point in translating
-			return Promise.reject("Game has no edition");
-		}
-
+    Platform.assert(game.edition, "No edition");
 		Platform.assert(dictionary, "No dictionary for findBestPlay");
 
 		// sort and reverse to make sure high value letters come

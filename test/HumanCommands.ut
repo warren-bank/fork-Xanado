@@ -36,7 +36,7 @@ describe("HumanCommands", () => {
         .on(Notify.TURN, (turn, event) => {
 			switch (turns1++) {
 			case 0:
-				assert.equal(turn.type, Turns.SWAP);
+				assert.equal(turn.type, Turns.SWAPPED);
 				assert(!turn.words);
 				assert(turn.placements);// tiles that were replaced
 				assert.deepEqual(turn.replacements.map(t=>t.letter).sort(),
@@ -73,18 +73,12 @@ describe("HumanCommands", () => {
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
-			human1.rack.empty();
-			human1.rack.addTile(
-				new Tile({letter:"A", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"B", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"C", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"D", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"E", score:1}));
-			game.addPlayer(human2);
+			human1.rack.addTile(game.letterBag.removeTile({letter:"A"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"B"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"C"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"D"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"E"}));
+			game.addPlayer(human2, true);
 
 			// Leave 3 tiles in the bag - enough to swap
 			game.letterBag.getRandomTiles(
@@ -141,8 +135,8 @@ describe("HumanCommands", () => {
 		return game.create()
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
-			game.addPlayer(human1);
-			game.addPlayer(human2);
+			game.addPlayer(human1, true);
+			game.addPlayer(human2, true);
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.anotherGame())
@@ -207,15 +201,11 @@ describe("HumanCommands", () => {
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
-			human1.rack.addTile(
-				new Tile({letter:"S", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"I", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"N", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"K", score:1}));
-			game.addPlayer(human2);
+			human1.rack.addTile(game.letterBag.removeTile({letter:"S"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"I"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"N"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"K"}));
+			game.addPlayer(human2, true);
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))
@@ -252,7 +242,7 @@ describe("HumanCommands", () => {
 			//console.debug(turn, event);
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, Turns.PLAY);
+				assert.equal(turn.type, Turns.PLAYED);
 				assert.equal(turn.playerKey, human1.key);
 				assert.equal(turn.nextToGoKey, human2.key);
 				assert.equal(turn.score, move.score);
@@ -301,18 +291,12 @@ describe("HumanCommands", () => {
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
-			human1.rack.empty();
-			human1.rack.addTile(
-				new Tile({letter:"W", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"O", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"R", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"D", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"S", score:10}));
-			game.addPlayer(human2);
+			human1.rack.addTile(game.letterBag.removeTile({letter:"W"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"O"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"R"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"D"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"S"}));
+			game.addPlayer(human2, true);
 
 			// Empty the letter bag, put an "A" in, not enough to
 			// refill the rack
@@ -344,10 +328,10 @@ describe("HumanCommands", () => {
 		const socket = new TestSocket();
 		const handle = (turn, event) => {
 			assert.equal(event, Notify.TURN);
-			assert.equal(turn.type, Turns.GAME_OVER);
+			assert.equal(turn.type, Turns.GAME_ENDED);
 			const exp = {};
-			exp[human1.key] = { tiles: -3 };
-			exp[human2.key] = { tiles: 3 };
+			exp[human1.key] = { tiles: -8 };
+			exp[human2.key] = { tiles: 8 };
 			assert.deepEqual(turn.score, exp);
 			assert.equal(turn.playerKey, human1.key);
 			assert.equal(turn.emptyPlayerKey, human2.key);
@@ -364,15 +348,10 @@ describe("HumanCommands", () => {
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
-			human1.rack.empty();
-			human1.rack.addTile(
-				new Tile({letter:"X", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"Y", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"Z", score:1}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"X"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"Y"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"Z"}));
 			game.addPlayer(human2);
-			human2.rack.empty();
 			// Empty the bag
 			game.letterBag.getRandomTiles(
 				game.letterBag.remainingTileCount());
@@ -410,7 +389,7 @@ describe("HumanCommands", () => {
 		socket.on(Notify.TURN, (turn, event) => {
 			switch (turns++) {
 			case 0:
-				assert.equal(turn.type, Turns.PLAY);
+				assert.equal(turn.type, Turns.PLAYED);
 				TS.sparseEqual(turn, move);
 				break;
 			case 1:
@@ -433,18 +412,12 @@ describe("HumanCommands", () => {
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
-			human1.rack.empty();
-			human1.rack.addTile(
-				new Tile({letter:"X", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"Y", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"Z", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"P", score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"Q", score:1}));
-			game.addPlayer(human2);
+			human1.rack.addTile(game.letterBag.removeTile({letter:"X"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"Y"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"Z"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"P"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"Q"}));
+			game.addPlayer(human2, true);
 
 			// Empty the bag, then put some recognisable tiles in it
 			// Empty the letter bag, put an "A" in, not enough to
@@ -506,8 +479,8 @@ describe("HumanCommands", () => {
 		return game.create()
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
-			game.addPlayer(human1);
-			game.addPlayer(human2);
+			game.addPlayer(human1, true);
+			game.addPlayer(human2, true);
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))
@@ -554,8 +527,8 @@ describe("HumanCommands", () => {
 		return game.create()
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
-			game.addPlayer(human1);
-			game.addPlayer(human2);
+			game.addPlayer(human1, true);
+			game.addPlayer(human2, true);
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))

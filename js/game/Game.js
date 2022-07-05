@@ -7,14 +7,14 @@ define("game/Game", [
 	"platform", "common/Utils",
 	"dawg/Dictionary",
 	"game/Types", "game/Board", "game/LetterBag", "game/Edition",
-	"game/Player", "game/Square", "game/Tile", "game/Rack", "game/Move",
-	"game/Turn"
+	"game/Player", "game/Square", "game/Tile", "game/Rack",
+  "game/Move", "game/Turn", "game/Undo"
 ], (
 	Platform, Utils,
 	Dictionary,
 	Types, Board, LetterBag, Edition,
-	Player, Square, Tile, Rack, Move,
-	Turn
+	Player, Square, Tile, Rack,
+  Move, Turn, Undo
 ) => {
 
   const Notify    = Types.Notify;
@@ -47,7 +47,7 @@ define("game/Game", [
 		 * ```
 		 * db.get(key, Game.classes).then(game => game.onLoad(db)...
 		 * ```
-		 * (may be null)
+		 * (may be null).
 		 * @param {object} params Parameter object. This can be another
 		 * Game to copy game parameters, the result from Game.simple(),
 		 * or a generic object with fields the same name as Game fields.
@@ -56,25 +56,31 @@ define("game/Game", [
 		constructor(params) {
 		  /**
 		   * An i18n message identifier indicating the game state.
+       * Lateinit in {@linkcode Game#create|create} or as the result of a
+       * load.
 		   * @member {State}
 		   */
-      this.state = State.WAITING;
+      this.state = undefined;
     
 		  /**
-		   * Key that uniquely identifies this game.
+		   * Key that uniquely identifies this game. Lateinit in
+       * {@linkcode Game#create|create} or as the result of a
+       * load.
 		   * @member {Key}
 		   */
 		  this.key = undefined;
 
 		  /**
 		   * Epoch ms when this game was created.
-       * Initialised in {@linkcode Game#create}
+       * Lateinit in {@linkcode Game#create|create} or as the result of a
+       * load.
 		   * @member {number}
 		   */
 		  this.creationTimestamp = undefined;
 
 		  /**
 		   * List of players in the game.
+       * Lateinit as the result of a load.
 		   * @member {Player[]}
        * @private
 		   */
@@ -82,10 +88,54 @@ define("game/Game", [
 
 		  /**
 		   * Complete list of the turn history of this game.
+       * Lateinit in {@linkcode Game#create|create} or as the result of a
+       * load.
 		   * @member {Turn[]}
        * @private
 		   */
 		  this.turns = [];
+
+		  /**
+		   * The game board.
+       * Lateinit in {@linkcode Game#create|create} or as the result of a
+       * load.
+		   * @member {Board}
+		   */
+		  this.board = undefined;
+
+		  /**
+		   * Size of rack. Always the same as Edition.rackCount,
+		   * because we don't hold a pointer to the Edition. Note this
+		   * is saved with the game.
+       * Copied from the {@linkcode Edition} in {@linkcode Game#create|create}.
+		   * @member {number}
+		   */
+		  this.rackSize = undefined;
+
+		  /**
+		   * Size of swap rack.
+       * Lateinit in {@linkcode Game#create|create} or as the result of a
+       * load.
+		   * @member {number}
+		   */
+		  this.swapSize = undefined;
+
+      /**
+       * Map of number of tiles played, to bonus for the play.
+       * Lateinit in {@linkcode Game#create|create} or as the result of a
+       * load.
+       * @member {object<number,number>}
+       * @private
+       */
+      this.bonuses = undefined;
+
+		  /**
+		   * Bag of remaining letters, initialised from the edition.
+       * Lateinit in {@linkcode Game#create|create} or as the result of a
+       * load.
+		   * @member {LetterBag}
+		   */
+		  this.letterBag = undefined;
 
 		  /**
 		   * Key of next player to play in this game.
@@ -101,71 +151,13 @@ define("game/Game", [
 		   */
 		  this.edition = params.edition;
 
-		  /**
-		   * The game board.
-       * Initialised in {@linkcode Game#create}.
-		   * @member {Board}
-		   */
-		  this.board = undefined;
-
-		  /**
-		   * Size of rack. Always the same as Edition.rackCount,
-		   * because we don't hold a pointer to the Edition. Note this
-		   * is saved with the game.
-       * Copied from the {@linkcode Edition} in {@linkcode Game#create}.
-		   * @member {number}
-		   */
-		  this.rackSize = params.rackSize;
-
-		  /**
-		   * Size of swap rack.
-		   * Copied from the {@linkcode Edition} in {@linkcode Game#create}.
-		   * @member {number}
-		   */
-		  this.swapSize = undefined;
-
-      /**
-       * Map of number of tiles played, to bonus for the play.
-       * Copied from the {@linkcode Edition} in {@linkcode Game#create}.
-       * @member {object<number,number>}
-       * @private
-       */
-      this.bonuses = undefined;
-
-		  /**
-		   * Bag of remaining letters, initialised from the edition.
-       * Initialised in {@linkcode Game#create}.
-		   * @member {LetterBag}
-		   */
-		  this.letterBag = undefined;
-
-			/* istanbul ignore if */
-			if (typeof params._debug === "function")
-        /**
-		     * Debug function.
-		     * @member {function}
-         * @private
-		     */
-				this._debug = params._debug;
-      else
-        this._debug = () => {};
-
       /*
        * When you name a field in the class declaration without an
        * initial value, it gets intitialised to undefined. This means the
        * object gets cluttered with undefined fields that are not used
-       * in the configuration. The rationale is to make the class declaration
-       * more self-documenting, but since we document all possible fields
-       * using jsDoc it is overkill. This loop initialises 
+       * in the configuration. So we test whether these optional fields
+       * are required or not.
        */
-      for (const k in params) {
-        if (this.hasOwnProperty(k)
-            && k.indexOf("_") !== 0
-            && k !== "players"
-            && k !== "turns") {
-          this[k] = params[k];
-        }
-      }
 
       if (params.dictpath)
         /**
@@ -288,11 +280,6 @@ define("game/Game", [
 		     */
         this._noPlayerShuffle = true;
 
-      if (params.players) {
-        for (let i = 0; i < params.players.length; i++)
-          this.players[i] = new Player(params.players[i]);
-      }
-
       if (params.nextGameKey)
         /**
 		     * When a game is ended, nextGameKey is the key for the
@@ -307,6 +294,24 @@ define("game/Game", [
 		     * @member {string?}
 		     */
         this.pausedBy = params.pausedBy;
+
+      /**
+       * Undo engine for this game. Lazy init when required.
+       * @member {Undo}
+       * @private
+       */
+      this._undoer = undefined;
+
+			/* istanbul ignore if */
+			if (typeof params._debug === "function")
+        /**
+		     * Debug function.
+		     * @member {function}
+         * @private
+		     */
+				this._debug = params._debug;
+      else
+        this._debug = () => {};
 		}
 
 		/**
@@ -323,8 +328,7 @@ define("game/Game", [
 		  this.creationTimestamp = Date.now();
 		  this.key = Utils.genKey();
       this.state = State.WAITING;
-      this.players = [];
-			return this.getEdition(this.edition)
+			return this.getEdition()
 			.then(edo => {
 				this.board = new Board(edo);
 				this.letterBag = new LetterBag(edo);
@@ -356,6 +360,7 @@ define("game/Game", [
        * @private
 		   */
 			this._db = db;
+
       /**
 		   * List of decorated sockets. Only available server-side, and
        * not serialised.
@@ -363,28 +368,35 @@ define("game/Game", [
        * @private
 		   */
       this._connections = [];
+
       if (!this._debug) {
         this._debug = () => {};
         this.players.forEach(p => p._debug = this._debug);
       }
+
 			return Promise.resolve(this);
 		}
 
 		/**
 		 * Add a player to the game, and give them an initial rack
 		 * @param {Player} player
+		 * @param {boolean?} fillRack true to fill the player's rack
+     * from the game's letter bag.
+     * @return {Game} this
 		 */
-		addPlayer(player) {
+		addPlayer(player, fillRack) {
 			Platform.assert(this.letterBag, "Cannot addPlayer() before create()");
 			Platform.assert(
         !this.maxPlayers || this.players.length < this.maxPlayers,
 				"Cannot addPlayer() to a full game");
-			player.debug = this._debug;
+			player._debug = this._debug;
 			this.players.push(player);
-			player.fillRack(this.letterBag, this.rackSize);
 			this._debug(this.key, "added player", player.toString());
 			if (this.timerType)
 				player.clock = this.timeLimit;
+      if (fillRack)
+        player.fillRack(this.letterBag, this.rackSize);
+      return this;
 		}
 
 		/**
@@ -413,7 +425,7 @@ define("game/Game", [
 		getPlayer(key) {
 			if (typeof key === "undefined")
 				key = this.whosTurnKey;
-			return this.players.find(p => p.key === key);
+			return this.getPlayerWithKey(key);
 		}
 
 		/**
@@ -486,7 +498,7 @@ define("game/Game", [
 		 * @return {Promise} resolving to `this`
 		 */
 		loadBoard(sboard) {
-			return this.getEdition(this.edition)
+			return this.getEdition()
 			.then(ed => this.board.parse(sboard, ed))
 			.then(() => this);
 		}
@@ -594,14 +606,14 @@ define("game/Game", [
 			let skipPrevious = false;
 			while (i >= 0) {
 				switch (this.turns[i].type) {
-				case Turns.PLAY:
+				case Turns.PLAYED:
 					if (!skipPrevious)
 						return this.turns[i];
 					skipPrevious = false;
 					break;
 
 				case Turns.CHALLENGE_LOST:
-				case Turns.SWAP:
+				case Turns.SWAPPED:
 					break;
 
 				case Turns.CHALLENGE_WON:
@@ -609,7 +621,7 @@ define("game/Game", [
 					skipPrevious = true;
 					break;
 
-				case Turns.GAME_OVER:
+				case Turns.GAME_ENDED:
 					return undefined;
 				}
 				i--;
@@ -789,7 +801,8 @@ define("game/Game", [
 		 * @param {Object} data to send with message
 		 */
 		notifyAll(message, data) {
-			this._debug("<-S- *", message, _showData(data));
+			if (message !== Notify.TICK)
+        this._debug("<-S- *", message, _showData(data));
 			this._connections.forEach(socket => socket.emit(message, data));
 		}
 
@@ -867,7 +880,8 @@ define("game/Game", [
 					return socket;
         }
 			}
-      player.isConnected = false;
+      if (player)
+        player.isConnected = false;
 			return null;
 		}
 
@@ -914,7 +928,6 @@ define("game/Game", [
      * @private
 		 */
 		startTurn(player, timeout) {
-			/* istanbul ignore if */
 			Platform.assert(player, "No player");
 
 			if (!this.players.find(p => p.passes < 2))
@@ -1002,6 +1015,23 @@ define("game/Game", [
 			});
 		}
 
+    /**
+     * Load a game from a structure generated by simple
+     */
+    static fromSimple(simple) {
+      const game = new Game(simple);
+      for (const k in simple) {
+        if (game.hasOwnProperty(k)
+            && k.indexOf("_") !== 0
+            && k !== "players"
+            && k !== "turns") {
+          game[k] = simple[k];
+        }
+      }
+      game.players = simple.players.map(p => new Player(p));
+      return game;
+    }
+
 		/**
 		 * Player is on the given socket, as determined from an incoming
 		 * 'join'. Play the game if preconditions have been met.
@@ -1072,8 +1102,8 @@ define("game/Game", [
 				if (!player) {
 					// New player in game
 					player = new Player(watcher);
-					this.addPlayer(player);
-					player.debug = this._debug;
+					this.addPlayer(player, true);
+					player._debug = this._debug;
 				}
 				player.online(watcher.isConnected || watcher.isRobot);
 				newOrder.push(player);
@@ -1303,11 +1333,9 @@ define("game/Game", [
 		 * @return {Promise} resolving to a the game
 		 */
 		async play(player, move) {
-      if (!(move instanceof Move))
-        move = new Move(move);
-			/* istanbul ignore if */
-			if (player.key !== this.whosTurnKey)
-				return Promise.reject("Not your turn");
+      Platform.assert(move);
+			Platform.assert(player && player.key === this.whosTurnKey,
+				              `Not ${player.name}'s turn`);
 
 			this._debug("Playing", move.toString());
 			//this._debug(`Player's rack is ${player.rack}`);
@@ -1356,15 +1384,15 @@ define("game/Game", [
 			const game = this;
 
 			// Move tiles from the rack to the board
-			move.placements.forEach(placement => {
+			for (const placement of move.placements) {
 				const square = game.board.at(placement.col, placement.row);
+        Platform.assert(square, placement.col, placement.row);
 				const tile = player.rack.removeTile(placement);
+        Platform.assert(tile);
 				square.placeTile(tile, true);
-			});
+			}
 
 			player.score += move.score;
-
-			this._debug("New rack", player.rack.toString());
 
 			//console.debug("words ", move.words);
 
@@ -1391,6 +1419,7 @@ define("game/Game", [
 				});
 			}
 
+      const prepasses = player.passes;
 			player.passes = 0;
 
 			// Get new tiles to replace those placed
@@ -1403,17 +1432,20 @@ define("game/Game", [
 				}
 			}
 
+			this._debug("\tpost-play rack", player.rack.toString());
+
 			// Report the result of the turn
 			const nextPlayer = this.nextPlayer();
 			this.whosTurnKey = nextPlayer.key;
 			return this.finishTurn(new Turn(this, {
-				type: Turns.PLAY,
+				type: Turns.PLAYED,
 				playerKey: player.key,
 				nextToGoKey: nextPlayer.key,
 				score: move.score,
 				placements: move.placements,
 				replacements: replacements,
-				words: move.words
+				words: move.words,
+        passes: prepasses
 			}))
 			.then(() => this.startTurn(nextPlayer));
 		}
@@ -1558,7 +1590,6 @@ define("game/Game", [
 			this.players.forEach(player => {
 				deltas[player.key] = { tiles: 0 };
 				if (player.rack.isEmpty()) {
-					/* istanbul ignore if */
 					Platform.assert(
             !playerWithNoTiles,
 						"Found more than one player with no tiles when finishing game");
@@ -1569,7 +1600,7 @@ define("game/Game", [
 					player.score -= rackScore;
 					deltas[player.key].tiles -= rackScore;
 					pointsRemainingOnRacks += rackScore;
-					this._debug(`${player.name} has ${rackScore} left`);
+					this._debug(`\t${player.name} has ${rackScore} points left`);
 				} 
 				if (this.timerType === Timer.GAME && player.clock < 0) {
 					const points = Math.round(
@@ -1587,9 +1618,9 @@ define("game/Game", [
 				this._debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
 			}
 			const turn = new Turn(this, {
-				type: Turns.GAME_OVER,
+				type: Turns.GAME_ENDED,
 				endState: endState,
-				playerKey: this.whosTurnKey,
+				playerKey: this.whosTurnKey, // NOT the winning player
 				score: deltas
 			});
 			return this.finishTurn(turn);
@@ -1632,6 +1663,8 @@ define("game/Game", [
 
 			prevPlayer.score -= previousMove.score;
 
+			this._debug("\tpost takeBack rack", prevPlayer.rack.toString());
+
 			const turn = new Turn(this, {
 				type: type,
 				nextToGoKey:
@@ -1642,15 +1675,9 @@ define("game/Game", [
 				replacements: previousMove.replacements
 			});
 
-			if (type === Turns.TOOK_BACK) {
-				// A takeBack, not a challenge.
-				turn.playerKey = previousMove.playerKey;
-
-			} else {
-				// else a successful challenge, does not move the player on.
+			turn.playerKey = previousMove.playerKey;
+			if (type === Turns.CHALLENGE_WON)
 				turn.challengerKey = player.key;
-				turn.playerKey = previousMove.playerKey;
-			}
 
 			return this.finishTurn(turn)
 			.then(() => {
@@ -1676,9 +1703,8 @@ define("game/Game", [
 		 * @return {Promise} resolving to the game
 		 */
 		pass(player, type) {
-			/* istanbul ignore if */
-			if (player.key !== this.whosTurnKey)
-				return Promise.reject("Not your turn");
+			Platform.assert(player.key === this.whosTurnKey,
+				              `Not ${player.name}'s turn`);
 
 			player.passes++;
 
@@ -1810,6 +1836,7 @@ define("game/Game", [
 		 * @return {Promise} resolving to the game
 		 */
 		swap(player, tiles) {
+			this._debug("\Pre rack", player.rack.toString());
 			Platform.assert(player.key === this.whosTurnKey, "Not your turn");
 			Platform.assert(
         this.letterBag.remainingTileCount() >= tiles.length,
@@ -1819,7 +1846,7 @@ define("game/Game", [
 			// or passing, that means two swaps at most.
 			player.passes++;
 
-      // Get the right number of new tiles from the rack
+      // Get the right number of new tiles from the bag
       const replacements = [];
 			for (let i = 0; i < tiles.length; i++) {
         const rep = this.letterBag.getRandomTile();
@@ -1840,11 +1867,13 @@ define("game/Game", [
       for (const rep of replacements)
 			  player.rack.addTile(rep);
       
+			this._debug("\tpost-swap rack", player.rack.toString());
+
 			const nextPlayer = this.nextPlayer();
       const turn = new Turn(
 				this,
 				{
-					type: Turns.SWAP,
+					type: Turns.SWAPPED,
 					playerKey: player.key,
 					nextToGoKey: nextPlayer.key,
           placements: tiles,
@@ -1876,10 +1905,8 @@ define("game/Game", [
         // No turns inherited
         newGame.turns = [];
 
-				// constructor will have copied the players from the existing
-        // game, but we need to addPlayer to populate the racks.
-        newGame.players = [];
-				this.players.forEach(p => newGame.addPlayer(new Player(p)));
+				// copy the players
+				this.players.forEach(p => newGame.addPlayer(new Player(p), true));
 
 				// Players will be shuffled in playIfReady
 				newGame.whosTurnKey = undefined;
@@ -1910,7 +1937,34 @@ define("game/Game", [
 				p => $tab.append(p.$ui(thisPlayer)));
 			return $tab;
 		}
-	}
+
+    /**
+     * Undo the most recent turn. Resets the play state as if the turn had never
+     * happened.
+     * @return {Promise} promise that resolves when the turn has been unplayed
+     */
+    undo() {
+      if (!this._undoer)
+        this._undoer = new Undo(this);
+      this._undoer.undo();
+      return this.save()
+      .then(() => this.notifyAll(Notify.RELOAD, this.key));
+    }
+
+    /**
+     * Undo all turns. Resets the play state as if the game had never
+     * happened.
+     */
+    undo_all() {
+      if (!this._undoer)
+        this._undoer = new Undo(this);
+      while (this.turns.length > 0)
+        this._undoer.undo();
+      return this.save()
+      .then(() => this.notifyAll(Notify.RELOAD, this.key));
+    }
+  }
 
 	return Game;
 });
+       

@@ -39,11 +39,12 @@ define("game/Player", [
 		  this.name = params.name;
 
 		  /**
-		   * Player doesn't have a rack until they join a game, as
+		   * Rack of tiles. By default an 8-cell rack is created, but
+       * this will be replaced on a call to fillRack, as
 		   * it's only then we know how big it has to be.
 		   * @member {Rack}
 		   */
-		  this.rack = undefined;
+		  this.rack = new Rack(`Rack_${this.key}`, 8);
 
 		  /**
 		   * Number of times this player has passed (or swapped)

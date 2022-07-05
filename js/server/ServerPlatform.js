@@ -10,13 +10,12 @@
 define("platform", [
 	"assert", "fs", "path",
   "events", "proper-lockfile", "node-gzip", "get-user-locale",
-	"common/Platform", "common/Fridge"
+	"common/Fridge", "common/Platform"
 ], (
 	Assert, fs, Path,
   Events, Lock, Gzip, Locale,
-	Platform, Fridge
+	Fridge, Platform
 ) => {
-
 	const Fs = fs.promises;
 	const emitter = new Events.EventEmitter();
 

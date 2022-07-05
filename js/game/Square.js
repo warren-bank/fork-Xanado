@@ -21,7 +21,7 @@ define("game/Square", [
 
 	/**
 	 * A square on the game board or rack. A Tile holder with some
-	 * underlying attributes; a position, an owner, and a type that
+	 * underlying attributes; a position, an owner type, and a type that
 	 * dictates the score multipliers that apply. The owner will be a
 	 * subclass of {@linkcode Surface} (a {@linkcode Rack} or a {@linkcode Board})
 	 */
@@ -30,7 +30,7 @@ define("game/Square", [
 		/**
      * @param {object} spec Specification
 		 * @param {string} spec.type /^[QqTtSs_]$/ see {@linkcode Board}
-		 * @param {Surface} spec.owner the container this is in
+		 * @param {string} spec.base base of #tag e.g. "Board_"
 		 * @param {number} spec.col 0-based column where the square is
 		 * @param {number?} spec.row 0-based row where the square is
 		 * (undefined on a rack)
@@ -42,12 +42,6 @@ define("game/Square", [
 		   */
 			this.type = spec.type;
 
-			/**
-		   * Rack or Board
-		   * @member {Surface?}
-		   */
-      this.owner = spec.owner; // Rack or Board
-
 		  /**
 		   * 0-based column where the square is.
 		   * @member {number}
@@ -58,7 +52,7 @@ define("game/Square", [
 		   * Unique id for this square
 		   * @member {string}
 		   */
-			this.id = `${this.owner.id}_${this.col}`;
+			this.id = `${spec.base}_${this.col}`;
 
 			if (typeof spec.row !== "undefined") {
 		    /**
@@ -67,6 +61,12 @@ define("game/Square", [
 		     */
 				this.row = spec.row;
 				this.id += `x${this.row}`;
+		    /**
+		     * Flag indicating if this square is at a 2D position and
+         * therefore on the game board.
+		     * @member {boolean?}
+		     */
+        this.isOnBoard = true;
       }
 
       if (spec.tile) {

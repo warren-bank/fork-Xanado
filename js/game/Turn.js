@@ -88,10 +88,18 @@ define("game/Turn", [
 			if (params.endState)
 		    /**
 		     * String describing the reason the game ended. Only used when
-		     * type==Turns.GAME_OVER
+		     * type==Turns.GAME_ENDED
 		     * @member {State?}
 		     */
 				this.endState = params.endState;
+
+      if (params.passes && params.passes > 0)
+		    /**
+		     * Number of passes the player had before this play. Required
+         * for undo.
+		     * @member {number?}
+		     */
+        this.passes = params.passes;
 		}
 
     /* istanbul ignore next */
@@ -105,8 +113,10 @@ define("game/Turn", [
       if (this.nextToGoKey && this.nextToGoKey !== this.playerKey)
         s += ` ->${this.nextToGoKey}`;
 
-      if (typeof this.score !== "undefined")
-        s += ` (${this.score})`;
+      if (typeof this.score === "object")
+        s += ` (${this.score.tiles||0},${this.score.time||0})`;
+      else if (typeof this.score === "number")
+          s += ` (${this.score})`;
 
       if (this.placements)
         s += " <=" + this.placements.map(t => t.toString(true));
@@ -115,7 +125,7 @@ define("game/Turn", [
         s += ' "' + this.words.map(w => w.word) + '"';
 
       if (this.replacements)
-			  s += " =>" + this.replacements.map(t => t.toString(true));
+			  s += " => " + this.replacements.map(t => t.toString(true));
 
       if (this.penalty === Penalty.MISS)
         s += ` MISS`;

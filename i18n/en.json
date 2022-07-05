@@ -36,6 +36,7 @@
 	"tooltip-max-players": "Limit the total number of players who can join this game.",
 	"tooltip-min-players": "Require at least this many players to join before starting the game. A start player won't be assigned until enough players have joined.",
 	"tooltip-observe-game": "Open a board to watch the game, but not play.",
+	"tooltip-observer-name": "Name by which you want ot be known to others in the game.",
 	"tooltip-open-game": "Open this game in a new window.",
 	"tooltip-pause": "Pause the game; stops timers for all players until someone unpauses the game again",
 	"tooltip-penalty-points": "Number of points lost for an incorrect challenge, either per turn, or per correct word",

@@ -77,14 +77,33 @@ define("game/Tile", () => {
 		/**
 		 * @override
 		 */
-		toString() {
-			let pl = typeof this.col === "number" ? `@${this.col}` : "";
-      if (typeof this.row === "number")
-        pl += `,${this.row}`;
-      const b = this.isBlank ? "[]" : "";
-			return `[${this.letter}${b}${pl}(${this.score})]`;
+		toString(showPos) {
+			let pl = "";
+      if (typeof this.row === "number") {
+        pl = typeof this.col === "number" ? `[${this.col}` : ""
+        + `,${this.row}`;
+      }
+      pl += "]";
+      const b = this.isBlank ? "-" : "";
+			return `[${this.letter}${b}${pl}`;//(${this.score})]`;
 		}
   }
+
+  /**
+   * Compare tiles by letter, for sorting. The letter assigned
+   * to a blank is ignored.
+   * @param {Tile} a first tile
+   * @param {Tile} b second tile
+   * @return {number} value suitable for use in Array.sort()
+   */
+  Tile.cmp = (a, b) => {
+    if (a.isBlank && b.isBlank) return 0;
+    if (a.isBlank) return -1;
+    if (b.isBlank) return 1;
+    if (a.letter < b.letter) return -1;
+    if (a.letter > b.letter) return 1;
+    return 0;
+  };
 
 	return Tile;
 });

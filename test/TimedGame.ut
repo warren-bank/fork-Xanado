@@ -75,7 +75,7 @@ describe("Timed games", function() {
 			case 4:
 				assert.deepEqual(turn.score, {
 					human1: { tiles: -1 }, human2: {tiles: -1 }});
-				assert.equal(turn.type, Turns.GAME_OVER);
+				assert.equal(turn.type, Turns.GAME_ENDED);
 				assert.equal(turn.endState, 'All players passed twice');
 				assert.equal(turn.gameKey, game.key);
 				assert(!turn.nextToGoKey);
@@ -99,13 +99,9 @@ describe("Timed games", function() {
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
-			human1.rack.empty();
-			human1.rack.addTile(
-				new Tile({letter:'A', isBlank:false, score:1}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"A"}));
 			game.addPlayer(human2);
-			human2.rack.empty();
-			human2.rack.addTile(
-				new Tile({letter:'A', isBlank:false, score:1}));
+			human2.rack.addTile(game.letterBag.removeTile({letter:"A"}));
 			// we have enough players to kick the game off. We don't need
 			// to connect player 2, as the connect() of player1 should
 			// kick off play. The players will each timeout twice and
@@ -165,7 +161,7 @@ describe("Timed games", function() {
 				assert.equal(turn.gameKey, game.key);
 				break;
 			case 4:
-				assert.equal(turn.type, Turns.GAME_OVER);
+				assert.equal(turn.type, Turns.GAME_ENDED);
 				assert.equal(turn.endState, 'All players passed twice');
 				assert.equal(turn.score.human1.tiles, -1);
 				assert.equal(turn.score.human2.tiles, -1);
@@ -209,13 +205,9 @@ describe("Timed games", function() {
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
-			human1.rack.empty();
-			human1.rack.addTile(
-				new Tile({letter:'A', isBlank:false, score:1}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"A"}));
 			game.addPlayer(human2);
-			human2.rack.empty();
-			human2.rack.addTile(
-				new Tile({letter:'A', isBlank:false, score:1}));
+			human2.rack.addTile(game.letterBag.removeTile({letter:"A"}));
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => awaitTick())

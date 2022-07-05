@@ -46,10 +46,10 @@ requirejs([
 	.then(game => {
 		let player1 = new Player({
 			name: "player one", key: "flay", isRobot: true});
-		game.addPlayer(player1);
+		game.addPlayer(player1, true);
 		let player2 = new Player({name: "player two", key: "swelter",
 								 isRobot: true });
-		game.addPlayer(player2);
+		game.addPlayer(player2, true);
 		game.whosTurnKey = player1.key;
 		return game.onLoad(db);
 	})

@@ -54,7 +54,7 @@ define("game/Surface", [
 				for (let j = 0; j < rows; j++) {
           const spec = {
 						type: type(i, j),
-            owner: this,
+            base: id,
             col: i
           };
           if (rows > 1)

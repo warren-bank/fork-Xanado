@@ -93,7 +93,6 @@ define("game/LetterBag", [
 		 */
 		getRandomTiles(count) {
 			const tiles = [];
-			/* istanbul ignore if */
 			Platform.assert(count >= 0);
 			for (let i = 0; this.tiles.length > 0 && i < count; i++)
 				tiles.push(this.tiles.pop());
@@ -109,6 +108,36 @@ define("game/LetterBag", [
 			this.tiles.push(tile.reset());
 			this.shake();
 		}
+
+		/**
+		 * Return an array of tiles to the bag, and give it a shimmy
+		 * @param {Tile[]} tiles tiles to return to bag
+		 */
+		returnTiles(tiles) {
+			for (const tile of tiles)
+        this.tiles.push(tile.reset());
+			this.shake();
+		}
+
+		/**
+		 * Remove a tile from the bag. Either the exact tile will be matched
+     * or a tile that represents the same letter. Blanks only match
+     * blanks.
+		 * @param {Tile} tile tile to return to bag
+     * @return {Tile?} the tile removed, or undefined if it wasn't found
+		 */
+    removeTile(tile) {
+      for (let i = 0; i < this.tiles.length; i++) {
+        const t = this.tiles[i];
+        if (t === tile || (t.isBlank && tile.isBlank)
+            || (!t.isBlank && !tile.isBlank && t.letter === tile.letter))
+        {
+          this.tiles.splice(i, 1);
+          return t;
+        }
+      }
+      return undefined;
+    }
 
 		/**
 		 * How many tiles remain?
@@ -131,7 +160,7 @@ define("game/LetterBag", [
      * @override
 		 */
 		toString() {
-      return "(" + this.letters.join("") + ")";
+      return "(" + this.letters().sort().join("") + ")";
     }
 	}
 	return LetterBag;

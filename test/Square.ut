@@ -20,7 +20,7 @@ describe("Square class", () => {
 	});
 
 	it('construct', () => {
-		let sq = new Square({type:'q', owner:{ id: 'base' }, col: 56, row: 42});
+		let sq = new Square({type:'q', base: 'base', col: 56, row: 42});
 		assert.equal(sq.letterScoreMultiplier, 4);
 		assert.equal(sq.wordScoreMultiplier, 1);
 		assert(!sq.tile);
@@ -48,32 +48,32 @@ describe("Square class", () => {
 		assert(!sq.isEmpty());
 		assert.equal(tile.col, sq.col);
 		assert.equal(tile.row, sq.row);
-		assert.equal(new Square({type: 'Q', owner: { id: 'base' }}).letterScoreMultiplier, 1);
-		assert.equal(new Square({type:'Q', owner:{ id: 'base' }}).wordScoreMultiplier, 4);
-		assert.equal(new Square({type:'t', owner:{ id: 'base' }}).letterScoreMultiplier, 3);
-		assert.equal(new Square({type:'t', owner:{ id: 'base' }}).wordScoreMultiplier, 1);
-		assert.equal(new Square({type:'T', owner:{ id: 'base' }}).letterScoreMultiplier, 1);
-		assert.equal(new Square({type:'T', owner:{ id: 'base' }}).wordScoreMultiplier, 3);
-		assert.equal(new Square({type:'d', owner:{ id: 'base' }}).letterScoreMultiplier, 2);
-		assert.equal(new Square({type:'d', owner:{ id: 'base' }}).wordScoreMultiplier, 1);
-		assert.equal(new Square({type:'D', owner:{ id: 'base' }}).letterScoreMultiplier, 1);
-		assert.equal(new Square({type:'D', owner:{ id: 'base' }}).wordScoreMultiplier, 2);
-		assert.equal(new Square({type:'M', owner:{ id: 'base' }}).letterScoreMultiplier, 1);
-		assert.equal(new Square({type:'M', owner:{ id: 'base' }}).wordScoreMultiplier, 2);
+		assert.equal(new Square({type: 'Q', base: "base"}).letterScoreMultiplier, 1);
+		assert.equal(new Square({type:'Q', base: "base"}).wordScoreMultiplier, 4);
+		assert.equal(new Square({type:'t', base: "base"}).letterScoreMultiplier, 3);
+		assert.equal(new Square({type:'t', base: "base"}).wordScoreMultiplier, 1);
+		assert.equal(new Square({type:'T', base: "base"}).letterScoreMultiplier, 1);
+		assert.equal(new Square({type:'T', base: "base"}).wordScoreMultiplier, 3);
+		assert.equal(new Square({type:'d', base: "base"}).letterScoreMultiplier, 2);
+		assert.equal(new Square({type:'d', base: "base"}).wordScoreMultiplier, 1);
+		assert.equal(new Square({type:'D', base: "base"}).letterScoreMultiplier, 1);
+		assert.equal(new Square({type:'D', base: "base"}).wordScoreMultiplier, 2);
+		assert.equal(new Square({type:'M', base: "base"}).letterScoreMultiplier, 1);
+		assert.equal(new Square({type:'M', base: "base"}).wordScoreMultiplier, 2);
 	});
 	
 	it('$ui', () => {
-		let sq = new Square({type: 'q', owner: { id: 'base' }, col: 56, row: 42});
+		let sq = new Square({type: 'q', base: "base", col: 56, row: 42});
 		assert.equal(sq.$ui().html(),
 					 '<div id="base_56x42"><a></a></div>');
-		sq = new Square({type: '_', owner: { id: 'base' }, col: 56});
+		sq = new Square({type: '_', base: "base", col: 56});
 		assert.equal(sq.$ui().html(),
 					 '<div id="base_56"><a></a></div>');
 		$("body").empty();
 	});
 
 	it("refresh empty", () => {
-		let sq = new Square({type: 'q', owner: { id: 'base' }, col: 56, row: 42});
+		let sq = new Square({type: 'q', base: "base", col: 56, row: 42});
 		sq.setUnderlay('T');
 		let $td = sq.$ui();
 		$("body").append($td);
@@ -91,7 +91,7 @@ describe("Square class", () => {
 	});
 	
 	it("refresh occupied unlocked", () => {
-		let sq = new Square({type: 'q', owner: { id: 'surface' }, col: 56, row: 42});
+		let sq = new Square({type: 'q', base: 'surface', col: 56, row: 42});
 		sq.setUnderlay('T');
 		assert(!sq.tileLocked);
 		let tile = new Tile({ letter:'S', isBlank:false });
@@ -126,7 +126,7 @@ describe("Square class", () => {
 	});
 	
 	it("refresh occupied locked", () => {
-		let sq = new Square({type:'q', owner:{ id: 'surface' }, col:56, row:42});
+		let sq = new Square({type:'q', base: 'surface', col:56, row:42});
 		assert(!sq.tileLocked);
 		let tile = new Tile({ letter:'S', isBlank:false });
 		sq.placeTile(tile, true);

@@ -500,7 +500,7 @@ requirejs([
 			const $gt = $("#gamesTable");
 			$gt.empty();
 
-      const games = simples.map(simple => new Game(simple));
+      const games = simples.map(simple => Game.fromSimple(simple));
 
 			games.forEach(game => $gt.append(this.$game(game)));
 
@@ -526,7 +526,7 @@ requirejs([
 		 */
 		refresh_game(key) {
 			return $.get(`/simple/${key}`)
-			.then(simple => this.show_game(new Game(simple[0])))
+			.then(simple => this.show_game(Game.fromSimple(simple[0])))
 			.catch(UI.report);
 		}
 

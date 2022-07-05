@@ -2,7 +2,7 @@
  "_Í": 0,
  "_Ć": "Game",
  "_Ð": {
-  "key": "bad_robot",
+  "key": "unfinished_game",
   "creationTimestamp": 1652281839795,
   "edition": "English_Scrabble",
   "dictionary": "British_English",
@@ -622,7 +622,7 @@
        }
       }
      ],
-     "gameKey": "bad_robot",
+     "gameKey": "unfinished_game",
      "type": "play",
      "playerKey": "robot",
      "nextToGoKey": "human",
@@ -732,7 +732,7 @@
        }
       }
      ],
-     "gameKey": "bad_robot",
+     "gameKey": "unfinished_game",
      "type": "play",
      "playerKey": "human",
      "nextToGoKey": "robot",
@@ -833,7 +833,7 @@
        }
       }
      ],
-     "gameKey": "bad_robot",
+     "gameKey": "unfinished_game",
      "type": "challenge-won",
      "playerKey": "human",
      "nextToGoKey": "robot",
@@ -944,7 +944,7 @@
        }
       }
      ],
-     "gameKey": "bad_robot",
+     "gameKey": "unfinished_game",
      "type": "play",
      "playerKey": "robot",
      "nextToGoKey": "human",
@@ -999,7 +999,7 @@
        }
       }
      ],
-     "gameKey": "bad_robot",
+     "gameKey": "unfinished_game",
      "type": "swap",
      "playerKey": "human",
      "nextToGoKey": "robot",

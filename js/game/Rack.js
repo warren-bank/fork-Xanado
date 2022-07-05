@@ -18,7 +18,8 @@ define("game/Rack", [
 	class Rack extends Surface {
 
 		/**
-		 * @param {string} id unique id for this rack.
+		 * @param {string|Rack} id unique id for this rack, or a rack to copy.
+     * The squares and the tiles they carry will be copied as well.
 		 * @param {number} size rack size
 		 * @param {string?} underlay text string with one character for
 		 * each cell in UI of the rack. This is the SWAP string that
@@ -31,15 +32,25 @@ define("game/Rack", [
 			// the swap rack, but will also have racks that have no UI
 			// for the other players. The ID for these racks must be
 			// player specific.
-			super(id, size, 1, () => "_");
-			if (typeof underlay !== "undefined") {
-				let idx = 0;
-				this.forEachSquare(square => {
-					square.setUnderlay(underlay.charAt(idx++));
-					return idx === underlay.length;
-				});
-			}
-		}
+      if (id instanceof Rack) {
+        // Copy constructor
+        // Only used in game simulation. Underlay not supported.
+        super(id.id, id.cols, 1, () => "_");
+        id.forEachTiledSquare(square => {
+          this.addTile(new Tile(square.tile));
+          return false;
+        });
+      } else
+			  super(id, size, 1, () => "_");
+    
+		  if (typeof underlay !== "undefined") {
+			  let idx = 0;
+			  this.forEachSquare(square => {
+				  square.setUnderlay(underlay.charAt(idx++));
+				  return idx === underlay.length;
+			  });
+		  }
+    }
 
 		/**
 		 * One dimensional

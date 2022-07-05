@@ -26,7 +26,7 @@ describe("findBestPlay", () => {
 		.then(game => {
             global.SYNC_FBP = true;
 			game.addPlayer(new Player({
-				name:"test", key:"creep", isRobot:true}));
+				name:"test", key:"creep", isRobot:true}), true);
 			return game.loadBoard(
 				"| | | | | | | | | | | | | | | |\n" +
 				"| | | | | | | | | | | | | | | |\n" +
@@ -83,7 +83,7 @@ describe("findBestPlay", () => {
 		.create()
 		.then(game => {
 			game.addPlayer(new Player({
-				name:"test", key:"toast", isRobot:true}));
+				name:"test", key:"toast", isRobot:true}), true);
 			return game.loadBoard(
 				"| | | | | | | | | | | | | | | |\n" +
 				"| | | | | | | | | | | | | | | |\n" +
@@ -152,7 +152,7 @@ describe("findBestPlay", () => {
 			dictionary:"SOWPODS_English"
 		}).create()
 		.then(game => {
-			game.addPlayer(new Player({name:"test", key:"slime", isRobot:true}));
+			game.addPlayer(new Player({name:"test", key:"slime", isRobot:true}), true);
 			return game.loadBoard(
 				"| | | | | | | | | | | | | | | |\n" +
 				"| | | | | | | | | | | | | | | |\n" +
@@ -209,7 +209,7 @@ describe("findBestPlay", () => {
 		}).create()
 		.then(game => {
 			game.addPlayer(new Player({
-				name:"test", key:"crisp", isRobot:true}));
+				name:"test", key:"crisp", isRobot:true}), true);
 			return game.loadBoard(
 				"| | | | | | | | | | | | | | | |\n" +
 				"| | | | | | | | | | | | | | | |\n" +
@@ -252,7 +252,7 @@ describe("findBestPlay", () => {
 		}).create()
 		.then(game => {
 			game.addPlayer(new Player({
-				name:"test", key:"turntable", isRobot:true}));
+				name:"test", key:"turntable", isRobot:true}), true);
 			return game.loadBoard(
 				"| | | | | | | | | | | | | | | |\n" +
 				"| | | | | | | | | | | | | | | |\n" +

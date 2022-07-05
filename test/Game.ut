@@ -11,13 +11,13 @@ describe("Game", () => {
     /* global Platform, Game, Player, Tile, Move, Turn */
 	const TS = require("./TestSupport.js");
 	before(required =>
-           TS.depend(() => Platform.i18n().load("qqq").then(required), {
-           	   Tile: "game/Tile",
+         TS.depend(() => Platform.i18n().load("qqq").then(required), {
+           Tile: "game/Tile",
 		       Player: "game/Player",
 		       Game: "game/Game",
 		       Move: "game/Move",
 		       Turn: "game/Turn"
-           }));
+         }));
 
 	function UNit() {}
 
@@ -112,7 +112,7 @@ describe("Game", () => {
 		};
 		
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
 			assert.equal(game.edition, p.edition);
 			assert.equal(game.dictionary, p.dictionary);
@@ -123,19 +123,19 @@ describe("Game", () => {
 			assert.equal(game.minPlayers, 30);
 			assert.equal(typeof game.maxPlayers, "undefined");
 
-			game.addPlayer(robot1);
-			game.addPlayer(human2);
-			game.addPlayer(human3);
+			game.addPlayer(robot1, true);
+			game.addPlayer(human2, true);
+			game.addPlayer(human3, true);
+      human3.rack.empty();
 			game.whosTurnKey = human2.key;
 
-			human3.rack.empty();
 			robot1.score = 1;
 			human2.score = 2;
 			human3.score = 3;
-            human4.score = 4;
+      human4.score = 4;
             
-            human4.isConnected = true;
-            human4.isNextToGo = true;
+      human4.isConnected = true;
+      human4.isNextToGo = true;
             
 			let player = game.getPlayer();
 			assert.equal(player.key, human2.key);
@@ -218,13 +218,13 @@ describe("Game", () => {
 
 		const socket = new TestSocket();
 
-        return Platform.i18n().load("qqq")
+    return Platform.i18n().load("qqq")
 		.then(() => game.create())
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
-			game.addPlayer(human1);
-			game.addPlayer(robot1);
-			game.addPlayer(human2);
+			game.addPlayer(human1, true);
+			game.addPlayer(robot1, true);
+			game.addPlayer(human2, true);
 			game.whosTurnKey = human1.key;
 
 			const $tab = $("<table></table>").addClass("player-table");
@@ -299,7 +299,7 @@ describe("Game", () => {
 			{
 				event: Notify.TURN,
 				data: {
-					type: Turns.PLAY,
+					type: Turns.PLAYED,
 					playerKey: human1.key,
 					nextToGoKey: human2.key,
 					score: move.score,
@@ -331,18 +331,12 @@ describe("Game", () => {
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
-			human1.rack.empty();
-			human1.rack.addTile(
-				new Tile({letter:"W", isBlank:false, score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"O", isBlank:false, score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"R", isBlank:false, score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"D", isBlank:false, score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"X", isBlank:false, score:1}));
-			game.addPlayer(human2);
+			human1.rack.addTile(game.letterBag.removeTile({letter:"W"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"O"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"R"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"D"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"X"}));
+			game.addPlayer(human2, true);
 			// Empty the bag
 			game.letterBag.getRandomTiles(
 				game.letterBag.remainingTileCount());
@@ -388,9 +382,9 @@ describe("Game", () => {
 		return game.create()
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
-			game.addPlayer(human1);
-			game.addPlayer(human2);
-			game.addPlayer(human3);
+			game.addPlayer(human1, true);
+			game.addPlayer(human2, true);
+			game.addPlayer(human3, true);
 			human2.missNextTurn = true;
 		})
 		.then(() => game.connect(socket, human1.key))
@@ -450,15 +444,11 @@ describe("Game", () => {
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
-			human1.rack.empty();
-			human1.rack.addTile(
-				new Tile({letter:"X", isBlank:false, score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"Y", isBlank:false, score:1}));
-			human1.rack.addTile(
-				new Tile({letter:"Z", isBlank:false, score:1}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"X"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"Y"}));
+			human1.rack.addTile(game.letterBag.removeTile({letter:"Z"}));
 
-			game.addPlayer(human2);
+			game.addPlayer(human2, true);
 		})
 		.then(() => game.connect(socket1, human1.key))
 		.then(() => game.connect(socket2, human2.key))
@@ -468,7 +458,7 @@ describe("Game", () => {
 
 	it("load from file", () => {
 		const db = new Platform.Database("test", "game");
-		return db.get("test_game", Game.classes)
+		return db.get("unfinished_game", Game.classes)
     .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
       //game._debug = console.debug;
@@ -482,7 +472,7 @@ describe("Game", () => {
 		const db = new Platform.Database("test/temp", "game");
         // Load from the test dir, but save to test/temp
 		return new Platform.Database("test", "game")
-        .get("test_game", Game.classes)
+        .get("unfinished_game", Game.classes)
 		.then(g => game = g)
 		.then(() => game.onLoad(db))
         .then(() => {
@@ -492,7 +482,7 @@ describe("Game", () => {
             assert.equal(game.whosTurnKey, "human");
             // add a new robot player to stop state reverting to WAITING
             game.addPlayer(new Player({
-                name:"Anne Droid", key:"android"}));
+                name:"Anne Droid", key:"android"}), true);
             // Remove robot as last player so they
             // don't get auto-played when human and android time out
             const robot = game.getPlayer("robot");
@@ -529,56 +519,78 @@ describe("Game", () => {
 			});
 		})
 
-        // newgame should have been saved. Reload.
-        .then(() => db.get(game.nextGameKey, Game.classes))
-        .then(g => reload = g)
+    // newgame should have been saved. Reload.
+    .then(() => db.get(game.nextGameKey, Game.classes))
+    .then(g => reload = g)
 		.then(() => reload.onLoad(db))
-        .then(() => {
-            game._debug("Reloaded", reload.key);
-            assert.equal(game.nextGameKey, reload.key);
-            assert(reload.players.length === game.players.length);
-            assert(!reload.nextGameKey);
-            assert.equal(reload.whosTurnKey, "human");
-            assert.equal(reload.state, State.PLAYING);
+    .then(() => {
+      game._debug("Reloaded", reload.key);
+      assert.equal(game.nextGameKey, reload.key);
+      assert(reload.players.length === game.players.length);
+      assert(!reload.nextGameKey);
+      assert.equal(reload.whosTurnKey, "human");
+      assert.equal(reload.state, State.PLAYING);
 
-            // Suppress misleading asserts, so the anotherGame looks
-            // like the original game (though racks will obviously be
-            // different)
-            game.creationTimestamp = reload.creationTimestamp;
-            game.key = reload.key;
-            game.state = reload.state;
-            game.turns = [];
-            game.players.forEach(p => p.clock = 1500);
-            reload._debug = game._debug;
-            delete(game.nextGameKey);
+      // Suppress misleading asserts, so the anotherGame looks
+      // like the original game (though racks will obviously be
+      // different)
+      game.creationTimestamp = reload.creationTimestamp;
+      game.key = reload.key;
+      game.state = reload.state;
+      game.turns = [];
+      game.players.forEach(p => p.clock = 1500);
+      reload._debug = game._debug;
+      delete(game.nextGameKey);
 
-            return Promise.all([reload.simple(), game.simple()])
-            .then(s => assert.deepEqual(s[0], s[1]));
-        })
-        .then(() => reload.playIfReady()) // should start the clock
-        .then(() => assert(reload.stopTheClock()))
-        .then(() => Promise.all([reload.simple(), game.simple()])
-              .then(s => assert.deepEqual(s[0], s[1])));
+      return Promise.all([reload.simple(), game.simple()])
+      .then(s => assert.deepEqual(s[0], s[1]));
+    })
+    .then(() => reload.playIfReady()) // should start the clock
+    .then(() => assert(reload.stopTheClock()))
+    .then(() => Promise.all([reload.simple(), game.simple()]))
+    .then(s => assert.deepEqual(s[0], s[1]));
 	});
 
 	it("hint", () => {
 		let game;
 		const db = new Platform.Database("test", "game");
-		return db.get("test_game", Game.classes)
+		const socket1 = new TestSocket();
+		const socket2 = new TestSocket();
+		socket1.on(Notify.MESSAGE, mess => {
+      if (mess.text === "$1 asked for a hint")
+        return;
+      assert.equal(mess.args[0], "TRAWL");
+      socket1.done();
+		})
+    .on("*", () => {});
+		socket2.on(Notify.MESSAGE, mess => {
+      if (mess.text === "$1 asked for a hint")
+        return;
+      assert.equal(mess.text, "Can't find a play");
+      socket2.done();
+		})
+    .on("*", () => {});
+		return db.get("unfinished_game", Game.classes)
 		.then(g => game = g)
+    //.then(() => game._debug = console.debug)
 		.then(() => game.onLoad(this.db))
+		.then(() => game.connect(socket1, game.getPlayer().key))
 		.then(() => game.hint(game.getPlayer()))
+    .then(() => socket1.wait())
 		.then(() => {
-			const p = game.getPlayer();
+      // Empty the rack and wait for the hint
+			const p = game.nextPlayer();
 			p.rack.empty();
-			return game.hint(game.getPlayer());
-		});
+			return game.connect(socket2, p.key);
+    })
+    .then(() => game.hint(game.nextPlayer()))
+    .then(() => socket2.wait());
 	});
 
 	it("advise", () => {
 		let game;
 		const db = new Platform.Database("test", "game");
-		return db.get("test_game", Game.classes)
+		return db.get("unfinished_game", Game.classes)
 		.then(g => game = g)
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(() => game.anotherGame("human"))
@@ -589,18 +601,18 @@ describe("Game", () => {
 	it("last play", () => {
 		let game;
 		const db = new Platform.Database("test", "game");
-		return db.get("test_game", Game.classes)
+		return db.get("unfinished_game", Game.classes)
 		.then(g => game = g)
         .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
         .then(() => {
             game.turns = [];
             //game._debug = console.debug;
             game.finishTurn(new Turn(game, {
-                type: Turns.PLAY,
+                type: Turns.PLAYED,
                 playerKey: 1
             }));
             game.finishTurn(new Turn(game, {
-                type: Turns.PLAY,
+                type: Turns.PLAYED,
                 playerKey: 2
             }));
             assert.equal(game.lastTurn(), game.lastPlay());
@@ -611,7 +623,7 @@ describe("Game", () => {
             assert.equal(game.lastTurn().playerKey, 3);
             assert.equal(game.lastPlay().playerKey, 1);
             game.finishTurn(new Turn(game, {
-                type: Turns.PLAY,
+                type: Turns.PLAYED,
                 playerKey: 4
             }));
             game.finishTurn(new Turn(game, {
@@ -621,7 +633,7 @@ describe("Game", () => {
             assert.equal(game.lastTurn().playerKey, 5);
             assert.equal(game.lastPlay().playerKey, 1);
             game.finishTurn(new Turn(game, {
-                type: Turns.PLAY,
+                type: Turns.PLAYED,
                 playerKey: 6
             }));
             game.finishTurn(new Turn(game, {
@@ -631,7 +643,7 @@ describe("Game", () => {
             assert.equal(game.lastTurn().playerKey, 7);
             assert.equal(game.lastPlay().playerKey, 6);
             game.finishTurn(new Turn(game, {
-                type: Turns.GAME_OVER,
+                type: Turns.GAME_ENDED,
                 playerKey: 8
             }));
             game.state = State.GAME_OVER;

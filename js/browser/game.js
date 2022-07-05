@@ -185,7 +185,7 @@ define("browser/game", [
 		 * turn during a game (as against a step in a replay)
 		 */
 		describeTurn(turn, isLatestTurn, interactive) {
-			if (turn.type === Turns.GAME_OVER) {
+			if (turn.type === Turns.GAME_ENDED) {
 				this.describeGameOver(turn, interactive);
 				return;
 			}
@@ -240,11 +240,11 @@ define("browser/game", [
 
 			switch (turn.type) {
 
-			case Turns.PLAY:
+			case Turns.PLAYED:
 				turnText = GameUI.$score(turn, false);
 				break;
 
-			case Turns.SWAP:
+			case Turns.SWAPPED:
 				turnText = $.i18n(
 					"Swapped $1 tile{{PLURAL:$1||s}}",
 					turn.replacements.length);
@@ -300,7 +300,7 @@ define("browser/game", [
 				  && turn.emptyPlayerKey
 				  && !this.game.hasEnded()
 				  && turn.type !== Turns.CHALLENGE_LOST
-				  && turn.type !== Turns.GAME_OVER) {
+				  && turn.type !== Turns.GAME_ENDED) {
 				if (this.isThisPlayer(turn.emptyPlayerKey)) {
 					GameUI.$log(interactive, $.i18n(
 						"You have no more tiles, game will be over if your play isn't challenged"),
@@ -315,7 +315,7 @@ define("browser/game", [
 
 		/**
 		 * Append a formatted 'end of game' message to the log
-		 * @param {Turn} turn a Turns.GAME_OVER Turn
+		 * @param {Turn} turn a Turns.GAME_ENDED Turn
 		 * @param {boolean} interactive false if we are replaying messages into
 		 * the log, true if this is an interactive response to a player action.
 		 * @private
@@ -449,6 +449,10 @@ define("browser/game", [
       .hide();
 
 			const ticked = this.game.getPlayer(params.playerKey);
+      if (!ticked) {
+        console.error("No such player", params.playerKey);
+        return;
+      }
 			let remains = params.clock;
 			ticked.clock = remains;
 
@@ -456,7 +460,7 @@ define("browser/game", [
 
       let extraClass = "tick-alert-none";
 			if (this.game.timerType === Timer.TURN) {
-			  if (ticked.key === this.player.key
+			  if (this.player && ticked.key === this.player.key
 				    && remains <= 10
 				    && this.getSetting("warnings"))
 				  this.playAudio("tick");
@@ -516,8 +520,21 @@ define("browser/game", [
 				rejection.words.join(", ")), "turn-narrative");
 		}
 
+    /**
+     * A heavy-handed instruction to reloaded the game UI, probably in
+     * response to an "undo"
+     * @private
+     */
+    handle_reload() {
+			const gameKey = this.game.key;
+      const playerKey = this.player.key;
+      location.replace(
+        `/html/game.html?game=${gameKey}&player=${playerKey}`);
+    }
+
 		/**
-		 * Handle a keydown. These are captured in the root of the UI and dispatched here.
+		 * Handle a keydown.
+     * These are captured in the root of the UI and dispatched here.
 		 */
 		handle_keydown(event) {
 			// Only handle events targeted when the board is not
@@ -569,7 +586,7 @@ define("browser/game", [
 			case "!": // Challenge
 				{
 					const lastTurn = this.game.lastTurn();
-					if (lastTurn && lastTurn.type == Turns.PLAY) {
+					if (lastTurn && lastTurn.type == Turns.PLAYED) {
 						if (this.isThisPlayer(this.game.whosTurnKey))
 							// Challenge last move
 							this.challenge();
@@ -753,7 +770,7 @@ define("browser/game", [
 			this.updateGameStatus();
 
 			const lastTurn = game.lastTurn();
-			if (lastTurn && (lastTurn.type === Turns.PLAY
+			if (lastTurn && (lastTurn.type === Turns.PLAYED
 							         || lastTurn.type === Turns.CHALLENGE_LOST)) {
 				if (this.isThisPlayer(lastTurn.playerKey)) {
 					// It isn't our turn, but we might still have time to
@@ -847,6 +864,10 @@ define("browser/game", [
 
 			// Attempted play has been rejected
 			.on(Notify.REJECT, params => this.handle_reject(params))
+
+			// Instruction to reload the UI received, probably as the result
+      // of an undo
+			.on(Notify.RELOAD, params => this.handle_reload(params))
 
 			// Game has been paused
 			.on(Notify.PAUSE, params => this.handle_pause(params))
@@ -955,7 +976,7 @@ define("browser/game", [
 			if (!this.selectedSquare
 				  || !this.selectedSquare.isEmpty()
 				  // Make sure the selected square is on the board!
-				  || !(this.selectedSquare.owner instanceof Board))
+				  || !this.selectedSquare.isOnBoard)
 				return;
 
 			// check it's supported
@@ -1028,7 +1049,7 @@ define("browser/game", [
 			this.selectedSquare = undefined;
 			if (square
 				  // Only select empty squares on the board
-				  && (!square.isEmpty() || square.owner instanceof Board)) {
+				  && (!square.isEmpty() || square.isOnBoard)) {
 				this.selectedSquare = square;
 				this.selectedSquare.setSelected(true);
 			}
@@ -1169,12 +1190,12 @@ define("browser/game", [
 
 			const tile = fromSquare.tile;
 
-			if (fromSquare.owner instanceof Board) {
+			if (fromSquare.isOnBoard) {
 				if (this.boardLocked)
 					return; // can't move from board
-				if (!(toSquare.owner instanceof Board))
+				if (!(toSquare.isOnBoard))
 					this.placedCount--;
-			} else if (toSquare.owner instanceof Board) {
+			} else if (toSquare.isOnBoard) {
 				if (this.boardLocked)
 					return; // can't move to board
 				this.placedCount++;
@@ -1182,7 +1203,7 @@ define("browser/game", [
 
 			fromSquare.unplaceTile();
 			if (tile.isBlank) {			
-				if (!(toSquare.owner instanceof Board)) {
+				if (!toSquare.isOnBoard) {
           tile.reset();
 					toSquare.placeTile(tile);
 					toSquare.$refresh();
@@ -1401,7 +1422,7 @@ define("browser/game", [
 				}
 				break;
 
-			case Turns.PLAY:
+			case Turns.PLAYED:
 				if (wasUs)
 					this.placedCount = 0;
 
@@ -1427,14 +1448,14 @@ define("browser/game", [
 					this.game.letterBag.getRandomTiles(
 						turn.replacements.length);
 
-				// Deliberate fall-through to Turns.SWAP to get the
+				// Deliberate fall-through to Turns.SWAPPED to get the
 				// replacements onto the rack
 
-			case Turns.SWAP:
+			case Turns.SWAPPED:
 				// Add replacement tiles to the player's rack. Number of tiles
 				// in letter bag doesn't change.
 				if (turn.replacements) {
-					for (let newTile of turn.replacements)
+					for (const newTile of turn.replacements)
 						player.rack.addTile(new Tile(newTile));
 
 					player.rack.$refresh();
@@ -1442,7 +1463,7 @@ define("browser/game", [
 
 				break;
 
-			case Turns.GAME_OVER:
+			case Turns.GAME_ENDED:
 				// End of game has been accepted
 				this.gameOverConfirmed(turn);
 				return;
@@ -1460,7 +1481,7 @@ define("browser/game", [
 
 			if (turn.nextToGoKey && turn.type !== Turns.CHALLENGE_WON) {
 
-				if (turn.type == Turns.PLAY) {
+				if (turn.type == Turns.PLAYED) {
 					if (wasUs) {
 						if (this.game.allowTakeBack) {
 							this.addTakeBackPreviousButton(turn);
@@ -1537,7 +1558,7 @@ define("browser/game", [
 				    .text($.i18n("Take back"))
 				    .button()
 				    .on("click", () => this.takeBackMove());
-			GameUI.$log($button, "turn-control");
+			GameUI.$log(true, $button, "turn-control");
 		}
 
 		/**
@@ -1559,7 +1580,7 @@ define("browser/game", [
 
 		/**
 		 * Handler for the 'Make Move' button. Invoked via 'click_turnButton'.
-		 * Response will be turn type Turns.PLAY (or Turns.TOOK_BACK if the play
+		 * Response will be turn type Turns.PLAYED (or Turns.TOOK_BACK if the play
 		 * is rejected).
 		 */
 		action_commitMove() {
@@ -1585,7 +1606,7 @@ define("browser/game", [
 		 * Handler for the 'Take back' button clicked. Invoked via
 		 * 'click_turnButton'. Response will be a turn type Turns.TOOK_BACK.
 		 */
-		action_takeBackMove() {
+		takeBackMove() {
 			this.takeBackTiles();
 			this.sendCommand(Command.TAKE_BACK);
 		}
@@ -1633,7 +1654,7 @@ define("browser/game", [
       })
 			.catch(console.error);
 		}
-		
+
 		/**
 		 * Handler for the 'Swap' button clicked. Invoked via 'click_turnButton'.
 		 */
