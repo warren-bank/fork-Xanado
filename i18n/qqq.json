@@ -2,7 +2,7 @@
 	"@metadata": {
 		"authors": [ "Crawford Currie" ]
 	},
-	
+  " $1 won": "winner name in game headline",
 	"$1 and $2": "Presenting a list of N players; $1 is a player or a comma-separated list of N-1 players, $2 is the Nth player in the list",
 	"$1 asked for a hint": "log message sent to all players when player $1 asks for a hint",
 	"$1 at row $2 column $3 would have scored $4": "post-play Advisor indication of a better play $1 is word, $2 row, $3 col, $4 score",
@@ -62,7 +62,6 @@
 	"Disabled": "Log message when advice is enabled",
 	"Reject unknown words": "feedback option",
 	"Disconnected placement": "Scores message when placement is invalid",
-	"Don't check words": "feedback option",
 	"Email": "LoginDialog: input label",
 	"Email turn reminders": "button label",
 	"Enabled": "Log message when advice is enabled",
@@ -218,7 +217,7 @@
 	"You are not playing in this game": "message when a logged in user observes a game",
 	"You have been invited to play XANADO": "email subject",
 	"You have no more tiles, game will be over if your play isn't challenged": "Log message",
-	"$1 successfully challenged $2 play": "log message, $1 is You or player's, $2 is Your or player's",
+	"$1 successfully challenged $2 play.": "log message, $1 is You or player's, $2 is Your or player's",
 	"$1 challenge of $2 play failed.": "log message, $1 is You or player's, $2 is Your or player's",
 	"Your": "used in the log to refer to the current player instead of their name",
 	"Lose $1 points for a failed challenge": "$1 is failed challenge points loss",
@@ -227,12 +226,10 @@
 	"Lose points per word": "select option",
 	"Miss a turn after a failed challenge": "select option",
 	"Miss next turn": "select option",
-	"No penalty": "select option",
     "No dictionary": "Warning message used by Advisor",
 	"Penalty points": "input title",
 	"The word{{PLURAL:$1||s}} $2 {{PLURAL:$1|was|were}} not found in the dictionary": "Log message when a player word is auto-rejected $1 is just used for pluralisation, $2 is the missing word",
 	"Game timer": "type of timer, total game time limit",
-	"No timer": "type of timer",
 	"Time allowed": "title for input",
 	"Time penalty": "title for input",
 	"Timer": "title of fieldset",
@@ -244,5 +241,7 @@
 	"tooltip-timer-type": "tip for type of timer select",
 	"tooltip-word-check": "tip for word check type select",
 	"Game time limit $1": "part of game description, $1 is a formatted time",
-	"Turn time limit $1": "part of game description, $1 is a formatted time"
+  "Turn time limit $1": "part of game description, $1 is a formatted time",
+  "Your name": "prompt for observer dialog",
+  "your": "used in compiling complex sentences"
 }

@@ -79,7 +79,7 @@ requirejs([
         // Check strings are in qqq and add to en if necessary
         for (const string of Object.keys(found).sort()) {
             if (!strings.qqq[string]) {
-                console.error(`"${string} not found in qqq`);
+                console.error(`"${string}" not found in qqq`);
                 strings.qqq[string] = string;
             }
             if (!strings.en[string])
