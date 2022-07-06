@@ -131,8 +131,6 @@ define("game/Commands", [
 				}
 			}
 
-			this._debug("\tpost-play rack", player.rack.toString());
-
 			// Report the result of the turn
 			const nextPlayer = this.nextPlayer();
 			this.whosTurnKey = nextPlayer.key;
@@ -298,8 +296,6 @@ define("game/Commands", [
 			}
 
 			prevPlayer.score -= previousMove.score;
-
-			this._debug("\tpost takeBack rack", prevPlayer.rack.toString());
 
 			const turn = new Turn(this, {
 				type: type,

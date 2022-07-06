@@ -434,7 +434,7 @@ define("game/ServerGame", [
 			if (!this.players.find(p => p.passes < 2))
 				return this.confirmGameOver(State.TWO_PASSES);
 
-			this._debug(`startTurn ${player.name}'s turn`);
+			this._debug("startTurn", player.name, player.key);
 
 			this.whosTurnKey = player.key;
 

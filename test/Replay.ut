@@ -77,7 +77,7 @@ describe("Replay", () => {
   // B passes
   // A passes
   // Should take us to game over
-  it("simulates", () => {
+  it("replay", () => {
 		const db = new Platform.Database("test", "game");
     let preGame, game, preBag = [];
 
@@ -97,6 +97,55 @@ describe("Replay", () => {
     }
     
 		return db.get("good_game", Replay.classes)
+    .then(g => g.onLoad(db))
+		.then(g => preGame = g)
+    .then(() => {
+      const game = new Replay(preGame);
+      game.key = "simulated_game";
+      game._debug = console.debug;
+      return game.getEdition()
+      .then(edo => {
+        for (const l of edo.bag) {
+          for (let i = 0; i < l.count; i++)
+            preBag.push(l.letter);
+        }
+      })
+      .then(() => game.create());
+    })
+    .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(game => {
+      let promise = Promise.resolve();
+      for (let i = 0; i < game.playedGame.turns.length; i++)
+        promise = promise.then(() => {
+          checkBag(game);
+          return game.step()
+          .then(() => checkBag(game));
+        });
+      return promise
+      .then(() => assertGameEqual(game, preGame));
+    });
+  });
+  
+  it("kolano", () => {
+		const db = new Platform.Database("test", "game");
+    let preGame, game, preBag = [];
+
+    function checkBag(game) {
+      const letters = [];
+      for (const pl of game.players) {
+        for (const l of pl.rack.letters())
+          letters.push(l);
+      }
+      for (const bt of game.board.tiles())
+        letters.push(bt.isBlank ? " " : bt.letter);
+      for (const bl of game.letterBag.letters())
+        letters.push(bl);
+      assert.equal(
+        letters.sort().join(""),
+        preBag.sort().join(""));
+    }
+    
+		return db.get("kolano", Replay.classes)
     .then(g => g.onLoad(db))
 		.then(g => preGame = g)
     .then(() => {

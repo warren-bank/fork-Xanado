@@ -49,8 +49,8 @@ define("game/Game", [
 		 * ```
 		 * (may be null).
 		 * @param {object} params Parameter object. This can be another
-		 * Game to copy game parameters, the result from Game.simple(),
-		 * or a generic object with fields the same name as Game fields.
+		 * Game to copy game parameters, or a generic object with fields
+		 * the same name as Game fields. 
      * Note that `players` and `turns` are not copied.
 		 */
 		constructor(params) {
@@ -376,7 +376,7 @@ define("game/Game", [
 				player = this.getPlayer(player);
 			let index = this.players.findIndex(p => p.key === player.key);
 			Platform.assert(index >= 0,
-				             `${player.key} not found in ${this.key}`);
+				              `${player.key} not found in ${this.key}`);
 			for (let i = 0; i < this.players.length; i++) {
 				let nextPlayer = this.players[(index + 1) % this.players.length];
 				if (nextPlayer.missNextTurn) {
@@ -565,7 +565,7 @@ define("game/Game", [
 
 		/**
 		 * Create a simple structure describing a subset of the
-		 * game state, for sending to the 'games' interface.
+		 * game state, for sending to the 'games' interface using JSON.
 		 * @param {UserManager} um user manager object for getting emails; only
 		 * works on server side
 		 * @return {Promise} resolving to a {@linkcode Simple} object with

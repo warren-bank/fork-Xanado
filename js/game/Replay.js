@@ -101,9 +101,10 @@ define("game/Replay", [
         }
         this.letterBag.tiles = preUndoBag;
         for (const pl of this.players) {
+          pl.missNextTurn = false;
           for (const tile of pl.rack.tiles())
             this.letterBag.removeTile(tile);
-          this._debug("Start rack for", pl.key, pl.rack.toString());
+          this._debug("Start rack for", pl.name, pl.key, pl.rack.toString());
         }
 
         this._debug("Start bag", this.letterBag.toString());
