@@ -22,7 +22,7 @@ describe("Square class", () => {
 	it('construct', () => {
 		let sq = new Square({type:'q', base: 'base', col: 56, row: 42});
 		assert.equal(sq.letterScoreMultiplier, 4);
-		assert.equal(sq.wordScoreMultiplier, 1);
+		assert.equal(typeof sq.wordScoreMultiplier, "undefined");
 		assert(!sq.tile);
 		assert(!sq.tileLocked);
 		assert(!sq.isLocked());
@@ -48,17 +48,17 @@ describe("Square class", () => {
 		assert(!sq.isEmpty());
 		assert.equal(tile.col, sq.col);
 		assert.equal(tile.row, sq.row);
-		assert.equal(new Square({type: 'Q', base: "base"}).letterScoreMultiplier, 1);
+		assert.equal(typeof new Square({type: 'Q', base: "base"}).letterScoreMultiplier, "undefined");
 		assert.equal(new Square({type:'Q', base: "base"}).wordScoreMultiplier, 4);
 		assert.equal(new Square({type:'t', base: "base"}).letterScoreMultiplier, 3);
-		assert.equal(new Square({type:'t', base: "base"}).wordScoreMultiplier, 1);
-		assert.equal(new Square({type:'T', base: "base"}).letterScoreMultiplier, 1);
+		assert.equal(typeof new Square({type:'t', base: "base"}).wordScoreMultiplier, "undefined");
+		assert.equal(typeof new Square({type:'T', base: "base"}).letterScoreMultiplier, "undefined");
 		assert.equal(new Square({type:'T', base: "base"}).wordScoreMultiplier, 3);
 		assert.equal(new Square({type:'d', base: "base"}).letterScoreMultiplier, 2);
-		assert.equal(new Square({type:'d', base: "base"}).wordScoreMultiplier, 1);
-		assert.equal(new Square({type:'D', base: "base"}).letterScoreMultiplier, 1);
+		assert.equal(typeof new Square({type:'d', base: "base"}).wordScoreMultiplier, "undefined");
+		assert.equal(typeof new Square({type:'D', base: "base"}).letterScoreMultiplier, "undefined");
 		assert.equal(new Square({type:'D', base: "base"}).wordScoreMultiplier, 2);
-		assert.equal(new Square({type:'M', base: "base"}).letterScoreMultiplier, 1);
+		assert.equal(typeof new Square({type:'M', base: "base"}).letterScoreMultiplier, "undefined");
 		assert.equal(new Square({type:'M', base: "base"}).wordScoreMultiplier, 2);
 	});
 	

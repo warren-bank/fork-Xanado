@@ -49,6 +49,16 @@ define("game/LetterBag", [
 				}
 			}
 
+      /* istanbul ignore if */
+      if (false)
+        /**
+         * Set to disable shuffling the bag. This is used when
+         * replaying moves, when we need a predictable set for tiles
+         * to be delivered next out of the bag.
+         * @member {boolean?}
+         */
+        this.predictable = undefined;
+
 			this.shake();
 		}
 
@@ -61,9 +71,13 @@ define("game/LetterBag", [
 		}
 
 		/**
-		 * Randomize tiles in-place using Durstenfeld shuffle
+		 * Randomize tiles in-place using Durstenfeld shuffle. Randomness
+     * can be disabled by setting {@linkcode LetterBag#predictable}
 		 */
 		shake() {
+      if (this.predictable)
+        return;
+
 			for (let i = this.tiles.length - 1; i > 0; i--) {
 				const j = Math.floor(Math.random() * (i + 1));
 				const temp = this.tiles[i];
@@ -120,10 +134,10 @@ define("game/LetterBag", [
 		}
 
 		/**
-		 * Remove a tile from the bag. Either the exact tile will be matched
-     * or a tile that represents the same letter. Blanks only match
-     * blanks.
-		 * @param {Tile} tile tile to return to bag
+		 * Remove a matching tile from the bag. Either the exact tile
+     * will be matched or a tile that represents the same letter.
+     * Blanks only match blanks.
+		 * @param {Tile} tile tile to match in the bag
      * @return {Tile?} the tile removed, or undefined if it wasn't found
 		 */
     removeTile(tile) {
@@ -137,6 +151,18 @@ define("game/LetterBag", [
         }
       }
       return undefined;
+    }
+
+    /**
+     * Take a list of matching tiles out of the letter bag.
+     * @param {Tile[]} tiles list of tiles to match and remove
+     * @return {Tile[]} list of tiles removed from the bag 
+     */
+    removeTiles(tiles) {
+      const unbagged = [];
+			for (const tile of tiles)
+	      unbagged.push(this.removeTile(tile));
+      return unbagged;
     }
 
 		/**

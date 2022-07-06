@@ -7,12 +7,12 @@ define("game/Replay", [
 	"platform", "common/Utils",
 	"game/Types", "game/LetterBag",
   "game/Player", "game/Tile", "game/Rack", "game/Turn",
-  "game/Game", "game/Undo"
+  "game/Game"
 ], (
 	Platform, Utils,
 	Types, LetterBag,
   Player, Tile, Rack, Turn,
-  Game, Undo
+  Game
 ) => {
 
   const Turns = Types.Turns;
@@ -26,7 +26,7 @@ define("game/Replay", [
       for (const tile of bag.tiles)
         this.tiles.push(new Tile(tile));
     }
-    shake() {};
+    shake() {}
   }
 
   /**
@@ -69,8 +69,8 @@ define("game/Replay", [
           np.passes = 0;
           np.score = 0;
           this.addPlayer(np);
-          this._debug("\tfinal rack for", np.key, np.rack.toString());
-        };
+          this._debug("\tlast rack for", np.key, np.rack.toString());
+        }
 
         // Remember the initial bag tiles
         const preUndoBag = new LetterBag(edition).tiles;
@@ -80,35 +80,35 @@ define("game/Replay", [
         // Could use Undo to do this, but it's overkill as we don't need
         // (or want) to modify the board
         const turns = this.playedGame.turns;
-        const undoer = new Undo(this);
+        this.letterBag.predictable = true;
         for (let i = turns.length - 1; i >= 0; i--) {
           const turn = turns[i];
-          this._debug("\tundo",turn.toString());
           const player = this.getPlayerWithKey(turn.playerKey);
           if (turn.type === Turns.TOOK_BACK
               || turn.type === Turns.CHALLENGE_WON) {
-            undoer.unrack(turn.placements, player);
-            undoer.bag2rack(turn.replacements, player);
+            player.rack.removeTiles(turn.placements);
+            this.bag2rack(turn.replacements, player.rack);
           } else {
             let racked;
             if (turn.replacements)
-              racked = undoer.unrack(turn.replacements, player);
+              racked = player.rack.removeTiles(turn.replacements);
             if (turn.placements)
-              undoer.rerack(turn.placements, player);
+              // Copy the tiles so we don't lose placement info
+              player.rack.addTiles(turn.placements.map(t => new Tile(t)));
             if (racked)
-              undoer.rebag(racked);
+              this.letterBag.returnTiles(racked);
           }
         }
-        this.undoer = undoer;
-
         this.letterBag.tiles = preUndoBag;
         for (const pl of this.players) {
           for (const tile of pl.rack.tiles())
             this.letterBag.removeTile(tile);
-          this._debug("\tstart rack for", pl.key, pl.rack.toString());
+          this._debug("Start rack for", pl.key, pl.rack.toString());
         }
 
-        this._debug("\tstart bag", this.letterBag.toString());
+        this._debug("Start bag", this.letterBag.toString());
+        this._debug("--------------------------------");
+
         return this;
       });
     }
@@ -120,32 +120,14 @@ define("game/Replay", [
      */
     step() {
       const turn = new Turn(this, this.playedGame.turns[this.nextTurn++]);
-      const player = this.getPlayerWithKey(turn.playerKey);
-      if (turn.type !== Turns.TAKE_BACK
-          && turn.type !== Turns.CHALLENGE_WON) {
-      }
-      switch (turn.type) {
-		  case Turns.SWAPPED:
-        this.undoer.unbag(turn.replacements);
-        this.letterBag.returnTiles(turn.replacements);
-        return this.swap(player, turn.placements);
-		  case Turns.PLAYED:
-        this.undoer.unbag(turn.replacements);
-        this.letterBag.returnTiles(turn.replacements);
-        return this.play(player, turn);
-		  case Turns.PASSED:
-		  case Turns.TIMED_OUT:
-        return this.pass(player, turn.type);
-		  case Turns.TOOK_BACK:
-        return this.takeBack(player, turn.type);
-		  case Turns.CHALLENGE_WON:
-		  case Turns.CHALLENGE_LOST:
-        return this.challenge(this.getPlayerWithKey(turn.challengerKey));
-		  case Turns.GAME_ENDED:
-        return this.confirmGameOver(turn.endState);
-      }
-      return Platform.assert(false, `Unrecognised turn type ${turn.type}`);
-	  }
+      this._debug("REDO", turn.type);
+      return this.redo(turn)
+      .then(() => {
+        for (const pl of this.players)
+          this._debug(pl.key, pl.score, pl.rack.toString());
+        this._debug("---------------------");
+      });
+    }
   }
 
   return Replay;

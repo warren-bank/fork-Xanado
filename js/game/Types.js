@@ -44,14 +44,16 @@ define("game/Types", () => {
    * @typedef {UNPAUSE|PAUSE|CHALLENGE|PLAY|TAKE_BACK|PASS|GAME_OVER|SWAP} Command
 	 */
   const Command = {
-		PLAY:              "play",
 		CHALLENGE:         "challenge",
+		CONFIRM_GAME_OVER: "confirmGameOver",
 		PASS:              "pass",
+		PAUSE:             "pause",
+		PLAY:              "play",
+    REDO:              "redo",
 		SWAP:              "swap",
 		TAKE_BACK:         "takeBack",
-		PAUSE:             "pause",
-		UNPAUSE:           "unpause",
-		CONFIRM_GAME_OVER: "confirmGameOver"
+    UNDO:              "undo",
+		UNPAUSE:           "unpause"
 	};
 
 	/**
@@ -69,6 +71,7 @@ define("game/Types", () => {
     RELOAD:       "reload",
 		TICK:         "tick",
 		TURN:         "turn",
+    UNDONE:       "undone",
 		UNPAUSE:      "unpause",
 
 		/* Notifications sent to monitors (games pages) */

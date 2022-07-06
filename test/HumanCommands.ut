@@ -209,7 +209,7 @@ describe("HumanCommands", () => {
 			game.whosTurnKey = human1.key;
 		})
 		.then(() => game.connect(socket, human1.key))
-		.then(() => game.pass(human1))
+		.then(() => game.pass(human1, Turns.PASSED))
 		.then(g => assert.strictEqual(g, game))
 		.then(() => socket.wait());
 	});

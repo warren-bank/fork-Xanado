@@ -8,8 +8,8 @@
  * a 1D array of Square.
  */
 define("game/Rack", [
-  "platform", "game/Surface"
-], (Platform, Surface) => {
+  "platform", "game/Surface", "game/Tile"
+], (Platform, Surface, Tile) => {
 
 	/**
 	 * A Rack is a 1-column {@linkcode Surface}
@@ -77,7 +77,16 @@ define("game/Rack", [
 			return rackSquare;
 		}
 
-		/**
+    /**
+     * Put tiles back on the rack.
+     * @param {Tile[]} tiles list of tiles
+     * @return {Square[]} squares the tiles were placed on
+     */
+    addTiles(tiles) {
+      return tiles.map(tile => this.addTile(tile));
+    }
+
+    /**
 		 * Get an unsorted list of the letters currently on the rack.
      * Blanks are represented by a space.
 		 * @return {string[]}
@@ -121,6 +130,22 @@ define("game/Rack", [
 			square.unplaceTile();
 			return tile;
 		}
+
+    /**
+     * Take tiles out of the rack
+     * @param {Tile[]} tiles list of tiles
+     * @param {Rack} rack rack
+     * @return {Tile[]} list of tiles removed
+     */
+    removeTiles(tiles) {
+      const racked = [];
+			for (const tile of tiles) {
+	      const removed = this.removeTile(tile);
+        Platform.assert(removed, `${tile.toString()} missing from rack`);
+        racked.push(removed);
+      }
+      return racked;
+    }
 
 		/**
 		 * Shuffle tile positions within the rack

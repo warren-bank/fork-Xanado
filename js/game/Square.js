@@ -95,25 +95,25 @@ define("game/Square", [
 		     */
 		    this.underlay = spec.underlay;
 
-		  /**
-		   * Multiplier for letters using this square
-		   * @member {number}
-		   */
-		  this.letterScoreMultiplier = 1;
-
-		  /**
-		   * Multiplier for words using this square
-		   * @member {number}
-		   */
-		  this.wordScoreMultiplier = 1;
-
 			// Determine score multipliers from type
 			switch (this.type) {
-			case "d": this.letterScoreMultiplier = 2; break;
+			case "d":
+		    /**
+		     * Multiplier for letters using this square. Defaults to 1 if undefined.
+		     * @member {number}
+		     */
+        this.letterScoreMultiplier = 2;
+        break;
 			case "t": this.letterScoreMultiplier = 3; break;
 			case "q": this.letterScoreMultiplier = 4; break;
 			case "M":
-			case "D": this.wordScoreMultiplier = 2; break;
+			case "D":
+		    /**
+		     * Multiplier for words using this square. Defaults to 1 if undefined.
+		     * @member {number}
+		     */
+        this.wordScoreMultiplier = 2;
+        break;
 			case "T": this.wordScoreMultiplier = 3; break;
 			case "Q": this.wordScoreMultiplier = 4; break;
 			}

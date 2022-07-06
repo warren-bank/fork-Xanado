@@ -16,6 +16,7 @@ describe("Undo", () => {
 		LetterBag: "game/LetterBag",
 		Player: "game/Player",
 	  Game: "game/Game",
+	  Undo: "game/Undo",
 		
 		Move: "game/Move",
 		Turn: "game/Turn",
@@ -145,7 +146,7 @@ describe("Undo", () => {
 		})
 		.then(() => game.connect(socket, human1.key))
     .then(() => prepass = Fridge.thaw(Fridge.freeze(game), Game.classes))
-		.then(() => game.pass(human1))
+		.then(() => game.pass(human1, Turns.PASSED))
 		.then(() => socket.wait())
     .then(() => game.undo())
     .then(() => {
@@ -207,7 +208,7 @@ describe("Undo", () => {
     });
 	});
 
-	it("untake_back", () => {
+	it("untakeBack", () => {
 		const game = new Game({
 			edition:"Test",
 			dictionary:"Oxford_5000",
@@ -320,6 +321,7 @@ describe("Undo", () => {
 		});
 	});
 */
+
   /*
 	it("anotherGame", () => {
 		const human1 = new Player({

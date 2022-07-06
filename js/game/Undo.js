@@ -4,11 +4,9 @@
 /* eslint-env amd */
 
 define("game/Undo", [
-	"platform", "common/Utils",
-	"game/Types", "game/Game"
+	"platform", "game/Types", "game/Tile"
 ], (
-	Platform, Utils,
-  Types
+	Platform, Types, Tile
 ) => {
 
   const Turns  = Types.Turns;
@@ -16,155 +14,104 @@ define("game/Undo", [
   const Notify = Types.Notify;
 
   /**
-   * Provides Undo functionality for Game
+   * Mixin that provides Undo functionality for Game
+   * @mixin Undo
    */
-  class Undo {
+  return {
 
     /**
-     * @param {Game} game the game we are undoing turns in
-     */
-    constructor(game) {
-      this.game = game;
-      this._debug = game._debug;
-    }
-
-    /*
-     * Take tiles out of the player's rack
-     * @param {Tile[]} tiles list of tiles
-     * @param {Player} current player
-     */
-    unrack(tiles, player) {
-      const racked = [];
-			for (const tile of tiles) {
-        //this._debug("\tunrack", tile.toString());
-	      const removed = player.rack.removeTile(tile);
-        Platform.assert(removed, `${tile.toString()} missing from rack`);
-        racked.push(removed);
-      }
-      return racked;
-    }
-
-    /*
-     * Take tiles out of the letter bag
-     * @param {Tile[]} tiles list of tiles
-     * @return {Tile[]} list of tiles removed from the bag 
-     */
-    unbag(tiles) {
-      const unbagged = [];
-			for (const tile of tiles) {
-        //this._debug("\tbag2rack", tile.toString());
-	      unbagged.push(this.game.letterBag.removeTile(tile));
-      }
-      return unbagged;
-    }
-
-    /*
      * Take tiles out of the letter bag and put them back on the rack
+     * @function
+     * @memberof Undo
      * @param {Tile[]} tiles list of tiles
-     * @param {Player} current player
+     * @param {Rack} rack to put the tiles on
      */
-    bag2rack(tiles, player) {
+    bag2rack(tiles, rack) {
 			for (const tile of tiles) {
-        //this._debug("\tbag2rack", tile.toString());
-	      const removed = this.game.letterBag.removeTile(tile);
+	      const removed = this.letterBag.removeTile(tile);
         Platform.assert(removed, `${tile.toString()} missing from bag`);
-        player.rack.addTile(removed);
+        rack.addTile(removed);
       }
-    }
-
-    /*
-     * Put tiles back in the bag
-     * @param {Tile[]} tiles list of tiles
-     * @param {Player} current player
-     */
-    rebag(tiles) {
-      for (const tile of tiles) {
-        //this._debug("\trebag", tile.toString());
-        this.game.letterBag.returnTile(tile);
-      }
-    }
-
-    /*
-     * Put tiles back on the rack
-     * @param {Tile[]} tiles list of tiles
-     * @param {Player} current player
-     */
-    rerack(tiles, player) {
-      for (const tile of tiles) {
-        //this._debug("\trerack", tile.toString());
-        player.rack.addTile(new Tile(tile));
-      }
-    }
+    },
 
     /**
      * Move tiles from the board back to the rack
+     * @function
+     * @memberof Undo
      * @param {Tile[]} tiles list of tiles
-     * @param {Player} current player
+     * @param {Rack} rack to put the tiles on
      */
-    board2rack(tiles, player) {
+    board2rack(tiles, rack) {
       for (const pl of tiles) {
-        const sq = this.game.board.at(pl.col, pl.row);
-        //this._debug("\tboard2rack", sq.tile.toString());
+        const sq = this.board.at(pl.col, pl.row);
+        Platform.assert(sq, "Bad placement");
         const t = sq.unplaceTile();
-        player.rack.addTile(t);
+        rack.addTile(t);
       }
-    }
+    },
 
     /**
      * Move tiles from the rack to the board
+     * @function
+     * @memberof Undo
      * @param {Tile[]} tiles list of tiles
-     * @param {Player} current player
+     * @param {Rack} rack to get the tiles from
      */
-    rack2board(tiles, player) {
+    rack2board(tiles, rack) {
       // Move tiles from the rack back onto the board
       for (const place of tiles) {
-				const tile = player.rack.removeTile(place);
+				const tile = rack.removeTile(place);
         Platform.assert(tile);
-				const square = this.game.board.at(place.col, place.row);
-        Platform.assert(!square.tile);
+				const square = this.board.at(place.col, place.row);
+        Platform.assert(square && !square.tile);
 				square.placeTile(tile, true);
-        //this._debug(`\tplace ${tile.toString()}`);
       }
-    }
+    },
 
     /**
      * Undo a swap. Resets the game state as if it had never happened.
+     * @function
+     * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @private
      */
     unswap(turn) {
-      this.game.state = State.PLAYING;
-      const player = this.game.getPlayer(turn.playerKey);
-      const racked = this.unrack(turn.replacements, player);
-      this.bag2rack(turn.placements, player);
-      this.rebag(racked);
+      this.state = State.PLAYING;
+      const player = this.getPlayer(turn.playerKey);
+      const racked = player.rack.removeTiles(turn.replacements);
+      this.bag2rack(turn.placements, player.rack);
+      this.letterBag.returnTiles(racked);
       player.passes--;
-      this.game.whosTurnKey = player.key;
+      this.whosTurnKey = player.key;
       // TODO: notify
-    }
+    },
 
     /**
      * Undo a play. Resets the game state as if it had never happened.
+     * @function
+     * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @private
      */
     unplay(turn) {
       this._debug("unplay");
-      this.game.state = State.PLAYING;
-      const player = this.game.getPlayer(turn.playerKey);
-      const racked = this.unrack(turn.replacements, player);
-      this.board2rack(turn.placements, player);
-      this.rebag(racked);
+      this.state = State.PLAYING;
+      const player = this.getPlayer(turn.playerKey);
+      const racked = player.rack.removeTiles(turn.replacements);
+      this.board2rack(turn.placements, player.rack);
+      this.letterBag.returnTiles(racked);
 			player.score -= turn.score;
 			player.passes = turn.prepasses || 0;
-      this.game.whosTurnKey = player.key;
+      this.whosTurnKey = player.key;
 
       // TODO: notify
-    }
+    },
 
     /**
      * Undo a game over confirmation.
      * Resets the game state as if it had never happened.
+     * @function
+     * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @private
      */
@@ -174,67 +121,79 @@ define("game/Undo", [
       let pointsGainedFromRacks = 0;
       for (const key of Object.keys(turn.score)) {
         const delta = turn.score[key];
-        const player = this.game.getPlayer(key);
+        const player = this.getPlayer(key);
         Platform.assert(player, key);
         player.score -= (delta.time || 0) + (delta.tiles || 0);
         pointsGainedFromRacks += Math.abs(delta.tiles);
       }
-			const winner = this.game.players.find(player => player.rack.isEmpty());
+			const winner = this.getWinner();
       winner.score -= pointsGainedFromRacks;
-      this.game.state = State.PLAYING;
+      this.state = State.PLAYING;
       // TODO: Notify
       // TODO: reset the clock
-    }
+    },
 
     /**
      * Undo a TOOK_BACK or CHALLENGE_WON.
      * Resets the game state as if it had never happened.
+     * @function
+     * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @private
      */
     untakeBack(turn) {
-      this.game.state = State.PLAYING;
-      const player = this.game.getPlayer(turn.playerKey);
-      this.rack2board(turn.placements, player);
-      this.bag2rack(turn.replacements, player);
+      this.state = State.PLAYING;
+      const player = this.getPlayer(turn.playerKey);
+      this.rack2board(turn.placements, player.rack);
+      this.bag2rack(turn.replacements, player.rack);
       player.score -= turn.score;
-      this.game.whosTurnKey = this.game.nextPlayer(player).key;
-      this._debug(`\tplayer now ${this.game.whosTurnKey}`,turn);
+      this.whosTurnKey = this.nextPlayer(player).key;
+      this._debug(`\tplayer now ${this.whosTurnKey}`,turn);
       // TODO: Notify
-    }
+    },
 
     /**
      * Undo a pass. Resets the game stat as if it had never happened.
+     * @function
+     * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @private
      */
     unpass(turn) {
       this._debug("unpass ", turn.type);
-      this.game.state = State.PLAYING;
-      const player = this.game.getPlayer(turn.playerKey);
+      this.state = State.PLAYING;
+      const player = this.getPlayer(turn.playerKey);
       player.passes--;
-      this.game.whosTurnKey = player.key;
+      this.whosTurnKey = player.key;
       // TODO: Notify
-    }
+    },
 
     /**
      * Unplay a LOST challenge (won challenges are handled in untakeBack).
      * Resets the game state as if it had never happened.
+     * @function
+     * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @private
      */
     unchallenge(turn) {
-      const player = this.game.getPlayer(turn.challengerKey);
+      const player = this.getPlayer(turn.challengerKey);
       this._debug("\t", player.toString(), "regained", turn.score);
       player.score -= turn.score;
       // TODO: Notify
-    }
+    },
 
     /**
-     * Undo the most recent turn in the game
+     * Undo the most recent turn. Resets the play state as if the turn had never
+     * happened. Sends a Notify.UNDONE to all listeners, passing the Turn
+     * that was unplayed.
+     * @function
+     * @memberof Undo
+     * @param {boolean?} nosave disables saving after undo.
+     * @return {Promise} promise resolving to undefined
      */
-    undo() {
-      const turn = this.game.turns.pop();
+    undo(nosave) {
+      const turn = this.turns.pop();
       Platform.assert(turn);
       this._debug(`un-${turn.type}`);
       switch (turn.type) {
@@ -255,8 +214,48 @@ define("game/Undo", [
       default:
         Platform.fail(`Unkown turn type '${turn.type}'`);
       }
-    }
-  }
+      if (nosave)
+        return Promise.resolve();
+      return this.save()
+      .then(() => this.notifyAll(Notify.UNDONE, turn));
+    },
 
-  return Undo;
+    /**
+     * Replay the given turn back into the game
+     * @function
+     * @memberof Undo
+     * @return {Promise} promise resolving to undefined
+     */
+    redo(turn) {
+      const player = this.getPlayerWithKey(turn.playerKey);
+      switch (turn.type) {
+		  case Turns.SWAPPED:
+        // Remove and return the tiles to the the unshaken bag
+        // to ensure replayability
+        this.letterBag.predictable = true;
+        this.letterBag.removeTiles(turn.replacements);
+        this.letterBag.returnTiles(turn.replacements);
+        return this.swap(player, turn.placements)
+        .then(() => delete this.letterBag.predictable);
+		  case Turns.PLAYED:
+        this.letterBag.predictable = true;
+        this.letterBag.removeTiles(turn.replacements);
+        this.letterBag.returnTiles(turn.replacements);
+        return this.play(player, turn)
+        .then(() => delete this.letterBag.predictable);
+		  case Turns.PASSED:
+		  case Turns.TIMED_OUT:
+        return this.pass(player, turn.type);
+		  case Turns.TOOK_BACK:
+        return this.takeBack(player, turn.type);
+		  case Turns.CHALLENGE_WON:
+		  case Turns.CHALLENGE_LOST:
+        return this.challenge(this.getPlayerWithKey(turn.challengerKey));
+		  case Turns.GAME_ENDED:
+        return this.confirmGameOver(turn.endState);
+      }
+      /* istanbul ignore next */
+      return Platform.assert(false, `Unrecognised turn type ${turn.type}`);
+    }
+  };
 });

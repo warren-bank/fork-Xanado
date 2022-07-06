@@ -8,12 +8,12 @@ define("server/Server", [
 	"platform",	"common/Fridge",
 	"server/UserManager",
 	"game/Types",
-	"game/Game", "game/Player", "game/Turn", "game/Edition"
+	"game/Game", "game/Undo", "game/Player", "game/Turn", "game/Edition"
 ], (
 	fs, Path, Events, Cookie, cors, Express, ErrorHandler,
 	Platform, Fridge,
 	UserManager, Types,
-	Game, Player, Turn, Edition
+	Game, Undo, Player, Turn, Edition
 ) => {
 
 	const Fs = fs.promises;
@@ -370,38 +370,8 @@ define("server/Server", [
 					socket.game.toggleAdvice(socket.player);
           break;
 
-        case "undo":
-          socket.game.undo();
-          break;
-
-        case "undoall":
-          socket.game.undo_all();
-          break;
-
         case "allow":
-          const word = mess[1].toUpperCase();
-					socket.game.getDictionary()
-          .then(dict => {
-            if (dict.addWord(word)) {
-              socket.game.notifyAll(
-                Notify.MESSAGE, {
-                  sender: /*i18n*/"Advisor",
-                  text:
-                  /*i18n*/"$1 has added '$2' to $3",
-                  args: [
-                    socket.player.name, word, dict.name
-                  ]
-                });
-            } else {
-              socket.game.notifyPlayer(
-                socket.player,
-                Notify.MESSAGE, {
-                  sender: /*i18n*/"Advisor",
-                  text: /*i18n*/"'$1' is already in $2",
-                  args: [ word, dict.name ]
-                });
-            }
-          });
+					socket.game.allow(socket.player, mess[1]);
           break;
 
         default:
@@ -954,26 +924,33 @@ define("server/Server", [
 				/* istanbul ignore next */
 				switch (command) {
 
-				case Command.PLAY:
-					return game.play(player, args);
-
-				case Command.PASS:
-					return game.pass(player);
-
-				case Command.SWAP:
-					return game.swap(player, args);
-
 				case Command.CHALLENGE:
 					return game.challenge(player);
-
-				case Command.TAKE_BACK:
-					return game.takeBack(player, Turns.TOOK_BACK);
 
 				case Command.CONFIRM_GAME_OVER:
 					return game.confirmGameOver();
 
+				case Command.PASS:
+					return game.pass(player, Turns.PASSED);
+
 				case Command.PAUSE:
 					return game.pause(player);
+
+				case Command.PLAY:
+					return game.play(player, args);
+
+        case Command.REDO:
+          return game.redo(args);
+
+				case Command.SWAP:
+					return game.swap(player, args);
+
+				case Command.TAKE_BACK:
+					return game.takeBack(player, Turns.TOOK_BACK);
+
+        case Command.UNDO:
+          game.undo();
+          break;
 
 				case Command.UNPAUSE:
 					return game.unpause(player);

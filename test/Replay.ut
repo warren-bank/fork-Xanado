@@ -3,7 +3,7 @@
 /* eslint-env node, mocha */
 
 /**
- * Unit tests for simulation.
+ * Unit tests for replaying a game.
  */
 
 describe("Replay", () => {
@@ -30,6 +30,8 @@ describe("Replay", () => {
       let pe = expected.getPlayerWithKey(pa.key);
       assert.deepEqual(pa.rack.letters().sort(),
                        pe.rack.letters().sort());
+      console.log("Actual",pa.key,pa.score);
+      console.log("Expect",pe.key,pe.score);
       assert.equal(pa.score, pe.score);
       racks.push({key: pa.key, pa: pa.rack, pe: pe.rack});
       pa.rack = undefined;
@@ -95,6 +97,7 @@ describe("Replay", () => {
     }
     
 		return db.get("good_game", Replay.classes)
+    .then(g => g.onLoad(db))
 		.then(g => preGame = g)
     .then(() => {
       const game = new Replay(preGame);

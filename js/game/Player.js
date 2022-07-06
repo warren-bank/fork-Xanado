@@ -19,11 +19,11 @@ define("game/Player", [
 	class Player {
 
 		/**
-		 * @param {object} params named parameters, or other player or simple
+		 * @param {object} params named parameters, or other Player
 		 * object to copy. `name` and `key ` are required. Any of `_debug`,
-     * `isRobot`, `passes`, `score`, `clock`, `canChallenge`,
-     * `wantsAdvice`,`dictionary`, `isConnected` or
-     * `missNextTurn` can be passed.
+     * `isRobot`, `canChallenge`, `wantsAdvice`,`dictionary`, `isConnected` or
+     * `missNextTurn` can be passed. The player will be initialised with
+     * an empty rack (no squares).
 		 */
 		constructor(params) {
 		  /**
@@ -48,16 +48,16 @@ define("game/Player", [
 
 		  /**
 		   * Number of times this player has passed (or swapped)
-		   * since the last non-pass/swap play. Default is 0.
+		   * since the last non-pass/swap play.
 		   * @member {number}
 		   */
-		  this.passes = params.passes || 0;
+		  this.passes = 0;
 
 		  /**
 		   * Player's current score.
 		   * @member {number}
 		   */
-		  this.score = params.score || 0;
+		  this.score = 0;
 
       if (params.clock)
 		    /**
@@ -65,11 +65,10 @@ define("game/Player", [
 		     * this is the number of seconds before the player's turn times
 		     * out (if they are the current player). For `TIMER_GAME` it's
 		     * the number of seconds before the chess clock runs out.
-         * Default is undefined. Setting and management is done in
-         * {@linkcode Game}
+         * Setting and management is done in {@linkcode Game}
 		     * @member {number?}
 		     */
-		    this.clock = params.clock;
+		    this.clock = 0;
 
 		  if (params.isConnected)
         /**
@@ -118,10 +117,10 @@ define("game/Player", [
 		    this.dictionary = params.dictionary;
 
 			if (typeof params._debug === "function")
-      /**
-		   * Debug function
-		   * @member {function}
-		   */
+        /**
+		     * Debug function
+		     * @member {function}
+		     */
 				this._debug = params._debug;
       else
         this._debug = () => {};
@@ -130,7 +129,7 @@ define("game/Player", [
 		/**
 		 * Create simple flat structure describing a subset of the player
 		 * state. This is used for sending minimal player information to
-     * the `games` interface.
+     * the `games` interface using JSON.
 		 * @param {Game} game the game the player is participating in
 		 * @param {UserManager?} um user manager for getting emails if wanted
 		 * @return {Promise} resolving to a simple structure describing 
@@ -159,6 +158,20 @@ define("game/Player", [
         return simple;
 			});
 		}
+
+    /**
+     * Construct a player object from a simple() structure
+     */
+    static fromSimple(simple) {
+      const player = new Player(simple);
+      if (simple.passes)
+        player.passes = simple.passes;
+      if (simple.score)
+        player.score = simple.score;
+      if (simple.clock)
+        player.clock = simple.clock;
+      return player;
+    }
 
 		/**
 		 * Draw an initial rack from the letter bag. Server side only.

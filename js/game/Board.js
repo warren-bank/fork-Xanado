@@ -103,12 +103,12 @@ define("game/Board", [
 
 				// Letter is being placed, so letter multiplier applies to all
 				// new words created, including cross words
-				letterScore *= square.letterScoreMultiplier;
+				letterScore *= (square.letterScoreMultiplier || 1);
 
 				wordScore += letterScore;
 
 				// Multiplier for any new words that cross this letter
-				const crossWordMultiplier = square.wordScoreMultiplier;
+				const crossWordMultiplier = (square.wordScoreMultiplier || 1);
 				wordMultiplier *= crossWordMultiplier;
 
 				// This is a new tile, need to analyse cross words and
@@ -207,8 +207,8 @@ define("game/Board", [
 					let letterScore = square.tile.score;
 					isNewWord = isNewWord || !square.isLocked();
 					if (!square.isLocked()) {
-						letterScore *= square.letterScoreMultiplier;
-						wordMultiplier *= square.wordScoreMultiplier;
+						letterScore *= (square.letterScoreMultiplier || 1);
+						wordMultiplier *= (square.wordScoreMultiplier || 1);
 					}
 					wordScore += letterScore;
 					letters += square.tile.letter;
@@ -380,9 +380,9 @@ define("game/Board", [
 						else
 							r.push(t.letter);
 					} else {
-						if (square.letterScoreMultiplier > 1)
+						if ((square.letterScoreMultiplier || 0) > 1)
 							r.push(square.letterScoreMultiplier);
-						else if (square.wordScoreMultiplier > 1)
+						else if ((square.wordScoreMultiplier || 0) > 1)
 							r.push(4 + square.wordScoreMultiplier);
 						else
 							r.push(" ");

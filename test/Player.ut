@@ -16,10 +16,17 @@ describe("Player class", () => {
 			missNextTurn: true,
 			dictionary: "NoDic"
 		};
-		const player = new Player(p);
-		for (let f in p) {
+		let player = new Player(p);
+		for (const f in p)
 			assert.equal(player[f], p[f], f);
-		}
+    // Check fields that must be zeroed
+		p.score = 999;
+    p.passes = 999;
+    p.clock = 999;
+		player = new Player(p);
+    assert.equal(player.score, 0);
+    assert.equal(player.passes, 0);
+    assert.equal(player.clock, 0);
 	});
 	
 	it("valueOf, toString, and simple", () => {
@@ -39,13 +46,23 @@ describe("Player class", () => {
 		assert.equal(player.valueOf(), "Player 'Player 1' (Robot) key playerkey");
 		assert.equal(player.toString(), player.valueOf());
 		return player.simple()
-		.then(d => assert.deepEqual(d, {
-			name: 'Player 1',
-			isRobot: true,
-			dictionary: 'NoDic',
-			key: 'playerkey',
-			score: 20
-		}));
+		.then(d => {
+      assert.deepEqual(d, {
+			  name: 'Player 1',
+			  isRobot: true,
+			  dictionary: 'NoDic',
+			  key: 'playerkey',
+			  score: 20
+		  });
+      const pp = Player.fromSimple(d);
+      pp._debug = player._debug;
+      delete player.rack;
+      delete pp.rack;
+      assert(!pp.canChallenge);
+      assert(!pp.missNextTurn);
+      assert(pp.isRobot);
+      assert.deepEqual(pp, player);
+    });
 	});
 	   
 	it("$html-robot", () => {
