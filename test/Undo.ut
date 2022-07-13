@@ -36,7 +36,7 @@ describe("Undo", () => {
     const racks = [];
     for (let i = 0; i < actual.players.length; i++) {
       let pa = actual.players[i];
-      let pe = expected.getPlayer(pa.key);
+      let pe = expected.getPlayerWithKey(pa.key);
       assert.deepEqual(pa.rack.letters().sort(),
                        pe.rack.letters().sort());
       racks.push({key: pa.key, pa: pa.rack, pe: pe.rack});
@@ -61,8 +61,8 @@ describe("Undo", () => {
     actual.letterBag = alb;
 
     for (let r of racks) {
-      actual.getPlayer(r.key).rack = r.pa;
-      expected.getPlayer(r.key).rack = r.pe;
+      actual.getPlayerWithKey(r.key).rack = r.pa;
+      expected.getPlayerWithKey(r.key).rack = r.pe;
     }
   }
 

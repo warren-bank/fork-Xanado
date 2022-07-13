@@ -140,7 +140,7 @@ describe("Game", () => {
             
 			let player = game.getPlayer();
 			assert.equal(player.key, human2.key);
-			player = game.getPlayer(human2.key);
+			player = game.getPlayerWithKey(human2.key);
 			assert.equal(player.key, human2.key);
 			assert.equal(game.nextPlayer().key, human3.key);
 			assert.equal(game.previousPlayer().key, robot1.key);
@@ -464,7 +464,7 @@ describe("Game", () => {
     .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
 		.then(game => {
       //game._debug = console.debug;
-			const human = game.getPlayer("human");
+			const human = game.getPlayerWithKey("human");
 			return game.pass(human, Turns.PASSED);
 		});
 	});
@@ -487,7 +487,7 @@ describe("Game", () => {
                 name:"Anne Droid", key:"android"}), true);
             // Remove robot as last player so they
             // don't get auto-played when human and android time out
-            const robot = game.getPlayer("robot");
+            const robot = game.getPlayerWithKey("robot");
             game.removePlayer(robot);
 
             assert.equal(game.state, State.PLAYING);

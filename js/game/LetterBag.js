@@ -28,8 +28,10 @@ define("game/LetterBag", [
 		 * Construct a new letter bag using the distribution for the
 		 * given edition
 		 * @param {Edition} edition the Edition defining the bag contents
+     * @param {boolean?} predictable set to turn off sshuffling the
+     * bag contents (for testing)
 		 */
-		constructor(edition) {
+		constructor(edition, predictable) {
 			for (let letter of edition.bag) {
         // legalLetters is an array, not a string, to support
         // multi-character tiles
@@ -50,14 +52,14 @@ define("game/LetterBag", [
 			}
 
       /* istanbul ignore if */
-      if (false)
+      if (predictable)
         /**
          * Set to disable shuffling the bag. This is used when
          * replaying moves, when we need a predictable set for tiles
          * to be delivered next out of the bag.
          * @member {boolean?}
          */
-        this.predictable = undefined;
+        this.predictable = predictable;
 
 			this.shake();
 		}

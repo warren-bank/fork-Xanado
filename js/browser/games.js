@@ -361,7 +361,7 @@ requirejs([
 				  && ((game.maxPlayers || 0) === 0
 				      || game.getPlayers().length < game.maxPlayers)) {
 
-				if (!game.getPlayer(this.session.key)) {
+				if (!game.getPlayerWithKey(this.session.key)) {
 					// Can join game
 					const $join = $(`<button name="join" title=''></button>`);
 					$twist.append($join);
@@ -512,7 +512,7 @@ requirejs([
 					// Can't remind a game that hasn't started or has ended.
 					if (game.state !== State.PLAYING)
 						return em;
-					return em || game.getPlayer(game.whosTurnKey)
+					return em || game.getPlayerWithKey(game.whosTurnKey)
 					.email;
 				}, false))
 					$("#reminder-button").show();

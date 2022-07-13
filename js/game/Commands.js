@@ -195,12 +195,13 @@ define("game/Commands", [
 		 * following the player who just emptied their rack has confirmed
 		 * they don't want to challenge, or they have challenged and the
 		 * challenge failed.
+     * @param {Player} player player confirming end of game
 		 * @param {string} endState gives reason why game ended
 		 * (i18n message id) one of `State.GAME_OVER`, `State.TWO_PASSES`, or
 		 * `State.CHALLENGE_LOST`
 		 * @return {Promise} resolving to undefined
 		 */
-		confirmGameOver(endState) {
+		confirmGameOver(player, endState) {
       // If players pass twice then a game-over will be automatically
       // handled in startTurn. We don't want to repeat the processing
       // again.
@@ -271,11 +272,12 @@ define("game/Commands", [
 		 * @return {Promise} Promise resolving to the game
 		 */
 		takeBack(player, type) {
-			// The UI ensures that 'takeBack' can only be issued by the
-			// previous player.
-			const previousMove = this.lastPlay();
-			const prevPlayer = this.getPlayer(previousMove.playerKey);
-			
+			const previousMove = this.turns[this.turns.length - 1];
+      if (previousMove.type !== Turns.PLAYED)
+				return Promise.reject(`Cannot challenge a ${previousMove.type}`);
+
+      const prevPlayer = this.getPlayerWithKey(previousMove.playerKey);
+      
 			// Move tiles that were added to the rack as a consequence
 			// of the previous move, back to the letter bag
 			if (previousMove.replacements) {
@@ -285,7 +287,7 @@ define("game/Commands", [
 				}
 			}
 
-			// Move placed tiles from the board back to the prevPlayer's rack
+			// Move placed tiles from the board back to the player's rack
 			if (previousMove.placements) {
 				for (let placement of previousMove.placements) {
 					const boardSquare =
@@ -299,15 +301,14 @@ define("game/Commands", [
 
 			const turn = new Turn(this, {
 				type: type,
-				nextToGoKey:
-				type === Turns.CHALLENGE_WON ? this.whosTurnKey
-				: previousMove.playerKey,
+				nextToGoKey: type === Turns.CHALLENGE_WON
+        ? this.whosTurnKey : player.key,
 				score: -previousMove.score,
 				placements: previousMove.placements,
 				replacements: previousMove.replacements
 			});
 
-			turn.playerKey = previousMove.playerKey;
+			turn.playerKey = prevPlayer.key;
 			if (type === Turns.CHALLENGE_WON)
 				turn.challengerKey = player.key;
 
@@ -357,15 +358,24 @@ define("game/Commands", [
 		 * Handler for 'challenge' command.
 		 * Check the words created by the previous move are in the dictionary
 		 * @param {Player} challenger player making the challenge
+		 * @param {Player} challenged player being challenged
 		 * @return {Promise} resolving to the game
 		 */
-		challenge(challenger) {
-			const previousMove = this.lastPlay();
-			if (!previousMove)
+		challenge(challenger, challenged) {
+
+			if (challenger.key === challenged.key)
+				return Promise.reject("Cannot challenge your own play");
+
+			if (this.turns.length === 0)
 				return Promise.reject("No previous move to challenge");
 
-			if (challenger.key === previousMove.playerKey)
-				return Promise.reject("Cannot challenge your own play");
+      let previousMove = this.turns[this.turns.length - 1];
+
+      if (previousMove.type !== Turns.PLAYED)
+				return Promise.reject(`Cannot challenge a ${previousMove.type}`);
+
+			if (challenged.key !== previousMove.playerKey)
+				return Promise.reject("Last player challenge mismatch");
 
 			return this.getDictionary()
 			.catch(
@@ -380,7 +390,7 @@ define("game/Commands", [
 
 				if (bad.length > 0) {
 					// Challenge succeeded
-					this._debug("Bad Words: ", bad);
+					this._debug("Bad words: ", bad);
 
 					// Take back the challenged play. Irrespective of
 					// whether the challenger is the current player or
@@ -408,7 +418,8 @@ define("game/Commands", [
 					// replacements.
 					if ((!previousMove.replacements
 						   || previousMove.replacements.length === 0))
-						return this.confirmGameOver(State.FAILED_CHALLENGE);
+						return this.confirmGameOver(
+              this.getPlayer(), State.FAILED_CHALLENGE);
 					// Otherwise issue turn type=Turns.CHALLENGE_LOST
 
 					const turn = new Turn(
@@ -468,11 +479,12 @@ define("game/Commands", [
      * @memberof Commands
 		 * @param {Player} player player making the swap (must be current
 		 * player)
-		 * @param {Tile[]} tiles list of Tile to swap
+		 * @param {Tile[]} tiles list of tiles to swap
 		 * @return {Promise} resolving to the game
 		 */
 		swap(player, tiles) {
-			Platform.assert(player.key === this.whosTurnKey, "Not your turn");
+			Platform.assert(player.key === this.whosTurnKey,
+                      `Not ${player.name}'s turn`);
 			Platform.assert(
         this.letterBag.remainingTileCount() >= tiles.length,
 				`Cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
@@ -723,6 +735,11 @@ define("game/Commands", [
 			});
 		},
 
+    /**
+     * Add a word to the dictionary whitelist, asynchronously
+     * @param {Player} player player adding the word
+     * @param {string} word word to add
+     */
     allow(player, word) {
       word = word.toUpperCase();
       this.getDictionary()

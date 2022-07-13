@@ -44,6 +44,12 @@ define("game/Turn", [
     nextToGoKey;
 
 		/**
+		 * Time the turn was finished, assigned by the server.
+		 * @member {number}
+		 */
+    timestamp;
+
+		/**
 		 * @param {Game} game the game this is a turn in.
 		 * @param {object} params parameters. Any field with the same name
 		 * as a member (or a member of {@linkcode Move}) will initialise
@@ -56,6 +62,7 @@ define("game/Turn", [
 			this.type = params.type;
 			this.playerKey = params.playerKey;
 			this.nextToGoKey = params.nextToGoKey;
+      this.timestamp = params.timestamp;
 
 			if (params.replacements)
 		    /**

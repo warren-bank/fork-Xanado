@@ -2,6 +2,7 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
+/* global process */
 
 // Mix-ins, load based on platform.
 const mixin = typeof process !== 'undefined' &&
@@ -351,9 +352,9 @@ define("game/Game", [
 		 */
 		previousPlayer(player) {
 			if (typeof player === "undefined")
-				player = this.getPlayer(this.whosTurnKey);
+				player = this.getPlayer();
 			else if (typeof player === "string")
-				player = this.getPlayer(player);
+				player = this.getPlayerWithKey(player);
 			const index = this.players.findIndex(p => p.key === player.key);
 			Platform.assert(index >= 0,
 				              `${player.key} not found in ${this.key}`);
@@ -371,9 +372,9 @@ define("game/Game", [
 		 */
 		nextPlayer(player) {
 			if (typeof player === "undefined")
-				player = this.getPlayer(this.whosTurnKey);
+				player = this.getPlayer();
 			else if (typeof player === "string")
-				player = this.getPlayer(player);
+				player = this.getPlayerWithKey(player);
 			let index = this.players.findIndex(p => p.key === player.key);
 			Platform.assert(index >= 0,
 				              `${player.key} not found in ${this.key}`);

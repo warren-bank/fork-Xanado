@@ -915,7 +915,11 @@ define("server/Server", [
 
 				// The command name and arguments
 				const args = req.body;
-				
+
+        // Add a timestamp, unless the sender provided one 
+        if (typeof req.body.timestamp === "undefined")
+          req.body.timestamp = Date.now();
+
 				this._debug("COMMAND", command,
                     "player", player.name,
                     "game", game.key);
@@ -925,10 +929,11 @@ define("server/Server", [
 				switch (command) {
 
 				case Command.CHALLENGE:
-					return game.challenge(player);
+					return game.challenge(
+            player, game.getPlayerWithKey(args.challengedKey));
 
 				case Command.CONFIRM_GAME_OVER:
-					return game.confirmGameOver();
+					return game.confirmGameOver(player);
 
 				case Command.PASS:
 					return game.pass(player, Turns.PASSED);
@@ -940,7 +945,7 @@ define("server/Server", [
 					return game.play(player, args);
 
         case Command.REDO:
-          return game.redo(args);
+          return game.redo(player, args);
 
 				case Command.SWAP:
 					return game.swap(player, args);

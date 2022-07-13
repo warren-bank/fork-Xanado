@@ -432,7 +432,7 @@ define("game/ServerGame", [
 			Platform.assert(player, "No player");
 
 			if (!this.players.find(p => p.passes < 2))
-				return this.confirmGameOver(State.TWO_PASSES);
+				return this.confirmGameOver(player, State.TWO_PASSES);
 
 			this._debug("startTurn", player.name, player.key);
 
@@ -610,10 +610,11 @@ define("game/ServerGame", [
 			// challenge is a Promise that will resolve to true if a
 			// challenge is made, or false otherwise.
 			let challenge = Promise.resolve(false);
-			if (this.lastPlay()
+      let lastPlay = this.lastPlay();
+			if (lastPlay
 				  && this.dictionary
 				  && player.canChallenge) {
-				const lastPlayer = this.getPlayer(this.lastPlay().playerKey);
+				const lastPlayer = this.getPlayerWithKey(lastPlay.playerKey);
 				// There's no point if they are also a robot, though
 				// that should never arise in a "real" game where there can
 				// only be one robot.
@@ -621,12 +622,12 @@ define("game/ServerGame", [
 					// use game dictionary, not robot dictionary
 					challenge = this.getDictionary()
 					.then(dict => {
-						const bad = this.lastPlay().words
+						const bad = lastPlay.words
 							    .filter(word => !dict.hasWord(word.word));
 						if (bad.length > 0) {
 							// Challenge succeeded
 							this._debug(`Challenging ${lastPlayer.name}`);
-							this._debug(`Bad Words: `, bad);
+							this._debug(`Bad words: `, bad);
 							return this.takeBack(player, Turns.CHALLENGE_WON)
 							.then(() => true);
 						}
@@ -641,13 +642,12 @@ define("game/ServerGame", [
 				// least one other player can play again.
 				// Challenge cannot fail - robot never challenges unless
 				// it is sure it will win.
-				if (!challenged && this.lastPlay()) {
+				if (!challenged && lastPlay) {
 					// Last play was good, check the last player has tiles
 					// otherwise the game is over
-					const lastPlayer = this.getPlayer(
-						this.lastPlay().playerKey);
+					const lastPlayer = this.getPlayerWithKey(lastPlay.playerKey);
 					if (lastPlayer.rack.isEmpty())
-						return this.confirmGameOver(State.GAME_OVER);
+						return this.confirmGameOver(player, State.GAME_OVER);
 				}
 
 				let bestPlay = null;

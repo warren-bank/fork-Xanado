@@ -85,7 +85,7 @@ describe("Challenges", () => {
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.play(human1, move1))
-		.then(() => game.challenge(human2))
+		.then(() => game.challenge(human2, human1))
 		.then(() => socket.wait())
 		.then(() => {
 			assert.equal(game.whosTurnKey, human1.key);
@@ -163,7 +163,7 @@ describe("Challenges", () => {
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.play(human1, move1))
-		.then(() => game.challenge(human2))
+		.then(() => game.challenge(human2, human1))
 		.then(() => socket.wait())
 		.then(() => {
 			assert.equal(game.whosTurnKey, human2.key);
@@ -238,7 +238,7 @@ describe("Challenges", () => {
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.play(human1, move))
-		.then(() => game.challenge(human3))
+		.then(() => game.challenge(human3, human1))
 		.then(() => {
 			assert.equal(game.whosTurnKey, human2.key);
 			assert.equal(game.getPlayer().key, human2.key);
@@ -306,7 +306,7 @@ describe("Challenges", () => {
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.play(human1, move))
-		.then(() => game.challenge(human3))
+		.then(() => game.challenge(human3, human1))
 		.then(() => {
 			assert.equal(game.whosTurnKey, human2.key);
 			assert.equal(game.getPlayer().key, human2.key);
@@ -373,7 +373,7 @@ describe("Challenges", () => {
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.play(human1, move))
-		.then(() => game.challenge(human2))
+		.then(() => game.challenge(human2, human1))
 		.then(() => socket.wait())
 		.then(() => {
 			assert(!human1.missNextTurn);
@@ -454,7 +454,7 @@ describe("Challenges", () => {
 			assert.equal(game.whosTurnKey, human2.key);
 			assert.equal(game.getPlayer().key, human2.key);
 		})
-		.then(() => game.challenge(human3))
+		.then(() => game.challenge(human3, human1))
 		.then(() => {
 			assert.equal(game.whosTurnKey, human2.key);
 			assert.equal(game.getPlayer().key, human2.key);
@@ -506,7 +506,7 @@ describe("Challenges", () => {
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.play(human1, move))
-		.then(() => game.challenge(human1))
+		.then(() => game.challenge(human1, human1))
 		.then(() => socket.wait())
 		.then(() => assert.fail("Expected an error"))
 		.catch(e => {
@@ -573,7 +573,7 @@ describe("Challenges", () => {
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.play(human1, move))
 		// Player 1 has played, so issue a challenge on behalf of player 2
-		.then(() => game.challenge(human2))
+		.then(() => game.challenge(human2, human1))
 		.then(() => socket.wait());
 	});
 
@@ -650,7 +650,7 @@ describe("Challenges", () => {
 		.then(() => game.play(human1, move))
 		// Player 1 has played and "won",
 		// so issue a challenge on behalf of player 3
-		.then(() => game.challenge(human3))
+		.then(() => game.challenge(human3, human1))
 		.then(() => socket.wait())
 		.then(() => {
 			assert.equal(game.whosTurnKey, human2.key);
@@ -731,7 +731,7 @@ describe("Challenges", () => {
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.play(human1, move))
 		// Player 1 has played, so issue a challenge on behalf of player 2
-		.then(() => game.challenge(human2))
+		.then(() => game.challenge(human2, human1))
 		.then(() => socket.wait());
 	});
 
@@ -811,7 +811,7 @@ describe("Challenges", () => {
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.play(human1, move))
 		// Player 1 has played, so issue a challenge on behalf of player 3
-		.then(() => game.challenge(human3))
+		.then(() => game.challenge(human3, human1))
 		.then(() => socket.wait());
 	});
 
@@ -904,7 +904,7 @@ describe("Challenges", () => {
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => game.play(human1, move1))
-		.then(() => game.challenge(human2)) // should succeed
+		.then(() => game.challenge(human2, human1)) // should succeed
 		.then(() => game.pass(human2, Turns.PASSED))
 		.then(() => game.play(human1, move2))
 		.then(() => socket.wait())

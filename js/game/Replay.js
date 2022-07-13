@@ -120,8 +120,8 @@ define("game/Replay", [
      * has been run
      */
     step() {
+      // Copy the turn to avoid accidental overwrite
       const turn = new Turn(this, this.playedGame.turns[this.nextTurn++]);
-      this._debug("REDO", turn.type);
       return this.redo(turn)
       .then(() => {
         for (const pl of this.players)

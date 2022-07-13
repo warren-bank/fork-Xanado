@@ -191,11 +191,11 @@ define("browser/game", [
 			}
 
 			// Who's turn was it?
-			let player = this.game.getPlayer(turn.playerKey);
+			let player = this.game.getPlayerWithKey(turn.playerKey);
 			if (!player)
 				player = new Player({name: "Unknown player"});
 			const challenger = (typeof turn.challengerKey === "string")
-				    ? this.game.getPlayer(turn.challengerKey) : undefined;
+				    ? this.game.getPlayerWithKey(turn.challengerKey) : undefined;
 
 			let what, who;
 			if (turn.type === Turns.CHALLENGE_LOST) {
@@ -308,7 +308,7 @@ define("browser/game", [
 				} else if (this.player)
 					GameUI.$log(interactive, $.i18n(
 						"$1 has no more tiles, game will be over unless you challenge",
-						this.game.getPlayer(turn.emptyPlayerKey).name),
+						this.game.getPlayerWithKey(turn.emptyPlayerKey).name),
 							        "turn-narrative");
 			}
 		}
@@ -448,7 +448,7 @@ define("browser/game", [
       $(".player-clock")
       .hide();
 
-			const ticked = this.game.getPlayer(params.playerKey);
+			const ticked = this.game.getPlayerWithKey(params.playerKey);
       if (!ticked) {
         console.error("No such player", params.playerKey);
         return;
@@ -589,7 +589,7 @@ define("browser/game", [
 					if (lastTurn && lastTurn.type == Turns.PLAYED) {
 						if (this.isThisPlayer(this.game.whosTurnKey))
 							// Challenge last move
-							this.challenge();
+							this.challenge(lastTurn.playerKey);
 						else
 							// Still us
 							this.takeBackMove();
@@ -699,7 +699,7 @@ define("browser/game", [
 			.then(session => {
 				if (session) {
 					// Find if they are a player
-					this.player = game.getPlayer(session.key);
+					this.player = game.getPlayerWithKey(session.key);
 					if (this.player)
 						return this.player.key;
 				  $(".bad-user")
@@ -1335,9 +1335,9 @@ define("browser/game", [
 				});
 
       this.removeMoveActionButtons();
-			const player = this.game.getPlayer(turn.playerKey);
+			const player = this.game.getPlayerWithKey(turn.playerKey);
 			const challenger = (typeof turn.challengerKey === "string")
-				    ? this.game.getPlayer(turn.challengerKey) : undefined;
+				    ? this.game.getPlayerWithKey(turn.challengerKey) : undefined;
 
 			if (turn.type === Turns.CHALLENGE_LOST) {
 				challenger.score += turn.score;
@@ -1347,7 +1347,7 @@ define("browser/game", [
 					player.score += turn.score;
 				else if (typeof turn.score === "object")
 					Object.keys(turn.score).forEach(
-						k => this.game.getPlayer(k)
+						k => this.game.getPlayerWithKey(k)
 						.score +=
 						(turn.score[k].tiles || 0) +
 						(turn.score[k].time || 0));
@@ -1394,7 +1394,7 @@ define("browser/game", [
 						this.notify(
 							/*.i18n("ui-notify-title-succeeded")*/
 							/*.i18n("ui-notify-body-succeeded")*/
-							this.game.getPlayer(turn.playerKey).name,
+							this.game.getPlayerWithKey(turn.playerKey).name,
 							-turn.score);
 					}
 				}
@@ -1403,7 +1403,7 @@ define("browser/game", [
 					/*.i18n("ui-notify-title-retracted")*/
 					/*.i18n("ui-notify-body-retracted")*/
 					this.notify("retracted",
-								      this.game.getPlayer(turn.playerKey).name);
+								      this.game.getPlayerWithKey(turn.playerKey).name);
 				}
 				break;
 
@@ -1500,7 +1500,7 @@ define("browser/game", [
 					/*.i18n("ui-notify-title-your-turn")*/
 					/*.i18n("ui-notify-body-your-turn")*/
 					this.notify("your-turn",
-								      this.game.getPlayer(turn.playerKey).name);
+								      this.game.getPlayerWithKey(turn.playerKey).name);
 				}
 				this.game.whosTurnKey = turn.nextToGoKey;
 				this.updateWhosTurn();
@@ -1534,7 +1534,7 @@ define("browser/game", [
 		addChallengePreviousButton(turn) {
 			if (!this.player)
 				return;
-			const player = this.game.getPlayer(turn.playerKey);
+			const player = this.game.getPlayerWithKey(turn.playerKey);
 			if (!player)
 				return;
 			const text = $.i18n(
@@ -1543,7 +1543,7 @@ define("browser/game", [
 				    $(`<button name="challenge">${text}</button>`)
 				    .addClass("moveAction")
 				    .button()
-				    .on("click", () => this.challenge());
+				    .on("click", () => this.challenge(player.key));
 			GameUI.$log(true, $button, "turn-control");
 		}
 
@@ -1569,13 +1569,14 @@ define("browser/game", [
 		}
 
 		/**
-		 * Action on "Challenge" button clicked
+		 * Issue a challenge against the given player.
+     * @param {string} challengedKey key of the player being challenged
 		 */
-		challenge() {
-			// Take back any tiles we placed
+		challenge(challengedKey) {
 			this.takeBackTiles();
-			// Remove action buttons and lock board
-			this.sendCommand(Command.CHALLENGE);
+			this.sendCommand(Command.CHALLENGE, {
+        challengedKey: challengedKey
+      });
 		}
 
 		/**
@@ -1596,8 +1597,6 @@ define("browser/game", [
       move.score += bonus;
       if (bonus > 0 && this.getSetting("cheers"))
 				this.playAudio("bonusCheer");
-
-			move.playerKey = this.player.key;
 
 			this.sendCommand(Command.PLAY, move);
 		}
@@ -1659,7 +1658,7 @@ define("browser/game", [
 		 * Handler for the 'Swap' button clicked. Invoked via 'click_turnButton'.
 		 */
 		action_swap() {
-			const tiles = this.swapRack.tiles();
+      const tiles = this.swapRack.tiles();
 			this.swapRack.empty();
 			this.sendCommand(Command.SWAP, tiles);
 		}

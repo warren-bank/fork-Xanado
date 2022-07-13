@@ -77,7 +77,7 @@ define("game/Undo", [
      */
     unswap(turn) {
       this.state = State.PLAYING;
-      const player = this.getPlayer(turn.playerKey);
+      const player = this.getPlayerWithKey(turn.playerKey);
       const racked = player.rack.removeTiles(turn.replacements);
       this.bag2rack(turn.placements, player.rack);
       this.letterBag.returnTiles(racked);
@@ -96,7 +96,7 @@ define("game/Undo", [
     unplay(turn) {
       this._debug("unplay");
       this.state = State.PLAYING;
-      const player = this.getPlayer(turn.playerKey);
+      const player = this.getPlayerWithKey(turn.playerKey);
       const racked = player.rack.removeTiles(turn.replacements);
       this.board2rack(turn.placements, player.rack);
       this.letterBag.returnTiles(racked);
@@ -121,7 +121,7 @@ define("game/Undo", [
       let pointsGainedFromRacks = 0;
       for (const key of Object.keys(turn.score)) {
         const delta = turn.score[key];
-        const player = this.getPlayer(key);
+        const player = this.getPlayerWithKey(key);
         Platform.assert(player, key);
         player.score -= (delta.time || 0) + (delta.tiles || 0);
         pointsGainedFromRacks += Math.abs(delta.tiles);
@@ -143,7 +143,7 @@ define("game/Undo", [
      */
     untakeBack(turn) {
       this.state = State.PLAYING;
-      const player = this.getPlayer(turn.playerKey);
+      const player = this.getPlayerWithKey(turn.playerKey);
       this.rack2board(turn.placements, player.rack);
       this.bag2rack(turn.replacements, player.rack);
       player.score -= turn.score;
@@ -162,7 +162,7 @@ define("game/Undo", [
     unpass(turn) {
       this._debug("unpass ", turn.type);
       this.state = State.PLAYING;
-      const player = this.getPlayer(turn.playerKey);
+      const player = this.getPlayerWithKey(turn.playerKey);
       player.passes--;
       this.whosTurnKey = player.key;
       // TODO: Notify
@@ -177,7 +177,7 @@ define("game/Undo", [
      * @private
      */
     unchallenge(turn) {
-      const player = this.getPlayer(turn.challengerKey);
+      const player = this.getPlayerWithKey(turn.challengerKey);
       this._debug("\t", player.toString(), "regained", turn.score);
       player.score -= turn.score;
       // TODO: Notify
@@ -228,6 +228,7 @@ define("game/Undo", [
      */
     redo(turn) {
       const player = this.getPlayerWithKey(turn.playerKey);
+      this._debug("REDO", turn.type, new Date(turn.timestamp).toISOString());
       switch (turn.type) {
 		  case Turns.SWAPPED:
         // Remove and return the tiles to the the unshaken bag
@@ -235,24 +236,31 @@ define("game/Undo", [
         this.letterBag.predictable = true;
         this.letterBag.removeTiles(turn.replacements);
         this.letterBag.returnTiles(turn.replacements);
+        this._debug("\t-- swap");
         return this.swap(player, turn.placements)
         .then(() => delete this.letterBag.predictable);
 		  case Turns.PLAYED:
         this.letterBag.predictable = true;
         this.letterBag.removeTiles(turn.replacements);
         this.letterBag.returnTiles(turn.replacements);
+        this._debug("\t-- play");
         return this.play(player, turn)
         .then(() => delete this.letterBag.predictable);
 		  case Turns.PASSED:
 		  case Turns.TIMED_OUT:
+        this._debug("\t-- pass");
         return this.pass(player, turn.type);
 		  case Turns.TOOK_BACK:
+        this._debug("\t-- takeBack");
         return this.takeBack(player, turn.type);
 		  case Turns.CHALLENGE_WON:
 		  case Turns.CHALLENGE_LOST:
-        return this.challenge(this.getPlayerWithKey(turn.challengerKey));
+        this._debug("\t-- challenge");
+        return this.challenge(
+          this.getPlayerWithKey(turn.challengerKey), player);
 		  case Turns.GAME_ENDED:
-        return this.confirmGameOver(turn.endState);
+        this._debug("\t-- confirmGameOver");
+        return this.confirmGameOver(player, turn.endState);
       }
       /* istanbul ignore next */
       return Platform.assert(false, `Unrecognised turn type ${turn.type}`);
