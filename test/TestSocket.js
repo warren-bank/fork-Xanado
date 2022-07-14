@@ -9,7 +9,7 @@ if (typeof requirejs === "undefined") {
 
 define("test/TestSocket", [], () => {
 
-    const assert = require("assert");
+  const assert = require("assert");
 
 	/**
 	 * Simulator for socket.io, replaces the socket functionality with a
@@ -23,23 +23,22 @@ define("test/TestSocket", [], () => {
 	 *   return new Promise((resolve, reject) => {
 	 *     ... code that generates events ...
 	 *   })
-     *   .then(() => socket.wait());
+   *   .then(() => socket.wait());
 	 * });
 	 */
 
-    class TestSocket {
-        listeners = {};
+  class TestSocket {
+    listeners = {};
 		resolve;
 		reject;
 		finished;
-        sawError;
+    sawError;
 
-        // @private
 		_emit(event, data) {
 			try {
 				if (this.listeners[event] && this.listeners[event].length > 0)
 					this.listeners[event].forEach(l => l(data, event));
-                else if (this.listeners["*"])
+        else if (this.listeners["*"])
 					this.listeners["*"].forEach(l => l(data, event));
 			} catch (e) {
 				//console.error("EMIT ERROR", e);
@@ -48,22 +47,22 @@ define("test/TestSocket", [], () => {
 			}
 		}
 
-        /** Simulate socket.io */
-        emit(event, data) {
-            if (this.connection)
-                this.connection._emit(event, data);
-            else
-                this._emit(event, data);
-        }
+    /** Simulate socket.io */
+    emit(event, data) {
+      if (this.connection)
+        this.connection._emit(event, data);
+      else
+        this._emit(event, data);
+    }
 
-        // Couple to another TestSocket
-        connect(endPoint) {
-            assert(!this.connection);
-            assert(!endPoint.connection);
-            this.connection = endPoint;
-            endPoint.connection = this;
-        }
-        
+    // Couple to another TestSocket
+    connect(endPoint) {
+      assert(!this.connection);
+      assert(!endPoint.connection);
+      this.connection = endPoint;
+      endPoint.connection = this;
+    }
+    
 		/**
 		 * Register a listener for the given event. Pass "*" for the event
 		 * for a catch-all handler that will handle any events not
@@ -96,16 +95,16 @@ define("test/TestSocket", [], () => {
 		 * when done() is called, or it will error out.
 		 */
 		done() {
-            if (this.finished)
-                return;
+      if (this.finished)
+        return;
 			this.finished = true;
-            if (this.connection)
-                this.connection.done();
+      if (this.connection)
+        this.connection.done();
 			if (this.sawError) {
-                if (this.reject)
-				    this.reject(this.sawError);
-                else
-                    throw this.sawError;
+        if (this.reject)
+				  this.reject(this.sawError);
+        else
+          throw this.sawError;
 			} else if (this.resolve)
 				this.resolve();
 		}
@@ -114,4 +113,3 @@ define("test/TestSocket", [], () => {
 
 	return TestSocket;
 });
-

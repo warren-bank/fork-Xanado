@@ -313,7 +313,7 @@ define("game/ServerGame", [
 					}
 					// Notify all connections of the order change
 					// (asynchronously)
-					this.updateConnections();
+					this.sendCONNECTIONS();
 				}
 
 				const player = this.players[0];
@@ -383,13 +383,12 @@ define("game/ServerGame", [
 		},
 
 		/**
-		 * Notify observers with a list of the currently connected
-     * observers and non-connected players. Only available
-     * server-side.
+		 * Notify players with a list of the currently connected
+     * players, non-playing observers and non-connected players.
      * @function
      * @memberof ServerGame
 		 */
-		updateConnections() {
+		sendCONNECTIONS() {
 			Promise.all(
 				this.players
 				.map(player => player.simple(this)
@@ -508,7 +507,7 @@ define("game/ServerGame", [
 			this._connections.push(socket);
 
 			// Tell players that the player is connected
-			this.updateConnections();
+			this.sendCONNECTIONS();
 
 			// Add disconnect listener
 			/* istanbul ignore next */
@@ -519,7 +518,7 @@ define("game/ServerGame", [
 				} else
           this._debug("non-player disconnected");
 				this._connections.splice(this._connections.indexOf(socket), 1);
-				this.updateConnections();
+				this.sendCONNECTIONS();
 			});
 
 			return this.playIfReady();

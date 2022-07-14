@@ -13,9 +13,9 @@ const { exec } = require('child_process');
  */
 describe("Server", () => {
 
-    const USER_DB_FILE = `${__dirname}/temp/passwd.json`;
+  const USER_DB_FILE = `${__dirname}/temp/passwd.json`;
    
-    /* global Platform, Server */;
+  /* global Platform, Server */;
 	const TS = require("./TestSupport.js");
 	before(required => TS.depend(required, {
         Server: "server/Server",
@@ -31,8 +31,8 @@ describe("Server", () => {
 			 });
 	});
 
-    afterEach(() => process.removeAllListeners("unhandledRejection"));
-    //after(() => TS.why_is_node_running());
+  afterEach(() => process.removeAllListeners("unhandledRejection"));
+  //after(() => TS.why_is_node_running());
 	
 	const assert = chai.assert;
 
@@ -85,16 +85,16 @@ describe("Server", () => {
 	function UNit() {}
 
 	it("i18n", () => new Promise(resolve => {
-        return Platform.i18n().load("qqq")
-        .then(() => {
-            assert.equal(
-                Platform.i18n("Unknown message $1", "X"), "Unknown message X");
-            assert.equal(
-                Platform.i18n("SWAP"), "Letters underlying the swap rack");
-            resolve();
-        });
-    }));
-    
+    return Platform.i18n().load("qqq")
+    .then(() => {
+      assert.equal(
+        Platform.i18n("Unknown message $1", "X"), "Unknown message X");
+      assert.equal(
+        Platform.i18n("SWAP"), "Letters underlying the swap rack");
+      resolve();
+    });
+  }));
+  
 	it("/defaults", () => new Promise(resolve => {
 		const s = new Server(config);
 		chai.request(s.express)
@@ -107,7 +107,7 @@ describe("Server", () => {
 				theme: "default",
 				canEmail: false
 			});
-            delete(s.express);
+      delete(s.express);
 			resolve();
 		});
 	}));
@@ -133,6 +133,64 @@ describe("Server", () => {
 			resolve();
 		});
 	}));
+
+	it("/simple/:gameKey", () => new Promise(resolve => {
+		const config = {
+			auth: {
+				"sessionSecret": "cross words",
+				"db_file" : `${__dirname}/temp/passwd.json`
+			},
+			defaults: {
+				edition: "Test",
+				dictionary: "Oxford_5000",
+				theme: "default"
+			},
+			games: "test/temp",
+      //debug_server: true,
+      //debug_game: true
+		};
+		let server = new Server(config), cookie, gamekey, playerkey;
+    
+		return register(server, {
+			register_username: "test_user",
+			register_password: "test_pass",
+			register_email: "test@email.com"
+		})
+    .then(pk => playerkey = pk)
+		.then(() => login(server, {
+			login_username: "test_user",
+			login_password: "test_pass"
+		}))
+		.then(c => cookie = c)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/createGame")
+			.set('Cookie', cookie)
+			.send({
+				edition: "English_Scrabble",
+				dictionary:"Oxford_5000"
+			})
+			.end((err, res) => {
+				//console.log(res.text);
+				assert.equal(res.status, 200);
+        gamekey = res.text;
+				resolve();
+			});
+		}))
+    .then(() => new Promise(resolve => {
+		  chai.request(server.express)
+		  .get(`/simple/${gamekey}`)
+		  .end((err, res) => {
+			  assert.equal(res.status, 200, res.body);
+			  const simple = res.body[0];
+        assert.equal(simple.key, gamekey);
+        assert.equal(simple.edition, "English_Scrabble");
+        assert.equal(simple.state, State.WAITING);
+			  resolve();
+		  });
+	  }))
+    .then(() => resolve());
+  }));
 
 	it("/locales", () => new Promise(resolve => {
 		const s = new Server(config);
@@ -207,21 +265,56 @@ describe("Server", () => {
 			});
 		}))
 		.then(() => new Promise(resolve => {
-		    chai.request(server.express)
-		    .get("/theme/games.css")
+		  chai.request(server.express)
+		  .get("/theme/games.css")
 			.set('Cookie', cookie)
-		    .end((err, res) => {
-			    //console.log(res.headers);
-			    assert.equal(
-				    res.headers['content-type'], "text/css; charset=UTF-8");
-			    assert.equal(res.status, 200);
-			    resolve();
-		    });
-        }))
-        .then(() => resolve());
+		  .end((err, res) => {
+			  //console.log(res.headers);
+			  assert.equal(
+				  res.headers['content-type'], "text/css; charset=UTF-8");
+			  assert.equal(res.status, 200);
+			  resolve();
+		  });
+    }))
+    .then(() => resolve());
 	}));
 
-	it("/createGame - /join - /addRobot - /game - /leave - /removeRobot - /history - /deleteGame", () => {
+	it("bad /theme", () => new Promise(resolve => {
+		let server = new Server(config), cookie, gamekey;
+		return register(server, {
+			register_username: "test_user",
+			register_password: "test_pass",
+			register_email: "test@email.com"
+		})
+		.then(() => login(server, {
+			login_username: "test_user",
+			login_password: "test_pass"
+		}))
+		.then(c => cookie = c)
+		.then(() => new Promise(resolve => {
+			chai.request(server.express)
+			.post("/session-settings")
+			.set('Cookie', cookie)
+			.send({theme: "exander77"})
+			.end((err, res) => {
+				assert.equal(res.status, 200);
+				resolve();
+			});
+		}))
+		.then(() => new Promise(resolve => {
+		  chai.request(server.express)
+		  .get("/theme/doesnotexist.css")
+			.set('Cookie', cookie)
+		  .end((err, res) => {
+			  //console.log(res.body);
+			  assert.equal(res.status, 404);
+			  resolve();
+		  });
+    }))
+    .then(() => resolve());
+	}));
+
+	it("/createGame - /join - /addRobot - /game - /leave - /removeRobot - /simple / - /history - /deleteGame", () => {
 		const config = {
 			auth: {
 				"sessionSecret": "cross words",
@@ -233,63 +326,63 @@ describe("Server", () => {
 				theme: "default"
 			},
 			games: "test/temp",
-            //debug_server: true,
-            //debug_game: true
+      //debug_server: true,
+      //debug_game: true
 		};
 		let server = new Server(config), cookie, gamekey, playerkey;
-        
+    
 		const serverSock = new TestSocket();
 		const clientSock = new TestSocket();
 		server.attachSocketHandlers(serverSock);
 
-        serverSock.connect(clientSock);
+    serverSock.connect(clientSock);
 
-        serverSock.on("disconnect", () => {
-            serverSock.done();
-        });
-        let sawTurn = false;
-        clientSock.on(Notify.MESSAGE, params => {
-            //assert(sawTurn); not if human ends up first player
-            //console.log("INCOMING message",params);
-            if (params.sender === "Advisor") {
-                switch (params.text) {
-                case "$1 has added '$2' to $3":
-                    assert.deepEqual(params.args, [
-                        "test_user", "FROBNOZZ", "Oxford_5000" ]);
-                    return;
-                
-                case "'$1' is already in $2":
-                    assert.deepEqual(params.args, [ "ABSTRACT", "Oxford_5000" ]);
-                    return;
-                
-                case "Hint":
-                    assert(params.args.length === 4);
-                    clientSock.done();
-                    return;
-                }
-            }
-            assert(false, params.text);
-        });
+    serverSock.on("disconnect", () => {
+      serverSock.done();
+    });
+    let sawTurn = false;
+    clientSock.on(Notify.MESSAGE, params => {
+      //assert(sawTurn); not if human ends up first player
+      //console.log("INCOMING message",params);
+      if (params.sender === "Advisor") {
+        switch (params.text) {
+        case "$1 has added '$2' to $3":
+          assert.deepEqual(params.args, [
+            "test_user", "FROBNOZZ", "Oxford_5000" ]);
+          return;
+          
+        case "'$1' is already in $2":
+          assert.deepEqual(params.args, [ "ABSTRACT", "Oxford_5000" ]);
+          return;
+          
+        case "Hint":
+          assert(params.args.length === 4);
+          clientSock.done();
+          return;
+        }
+      }
+      assert(false, params.text);
+    });
 
-        clientSock.on(Notify.TURN, params => {
-            //console.log("INCOMING turn");
-            assert.equal(params.playerKey, UserManager.ROBOT_KEY);
-            assert.equal(params.gameKey, gamekey);
-            sawTurn = true;
-        });
-        
-        clientSock.on(Notify.CONNECTIONS, (params, event) => {});
+    clientSock.on(Notify.TURN, params => {
+      //console.log("INCOMING turn");
+      assert.equal(params.playerKey, UserManager.ROBOT_KEY);
+      assert.equal(params.gameKey, gamekey);
+      sawTurn = true;
+    });
+    
+    clientSock.on(Notify.CONNECTIONS, (params, event) => {});
 
-        clientSock.on("*", (params, event) => {
-            console.log("CLIENT GOT", event, params);
-        });
+    clientSock.on("*", (params, event) => {
+      console.log("CLIENT GOT", event, params);
+    });
 
 		return register(server, {
 			register_username: "test_user",
 			register_password: "test_pass",
 			register_email: "test@email.com"
 		})
-        .then(pk => playerkey = pk)
+    .then(pk => playerkey = pk)
 		.then(() => login(server, {
 			login_username: "test_user",
 			login_password: "test_pass"
@@ -317,14 +410,14 @@ describe("Server", () => {
 			.end((err, res) => {
 				//console.log(res.text);
 				assert.equal(res.status, 200, res.text);
-                clientSock.emit(Notify.JOIN, {
-                    gameKey: gamekey,
-                    playerKey: playerkey
-                });
-                // Should silently go nowhere, not in a game yet
-                clientSock.emit(Notify.MESSAGE, {
-                    text: "yoohoo!"
-                });
+        clientSock.emit(Notify.JOIN, {
+          gameKey: gamekey,
+          playerKey: playerkey
+        });
+        // Should silently go nowhere, not in a game yet
+        clientSock.emit(Notify.MESSAGE, {
+          text: "yoohoo!"
+        });
 				resolve(res.text);
 			});
 		}))
@@ -335,12 +428,12 @@ describe("Server", () => {
 			.end((err, res) => {
 				//console.log(res.text);
 				assert.equal(res.status, 200, res.text);
-                clientSock.emit(Notify.MESSAGE, {
-                    text: "allow frobnozz"
-                });
-                clientSock.emit(Notify.MESSAGE, {
-                    text: "allow abstract"
-                });
+        clientSock.emit(Notify.MESSAGE, {
+          text: "allow frobnozz"
+        });
+        clientSock.emit(Notify.MESSAGE, {
+          text: "allow abstract"
+        });
 				resolve(res.text);
 			});
 		}))
@@ -351,7 +444,7 @@ describe("Server", () => {
 			.end((err, res) => {
 				//console.log(res.text);
 				assert.equal(res.status, 200);
-                clientSock.emit(Notify.MESSAGE, { text: "hint" });
+        clientSock.emit(Notify.MESSAGE, { text: "hint" });
 				resolve(res.text);
 			});
 		}))
@@ -375,15 +468,15 @@ describe("Server", () => {
 				resolve(res.text);
 			});
 		}))
-	    .then(() => new Promise(resolve => {
-		    chai.request(server.express)
-		    .get("/history")
-		    .end((err, res) => {
-			    //console.log(res.text);
-			    assert.equal(res.status, 200);
-			    resolve();
-		    });
-	    }))
+	  .then(() => new Promise(resolve => {
+		  chai.request(server.express)
+		  .get("/history")
+		  .end((err, res) => {
+			  //console.log(res.text);
+			  assert.equal(res.status, 200);
+			  resolve();
+		  });
+	  }))
 		.then(() => new Promise(resolve => {
 			chai.request(server.express)
 			.post(`/deleteGame/${gamekey}`)
@@ -394,17 +487,17 @@ describe("Server", () => {
 				resolve(res.text);
 			});
 		}))
-        .then(() => serverSock.wait());
+    .then(() => serverSock.wait());
 	});
 
 	it("monitors", () => new Promise(resolve => {
 		const s = new Server(config);
 		const serverSock = new TestSocket();
 		s.attachSocketHandlers(serverSock);
-        serverSock.emit("connect");
-        serverSock.emit("disconnect");
-        serverSock.emit(Notify.MONITOR); // Add as monitor
-        serverSock.emit("disconnect"); // remove monitor
+    serverSock.emit("connect");
+    serverSock.emit("disconnect");
+    serverSock.emit(Notify.MONITOR); // Add as monitor
+    serverSock.emit("disconnect"); // remove monitor
 		resolve();
 	}));
 
@@ -553,47 +646,47 @@ describe("Server", () => {
 
 	it("401", () => {
 		let server = new Server(config), cookie, gamekey, playerkey;
-        const proms = [
-            new Promise(resolve => {
-			    chai.request(server.express)
-			    .post("/createGame")
-			    .end((err, res) => {
-				    assert.equal(res.status, 401);
-				    resolve();
-			    });
-		    }),
+    const proms = [
+      new Promise(resolve => {
+			  chai.request(server.express)
+			  .post("/createGame")
+			  .end((err, res) => {
+				  assert.equal(res.status, 401);
+				  resolve();
+			  });
+		  }),
 
-            new Promise(resolve => {
-			    chai.request(server.express)
-			    .post("/command/wibble/notakey")
-			    .end((err, res) => {
-				    assert.equal(res.status, 401);
-				    resolve();
-			    });
-		    })
-        ];
+      new Promise(resolve => {
+			  chai.request(server.express)
+			  .post("/command/wibble/notakey")
+			  .end((err, res) => {
+				  assert.equal(res.status, 401);
+				  resolve();
+			  });
+		  })
+    ];
 
-        for (let route of [
-            "deleteGame", "anotherGame", "sendReminder",
-            "join", "leave", "addRobot", "removeRobot",
-            "invitePlayers"
-        ]) {
-            proms.push(new Promise(resolve => {                   
-			    chai.request(server.express)
-			    .post(`/${route}/:notakey`)
-			    .end((err, res) => {
-				    assert.equal(res.status, 401);
-				    resolve();
-			    });
-		    }));
-        }
-        return Promise.all(proms);
-    });
-       
+    for (let route of [
+      "deleteGame", "anotherGame", "sendReminder",
+      "join", "leave", "addRobot", "removeRobot",
+      "invitePlayers"
+    ]) {
+      proms.push(new Promise(resolve => {                   
+			  chai.request(server.express)
+			  .post(`/${route}/:notakey`)
+			  .end((err, res) => {
+				  assert.equal(res.status, 401);
+				  resolve();
+			  });
+		  }));
+    }
+    return Promise.all(proms);
+  });
+
 	it("/invitePlayers", () => new Promise(done => {
 		let server = new Server(config), cookie, gamekey, playerkey;
 		return register(server, {
-	        register_username: "no_email_user"
+	    register_username: "no_email_user"
 		})
 		.then(() => register(server, {
 			register_username: "test_user",
@@ -639,15 +732,15 @@ describe("Server", () => {
 				sender: "unit tests",
 				transport: {
 					sendMail: function(email) {
-                        //console.log(email);
+            //console.log(email);
 						assert.equal(email.from, "test_user<test@email.com>");
 						assert(email.to === "test@email.com"
-                               || email.to === "user@email.com");
+                   || email.to === "user@email.com");
 						assert.equal(email.subject,
-                                     "You have been invited to play XANADO");
+                         "You have been invited to play XANADO");
 						assert(email.text);
-                        assert(email.text.indexOf("Hollow Wurld") >= 0);
-                        assert(email.text.indexOf(`/html/games.html?untwist=${gamekey}`) >= 0);
+            assert(email.text.indexOf("Hollow Wurld") >= 0);
+            assert(email.text.indexOf(`/html/games.html?untwist=${gamekey}`) >= 0);
 						return Promise.resolve();
 					}
 				}
@@ -655,18 +748,18 @@ describe("Server", () => {
 			chai.request(server.express)
 			.post(`/invitePlayers/${gamekey}`)
 			.send({player: [
-                { key: playerkey },
-                { name: "no_email_user" },
-                { email: "user@email.com" }
-            ], message: "Hollow Wurld"})
+        { key: playerkey },
+        { name: "no_email_user" },
+        { email: "user@email.com" }
+      ], message: "Hollow Wurld"})
 			.set('Cookie', cookie)
 			.end((err, res) => {
-                //console.log(res.body);
+        //console.log(res.body);
 				assert.deepEqual(res.body, [
-                    "test_user",
-                    "(no_email_user has no email address)",
-                    "user@email.com"
-                ]);
+          "test_user",
+          "(no_email_user has no email address)",
+          "user@email.com"
+        ]);
 				assert.equal(res.status, 200);
 				resolve(res.text);
 			});
@@ -677,7 +770,7 @@ describe("Server", () => {
 	it("/sendReminder", () => new Promise(done => {
 		let cookie, gamekey, playerkey;
 		let server = new Server(config);
-        return register(server, {
+    return register(server, {
 			register_username: "test_user",
 			register_password: "test_pass",
 			register_email: "test@email.com"
@@ -763,5 +856,4 @@ describe("Server", () => {
 		}))
 		.then(() => done());
 	}));
-
 });

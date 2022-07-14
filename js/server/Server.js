@@ -296,112 +296,207 @@ define("server/Server", [
 			});
 		}
 
-		/**
-		 * Attach the handlers for incoming socket messages from the UI
-		 * @param {socket.io} socket the socket to listen to
-		 */
-		attachSocketHandlers(socket) {
-			socket
-
-			.on("connect", sk => {
-				// Player or monitor connecting
+    /**
+     * Handle a `connect` coming over a socket.
+		 * Player or monitor connecting.
+     * @param {socket.io} socket the socket
+     * @private
+     */
+    socket_connect(sk) {
 				this._debug("-S-> connect");
 				this.updateObservers();
+    }
+
+    /**
+     * Handle a `disconnect` coming over a socket.  Player or monitor
+		 * disconnecting.  Don't need to refresh players using this
+		 * socket, because each Game has a 'disconnect' listener on each
+		 * of the sockets being used by players of that game. However
+		 * monitors don't.
+     * @param {socket.io} socket the socket
+     * @private
+     */
+    socket_disconnect(socket) {
+			this._debug("-S-> disconnect");
+
+			// Remove any monitor using this socket
+			const i = this.monitors.indexOf(socket);
+			if (i >= 0) {
+				// Game monitor has disconnected
+				this._debug("\tmonitor disconnected");
+				this.monitors.slice(i, 1);
+			} else
+				this._debug("\tanonymous disconnect");
+			this.updateObservers();
+    }
+   
+		/**
+     * Handle game monitor (games interface) ann9ouncing on 
+     * a socket.
+     * @param {socket.io} socket the socket
+     * @private
+     */
+    socket_monitor(socket) {
+			this._debug("-S-> monitor");
+			this.monitors.push(socket);
+    }
+
+		/**
+     * Handle a player joining.
+     * When the game interface is opened in a browser, the
+     * interface initiates a socket connection. WebSockets then
+     * sends "connect" to the UI. `JOIN` is then sent by the UI,
+     * which connects the UI to the game.
+     * @param {socket.io} socket the socket
+     * @private
+     */
+    socket_join(socket, params) {
+			this._debug(
+        "-S-> join", params.playerKey, "joining", params.gameKey);
+			this.loadGame(params.gameKey)
+			.then(game => {
+				return game.connect(socket, params.playerKey)
+				.then(() => this.updateObservers(game));
 			})
-
-			.on("disconnect", sk => {
-				this._debug("-S-> disconnect");
-
-				// Don't need to refresh players using this socket, because
-				// each Game has a 'disconnect' listener on each of the
-				// sockets being used by players of that game. However
-				// monitors don't.
-
-				// Remove any monitor using this socket
-				const i = this.monitors.indexOf(socket);
-				if (i >= 0) {
-					// Game monitor has disconnected
-					this._debug("\tmonitor disconnected");
-					this.monitors.slice(i, 1);
-				} else
-					this._debug("\tanonymous disconnect");
-				this.updateObservers();
-			})
-
-			.on(Notify.MONITOR, () => {
-				// Games monitor has joined
-				this._debug("-S-> monitor");
-				this.monitors.push(socket);
-			})
-
-			.on(Notify.JOIN, params => {
-				// Player joining.
-        // When the game interface is opened in a browser, the
-        // interface initiates a socket connection. WebSockets then
-        // sends "connect" to the UI. JOIN is then sent by the UI,
-        // which connects the UI to the game.
-				this._debug(
-          "-S-> join", params.playerKey, "joining", params.gameKey);
-				this.loadGame(params.gameKey)
-				.then(game => {
-					return game.connect(socket, params.playerKey)
-					.then(() => this.updateObservers(game));
-				})
-				.catch(e => {
-					console.error("socket join error:", e);
-				});
-			})
-
-			.on(Notify.MESSAGE, message => {
-
-        if (!socket.game)
-          return;
-
-				// Chat message
-				this._debug("-S-> message", message);
-        const mess = message.text.split(/\s+/);
-        const verb = mess[0];
-        switch (verb) {
-				case "hint":
-					socket.game.hint(socket.player);
-          break;
-
-				case "advise":
-					socket.game.toggleAdvice(socket.player);
-          break;
-
-        case "allow":
-					socket.game.allow(socket.player, mess[1]);
-          break;
-
-        default:
-					  socket.game.notifyAll(Notify.MESSAGE, message);
-        }
+      /* istanbul ignore next */
+			.catch(e => {
+				console.error("socket join error:", e);
 			});
 		}
 
+    /**
+     * Handle a `MESSAGE` notification coming from a player.
+     * @param {socket.io} socket the socket
+     * @param {string} message the message. This is a text string,
+     * which is normally passed on to other players. There are
+     * some special commands: `hint` will asynchrnously generate
+     * a hint for the current player, while `advise` will toggle
+     * post-play analysis. `allow` is used to add a word to the
+     * dictionary whitelist.
+     * @private
+     */
+    socket_message(socket, message) {
+
+      if (!socket.game)
+        return;
+
+			// Chat message
+			this._debug("-S-> message", message);
+      const mess = message.text.split(/\s+/);
+      const verb = mess[0];
+
+      switch (verb) {
+
+			case "hint":
+				socket.game.hint(socket.player);
+        break;
+
+			case "advise":
+				socket.game.toggleAdvice(socket.player);
+        break;
+
+      case "allow":
+				socket.game.allow(socket.player, mess[1]);
+        break;
+
+      default:
+				socket.game.notifyAll(Notify.MESSAGE, message);
+      }
+		}
+
 		/**
-		 * Notify games and monitors that something about the game.
-		 * @param {Game?} game if undefined, will simply send "update"
-		 * to montors.
+		 * Attach the handlers for incoming socket messages from the UI.
+		 * @param {socket.io} socket the socket to listen to
+     * @private
+		 */
+		attachSocketHandlers(socket) {
+			socket
+			.on("connect", () => this.socket_connect(socket))
+			.on("disconnect", () => this.socket_disconnect(socket))
+			.on(Notify.MONITOR, () => this.socket_monitor(socket))
+			.on(Notify.JOIN, params => this.socket_join(socket, params))
+			.on(Notify.MESSAGE, message => this.socket_message(socket, message));
+		}
+
+		/**
+		 * Notify games and monitors that something about the game has
+     * changed requiring an update..
+		 * @param {Game?} game if undefined, will simply send `UPDATE`
+		 * to monitors. If it's a game, then will also send `CONNECTIONS`
+     * to players and monitors.
+     * @private
 		 */
 		updateObservers(game) {
 			this._debug("<-S- update", game ? game.key : "*");
 			this.monitors.forEach(socket => socket.emit(Notify.UPDATE));
 			if (game)
-				game.updateConnections();
+				game.sendCONNECTIONS();
+		}
+
+		/**
+		 * @param {object} to a lookup suitable for use with UserManager.getUser
+		 * @param {Request} req the request object
+		 * @param {Response} res the response object
+		 * @param {string} gameKey game to which this applies
+		 * @param {string} subject subject
+		 * @param {string} text email text
+		 * @param {string} html email html
+		 * @return {Promise} Promise that resolves to the user that was mailed,
+		 * either their game name or their email if there is no game name.
+     * @private
+		 */
+		sendMail(to, req, res, gameKey, subject, text, html) {
+			return this.userManager.getUser(
+				{key: req.session.passport.user.key})
+			.then(sender => `${sender.name}<${sender.email}>`)
+			.catch(
+        // should never happen so long as only logged-in
+        // users can send mail
+        /* istanbul ignore next */
+        e => this.config.mail.sender)
+			.then(sender =>
+				    new Promise(
+					    resolve => this.userManager.getUser(to, true)
+					    .catch(e => {
+						    // Not a known user, rely on email in the
+						    // getUser query
+						    resolve({
+							    name: to.email, email: to.email
+						    });
+					    })
+					    .then(uo => resolve(uo)))
+				    .then(uo => {
+					    if (!uo.email) // no email
+						    return Platform.i18n("($1 has no email address)",
+										                 uo.name || uo.key);
+					    this._debug(
+							  subject,
+							  `${uo.name}<${uo.email}> from `,
+							  sender);
+					    return this.config.mail.transport.sendMail({
+						    from: sender,
+						    to: uo.email,
+						    subject: subject,
+						    text: text,
+						    html: html
+					    })
+					    .then(() => uo.name || uo.email);
+				    }));
 		}
 
 		/**
      * Handle /simple/:send
 		 * Sends a simple description of active games (optionally with
-		 * completed games). `send` can be a single game key to
-		 * get a single game, `active` to get active games, or `all`
-		 * to get all games, including finished games. Note: this
+		 * completed games). Note: this
 		 * sends simple objects, not {@linkcode Game}s.
 		 * @param {Request} req the request object
+     * @param {string} req.params.send a single game key to
+		 * get a single game, `active` to get active games, or `all`
+		 * to get all games, including finished games.
 		 * @param {Response} res the response object
-		 * @return {Promise} Promise to send a list of games as requested
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_simple(req, res, next) {
 			const server = this;
@@ -434,7 +529,9 @@ define("server/Server", [
 		 * unique players.
 		 * @param {Request} req the request object
 		 * @param {Response} res the response object
-		 * @return {Promise}
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_history(req, res, next) {
 			const server = this;
@@ -483,7 +580,9 @@ define("server/Server", [
 		 * selecting a presentation language for the UI.
 		 * @param {Request} req the request object
 		 * @param {Response} res the response object
-		 * @return {Promise} Promise to list locales
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_locales(req, res, next) {
 			const db = new Platform.Database(
@@ -497,7 +596,9 @@ define("server/Server", [
 		 * Promise to get an index of available editions.
 		 * @param {Request} req the request object
 		 * @param {Response} res the response object
-		 * @return {Promise} Promise to index available editions
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_editions(req, res, next) {
 			return Fs.readdir(Platform.getFilePath("editions"))
@@ -510,7 +611,9 @@ define("server/Server", [
 		 * Handler for GET /dictionaries
 		 * @param {Request} req the request object
 		 * @param {Response} res the response object
-		 * @return {Promise} Promise to index available dictionaries
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_dictionaries(req, res) {
 			return Fs.readdir(Platform.getFilePath("dictionaries"))
@@ -523,7 +626,9 @@ define("server/Server", [
 		 * Handler for GET /themes/:css
 		 * @param {Request} req the request object
 		 * @param {Response} res the response object
-		 * @return {Promise} Promise to index available themes
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_themes(req, res) {
 			const dir = Platform.getFilePath("css");
@@ -536,8 +641,11 @@ define("server/Server", [
 		 * return {Promise} Promise to return css for current theme, if
 		 * a user is logged in and they have selected a theme.
 		 * @param {Request} req the request object
+     * @param {string} req.params.css name of the css file to send
 		 * @param {Response} res the response object
-		 * @return {Promise} Promise to return the requested theme file
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_theme(req, res) {
 			let theme = "default";
@@ -558,15 +666,16 @@ define("server/Server", [
           Path.normalize(dpath), {
             dotfiles: "deny"
           },
-          err => err ? reject(err) : resolve()))
-            );
+          err => err ? reject(err) : resolve())));
 		}
 
 		/**
 		 * Handler for POST /createGame
 		 * @param {Request} req the request object
 		 * @param {Response} res the response object
-		 * @return {Promise}
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_createGame(req, res) {
 			return Edition.load(req.body.edition)
@@ -584,68 +693,21 @@ define("server/Server", [
 		}
 
 		/**
-		 * @param {object} to a lookup suitable for use with UserManager.getUser
-		 * @param {Request} req the request object
-		 * @param {Response} res the response object
-		 * @param {string} gameKey game to which this applies
-		 * @param {string} subject subject
-		 * @param {string} text email text
-		 * @param {string} html email html
-		 * @return {Promise} Promise that resolves to the user that was mailed,
-		 * either their game name or their email if there is no game name.
-		 */
-		sendMail(to, req, res, gameKey, subject, text, html) {
-			return this.userManager.getUser(
-				{key: req.session.passport.user.key})
-			.then(sender => `${sender.name}<${sender.email}>`)
-			.catch(
-        // should never happen so long as only logged-in
-        // users can send mail
-        /* istanbul ignore next */
-        e => this.config.mail.sender)
-			.then(sender =>
-				    new Promise(
-					    resolve => this.userManager.getUser(to, true)
-					    .catch(e => {
-						    // Not a known user, rely on email in the
-						    // getUser query
-						    resolve({
-							    name: to.email, email: to.email
-						    });
-					    })
-					    .then(uo => resolve(uo)))
-				    .then(uo => {
-					    if (!uo.email) // no email
-						    return Platform.i18n("($1 has no email address)",
-										                 uo.name || uo.key);
-					    this._debug(
-							  subject,
-							  `${uo.name}<${uo.email}> from `,
-							  sender);
-					    return this.config.mail.transport.sendMail({
-						    from: sender,
-						    to: uo.email,
-						    subject: subject,
-						    text: text,
-						    html: html
-					    })
-					    .then(() => uo.name || uo.email);
-				    }));
-		}
-
-		/**
 		 * Handle /invitePlayers/:gameKey
 		 * @param {Request} req the request object
+		 * @param {string} req.params.gameKey the game key
 		 * @param {Response} res the response object
-		 * @return {Promise}
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_invitePlayers(req, res, next) {
 			Platform.assert(this.config.mail && this.config.mail.transport,
 				              "Mail is not configured");
 			Platform.assert(req.body.player, "Nobody to notify");
-
+      const gameKey = req.params.gameKey;
 			const gameURL =
-				    `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${req.params.gameKey}`;
+				    `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${gameKey}`;
 			let textBody = (req.body.message || "") + "\n" + Platform.i18n(
 				"Join the game by following this link: $1", gameURL);
 			// Handle XSS risk posed by HTML in the textarea
@@ -668,7 +730,11 @@ define("server/Server", [
 		 * Handler for POST /sendReminder
 		 * Email reminders to next human player in (each) game
 		 * @param {Request} req the request object
+		 * @param {string} req.params.gameKey the game key
 		 * @param {Response} res the response object
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_sendReminder(req, res, next) {
 			const gameKey = req.params.gameKey;
@@ -720,8 +786,11 @@ define("server/Server", [
      * the game UI. It ensures the game is loaded and adds the player
      * indicated by the session indicated in the request (if necessary).
 		 * @param {Request} req the request object
+		 * @param {string} req.params.gameKey the game key
 		 * @param {Response} res the response object
-		 * @return {Promise}
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_join(req, res, next) {
 			const gameKey = req.params.gameKey;
@@ -755,8 +824,11 @@ define("server/Server", [
 		 * Note the gameKey is passed in the request body, this is because it
 		 * comes from a dialog.
 		 * @param {Request} req the request object
+		 * @param {string} req.params.gameKey the game key
 		 * @param {Response} res the response object
-		 * @return {Promise}
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_addRobot(req, res, next) {
 			const gameKey = req.params.gameKey;
@@ -792,8 +864,11 @@ define("server/Server", [
 		/**
 		 * Handle /removeRobot/:gameKey to remove the robot from a game
 		 * @param {Request} req the request object
+		 * @param {string} req.params.gameKey the game key
 		 * @param {Response} res the response object
-		 * @return {Promise}
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_removeRobot(req, res, next) {
 			const gameKey = req.params.gameKey;
@@ -816,8 +891,11 @@ define("server/Server", [
 		/**
 		 * Handle /leave/:gameKey player leaving a game.
 		 * @param {Request} req the request object
+		 * @param {string} req.params.gameKey the game key
 		 * @param {Response} res the response object
-		 * @return {Promise}
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_leave(req, res, next) {
 			const gameKey = req.params.gameKey;
@@ -848,11 +926,14 @@ define("server/Server", [
      * encode the entire {@linkcode Game} object, including the
      * {@linkcode Player}s, {@linkcode Turn} history, and the {@linkcode Board}
      * so they can be recreated client-side. Subsequent commands and
-     * notifications maintain the client-side game object in synch
-     * with the server game object.
+     * notifications maintain the client-side game object incrementally
+     * to keep them in synch with the server Game object.
 		 * @param {Request} req the request object
+		 * @param {string} req.params.gameKey the game key
 		 * @param {Response} res the response object
-		 * @return {Promise} promise that resolves to the frozen game
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_game(req, res, next) {
 			const gameKey = req.params.gameKey;
@@ -864,8 +945,11 @@ define("server/Server", [
 		 * Handle /deleteGame/:gameKey
 		 * Delete a game.
 		 * @param {Request} req the request object
+		 * @param {string} req.params.gameKey the game key
 		 * @param {Response} res the response object
-		 * @return {Promise}
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_deleteGame(req, res, next) {
 			const gameKey = req.params.gameKey;
@@ -878,10 +962,14 @@ define("server/Server", [
 		}
 
 		/**
+     * Handle /anotherGame. See {@linkcode Game#anotherGame}
 		 * Create another game with the same players.
 		 * @param {Request} req the request object
+		 * @param {string} req.params.gameKey the game key
 		 * @param {Response} res the response object
-		 * @return {Promise}
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_anotherGame(req, res, next) {
 			return this.loadGame(req.params.gameKey)
@@ -892,11 +980,16 @@ define("server/Server", [
 		}
 
 		/**
-		 * A good result is a 200, a bad result has a explanatory string.
-		 * Command results are broadcast in Turn objects.
+     * Handle /command/:command/:gameKey. Command results are broadcast
+     * in Turn objects.
 		 * @param {Request} req the request object
+		 * @param {string} req.params.command the command, one of
+     * {@linkcode Types}.Command
+		 * @param {string} req.params.gameKey the game key
 		 * @param {Response} res the response object
-		 * @return {Promise}
+		 * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
 		 */
 		request_command(req, res, next) {
 			const command = req.params.command;

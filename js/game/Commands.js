@@ -530,7 +530,8 @@ define("game/Commands", [
 		},
 
 		/**
-		 * Create another game the same, but with players re-ordered.
+		 * Create another game the same, but with players re-ordered. The
+     * key for the new game is broadcast in a `NEXT_GAME` notification.
      * @function
      * @memberof Commands
 		 * @return {Promise} resolving to the new game
@@ -579,7 +580,8 @@ define("game/Commands", [
 		},
 
 		/**
-		 * Toggle advice on/off
+		 * Toggle advice on/off. All players are told using
+     * a `MESSAGE` notification.
      * @function
      * @memberof Commands
 		 * @param {Player} player who is being toggled

@@ -149,6 +149,7 @@ define("platform", [
 			emitter.emit(e, args);
 		}
 
+    /* istanbul ignore next */
 		/** See {@linkcode Platform#fail|Platform.fail} for documentation */
     static fail(descr) {
       Assert(false, descr);
@@ -158,6 +159,7 @@ define("platform", [
 		static findBestPlay() {
 			if (global.SYNC_FBP) // used for debug
 			  // block this thread
+        /* istanbul ignore next */
         return syncFindBestPlay.apply(arguments);
       else
 			  // use a worker thread
