@@ -49,6 +49,8 @@ define("test/TestSocket", [], () => {
 
     /** Simulate socket.io */
     emit(event, data) {
+      if (data && data.messageID)
+        data = data.data;
       if (this.connection)
         this.connection._emit(event, data);
       else
