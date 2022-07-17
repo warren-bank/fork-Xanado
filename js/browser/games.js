@@ -107,15 +107,18 @@ requirejs([
 		}
 
 		// @Override
-		attachSocketListeners(socket) {
-			socket
-			.on("update", () => {
+		attachSocketListeners() {
+      super.attachSocketListeners();
+
+			this.socket
+			.on(Notify.UPDATE, () => {
 				console.debug("--> update");
 				// Can be smarter than this!
 				this.refresh().catch(UI.report);
 			});
 
-			socket.emit(Notify.MONITOR);
+      // Tell the server we want to receive monitor messages
+			this.socket.emit(Notify.MONITOR);
 		}
 
 		/**

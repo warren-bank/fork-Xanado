@@ -121,16 +121,11 @@ define("common/Fridge", () => {
 		 * prototype. If a useable constructor is not found, a
 		 * warning will be printed to the console.
 		 * @param {object} frozen object to thaw
-		 * @param {object[]} classes optional array of classes for
-		 * objects expected within frozen data.
+		 * @param {<string,object>} typeMap optional map from class name
+     * to class for objects expected within frozen data.
 		 */
-		static thaw(object, classes) {
+		static thaw(object, typeMap) {
 			const objectsThawed = [];
-			const typeMap = { };
-
-			if (classes)
-				for (let clzz of classes)
-					typeMap[clzz.name] = clzz;
 
 			function _thaw(object) {
 				if (!object || typeof object !== "object")
@@ -145,6 +140,7 @@ define("common/Fridge", () => {
 					// been thawed
 					if (objectsThawed[object[IB_REF]])
 						return objectsThawed[object[IB_REF]];
+          /* istanbul ignore next */
 					throw new Error(`reference to unthawed ${object[IB_REF]}`);
 				}
 

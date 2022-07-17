@@ -16,7 +16,6 @@ describe("Undo", () => {
 		LetterBag: "game/LetterBag",
 		Player: "game/Player",
 	  Game: "game/Game",
-	  Undo: "game/Undo",
 		
 		Move: "game/Move",
 		Turn: "game/Turn",

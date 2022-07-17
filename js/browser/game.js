@@ -689,7 +689,7 @@ define("browser/game", [
 		/**
 		 * Identify the logged-in user, and make sure they are playing
 		 * in this game.
-		 * @param {Game} game the game
+		 * @param {BrwoserGame} game the game
 		 * @return {Promise} a promise that resolves to the player key
 		 * or undefined if the player is not logged in or is not in the game
 		 */
@@ -718,7 +718,7 @@ define("browser/game", [
 
 		/**
 		 * A game has been read; load it into the UI
-		 * @param {Game} game the Game being played
+		 * @param {BrowserGame} game the Game being played
 		 * @return {Promise} Promise that resolves to a game
 		 */
 		loadGame(game) {
@@ -830,13 +830,10 @@ define("browser/game", [
 		}
 
 		// @Override
-		attachSocketListeners(socket) {
-			socket
+		attachSocketListeners() {
+			super.attachSocketListeners();
 
-			// socket.io events 'new_namespace', 'disconnecting',
-			// 'initial_headers', 'headers', 'connection_error' are not handled
-
-			// Custom messages
+      this.socket
 
 			.on(Notify.CONNECTIONS, observers => {
 				// Update list of active connections. 'players' is a list of
@@ -925,13 +922,16 @@ define("browser/game", [
 		}
 
 		/**
-		 * Attach listeners for jquery and game events
+		 * Attach handlers for jquery and game events. This does NOT
+     * attach socket handlers, just DOM object handlers.
+     * @private
 		 */
 		attachHandlers() {
 			const ui = this;
 
 			// Configure chat input
 			$("#chatBlock input")
+
 			.on("change", function() {
 				// Send chat
 				console.debug("<-- message");
@@ -944,6 +944,7 @@ define("browser/game", [
 				$(this).val("");
 				$("body").focus();
 			})
+
 			.on("keydown", function(event) {
 				// Tab and Escape both blur the input
 				if (event.key === "Tab" || event.key === "Escape")

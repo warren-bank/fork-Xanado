@@ -31,6 +31,7 @@ requirejs.config({
 		game: "js/game",
 		dawg: "js/dawg",
 		server: "js/server",
+		browser: "js/browser",
 		platform: "js/server/ServerPlatform"
 	}
 });
@@ -65,12 +66,14 @@ exports.depend = (required, deps) => {
 		}
     for (let t of Object.keys(Types)) {
 			eval(`${t}=Types.${t}`);
-        }
+    }
 		// Why? No idea, except without it, it won't work in
 		// npm run
 		global.document = window.document;
         
-    Platform.i18n().load("en-GB").then(required);
+    Platform
+    .i18n().load("en-GB")
+    .then(required);
 	});
 };
 

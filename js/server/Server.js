@@ -8,12 +8,12 @@ define("server/Server", [
 	"platform",	"common/Fridge",
 	"server/UserManager",
 	"game/Types",
-	"game/Game", "game/Undo", "game/Player", "game/Turn", "game/Edition"
+	"game/Game", "game/Player", "game/Turn", "game/Edition"
 ], (
 	fs, Path, Events, Cookie, cors, Express, ErrorHandler,
 	Platform, Fridge,
 	UserManager, Types,
-	Game, Undo, Player, Turn, Edition
+	Game, Player, Turn, Edition
 ) => {
 
 	const Fs = fs.promises;
@@ -27,9 +27,14 @@ define("server/Server", [
 	class Server {
 
 		/**
-		 * @param {Object} config See example-config.json for content
+		 * @param {Object} config See example-config.json
 		 */
 		constructor(config) {
+
+      /**
+       * Cache of configuration
+       * @member {object}
+       */
 			this.config = config;
 
 			Platform.assert(
@@ -48,15 +53,28 @@ define("server/Server", [
 			config.defaults.notification = config.defaults.notification &&
 			(typeof config.https !== "undefined");
 
+      /**
+       * Games database
+       * @member {Platform.Database}
+       */
 			this.db = new Platform.Database(
 				// Allow (undocumented) override of default /games
 				// database path, primarily for unit testing.
 				config.games || "games",
 				"game");
 
-			// Live games; map from game key to Game
+			/**
+       * Map from game key to Game. Games in this map have been loaded
+       * from the DB (loadGame has been called for them)
+       * @member {<string,Game>}
+       */
 			this.games = {};
-			// Status-monitoring sockets (game pages)
+
+			/**
+       * Status-monitoring sockets (connections to games pages). Monitors
+       * watch a subset of activity in ALL games.
+       * @member {WebSocket[]}
+       */
 			this.monitors = [];
 
 			process.on("unhandledRejection", reason => {
@@ -64,6 +82,10 @@ define("server/Server", [
 				console.error("Command rejected", reason, reason ? reason.stack : "");
 			});
 
+      /**
+       * Express server
+       * @member {Express}
+       */
 			this.express = new Express();
 
 			// Headers not added by passport?
@@ -90,7 +112,10 @@ define("server/Server", [
 				next();
 			});
 
-			// Add user manager routes (/login, /register etc.
+			/**
+       * User manager, handles logins etc.
+       * @member {UserManager}
+       */
 			this.userManager = new UserManager(config, this.express);
 
 			// Create a router for game commands
@@ -304,7 +329,7 @@ define("server/Server", [
      */
     socket_connect(sk) {
 				this._debug("-S-> connect");
-				this.updateObservers();
+				this.updateMonitors();
     }
 
     /**
@@ -327,7 +352,7 @@ define("server/Server", [
 				this.monitors.slice(i, 1);
 			} else
 				this._debug("\tanonymous disconnect");
-			this.updateObservers();
+			this.updateMonitors();
     }
    
 		/**
@@ -342,7 +367,7 @@ define("server/Server", [
     }
 
 		/**
-     * Handle a player joining.
+     * Handle a player (or observer) joining.
      * When the game interface is opened in a browser, the
      * interface initiates a socket connection. WebSockets then
      * sends "connect" to the UI. `JOIN` is then sent by the UI,
@@ -356,7 +381,12 @@ define("server/Server", [
 			this.loadGame(params.gameKey)
 			.then(game => {
 				return game.connect(socket, params.playerKey)
-				.then(() => this.updateObservers(game));
+				.then(() => {
+          // Tell everyone in the game
+          game.sendCONNECTIONS();
+          // Tell games pages
+          this.updateMonitors();
+        });
 			})
       /* istanbul ignore next */
 			.catch(e => {
@@ -419,19 +449,14 @@ define("server/Server", [
 		}
 
 		/**
-		 * Notify games and monitors that something about the game has
+		 * Notify monitors that something about the game has
      * changed requiring an update..
-		 * @param {Game?} game if undefined, will simply send `UPDATE`
-		 * to monitors. If it's a game, then will also send `CONNECTIONS`
-     * to players and monitors.
      * @private
 		 */
-		updateObservers(game) {
-			this._debug("<-S- update", game ? game.key : "*");
+    updateMonitors() {
+			this._debug("<-S- update *");
 			this.monitors.forEach(socket => socket.emit(Notify.UPDATE));
-			if (game)
-				game.sendCONNECTIONS();
-		}
+    }
 
 		/**
 		 * @param {object} to a lookup suitable for use with UserManager.getUser
@@ -689,7 +714,7 @@ define("server/Server", [
 				return game.save();
 			})
 			.then(game => res.status(200).send(game.key))
-			.then(() => this.updateObservers());
+			.then(() => this.updateMonitors());
 		}
 
 		/**
@@ -814,7 +839,7 @@ define("server/Server", [
 				return prom.then(game => game.playIfReady());
 			})
 			.then(() => res.status(200).send("OK"));
-			// Don't need to updateObservers, that will be done
+			// Don't need to send connections, that will be done
 			// in the connect event handler
 		}
 
@@ -856,7 +881,10 @@ define("server/Server", [
 				return game.save()
 				// Game may now be ready to start
 				.then(() => game.playIfReady())
-				.then(() => this.updateObservers(game))
+				.then(() => {
+          this.updateMonitors();
+          game.sendCONNECTIONS();
+        })
 				.then(() => res.status(200).send("OK"));
 			});
 		}
@@ -883,7 +911,10 @@ define("server/Server", [
 			// Game may now be ready to start
 			.then(game => {
 				return game.playIfReady()
-				.then(() => this.updateObservers(game));
+				.then(() => {
+          game.sendCONNECTIONS();
+          this.updateMonitors();
+        });
 			})
 			.then(() => res.status(200).send("OK"));
 		}
@@ -911,7 +942,7 @@ define("server/Server", [
 					game.removePlayer(player);
 					return game.save()
 					.then(() => res.status(200).send("OK"))
-					.then(() => this.updateObservers());
+					.then(() => this.updateMonitors());
 				}
 			  /* istanbul ignore next */
 				return Platform.fail(
@@ -958,7 +989,7 @@ define("server/Server", [
       .then(game => game.stopTheClock()) // in case it's running
 			.then(() => this.db.rm(gameKey))
 			.then(() => res.status(200).send("OK"))
-			.then(() => this.updateObservers());
+			.then(() => this.updateMonitors());
 		}
 
 		/**
@@ -1059,8 +1090,8 @@ define("server/Server", [
       })
 			.then(() => {
 				//this._debug(command, "handled`);
-				// Notify non-game monitors (games pages)
-				this.updateObservers();
+				// Notify games pages
+				this.updateMonitors();
 				return res.status(200).send("OK");
 			});
 		}

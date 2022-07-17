@@ -3,13 +3,13 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-define("game/ServerGame", [
+define("server/ServerGame", [
 	"platform", "common/Utils",
- 	"dawg/Dictionary", "game/Edition", "game/Board", "game/LetterBag",
+ 	"dawg/Dictionary", "game/Board", "game/LetterBag",
   "game/Types", "game/Commands", "game/Undo"
 ], (
 	Platform, Utils,
-  Dictionary, Edition, Board, LetterBag,
+  Dictionary, Board, LetterBag,
   Types, Commands, Undo
 ) => {
   const Notify    = Types.Notify;
@@ -25,7 +25,7 @@ define("game/ServerGame", [
   }
 
   /**
-   * Mixin that provides server-specific functionality for {@linkcode Game}
+   * Provides server-specific functionality for {@linkcode Game}
    * @mixin ServerGame
    * @mixes Commands
    * @mixes Undo
@@ -43,16 +43,6 @@ define("game/ServerGame", [
 			return this.getEdition()
 			.then(ed => this.board.parse(sboard, ed))
 			.then(() => this);
-		},
-
-		/**
-		 * Get the edition for this game, lazy-loading as necessary
-     * @function
-     * @memberof ServerGame
-		 * @return {Promise} resolving to an {@linkcode Edition}
-		 */
-		getEdition() {
-			return Edition.load(this.edition);
 		},
 
 		/**
@@ -106,33 +96,6 @@ define("game/ServerGame", [
 		},
 
 		/**
-		 * Promise to finish construction of a new Game.
-		 * Load the edition and create the board and letter bag.
-		 * Not done in the constructor because we need to return
-		 * a Promise. Must be followed by onLoad to connect a
-		 * DB and complete initialisation of private fields.
-     * @function
-     * @memberof ServerGame
-		 * @return {Promise} that resolves to this
-		 */
-		create() {
-			// Can't be done in the constructor because we have to
-			// return a Promise.
-		  this.creationTimestamp = Date.now();
-		  this.key = Utils.genKey();
-      this.state = State.WAITING;
-			return this.getEdition()
-			.then(edo => {
-				this.board = new Board(edo);
-				this.letterBag = new LetterBag(edo);
-        this.bonuses = edo.bonuses;
-				this.rackSize = edo.rackCount;
-				this.swapSize = edo.swapCount;
-				return this;
-			});
-		},
-
-		/**
 		 * Promise to finish the construction or load from serialisation
 		 * of a game.
 		 * A game has to know what DB so it knows where to save. The
@@ -172,53 +135,9 @@ define("game/ServerGame", [
 			return Promise.resolve(this);
 		},
 
-		/**
-		 * Add a player to the game, and give them an initial rack
-     * @function
-     * @memberof ServerGame
-		 * @param {Player} player
-		 * @param {boolean?} fillRack true to fill the player's rack
-     * from the game's letter bag.
-     * @return {Game} this
-		 */
-		addPlayer(player, fillRack) {
-			Platform.assert(this.letterBag, "Cannot addPlayer() before create()");
-			Platform.assert(
-        !this.maxPlayers || this.players.length < this.maxPlayers,
-				"Cannot addPlayer() to a full game");
-			player._debug = this._debug;
-			this.players.push(player);
-			this._debug(this.key, "added player", player.toString());
-			if (this.timerType)
-				player.clock = this.timeLimit;
-      if (fillRack)
-        player.fillRack(this.letterBag, this.rackSize);
-      return this;
-		},
-
-		/**
-		 * Remove a player from the game, taking their tiles back into
-		 * the bag
-     * @function
-     * @memberof ServerGame
-		 * @param {Player} player
-		 */
-		removePlayer(player) {
-			player.returnTiles(this.letterBag);
-			const index = this.players.findIndex(p => p.key === player.key);
-			Platform.assert(index >= 0,
-				              `No such player ${player.key} in ${this.key}`);
-			this.players.splice(index, 1);
-			this._debug(player.key, "left", this.key);
-			if (this.players.length < (this.minPlayers || 2)
-          && this.state !== State.GAME_OVER)
-				this.state = State.WAITING;
-		},
-
     /**
 		 * Send a message to just one player. Note that the player
 		 * may be connected multiple times through different sockets.
-		 * Only available server-side.
      * @function
      * @memberof ServerGame
 		 * @param {Player} player player to send to
@@ -361,7 +280,7 @@ define("game/ServerGame", [
 			return this.save()
 			.then(() => this.notifyAll(Notify.TURN, turn))
 			.then(() => this);
-		},
+    },
 
 		/**
 		 * Does player have an active connection to this game?
@@ -553,10 +472,10 @@ define("game/ServerGame", [
 
 		/**
 		 * If the game has a time limit, start an interval timer.
-     * @function
-     * @memberof ServerGame
      * @return {boolean} true if the clock is started, false otherwise
      * (e.g. if it is already running)
+     * @function
+     * @memberof ServerGame
 		 * @private
 		 */
 		startTheClock() {
@@ -609,8 +528,8 @@ define("game/ServerGame", [
 			// challenge is a Promise that will resolve to true if a
 			// challenge is made, or false otherwise.
 			let challenge = Promise.resolve(false);
-      let lastPlay = this.lastPlay();
-			if (lastPlay
+      let lastPlay = this.turns[this.turns.length - 1];
+			if (lastPlay && lastPlay.type === Turns.PLAYED
 				  && this.dictionary
 				  && player.canChallenge) {
 				const lastPlayer = this.getPlayerWithKey(lastPlay.playerKey);

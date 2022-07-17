@@ -11,6 +11,7 @@ define("platform", [ "common/Platform" ], Platform => {
 	 * implementation for the browser.
 	 */
 	class BrowserPlatform extends Platform {
+
 		/** See {@linkcode Platform#trigger|Platform.trigger} for documentation */
 		static trigger(e, args) {
 			// Pass events straight to the document
@@ -28,6 +29,21 @@ define("platform", [ "common/Platform" ], Platform => {
 
 		static i18n() {
 			return $.i18n.apply($.i18n, arguments);
+		}
+
+    /** See {@linkcode Platform#getFilePath|Platform.getFilePath} for documentation */
+		static getFilePath(p) {
+			return requirejs.toUrl(p || "");
+		}
+
+		/** See {@linkcode Platform#readFile|Platform.readFile} for documentation */
+		static readFile(p) {
+			return $.get(p);
+		}
+
+		/** See {@linkcode Platform#readZip|Platform.readZip} for documentation */
+		static readZip(p) {
+			return $.get(p);
 		}
 	}
 

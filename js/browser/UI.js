@@ -4,7 +4,7 @@
 /* eslint-env browser, jquery */
 
 define("browser/UI", [
-	"socket.io-client",  "browser/Dialog",
+	"socket.io-client",  "browser/Dialog", "platform",
 
 	"jquery",
 	"jqueryui",
@@ -16,7 +16,7 @@ define("browser/UI", [
 	"i18n_parser",
   "cldrpluralruleparser"
 ], (
-	Sockets, Dialog
+	Sockets, Dialog, Platform
 ) => {
 
 	/**
@@ -101,17 +101,22 @@ define("browser/UI", [
 			if (audio.playing)
 				audio.pause();
 
-			try {
-				audio.play();
-			}
-			catch(e) {
-				$(audio).on("canplaythrough", 
-					          () => {
-						          $(audio).off("canplaythrough");
-						          audio.play();
-					          }, true);
-			}
-		}
+			audio.play()
+			.catch(() => {
+        // play() can throw if the audio isn't loaded yet. Catching
+        // canplaythrough might help (though it's really a bit of
+        // overkill, as none of Xanado's audio is "important")
+				$(audio).on(
+          "canplaythrough", 
+					() => {
+						$(audio).off("canplaythrough");
+            audio.play()
+            .catch(() => {
+              // Probably no interaction yet
+            });
+					}, true);
+			});
+    }
 
 		/**
 		 * Complete construction using promises
@@ -184,8 +189,40 @@ define("browser/UI", [
 			console.debug("UI loaded, connecting to socket");
       // The server URL will be deduced from the window.location
 			this.socket = Sockets.connect();
+
+			this.attachSocketListeners();
+
+			return new Promise(resolve => {
+				$(".user-interface").show();
+				resolve();
+			});
+		}
+
+		/**
+		 * Called when a connection to the server is reported by the
+		 * socket. Use to update the UI to reflect the game state.
+		 * Implement in subclasses.
+		 */
+		connectToServer() {
+			return Promise.reject("Not implemented");
+		}
+
+		/**
+		 * Attach socket communications listeners. Override in subclasses,
+     * making sure to call super.attachSocketListeners()
+		 */
+		attachSocketListeners() {
+
+      Platform.assert(!this._socketListenersAttached);
+      this._socketListenersAttached = true;
+
 			let $reconnectDialog = null;
+
+			// socket.io events 'new_namespace', 'disconnecting',
+			// 'initial_headers', 'headers', 'connection_error' are not handled
+
 			this.socket
+
 			.on("connect", skt => {
 				// Note: "connect" is synonymous with "connection"
 				// Socket has connected to the server
@@ -217,31 +254,7 @@ define("browser/UI", [
 							UI.report(mess);
 					});
 				}, 3000);
-
 			});
-
-			this.attachSocketListeners(this.socket);
-
-			return new Promise(resolve => {
-				$(".user-interface").show();
-				resolve();
-			});
-		}
-
-		/**
-		 * Called when a connection to the server is reported by the
-		 * socket. Use to update the UI to reflect the game state.
-		 * Implement in subclasses.
-		 */
-		connectToServer() {
-			return Promise.reject("Not implemented");
-		}
-
-		/**
-		 * Attach socket communications listeners. Implement in subclasses.
-		 * @param {Socket} communications socket
-		 */
-		attachSocketListeners(socket) {
 		}
 
 		/**

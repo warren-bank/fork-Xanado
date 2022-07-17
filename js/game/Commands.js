@@ -272,7 +272,9 @@ define("game/Commands", [
 		 * @return {Promise} Promise resolving to the game
 		 */
 		takeBack(player, type) {
-			const previousMove = this.turns[this.turns.length - 1];
+			const previousMove = this.lastTurn();
+      if (!previousMove)
+				return Promise.reject("No previous move to take back");
       if (previousMove.type !== Turns.PLAYED)
 				return Promise.reject(`Cannot challenge a ${previousMove.type}`);
 
@@ -369,8 +371,10 @@ define("game/Commands", [
 			if (this.turns.length === 0)
 				return Promise.reject("No previous move to challenge");
 
-      let previousMove = this.turns[this.turns.length - 1];
+      let previousMove = this.lastTurn();
 
+      if (!previousMove)
+				return Promise.reject("No previous move to challenge");
       if (previousMove.type !== Turns.PLAYED)
 				return Promise.reject(`Cannot challenge a ${previousMove.type}`);
 

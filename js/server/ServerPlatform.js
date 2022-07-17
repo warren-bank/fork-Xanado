@@ -190,7 +190,7 @@ define("platform", [
 
 	ServerPlatform.i18n = I18N;
 
-	// Asynchronous load to break circular dependency
+	// Asynchronous load to break circular dependency on game/Game
 	requirejs([
     "game/findBestPlayController",
     "game/findBestPlay" ], (afbp, sfbp) => {

@@ -3,20 +3,14 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-define("game/BrowserGame", [
-	"platform", "game/Types", "game/Player"
+define("browser/BrowserGame", [
+	"platform", "game/Player"
 ], (
-	Platform, Types, Player
+	Platform, Player
 ) => {
-  const Notify    = Types.Notify;
-  const State     = Types.State;
-  const Penalty   = Types.Penalty;
-  const Timer     = Types.Timer;
-  const WordCheck = Types.WordCheck;
-  const Turns     = Types.Turns;
 
   /**
-   * Mixin that provides browser-specific functionality for {@linkcode Game}
+   * Provides browser-specific functionality for {@linkcode Game}
    * @mixin BrowserGame
    */
   const BrowserGame = {
@@ -41,7 +35,7 @@ define("game/BrowserGame", [
 		 * to reflect the members and ordering of that list.
      * @function
      * @memberof BrowserGame
-		 * @param {object[]} observers list of observers
+		 * @param {object[]} observers list of observers (simple objects)
 		 */
 		updatePlayerList(observers) {
 			for (let player of this.players)
@@ -51,7 +45,7 @@ define("game/BrowserGame", [
 				let player = this.getPlayerWithKey(watcher.key);
 				if (!player) {
 					// New player in game
-					player = new Player(watcher);
+					player = Player.fromSimple(watcher);
 					this.addPlayer(player, true);
 					player._debug = this._debug;
 				}
