@@ -66,7 +66,7 @@ define("server/Server", [
 			/**
        * Map from game key to Game. Games in this map have been loaded
        * from the DB (loadGame has been called for them)
-       * @member {<string,Game>}
+       * @member {object.<string,Game>}
        */
 			this.games = {};
 

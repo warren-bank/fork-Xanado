@@ -121,7 +121,7 @@ define("common/Fridge", () => {
 		 * prototype. If a useable constructor is not found, a
 		 * warning will be printed to the console.
 		 * @param {object} frozen object to thaw
-		 * @param {<string,object>} typeMap optional map from class name
+		 * @param {object.<string,object>} typeMap optional map from class name
      * to class for objects expected within frozen data.
 		 */
 		static thaw(object, typeMap) {
