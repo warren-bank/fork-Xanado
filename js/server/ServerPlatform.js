@@ -134,8 +134,6 @@ define("platform", [
 		};
 	}
 
-	let asyncFindBestPlay, syncFindBestPlay;
-
 	/**
 	 * Implementation of {@linkcode Platform} for use in node.js.
 	 * See {@linkcode FileDatabase} of the `Platform.Database` implementation,
@@ -156,14 +154,20 @@ define("platform", [
     }
 
 		/** See {@linkcode Platform#findBestPlay|Platform.findBestPlay} for documentation */
-		static findBestPlay() {
-			if (global.SYNC_FBP) // used for debug
+		static async findBestPlay() {
+			if (global.SYNC_FBP) { // used for debug
 			  // block this thread
         /* istanbul ignore next */
-        return syncFindBestPlay.apply(arguments);
-      else
+			  const fn = await new Promise(
+          resolve => requirejs([ "game/findBestPlay" ], resolve(fn)));
+        return fn.apply(null, arguments);
+      }
+      else {
 			  // use a worker thread
-			  return asyncFindBestPlay.apply(null, arguments);
+			  return new Promise(
+          resolve => requirejs([ "game/findBestPlayController" ],
+                               fn => resolve(fn.apply(null, arguments))));
+      }
 		}
 
 		/** See {@linkcode Platform#getFilePath|Platform.getFilePath} for documentation */
@@ -189,14 +193,6 @@ define("platform", [
   ServerPlatform.Database = FileDatabase;
 
 	ServerPlatform.i18n = I18N;
-
-	// Asynchronous load to break circular dependency on game/Game
-	requirejs([
-    "game/findBestPlayController",
-    "game/findBestPlay" ], (afbp, sfbp) => {
-      asyncFindBestPlay = afbp;
-      syncFindBestPlay = sfbp;
-    });
 
 	return ServerPlatform;
 });
