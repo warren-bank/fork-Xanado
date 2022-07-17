@@ -65,6 +65,49 @@ define("common/Utils", [ "platform" ], Platform => {
 							             list.slice(0, list.length - 1).join(", "),
 							             list[list.length - 1]);
 		}
+
+    static stringify(value) {
+
+      // Produce a string from holder[key]
+      switch (typeof value) {
+      case "undefined":
+        return "undef";
+      case "string":
+        return `"${value}"`;
+      case "number":
+      case "boolean":
+      case "null":
+        return String(value);
+      }
+
+      // Due to a specification blunder in ECMAScript,
+      // typeof null is "object"
+      if (!value)
+        return "null";
+
+      const partial = [];
+
+      // Is the value an array?
+      if (Object.prototype.toString.apply(value) === "[object Array]") {
+        for (const v of value)
+          partial.push(Utils.stringify(v));
+        
+        return `[${partial.join(",")}]`;
+      }
+
+      // Otherwise this is an object
+      for (const k in value) {
+        if (Object.prototype.hasOwnProperty.call(value, k)) {
+          const v = Utils.stringify(value[k]);
+          if (v)
+            partial.push(`${k}:${v}`);
+        }
+      }
+
+      // Join all of the member texts together, separated with commas,
+      // and wrap them in braces.
+      return `{${partial.join(",")}}`;
+    }
 	}
 
 	return Utils;

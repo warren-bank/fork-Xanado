@@ -24,6 +24,20 @@ define("browser/game", [
   const State   = Types.State;
   const Turns   = Types.Turns;
 
+  // Check that incoming notifications are in the sequence we expect.
+  // The sequence may have gaps, because some notifications only
+  // go to a subset of users.
+  let lastMessageID = -1;
+  function checkSequenceNumber(notification) {
+    if (notification.messageID <= lastMessageID) {
+      console.error("ERROR: Message sequence error", lastMessageID,
+                    ">=", Utils.stringify(notification));
+      //Platform.fail("Message sequence error - check console");
+    }
+    lastMessageID = notification.messageID;
+    return notification.data;
+  }
+
 	/**
 	 * User interface to a game in a browser. The Ui reflects the game state as
 	 * communicated from the server, through the exchange of various messages.
@@ -66,32 +80,28 @@ define("browser/game", [
 			this.boardLocked = false;
 		}
 
-		// @Override
-		decorate() {
-			let m = document.URL.match(/[?;&]game=([^;&]+)/);
-			Platform.assert(m, `No game in ${document.URL}`);
-			const gameKey = m[1];
-			m = document.URL.match(/[?;&]observer=([^;&]+)/);
-			if (m) {
-        this.observer = m[1];
-        console.debug(`OBSERVER "${this.observer}"`);
-      }
-
-			this.attachHandlers();
-
-			console.debug(`GET /game/${gameKey}`);
-			return $.get(`/game/${gameKey}`)
-			.then(frozen => {
-				console.debug(`--> Game ${gameKey}`);
-				return Fridge.thaw(frozen, Game.classes);
-			})
-			.then(game => {
-				return this.identifyPlayer(game)
-				.then (playerKey => this.loadGame(game));
-			})
-			.then(() => super.decorate())
-			.catch(UI.report);
-		}
+		// @override
+    handleURLArguments() {
+      return super.handleURLArguments()
+      .then(args => {
+			  if (args.observer) {
+          this.observer = args.observer;
+          console.debug(`\tObserver "${this.observer}"`);
+        }
+      	Platform.assert(args.game, `No game in ${document.URL}`);
+			  const gameKey = args.game;
+			  console.debug(`GET /game/${gameKey}`);
+			  return $.get(`/game/${gameKey}`)
+			  .then(frozen => {
+				  console.debug(`--> Game ${gameKey}`);
+				  return Fridge.thaw(frozen, Game.classes);
+			  })
+			  .then(game => {
+				  return this.identifyPlayer(game)
+				  .then (playerKey => this.loadGame(game));
+			  });
+      });
+    }
 
 		/**
 		 * Format a move score summary.
@@ -389,6 +399,19 @@ define("browser/game", [
 										                  who, nWinners));
 			GameUI.$log(interactive, $narrative);
 		}
+
+    /**
+     * Update list of active connections.
+     */
+    handle_connections(observers) {
+      console.debug("--> connections", Utils.stringify(observers));
+      this.game.updatePlayerList(
+        observers.filter(o => !o.isObserver));
+      this.updateObservers(observers.filter(o => o.isObserver));
+      this.updatePlayerTable();
+      let myGo = this.isThisPlayer(this.game.whosTurnKey);
+      this.lockBoard(!myGo);
+    }
 
 		/**
 		 * Process an incoming socket event to add a message to the
@@ -817,11 +840,12 @@ define("browser/game", [
 			return Promise.resolve();
 		}
 
-		// @Override
-		connectToServer() {
+		// @override
+		readyToListen() {
 			const playerKey = this.player ? this.player.key : undefined;
-			// Confirm to the server that we're ready to play
+			// Confirm to the server that we're ready to listen
 			console.debug("<-- join");
+      // This will throw if there is no server on the other end
 			this.socket.emit(Notify.JOIN, {
 				gameKey: this.game.key,
 				playerKey: playerKey
@@ -829,48 +853,47 @@ define("browser/game", [
 			return Promise.resolve();
 		}
 
-		// @Override
+		// @override
 		attachSocketListeners() {
 			super.attachSocketListeners();
 
       this.socket
 
-			.on(Notify.CONNECTIONS, observers => {
-				// Update list of active connections. 'players' is a list of
-				// Player.simple
-				console.debug("--> connections");
-				this.game.updatePlayerList(
-          observers.filter(o => !o.isObserver));
-        this.updateObservers(observers.filter(o => o.isObserver));
-				this.updatePlayerTable();
-				let myGo = this.isThisPlayer(this.game.whosTurnKey);
-				this.lockBoard(!myGo);
-			})
+			.on(Notify.CONNECTIONS,
+          observers => this.handle_connections(checkSequenceNumber(observers)))
 
 			// A turn has been taken. turn is a Turn
-			.on(Notify.TURN, turn => this.handle_turn(turn))
+			.on(Notify.TURN,
+          turn => this.handle_turn(checkSequenceNumber(turn)))
 
 			// Server clock tick.
-			.on(Notify.TICK, params => this.handle_tick(params))
+			.on(Notify.TICK,
+          params => this.handle_tick(checkSequenceNumber(params)))
 
 			// A follow-on game is available
-			.on(Notify.NEXT_GAME,	params => this.handle_nextGame(params))
+			.on(Notify.NEXT_GAME,
+	        params => this.handle_nextGame(checkSequenceNumber(params)))
 
 			// A message has been sent
-			.on(Notify.MESSAGE, message => GameUI.handle_message(message))
+			.on(Notify.MESSAGE,
+          message => GameUI.handle_message(checkSequenceNumber(message)))
 
 			// Attempted play has been rejected
-			.on(Notify.REJECT, params => this.handle_reject(params))
+			.on(Notify.REJECT,
+          params => this.handle_reject(checkSequenceNumber(params)))
 
 			// Instruction to reload the UI received, probably as the result
       // of an undo
-			.on(Notify.RELOAD, params => this.handle_reload(params))
+			.on(Notify.RELOAD,
+          params => this.handle_reload(checkSequenceNumber(params)))
 
 			// Game has been paused
-			.on(Notify.PAUSE, params => this.handle_pause(params))
+			.on(Notify.PAUSE,
+          params => this.handle_pause(checkSequenceNumber(params)))
 
 			// Game has been unpaused
-			.on(Notify.UNPAUSE, params => GameUI.handle_unpause(params))
+			.on(Notify.UNPAUSE,
+          params => GameUI.handle_unpause(checkSequenceNumber(params)))
 
 			.on(Notify.JOIN, () => console.debug("--> join"));
 		}
@@ -922,9 +945,7 @@ define("browser/game", [
 		}
 
 		/**
-		 * Attach handlers for jquery and game events. This does NOT
-     * attach socket handlers, just DOM object handlers.
-     * @private
+     * @override
 		 */
 		attachHandlers() {
 			const ui = this;
@@ -967,6 +988,8 @@ define("browser/game", [
 
 			// Keydown anywhere in the document
 			.on("keydown", event => this.handle_keydown(event));
+
+      super.attachHandlers();
 		}
 
 		/**
@@ -1740,5 +1763,5 @@ define("browser/game", [
 		}
 	}
 
-	new GameUI().build();
+	new GameUI().create();
 });

@@ -3,7 +3,9 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-define("platform", [ "common/Platform" ], Platform => {
+define("platform", [
+  "common/Platform", "common/Utils"
+], (Platform, Utils) => {
 
 	/**
 	 * Browser implementation of {@linkcode Platform}
@@ -20,10 +22,11 @@ define("platform", [ "common/Platform" ], Platform => {
 
     static assert(cond, desc) {
       if (!cond)
-        throw new Error(desc || "Internal error");
+        BrowserPlatform.fail(desc);
     }
 
     static fail(desc) {
+      alert(Utils.stringify(desc) + "\nPlease report this to the developers, including the console log in your report\nan" + new Error(desc).stack);
         throw new Error(desc || "Internal error");
     }
 

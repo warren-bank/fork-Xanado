@@ -47,8 +47,8 @@ requirejs([
 				this.isUntwisted[untwist] = true;
 		}
 
-		// @Override
-		decorate() {
+		// @override
+		attachHandlers() {
 			$("#showAllGames")
 			.on("change", () => this.refresh_games());
 
@@ -98,15 +98,15 @@ requirejs([
 				error: UI.report
 			}));
 			
-			return super.decorate();
+			super.attachHandlers();
 		}
 
-		// @Override
-		connectToServer() {
+		// @override
+		readyToListen() {
 			return this.refresh();
 		}
 
-		// @Override
+		// @override
 		attachSocketListeners() {
       super.attachSocketListeners();
 
@@ -583,5 +583,5 @@ requirejs([
 		}
 	}
 
-	new GamesUI().build();
+	new GamesUI().create();
 });

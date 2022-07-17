@@ -333,11 +333,10 @@ define("server/Server", [
     }
 
     /**
-     * Handle a `disconnect` coming over a socket.  Player or monitor
-		 * disconnecting.  Don't need to refresh players using this
+     * Handle a `disconnect` coming over a socket. Player or monitor
+		 * disconnecting. Don't need to refresh players using this
 		 * socket, because each Game has a 'disconnect' listener on each
-		 * of the sockets being used by players of that game. However
-		 * monitors don't.
+		 * of the sockets being used by players of that game.
      * @param {socket.io} socket the socket
      * @private
      */
@@ -367,11 +366,13 @@ define("server/Server", [
     }
 
 		/**
-     * Handle a player (or observer) joining.
+     * Handle a player (or observer) joining (or re-joining).
      * When the game interface is opened in a browser, the
      * interface initiates a socket connection. WebSockets then
-     * sends "connect" to the UI. `JOIN` is then sent by the UI,
-     * which connects the UI to the game.
+     * sends `connect` to the UI. `JOIN` is then sent by the UI,
+     * which connects the UI to the game. The UI may subsequently
+     * die; which is OK, the server just keeps telling them what
+     * is going on until it sees a `disconnect`.
      * @param {socket.io} socket the socket
      * @private
      */

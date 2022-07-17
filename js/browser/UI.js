@@ -123,7 +123,8 @@ define("browser/UI", [
 		 * @return {Promise} promise that resolves when the UI is ready
 		 * @protected
 		 */
-		build() {
+		create() {
+      // Set up translations
 			return Promise.all([
 				$.get("/locales")
 				.then(locales => {
@@ -149,18 +150,50 @@ define("browser/UI", [
 				$.get("/defaults")
 				.then(defaults => this.defaults = defaults)
 			])
-			.then(() => $("button").button())
-			.then(() => this.decorate());
+			.then(() => {
+        $("button").button();
+			  $(document)
+			  .tooltip({
+				  items: "[data-i18n-tooltip]",
+				  content: function() {
+					  return $.i18n($(this).data("i18n-tooltip"));
+				  }
+			  });
+      })
+      .then(() => this.handleURLArguments())
+      .then(() => {
+			  console.debug("Connecting to socket");
+        // The server URL will be deduced from the request
+			  this.socket = Sockets.connect();
+			  this.attachSocketListeners();
+      })
+      .then(() => this.attachHandlers());
 		}
 
+    /**
+     * Parse the URL used to load this page to extract parameters.
+     * @return {Promise } promise that resolves to a key-value map
+     */
+    handleURLArguments() {
+      const bits = document.URL.split("?");
+      const urlArgs = {};
+      if (bits.length > 1) {
+        const sargs = bits[1].split(/[;&]/);
+        for (const sarg of sargs) {
+          const kv = sarg.split("=");
+          urlArgs[decodeURIComponent(kv[0])] =
+          decodeURIComponent(kv[1]);
+        }
+      }
+      return Promise.resolve(urlArgs);
+    }
+
 		/**
-		 * Once the locales and defaults have been loaded, decorate the
-		 * UI with shared functionality. Subclasses should override this
-		 * and end the promise chain with a call to super.decorate()
-		 * @return {Promise} promise that resolves when decoration is
-		 * complete and the UI is ready.
+		 * Attach handlers for jquery and game events. This must NOT
+     * attach socket handlers, just DOM object handlers.  Subclasses
+     * should override this calling to super.attachHandlers() last.
 		 */
-		decorate() {
+		attachHandlers() {
 			// gear button
 			$(".settingsButton")
 			.on("click", () => {
@@ -178,32 +211,16 @@ define("browser/UI", [
 				});
 			});
 
-			$(document)
-			.tooltip({
-				items: "[data-i18n-tooltip]",
-				content: function() {
-					return $.i18n($(this).data("i18n-tooltip"));
-				}
-			});
-
-			console.debug("UI loaded, connecting to socket");
-      // The server URL will be deduced from the window.location
-			this.socket = Sockets.connect();
-
-			this.attachSocketListeners();
-
-			return new Promise(resolve => {
-				$(".user-interface").show();
-				resolve();
-			});
+			$(".user-interface").show();
 		}
 
 		/**
 		 * Called when a connection to the server is reported by the
 		 * socket. Use to update the UI to reflect the game state.
 		 * Implement in subclasses.
+     * @abstract
 		 */
-		connectToServer() {
+		readyToListen() {
 			return Promise.reject("Not implemented");
 		}
 
@@ -231,7 +248,7 @@ define("browser/UI", [
 					$reconnectDialog.dialog("close");
 					$reconnectDialog = null;
 				}
-				this.connectToServer();
+				this.readyToListen();
 			})
 
 			.on("disconnect", skt => {
@@ -247,7 +264,7 @@ define("browser/UI", [
 				});
 				setTimeout(() => {
 					// Try and rejoin after a 3s timeout
-					this.connectToServer()
+					this.readyToListen()
 					.catch(e => {
 						console.debug(e);
 						if (!$reconnectDialog)

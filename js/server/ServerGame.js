@@ -19,10 +19,7 @@ define("server/ServerGame", [
   const WordCheck = Types.WordCheck;
   const Turns     = Types.Turns;
 
-  function _showData(data) {
-    const s = data.toString();
-    return (s === "[object Object]") ? data : s;
-  }
+  let messageSequenceNumber = 0;
 
   /**
    * Provides server-specific functionality for {@linkcode Game}
@@ -142,15 +139,21 @@ define("server/ServerGame", [
      * @memberof ServerGame
 		 * @param {Player} player player to send to
 		 * @param {string} message to send
-		 * @param {Object} data to send with message
+		 * @param {Object} data to send with message. Will have
+     * `messageID` added to it.
 		 */
 		notifyPlayer(player, message, data) {
-			this._debug("<-S-", player.key, message, _showData(data));
+      const body = {
+        messageID: ++messageSequenceNumber,
+        data: data
+      };
+			this._debug("<-S-", player.key, message,
+                  messageSequenceNumber, Utils.stringify(data));
 			// Player may be connected several times
 			this._connections.forEach(
 				socket => {
 					if (socket.player === player)
-						socket.emit(message, data);
+						socket.emit(message, body);
 					return false;
 				});
 		},
@@ -165,9 +168,13 @@ define("server/ServerGame", [
 		 * @param {Object} data to send with message
 		 */
 		notifyAll(message, data) {
+      const body = {
+        messageID: ++messageSequenceNumber,
+        data: data
+      };
 			if (message !== Notify.TICK)
-        this._debug("<-S- *", message, _showData(data));
-			this._connections.forEach(socket => socket.emit(message, data));
+        this._debug("<-S- *", message, messageSequenceNumber, Utils.stringify(data));
+			this._connections.forEach(socket => socket.emit(message, body));
 		},
 
 		/**
@@ -180,12 +187,17 @@ define("server/ServerGame", [
 		 * @param {Object} data to send with message
 		 */
 		notifyOthers(player, message, data) {
-			this._debug("<-S- !", player.key, message, _showData(data));
+      const body = {
+        messageID: ++messageSequenceNumber,
+        data: data
+      };
+			this._debug("<-S- !", player.key, message, messageSequenceNumber,
+                  Utils.stringify(data));
 			// Player may be connected several times
 			this._connections.forEach(
 				socket => {
 					if (socket.player.key !== player.key)
-						socket.emit(message, data);
+						socket.emit(message, body);
 					return false;
 				});
 		},
@@ -290,14 +302,15 @@ define("server/ServerGame", [
 		 * @return {WebSocket} a decorated socket, or null if not connected.
 		 */
 		getConnection(player) {
-			for (let socket of this._connections) {
-				if (socket.player === player) {
-          player.isConnected = true;
-					return socket;
-        }
-			}
-      if (player)
+      if (player) {
+			  for (const socket of this._connections) {
+				  if (socket.player && socket.player === player) {
+            player.isConnected = true;
+					  return socket;
+          }
+			  }
         player.isConnected = false;
+      }
 			return null;
 		},
 
@@ -315,7 +328,6 @@ define("server/ServerGame", [
 						   cat.gameKey = this.key;
 						   if (cat.key === this.whosTurnKey)
 							   cat.isNextToGo = true;
-               cat.toString = () => `${cat.name}/${cat.key}`;
 						   return cat;
 					   })))
 			.then(res => {
