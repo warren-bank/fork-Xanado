@@ -1475,8 +1475,6 @@ define("browser/game", [
 			if (tile.isBlank) {			
 				if (!toSquare.isOnBoard) {
           tile.reset();
-					toSquare.placeTile(tile);
-					toSquare.$refresh();
 				} else if (ifBlank) {
 					tile.letter = ifBlank;
 					toSquare.$refresh();
@@ -1489,6 +1487,7 @@ define("browser/game", [
 				}
 			}
 			toSquare.placeTile(tile);
+
 			window.setTimeout(() => this.updateGameStatus(), 500);
 		}
 
