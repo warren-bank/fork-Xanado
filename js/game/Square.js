@@ -142,8 +142,6 @@ define("game/Square", [
      * @return {Tile?} tile unplaced from the square, if any
 		 */
 		placeTile(tile, lock) {
-      if (this.tile)
-        debugger;
 			Platform.assert(!this.tile || tile !== this.tile,
 				              `Square already occupied: ${this.stringify()} placing ${tile.stringify()}`);
 
