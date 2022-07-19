@@ -427,7 +427,7 @@ define("server/UserManager", [
 				Passport.authenticate(provider, { assignProperty: "userObject" }),
 				(req, res) => {
 					// error will -> 401
-					//this._debug("OAuth2 user is", req.userObject.toString());
+					//this._debug("OAuth2 user is", Utils.stringify(req.userObject));
 					req.login(req.userObject, () => {
 						// Back to where we came from
 						//this._debug("Redirect to",req.session.origin);

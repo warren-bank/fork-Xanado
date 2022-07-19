@@ -62,9 +62,7 @@ define("game/Types", () => {
 	 * * `MESSAGE`: someone has sent a message
 	 * * `NEXT_GAME`: a follow-on game is available
 	 * * `PAUSE`: someone paused the game
-	 * * `REJECT`: 
-   * * `RELOAD`: the game UI must be reloaded (a non-incremental
-   * change has been made)
+	 * * `REJECT`: a move has been rejected (not found in dictionary)
 	 * * `TICK`: the game timer has ticked
 	 * * `TURN`: someone has made a move in the game
    * * `UNDONE`: the last play was undone
@@ -85,7 +83,6 @@ define("game/Types", () => {
 		NEXT_GAME:    "next game",
 		PAUSE:        "pause game",
 		REJECT:       "reject play",
-    RELOAD:       "reload game",
 		TICK:         "tick timer",
 		TURN:         "play turn",
     UNDONE:       "undone",

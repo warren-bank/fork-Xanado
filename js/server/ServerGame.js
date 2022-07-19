@@ -281,8 +281,8 @@ define("server/ServerGame", [
 		finishTurn(turn) {
 			turn.timestamp = Date.now();
 
-			// store turn log
-			this.turns.push(turn);
+			// store turn (server side)
+			this.pushTurn(turn);
 
 			// TODO: the results of a turn should not simply be broadcast,
 			// because a client could intercept and reconstruct other
@@ -540,7 +540,7 @@ define("server/ServerGame", [
 			// challenge is a Promise that will resolve to true if a
 			// challenge is made, or false otherwise.
 			let challenge = Promise.resolve(false);
-      let lastPlay = this.turns[this.turns.length - 1];
+      let lastPlay = this.lastTurn();
 			if (lastPlay && lastPlay.type === Turns.PLAYED
 				  && this.dictionary
 				  && player.canChallenge) {
@@ -588,7 +588,7 @@ define("server/ServerGame", [
 							this._debug(data);
 						else {
 							bestPlay = data;
-							this._debug("Best", bestPlay.toString());
+							this._debug("Best", bestPlay.stringify());
 						}
 					}, this.dictpath, player.dictionary || this.dictionary)
 				.then(() => {

@@ -184,10 +184,9 @@ define("game/LetterBag", [
 
     /* istanbul ignore next */
 		/**
-		 * Generate a simple string representation of the player
-     * @override
+		 * Generate a simple string representation of the bag
 		 */
-		toString() {
+		stringify() {
       return "(" + this.letters().sort().join("") + ")";
     }
 	}

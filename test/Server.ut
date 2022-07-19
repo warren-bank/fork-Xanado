@@ -355,7 +355,7 @@ describe("Server", () => {
           assert.deepEqual(params.args, [ "ABSTRACT", "Oxford_5000" ]);
           return;
           
-        case "Hint":
+        case "_hint_":
           assert(params.args.length === 4);
           clientSock.done();
           return;

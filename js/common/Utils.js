@@ -66,12 +66,17 @@ define("common/Utils", [ "platform" ], Platform => {
 							             list[list.length - 1]);
 		}
 
+    /**
+     * Generate readable (though not parseable) representation of object,
+     * for use in debugging. Easier to read than JSON.stringify. Used instead
+     * of toString() and valueOf() which are inconsistent between platforms.
+     */
     static stringify(value) {
+      // Based on Crockford's polyfill for JSON.stringify.
 
-      // Produce a string from holder[key]
       switch (typeof value) {
       case "undefined":
-        return "undef";
+        return "?";
       case "string":
         return `"${value}"`;
       case "number":
@@ -85,7 +90,16 @@ define("common/Utils", [ "platform" ], Platform => {
       if (!value)
         return "null";
 
+      // Use the stringify function, if the object has one.
+      if (typeof value === "object"
+          && typeof value.stringify === "function")
+        return value.stringify();
+
       const partial = [];
+
+      // Built-in types
+      if (value instanceof Date)
+        return value.toISOString();
 
       // Is the value an array?
       if (Object.prototype.toString.apply(value) === "[object Array]") {
@@ -103,9 +117,6 @@ define("common/Utils", [ "platform" ], Platform => {
             partial.push(`${k}:${v}`);
         }
       }
-
-      // Join all of the member texts together, separated with commas,
-      // and wrap them in braces.
       return `{${partial.join(",")}}`;
     }
 	}

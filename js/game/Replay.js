@@ -69,7 +69,7 @@ define("game/Replay", [
           np.passes = 0;
           np.score = 0;
           this.addPlayer(np);
-          this._debug("\tlast rack for", np.key, np.rack.toString());
+          this._debug("\tlast rack for", np.key, "was", np.rack.stringify());
         }
 
         // Remember the initial bag tiles
@@ -81,6 +81,7 @@ define("game/Replay", [
         // (or want) to modify the board
         const turns = this.playedGame.turns;
         this.letterBag.predictable = true;
+        this._debug("unwrap", turns.length, "turns");
         for (let i = turns.length - 1; i >= 0; i--) {
           const turn = turns[i];
           const player = this.getPlayerWithKey(turn.playerKey);
@@ -104,10 +105,10 @@ define("game/Replay", [
           pl.missNextTurn = false;
           for (const tile of pl.rack.tiles())
             this.letterBag.removeTile(tile);
-          this._debug("Start rack for", pl.name, pl.key, pl.rack.toString());
+          this._debug("Start rack for", pl.name, pl.key, pl.rack.stringify());
         }
 
-        this._debug("Start bag", this.letterBag.toString());
+        this._debug("Start bag", this.letterBag.stringify());
         this._debug("--------------------------------");
 
         return this;
@@ -116,8 +117,8 @@ define("game/Replay", [
 
     /**
      * Promise to perform a single step in the simulation
-     * @return {Promise} promise that resolves when the simulation step
-     * has been run
+     * @return {Promise} promise that resolves to the simulated turn when
+     * the simulation step has been run
      */
     step() {
       // Copy the turn to avoid accidental overwrite
@@ -125,8 +126,9 @@ define("game/Replay", [
       return this.redo(turn)
       .then(() => {
         for (const pl of this.players)
-          this._debug(pl.key, pl.score, pl.rack.toString());
+          this._debug(pl.key, pl.score, pl.rack.stringify());
         this._debug("---------------------");
+        return turn;
       });
     }
   }

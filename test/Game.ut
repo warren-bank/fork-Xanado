@@ -64,7 +64,6 @@ describe("Game", () => {
 			assert.equal(s.wordCheck, game.wordCheck);
 			assert.equal(s.allowTakeBack, game.allowTakeBack);
 			assert.equal(s.state, game.state);
-			assert.equal(s.turns, game.turns.length);
 			assert.equal(s.whosTurnKey, game.whosTurnKey);
 			assert.equal(s.timerType, game.timerType);
 			assert.equal(s.timeLimit, game.timeLimit);
@@ -87,7 +86,6 @@ describe("Game", () => {
 			assert.equal(s.wordCheck, game.wordCheck);
 			assert.equal(s.allowTakeBack, game.allowTakeBack);
 			assert.equal(s.state, game.state);
-			assert.equal(s.turns, game.turns.length);
 			assert.equal(s.whosTurnKey, game.whosTurnKey);
 			assert.equal(s.timerType, game.timerType);
 			assert.equal(s.timeLimit, game.timeLimit);
@@ -198,7 +196,6 @@ describe("Game", () => {
 			assert.equal(s.wordCheck, game.wordCheck);
 			assert.equal(s.allowTakeBack || false, game.allowTakeBack || false);
 			assert.equal(s.state, game.state);
-			assert.equal(s.turns, game.turns.length);
 			assert.equal(s.whosTurnKey, game.whosTurnKey);
 			assert.equal(s.timerType, game.timerType);
 			assert.equal(s.timeLimit, game.timeLimit);

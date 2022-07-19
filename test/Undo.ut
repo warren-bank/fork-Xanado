@@ -128,7 +128,6 @@ describe("Undo", () => {
 		const socket = new TestSocket();
 		socket.on(Notify.TURN, (turn, event) => socket.done())
 		.on(Notify.CONNECTIONS, () => {})
-		.on(Notify.RELOAD, () => {})
 		.on("*", (data, event) => assert.fail(event));
     let A, B, C, D, E, prepass;
 		return game.create()
@@ -281,8 +280,11 @@ describe("Undo", () => {
     .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
     .then(() => {
       //game._debug = console.debug;
-      while (game.turns.length > 0)
+      while (game.turnCount() > 0) {
         game.undo();
+      }
+      for (const p of game.players)
+        assert.equal(p.score, 0);
     });
 	});
 

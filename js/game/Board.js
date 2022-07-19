@@ -364,8 +364,8 @@ define("game/Board", [
      * readable by {@linkcode Board#parse|parse}
      * @override
 		 */
-		toString() {
-			let s = `Board ${this.cols}x${this.rows}\n`;
+		stringify() {
+			let s = "";
 
 			for (let row = 0; row < this.rows; row++) {
 				const r = [];

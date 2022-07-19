@@ -111,9 +111,9 @@ define("game/Turn", [
 
     /* istanbul ignore next */
 		/**
-     * @override
+     * String representation for debugging
 		 */
-		toString() {
+		stringify() {
       let s = `Turn ${this.type} ${this.playerKey}`;
       if (this.challengerKey)
         s += ` by ${this.challengerKey}`;
@@ -126,13 +126,13 @@ define("game/Turn", [
           s += ` (${this.score})`;
 
       if (this.placements)
-        s += " <=" + this.placements.map(t => t.toString(true));
+        s += " <=" + this.placements.map(t => t.stringify(true));
       
       if (this.words)
         s += ' "' + this.words.map(w => w.word) + '"';
 
       if (this.replacements)
-			  s += " => " + this.replacements.map(t => t.toString(true));
+			  s += " => " + this.replacements.map(t => t.stringify(true));
 
       if (this.penalty === Penalty.MISS)
         s += ` MISS`;

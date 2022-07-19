@@ -128,8 +128,8 @@ define("platform", [
 					  return Fs.readFile(langfile);
 				  })
 				.then(buffer => {
-					ServerPlatform.TX = JSON.parse(buffer.toString());
-				});
+          ServerPlatform.TX = JSON.parse(buffer.toString());
+        });
 			}
 		};
 	}

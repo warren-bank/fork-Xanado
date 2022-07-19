@@ -11,6 +11,7 @@ describe("Replay", () => {
 	const TS = require("./TestSupport.js");
 	before(required => TS.depend(required, {
 		Tile: "game/Tile",
+	  Game: "game/Game",
 	  Replay: "game/Replay"
   }));
 
@@ -62,6 +63,34 @@ describe("Replay", () => {
     }
   }
 
+  // Make sure the contents of the bag, all player racks,
+  // and the board, are the same as the initial bag
+  function checkBag(game, preBag) {
+    const letters = [];
+    for (const pl of game.players) {
+      for (const l of pl.rack.letters())
+        letters.push(l);
+    }
+    for (const bt of game.board.tiles())
+      letters.push(bt.isBlank ? " " : bt.letter);
+    for (const bl of game.letterBag.letters())
+      letters.push(bl);
+    assert.equal(
+      letters.sort().join(""), preBag);
+  }
+
+  function getEditionBag(game) {
+    return game.getEdition()
+    .then(edo => {
+      const preBag = [];
+      for (const l of edo.bag) {
+        for (let i = 0; i < l.count; i++)
+          preBag.push(l.letter);
+      }
+      return preBag.sort().join("");
+    });
+  }
+
   function UNit() {}
 
   // Script:
@@ -77,24 +106,9 @@ describe("Replay", () => {
   // B passes
   // A passes
   // Should take us to game over
-  it("replay", () => {
+  UNit("replay", () => {
 		const db = new Platform.Database("test", "game");
     let preGame, game, preBag = [];
-
-    function checkBag(game) {
-      const letters = [];
-      for (const pl of game.players) {
-        for (const l of pl.rack.letters())
-          letters.push(l);
-      }
-      for (const bt of game.board.tiles())
-        letters.push(bt.isBlank ? " " : bt.letter);
-      for (const bl of game.letterBag.letters())
-        letters.push(bl);
-      assert.equal(
-        letters.sort().join(""),
-        preBag.sort().join(""));
-    }
     
 		return db.get("good_game", Replay.classes)
     .then(g => g.onLoad(db))
@@ -103,19 +117,14 @@ describe("Replay", () => {
       const game = new Replay(preGame);
       game.key = "simulated_game";
       //game._debug = console.debug;
-      return game.getEdition()
-      .then(edo => {
-        for (const l of edo.bag) {
-          for (let i = 0; i < l.count; i++)
-            preBag.push(l.letter);
-        }
-      })
+      return getEditionBag(game)
+      .then(pb => preBag = pb)
       .then(() => game.create());
     })
     .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
     .then(game => {
       let promise = Promise.resolve();
-      for (let i = 0; i < game.playedGame.turns.length; i++)
+      for (let i = 0; i < game.playedGame.turnCount(); i++)
         promise = promise.then(() => {
           checkBag(game);
           return game.step()
@@ -126,25 +135,10 @@ describe("Replay", () => {
     });
   });
   
-  it("issue 50", () => {
+  UNit("issue 50", () => {
 		const db = new Platform.Database("test", "game");
     let preGame, game, preBag = [];
 
-    function checkBag(game) {
-      const letters = [];
-      for (const pl of game.players) {
-        for (const l of pl.rack.letters())
-          letters.push(l);
-      }
-      for (const bt of game.board.tiles())
-        letters.push(bt.isBlank ? " " : bt.letter);
-      for (const bl of game.letterBag.letters())
-        letters.push(bl);
-      assert.equal(
-        letters.sort().join(""),
-        preBag.sort().join(""));
-    }
-    
 		return db.get("kolano", Replay.classes)
     .then(g => g.onLoad(db))
 		.then(g => preGame = g)
@@ -152,13 +146,8 @@ describe("Replay", () => {
       const game = new Replay(preGame);
       game.key = "simulated_game";
       //game._debug = console.debug;
-      return game.getEdition()
-      .then(edo => {
-        for (const l of edo.bag) {
-          for (let i = 0; i < l.count; i++)
-            preBag.push(l.letter);
-        }
-      })
+      return getEditionBag(game)
+      .then(pb => preBag = pb)
       .then(() => game.create());
     })
     .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
@@ -177,6 +166,34 @@ describe("Replay", () => {
         game.stopTheClock();
         assert.equal(e, "Cannot challenge a challenge-won");
       });
+    });
+  });
+
+  it("issue 49", () => {
+		const db = new Platform.Database("test", "game");
+    let preGame, game, preBag;
+
+		return db.get("8-letter-rack", Game.classes)
+    .then(g => g.onLoad(db))
+		.then(g => preGame = g)
+    .then(() => {
+      //preGame._debug = console.debug;
+      const game = new Replay(preGame);
+      game.key = "simulated_game";
+      // Remember the initial bag
+      return getEditionBag(game)
+      .then(pb => preBag = pb)
+      .then(() => game.create());
+    })
+    .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(async game => {
+      for (let i = 0; i <  preGame.turnCount(); i++) {
+        checkBag(game, preBag);
+        await game.step();
+        checkBag(game, preBag);
+      }
+      game.stopTheClock();
+      //console.log(game.board.stringify());
     });
   });
 });

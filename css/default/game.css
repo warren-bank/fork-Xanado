@@ -297,3 +297,11 @@ button.fat-button {
 .player-name {
   font-weight: bold;
 }
+
+.undoButton {
+  display: none;
+}
+
+.redoButton {
+  display: none;
+}

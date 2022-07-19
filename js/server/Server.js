@@ -5,13 +5,13 @@
 
 define("server/Server", [
 	"fs", "path", "events", "cookie", "cors", "express", "errorhandler",
-	"platform",	"common/Fridge",
+	"platform",	"common/Fridge", "common/Utils",
 	"server/UserManager",
 	"game/Types",
 	"game/Game", "game/Player", "game/Turn", "game/Edition"
 ], (
 	fs, Path, Events, Cookie, cors, Express, ErrorHandler,
-	Platform, Fridge,
+	Platform, Fridge, Utils,
 	UserManager, Types,
 	Game, Player, Turn, Edition
 ) => {
@@ -274,11 +274,11 @@ define("server/Server", [
 			this.express.use((err, req, res, next) => {
 			  if (typeof err === "object" && err.code === "ENOENT") {
 				  // Special case of a database file load failure
-				  this._debug("<-- 404", req.url, err.toString());
+				  this._debug("<-- 404", req.url, Utils.stringify(err));
 				  res.status(404).send([
 					  "Database file load failed", req.url, err]);
 			  } else {
-			    this._debug("<-- 500", err.toString());
+			    this._debug("<-- 500", err);
 				  res.status(500).send(err);
         }
 			});
@@ -711,7 +711,7 @@ define("server/Server", [
 				/* istanbul ignore if */
 				if (this.config.debug_game)
 					game._debug = console.debug;
-				this._debug("Created", game.toString());
+				this._debug("Created", game.stringify());
 				return game.save();
 			})
 			.then(game => res.status(200).send(game.key))
@@ -1030,7 +1030,7 @@ define("server/Server", [
 			//this._debug("Handling", command, gameKey, playerKey);
 			return this.loadGame(gameKey)
 			.then(game => {
-				if (game.hasEnded())
+				if (game.hasEnded() && command !== Command.UNDO)
 					// Ignore the command
 					return Promise.resolve();
 
@@ -1070,7 +1070,7 @@ define("server/Server", [
 					return game.play(player, args);
 
         case Command.REDO:
-          return game.redo(player, args);
+          return game.redo(args);
 
 				case Command.SWAP:
 					return game.swap(player, args);

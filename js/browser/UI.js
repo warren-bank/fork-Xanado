@@ -4,7 +4,7 @@
 /* eslint-env browser, jquery */
 
 define("browser/UI", [
-	"socket.io-client",  "browser/Dialog", "platform",
+	"socket.io-client",  "browser/Dialog", "platform", "common/Utils",
 
 	"jquery",
 	"jqueryui",
@@ -16,7 +16,7 @@ define("browser/UI", [
 	"i18n_parser",
   "cldrpluralruleparser"
 ], (
-	Sockets, Dialog, Platform
+	Sockets, Dialog, Platform, Utils
 ) => {
 
 	/**
@@ -68,11 +68,11 @@ define("browser/UI", [
 			if (typeof(args) === "string") // simple string
 				message = $.i18n(args);
 			else if (args instanceof Error) // Error object
-				message = args.toString();
+				message = Utils.stringify(args);
 			else if (args instanceof Array) { // First element i18n code
 				message = $.i18n.apply($.i18n, args);
 			} else // something else
-				message = args.toString();
+				message = Utils.stringify(args);
 
 			$("#alertDialog")
 			.dialog({
@@ -202,10 +202,8 @@ define("browser/UI", [
 					ui: this,
 					postAction: "/session-settings",
 					postResult: settings => {
-						if (settings.theme === curTheme)
-							this.setSettings(settings);
-						else
-							window.location.reload();
+            this.session.settings = settings;
+						window.location.reload();
 					},
 					error: UI.report
 				});
@@ -301,7 +299,7 @@ define("browser/UI", [
             "Observer '$1'", this.observer));
 				$(".not-logged-in>button")
 				.on("click", () => Dialog.open("LoginDialog", {
-					postResult: () => location.replace(location),
+					postResult: () => window.location.reload(),
 					error: UI.report
 				}));
 				return undefined;

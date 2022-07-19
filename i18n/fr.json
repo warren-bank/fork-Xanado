@@ -31,7 +31,7 @@
 	"square-q": "LETTRE COMPTE QUAD",
 	"Create game": "Créer un jeu",
 	"um-reset-sent": "L'e-mail de réinitialisation du mot de passe a été envoyé",
-	"Hint": "Astuce : $1 à la ligne $2, colonne $3 pour $4",
+	"_hint_": "Astuce : $1 à la ligne $2, colonne $3 pour $4",
 	"Advisor": "Conseiller",
 	"Disabled": "Désactivé",
 	"ui-notify-body-your-turn": "$1 a pris son tour et maintenant c'est votre tour",

@@ -142,8 +142,10 @@ define("game/Square", [
      * @return {Tile?} tile unplaced from the square, if any
 		 */
 		placeTile(tile, lock) {
+      if (this.tile)
+        debugger;
 			Platform.assert(!this.tile || tile !== this.tile,
-				              `Square already occupied: ${this}`);
+				              `Square already occupied: ${this.stringify()} placing ${tile.stringify()}`);
 
       const oldTile = this.tile;
 			tile.col = this.col;
@@ -340,9 +342,9 @@ define("game/Square", [
 
     /* istanbul ignore next */
     /**
-     * @override
+     * Generate debug representation
      */
-		toString() {
+		stringify() {
 			// All squares have a col
 			let string = `${this.type} square @ ${this.col}`;
 			// Squares on the board have a row too

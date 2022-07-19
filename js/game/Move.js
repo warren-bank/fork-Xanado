@@ -67,12 +67,12 @@ define("game/Move", [
 		}
 
     /**
-     * @override
+     * String representation for debugging
      */
-		toString() {
-			const pl = this.placements.map(t => t.toString(true));
+		stringify() {
+			const pl = this.placements.map(t => t.stringify(true));
 			const w = this.words.map(w => `${w.word}(${w.score})`);
-			return `Play ${pl} words ${w} for ${this.score}`;
+			return `Move ${pl} words ${w} for ${this.score}`;
 		}
 	}
 

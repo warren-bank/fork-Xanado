@@ -227,9 +227,9 @@ define("game/Player", [
 		}
 
 		/**
-     * @override
+     * Generate debug representation
 		 */
-		toString() {
+		stringify() {
 			let s = `Player '${this.name}'`;
 			if (this.isRobot)
 				s += " (Robot)";

@@ -47,8 +47,7 @@ describe("HumanCommands", () => {
 				socket1.done();
 				break;
 			default:
-				console.error("UNEXPECTED TURN", turn.toString());
-				assert.fail("UNEXPECTED TURN");
+				assert.fail("UNEXPECTED TURN " + Utils.stringify(turn));
 			}
 		})
 		.on(Notify.CONNECTIONS, () => {})
@@ -59,9 +58,8 @@ describe("HumanCommands", () => {
 
 		const socket2 = new TestSocket();
 		socket2.on(Notify.TURN, (turn, event) => {
-            // human2 should NOT see the SWAP turn
-			console.error("UNEXPECTED TURN", turn.toString());
-			assert.fail("UNEXPECTED TURN");
+      // human2 should NOT see the SWAP turn
+			assert.fail("UNEXPECTED TURN " + Utils.stringify(turn));
 		})
 		.on(Notify.CONNECTIONS, () => {})
 		.on("*", (data, event) => {

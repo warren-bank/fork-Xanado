@@ -4,10 +4,10 @@
 /* eslint-env amd */
 
 define("game/Commands", [
-	"platform",
+	"platform", "common/Utils",
   "game/Types", "game/Player", "game/Turn"
 ], (
-	Platform,
+	Platform, Utils,
   Types, Player, Turn
 ) => {
   const Notify    = Types.Notify;
@@ -36,7 +36,7 @@ define("game/Commands", [
 			Platform.assert(player && player.key === this.whosTurnKey,
 				              `Not ${player.name}'s turn`);
 
-			this._debug("Playing", move.toString());
+			this._debug("Playing", Utils.stringify(move));
 			//this._debug(`Player's rack is ${player.rack}`);
 
 			if (this.dictionary
@@ -368,7 +368,7 @@ define("game/Commands", [
 			if (challenger.key === challenged.key)
 				return Promise.reject("Cannot challenge your own play");
 
-			if (this.turns.length === 0)
+			if (this.turnCount() === 0)
 				return Promise.reject("No previous move to challenge");
 
       let previousMove = this.lastTurn();
@@ -633,7 +633,7 @@ define("game/Commands", [
 
 			this._debug(`Computing advice for ${player.name} > ${theirScore}`,
 						      player.rack.tiles().map(t => t.letter),
-						      this.board.toString());
+						      this.board.stringify());
 
 			let bestPlay = null;
 			Platform.findBestPlay(
@@ -711,7 +711,7 @@ define("game/Commands", [
 					hint.text = /*i18n*/"Can't find a play";
 				else {
 					const start = bestPlay.placements[0];
-					hint.text = /*i18n*/"Hint";
+					hint.text = "_hint_";
 					const words = bestPlay.words.map(w => w.word).join(",");
 					hint.args = [
 						words, start.row + 1, start.col + 1, bestPlay.score

@@ -8,8 +8,8 @@
  * a 1D array of Square.
  */
 define("game/Rack", [
-  "platform", "game/Surface", "game/Tile"
-], (Platform, Surface, Tile) => {
+  "platform", "common/Utils", "game/Surface", "game/Tile"
+], (Platform, Utils, Surface, Tile) => {
 
 	/**
 	 * A Rack is a 1-column {@linkcode Surface}
@@ -122,7 +122,7 @@ define("game/Rack", [
 		removeTile(remove) {
 			const square = this.findSquare(remove.letter);
 			Platform.assert(square,
-			`Cannot find '${remove.letter}' on ${this.toString()}`);
+			`Cannot find '${remove.letter}' on ${this.stringify()}`);
 			const tile = square.tile;
 			// If the tile is a blank, set the letter to the remove letter
 			if (tile.isBlank)
@@ -141,7 +141,7 @@ define("game/Rack", [
       const racked = [];
 			for (const tile of tiles) {
 	      const removed = this.removeTile(tile);
-        Platform.assert(removed, `${tile.toString()} missing from rack`);
+        Platform.assert(removed, `${Utils.stringify(tile)} missing from rack`);
         racked.push(removed);
       }
       return racked;
@@ -198,10 +198,10 @@ define("game/Rack", [
 
     /* istanbul ignore next */
 		/**
-		 * @override
+		 * Debug
 		 */
-		toString() {
-			return `Rack ${this.tiles().join(",")}`;
+		stringify() {
+			return `[${this.tiles().map(t => Utils.stringify(t)).join(",")}]`;
 		}
 	}
 

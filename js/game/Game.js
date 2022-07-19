@@ -63,6 +63,17 @@ define("game/Game", [
      * Note that `players` and `turns` are not copied.
 		 */
 		constructor(params) {
+			/* istanbul ignore if */
+			if (typeof params._debug === "function")
+        /**
+		     * Debug function.
+		     * @member {function}
+         * @private
+		     */
+				this._debug = params._debug;
+      else
+        this._debug = () => {};
+
 		  /**
 		   * An i18n message identifier indicating the game state.
 		   * @member {State}
@@ -300,17 +311,6 @@ define("game/Game", [
        * @private
        */
       this._undoer = undefined;
-
-			/* istanbul ignore if */
-			if (typeof params._debug === "function")
-        /**
-		     * Debug function.
-		     * @member {function}
-         * @private
-		     */
-				this._debug = params._debug;
-      else
-        this._debug = () => {};
 		}
 
 		/**
@@ -360,7 +360,7 @@ define("game/Game", [
 				player.clock = this.timeLimit;
       if (fillRack)
         player.fillRack(this.letterBag, this.rackSize);
-			this._debug(this.key, "added player", player.toString());
+			this._debug(this.key, "added player", player.stringify());
       return this;
 		}
 
@@ -511,6 +511,14 @@ define("game/Game", [
 			return this.creationTimestamp;
 		}
 
+    /**
+     * Get the number of turns in the game so far
+     * @return {number} the number of turns so far
+     */
+    turnCount() {
+      return this.turns.length;
+    }
+
 		/**
 		 * Get the last turn made in this game.
 		 * @return {Turn} the last turn recorded for the game, or undefined
@@ -522,6 +530,23 @@ define("game/Game", [
 
 			return this.turns[this.turns.length - 1];
 		}
+
+    /**
+     * Add a turn to the game
+     * @param {Turn} the turn to add
+     */
+    pushTurn(turn) {
+      return this.turns.push(turn);
+    }
+
+    /**
+     * Remove and return the last turn in the game
+     * @param {Turn} the turn to add
+     */
+    popTurn(turn) {
+      Platform.assert(this.turns.length > 0);
+      return this.turns.pop();
+    }
 
     /**
      * Iterate over turns calling cb on each.
@@ -544,9 +569,9 @@ define("game/Game", [
 
     /* istanbul ignore next */
 		/**
-		 * @override
+		 * Debug
 		 */
-		toString() {
+		stringify() {
 			const options = [ `edition:${this.edition}` ];
       if (this.dictionary)
         options.push(`dictionary:${this.dictionary}`);
@@ -572,7 +597,7 @@ define("game/Game", [
 			if (this.allowTakeBack) options.push("Allow takeback");
       if (this.minPlayers)
         options.push(`>=${this.minPlayers}`);
-			const ps = this.players.map(p => p.toString()).join(",");
+			const ps = this.players.map(p => p.stringify()).join(",");
       options.push(`players:[${ps}]`);
       if (this.maxPlayers)
         options.push(`<=${this.maxPlayers}`);
@@ -610,7 +635,6 @@ define("game/Game", [
 					dictionary: this.dictionary,
 					state: this.state,
 					players: ps,					
-					turns: this.turns.length, // just the length
 					whosTurnKey: this.whosTurnKey,
 					timerType: this.timerType,
 					challengePenalty: this.challengePenalty,

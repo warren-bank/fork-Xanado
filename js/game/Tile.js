@@ -75,17 +75,17 @@ define("game/Tile", () => {
 
     /* istanbul ignore next */
 		/**
-		 * @override
+		 * String representation for debugging
 		 */
-		toString(showPos) {
+		stringify(showPos) {
 			let pl = "";
       if (typeof this.row === "number") {
         pl = typeof this.col === "number" ? `[${this.col}` : ""
         + `,${this.row}`;
       }
       pl += "]";
-      const b = this.isBlank ? "-" : "";
-			return `[${this.letter}${b}${pl}`;//(${this.score})]`;
+      const l = this.isBlank ? this.letter.toLowerCase() : this.letter;
+			return `[${l}${pl}`;
 		}
   }
 

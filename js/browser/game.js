@@ -78,6 +78,14 @@ define("browser/game", [
 			 * @member {boolean}
 			 */
 			this.boardLocked = false;
+
+      /**
+       * Undo stack. Head of the stack is the most recent undo.
+       * The undo stack is cleared when a normal play (swap, place, challenge etc)
+       * is executed. The only command that retains the stack is REDO.
+       * 
+       */
+      this.undoStack = [];
 		}
 
 		// @override
@@ -110,7 +118,7 @@ define("browser/game", [
 		 * @return {jquery} the span containing the score
 		 * @private
 		 */
-		static $score(turn, hideScore) {
+		$score(turn, hideScore) {
 			let sum = 0;
 			const $span = $("<span></span>");
 			for (let word of turn.words) {
@@ -141,7 +149,7 @@ define("browser/game", [
 		 * @return {jQuery} the div created
 		 * @private
 		 */
-		static $log(interactive, mess, css) {
+		$log(interactive, mess, css) {
 			const $div = $("<div class='message'></div>");
 			if (css)
 				$div.addClass(css);
@@ -170,6 +178,10 @@ define("browser/game", [
 		 * @param {object} args arguments for the request body
 		 */
 		sendCommand(command, args) {
+      if (command !== Command.REDO) {
+        this.undoStack = [];
+        $(".redoButton").hide();
+      }
 			console.debug(`POST /command/${command}`);
 			this.lockBoard(true);
 			this.enableTurnButton(false);
@@ -221,7 +233,7 @@ define("browser/game", [
 				else
 					who = $.i18n("$1's", player.name);
 			}
-			GameUI.$log(interactive, $.i18n(
+			this.$log(interactive, $.i18n(
 				"<span class='player-name'>$1</span> $2", who, what),
 					        "turn-player");
 
@@ -251,7 +263,7 @@ define("browser/game", [
 			switch (turn.type) {
 
 			case Turns.PLAYED:
-				turnText = GameUI.$score(turn, false);
+				turnText = this.$score(turn, false);
 				break;
 
 			case Turns.SWAPPED:
@@ -304,7 +316,7 @@ define("browser/game", [
 				Platform.fail(`Unknown move type ${turn.type}`);
 			}
 
-			GameUI.$log(interactive, turnText, "turn-detail");
+			this.$log(interactive, turnText, "turn-detail");
 
 			if (isLatestTurn
 				  && turn.emptyPlayerKey
@@ -312,11 +324,11 @@ define("browser/game", [
 				  && turn.type !== Turns.CHALLENGE_LOST
 				  && turn.type !== Turns.GAME_ENDED) {
 				if (this.isThisPlayer(turn.emptyPlayerKey)) {
-					GameUI.$log(interactive, $.i18n(
+					this.$log(interactive, $.i18n(
 						"You have no more tiles, game will be over if your play isn't challenged"),
 						          "turn-narrative");
 				} else if (this.player)
-					GameUI.$log(interactive, $.i18n(
+					this.$log(interactive, $.i18n(
 						"$1 has no more tiles, game will be over unless you challenge",
 						this.game.getPlayerWithKey(turn.emptyPlayerKey).name),
 							        "turn-narrative");
@@ -345,7 +357,7 @@ define("browser/game", [
 			// we just need to present the results.
 			const unplayed = game.getPlayers().reduce(
 				(sum, player) => sum + player.rack.score(), 0);
-			GameUI.$log(interactive, $.i18n(turn.endState || State.GAME_OVER),
+			this.$log(interactive, $.i18n(turn.endState || State.GAME_OVER),
 					        "game-state");
 			const $narrative = $("<div></div>").addClass("game-outcome");
 			game.getPlayers().forEach(player => {
@@ -395,15 +407,15 @@ define("browser/game", [
 				who = $.i18n("You");
 			else
 				nWinners = winners.length;
-			GameUI.$log(interactive, $.i18n("$1 {{PLURAL:$2|has|have}} won",
+			this.$log(interactive, $.i18n("$1 {{PLURAL:$2|has|have}} won",
 										                  who, nWinners));
-			GameUI.$log(interactive, $narrative);
+			this.$log(interactive, $narrative);
 		}
 
     /**
      * Update list of active connections.
      */
-    handle_connections(observers) {
+    handle_CONNECTIONS(observers) {
       console.debug("--> connections", Utils.stringify(observers));
       this.game.updatePlayerList(
         observers.filter(o => !o.isObserver));
@@ -425,7 +437,7 @@ define("browser/game", [
 		 * message
 		 * @param {object[]} args i18n arguments
 		 */
-		static handle_message(message) {
+		handle_MESSAGE(message) {
 			console.debug("--> message");
 			let args = [ message.text ];
 			if (typeof message.args === "string")
@@ -447,11 +459,11 @@ define("browser/game", [
 			$msg.text($.i18n.apply(null, args));
 			$mess.append($msg);
 
-			GameUI.$log(true, $mess);
+			this.$log(true, $mess);
 
-			// Special handling for Hint, highlight square
+			// Special handling for _hint_, highlight square
 			if (message.sender === "Advisor"
-				  && args[0] === "Hint") {
+				  && args[0] === /*i18n*/"_hint_") {
 				let row = args[2] - 1, col = args[3] - 1;
 				$(`#Board_${col}x${row}`).addClass("hint-placement");
 			}
@@ -464,7 +476,7 @@ define("browser/game", [
 		 * @param {string} playerKey player key
 		 * @param {string} clock seconds left for this player to play
 		 */
-		handle_tick(params) {
+		handle_TICK(params) {
 			// console.debug("--> tick");
 			if (params.gameKey !== this.game.key)
 				console.error(`key mismatch ${this.game.key}`);
@@ -510,12 +522,212 @@ define("browser/game", [
 		}
 
 		/**
+		 * Process a Turn object received from the server. `Notify.TURN` events
+		 * are sent by the server when an action by any player has
+		 * modified the game state.
+		 * @param {Turn} turn a Turn object
+		 */
+		handle_TURN(turn) {
+			console.debug("--> turn ", turn);
+			// Take back any locally placed tiles
+			this.game.board.forEachSquare(
+				boardSquare => {
+					if (this.takeBackTile(boardSquare))
+						this.placedCount--;
+				});
+
+      this.game.pushTurn(turn);
+
+      $(".undoButton").toggle(this.getSetting("undo_redo"));
+
+      this.removeMoveActionButtons();
+			const player = this.game.getPlayerWithKey(turn.playerKey);
+			const challenger = (typeof turn.challengerKey === "string")
+				    ? this.game.getPlayerWithKey(turn.challengerKey) : undefined;
+
+			if (turn.type === Turns.CHALLENGE_LOST) {
+				challenger.score += turn.score;
+				challenger.$refresh();
+			} else {
+				if (typeof turn.score === "number")
+					player.score += turn.score;
+				else if (typeof turn.score === "object")
+					Object.keys(turn.score).forEach(
+						k => this.game.getPlayerWithKey(k)
+						.score +=
+						(turn.score[k].tiles || 0) +
+						(turn.score[k].time || 0));
+				player.$refresh();
+			}
+
+			// Unhighlight last placed tiles
+			$(".last-placement").removeClass("last-placement");
+
+			this.describeTurn(turn, true, true);
+
+			// Was the play intiated by, or primarily affecting, us
+			const wasUs = this.isThisPlayer(turn.playerKey);
+
+			switch (turn.type) {
+			case Turns.CHALLENGE_WON:
+			case Turns.TOOK_BACK:
+				// Move new tiles out of challenged player's rack
+				// into the bag
+				if (turn.replacements)
+					for (let newTile of turn.replacements) {
+						const tile = player.rack.removeTile(newTile);
+						this.game.letterBag.returnTile(tile);
+					}
+
+				// Take back the placements from the board into the
+				// challenged player's rack
+				if (turn.placements)
+					for (const placement of turn.placements) {
+						const square = this.game.at(
+							placement.col, placement.row);
+						const recoveredTile = square.tile;
+						square.unplaceTile();
+						player.rack.addTile(recoveredTile);
+					}
+
+				// Was it us?
+				if (wasUs) {
+					player.rack.$refresh();
+
+					if (turn.type === Turns.CHALLENGE_WON) {
+						if (this.getSetting("warnings"))
+							this.playAudio("oops");
+						this.notify(
+							/*.i18n("ui-notify-title-succeeded")*/
+							/*.i18n("ui-notify-body-succeeded")*/
+							this.game.getPlayerWithKey(turn.playerKey).name,
+							-turn.score);
+					}
+				}
+
+				if (turn.type == Turns.TOOK_BACK) {
+					/*.i18n("ui-notify-title-retracted")*/
+					/*.i18n("ui-notify-body-retracted")*/
+					this.notify("retracted",
+								      this.game.getPlayerWithKey(turn.playerKey).name);
+				}
+				break;
+
+			case Turns.CHALLENGE_LOST:
+				if (this.getSetting("warnings"))
+					this.playAudio("oops");
+				if (challenger === this.player) {
+					// Our challenge failed
+					/*.i18n("ui-notify-title-you-failed")*/
+					/*.i18n("ui-notify-body-you-failed")*/
+					this.notify("you-failed");
+				} else {
+					/*.i18n("ui-notify-title-they-failed")*/
+					/*.i18n("ui-notify-body-they-failed")*/
+					this.notify("they-failed", player.name);
+				}
+				break;
+
+			case Turns.PLAYED:
+				if (wasUs)
+					this.placedCount = 0;
+
+				// Take the placed tiles out of the players rack and
+				// lock them onto the board.
+				for (let i = 0; i < turn.placements.length; i++) {
+					const placement = turn.placements[i];
+					const square = this.game.at(placement.col, placement.row);
+					const tile = player.rack.removeTile(placement);
+					square.placeTile(tile, true);
+					if (wasUs)
+						square.$refresh();
+					else
+						// Highlight the tile as "just placed"
+						$(`#${square.id}`).addClass("last-placement");
+				}
+
+				// Shrink the bag by the number of new
+				// tiles. This is purely to keep the counts in
+				// synch, we never use tiles taken from the bag on
+				// the client side.
+				if (turn.replacements)
+					this.game.letterBag.getRandomTiles(
+						turn.replacements.length);
+
+				// Deliberate fall-through to Turns.SWAPPED to get the
+				// replacements onto the rack
+
+			case Turns.SWAPPED:
+				// Add replacement tiles to the player's rack. Number of tiles
+				// in letter bag doesn't change.
+				if (turn.replacements) {
+					for (const newTile of turn.replacements)
+						player.rack.addTile(new Tile(newTile));
+
+					player.rack.$refresh();
+				}
+
+				break;
+
+			case Turns.GAME_ENDED:
+				// End of game has been accepted
+			  this.game.state = State.GAME_OVER;
+			  // unplace any pending move
+			  this.takeBackTiles();
+			  this.setAction("action_anotherGame", /*i18n*/"Another game?");
+			  this.enableTurnButton(true);
+			  /*.i18n("ui-notify-title-game-over")*/
+			  /*.i18n("ui-notify-body-game-over")*/
+			  this.notify("game-over");
+				return;
+			}
+
+			if (this.isThisPlayer(turn.nextToGoKey)) {
+				if (this.getSetting("turn_alert"))
+					this.playAudio("yourturn");
+				this.lockBoard(false);
+				this.enableTurnButton(true);
+			} else {
+				this.lockBoard(true);
+				this.enableTurnButton(false);
+			}
+
+			if (turn.nextToGoKey && turn.type !== Turns.CHALLENGE_WON) {
+
+				if (turn.type == Turns.PLAYED) {
+					if (wasUs) {
+						if (this.game.allowTakeBack) {
+							this.addTakeBackPreviousButton(turn);
+						}
+					} else {
+						// It wasn't us, we might want to challenge.
+						// Not much point in challenging a robot, but
+						// ho hum...
+						this.addChallengePreviousButton(turn);
+					}
+				}
+
+				if (this.isThisPlayer(turn.nextToGoKey)
+					  && turn.type !== Turns.TOOK_BACK) {
+					// It's our turn next, and we didn't just take back
+					/*.i18n("ui-notify-title-your-turn")*/
+					/*.i18n("ui-notify-body-your-turn")*/
+					this.notify("your-turn",
+								      this.game.getPlayerWithKey(turn.playerKey).name);
+				}
+				this.game.whosTurnKey = turn.nextToGoKey;
+				this.updateWhosTurn();
+			}
+			this.updateGameStatus();
+		}
+
+		/**
 		 * Handle nextGame event. This tells the UI that a follow-on
 		 * game is available.
 		 * @param {object} info event info
 		 * @param {string} info.gameKey key for next game
 		 */
-		handle_nextGame(info) {
+		handle_NEXTGAME(info) {
 			console.debug("--> nextGame", info.gameKey);
 			this.game.nextGameKey = info.gameKey;
 			this.setAction("action_nextGame", /*i18n*/"Next game");
@@ -528,7 +740,7 @@ define("browser/game", [
 		 * @param {string} rejection.playerKey the rejected player
 		 * @param {string[]} rejection.words the rejected words
 		 */
-		handle_reject(rejection) {
+		handle_REJECT(rejection) {
 			console.debug("--> reject", rejection);
 			// The tiles are only locked down when a corresponding
 			// turn is received, so all we need to do is restore the
@@ -537,29 +749,88 @@ define("browser/game", [
 			this.enableTurnButton(true);
 			if (this.getSetting("warnings"))
 				this.playAudio("oops");
-			GameUI.$log(true, $.i18n(
+			this.$log(true, $.i18n(
 				"The word{{PLURAL:$1||s}} $2 {{PLURAL:$1|was|were}} not found in the dictionary",
 				rejection.words.length,
 				rejection.words.join(", ")), "turn-narrative");
 		}
 
+		/**
+		 * Handle a pause event.
+		 * By using a modal dialog to report the pause, we block further
+		 * interaction until the pause is released.
+		 * @param {object} params Parameters
+		 * @param {string} params.key game key
+		 * @param {string} params.name name of player who paused/released
+		 */
+		handle_PAUSE(params) {
+			console.debug(`--> pause ${params.name}`);
+			if (params.key !== this.game.key)
+				console.error(`key mismatch ${this.game.key}`);
+			$(".Surface .letter").addClass("hidden");
+			$(".Surface .score").addClass("hidden");
+			$("#pauseDialog > .banner")
+			.text($.i18n("$1 has paused the game", params.name));
+			$("#pauseDialog")
+			.dialog({
+				dialogClass: "no-close",
+				modal: true,
+				buttons: [
+					{
+						text: $.i18n("Continue the game"),
+						click: () => {
+							this.sendCommand(Command.UNPAUSE);
+							$("#pauseDialog").dialog("close");
+						}
+					}
+				]});
+		}
+
+		/**
+		 * Handle an unpause event.
+		 * Close the modal dialog used to report the pause.
+		 * @param {object} params Parameters
+		 * @param {string} params.key game key
+		 * @param {string} params.name name of player who paused/released
+		 */
+		handle_UNPAUSE(params) {
+			console.debug(`--> unpause ${params.name}`);
+			$(".Surface .letter").removeClass("hidden");
+			$(".Surface .score").removeClass("hidden");
+			$("#pauseDialog")
+			.dialog("close");
+		}
+
     /**
-     * A heavy-handed instruction to reloaded the game UI, probably in
-     * response to an "undo"
-     * @private
+     * Handle an undone event. This is broadcast when a command has
+     * been undone on the server.
      */
-    handle_reload() {
-			const gameKey = this.game.key;
-      const playerKey = this.player.key;
-      location.replace(
-        `/html/game.html?game=${gameKey}&player=${playerKey}`);
+    handle_UNDONE(turn) {
+      this.undoStack.push(turn);
+      this.game.undo(true);
+			const isMyGo = this.isThisPlayer(this.game.whosTurnKey);
+      this.updatePlayerTable();
+      this.updateWhosTurn();
+      this.updateGameStatus();
+      $(".redoButton").toggle(this.getSetting("undo_redo"));
+      $(".last-placement")
+      .removeClass("last-placement");
+			if (this.game.turnCount() === 0)
+        $(".undoButton").hide();
+			this.lockBoard(!isMyGo);
+			this.enableTurnButton(isMyGo);
+			this.$log(true, $.i18n(
+        "Undone $1, waiting for $2",
+        turn.type, this.game.getPlayer().name));
+      $(".undoButton")
+      .toggle(this.game.turnCount() > 0 && this.getSetting("undo_redo"));
     }
 
 		/**
-		 * Handle a keydown.
+		 * Handle a key down event.
      * These are captured in the root of the UI and dispatched here.
 		 */
-		handle_keydown(event) {
+		keyDown(event) {
 			// Only handle events targeted when the board is not
 			// locked, and ignore events targeting the chat input.
 			// Checks for selection status are performed in
@@ -620,11 +891,9 @@ define("browser/game", [
 				}
 				break;
 
-			case "2": case '"': // and type until return
-				break;
-
-			case "8": case "*": // to place typing cursor in centre
-				// (or first empty square, starting at top left)
+			case "*": // to place typing cursor in centre
+				// (or first empty square, scanning rows from
+        // the top left, if the centre is occupied)
 				{
 					const mr = Math.floor(this.game.board.rows / 2);
 					const mc = Math.floor(this.game.board.cols / 2);
@@ -730,7 +999,7 @@ define("browser/game", [
 				  .find("button")
 				  .on("click", () => {
 					  $.post("/logout")
-					  .then(() => location.replace(location));
+					  .then(() => window.location.reload());
 				  });
           this.observer = this.session.name;
         }
@@ -747,6 +1016,7 @@ define("browser/game", [
 		loadGame(game) {
 			console.debug("Loading UI for", game);
 
+      game._debug = console.debug;
 			this.game = game;
 
 			// Number of tiles placed on the board since the last turn
@@ -770,11 +1040,13 @@ define("browser/game", [
 			const $board = game.board.$ui();
 			$("#board").append($board);
 
-			GameUI.$log(true, $.i18n("Game started"), "game-state");
+			this.$log(true, $.i18n("Game started"), "game-state");
 
 			game.forEachTurn(
 				(turn, isLast) => this.describeTurn(turn, isLast));
-			GameUI.$log(true, ""); // Force scroll to end of log
+			this.$log(true, ""); // Force scroll to end of log
+      if (game.turnCount() > 0)
+        $(".undoButton").toggle(this.getSetting("undo_redo"));
 
 			if (game.hasEnded()) {
 				if (game.nextGameKey)
@@ -783,7 +1055,28 @@ define("browser/game", [
 					this.setAction("action_anotherGame", /*i18n*/"Another game?");
 			}
 
-			$(".pauseButton").toggle(game.timerType);
+			$(".pauseButton")
+      .toggle(game.timerType);
+
+			$(".undoButton")
+      .on(
+        "click", () => {
+			    // unplace any pending move
+			    this.takeBackTiles();
+          this.sendCommand(Command.UNDO);
+        });
+
+			$(".redoButton")
+      .hide()
+      .on(
+        "click", () => {
+          if (this.undoStack.length > 0) {
+            const turn = this.undoStack.pop();
+            this.sendCommand(Command.REDO, turn);
+            if (this.undoStack.length === 0)
+              $(".redoButton").hide();
+          }
+        });
 
 			let myGo = this.isThisPlayer(game.whosTurnKey);
 			this.updateWhosTurn();
@@ -860,88 +1153,41 @@ define("browser/game", [
       this.socket
 
 			.on(Notify.CONNECTIONS,
-          observers => this.handle_connections(checkSequenceNumber(observers)))
+          observers => this.handle_CONNECTIONS(checkSequenceNumber(observers)))
 
 			// A turn has been taken. turn is a Turn
 			.on(Notify.TURN,
-          turn => this.handle_turn(checkSequenceNumber(turn)))
+          turn => this.handle_TURN(checkSequenceNumber(turn)))
 
 			// Server clock tick.
 			.on(Notify.TICK,
-          params => this.handle_tick(checkSequenceNumber(params)))
+          params => this.handle_TICK(checkSequenceNumber(params)))
 
 			// A follow-on game is available
 			.on(Notify.NEXT_GAME,
-	        params => this.handle_nextGame(checkSequenceNumber(params)))
+	        params => this.handle_NEXT_GAME(checkSequenceNumber(params)))
 
 			// A message has been sent
 			.on(Notify.MESSAGE,
-          message => GameUI.handle_message(checkSequenceNumber(message)))
+          message => this.handle_MESSAGE(checkSequenceNumber(message)))
 
 			// Attempted play has been rejected
 			.on(Notify.REJECT,
-          params => this.handle_reject(checkSequenceNumber(params)))
-
-			// Instruction to reload the UI received, probably as the result
-      // of an undo
-			.on(Notify.RELOAD,
-          params => this.handle_reload(checkSequenceNumber(params)))
+          params => this.handle_REJECT(checkSequenceNumber(params)))
 
 			// Game has been paused
 			.on(Notify.PAUSE,
-          params => this.handle_pause(checkSequenceNumber(params)))
+          params => this.handle_PAUSE(checkSequenceNumber(params)))
 
 			// Game has been unpaused
 			.on(Notify.UNPAUSE,
-          params => GameUI.handle_unpause(checkSequenceNumber(params)))
+          params => this.handle_UNPAUSE(checkSequenceNumber(params)))
+
+			// An UNDO has been serviced
+			.on(Notify.UNDONE,
+          message => this.handle_UNDONE(checkSequenceNumber(message)))
 
 			.on(Notify.JOIN, () => console.debug("--> join"));
-		}
-
-		/**
-		 * Handle a pause event.
-		 * By using a modal dialog to report the pause, we block further
-		 * interaction until the pause is released.
-		 * @param {object} params Parameters
-		 * @param {string} params.key game key
-		 * @param {string} params.name name of player who paused/released
-		 */
-		handle_pause(params) {
-			console.debug(`--> pause ${params.name}`);
-			if (params.key !== this.game.key)
-				console.error(`key mismatch ${this.game.key}`);
-			$(".Surface .letter").addClass("hidden");
-			$(".Surface .score").addClass("hidden");
-			$("#pauseDialog > .banner")
-			.text($.i18n("$1 has paused the game", params.name));
-			$("#pauseDialog")
-			.dialog({
-				dialogClass: "no-close",
-				modal: true,
-				buttons: [
-					{
-						text: $.i18n("Continue the game"),
-						click: () => {
-							this.sendCommand(Command.UNPAUSE);
-							$("#pauseDialog").dialog("close");
-						}
-					}
-				]});
-		}
-
-		/**
-		 * Handle an unpause event.
-		 * Close the modal dialog used to report the pause.
-		 * @param {object} params Parameters
-		 * @param {string} params.key game key
-		 * @param {string} params.name name of player who paused/released
-		 */
-		static handle_unpause(params) {
-			console.debug(`--> unpause ${params.name}`);
-			$(".Surface .letter").removeClass("hidden");
-			$(".Surface .score").removeClass("hidden");
-			$("#pauseDialog")
-			.dialog("close");
 		}
 
 		/**
@@ -987,7 +1233,7 @@ define("browser/game", [
 				  (e, source, square) => this.dropSquare(source, square))
 
 			// Keydown anywhere in the document
-			.on("keydown", event => this.handle_keydown(event));
+			.on("keydown", event => this.keyDown(event));
 
       super.attachHandlers();
 		}
@@ -1019,7 +1265,7 @@ define("browser/game", [
 				else
 					this.moveTypingCursor(0, 1);
 			} else
-				GameUI.$log($.i18n("'$1' is not on the rack", letter));
+				this.$log($.i18n("'$1' is not on the rack", letter));
 		}
 
 		/**
@@ -1299,7 +1545,7 @@ define("browser/game", [
           const bonus =
                 this.game.calculateBonus(move.placements.length);
           move.score += bonus; 
-					$move.append(GameUI.$score(move, !this.game.predictScore));
+					$move.append(this.$score(move, !this.game.predictScore));
 					this.enableTurnButton(true);
 				}
 
@@ -1344,213 +1590,6 @@ define("browser/game", [
 		}
 
 		/**
-		 * Process a Turn object received from the server. `Notify.TURN` events
-		 * are sent by the server when an action by any player has
-		 * modified the game state.
-		 * @param {Turn} turn a Turn object
-		 */
-		handle_turn(turn) {
-			console.debug("--> turn ", turn);
-			// Take back any locally placed tiles
-			this.game.board.forEachSquare(
-				boardSquare => {
-					if (this.takeBackTile(boardSquare))
-						this.placedCount--;
-				});
-
-      this.removeMoveActionButtons();
-			const player = this.game.getPlayerWithKey(turn.playerKey);
-			const challenger = (typeof turn.challengerKey === "string")
-				    ? this.game.getPlayerWithKey(turn.challengerKey) : undefined;
-
-			if (turn.type === Turns.CHALLENGE_LOST) {
-				challenger.score += turn.score;
-				challenger.$refresh();
-			} else {
-				if (typeof turn.score === "number")
-					player.score += turn.score;
-				else if (typeof turn.score === "object")
-					Object.keys(turn.score).forEach(
-						k => this.game.getPlayerWithKey(k)
-						.score +=
-						(turn.score[k].tiles || 0) +
-						(turn.score[k].time || 0));
-				player.$refresh();
-			}
-
-			// Unhighlight last placed tiles
-			$(".last-placement").removeClass("last-placement");
-
-			this.describeTurn(turn, true, true);
-
-			// Was the play intiated by, or primarily affecting, us
-			const wasUs = this.isThisPlayer(turn.playerKey);
-
-			switch (turn.type) {
-			case Turns.CHALLENGE_WON:
-			case Turns.TOOK_BACK:
-				// Move new tiles out of challenged player's rack
-				// into the bag
-				if (turn.replacements)
-					for (let newTile of turn.replacements) {
-						const tile = player.rack.removeTile(newTile);
-						this.game.letterBag.returnTile(tile);
-					}
-
-				// Take back the placements from the board into the
-				// challenged player's rack
-				if (turn.placements)
-					for (const placement of turn.placements) {
-						const square = this.game.at(
-							placement.col, placement.row);
-						const recoveredTile = square.tile;
-						square.unplaceTile();
-						player.rack.addTile(recoveredTile);
-					}
-
-				// Was it us?
-				if (wasUs) {
-					player.rack.$refresh();
-
-					if (turn.type === Turns.CHALLENGE_WON) {
-						if (this.getSetting("warnings"))
-							this.playAudio("oops");
-						this.notify(
-							/*.i18n("ui-notify-title-succeeded")*/
-							/*.i18n("ui-notify-body-succeeded")*/
-							this.game.getPlayerWithKey(turn.playerKey).name,
-							-turn.score);
-					}
-				}
-
-				if (turn.type == Turns.TOOK_BACK) {
-					/*.i18n("ui-notify-title-retracted")*/
-					/*.i18n("ui-notify-body-retracted")*/
-					this.notify("retracted",
-								      this.game.getPlayerWithKey(turn.playerKey).name);
-				}
-				break;
-
-			case Turns.CHALLENGE_LOST:
-				if (this.getSetting("warnings"))
-					this.playAudio("oops");
-				if (challenger === this.player) {
-					// Our challenge failed
-					/*.i18n("ui-notify-title-you-failed")*/
-					/*.i18n("ui-notify-body-you-failed")*/
-					this.notify("you-failed");
-				} else {
-					/*.i18n("ui-notify-title-they-failed")*/
-					/*.i18n("ui-notify-body-they-failed")*/
-					this.notify("they-failed", player.name);
-				}
-				break;
-
-			case Turns.PLAYED:
-				if (wasUs)
-					this.placedCount = 0;
-
-				// Take the placed tiles out of the players rack and
-				// lock them onto the board.
-				for (let i = 0; i < turn.placements.length; i++) {
-					const placement = turn.placements[i];
-					const square = this.game.at(placement.col, placement.row);
-					const tile = player.rack.removeTile(placement);
-					square.placeTile(tile, true);
-					if (wasUs)
-						square.$refresh();
-					else
-						// Highlight the tile as "just placed"
-						$(`#${square.id}`).addClass("last-placement");
-				}
-
-				// Shrink the bag by the number of new
-				// tiles. This is purely to keep the counts in
-				// synch, we never use tiles taken from the bag on
-				// the client side.
-				if (turn.replacements)
-					this.game.letterBag.getRandomTiles(
-						turn.replacements.length);
-
-				// Deliberate fall-through to Turns.SWAPPED to get the
-				// replacements onto the rack
-
-			case Turns.SWAPPED:
-				// Add replacement tiles to the player's rack. Number of tiles
-				// in letter bag doesn't change.
-				if (turn.replacements) {
-					for (const newTile of turn.replacements)
-						player.rack.addTile(new Tile(newTile));
-
-					player.rack.$refresh();
-				}
-
-				break;
-
-			case Turns.GAME_ENDED:
-				// End of game has been accepted
-				this.gameOverConfirmed(turn);
-				return;
-			}
-
-			if (this.isThisPlayer(turn.nextToGoKey)) {
-				if (this.getSetting("turn_alert"))
-					this.playAudio("yourturn");
-				this.lockBoard(false);
-				this.enableTurnButton(true);
-			} else {
-				this.lockBoard(true);
-				this.enableTurnButton(false);
-			}
-
-			if (turn.nextToGoKey && turn.type !== Turns.CHALLENGE_WON) {
-
-				if (turn.type == Turns.PLAYED) {
-					if (wasUs) {
-						if (this.game.allowTakeBack) {
-							this.addTakeBackPreviousButton(turn);
-						}
-					} else {
-						// It wasn't us, we might want to challenge.
-						// Not much point in challenging a robot, but
-						// ho hum...
-						this.addChallengePreviousButton(turn);
-					}
-				}
-
-				if (this.isThisPlayer(turn.nextToGoKey)
-					  && turn.type !== Turns.TOOK_BACK) {
-					// It's our turn next, and we didn't just take back
-					/*.i18n("ui-notify-title-your-turn")*/
-					/*.i18n("ui-notify-body-your-turn")*/
-					this.notify("your-turn",
-								      this.game.getPlayerWithKey(turn.playerKey).name);
-				}
-				this.game.whosTurnKey = turn.nextToGoKey;
-				this.updateWhosTurn();
-			}
-			this.updateGameStatus();
-		}
-
-		/**
-		 * Handle game-ended confirmation. This confirmation will come after
-		 * a player accepts that the previous player's final turn is OK
-		 * and they don't intend to challenge.
-		 * @param {object} turn Turns.simple describing the game
-		 */
-		gameOverConfirmed(turn) {
-			console.debug(`--> gameOverConfirmed ${turn.gameKey}`);
-			this.game.state = State.GAME_OVER;
-			// unplace any pending move
-			this.takeBackTiles();
-			this.setAction("action_anotherGame", /*i18n*/"Another game?");
-			this.enableTurnButton(true);
-			/*.i18n("ui-notify-title-game-over")*/
-			/*.i18n("ui-notify-body-game-over")*/
-			this.notify("game-over");
-		}
-
-		/**
 		 * Add a 'Challenge' button to the log pane to challenge the last
 		 * player's move (if it wasn't us)
 		 * @param {Turn} turn the current turn
@@ -1568,7 +1607,7 @@ define("browser/game", [
 				    .addClass("moveAction")
 				    .button()
 				    .on("click", () => this.challenge(player.key));
-			GameUI.$log(true, $button, "turn-control");
+			this.$log(true, $button, "turn-control");
 		}
 
 		/**
@@ -1582,7 +1621,7 @@ define("browser/game", [
 				    .text($.i18n("Take back"))
 				    .button()
 				    .on("click", () => this.takeBackMove());
-			GameUI.$log(true, $button, "turn-control");
+			this.$log(true, $button, "turn-control");
 		}
 
 		/**
@@ -1761,6 +1800,19 @@ define("browser/game", [
 		shuffleRack() {
 			this.player.rack.shuffle().$refresh();
 		}
+
+		/**
+		 * Handler for click on the 'Undo' button
+		 */
+    undo() {
+      this.sendComand(Command.UNDO);
+    }
+
+		/**
+		 * Handler for click on the 'redo' button
+		 */
+    redo() {
+    }
 	}
 
 	new GameUI().create();

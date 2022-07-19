@@ -6,7 +6,10 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 describe("Fridge class", () => {
 
 	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, { Fridge: 'common/Fridge' }));
+	before(required => TS.depend(required, {
+    Utils: "common/Utils",
+    Fridge: 'common/Fridge'
+  }));
 
 	class Wibble {
 		constructor(wib) {
@@ -14,12 +17,12 @@ describe("Fridge class", () => {
 			this.wibble = wib;
 		}
 
-		toString() {
+		stringify() {
 			return this.wibble;
 		}
 	}
 
-    it('simple-object', () => {
+  it('simple-object', () => {
 
 		let simple = {
 			number: 10,
@@ -31,14 +34,15 @@ describe("Fridge class", () => {
 			object: { data: 'lorem ipsum' }
 		};
 		let frozen = Fridge.freeze(simple);
-		  let thawed = Fridge.thaw(frozen, { Wibble: Wibble });
+		let thawed = Fridge.thaw(frozen, { Wibble: Wibble });
+    assert(!thawed._ignore);
 		assert.equal(thawed.number, simple.number);
 		assert.equal(thawed.string, simple.string);
 		assert.equal(thawed.date.toISOString(), simple.date.toISOString());
-		assert.equal(thawed.array.toString(), simple.array.toString());
+		assert.equal(Utils.stringify(thawed.array), Utils.stringify(simple.array));
 		assert.equal(JSON.stringify(thawed.object), JSON.stringify(simple.object));
 		assert(thawed.classObject instanceof Wibble);
-		assert.equal(thawed.classObject.toString(), simple.classObject.toString());
+    assert.equal(thawed.classObject.stringify(),simple.classObject.stringify());
 	});
 
   it('date', () => {
@@ -73,7 +77,7 @@ describe("Fridge class", () => {
 		//console.log(JSON.stringify(frozen));
 		let thawed = Fridge.thaw(frozen, { Wibble: Wibble });
 		//console.log(JSON.stringify(thawed));
-		 assert.deepEqual(frood, thawed);
+		assert.deepEqual(frood, thawed);
 	});
 
   it('array-ref', () => {
@@ -97,10 +101,10 @@ describe("Fridge class", () => {
 		//console.log(JSON.stringify(frozen));
 		let thawed = Fridge.thaw(frozen, { Wibble: Wibble });
 		//console.log(JSON.stringify(thawed));
-		 assert.deepEqual(frood, thawed);
+		assert.deepEqual(frood, thawed);
 	});
 
-
+  
   it('object-ref', () => {
 
 		let frood = { 1: 2, 3: 4 };
@@ -115,7 +119,7 @@ describe("Fridge class", () => {
 		assert.equal(thawed.obj1, thawed.obj2);
 	});
 
-    it('self-referential', () => {
+  it('self-referential', () => {
 
 		let frood = new Wibble();
 		frood.wibble = frood;
@@ -145,7 +149,7 @@ describe("Fridge class", () => {
 		let frood = new Weeble("BLIB");
 		let frozen = Fridge.freeze(frood);
 		//console.log(JSON.stringify(frozen));
-		  let thawed = Fridge.thaw(frozen, { Weeble: Weeble });
+		let thawed = Fridge.thaw(frozen, { Weeble: Weeble });
 		//console.log(JSON.stringify(thawed));
 		assert.equal("thawed frozen BLIB", thawed.wibble);
 	});

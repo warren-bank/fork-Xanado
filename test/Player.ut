@@ -43,8 +43,6 @@ describe("Player class", () => {
 		player.isRobot = true;
 		player.score = 20;
 
-		assert.equal(player.valueOf(), "Player 'Player 1' (Robot) key playerkey");
-		assert.equal(player.toString(), player.valueOf());
 		return player.simple()
 		.then(d => {
       assert.deepEqual(d, {

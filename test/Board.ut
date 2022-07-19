@@ -40,8 +40,7 @@ describe("Board class", () => {
 				"| | | | | | | | | | | | | | | |\n", edition);
 			b.at(6, 6).unplaceTile();
 			b.at(6, 6).placeTile(new Tile({letter: "N", isBlank: true}), true);
-			assert.equal(b,
-						 "Board 11x11\n" +
+			assert.equal(b.stringify(),
 						 "|Q| | | | | | | | | |8|\n" +
 						 "|U|4| | | | | | | |4| |\n" +
 						 "|E| |7| | | | | |7| | |\n" +

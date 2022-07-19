@@ -4,9 +4,9 @@
 /* eslint-env amd */
 
 define("game/Undo", [
-	"platform", "game/Types", "game/Tile"
+	"platform", "common/Utils", "game/Types", "game/Tile"
 ], (
-	Platform, Types, Tile
+	Platform, Utils, Types, Tile
 ) => {
 
   const Turns  = Types.Turns;
@@ -29,7 +29,7 @@ define("game/Undo", [
     bag2rack(tiles, rack) {
 			for (const tile of tiles) {
 	      const removed = this.letterBag.removeTile(tile);
-        Platform.assert(removed, `${tile.toString()} missing from bag`);
+        Platform.assert(removed, `${Utils.stringify(tile)} missing from bag`);
         rack.addTile(removed);
       }
     },
@@ -75,7 +75,7 @@ define("game/Undo", [
      * @param {Turn} turn the Turn to unplay
      * @private
      */
-    unswap(turn) {
+    unswap(turn, isClient) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
       const racked = player.rack.removeTiles(turn.replacements);
@@ -83,7 +83,8 @@ define("game/Undo", [
       this.letterBag.returnTiles(racked);
       player.passes--;
       this.whosTurnKey = player.key;
-      // TODO: notify
+      if (isClient)
+        player.rack.$refresh();
     },
 
     /**
@@ -93,8 +94,7 @@ define("game/Undo", [
      * @param {Turn} turn the Turn to unplay
      * @private
      */
-    unplay(turn) {
-      this._debug("unplay");
+    unplay(turn, isClient) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
       const racked = player.rack.removeTiles(turn.replacements);
@@ -103,8 +103,10 @@ define("game/Undo", [
 			player.score -= turn.score;
 			player.passes = turn.prepasses || 0;
       this.whosTurnKey = player.key;
-
-      // TODO: notify
+      if (isClient) {
+        player.rack.$refresh();
+        this.board.$refresh();
+      }
     },
 
     /**
@@ -115,19 +117,14 @@ define("game/Undo", [
      * @param {Turn} turn the Turn to unplay
      * @private
      */
-    unconfirmGameOver(turn) {
-      this._debug("\tend state", turn);
+    unconfirmGameOver(turn, isClient) {
       // Re-adjustscores from the delta
-      let pointsGainedFromRacks = 0;
       for (const key of Object.keys(turn.score)) {
         const delta = turn.score[key];
         const player = this.getPlayerWithKey(key);
         Platform.assert(player, key);
         player.score -= (delta.time || 0) + (delta.tiles || 0);
-        pointsGainedFromRacks += Math.abs(delta.tiles);
       }
-			const winner = this.getWinner();
-      winner.score -= pointsGainedFromRacks;
       this.state = State.PLAYING;
       // TODO: Notify
       // TODO: reset the clock
@@ -141,7 +138,7 @@ define("game/Undo", [
      * @param {Turn} turn the Turn to unplay
      * @private
      */
-    untakeBack(turn) {
+    untakeBack(turn, isClient) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
       this.rack2board(turn.placements, player.rack);
@@ -149,7 +146,10 @@ define("game/Undo", [
       player.score -= turn.score;
       this.whosTurnKey = this.nextPlayer(player).key;
       this._debug(`\tplayer now ${this.whosTurnKey}`,turn);
-      // TODO: Notify
+      if (isClient) {
+        player.rack.$refresh();
+        this.board.$refresh();
+      }
     },
 
     /**
@@ -159,8 +159,7 @@ define("game/Undo", [
      * @param {Turn} turn the Turn to unplay
      * @private
      */
-    unpass(turn) {
-      this._debug("unpass ", turn.type);
+    unpass(turn, isClient) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
       player.passes--;
@@ -176,9 +175,9 @@ define("game/Undo", [
      * @param {Turn} turn the Turn to unplay
      * @private
      */
-    unchallenge(turn) {
+    unchallenge(turn, isClient) {
       const player = this.getPlayerWithKey(turn.challengerKey);
-      this._debug("\t", player.toString(), "regained", turn.score);
+      this._debug("\t", Utils.stringify(player), "regained", turn.score);
       player.score -= turn.score;
       // TODO: Notify
     },
@@ -189,33 +188,41 @@ define("game/Undo", [
      * that was unplayed.
      * @function
      * @memberof Undo
-     * @param {boolean?} nosave disables saving after undo.
+     * @param {boolean?} isClient if true, updates the UI associated with the board
+     * and rack. If false, saves the game.
      * @return {Promise} promise resolving to undefined
      */
-    undo(nosave) {
-      const turn = this.turns.pop();
-      Platform.assert(turn);
+    undo(isClient) {
+      Platform.assert(this.turnCount() > 0);
+      const turn = this.popTurn();
       this._debug(`un-${turn.type}`);
       switch (turn.type) {
 		  case Turns.SWAPPED:
-        this.unswap(turn); break;
+        this.unswap(turn, isClient);
+        break;
 		  case Turns.PASSED:
 		  case Turns.TIMED_OUT:
-        this.unpass(turn); break;
+        this.unpass(turn, isClient);
+        break;
 		  case Turns.PLAYED:
-        this.unplay(turn); break;
+        this.unplay(turn, isClient);
+        break;
 		  case Turns.TOOK_BACK:
 		  case Turns.CHALLENGE_WON:
-        this.untakeBack(turn); break;
+        this.untakeBack(turn, isClient);
+        break;
 		  case Turns.GAME_ENDED:
-        this.unconfirmGameOver(turn); break;
+        this.unconfirmGameOver(turn, isClient);
+        break;
 		  case Turns.CHALLENGE_LOST:
-        this.unchallenge(turn); break;
+        this.unchallenge(turn, isClient);
+        break;
       default:
-        Platform.fail(`Unkown turn type '${turn.type}'`);
+        Platform.fail(`Unknown turn type '${turn.type}'`);
       }
-      if (nosave)
+      if (isClient)
         return Promise.resolve();
+
       return this.save()
       .then(() => this.notifyAll(Notify.UNDONE, turn));
     },
@@ -231,18 +238,20 @@ define("game/Undo", [
       this._debug("REDO", turn.type, new Date(turn.timestamp).toISOString());
       switch (turn.type) {
 		  case Turns.SWAPPED:
-        // Remove and return the tiles to the the unshaken bag
-        // to ensure replayability
+        // Remove and return the expected tiles to the the unshaken bag
+        // to ensure replay order. We have to do this so the next play on the
+        // undo stack is also redoable.
         this.letterBag.predictable = true;
         this.letterBag.removeTiles(turn.replacements);
-        this.letterBag.returnTiles(turn.replacements);
+        this.letterBag.returnTiles(turn.replacements.map(t => new Tile(t)));
         this._debug("\t-- swap");
         return this.swap(player, turn.placements)
         .then(() => delete this.letterBag.predictable);
 		  case Turns.PLAYED:
         this.letterBag.predictable = true;
+        // Remove and return
         this.letterBag.removeTiles(turn.replacements);
-        this.letterBag.returnTiles(turn.replacements);
+        this.letterBag.returnTiles(turn.replacements.map(t => new Tile(t)));
         this._debug("\t-- play");
         return this.play(player, turn)
         .then(() => delete this.letterBag.predictable);

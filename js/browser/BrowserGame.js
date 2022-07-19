@@ -4,9 +4,9 @@
 /* eslint-env amd */
 
 define("browser/BrowserGame", [
-	"platform", "game/Player"
+	"platform", "game/Player", "game/Undo"
 ], (
-	Platform, Player
+	Platform, Player, Undo
 ) => {
 
   /**
@@ -57,6 +57,8 @@ define("browser/BrowserGame", [
 			this.players = newOrder;
 		}
   };
+
+  Object.assign(BrowserGame, Undo);
 
   return BrowserGame;
 });
