@@ -7,13 +7,13 @@
  */
 
 describe("Replay", () => {
-	
-	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, {
+
+  const TS = require("./TestSupport.js");
+  before(required => TS.depend(required, {
     FileDatabase: "server/FileDatabase",
-		Tile: "game/Tile",
-	  Game: "game/Game",
-	  Replay: "game/Replay"
+    Tile: "game/Tile",
+    Game: "game/Game",
+    Replay: "game/Replay"
   }));
 
   function assertGameEqual(actual, expected, noTurns) {
@@ -108,12 +108,12 @@ describe("Replay", () => {
   // A passes
   // Should take us to game over
   it("replay", () => {
-		const db = new FileDatabase("test", "game");
+    const db = new FileDatabase("test", "game");
     let preGame, game, preBag;
     
-		return db.get("good_game", Replay.classes)
+    return db.get("good_game", Replay.classes)
     .then(g => g.onLoad(db))
-		.then(g => preGame = g)
+    .then(g => preGame = g)
     .then(() => {
       const game = new Replay(preGame);
       game.key = "simulated_game";
@@ -137,12 +137,12 @@ describe("Replay", () => {
   });
   
   it("issue 50", () => {
-		const db = new FileDatabase("test", "game");
+    const db = new FileDatabase("test", "game");
     let preGame, game, preBag = [];
 
-		return db.get("kolano", Replay.classes)
+    return db.get("kolano", Replay.classes)
     .then(g => g.onLoad(db))
-		.then(g => preGame = g)
+    .then(g => preGame = g)
     .then(() => {
       const game = new Replay(preGame);
       game.key = "simulated_game";
@@ -171,12 +171,12 @@ describe("Replay", () => {
   });
 
   it("issue 49", () => {
-		const db = new FileDatabase("test", "game");
+    const db = new FileDatabase("test", "game");
     let preGame, game, preBag;
 
-		return db.get("8-letter-rack", Game.classes)
+    return db.get("8-letter-rack", Game.classes)
     .then(g => g.onLoad(db))
-		.then(g => preGame = g)
+    .then(g => preGame = g)
     .then(() => {
       //preGame._debug = console.debug;
       const game = new Replay(preGame);

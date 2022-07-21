@@ -7,117 +7,117 @@
  */
 describe("RobotFirstPlay", () => {
 
-	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, {
+  const TS = require("./TestSupport.js");
+  before(required => TS.depend(required, {
     FileDatabase: "server/FileDatabase",
     Platform: "platform",
-		Edition: "game/Edition",
-		Tile: "game/Tile",
-		Player: "game/Player",
-		Game: "game/Game",
-		Rack: "game/Rack",
-		findBestPlay: "game/findBestPlay"
-    }));
+    Edition: "game/Edition",
+    Tile: "game/Tile",
+    Player: "game/Player",
+    Game: "game/Game",
+    Rack: "game/Rack",
+    findBestPlay: "game/findBestPlay"
+  }));
 
-	it("first play English Scrabble", () => {
-		let bestPlay;
+  it("first play English Scrabble", () => {
+    let bestPlay;
 
-		let game = new Game({
-            edition:"English_Scrabble",
-            dictionary:"Oxford_5000"
-        });
-        return game.create()
-        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
-		.then(() => {
-			game.addPlayer(new Player({
-                name:"test", key:"anonymous", isRobot:false
+    let game = new Game({
+      edition:"English_Scrabble",
+      dictionary:"Oxford_5000"
+    });
+    return game.create()
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
+    .then(() => {
+      game.addPlayer(new Player({
+        name:"test", key:"anonymous", isRobot:false
       }), true);
-			return game.loadBoard(
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n");
-		})
+      return game.loadBoard(
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n");
+    })
 
-		.then(game => findBestPlay(
-			game, [
-					new Tile({letter:"A", isBlank:false, score:1}),
-					new Tile({letter:"E", isBlank:false, score:1}),
-					new Tile({letter:"I", isBlank:false, score:1}),
-					new Tile({letter:"O", isBlank:false, score:1}),
-					new Tile({letter:"U", isBlank:false, score:1}),
-					new Tile({letter:" ", isBlank:true, score:0}),
-					new Tile({letter:" ", isBlank:true, score:0})
-				],
-			play => {
-				//console.debug(play);
-				bestPlay = play;
-			},
-            game.dictpath, game.dictionary))
+    .then(game => findBestPlay(
+      game, [
+        new Tile({letter:"A", isBlank:false, score:1}),
+        new Tile({letter:"E", isBlank:false, score:1}),
+        new Tile({letter:"I", isBlank:false, score:1}),
+        new Tile({letter:"O", isBlank:false, score:1}),
+        new Tile({letter:"U", isBlank:false, score:1}),
+        new Tile({letter:" ", isBlank:true, score:0}),
+        new Tile({letter:" ", isBlank:true, score:0})
+      ],
+      play => {
+        //console.debug(play);
+        bestPlay = play;
+      },
+      game.dictpath, game.dictionary))
 
-		.then(() => {
-			assert.equal(bestPlay.words[0].word, "AUDIO");
-			assert.equal(bestPlay.words[0].score, 10);
-			let tile = bestPlay.placements[2];
-			assert(tile instanceof Tile);
-			assert.equal(tile.letter, "D");
-			assert.equal(tile.score, 0);
-			assert(tile.isBlank);
-		});
-	});
+    .then(() => {
+      assert.equal(bestPlay.words[0].word, "AUDIO");
+      assert.equal(bestPlay.words[0].score, 10);
+      let tile = bestPlay.placements[2];
+      assert(tile instanceof Tile);
+      assert.equal(tile.letter, "D");
+      assert.equal(tile.score, 0);
+      assert(tile.isBlank);
+    });
+  });
 
-	it("first play English WWF", () => {
-		let bestPlay;
+  it("first play English WWF", () => {
+    let bestPlay;
 
-		let game = new Game({edition:"English_WWF", dictionary:"Oxford_5000"});
-        return game.create()
-        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
-		.then(game => {
-			game.addPlayer(
+    let game = new Game({edition:"English_WWF", dictionary:"Oxford_5000"});
+    return game.create()
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
+    .then(game => {
+      game.addPlayer(
         new Player({name:"test", key:"slight", isRobot:false}), true);
-			return game.loadBoard(
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n" +
-				"| | | | | | | | | | | | | | | |\n");
-		})
+      return game.loadBoard(
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n");
+    })
 
-		.then(game => findBestPlay(
-			game, [
-					new Tile({letter:"Z", isBlank:false, score:1}),
-					new Tile({letter:"E", isBlank:false, score:1}),
-					new Tile({letter:"B", isBlank:false, score:1}),
-					new Tile({letter:"U", isBlank:false, score:1})
-			],
-			play => bestPlay = play,
-            game.dictpath, game.dictionary))
+    .then(game => findBestPlay(
+      game, [
+        new Tile({letter:"Z", isBlank:false, score:1}),
+        new Tile({letter:"E", isBlank:false, score:1}),
+        new Tile({letter:"B", isBlank:false, score:1}),
+        new Tile({letter:"U", isBlank:false, score:1})
+      ],
+      play => bestPlay = play,
+      game.dictpath, game.dictionary))
 
-		.then(() => {
-			assert.equal(bestPlay.words[0].word, "BE");
-			assert.equal(bestPlay.words[0].score, 4);
-		});
-	});
+    .then(() => {
+      assert.equal(bestPlay.words[0].word, "BE");
+      assert.equal(bestPlay.words[0].score, 4);
+    });
+  });
 });
 

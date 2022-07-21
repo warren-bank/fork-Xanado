@@ -298,7 +298,7 @@ div.Surface td div.tiled-square a span.blank-letter {
 @-moz-document url-prefix(//) {
   div.Surface td div.tiled-square a span.letter,
   div.Surface td div.tiled-square a span.blank-letter {
-	line-height: 1.8em;
+  line-height: 1.8em;
   }
 }
 

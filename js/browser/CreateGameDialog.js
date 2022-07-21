@@ -7,32 +7,32 @@
  * Dialog for game creation. Demand loads the HTML.
  */
 define([
-	"browser/Dialog", "game/Types", "game/Game"
+  "browser/Dialog", "game/Types", "game/Game"
 ], (Dialog, Types, Game) => {
 
   const Timer = Types.Timer;
   const Penalty = Types.Penalty;
   const WordCheck = Types.WordCheck;
 
-	class CreateGameDialog extends Dialog {
-		
-		/**
-		 * @override
-		 */
-		canSubmit() {
-			console.debug("Validate edition",
-						        this.$dlg.find("[name=edition]").val(),
-						        "play dictionary",
-						        this.$dlg.find("[name=dictionary]").val());
-			return (this.$dlg.find("[name=edition]").val() !== 'none');
-		}
+  class CreateGameDialog extends Dialog {
+    
+    /**
+     * @override
+     */
+    canSubmit() {
+      console.debug("Validate edition",
+                    this.$dlg.find("[name=edition]").val(),
+                    "play dictionary",
+                    this.$dlg.find("[name=dictionary]").val());
+      return (this.$dlg.find("[name=edition]").val() !== 'none');
+    }
 
-		constructor(options) {
-			super("CreateGameDialog", $.extend({
-				title: $.i18n("Create game")
-			}, options));
-			this.ui = options.ui;
-		}
+    constructor(options) {
+      super("CreateGameDialog", $.extend({
+        title: $.i18n("Create game")
+      }, options));
+      this.ui = options.ui;
+    }
 
     showTimerFields() {
       const type = this.$dlg.find("[name=timerType]").val();
@@ -79,48 +79,48 @@ define([
       .parent().toggle(dic !== "none");
     }
 
-		createDialog() {
+    createDialog() {
       function makeOptions(list, $sel) {
         for (const p of list)
           $sel.append(
-				    `<option value="${p ? p : 'none'}">${p ? $.i18n(p) : $.i18n("None")}</option>`);
+            `<option value="${p ? p : 'none'}">${p ? $.i18n(p) : $.i18n("None")}</option>`);
       }
-			const $pen = this.$dlg.find("[name=challengePenalty]");
-			makeOptions(Penalty._types, $pen);
+      const $pen = this.$dlg.find("[name=challengePenalty]");
+      makeOptions(Penalty._types, $pen);
       $pen.on("selectmenuchange", () => this.showPenaltyFields());
       this.showPenaltyFields();
 
-			const $tim = this.$dlg.find("[name=timerType]");
-			makeOptions(Timer._types, $tim);
+      const $tim = this.$dlg.find("[name=timerType]");
+      makeOptions(Timer._types, $tim);
       $tim.on("selectmenuchange", () => this.showTimerFields());
       this.showTimerFields();
 
-			const $wc = this.$dlg.find("[name=wordCheck]");
-			makeOptions(WordCheck._types, $wc);
+      const $wc = this.$dlg.find("[name=wordCheck]");
+      makeOptions(WordCheck._types, $wc);
 
-			let promise;
-			Promise.all([
-				$.get("/editions")
-				.then(editions => {
-					const $eds = this.$dlg.find('[name=edition]');
-					editions.forEach(e => $eds.append(`<option>${e}</option>`));
-					if (this.ui.getSetting('edition'))
-						$eds.val(this.ui.getSetting('edition'));
-				}),
-				$.get("/dictionaries")
-				.then(dictionaries => {
-					const $dics = this.$dlg.find('[name=dictionary]');
-					dictionaries
-					.forEach(d => $dics.append(`<option>${d}</option>`));
-					if (this.ui.getSetting('dictionary'))
-						$dics.val((this.ui.getSetting('dictionary')));
+      let promise;
+      Promise.all([
+        $.get("/editions")
+        .then(editions => {
+          const $eds = this.$dlg.find('[name=edition]');
+          editions.forEach(e => $eds.append(`<option>${e}</option>`));
+          if (this.ui.getSetting('edition'))
+            $eds.val(this.ui.getSetting('edition'));
+        }),
+        $.get("/dictionaries")
+        .then(dictionaries => {
+          const $dics = this.$dlg.find('[name=dictionary]');
+          dictionaries
+          .forEach(d => $dics.append(`<option>${d}</option>`));
+          if (this.ui.getSetting('dictionary'))
+            $dics.val((this.ui.getSetting('dictionary')));
           $dics.on("selectmenuchange", () => this.showFeedbackFields());
           this.showFeedbackFields();
-				})
-			])
-			.then(() => super.createDialog());
-		}
-	}
+        })
+      ])
+      .then(() => super.createDialog());
+    }
+  }
 
-	return CreateGameDialog;
+  return CreateGameDialog;
 });

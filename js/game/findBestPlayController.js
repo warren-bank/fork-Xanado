@@ -6,69 +6,69 @@
  * the same API as findBestPlay(). See also findBestPlayWorker.js
  */
 define([
-	"worker_threads",
-	"platform", "common/Fridge",
-	"game/Types", "game/Square", "game/Game", "game/Player"
+  "worker_threads",
+  "platform", "common/Fridge",
+  "game/Types", "game/Square", "game/Game", "game/Player"
 ], (
-	threads,
-	Platform, Fridge,
-	Types, Square, Game, Player
+  threads,
+  Platform, Fridge,
+  Types, Square, Game, Player
 ) => {
 
   const Timer = Types.Timer;
 
-	/**
-	 * Interface is the same as for {@linkcode findBestPlay} so they
-	 * can be switched in and out.
-	 */
-	function findBestPlayController(
-		game, letters, listener, dictpath, dictionary) {
+  /**
+   * Interface is the same as for {@linkcode findBestPlay} so they
+   * can be switched in and out.
+   */
+  function findBestPlayController(
+    game, letters, listener, dictpath, dictionary) {
 
-		const ice = {
-			workerData: Fridge.freeze({
-				game: game,
-				rack: letters,
-				dictpath: dictpath,
-				dictionary: dictionary
-			})
-		};
-		return new Promise((resolve, reject) => {
-			const worker = new threads.Worker(
-				Platform.getFilePath("js/game/findBestPlayWorker.js"), ice);
+    const ice = {
+      workerData: Fridge.freeze({
+        game: game,
+        rack: letters,
+        dictpath: dictpath,
+        dictionary: dictionary
+      })
+    };
+    return new Promise((resolve, reject) => {
+      const worker = new threads.Worker(
+        Platform.getFilePath("js/game/findBestPlayWorker.js"), ice);
 
-			// Apply the game time limit
-			let timer;
-			if (game.timerType === Timer.TURN) {
-				/* istanbul ignore next */
-				timer = setTimeout(() => {
-					console.log("findBestPlay timed out");
-					worker.terminate();
-				}, game.timeLimit * 1000);
-			}
+      // Apply the game time limit
+      let timer;
+      if (game.timerType === Timer.TURN) {
+        /* istanbul ignore next */
+        timer = setTimeout(() => {
+          console.log("findBestPlay timed out");
+          worker.terminate();
+        }, game.timeLimit * 1000);
+      }
 
-			// Pass worker messages on to listener
-			worker.on("message", data => {
-				listener(Fridge.thaw(data, Game.classes));
-			});
+      // Pass worker messages on to listener
+      worker.on("message", data => {
+        listener(Fridge.thaw(data, Game.classes));
+      });
 
-			/* istanbul ignore next */
-			worker.on("error", e => {
-				if (timer)
-					clearTimeout(timer);
-				reject(e);
-			});
+      /* istanbul ignore next */
+      worker.on("error", e => {
+        if (timer)
+          clearTimeout(timer);
+        reject(e);
+      });
 
-			worker.on("exit", (code) => {
-				if (timer)
-					/* istanbul ignore next */
-					clearTimeout(timer);
-				/* istanbul ignore if */
-				if (code !== 0)
-					console.error(`findBestPlayWorker reported code ${code}`);
-				resolve();
-			});
-		});
-	}
+      worker.on("exit", (code) => {
+        if (timer)
+          /* istanbul ignore next */
+          clearTimeout(timer);
+        /* istanbul ignore if */
+        if (code !== 0)
+          console.error(`findBestPlayWorker reported code ${code}`);
+        resolve();
+      });
+    });
+  }
 
-	return findBestPlayController;
+  return findBestPlayController;
 });

@@ -3,60 +3,60 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 define(() => {
-	/**
-	 * A tile in a LetterBag, on a Board, or on a Rack, or during best move
-	 * computation.
-	 */
-	class Tile {
+  /**
+   * A tile in a LetterBag, on a Board, or on a Rack, or during best move
+   * computation.
+   */
+  class Tile {
 
-		/**
-		 * @param {Tile|object} spec optional Tile to copy or spec of tile
-		 * @param {string} spec.letter character(s) represented by this tile
-		 * @param {boolean?} spec.isBlank true if this tile is a blank
+    /**
+     * @param {Tile|object} spec optional Tile to copy or spec of tile
+     * @param {string} spec.letter character(s) represented by this tile
+     * @param {boolean?} spec.isBlank true if this tile is a blank
      * (irresepective of letter)
-		 * @param {number?} spec.score value of this tile, default 0
-		 * @param {number?} spec.col optional column where the tile is placed
-		 * @param {number?} spec.row optional row where the tile is placed
-		 */
-		constructor(spec) {
+     * @param {number?} spec.score value of this tile, default 0
+     * @param {number?} spec.col optional column where the tile is placed
+     * @param {number?} spec.row optional row where the tile is placed
+     */
+    constructor(spec) {
       
-		  /**
-		   * Character(s) represented by this tile.
-		   * Caution; during gameplay, `letter` for a blank will be set
-		   * to a letter chosen by the player. When the tile is returned
-		   * to the rack, the letter will be reset to " " as isBlank is true.
-		   * However the letter will stick to the Tile when it is sent to
-		   * the server as part of a move. Henceforward that Tile will
-		   * be locked to the chosen letter on the server side.
-		   * @member {string}
-		   */
-		  this.letter = spec.letter;
+      /**
+       * Character(s) represented by this tile.
+       * Caution; during gameplay, `letter` for a blank will be set
+       * to a letter chosen by the player. When the tile is returned
+       * to the rack, the letter will be reset to " " as isBlank is true.
+       * However the letter will stick to the Tile when it is sent to
+       * the server as part of a move. Henceforward that Tile will
+       * be locked to the chosen letter on the server side.
+       * @member {string}
+       */
+      this.letter = spec.letter;
 
-		  /**
-		   * Value of this tile
-		   * @member {number}
-		   */
-		  this.score = spec.score || 0;
+      /**
+       * Value of this tile
+       * @member {number}
+       */
+      this.score = spec.score || 0;
 
       if (typeof spec.col !== "undefined")
-		    /**
-		     * Column where the tile is placed
-		     * @member {number?}
-		     */
+        /**
+         * Column where the tile is placed
+         * @member {number?}
+         */
         this.col = spec.col;
 
       if (typeof spec.row !== "undefined")
-		    /**
-		     * Row where the tile is placed
-		     * @member {number?}
-		     */
+        /**
+         * Row where the tile is placed
+         * @member {number?}
+         */
         this.row = spec.row;
 
       if (spec.isBlank)
-		    /**
-		     * True if this tile is a blank (irresepective of letter)
-		     * @member {boolean}
-		     */
+        /**
+         * True if this tile is a blank (irresepective of letter)
+         * @member {boolean}
+         */
         this.isBlank = true;
     }
 
@@ -66,27 +66,27 @@ define(() => {
      * @return {Tile} this
      */
     reset() {
-			delete this.row;
-			delete this.col;
+      delete this.row;
+      delete this.col;
       if (this.isBlank)
         this.letter = " ";
       return this;
     }
 
     /* istanbul ignore next */
-		/**
-		 * String representation for debugging
-		 */
-		stringify(showPos) {
-			let pl = "";
+    /**
+     * String representation for debugging
+     */
+    stringify(showPos) {
+      let pl = "";
       if (typeof this.row === "number") {
         pl = typeof this.col === "number" ? `[${this.col}` : ""
         + `,${this.row}`;
       }
       pl += "]";
       const l = this.isBlank ? this.letter.toLowerCase() : this.letter;
-			return `[${l}${pl}`;
-		}
+      return `[${l}${pl}`;
+    }
   }
 
   /**
@@ -105,5 +105,5 @@ define(() => {
     return 0;
   };
 
-	return Tile;
+  return Tile;
 });

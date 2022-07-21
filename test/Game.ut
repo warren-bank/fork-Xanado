@@ -10,143 +10,143 @@ describe("Game", () => {
 
   /* global Platform, Game, Player, Tile, Move, Turn */
   /* global State, Command, Notify, Timer, Penalty, Turns, WordCheck */
-	const TS = require("./TestSupport.js");
-	before(required =>
+  const TS = require("./TestSupport.js");
+  before(required =>
          TS.depend(() => Platform.i18n().load("qqq").then(required), {
            Tile: "game/Tile",
-		       Player: "game/Player",
-		       Game: "game/Game",
-		       Move: "game/Move",
-		       Turn: "game/Turn"
+           Player: "game/Player",
+           Game: "game/Game",
+           Move: "game/Move",
+           Turn: "game/Turn"
          }));
 
-	function UNit() {}
+  function UNit() {}
 
-	it("construct, simple, fromSimple", () => {
-		const p = {
-			edition:"English_Scrabble",
-			dictionary:"Oxford_5000",
-			timerType: Timer.GAME,
-			timeLimit: 60,
-			timeLimitMinutes: 999, // timeLimit should override
-			timePenalty: 100,
-			predictScore: true,
-			allowTakeBack: true,
-			wordCheck: WordCheck.AFTER,
-			minPlayers: 5,
-			//_debug: console.debug,
-			maxPlayers: 10
-		};
-		let game;
-		return new Game(p)
-		.create()
-		.then(g => game = g)
+  it("construct, simple, fromSimple", () => {
+    const p = {
+      edition:"English_Scrabble",
+      dictionary:"Oxford_5000",
+      timerType: Timer.GAME,
+      timeLimit: 60,
+      timeLimitMinutes: 999, // timeLimit should override
+      timePenalty: 100,
+      predictScore: true,
+      allowTakeBack: true,
+      wordCheck: WordCheck.AFTER,
+      minPlayers: 5,
+      //_debug: console.debug,
+      maxPlayers: 10
+    };
+    let game;
+    return new Game(p)
+    .create()
+    .then(g => game = g)
     .then(() => {
-			assert.equal(game.edition, p.edition);
-			assert.equal(game.dictionary, p.dictionary);
-			assert.equal(game.timerType, Timer.GAME);
-			assert.equal(game.timePenalty, 100);
-			assert.equal(game.timeLimit, 60);
-			assert(game.predictScore);
-			assert(game.allowTakeBack);
-			assert(game.wordCheck);
-			assert.equal(game.minPlayers, 5);
-			assert.equal(game.maxPlayers, 10);
-			assert.equal(game.state, State.WAITING);
-			return game.simple();
-		})
-		.then(s => {
-			assert.equal(s.key, game.key);
-			assert.equal(s.creationTimestamp, game.creationTimestamp);
-			assert.equal(s.edition, game.edition);
-			assert.equal(s.dictionary, game.dictionary);
-			assert.equal(s.predictScore, game.predictScore);
-			assert.equal(s.wordCheck, game.wordCheck);
-			assert.equal(s.allowTakeBack, game.allowTakeBack);
-			assert.equal(s.state, game.state);
-			assert.equal(s.whosTurnKey, game.whosTurnKey);
-			assert.equal(s.timerType, game.timerType);
-			assert.equal(s.timeLimit, game.timeLimit);
-			assert.equal(s.timePenalty, game.timePenalty);
-			assert.equal(s.pausedBy, game.pausedBy);
-			assert.equal(s.minPlayers, game.minPlayers);
-			assert.equal(s.maxPlayers, game.maxPlayers);
-			assert.equal(s.challengePenalty, game.challengePenalty);
-			assert.equal(s.penaltyPoints, game.penaltyPoints);
-			assert.equal(s.nextGameKey, game.nextGameKey);
-			assert.equal(s.lastActivity, game.lastActivity());
-			assert.equal(s.players.length, 0);
+      assert.equal(game.edition, p.edition);
+      assert.equal(game.dictionary, p.dictionary);
+      assert.equal(game.timerType, Timer.GAME);
+      assert.equal(game.timePenalty, 100);
+      assert.equal(game.timeLimit, 60);
+      assert(game.predictScore);
+      assert(game.allowTakeBack);
+      assert(game.wordCheck);
+      assert.equal(game.minPlayers, 5);
+      assert.equal(game.maxPlayers, 10);
+      assert.equal(game.state, State.WAITING);
+      return game.simple();
+    })
+    .then(s => {
+      assert.equal(s.key, game.key);
+      assert.equal(s.creationTimestamp, game.creationTimestamp);
+      assert.equal(s.edition, game.edition);
+      assert.equal(s.dictionary, game.dictionary);
+      assert.equal(s.predictScore, game.predictScore);
+      assert.equal(s.wordCheck, game.wordCheck);
+      assert.equal(s.allowTakeBack, game.allowTakeBack);
+      assert.equal(s.state, game.state);
+      assert.equal(s.whosTurnKey, game.whosTurnKey);
+      assert.equal(s.timerType, game.timerType);
+      assert.equal(s.timeLimit, game.timeLimit);
+      assert.equal(s.timePenalty, game.timePenalty);
+      assert.equal(s.pausedBy, game.pausedBy);
+      assert.equal(s.minPlayers, game.minPlayers);
+      assert.equal(s.maxPlayers, game.maxPlayers);
+      assert.equal(s.challengePenalty, game.challengePenalty);
+      assert.equal(s.penaltyPoints, game.penaltyPoints);
+      assert.equal(s.nextGameKey, game.nextGameKey);
+      assert.equal(s.lastActivity, game.lastActivity());
+      assert.equal(s.players.length, 0);
       game = Game.fromSimple(s);
       assert(game instanceof Game);
-			assert.equal(s.key, game.key);
-			assert.equal(s.creationTimestamp, game.creationTimestamp);
-			assert.equal(s.edition, game.edition);
-			assert.equal(s.dictionary, game.dictionary);
-			assert.equal(s.predictScore, game.predictScore);
-			assert.equal(s.wordCheck, game.wordCheck);
-			assert.equal(s.allowTakeBack, game.allowTakeBack);
-			assert.equal(s.state, game.state);
-			assert.equal(s.whosTurnKey, game.whosTurnKey);
-			assert.equal(s.timerType, game.timerType);
-			assert.equal(s.timeLimit, game.timeLimit);
-			assert.equal(s.timePenalty, game.timePenalty);
-			assert.equal(s.pausedBy, game.pausedBy);
-			assert.equal(s.minPlayers, game.minPlayers);
-			assert.equal(s.maxPlayers, game.maxPlayers);
-			assert.equal(s.challengePenalty, game.challengePenalty);
-			assert.equal(s.penaltyPoints, game.penaltyPoints);
-			assert.equal(s.nextGameKey, game.nextGameKey);
-			assert.equal(s.lastActivity, game.lastActivity());
-			assert.equal(s.players.length, 0);
-		});
-	});
-	
-	it("basics", () => {
-		const p = {
-			//_debug: console.debug,
-			edition:"English_Scrabble",
-			dictionary:"Oxford_5000",
-			timerType: Timer.TURN,
-			timeLimitMinutes: 999,
-			predictScore: false,
-			allowTakeBack: false,
-			wordCheck: WordCheck.AFTER,
-			minPlayers: 30,
-			maxPlayers: 1
-		};
+      assert.equal(s.key, game.key);
+      assert.equal(s.creationTimestamp, game.creationTimestamp);
+      assert.equal(s.edition, game.edition);
+      assert.equal(s.dictionary, game.dictionary);
+      assert.equal(s.predictScore, game.predictScore);
+      assert.equal(s.wordCheck, game.wordCheck);
+      assert.equal(s.allowTakeBack, game.allowTakeBack);
+      assert.equal(s.state, game.state);
+      assert.equal(s.whosTurnKey, game.whosTurnKey);
+      assert.equal(s.timerType, game.timerType);
+      assert.equal(s.timeLimit, game.timeLimit);
+      assert.equal(s.timePenalty, game.timePenalty);
+      assert.equal(s.pausedBy, game.pausedBy);
+      assert.equal(s.minPlayers, game.minPlayers);
+      assert.equal(s.maxPlayers, game.maxPlayers);
+      assert.equal(s.challengePenalty, game.challengePenalty);
+      assert.equal(s.penaltyPoints, game.penaltyPoints);
+      assert.equal(s.nextGameKey, game.nextGameKey);
+      assert.equal(s.lastActivity, game.lastActivity());
+      assert.equal(s.players.length, 0);
+    });
+  });
+  
+  it("basics", () => {
+    const p = {
+      //_debug: console.debug,
+      edition:"English_Scrabble",
+      dictionary:"Oxford_5000",
+      timerType: Timer.TURN,
+      timeLimitMinutes: 999,
+      predictScore: false,
+      allowTakeBack: false,
+      wordCheck: WordCheck.AFTER,
+      minPlayers: 30,
+      maxPlayers: 1
+    };
 
-		const game = new Game(p);
-		const robot1 = new Player({
-			name:"Robot 1", key:"robot1", isRobot: true});
-		const human2 = new Player({
-			name:"human2", key:"human2", isRobot: false});
-		const human3 = new Player({
-			name:"human3", key:"human3", isRobot: false});
+    const game = new Game(p);
+    const robot1 = new Player({
+      name:"Robot 1", key:"robot1", isRobot: true});
+    const human2 = new Player({
+      name:"human2", key:"human2", isRobot: false});
+    const human3 = new Player({
+      name:"human3", key:"human3", isRobot: false});
 
-		const human4 = new Player({
-			name:"human4", key:"human4", isRobot: false});
-		const robot2 = new Player({
-			name:"Robot 2", key:"robot2", isRobot: true});
+    const human4 = new Player({
+      name:"human4", key:"human4", isRobot: false});
+    const robot2 = new Player({
+      name:"Robot 2", key:"robot2", isRobot: true});
 
-		const um = { // UserManager fixture
-			getUser: k => Promise.resolve({ email: k.key + "@players.com" })
-		};
-		
-		return game.create()
-		.then(() => {
-			assert.equal(game.edition, p.edition);
-			assert.equal(game.dictionary, p.dictionary);
-			assert.equal(game.timeLimit, 999*60);
-			assert(!game.predictScore);
-			assert(!game.allowTakeBack);
-			assert.equal(game.wordCheck, WordCheck.AFTER);
-			assert.equal(game.minPlayers, 30);
-			assert.equal(typeof game.maxPlayers, "undefined");
+    const um = { // UserManager fixture
+      getUser: k => Promise.resolve({ email: k.key + "@players.com" })
+    };
+    
+    return game.create()
+    .then(() => {
+      assert.equal(game.edition, p.edition);
+      assert.equal(game.dictionary, p.dictionary);
+      assert.equal(game.timeLimit, 999*60);
+      assert(!game.predictScore);
+      assert(!game.allowTakeBack);
+      assert.equal(game.wordCheck, WordCheck.AFTER);
+      assert.equal(game.minPlayers, 30);
+      assert.equal(typeof game.maxPlayers, "undefined");
       assert(!game.hasRobot());
-			game.addPlayer(robot1, true);
-			game.addPlayer(human2, true);
-			game.addPlayer(human3, false);
-			game.addPlayer(human4, true);
+      game.addPlayer(robot1, true);
+      game.addPlayer(human2, true);
+      game.addPlayer(human3, false);
+      game.addPlayer(human4, true);
       assert(game.hasRobot());
       assert.equal(game.getPlayers().length, 4);
       assert.equal(game.getPlayerWithKey(human2.key), human2);
@@ -154,29 +154,29 @@ describe("Game", () => {
       human3.fillRack(game.letterBag, 1);
       assert(!game.getPlayerWithNoTiles());
       human3.rack.empty();
-			game.whosTurnKey = human2.key;
+      game.whosTurnKey = human2.key;
 
-			robot1.score = 1;
-			human2.score = 2;
-			human3.score = 3;
+      robot1.score = 1;
+      human2.score = 2;
+      human3.score = 3;
       human4.score = 4;
-            
+      
       human4.isConnected = true;
       human4.isNextToGo = true;
-            
-			let player = game.getPlayer();
-			assert.equal(player, human2);
-			player = game.getPlayerWithKey(human2.key);
-			assert.equal(player.key, human2.key);
-			assert.equal(game.nextPlayer(), human3);
-			assert.equal(game.previousPlayer(), robot1);
-			assert.equal(game.previousPlayer(robot1), human4);
-			assert.equal(game.previousPlayer(human2), robot1);
-			assert.equal(game.nextPlayer().key, human3.key);
-			assert.equal(game.nextPlayer(robot1), human2);
-			assert.equal(game.nextPlayer(human2.key), human3);
-			assert.equal(game.winningScore(), 4);
-			assert.equal(game.state, State.WAITING);
+      
+      let player = game.getPlayer();
+      assert.equal(player, human2);
+      player = game.getPlayerWithKey(human2.key);
+      assert.equal(player.key, human2.key);
+      assert.equal(game.nextPlayer(), human3);
+      assert.equal(game.previousPlayer(), robot1);
+      assert.equal(game.previousPlayer(robot1), human4);
+      assert.equal(game.previousPlayer(human2), robot1);
+      assert.equal(game.nextPlayer().key, human3.key);
+      assert.equal(game.nextPlayer(robot1), human2);
+      assert.equal(game.nextPlayer(human2.key), human3);
+      assert.equal(game.winningScore(), 4);
+      assert.equal(game.state, State.WAITING);
       assert.equal(game.calculateBonus(1), 0);
       assert.equal(game.calculateBonus(2), 0);
       assert.equal(game.calculateBonus(3), 0);
@@ -185,63 +185,63 @@ describe("Game", () => {
       assert.equal(game.calculateBonus(6), 0);
       assert.equal(game.calculateBonus(7), 50);
       assert.equal(game.getWinner(), human4);
-			return game.simple(um);
-		})
-		.then(s => {
-			assert.equal(s.key, game.key);
-			assert.equal(s.creationTimestamp, game.creationTimestamp);
-			assert.equal(s.edition, game.edition);
-			assert.equal(s.dictionary, game.dictionary);
-			assert.equal(s.predictScore || false, game.predictScore || false);
-			assert.equal(s.wordCheck, game.wordCheck);
-			assert.equal(s.allowTakeBack || false, game.allowTakeBack || false);
-			assert.equal(s.state, game.state);
-			assert.equal(s.whosTurnKey, game.whosTurnKey);
-			assert.equal(s.timerType, game.timerType);
-			assert.equal(s.timeLimit, game.timeLimit);
-			assert.equal(s.timePenalty, game.timePenalty);
-			assert.equal(s.pausedBy, game.pausedBy);
-			assert.equal(s.minPlayers, game.minPlayers);
-			assert.equal(s.maxPlayers, game.maxPlayers);
-			assert.equal(s.challengePenalty, game.challengePenalty);
-			assert.equal(s.penaltyPoints, game.penaltyPoints);
-			assert.equal(s.nextGameKey, game.nextGameKey);
-			assert.equal(s.lastActivity, game.lastActivity());
-			assert.equal(s.players.length, 4);
-			return Promise.all([
-				robot1.simple(game, um),
-				human2.simple(game, um),
-				human3.simple(game, um)
-			])
-			.then(ps => {
-				assert.deepEqual(s.players[0], ps[0]);
-				assert.deepEqual(s.players[1], ps[1]);
-				assert.deepEqual(s.players[2], ps[2]);
+      return game.simple(um);
+    })
+    .then(s => {
+      assert.equal(s.key, game.key);
+      assert.equal(s.creationTimestamp, game.creationTimestamp);
+      assert.equal(s.edition, game.edition);
+      assert.equal(s.dictionary, game.dictionary);
+      assert.equal(s.predictScore || false, game.predictScore || false);
+      assert.equal(s.wordCheck, game.wordCheck);
+      assert.equal(s.allowTakeBack || false, game.allowTakeBack || false);
+      assert.equal(s.state, game.state);
+      assert.equal(s.whosTurnKey, game.whosTurnKey);
+      assert.equal(s.timerType, game.timerType);
+      assert.equal(s.timeLimit, game.timeLimit);
+      assert.equal(s.timePenalty, game.timePenalty);
+      assert.equal(s.pausedBy, game.pausedBy);
+      assert.equal(s.minPlayers, game.minPlayers);
+      assert.equal(s.maxPlayers, game.maxPlayers);
+      assert.equal(s.challengePenalty, game.challengePenalty);
+      assert.equal(s.penaltyPoints, game.penaltyPoints);
+      assert.equal(s.nextGameKey, game.nextGameKey);
+      assert.equal(s.lastActivity, game.lastActivity());
+      assert.equal(s.players.length, 4);
+      return Promise.all([
+        robot1.simple(game, um),
+        human2.simple(game, um),
+        human3.simple(game, um)
+      ])
+      .then(ps => {
+        assert.deepEqual(s.players[0], ps[0]);
+        assert.deepEqual(s.players[1], ps[1]);
+        assert.deepEqual(s.players[2], ps[2]);
         game.removePlayer(robot1);
         game.removePlayer(human4);
         assert.equal(game.getPlayers().length, 2);
         assert(!game.getPlayerWithKey(robot1.key));
         assert.equal(game.getPlayerWithKey(human2.key), human2);
         assert.equal(game.getPlayerWithKey(human3.key), human3);
-			});
+      });
     });
   });
   
-	it("turns", () => {
-		const p = {
-			//_debug: console.debug,
-			edition:"English_Scrabble",
-			dictionary:"Oxford_5000",
-			timerType: Timer.TURN,
-			timeLimitMinutes: 999,
-			predictScore: false,
-			allowTakeBack: false,
-			wordCheck: WordCheck.AFTER,
-			minPlayers: 30,
-			maxPlayers: 1
-		};
+  it("turns", () => {
+    const p = {
+      //_debug: console.debug,
+      edition:"English_Scrabble",
+      dictionary:"Oxford_5000",
+      timerType: Timer.TURN,
+      timeLimitMinutes: 999,
+      predictScore: false,
+      allowTakeBack: false,
+      wordCheck: WordCheck.AFTER,
+      minPlayers: 30,
+      maxPlayers: 1
+    };
 
-		const game = new Game(p);
+    const game = new Game(p);
     return game.create().then(() => {
       game.turns = [
         {
@@ -272,6 +272,6 @@ describe("Game", () => {
 
       assert.equal(game.at(0, 0).id, "Board_0x0");
     });
-	});
+  });
 });
 

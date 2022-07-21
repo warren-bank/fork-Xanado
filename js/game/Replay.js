@@ -4,13 +4,13 @@
 /* eslint-env amd */
 
 define([
-	"platform", "common/Utils",
-	"game/Types", "game/LetterBag",
+  "platform", "common/Utils",
+  "game/Types", "game/LetterBag",
   "game/Player", "game/Tile", "game/Rack", "game/Turn",
   "game/Game"
 ], (
-	Platform, Utils,
-	Types, LetterBag,
+  Platform, Utils,
+  Types, LetterBag,
   Player, Tile, Rack, Turn,
   Game
 ) => {
@@ -62,7 +62,7 @@ define([
         this.state = State.PLAYING;
         this.whosTurnKey = this.playedGame.turns[0].playerKey;
         // Copy players and their racks.
-		    for (const p of this.playedGame.players) {
+        for (const p of this.playedGame.players) {
           const np = new Player(p);
           np.isRobot = false;
           np.rack = new Rack(p.rack);

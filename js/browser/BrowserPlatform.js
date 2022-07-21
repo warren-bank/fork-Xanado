@@ -5,18 +5,18 @@
 
 define([ "common/Platform" ], Platform => {
 
-	/**
-	 * Browser implementation of {@linkcode Platform}
-	 * for the abstract base class.
-	 * implementation for the browser.
-	 */
-	class BrowserPlatform extends Platform {
+  /**
+   * Browser implementation of {@linkcode Platform}
+   * for the abstract base class.
+   * implementation for the browser.
+   */
+  class BrowserPlatform extends Platform {
 
-		/** See {@linkcode Platform#trigger|Platform.trigger} for documentation */
-		static trigger(e, args) {
-			// Pass events straight to the document
-			return $(document).trigger(e, args);
-		}
+    /** See {@linkcode Platform#trigger|Platform.trigger} for documentation */
+    static trigger(e, args) {
+      // Pass events straight to the document
+      return $(document).trigger(e, args);
+    }
 
     static assert(cond, desc) {
       if (!cond)
@@ -28,25 +28,25 @@ define([ "common/Platform" ], Platform => {
         throw new Error(desc || "Internal error");
     }
 
-		static i18n() {
-			return $.i18n.apply($.i18n, arguments);
-		}
+    static i18n() {
+      return $.i18n.apply($.i18n, arguments);
+    }
 
     /** See {@linkcode Platform#getFilePath|Platform.getFilePath} for documentation */
-		static getFilePath(p) {
-			return requirejs.toUrl(p || "");
-		}
+    static getFilePath(p) {
+      return requirejs.toUrl(p || "");
+    }
 
-		/** See {@linkcode Platform#readFile|Platform.readFile} for documentation */
-		static readFile(p) {
-			return $.get(p);
-		}
+    /** See {@linkcode Platform#readFile|Platform.readFile} for documentation */
+    static readFile(p) {
+      return $.get(p);
+    }
 
-		/** See {@linkcode Platform#readZip|Platform.readZip} for documentation */
-		static readZip(p) {
-			return $.get(p);
-		}
-	}
+    /** See {@linkcode Platform#readZip|Platform.readZip} for documentation */
+    static readZip(p) {
+      return $.get(p);
+    }
+  }
 
-	return BrowserPlatform;
+  return BrowserPlatform;
 });

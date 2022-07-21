@@ -10,67 +10,67 @@
 requirejs = require("requirejs");
 
 requirejs.config({
-	baseUrl: "..",
-    nodeRequire: require,
-	paths: {
-		common: "js/common",
-		game: "js/game",
-		server: "js/server",
-		dawg: "js/dawg",
-		platform: "js/server/Platform"
-	}
+  baseUrl: "..",
+  nodeRequire: require,
+  paths: {
+    common: "js/common",
+    game: "js/game",
+    server: "js/server",
+    dawg: "js/dawg",
+    platform: "js/server/Platform"
+  }
 });
 
 requirejs([
-	"game/Edition", "game/Tile", "game/Rack",
-	"game/Square", "game/Player", "game/Game", "game/LetterBag",
-	"game/Board", "game/Move",
+  "game/Edition", "game/Tile", "game/Rack",
+  "game/Square", "game/Player", "game/Game", "game/LetterBag",
+  "game/Board", "game/Move",
   "server/FileDatabase"
 ], (
-	Edition, Tile, Rack,
-	Square, Player, Game, LetterBag,
-	Board, Move, FileDatabase
+  Edition, Tile, Rack,
+  Square, Player, Game, LetterBag,
+  Board, Move, FileDatabase
 ) => {
 
-	let db = new FileDatabase("test/temp", "testgame");
-	let game = new Game({
-		//_debug: console.debug,
-		edition: "Test",
-		dictionary: "CSW2019_English"
-	});
-	let gameKey = game.key;
-	let player = 0;
+  let db = new FileDatabase("test/temp", "testgame");
+  let game = new Game({
+    //_debug: console.debug,
+    edition: "Test",
+    dictionary: "CSW2019_English"
+  });
+  let gameKey = game.key;
+  let player = 0;
 
-	game.create()
-    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
-	.then(game => {
-		let player1 = new Player({
-			name: "player one", key: "flay", isRobot: true});
-		game.addPlayer(player1, true);
-		let player2 = new Player({name: "player two", key: "swelter",
-								 isRobot: true });
-		game.addPlayer(player2, true);
-		game.whosTurnKey = player1.key;
-		return game.onLoad(db);
-	})
-	.then(game => game.save())
-	.then(async game => {
-		let finished = false;
-		while (!finished) {
-			await db.get(gameKey, Game.classes)
-			.then(game => game.onLoad(db))
-			.then(game => {
-				return game.autoplay(game.getPlayer())
-				.then(turn => {
-					if (game.hasEnded()) {
-						console.log(game.state);
-						finished = true;
-					}
-					return game.save();
-				});
-			});
-		}
-		console.log("Robot game over");
-	});
+  game.create()
+  .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
+  .then(game => {
+    let player1 = new Player({
+      name: "player one", key: "flay", isRobot: true});
+    game.addPlayer(player1, true);
+    let player2 = new Player({name: "player two", key: "swelter",
+                              isRobot: true });
+    game.addPlayer(player2, true);
+    game.whosTurnKey = player1.key;
+    return game.onLoad(db);
+  })
+  .then(game => game.save())
+  .then(async game => {
+    let finished = false;
+    while (!finished) {
+      await db.get(gameKey, Game.classes)
+      .then(game => game.onLoad(db))
+      .then(game => {
+        return game.autoplay(game.getPlayer())
+        .then(turn => {
+          if (game.hasEnded()) {
+            console.log(game.state);
+            finished = true;
+          }
+          return game.save();
+        });
+      });
+    }
+    console.log("Robot game over");
+  });
 });
 

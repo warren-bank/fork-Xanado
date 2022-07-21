@@ -5,31 +5,31 @@
 
 define(["browser/Dialog"], (Dialog) => {
 
-	class ChangePasswordDialog extends Dialog {
+  class ChangePasswordDialog extends Dialog {
 
-		constructor(options) {
-			options.done = (data) => {
-				// Not an error, a statement
-				$("#alertDialog")
-				.text($.i18n.apply(null, data))
-				.dialog({ modal: true });
-			};
+    constructor(options) {
+      options.done = (data) => {
+        // Not an error, a statement
+        $("#alertDialog")
+        .text($.i18n.apply(null, data))
+        .dialog({ modal: true });
+      };
 
-			super("ChangePasswordDialog", $.extend({
-				title: $.i18n("Change password")
-			}, options));
-		}
+      super("ChangePasswordDialog", $.extend({
+        title: $.i18n("Change password")
+      }, options));
+    }
 
-		createDialog() {
-			const $las = this.$dlg.find(".logged-in-as");
-			if ($las.length > 0) {
-				$.get("/session")
-				.then(user => $las.text(
-					$.i18n("um-logged-in-as", user.name)));
-			}
-			return super.createDialog();
-		}
-	}
-	
-	return ChangePasswordDialog;
+    createDialog() {
+      const $las = this.$dlg.find(".logged-in-as");
+      if ($las.length > 0) {
+        $.get("/session")
+        .then(user => $las.text(
+          $.i18n("um-logged-in-as", user.name)));
+      }
+      return super.createDialog();
+    }
+  }
+  
+  return ChangePasswordDialog;
 });

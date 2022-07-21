@@ -7,67 +7,67 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
  * Styling specific to the "games" interface
  */
 body {
-	color: white;
+  color: white;
     margin-left: 3em;
     margin-right: 3em;
-	font-size: 1.2em;
+  font-size: 1.2em;
 }
 
 /* A game in the games table */
 .game {
-	border: 1px solid;
-	padding: 0.2em;
+  border: 1px solid;
+  padding: 0.2em;
 }
 
 .logged-in {
-	display: none;
+  display: none;
 }
 
 .logo {
-	margin-top: 1em;
+  margin-top: 1em;
 }
 
 .game-key {
-	float: right;
-	font-size: smaller;
+  float: right;
+  font-size: smaller;
 }
 
 .game-state {
-	margin-left: 1em;
-	font-weight: bold;
+  margin-left: 1em;
+  font-weight: bold;
 }
 
 .game-options {
-	margin: 0.3em;
+  margin: 0.3em;
 }
 
 #gamesTable {
-	margin-bottom: 1.5em;
+  margin-bottom: 1.5em;
 }
 
 #loginState {
-	float: right;
-	margin-top: 1em;
+  float: right;
+  margin-top: 1em;
 }
 
 #gamesCumulative, #gamesList {
-	display: none;
+  display: none;
 }
 
 /* Style list of invitees in the InvitePlayersDialog */
 .invitee:after {
-	content: ", ";
+  content: ", ";
 }
 
 .invitee:last-child:after {
-	content: "";
+  content: "";
 }
 
 .invitee {
-	font-style: italic;
+  font-style: italic;
 }
 
 button.risky {
-	/*background-color: transparent;*/
-	color: #c33;
+  /*background-color: transparent;*/
+  color: #c33;
 }

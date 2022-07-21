@@ -8,46 +8,46 @@
  */
 define([ "browser/Dialog" ], Dialog => {
 
-	class SettingsDialog extends Dialog {
-		
-		constructor(options) {
-			super("SettingsDialog", $.extend({
-				title: $.i18n("Options")
-			}, options));
+  class SettingsDialog extends Dialog {
+    
+    constructor(options) {
+      super("SettingsDialog", $.extend({
+        title: $.i18n("Options")
+      }, options));
 
-			// Known users, got afresh from /users each time the
-			// dialog is opened
-			this.users = [];
-		}
+      // Known users, got afresh from /users each time the
+      // dialog is opened
+      this.users = [];
+    }
 
-		createDialog() {
-			const $sel = this.$dlg.find('[name=theme]');
-			$sel.selectmenu();
-			return $.get("/themes")
-			.then(themes => {
-				themes
-				.forEach(d => $sel.append(`<option>${d}</option>`));
-				this.enableSubmit();
-				super.createDialog();
-			});
-		}
+    createDialog() {
+      const $sel = this.$dlg.find('[name=theme]');
+      $sel.selectmenu();
+      return $.get("/themes")
+      .then(themes => {
+        themes
+        .forEach(d => $sel.append(`<option>${d}</option>`));
+        this.enableSubmit();
+        super.createDialog();
+      });
+    }
 
-		openDialog() {
-			return super.openDialog()
-			.then(() => {
-				const ui = this.options.ui;
-				this.$dlg.find('[name=theme]')
-				.val(ui.getSetting('theme'))
-				.selectmenu("refresh");
-				this.$dlg.find('[type=checkbox]')
-				.each(function() {
-					$(this).prop('checked', ui.getSetting(this.name));
-				});
-				// Notification requires https
-				this.$dlg.find(".require-https").toggle(ui.usingHttps);
-			});
-		}
-	}
+    openDialog() {
+      return super.openDialog()
+      .then(() => {
+        const ui = this.options.ui;
+        this.$dlg.find('[name=theme]')
+        .val(ui.getSetting('theme'))
+        .selectmenu("refresh");
+        this.$dlg.find('[type=checkbox]')
+        .each(function() {
+          $(this).prop('checked', ui.getSetting(this.name));
+        });
+        // Notification requires https
+        this.$dlg.find(".require-https").toggle(ui.usingHttps);
+      });
+    }
+  }
 
-	return SettingsDialog;
+  return SettingsDialog;
 });

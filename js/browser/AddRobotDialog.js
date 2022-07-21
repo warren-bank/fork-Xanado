@@ -8,30 +8,30 @@
  */
 define(["browser/Dialog"], Dialog => {
 
-	class AddRobotDialog extends Dialog {
-		
-		constructor(options) {
-			super("AddRobotDialog", $.extend({
-				title: $.i18n("Add robot")
-			}, options));
-		}
+  class AddRobotDialog extends Dialog {
+    
+    constructor(options) {
+      super("AddRobotDialog", $.extend({
+        title: $.i18n("Add robot")
+      }, options));
+    }
 
-		createDialog() {
-			const ui = this.options.ui;
-			Promise.all([
-				$.get("/dictionaries")
-				.then(dictionaries => {
-					const $dic = this.$dlg.find('[name=dictionary]');
-					dictionaries
-					.forEach(d => $dic.append(`<option>${d}</option>`));
-					if (ui.getSetting('dictionary'))
-						$dic.val(ui.getSetting('dictionary'));
-					this.enableSubmit();
-				})
-			])
-			.then(() => super.createDialog());
-		}
-	}
+    createDialog() {
+      const ui = this.options.ui;
+      Promise.all([
+        $.get("/dictionaries")
+        .then(dictionaries => {
+          const $dic = this.$dlg.find('[name=dictionary]');
+          dictionaries
+          .forEach(d => $dic.append(`<option>${d}</option>`));
+          if (ui.getSetting('dictionary'))
+            $dic.val(ui.getSetting('dictionary'));
+          this.enableSubmit();
+        })
+      ])
+      .then(() => super.createDialog());
+    }
+  }
 
-	return AddRobotDialog;
+  return AddRobotDialog;
 });

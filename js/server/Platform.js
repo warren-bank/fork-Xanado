@@ -8,68 +8,68 @@
  * implementation for the browser, too, in js/browser/Platform.js
  */
 define([
-	"assert", "fs", "path",
+  "assert", "fs", "path",
   "events", "proper-lockfile", "node-gzip", "get-user-locale",
-	"common/Fridge", "common/Platform",
+  "common/Fridge", "common/Platform",
   "server/I18N", "server/FileDatabase"
 ], (
-	Assert, fs, Path,
+  Assert, fs, Path,
   Events, Lock, Gzip, Locale,
-	Fridge, Platform,
+  Fridge, Platform,
   I18N, FileDatabase
 ) => {
-	const Fs = fs.promises;
-	const emitter = new Events.EventEmitter();
+  const Fs = fs.promises;
+  const emitter = new Events.EventEmitter();
 
-	/**
-	 * Implementation of {@linkcode Platform} for use in node.js.
-	 * {@linkcode module:game/findBestPlay} is used to implement `findBestPlay`.
-	 * @implements Platform
-	 */
-	class ServerPlatform extends Platform {
+  /**
+   * Implementation of {@linkcode Platform} for use in node.js.
+   * {@linkcode module:game/findBestPlay} is used to implement `findBestPlay`.
+   * @implements Platform
+   */
+  class ServerPlatform extends Platform {
     static Database = FileDatabase;
-	  static i18n = I18N;
+    static i18n = I18N;
 
-		/* @override */
-	  static assert = Assert;
+    /* @override */
+    static assert = Assert;
 
-		/* @override */
-		static trigger(e, args) {
-			emitter.emit(e, args);
-		}
+    /* @override */
+    static trigger(e, args) {
+      emitter.emit(e, args);
+    }
 
     /* istanbul ignore next */
-		/* @override */
+    /* @override */
     static fail(descr) {
       Assert(false, descr);
     }
 
-		/* @override */
-		static async findBestPlay() {
-			// game/findBestPlay to block
-			// game/findBestPlayController to use a worker thread
-			return new Promise(
+    /* @override */
+    static async findBestPlay() {
+      // game/findBestPlay to block
+      // game/findBestPlayController to use a worker thread
+      return new Promise(
         resolve => requirejs([ "game/findBestPlayController" ],
                              fn => resolve(fn.apply(null, arguments))));
-		}
+    }
 
-		/* @override */
-		static getFilePath(p) {
-			return Path.normalize(requirejs.toUrl(p || ""));
-		}
+    /* @override */
+    static getFilePath(p) {
+      return Path.normalize(requirejs.toUrl(p || ""));
+    }
 
-		/* @override */
-		static readFile(p) {
-			return Fs.readFile(p);
-		}
+    /* @override */
+    static readFile(p) {
+      return Fs.readFile(p);
+    }
 
-		/* @override */
-		static readZip(p) {
-			return Fs.readFile(p)
-			.then(data => Gzip.ungzip(data));
-		}
-	}
+    /* @override */
+    static readZip(p) {
+      return Fs.readFile(p)
+      .then(data => Gzip.ungzip(data));
+    }
+  }
 
-	return ServerPlatform;
+  return ServerPlatform;
 });
 

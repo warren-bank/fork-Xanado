@@ -9,7 +9,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /* Button in the log area; challenge, take back */
 .turn-control button {
-	font-size: 120%;
+  font-size: 120%;
 }
 
 /* Shuffle and take back fat buttons */
@@ -17,16 +17,16 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
     margin: 2px;
     background-size: 100% 100%;
     background-position: center;
-	margin-top: -15px !important;
-	margin-left: -15px !important;
-	width: 32px !important;
-	height: 32px !important;
+  margin-top: -15px !important;
+  margin-left: -15px !important;
+  width: 32px !important;
+  height: 32px !important;
 }
 
 .block-title {
-	font-size: 1em;
-	font-weight: bold;
-	color: brown;
+  font-size: 1em;
+  font-weight: bold;
+  color: brown;
 }
 
 .surround-shade {
@@ -39,8 +39,8 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /* Wraps everything */
 div.user-interface {
-	display: flex;
-	justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 /* Description of points gained and lost from final racks */
@@ -62,19 +62,19 @@ div.user-interface {
 
 /* Narrative desription of the outcome of the turn */
 .turn-narrative {
-	font-size: 110%;
-	margin-top: 0.5em;
-	color: #950000
+  font-size: 110%;
+  margin-top: 0.5em;
+  color: #950000
 }
 
 /* A control placed in the log */
 .turn-control {
-	margin: 0.3em 0 0.3em 0;
+  margin: 0.3em 0 0.3em 0;
 }
 
 div.board-wrap {
     margin-top: 1em;
-	margin-left: 1em;
+  margin-left: 1em;
     float: left;
     /*width: 37em;*/
 }
@@ -136,7 +136,7 @@ div.Surface td.square-T {
 }
 
 div.Surface td.square-Q {
-	border-color: #a21505;
+  border-color: #a21505;
 }
 
 div.Surface td.square-d {
@@ -193,7 +193,7 @@ div.Surface td div a {
 .rack {
     border-width: 0.2em;
     padding: 0.2em;
-	margin-bottom: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 @-webkit-keyframes glow {
@@ -240,8 +240,8 @@ div.Surface td.square-T div {
 }
 
 div.Surface td.square-Q div {
-	background-color: #a21505;
-	border-color: #a21505;
+  background-color: #a21505;
+  border-color: #a21505;
 }
 
 div.Surface td.square-_ div {
@@ -275,15 +275,15 @@ div.Surface td.score-multiplier div.empty-square a {
 }
 
 #typingCursor {
-	font-family: symbol;
-	font-size: 1.5em;
-	font-weight: bold;
-	color: green;
-	width: 80%;
-	height: 80%;
-	text-align: center;
-	position: relative;
-	z-index: 2;
+  font-family: symbol;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: green;
+  width: 80%;
+  height: 80%;
+  text-align: center;
+  position: relative;
+  z-index: 2;
 }
 
 div.Surface td div.tiled-square {
@@ -292,7 +292,7 @@ div.Surface td div.tiled-square {
     border-color: #DCDCC6;
     border-style: solid;
 
-	color: #333333;
+  color: #333333;
 
     -webkit-border-radius: 0.2em;
     -moz-border-radius: 0.2em;
@@ -346,7 +346,7 @@ div.Surface td div.selected,
     -o-animation-iteration-count: infinite;
     -o-animation-direction: alternate;
     -o-animation-timing-function: linear;
-	
+  
     animation-name: glow;
     animation-duration: 0.5s;
     animation-iteration-count: infinite;
@@ -388,9 +388,9 @@ div.Surface td div.tiled-square a span.blank-letter {
 }
 
 @-moz-document url-prefix(//) {
-	div.Surface td div.tiled-square a span.letter,
-	div.Surface td div.tiled-square a span.blank-letter {
-	    line-height: 1.8em;
+  div.Surface td div.tiled-square a span.letter,
+  div.Surface td div.tiled-square a span.blank-letter {
+      line-height: 1.8em;
     }
 }
 
@@ -414,60 +414,60 @@ div.Surface td div.blank-letter a {
 
 /* Background letters behind the swap rack */
 .underlay {
-	width: 100%;
-	height: 100%;
-	font-size: 1.7em;
-	line-height: 100%;
-	text-align: center;
-	vertical-align: middle;
-	display: flow-root list-item;
-	color: rgba(60, 60, 80, 0.3);
+  width: 100%;
+  height: 100%;
+  font-size: 1.7em;
+  line-height: 100%;
+  text-align: center;
+  vertical-align: middle;
+  display: flow-root list-item;
+  color: rgba(60, 60, 80, 0.3);
 }
 
 .last-placement {
-	background-color: #E2E298!important;
+  background-color: #E2E298!important;
 }
 
 .hint-placement {
-	background-color: #E2FF98!important;
+  background-color: #E2FF98!important;
 }
 
 .word {
-	font-style: italic
+  font-style: italic
 }
 
 .word-score {
-	font-size: 0.75em;
+  font-size: 0.75em;
 }
 
 .player-clock {
-	color: #080;
+  color: #080;
 }
 
 .tick-alert-low {
-	color: #cc5801 !important;
+  color: #cc5801 !important;
 }
 
 .tick-alert-medium {
-	color:#fcae1e !important;
+  color:#fcae1e !important;
 }
 
 .tick-alert-high {
-	color: red !important;
+  color: red !important;
 }
 
 /* Override jquery-ui for shuffle and take-back buttons */
 button.fat-button {
-	width: 2em;
-	height: 2em;
+  width: 2em;
+  height: 2em;
 }
 
 .shuffle-icon {
-	background-image: url(../images/shuffle.png) !important;
+  background-image: url(../images/shuffle.png) !important;
 }
 
 .unplace-icon {
-	background-image: url(../images/take-back.png) !important;
+  background-image: url(../images/take-back.png) !important;
 }
 
 /* Div that wraps all the individual control panels */
@@ -478,8 +478,8 @@ button.fat-button {
 }
 
 #toolbox {
-	float: right;
-	font-size: 1.3em;
+  float: right;
+  font-size: 1.3em;
 }
 
 /* divs for each of the Scores, Play etc blocks */
@@ -488,7 +488,7 @@ button.fat-button {
     border-color: #DCDCC6;
 
     border-style: solid;
-	
+  
     -webkit-border-radius: 0.4em;
     -moz-border-radius: 0.4em;
     -ms-border-radius: 0.4em;
@@ -524,7 +524,7 @@ button.fat-button {
 
 /* Button for making a play */
 #playBlock > .turn-button {
-	font-size: 130%;
+  font-size: 130%;
 }
 
 /* The #blocks > div with the chat */
@@ -534,7 +534,7 @@ button.fat-button {
 
 /* Who sent a chat message */
 .chat-sender {
-	font-weight: bold;
+  font-weight: bold;
 }
 
 /* #chatBlock > div chat message capture */
@@ -548,7 +548,7 @@ button.fat-button {
 }
 
 .chat-message.warning {
-	color: #B00;
+  color: #B00;
 }
 
 /* The div with the game events log */
@@ -557,15 +557,15 @@ button.fat-button {
 
 /* Individual messages within the #logBlock */
 #logBlock > .messages {
-	font-size: 80%;
+  font-size: 80%;
     overflow: auto;
     max-height: 14em;
 }
 
 /* Reporting game state within the #logBlock */
 #logBlock > .messages .game-state {
-	margin-top: 0.5em;
-	font-weight: bold;
+  margin-top: 0.5em;
+  font-weight: bold;
 }
 
 /* Reporting game result within the #logBlock */
@@ -574,16 +574,16 @@ button.fat-button {
 
 /* #rack > div, the rack with buttons used to control it */
 #rackControls {
-	margin-top: 0.5em;
-	width: 100%;
-	flex-direction: row;
-	justify-content: space-evenly;
-	align-items: center;
-	display: flex;
+  margin-top: 0.5em;
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  display: flex;
 }
 
 #rackControls .rack {
-	margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 /* div that contains the rack control buttons - Shuffle, Take back */
@@ -598,11 +598,11 @@ button.fat-button {
 
 /* Blank letter requester dialog */
 #blankDialog letterTable td {
-	font-size: 1.5em;
-	text-align: center;
-	border-color: #DCDCC6;
+  font-size: 1.5em;
+  text-align: center;
+  border-color: #DCDCC6;
     border-style: solid;
-	
+  
     -webkit-border-radius: 0.4em;
     -moz-border-radius: 0.4em;
     -ms-border-radius: 0.4em;
@@ -617,5 +617,5 @@ button.fat-button {
 
 /* Name of player in the player table #scoresBlock */
 .player-name {
-	font-weight: bold;
+  font-weight: bold;
 }

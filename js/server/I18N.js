@@ -6,44 +6,44 @@ define(["fs", "path"], (fs, Path) => {
   let TX = {};
 
   /**
-	 * Partial implementation of jquery i18n to support server-side
-	 * string translations using the same data files as browser-side.
-	 */
+   * Partial implementation of jquery i18n to support server-side
+   * string translations using the same data files as browser-side.
+   */
   function I18N(s) {
     if (typeof s === "string") {
-		  if (typeof TX[s] !== "undefined")
-			  s = TX[s];
-		  // TODO: support PLURAL
-		  return s.replace(
-			  /\$(\d+)/g,
-			  (m, index) => arguments[index]);
+      if (typeof TX[s] !== "undefined")
+        s = TX[s];
+      // TODO: support PLURAL
+      return s.replace(
+        /\$(\d+)/g,
+        (m, index) => arguments[index]);
     }
-		return {
-			load(locale) {
-				let langdir = Path.normalize(requirejs.toUrl("i18n"));
-				let langfile = Path.join(langdir, `${locale}.json`);
-				// Try the full locale e.g. "en-US"
-				return Fs.readFile(langfile)
-				.catch(e => {
-					// Try the first part of the locale i.e. "en"
-					// from "en-US"
-					langfile = Path.join(langdir,
-										           `${locale.split("-")[0]}.json`);
-					return Fs.readFile(langfile);
-				})
-				.catch(
+    return {
+      load(locale) {
+        let langdir = Path.normalize(requirejs.toUrl("i18n"));
+        let langfile = Path.join(langdir, `${locale}.json`);
+        // Try the full locale e.g. "en-US"
+        return Fs.readFile(langfile)
+        .catch(e => {
+          // Try the first part of the locale i.e. "en"
+          // from "en-US"
+          langfile = Path.join(langdir,
+                               `${locale.split("-")[0]}.json`);
+          return Fs.readFile(langfile);
+        })
+        .catch(
           /* istanbul ignore next */
           e => {
-					  // Fall back to "en"
-					  langfile = Path.join(langdir, "en.json");
-					  return Fs.readFile(langfile);
-				  })
-				.then(buffer => {
+            // Fall back to "en"
+            langfile = Path.join(langdir, "en.json");
+            return Fs.readFile(langfile);
+          })
+        .then(buffer => {
           TX = JSON.parse(buffer.toString());
         });
-			}
-		};
-	}
+      }
+    };
+  }
 
   return I18N;
 });

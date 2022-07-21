@@ -4,54 +4,54 @@
 
 describe("Player class", () => {
 
-	const TS = require("./TestSupport.js");
-	before(required => TS.depend(required, { Player: "game/Player" }));
+  const TS = require("./TestSupport.js");
+  before(required => TS.depend(required, { Player: "game/Player" }));
 
-	it("construct", () => {
-		const p = {
-			name: "name",
-			key: "key",
-			isRobot: true,
-			canChallenge: true,
-			missNextTurn: true,
-			dictionary: "NoDic"
-		};
-		let player = new Player(p);
-		for (const f in p)
-			assert.equal(player[f], p[f], f);
+  it("construct", () => {
+    const p = {
+      name: "name",
+      key: "key",
+      isRobot: true,
+      canChallenge: true,
+      missNextTurn: true,
+      dictionary: "NoDic"
+    };
+    let player = new Player(p);
+    for (const f in p)
+      assert.equal(player[f], p[f], f);
     // Check fields that must be zeroed
-		p.score = 999;
+    p.score = 999;
     p.passes = 999;
     p.clock = 999;
-		player = new Player(p);
+    player = new Player(p);
     assert.equal(player.score, 0);
     assert.equal(player.passes, 0);
     assert.equal(player.clock, 0);
-	});
-	
-	it("valueOf, toString, and simple", () => {
-		const p = {
-			name: "Player 1",
-			key: "playerkey",
-			isRobot: false,
-			canChallenge: false,
-			missNextTurn: false,
-			//_debug: console.debug,
-			dictionary: "NoDic"
-		};
-		const player = new Player(p);
-		player.isRobot = true;
-		player.score = 20;
+  });
+  
+  it("valueOf, toString, and simple", () => {
+    const p = {
+      name: "Player 1",
+      key: "playerkey",
+      isRobot: false,
+      canChallenge: false,
+      missNextTurn: false,
+      //_debug: console.debug,
+      dictionary: "NoDic"
+    };
+    const player = new Player(p);
+    player.isRobot = true;
+    player.score = 20;
 
-		return player.simple()
-		.then(d => {
+    return player.simple()
+    .then(d => {
       assert.deepEqual(d, {
-			  name: 'Player 1',
-			  isRobot: true,
-			  dictionary: 'NoDic',
-			  key: 'playerkey',
-			  score: 20
-		  });
+        name: 'Player 1',
+        isRobot: true,
+        dictionary: 'NoDic',
+        key: 'playerkey',
+        score: 20
+      });
       const pp = Player.fromSimple(d);
       pp._debug = player._debug;
       delete player.rack;
@@ -61,68 +61,67 @@ describe("Player class", () => {
       assert(pp.isRobot);
       assert.deepEqual(pp, player);
     });
-	});
-	   
-	it("$html-robot", () => {
-		const p = {
-			name: "Player 1",
-			key: "playerkey",
-			isRobot: true,
-			canChallenge: true,
-			missNextTurn: true,
-			//_debug: console.debug,
-			dictionary: "NoDic"
-		};
-		const player = new Player(p);
+  });
+  
+  it("$html-robot", () => {
+    const p = {
+      name: "Player 1",
+      key: "playerkey",
+      isRobot: true,
+      canChallenge: true,
+      missNextTurn: true,
+      //_debug: console.debug,
+      dictionary: "NoDic"
+    };
+    const player = new Player(p);
 
-		const $tr = $("<tr></tr>").addClass("player-row");
-		$tr[0].id = `player${p.key}`;
-		$tr.append("<td class='turn-pointer'>&#10148;</td>");
-		$tr.append("<td><div class='ui-icon icon-robot'></div></td>");
-		$tr.append(`<td class="player-name miss-turn">${p.name}</td>`);
-		$tr.append("<td class='remaining-tiles'></td>");
-		$tr.append(`<td class="connect-state online">●</td>`);
-		$tr.append("<td class='score'>0</td>");
-		$tr.append("<td class='player-clock'></td>");
+    const $tr = $("<tr></tr>").addClass("player-row");
+    $tr[0].id = `player${p.key}`;
+    $tr.append("<td class='turn-pointer'>&#10148;</td>");
+    $tr.append("<td><div class='ui-icon icon-robot'></div></td>");
+    $tr.append(`<td class="player-name miss-turn">${p.name}</td>`);
+    $tr.append("<td class='remaining-tiles'></td>");
+    $tr.append(`<td class="connect-state online">●</td>`);
+    $tr.append("<td class='score'>0</td>");
+    $tr.append("<td class='player-clock'></td>");
 
-        player.online(false);
+    player.online(false);
 
-		const $act = player.$ui();
-		assert($act[0].isEqualNode($tr[0]),
-			   `expected: ${$tr.html()}\n actual: ${$act.html()}`);
-		player.score = 666;
-		$("body").append("<div id='playerplayerkey'><div class='score'>fail</div></div>");
-		player.$refresh();
-		assert.equal($("#playerplayerkey .score").text(), player.score);
-	});
+    const $act = player.$ui();
+    assert($act[0].isEqualNode($tr[0]),
+           `expected: ${$tr.html()}\n actual: ${$act.html()}`);
+    player.score = 666;
+    $("body").append("<div id='playerplayerkey'><div class='score'>fail</div></div>");
+    player.$refresh();
+    assert.equal($("#playerplayerkey .score").text(), player.score);
+  });
 
-	it("$html-human", () => {
-		const p = {
-			name: "Player 1",
-			key: "playerkey",
-			isRobot: false,
-			canChallenge: false,
-			missNextTurn: false,
-			//_debug: console.debug,
-			dictionary: "NoDic"
-		};
-		const player = new Player(p);
-		player.score = 20;
-        player.online(true);
+  it("$html-human", () => {
+    const p = {
+      name: "Player 1",
+      key: "playerkey",
+      isRobot: false,
+      canChallenge: false,
+      missNextTurn: false,
+      //_debug: console.debug,
+      dictionary: "NoDic"
+    };
+    const player = new Player(p);
+    player.score = 20;
+    player.online(true);
 
-		const $tr = $("<tr></tr>").addClass("player-row");
-		$tr[0].id = `player${p.key}`;
+    const $tr = $("<tr></tr>").addClass("player-row");
+    $tr[0].id = `player${p.key}`;
 
-		$tr.append("<td class='turn-pointer'>&#10148;</td>");
-		$tr.append("<td><div class='ui-icon icon-person'></div></td>");
-		$tr.append(`<td class="player-name">${p.name}</td>`);
-		$tr.append("<td class='remaining-tiles'></td>");
-		$tr.append(`<td class='connect-state online'>●</td>`);
-		$tr.append("<td class='score'>20</td>");
-		$tr.append("<td class='player-clock'></td>");
-		const $act = player.$ui();
-		assert($act[0].isEqualNode($tr[0]),
-			  `expected: ${$tr.html()}\n actual: ${$act.html()}`);
-	});
+    $tr.append("<td class='turn-pointer'>&#10148;</td>");
+    $tr.append("<td><div class='ui-icon icon-person'></div></td>");
+    $tr.append(`<td class="player-name">${p.name}</td>`);
+    $tr.append("<td class='remaining-tiles'></td>");
+    $tr.append(`<td class='connect-state online'>●</td>`);
+    $tr.append("<td class='score'>20</td>");
+    $tr.append("<td class='player-clock'></td>");
+    const $act = player.$ui();
+    assert($act[0].isEqualNode($tr[0]),
+           `expected: ${$tr.html()}\n actual: ${$act.html()}`);
+  });
 });
-

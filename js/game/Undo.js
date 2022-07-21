@@ -4,9 +4,9 @@
 /* eslint-env amd */
 
 define([
-	"platform", "common/Utils", "game/Types", "game/Tile"
+  "platform", "common/Utils", "game/Types", "game/Tile"
 ], (
-	Platform, Utils, Types, Tile
+  Platform, Utils, Types, Tile
 ) => {
 
   const Turns  = Types.Turns;
@@ -27,8 +27,8 @@ define([
      * @param {Rack} rack to put the tiles on
      */
     bag2rack(tiles, rack) {
-			for (const tile of tiles) {
-	      const removed = this.letterBag.removeTile(tile);
+      for (const tile of tiles) {
+        const removed = this.letterBag.removeTile(tile);
         Platform.assert(removed, `${Utils.stringify(tile)} missing from bag`);
         rack.addTile(removed);
       }
@@ -60,11 +60,11 @@ define([
     rack2board(tiles, rack) {
       // Move tiles from the rack back onto the board
       for (const place of tiles) {
-				const tile = rack.removeTile(place);
+        const tile = rack.removeTile(place);
         Platform.assert(tile);
-				const square = this.board.at(place.col, place.row);
+        const square = this.board.at(place.col, place.row);
         Platform.assert(square && !square.tile);
-				square.placeTile(tile, true);
+        square.placeTile(tile, true);
       }
     },
 
@@ -100,8 +100,8 @@ define([
       const racked = player.rack.removeTiles(turn.replacements);
       this.board2rack(turn.placements, player.rack);
       this.letterBag.returnTiles(racked);
-			player.score -= turn.score;
-			player.passes = turn.prepasses || 0;
+      player.score -= turn.score;
+      player.passes = turn.prepasses || 0;
       this.whosTurnKey = player.key;
       if (isClient) {
         player.rack.$refresh();
@@ -197,24 +197,24 @@ define([
       const turn = this.popTurn();
       this._debug(`un-${turn.type}`);
       switch (turn.type) {
-		  case Turns.SWAPPED:
+      case Turns.SWAPPED:
         this.unswap(turn, isClient);
         break;
-		  case Turns.PASSED:
-		  case Turns.TIMED_OUT:
+      case Turns.PASSED:
+      case Turns.TIMED_OUT:
         this.unpass(turn, isClient);
         break;
-		  case Turns.PLAYED:
+      case Turns.PLAYED:
         this.unplay(turn, isClient);
         break;
-		  case Turns.TOOK_BACK:
-		  case Turns.CHALLENGE_WON:
+      case Turns.TOOK_BACK:
+      case Turns.CHALLENGE_WON:
         this.untakeBack(turn, isClient);
         break;
-		  case Turns.GAME_ENDED:
+      case Turns.GAME_ENDED:
         this.unconfirmGameOver(turn, isClient);
         break;
-		  case Turns.CHALLENGE_LOST:
+      case Turns.CHALLENGE_LOST:
         this.unchallenge(turn, isClient);
         break;
       default:
@@ -237,7 +237,7 @@ define([
       const player = this.getPlayerWithKey(turn.playerKey);
       this._debug("REDO", turn.type, new Date(turn.timestamp).toISOString());
       switch (turn.type) {
-		  case Turns.SWAPPED:
+      case Turns.SWAPPED:
         // Remove and return the expected tiles to the the unshaken bag
         // to ensure replay order. We have to do this so the next play on the
         // undo stack is also redoable.
@@ -247,7 +247,7 @@ define([
         this._debug("\t-- swap");
         return this.swap(player, turn.placements)
         .then(() => delete this.letterBag.predictable);
-		  case Turns.PLAYED:
+      case Turns.PLAYED:
         this.letterBag.predictable = true;
         // Remove and return
         this.letterBag.removeTiles(turn.replacements);
@@ -255,19 +255,19 @@ define([
         this._debug("\t-- play");
         return this.play(player, turn)
         .then(() => delete this.letterBag.predictable);
-		  case Turns.PASSED:
-		  case Turns.TIMED_OUT:
+      case Turns.PASSED:
+      case Turns.TIMED_OUT:
         this._debug("\t-- pass");
         return this.pass(player, turn.type);
-		  case Turns.TOOK_BACK:
+      case Turns.TOOK_BACK:
         this._debug("\t-- takeBack");
         return this.takeBack(player, turn.type);
-		  case Turns.CHALLENGE_WON:
-		  case Turns.CHALLENGE_LOST:
+      case Turns.CHALLENGE_WON:
+      case Turns.CHALLENGE_LOST:
         this._debug("\t-- challenge");
         return this.challenge(
           this.getPlayerWithKey(turn.challengerKey), player);
-		  case Turns.GAME_ENDED:
+      case Turns.GAME_ENDED:
         this._debug("\t-- confirmGameOver");
         return this.confirmGameOver(player, turn.endState);
       }

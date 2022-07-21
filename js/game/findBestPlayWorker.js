@@ -5,15 +5,15 @@
 const requirejs = require('requirejs');
 
 requirejs.config({
-	baseUrl: `${__dirname}/../..`,
+  baseUrl: `${__dirname}/../..`,
   nodeRequire: require,
-	paths: {
-		common: `js/common`,
-		game: `js/game`,
-		dawg: `js/dawg`,
-		server: `js/server`,
-		platform: 'js/server/Platform'
-	}
+  paths: {
+    common: `js/common`,
+    game: `js/game`,
+    dawg: `js/dawg`,
+    server: `js/server`,
+    platform: 'js/server/Platform'
+  }
 });
 
 /**
@@ -22,27 +22,27 @@ requirejs.config({
  * time it out if necessary. See also findBestPlayController.js
  */
 requirejs([
-	'worker_threads',
-	'common/Fridge',
-	'game/Game', 'game/findBestPlay'
+  'worker_threads',
+  'common/Fridge',
+  'game/Game', 'game/findBestPlay'
 ], (
-	threads,
-	Fridge,
-	Game, findBestPlay
+  threads,
+  Fridge,
+  Game, findBestPlay
 ) => {
 
-	const info = Fridge.thaw(threads.workerData, Game.classes);
-	findBestPlay(info.game, info.rack,
-				       bestPlay => threads.parentPort.postMessage(
-					       Fridge.freeze(bestPlay)),
-				       info.dictpath, info.dictionary)
+  const info = Fridge.thaw(threads.workerData, Game.classes);
+  findBestPlay(info.game, info.rack,
+               bestPlay => threads.parentPort.postMessage(
+                 Fridge.freeze(bestPlay)),
+               info.dictpath, info.dictionary)
   .then(() => {
-	  threads.parentPort.postMessage('findBestPlayWorker is exiting');
+    threads.parentPort.postMessage('findBestPlayWorker is exiting');
   })
   .catch(e => {
-	  /* istanbul ignore next */
-	  threads.parentPort.postMessage('findBestPlayWorker error', e);
-	  /* istanbul ignore next */
-	  throw e;
+    /* istanbul ignore next */
+    threads.parentPort.postMessage('findBestPlayWorker error', e);
+    /* istanbul ignore next */
+    throw e;
   });
 });
