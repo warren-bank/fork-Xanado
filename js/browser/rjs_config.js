@@ -45,7 +45,7 @@ requirejs.config({
 		common: "/js/common",
 		game: "/js/game",
 		dawg: "/js/dawg",
-		platform: "/js/browser/BrowserPlatform"
+		platform: "/js/browser/Platform"
 	},
 	
 	shim: {

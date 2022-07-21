@@ -6,9 +6,7 @@
 
 // Mix-in load based on platform. Done this way to simplify loading
 // the same object from freezer in different contexts (browser, server)
-const mixin = typeof process !== 'undefined' &&
-      process.release.name.search(/node|io.js/) >= 0
-      ? "server/ServerGame" : "browser/BrowserGame";
+const mixin = requirejs.isBrowser ? "browser/Game" : "server/Game";
 
 define([
 	"platform", "common/Utils",

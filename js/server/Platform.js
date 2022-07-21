@@ -16,83 +16,10 @@ define([
 	Assert, fs, Path,
   Events, Lock, Gzip, Locale,
 	Fridge, Platform,
-  I18N, Database
+  I18N, FileDatabase
 ) => {
 	const Fs = fs.promises;
 	const emitter = new Events.EventEmitter();
-
-	/**
-	 * Simple file database implementing {@linkcode Database} for use
-	 * server-side, where data is stored in files named the same as
-	 * the key. There are some basic assumptions here:
-	 * 1. Callers will filter the set of keys based on their requirements
-	 * 2. Keys starting with . are forbidden
-	 * 3. Key names must be valid file names
- 	 */
-	class FileDatabase extends Platform.Database {
-
-		/**
-		 * @param {string} path name of a pre-existing
-		 * directory to store games in, relative to requirejs.toUrl. 
-		 * @param {string} type will be used as the extension on file names
-		 */
-		constructor(path, type) {
-			super(path, type);
-			this.directory = ServerPlatform.getFilePath(path);
-			this.type = type;
-			this.re = new RegExp(`\\.${type}$`);
-			this.locks = {};
-		}
-
-		/** See {@linkcode Database#keys|Database.keys} for documentation */
-		keys() {
-			return Fs.readdir(this.directory)
-			.then(list =>
-				    list.filter(f => this.re.test(f))
-				    .map(fn => fn.replace(this.re, "")));
-		}
-
-		/** See {@linkcode Database#set|Database.set} for documentation */
-		set(key, data) {
-			Assert(!/^\./.test(key));
-			const fn = Path.join(this.directory, `${key}.${this.type}`);
-			const s = JSON.stringify(Fridge.freeze(data), null, 1);
-      //console.log("Writing", fn);
-			return Fs.access(fn)
-			.then(acc => {
-				return Lock.lock(fn) // file exists
-				.then(release => Fs.writeFile(fn, s)
-					    .then(() => release()));
-			})
-			.catch(e => Fs.writeFile(fn, s)); // file does not exist
-		}
-
-		/** See {@linkcode Database#get|Database.get} for documentation */
-		get(key, classes) {
-			const fn = Path.join(this.directory, `${key}.${this.type}`);
-
-			/* Locking doesn't work cleanly; locks are often left dangling,
-			   despite our releasing them religiously.
-
-			   return Lock.lock(fn)
-			   .then(release => Fs.readFile(fn)
-				 .then(data => release()
-				 .then(() => {
-				 console.debug(`Unlocked ${fn}`);
-				 return Fridge.thaw(JSON.parse(data), classes);
-				 })));
-      */
-			return Fs.readFile(fn)
-			.then(data => {
-				return Fridge.thaw(JSON.parse(data), classes);
-			});
-		}
-
-		/** See {@linkcode Database#rm|Database.rm} for documentation */
-		rm(key) {
-			return Fs.unlink(Path.join(this.directory, `${key}.${this.type}`));
-		}
-	}
 
 	/**
 	 * Implementation of {@linkcode Platform} for use in node.js.

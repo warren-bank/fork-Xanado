@@ -1010,7 +1010,7 @@ define([
 
 		/**
 		 * A game has been read; load it into the UI
-		 * @param {BrowserGame} game the Game being played
+		 * @param {Game} game the Game being played
 		 * @return {Promise} Promise that resolves to a game
 		 */
 		loadGame(game) {

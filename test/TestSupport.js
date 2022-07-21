@@ -32,7 +32,7 @@ requirejs.config({
 		dawg: "js/dawg",
 		server: "js/server",
 		browser: "js/browser",
-		platform: "js/server/ServerPlatform"
+		platform: "js/server/Platform"
 	}
 });
 

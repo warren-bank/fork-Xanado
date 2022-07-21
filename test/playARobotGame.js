@@ -18,7 +18,7 @@ requirejs.config({
 		server: "js/server",
 		dawg: "js/dawg",
 
-		platform: "js/server/ServerPlatform"
+		platform: "js/server/Platform"
 	}
 });
 

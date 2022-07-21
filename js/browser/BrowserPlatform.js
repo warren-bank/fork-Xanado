@@ -3,9 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-define([
-  "common/Platform"
-], Platform => {
+define([ "common/Platform" ], Platform => {
 
 	/**
 	 * Browser implementation of {@linkcode Platform}
