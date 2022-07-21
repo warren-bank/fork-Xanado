@@ -16,7 +16,7 @@ describe("Board class", () => {
 		Square: "game/Square"
 	}));
 
-    function UNit() {}
+  function UNit() {}
     
 	it("construct", () => {
 		return Edition.load("Test")

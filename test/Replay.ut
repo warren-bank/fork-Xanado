@@ -106,9 +106,9 @@ describe("Replay", () => {
   // B passes
   // A passes
   // Should take us to game over
-  UNit("replay", () => {
+  it("replay", () => {
 		const db = new Platform.Database("test", "game");
-    let preGame, game, preBag = [];
+    let preGame, game, preBag;
     
 		return db.get("good_game", Replay.classes)
     .then(g => g.onLoad(db))
@@ -126,16 +126,16 @@ describe("Replay", () => {
       let promise = Promise.resolve();
       for (let i = 0; i < game.playedGame.turnCount(); i++)
         promise = promise.then(() => {
-          checkBag(game);
+          checkBag(game, preBag);
           return game.step()
-          .then(() => checkBag(game));
+          .then(() => checkBag(game, preBag));
         });
       return promise
       .then(() => assertGameEqual(game, preGame));
     });
   });
   
-  UNit("issue 50", () => {
+  it("issue 50", () => {
 		const db = new Platform.Database("test", "game");
     let preGame, game, preBag = [];
 
@@ -156,9 +156,9 @@ describe("Replay", () => {
       // Play up to challenge-lost
       for (let i = 0; i < 4; i++)
         promise = promise.then(() => {
-          checkBag(game);
+          checkBag(game, preBag);
           return game.step()
-          .then(() => checkBag(game));
+          .then(() => checkBag(game, preBag));
         });
       return promise
       .then(() => assert.fail("Unexpected"))
