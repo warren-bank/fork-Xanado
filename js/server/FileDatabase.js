@@ -4,22 +4,18 @@
 /* eslint-env node */
 
 /**
- * This is the node.js implementation of common/Platform. There is an
- * implementation for the browser, too, in js/browser/Platform.js
+ * This is the node.js implementation of common/Database.
  */
 define([
 	"assert", "fs", "path",
-  "events", "proper-lockfile", "node-gzip", "get-user-locale",
-	"common/Fridge", "common/Platform",
-  "server/I18N", "server/FileDatabase"
+  "proper-lockfile", "node-gzip",
+	"common/Fridge", "common/Database"
 ], (
 	Assert, fs, Path,
-  Events, Lock, Gzip, Locale,
-	Fridge, Platform,
-  I18N, Database
+  Lock, Gzip,
+	Fridge, Database
 ) => {
 	const Fs = fs.promises;
-	const emitter = new Events.EventEmitter();
 
 	/**
 	 * Simple file database implementing {@linkcode Database} for use
@@ -29,7 +25,7 @@ define([
 	 * 2. Keys starting with . are forbidden
 	 * 3. Key names must be valid file names
  	 */
-	class FileDatabase extends Platform.Database {
+	class FileDatabase extends Database {
 
 		/**
 		 * @param {string} path name of a pre-existing
@@ -38,7 +34,7 @@ define([
 		 */
 		constructor(path, type) {
 			super(path, type);
-			this.directory = ServerPlatform.getFilePath(path);
+			this.directory = Path.normalize(requirejs.toUrl(path || ""));
 			this.type = type;
 			this.re = new RegExp(`\\.${type}$`);
 			this.locks = {};
@@ -94,63 +90,6 @@ define([
 		}
 	}
 
-	/**
-	 * Implementation of {@linkcode Platform} for use in node.js.
-	 * See {@linkcode FileDatabase} of the `Platform.Database` implementation,
-	 * and {@linkcode I18N} for the `Platform.i18n` implementation.
-	 * {@linkcode module:game/findBestPlay} is used to implement `findBestPlay`.
-	 * @implements Platform
-	 */
-	class ServerPlatform extends Platform {
-	  static assert = Assert;
-    static Database = FileDatabase;
-	  static i18n = I18N;
-
-		/** See {@linkcode Platform#trigger|Platform.trigger} for documentation */
-		static trigger(e, args) {
-			emitter.emit(e, args);
-		}
-
-    /* istanbul ignore next */
-		/** See {@linkcode Platform#fail|Platform.fail} for documentation */
-    static fail(descr) {
-      Assert(false, descr);
-    }
-
-		/** See {@linkcode Platform#findBestPlay|Platform.findBestPlay} for documentation */
-		static async findBestPlay() {
-			if (global.SYNC_FBP) { // used for debug
-			  // block this thread
-        /* istanbul ignore next */
-			  const fn = await new Promise(
-          resolve => requirejs([ "game/findBestPlay" ], resolve(fn)));
-        return fn.apply(null, arguments);
-      }
-      else {
-			  // use a worker thread
-			  return new Promise(
-          resolve => requirejs([ "game/findBestPlayController" ],
-                               fn => resolve(fn.apply(null, arguments))));
-      }
-		}
-
-		/** See {@linkcode Platform#getFilePath|Platform.getFilePath} for documentation */
-		static getFilePath(p) {
-			return Path.normalize(requirejs.toUrl(p || ""));
-		}
-
-		/** See {@linkcode Platform#readFile|Platform.readFile} for documentation */
-		static readFile(p) {
-			return Fs.readFile(p);
-		}
-
-		/** See {@linkcode Platform#readZip|Platform.readZip} for documentation */
-		static readZip(p) {
-			return Fs.readFile(p)
-			.then(data => Gzip.ungzip(data));
-		}
-	}
-
-	return ServerPlatform;
+	return FileDatabase;
 });
 
