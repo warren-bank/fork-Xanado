@@ -26,6 +26,12 @@ define(() => {
 	 * and are not sent to the browser.
 	 */
 	class Edition {
+    /**
+     * Name of the edition
+     * @member {string}
+     */
+    name;
+
 		/**
      * The initial bag of letters at
 		 * the start of a game. Note that the ordering is unimportant
@@ -95,13 +101,7 @@ define(() => {
 		cols;
 
     /**
-     * List of the letters in the bag (computed)
-     * @member {string[]}
-     */
-		alphabeta;
-
-    /**
-     * String containing all the letters in the bag, sorted (computed).
+     * Sorted list of the unique non-blank letters in the bag (computed)
      * @member {string[]}
      */
 		alphabet;
@@ -120,17 +120,17 @@ define(() => {
 			this.rows = 2 * this.layout.length - 1;
 			this.cols = this.rows;
 
-			this.alphabeta = [];
+			const alph = [];
 			for (let tile of this.bag) {
 				if (tile.letter)
-					this.alphabeta.push(tile.letter);
+					alph.push(tile.letter);
 				else {
 					tile.letter = " "; // blank
 					tile.isBlank = true;
 				}
 				this.scores[tile.letter] = tile.score || 0;
 			}
-			this.alphabet = this.alphabeta.sort().join("");
+			this.alphabet = alph.sort();
 		}
 
 		/**
@@ -145,9 +145,9 @@ define(() => {
 			// Use requirejs to support dependencies in the edition
 			// files
 			return new Promise(resolve => {
-				requirejs([ `editions/${name}` ], data => {
-					editions[name] = new Edition(data);
-					editions[name].name = name;
+				requirejs([ `editions/${name}` ], spec => {
+					spec.name = name;
+					editions[name] = new Edition(spec);
 					//console.log(`Loaded edition ${name}`);
 					resolve(editions[name]);
 				});
@@ -177,6 +177,15 @@ define(() => {
 		letterScore(l) {
 			return this.scores[l] ? this.scores[l] : 0;
 		}
+
+    /**
+     * Calculate any bonus afforded to plays of this length
+     * @param {number} tilesPaced number of tiles placed
+     * @return points bonus
+     */
+    calculateBonus(tilesPlaced) {
+      return this.bonuses ? (this.bonuses[tilesPlaced] || 0) : 0;
+    }
 	}
 
 	return Edition;

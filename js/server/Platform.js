@@ -23,55 +23,47 @@ define([
 
 	/**
 	 * Implementation of {@linkcode Platform} for use in node.js.
-	 * See {@linkcode FileDatabase} of the `Platform.Database` implementation,
-	 * and {@linkcode I18N} for the `Platform.i18n` implementation.
 	 * {@linkcode module:game/findBestPlay} is used to implement `findBestPlay`.
 	 * @implements Platform
 	 */
 	class ServerPlatform extends Platform {
-	  static assert = Assert;
     static Database = FileDatabase;
 	  static i18n = I18N;
 
-		/** See {@linkcode Platform#trigger|Platform.trigger} for documentation */
+		/* @override */
+	  static assert = Assert;
+
+		/* @override */
 		static trigger(e, args) {
 			emitter.emit(e, args);
 		}
 
     /* istanbul ignore next */
-		/** See {@linkcode Platform#fail|Platform.fail} for documentation */
+		/* @override */
     static fail(descr) {
       Assert(false, descr);
     }
 
-		/** See {@linkcode Platform#findBestPlay|Platform.findBestPlay} for documentation */
+		/* @override */
 		static async findBestPlay() {
-			if (global.SYNC_FBP) { // used for debug
-			  // block this thread
-        /* istanbul ignore next */
-			  const fn = await new Promise(
-          resolve => requirejs([ "game/findBestPlay" ], resolve(fn)));
-        return fn.apply(null, arguments);
-      }
-      else {
-			  // use a worker thread
-			  return new Promise(
-          resolve => requirejs([ "game/findBestPlayController" ],
-                               fn => resolve(fn.apply(null, arguments))));
-      }
+			// game/findBestPlay to block
+			// game/findBestPlayController to use a worker thread
+			return new Promise(
+        resolve => requirejs([ "game/findBestPlayController" ],
+                             fn => resolve(fn.apply(null, arguments))));
 		}
 
-		/** See {@linkcode Platform#getFilePath|Platform.getFilePath} for documentation */
+		/* @override */
 		static getFilePath(p) {
 			return Path.normalize(requirejs.toUrl(p || ""));
 		}
 
-		/** See {@linkcode Platform#readFile|Platform.readFile} for documentation */
+		/* @override */
 		static readFile(p) {
 			return Fs.readFile(p);
 		}
 
-		/** See {@linkcode Platform#readZip|Platform.readZip} for documentation */
+		/* @override */
 		static readZip(p) {
 			return Fs.readFile(p)
 			.then(data => Gzip.ungzip(data));

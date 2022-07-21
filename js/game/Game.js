@@ -457,6 +457,8 @@ define([
      * @return points bonus
      */
     calculateBonus(tilesPlaced) {
+      // Duplicates Edition.calculateBonus, so it can be used even if
+      // the Edition is not loaded (e.g. on the client side)
       return this.bonuses ? (this.bonuses[tilesPlaced] || 0) : 0;
     }
 
