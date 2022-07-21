@@ -100,7 +100,8 @@ define(() => {
           frozen[IB_DATA] = {};
           for (let prop in unfrozen)
             // Exclude _* to avoid _events etc
-            if (!/^#?_/.test(prop))
+            // Don't try to freeze code, might overwrite mixins
+            if (!/^#?_/.test(prop) && typeof unfrozen[prop] !== "function")
               frozen[IB_DATA][prop] = _freeze(unfrozen[prop]);
         }
         return frozen;
