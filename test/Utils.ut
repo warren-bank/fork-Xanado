@@ -7,7 +7,8 @@ describe("Utils class", () => {
 
   /* global Utils */
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, { Utils: "common/Utils" }));
+  after(() => TS.after());
+  before(required => TS.before({ Utils: "common/Utils" }, required));
 
   it("genKey", () => {
     const miss = [ Utils.genKey() ];

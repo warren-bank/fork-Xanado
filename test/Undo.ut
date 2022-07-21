@@ -9,7 +9,8 @@
 describe("Undo", () => {
 
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, {
+  after(() => TS.after());
+  before(required => TS.before({
     FileDatabase: "server/FileDatabase",
     Fridge: "common/Fridge",
 
@@ -21,7 +22,7 @@ describe("Undo", () => {
     Move: "game/Move",
     Turn: "game/Turn",
     Types: "game/Types"
-  }));
+  }, required));
 
   function assertGameEqual(actual, expected, noTurns) {
     const elb = expected.letterBag;

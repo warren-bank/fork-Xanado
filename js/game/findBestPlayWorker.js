@@ -30,7 +30,6 @@ requirejs([
   Fridge,
   Game, findBestPlay
 ) => {
-
   const info = Fridge.thaw(threads.workerData, Game.classes);
   findBestPlay(info.game, info.rack,
                bestPlay => threads.parentPort.postMessage(

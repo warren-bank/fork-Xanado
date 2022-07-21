@@ -8,7 +8,8 @@
 describe('RobotPlays', () => {
 
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, {
+  after(() => TS.after());
+  before(required => TS.before({
     FileDatabase: "server/FileDatabase",
     Tile: "game/Tile",
     Player: "game/Player",
@@ -17,7 +18,7 @@ describe('RobotPlays', () => {
     Move: "game/Move",
     Turn: "game/Turn",
     Types: "game/Types"
-  }));
+  }, required));
 
   function UNit() {}
   

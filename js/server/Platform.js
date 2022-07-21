@@ -9,42 +9,37 @@
  */
 define([
   "assert", "fs", "path",
-  "events", "proper-lockfile", "node-gzip", "get-user-locale",
+  "proper-lockfile", "node-gzip", "get-user-locale",
   "common/Fridge", "common/Platform",
-  "server/I18N", "server/FileDatabase"
+  "server/I18N"
 ], (
   Assert, fs, Path,
-  Events, Lock, Gzip, Locale,
+  Lock, Gzip, Locale,
   Fridge, Platform,
-  I18N, FileDatabase
+  I18N
 ) => {
   const Fs = fs.promises;
-  const emitter = new Events.EventEmitter();
-
+  
   /**
-   * Implementation of {@linkcode Platform} for use in node.js.
-   * {@linkcode module:game/findBestPlay} is used to implement `findBestPlay`.
-   * @implements Platform
+   * Implementation of {@linkcode common/Platform} for use in node.js.
    */
   class ServerPlatform extends Platform {
-    static Database = FileDatabase;
     static i18n = I18N;
 
-    /* @override */
+    // @override
     static assert = Assert;
 
-    /* @override */
+    // @override
     static trigger(e, args) {
-      emitter.emit(e, args);
     }
 
     /* istanbul ignore next */
-    /* @override */
+    // @override
     static fail(descr) {
       Assert(false, descr);
     }
 
-    /* @override */
+    // @override
     static async findBestPlay() {
       // game/findBestPlay to block
       // game/findBestPlayController to use a worker thread
@@ -53,17 +48,17 @@ define([
                              fn => resolve(fn.apply(null, arguments))));
     }
 
-    /* @override */
+    // @override
     static getFilePath(p) {
       return Path.normalize(requirejs.toUrl(p || ""));
     }
 
-    /* @override */
+    // @override
     static readFile(p) {
       return Fs.readFile(p);
     }
 
-    /* @override */
+    // @override
     static readZip(p) {
       return Fs.readFile(p)
       .then(data => Gzip.ungzip(data));

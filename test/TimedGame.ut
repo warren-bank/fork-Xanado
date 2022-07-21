@@ -10,7 +10,8 @@ describe("Timed games", function() {
   /* global TestSocket, Platform */
   /* global Edition, Tile, Rack, Player, Game, Move, Turn */
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, {
+  after(() => TS.after());
+  before(required => TS.before({
     FileDatabase: "server/FileDatabase",
     Edition: "game/Edition",
     Tile: "game/Tile",
@@ -19,7 +20,7 @@ describe("Timed games", function() {
     Game: "game/Game",
     Move: "game/Move",
     Turn: "game/Turn"
-  }));
+  }, required));
 
   this.timeout(10000);
   

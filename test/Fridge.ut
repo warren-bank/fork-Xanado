@@ -6,10 +6,11 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 describe("Fridge class", () => {
 
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, {
+  after(() => TS.after());
+  before(required => TS.before({
     Utils: "common/Utils",
     Fridge: 'common/Fridge'
-  }));
+  }, required));
 
   class Wibble {
     constructor(wib) {
@@ -152,5 +153,28 @@ describe("Fridge class", () => {
     let thawed = Fridge.thaw(frozen, { Weeble: Weeble });
     //console.log(JSON.stringify(thawed));
     assert.equal("thawed frozen BLIB", thawed.wibble);
+  });
+
+  it("mixins", () => {
+    class Gibber {
+      constructor() {}
+      obj() { return true; }
+    }
+    // add a mixin
+    const mix = {
+      mixin() { return true; }
+    };
+    Object.assign(Gibber.prototype, mix);
+
+    let mixedup = new Gibber();
+    assert(mixedup.obj());
+    assert(mixedup.mixin());
+    let frozen = Fridge.freeze(mixedup);
+    //let thawed = Object.create(Gibber.prototype);
+    //assert(thawed.mixin());
+    //assert(thawed.mixin());
+    let thawed = Fridge.thaw(frozen, { Gibber: Gibber });
+    assert(thawed.obj());
+    assert(thawed.mixin());
   });
 });

@@ -10,12 +10,13 @@ describe("Dictionary class", () => {
 
   /* global fs, Gzip, Platform, Dictionary */
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, {
+  after(() => TS.after());
+  before(required => TS.before({
     fs: "fs",
     Gzip: "node-gzip",
     Platform: "platform",
     Dictionary: "dawg/Dictionary"
-  }));
+  }, required));
 
   it("loads words", () => {
     let dic = new Dictionary("test");

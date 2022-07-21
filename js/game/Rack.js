@@ -8,8 +8,9 @@
  * a 1D array of Square.
  */
 define([
-  "platform", "common/Utils", "game/Surface", "game/Tile"
-], (Platform, Utils, Surface, Tile) => {
+  "platform", "common/Utils", "game/Surface", "game/Tile",
+  requirejs.isBrowser ? "browser/Rack" : "common/Mixin"
+], (Platform, Utils, Surface, Tile, Mixin) => {
 
   /**
    * A Rack is a 1-column {@linkcode Surface}
@@ -175,27 +176,6 @@ define([
       .map(tile => tile.letter);
     }
 
-    /**
-     * Create the jquery representation for the Rack.
-     * @param {string} underlay a string of letters to use as background of
-     * the rack squares.
-     * @return {jQuery}
-     */
-    $ui(underlay) {
-      const $table = $('<table class="rack"></table>');
-      const $tbody = $("<tbody></tbody>");
-      $table.append($tbody);
-      const $tr = $(`<tr></tr>`);
-      let idx = 0;
-      this.forEachSquare(square => {
-        const $td = square.$ui(idx);
-        $tr.append($td);
-        idx++;
-      });
-      $tbody.append($tr);
-      return $table;
-    }
-
     /* istanbul ignore next */
     /**
      * Debug
@@ -204,6 +184,9 @@ define([
       return `[${this.tiles().map(t => Utils.stringify(t)).join(",")}]`;
     }
   }
+
+  if (Mixin)
+    Object.assign(Rack.prototype, Mixin);
 
   return Rack;
 });

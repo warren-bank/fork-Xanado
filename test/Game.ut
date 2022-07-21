@@ -11,14 +11,17 @@ describe("Game", () => {
   /* global Platform, Game, Player, Tile, Move, Turn */
   /* global State, Command, Notify, Timer, Penalty, Turns, WordCheck */
   const TS = require("./TestSupport.js");
+  after(() => TS.after());
   before(required =>
-         TS.depend(() => Platform.i18n().load("qqq").then(required), {
-           Tile: "game/Tile",
-           Player: "game/Player",
-           Game: "game/Game",
-           Move: "game/Move",
-           Turn: "game/Turn"
-         }));
+         TS.before({
+           
+             Tile: "game/Tile",
+             Player: "game/Player",
+             Game: "game/Game",
+             Move: "game/Move",
+             Turn: "game/Turn"
+           
+         }, required));
 
   function UNit() {}
 

@@ -13,7 +13,8 @@ const fs = require("fs").promises;
 describe("UserManager class", () => {
 
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, { Server: "server/Server" }));
+  after(() => TS.after());
+  before(required => TS.before({ Server: "server/Server" }, required));
 
   const assert = chai.assert;
 

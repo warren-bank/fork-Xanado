@@ -5,16 +5,16 @@
 describe("findBestPlay", () => {
 
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, {
-    Edition: "game/Edition",
-    Tile: "game/Tile",
-    Rack: "game/Rack",
-    
-    Player: "game/Player",
-    Game: "game/Game",
-    Move: "game/Move",
-    findBestPlay: "game/findBestPlay"
-  }));
+  after(() => TS.after());
+  before(required => TS.before({
+      Edition: "game/Edition",
+      Tile: "game/Tile",
+      Rack: "game/Rack",
+      Player: "game/Player",
+      Game: "game/Game",
+      Move: "game/Move",
+      findBestPlay: "game/findBestPlay"
+    }, required));
 
   it("blanks", () => {
     let bestMoves = [];

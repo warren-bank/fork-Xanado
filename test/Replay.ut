@@ -9,12 +9,13 @@
 describe("Replay", () => {
 
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, {
+  after(() => TS.after());
+  before(required => TS.before({
     FileDatabase: "server/FileDatabase",
     Tile: "game/Tile",
     Game: "game/Game",
     Replay: "game/Replay"
-  }));
+  }, required));
 
   function assertGameEqual(actual, expected, noTurns) {
     const elb = expected.letterBag;

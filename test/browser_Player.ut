@@ -1,0 +1,77 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node, mocha */
+
+describe("Player browser mixin", () => {
+
+  const TS = require("./TestSupport.js");
+  after(() => TS.after());
+  before(required => {
+    requirejs.isBrowser = true;
+    TS.before({
+      Player: "game/Player"
+    }, required);
+  });
+
+  it("$html-robot", () => {
+    const p = {
+      name: "Player 1",
+      key: "playerkey",
+      isRobot: true,
+      canChallenge: true,
+      missNextTurn: true,
+      //_debug: console.debug,
+      dictionary: "NoDic"
+    };
+    const player = new Player(p);
+
+    const $tr = $("<tr></tr>").addClass("player-row");
+    $tr[0].id = `player${p.key}`;
+    $tr.append("<td class='turn-pointer'>&#10148;</td>");
+    $tr.append("<td><div class='ui-icon icon-robot'></div></td>");
+    $tr.append(`<td class="player-name miss-turn">${p.name}</td>`);
+    $tr.append("<td class='remaining-tiles'></td>");
+    $tr.append(`<td class="connect-state online">●</td>`);
+    $tr.append("<td class='score'>0</td>");
+    $tr.append("<td class='player-clock'></td>");
+
+    player.online(false);
+
+    const $act = player.$ui();
+    assert($act[0].isEqualNode($tr[0]),
+           `expected: ${$tr.html()}\n actual: ${$act.html()}`);
+    player.score = 666;
+    $("body").append("<div id='playerplayerkey'><div class='score'>fail</div></div>");
+    player.$refresh();
+    assert.equal($("#playerplayerkey .score").text(), player.score);
+  });
+
+  it("$html-human", () => {
+    const p = {
+      name: "Player 1",
+      key: "playerkey",
+      isRobot: false,
+      canChallenge: false,
+      missNextTurn: false,
+      //_debug: console.debug,
+      dictionary: "NoDic"
+    };
+    const player = new Player(p);
+    player.score = 20;
+    player.online(true);
+
+    const $tr = $("<tr></tr>").addClass("player-row");
+    $tr[0].id = `player${p.key}`;
+
+    $tr.append("<td class='turn-pointer'>&#10148;</td>");
+    $tr.append("<td><div class='ui-icon icon-person'></div></td>");
+    $tr.append(`<td class="player-name">${p.name}</td>`);
+    $tr.append("<td class='remaining-tiles'></td>");
+    $tr.append(`<td class='connect-state online'>●</td>`);
+    $tr.append("<td class='score'>20</td>");
+    $tr.append("<td class='player-clock'></td>");
+    const $act = player.$ui();
+    assert($act[0].isEqualNode($tr[0]),
+           `expected: ${$tr.html()}\n actual: ${$act.html()}`);
+  });
+});

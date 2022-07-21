@@ -7,10 +7,11 @@ describe("Trie class", () => {
 
   /* global Trie, Dictionary */
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, {
+  after(() => TS.after());
+  before(required => TS.before({
     Trie: "dawg/Trie",
     Dictionary: "dawg/Dictionary"
-  }));
+  }, required));
 
   function UNit() {}
 

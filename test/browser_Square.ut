@@ -1,0 +1,115 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node, mocha */
+/*global document:writable*/
+
+/**
+ * Unit tests for Square class
+ */
+describe("Square browser mixin", () => {
+
+  /* global Platform, Square, Tile */
+  const TS = require("./TestSupport.js");
+  after(() => TS.after());
+  before(required => {
+    requirejs.isBrowser = true; // muddy boots
+    return TS.before({
+        Square: "game/Square",
+        Tile: "game/Tile",
+        jQueryUI: "jquery-ui"
+      }, required);
+  });
+
+  it('$ui', () => {
+    let sq = new Square({type: 'q', base: "base", col: 56, row: 42});
+    assert.equal(sq.$ui().html(),
+                 '<div id="base_56x42"><a></a></div>');
+    sq = new Square({type: '_', base: "base", col: 56});
+    assert.equal(sq.$ui().html(),
+                 '<div id="base_56"><a></a></div>');
+    $("body").empty();
+  });
+
+  it("refresh empty", () => {
+    let sq = new Square({type: 'q', base: "base", col: 56, row: 42});
+    sq.setUnderlay('T');
+    let $td = sq.$ui();
+    $("body").append($td);
+    sq.$refresh();
+    //console.log($("body").html());
+    assert($td.hasClass("square-q"));
+    const $div = $td.find("#base_56x42");
+    assert($div.hasClass("empty-square"));
+    assert($div.hasClass("ui-droppable"));
+    assert.equal($div.find("A").text(), "QUAD LETTER SCORE");
+    const $u = $("#base_56x42 > div.underlay");
+    assert($u.hasClass("underlay"));
+    assert.equal($u.text(), "T");
+    $("body").empty();
+  });
+  
+  it("refresh occupied unlocked", () => {
+    let sq = new Square({type: 'q', base: 'surface', col: 56, row: 42});
+    sq.setUnderlay('T');
+    assert(!sq.tileLocked);
+    let tile = new Tile({ letter:'S', isBlank:false });
+    sq.placeTile(tile);
+    assert(!sq.tileLocked);
+    let $td = sq.$ui();
+    $("body").append($td);
+    sq.$refresh();
+    sq.setSelected(true);
+    //console.log($("body").html());
+    assert($td.hasClass("square-q"));
+    const $div = $("div[id=surface_56x42]");
+    assert($div.hasClass("selected"));
+    assert(!$div.hasClass("Locked"));
+    assert($div.hasClass("tiled-square"));
+    assert(!$div.hasClass("ui-droppable"));
+    let $letter = $("#surface_56x42>a>span.letter");
+    assert.equal($letter.text(), "S");
+    let $score = $("#surface_56x42>a>span.score");
+    assert.equal($score.text(), "0");
+    sq.setSelected(false);
+    assert(!$div.hasClass("selected"));
+    assert.equal($("div.underlay").length, 0);
+
+    sq.unplaceTile();
+    tile = new Tile({ letter:'Q', isBlank:true });
+    sq.placeTile(tile);
+    sq.$refresh();
+    assert($div.hasClass("blank-letter"));
+
+    $("body").empty();
+  });
+  
+  it("refresh occupied locked", () => {
+    let sq = new Square({type:'q', base: 'surface', col:56, row:42});
+    assert(!sq.tileLocked);
+    let tile = new Tile({ letter:'S', isBlank:false });
+    sq.placeTile(tile, true);
+    assert(sq.isLocked());
+    let $td = sq.$ui();
+    $("body").append($td);
+    sq.$refresh();
+    //console.log($("body").html());
+    assert($td.hasClass("square-q"));
+    const $div = $("div[id=surface_56x42]");
+    assert(!$div.hasClass("selected"));
+    assert($div.hasClass("Locked"));
+    assert($div.hasClass("tiled-square"));
+    assert(!$div.hasClass("ui-droppable"));
+    let $letter = $("#surface_56x42>a>span.letter");
+    assert.equal($letter.text(), "S");
+    let $score = $("#surface_56x42>a>span.score");
+    assert.equal($score.text(), "0");
+    sq.setSelected(false);
+    assert(!$div.hasClass("selected"));
+    $("body").empty();
+
+    sq.unplaceTile();
+    assert(sq.isEmpty());
+    assert(!sq.isLocked());
+  });
+});
+

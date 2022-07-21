@@ -17,10 +17,11 @@ describe("Server", () => {
   
   /* global Platform, Server */;
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, {
+  after(() => TS.after());
+  before(required => TS.before({
     Server: "server/Server",
     UserManager: "server/UserManager"
-  }));
+  }, required));
   beforeEach(done => {
     const cmd = `rm -f ${__dirname}/temp/*.game ${USER_DB_FILE}`;
     exec(cmd,

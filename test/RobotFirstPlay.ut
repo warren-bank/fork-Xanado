@@ -8,7 +8,8 @@
 describe("RobotFirstPlay", () => {
 
   const TS = require("./TestSupport.js");
-  before(required => TS.depend(required, {
+  after(() => TS.after());
+  before(required => TS.before({
     FileDatabase: "server/FileDatabase",
     Platform: "platform",
     Edition: "game/Edition",
@@ -17,7 +18,7 @@ describe("RobotFirstPlay", () => {
     Game: "game/Game",
     Rack: "game/Rack",
     findBestPlay: "game/findBestPlay"
-  }));
+  }, required));
 
   it("first play English Scrabble", () => {
     let bestPlay;

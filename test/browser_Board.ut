@@ -1,0 +1,267 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node, mocha */
+/*global document:writable*/
+
+/**
+ * Unit tests for Board class
+ */
+describe("Board browser mixin", () => {
+
+  const TS = require("./TestSupport.js");
+  before(required => {
+    requirejs.isBrowser = true;
+    TS.before({
+      Board: "game/Board",
+      Edition: "game/Edition",
+      Tile: "game/Tile",
+      Square: "game/Square"
+    }, required);
+  });
+
+  after(() => TS.after());
+
+  function UNit() {}
+  
+  it("analysePlay", () => {
+    return Edition.load("Test")
+    .then(edition => {
+      let b = new Board(edition);
+      for (let r = 0; r < b.rows; r++)
+        for (let c = 0; c < b.cols; c++)
+          assert(!b.touchingOld(r, c));
+      const mr = Math.floor(b.rows / 2);
+      const mc = Math.floor(b.cols / 2);
+      
+      const W = new Tile({letter: "W", score:4});
+      const O = new Tile({letter: "O", score:1});
+      const R = new Tile({letter: "R", score:2, isBlank:true});
+      const D = new Tile({letter: "D", score:3});
+      
+      b.at(mr, mc).placeTile(W);
+      b.at(mr, mc+1).placeTile(O);
+      b.at(mr, mc+2).placeTile(R);
+      b.at(mr, mc+3).placeTile(D);
+
+      let move = b.analysePlay();
+      TS.sparseEqual(move, {
+        words: [ {
+          word: "WORD",
+          score: 20
+        } ],
+        /* score 10 for tiles, 2X for first play */
+        score: 20,
+        placements: [ W, O, R, D ]
+      });
+
+      // Clear the temp tiles
+      b.at(mr, mc).unplaceTile();
+      b.at(mr, mc+1).unplaceTile();
+      b.at(mr, mc+2).unplaceTile();
+      b.at(mr, mc+3).unplaceTile();
+
+      // Lock down the play
+      b.at(mr, mc).placeTile(W, true);
+      b.at(mr, mc+1).placeTile(O, true);
+      R.letter = "R";
+      b.at(mr, mc+2).placeTile(R, true);
+      b.at(mr, mc+3).placeTile(D, true);
+
+      // Score another play that extends the existing word
+      const S = new Tile({letter: "S", score: 1});
+      const U = new Tile({letter: "U", score: 1});
+      const N = new Tile({letter: "N", isBlank:true, score: 2});
+
+      b.at(mr, mc-1).placeTile(S);
+      b.at(mr+1, mc-1).placeTile(U);
+      b.at(mr+2, mc-1).placeTile(N);
+
+      move = b.analysePlay();
+      TS.sparseEqual(move, {
+        words: [ { word: "SUN", score: 5 }, { word: "SWORD", score: 11 } ],
+        score: 16,
+        placements: [ S, U, N ]
+      });
+
+      // clear temp tiles
+      b.at(mr, mc-1).unplaceTile();
+      b.at(mr+1, mc-1).unplaceTile();
+      b.at(mr+2, mc-1).unplaceTile();
+
+      // Score another play that intersects the existing word
+      b.at(mr+1, mc+3).placeTile(U);
+      N.letter = "N";
+      b.at(mr+2, mc+3).placeTile(N);
+
+      move = b.analysePlay();
+      TS.sparseEqual(move, {
+        words: [ { word: "DUN", score: 6 } ],
+        score: 6,
+        placements: [ U, N ]
+      });
+      
+    });
+  });
+
+  it("analysePlay - disconnected", () => {
+    return Edition.load("Test")
+    .then(edition => {
+      let b = new Board(edition);
+      for (let r = 0; r < b.rows; r++)
+        for (let c = 0; c < b.cols; c++)
+          assert(!b.touchingOld(r, c));
+      const mr = Math.floor(b.rows / 2);
+      const mc = Math.floor(b.cols / 2);
+      
+      const W = new Tile({letter: "W", score:4});
+      const O = new Tile({letter: "O", score:1});
+      const R = new Tile({letter: "R", score:2, isBlank:true});
+      const D = new Tile({letter: "D", score:3});
+      
+      b.at(mr, mc).placeTile(W);
+      b.at(mr, mc+1).placeTile(O);
+      b.at(mr, mc+2).placeTile(R);
+      b.at(mr, mc+3).placeTile(D);
+
+      let move = b.analysePlay();
+      TS.sparseEqual(move, {
+        words: [ { word: "WORD", score: 20 } ],
+        score: 20,
+        placements: [ W, O, R, D ]
+      });
+
+      // Clear the temp tiles
+      b.at(mr, mc).unplaceTile();
+      b.at(mr, mc+1).unplaceTile();
+      b.at(mr, mc+2).unplaceTile();
+      b.at(mr, mc+3).unplaceTile();
+
+      // Lock down the play
+      b.at(mr, mc).placeTile(W, true);
+      b.at(mr, mc+1).placeTile(O, true);
+      b.at(mr, mc+2).placeTile(R, true);
+      b.at(mr, mc+3).placeTile(D, true);
+
+      const S = new Tile({letter: "S", score: 1});
+
+      b.at(1, 1).placeTile(S);
+
+      move = b.analysePlay();
+      assert.equal(move, "Disconnected placement");
+    });
+  });
+
+  it("analyse first play - disconnected", () => {
+    return Edition.load("Test")
+    .then(edition => {
+      let b = new Board(edition);
+      for (let r = 0; r < b.rows; r++)
+        for (let c = 0; c < b.cols; c++)
+          assert(!b.touchingOld(r, c));
+      const mr = Math.floor(b.rows / 2);
+      const mc = Math.floor(b.cols / 2);
+      
+      const W = new Tile({letter: "W", score:4});
+      const O = new Tile({letter: "O", score:1});
+      const R = new Tile({letter: "R", score:2, isBlank:true});
+      const D = new Tile({letter: "D", score:3});
+      
+      b.at(mr, mc).placeTile(W);
+      b.at(mr, mc+1).placeTile(O);
+      b.at(mr+1, mc+2).placeTile(R);
+      b.at(mr, mc+3).placeTile(D);
+
+      let move = b.analysePlay();
+      assert.equal(move, "Disconnected placement");
+    });
+  });
+
+  it("analyse first play - centre missing", () => {
+    return Edition.load("Test")
+    .then(edition => {
+      let b = new Board(edition);
+      for (let r = 0; r < b.rows; r++)
+        for (let c = 0; c < b.cols; c++)
+          assert(!b.touchingOld(r, c));
+      const mr = Math.floor(b.rows / 2);
+      const mc = Math.floor(b.cols / 2);
+      
+      const W = new Tile({letter: "W", score:4});
+      const O = new Tile({letter: "O", score:1});
+      const R = new Tile({letter: "R", score:2, isBlank:true});
+      const D = new Tile({letter: "D", score:3});
+      
+      b.at(mr, mc+1).placeTile(W);
+      b.at(mr, mc+2).placeTile(O);
+      b.at(mr, mc+3).placeTile(R);
+      b.at(mr, mc+4).placeTile(D);
+
+      let move = b.analysePlay();
+      assert.equal(move, "Centre must be used");
+    });
+  });
+
+  it("analyse first play - single tile", () => {
+    return Edition.load("Test")
+    .then(edition => {
+      let b = new Board(edition);
+      for (let r = 0; r < b.rows; r++)
+        for (let c = 0; c < b.cols; c++)
+          assert(!b.touchingOld(r, c));
+      const mr = Math.floor(b.rows / 2);
+      const mc = Math.floor(b.cols / 2);
+      
+      const W = new Tile({letter: "W", score:4});
+      const O = new Tile({letter: "O", score:1});
+      const R = new Tile({letter: "R", score:2, isBlank:true});
+      const D = new Tile({letter: " ", isBlank: true, score:3});
+      
+      b.at(mr, mc).placeTile(W);
+
+      let move = b.analysePlay();
+      assert.equal(move, "First word must be at least two tiles");
+    });
+  });
+
+  it("$ui", () => {
+    const edition = new Edition({
+      layout: [
+        "Dd_",
+        "T_t",
+        "QqM" ],
+      bag: [
+        { score: 0, count: 1 },
+        { letter: "W", score: 1, count: 1 },
+        { letter: "O", score: 1, count: 1 },
+        { letter: "R", score: 1, count: 1 },
+        { letter: "D", score: 1, count: 1 },
+        { letter: "A", score: 1, count: 1 },
+        { letter: "L", score: 1, count: 1 },
+        { letter: "K", score: 1, count: 1 }
+      ],
+      rackCount: 3,
+      swapCount: 1,
+      bonuses: {}
+    });
+
+    let b = new Board(edition);
+    const W = new Tile({letter: "W", score:4});
+    const O = new Tile({letter: "O", score:1});
+    const R = new Tile({letter: "R", score:2, isBlank:true});
+    const D = new Tile({letter: "D", score:3});
+    const A = new Tile({letter: "A", score: 1});
+    const L = new Tile({letter: "L", isBlank:true, score: 2});
+    const K = new Tile({letter: "K", score: 5});
+    
+    // Lock down the play. This should not affect $ui!
+    b.at(0, 0).placeTile(W, true);
+    b.at(0, 1).placeTile(O, true);
+    b.at(0, 2).placeTile(R, true);
+    b.at(1, 0).placeTile(A);
+    b.at(2, 0).placeTile(L);
+
+    // Not going to bother with a detailed check because it's obvious
+    // from the UI
+    const s = b.$ui();
+  });
+});
