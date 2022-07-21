@@ -7,7 +7,7 @@ define([ "common/Platform" ], Platform => {
 
 	/**
 	 * Browser implementation of {@linkcode Platform}
-	 * for the abstract base class.  Note there is no Platform.Database
+	 * for the abstract base class.
 	 * implementation for the browser.
 	 */
 	class BrowserPlatform extends Platform {

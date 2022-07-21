@@ -17,22 +17,22 @@ requirejs.config({
 		game: "js/game",
 		server: "js/server",
 		dawg: "js/dawg",
-
 		platform: "js/server/Platform"
 	}
 });
 
 requirejs([
-	"platform", "game/Edition", "game/Tile", "game/Rack",
+	"game/Edition", "game/Tile", "game/Rack",
 	"game/Square", "game/Player", "game/Game", "game/LetterBag",
-	"game/Board", "game/Move"
+	"game/Board", "game/Move",
+  "server/FileDatabase"
 ], (
-	Platform, Edition, Tile, Rack,
+	Edition, Tile, Rack,
 	Square, Player, Game, LetterBag,
-	Board, Move
+	Board, Move, FileDatabase
 ) => {
 
-	let db = new Platform.Database("test/temp", "testgame");
+	let db = new FileDatabase("test/temp", "testgame");
 	let game = new Game({
 		//_debug: console.debug,
 		edition: "Test",
@@ -42,7 +42,7 @@ requirejs([
 	let player = 0;
 
 	game.create()
-    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 	.then(game => {
 		let player1 = new Player({
 			name: "player one", key: "flay", isRobot: true});

@@ -6,13 +6,14 @@
 define([
 	"fs", "path", "events", "cookie", "cors", "express", "errorhandler",
 	"platform",	"common/Fridge", "common/Utils",
-	"server/UserManager",
+	"server/UserManager", "server/FileDatabase",
 	"game/Types",
 	"game/Game", "game/Player", "game/Turn", "game/Edition"
 ], (
 	fs, Path, Events, Cookie, cors, Express, ErrorHandler,
 	Platform, Fridge, Utils,
-	UserManager, Types,
+	UserManager, FileDatabase,
+  Types,
 	Game, Player, Turn, Edition
 ) => {
 
@@ -55,9 +56,9 @@ define([
 
       /**
        * Games database
-       * @member {Platform.Database}
+       * @member {Database}
        */
-			this.db = new Platform.Database(
+			this.db = new FileDatabase(
 				// Allow (undocumented) override of default /games
 				// database path, primarily for unit testing.
 				config.games || "games",
@@ -611,8 +612,7 @@ define([
      * @private
 		 */
 		request_locales(req, res, next) {
-			const db = new Platform.Database(
-				"i18n", "json");
+			const db = new FileDatabase("i18n", "json");
 			return db.keys()
 			.then(keys => res.status(200).send(keys));
 		}

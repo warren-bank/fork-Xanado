@@ -10,6 +10,7 @@ describe("Challenges", () => {
 
 	const TS = require("./TestSupport.js");
 	before(required => TS.depend(required,           {
+    FileDatabase: "server/FileDatabase",
 		Tile: "game/Tile",
 		Player: "game/Player",
 		Game: "game/Game",
@@ -73,7 +74,7 @@ describe("Challenges", () => {
 		});
 
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"S"}));
@@ -150,7 +151,7 @@ describe("Challenges", () => {
 			assert.fail(event);
 		});
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"S"}));
@@ -223,7 +224,7 @@ describe("Challenges", () => {
 			assert.fail(event);
 		});
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"S"}));
@@ -293,7 +294,7 @@ describe("Challenges", () => {
 			assert.fail(event);
 		});
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"S"}));
@@ -360,7 +361,7 @@ describe("Challenges", () => {
 			assert.fail(event);
 		});
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"X"}));
@@ -435,7 +436,7 @@ describe("Challenges", () => {
 			assert.fail(event);
 		});
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"S"}));
@@ -494,7 +495,7 @@ describe("Challenges", () => {
 			assert.fail(event);
 		});
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"X"}));
@@ -557,7 +558,7 @@ describe("Challenges", () => {
 			assert.fail(event);
 		});
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"X"}));
@@ -632,7 +633,7 @@ describe("Challenges", () => {
 		});
 
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"P"}));
@@ -713,7 +714,7 @@ describe("Challenges", () => {
 		});
 
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"A"}));
@@ -794,7 +795,7 @@ describe("Challenges", () => {
 		});
 
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"A"}));
@@ -894,7 +895,7 @@ describe("Challenges", () => {
 			assert.fail(event);
 		});
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			for (let tile of move1.placements)

@@ -154,12 +154,5 @@ define(() => {
 		}
 	}
 
-	/**
-	 * Implementation of {@linkcode Database} for this platform
-	 * @member {Database}
-	 * @memberof Platform
-	 */
-	Platform.Database = Database;
-
 	return Platform;
 });

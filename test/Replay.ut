@@ -10,6 +10,7 @@ describe("Replay", () => {
 	
 	const TS = require("./TestSupport.js");
 	before(required => TS.depend(required, {
+    FileDatabase: "server/FileDatabase",
 		Tile: "game/Tile",
 	  Game: "game/Game",
 	  Replay: "game/Replay"
@@ -107,7 +108,7 @@ describe("Replay", () => {
   // A passes
   // Should take us to game over
   it("replay", () => {
-		const db = new Platform.Database("test", "game");
+		const db = new FileDatabase("test", "game");
     let preGame, game, preBag;
     
 		return db.get("good_game", Replay.classes)
@@ -121,7 +122,7 @@ describe("Replay", () => {
       .then(pb => preBag = pb)
       .then(() => game.create());
     })
-    .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(game => game.onLoad(new FileDatabase("test/temp", "game")))
     .then(game => {
       let promise = Promise.resolve();
       for (let i = 0; i < game.playedGame.turnCount(); i++)
@@ -136,7 +137,7 @@ describe("Replay", () => {
   });
   
   it("issue 50", () => {
-		const db = new Platform.Database("test", "game");
+		const db = new FileDatabase("test", "game");
     let preGame, game, preBag = [];
 
 		return db.get("kolano", Replay.classes)
@@ -150,7 +151,7 @@ describe("Replay", () => {
       .then(pb => preBag = pb)
       .then(() => game.create());
     })
-    .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(game => game.onLoad(new FileDatabase("test/temp", "game")))
     .then(game => {
       let promise = Promise.resolve();
       // Play up to challenge-lost
@@ -170,7 +171,7 @@ describe("Replay", () => {
   });
 
   it("issue 49", () => {
-		const db = new Platform.Database("test", "game");
+		const db = new FileDatabase("test", "game");
     let preGame, game, preBag;
 
 		return db.get("8-letter-rack", Game.classes)
@@ -185,7 +186,7 @@ describe("Replay", () => {
       .then(pb => preBag = pb)
       .then(() => game.create());
     })
-    .then(game => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(game => game.onLoad(new FileDatabase("test/temp", "game")))
     .then(async game => {
       for (let i = 0; i <  preGame.turnCount(); i++) {
         checkBag(game, preBag);

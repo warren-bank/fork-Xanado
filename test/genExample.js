@@ -12,12 +12,12 @@ requirejs.config({
 });
 
 requirejs([
-	"platform", "game/Edition", "game/Game", "game/Player"
+	"game/Edition", "game/Game", "game/Player", "server/FileDatabase"
 ], (
-	Platform, Edition, Game, Player
+	Edition, Game, Player, FileDatabase
 ) => {
 
-	const db = new Platform.Database("test/temp", "game");
+	const db = new FileDatabase("test/temp", "game");
 	Edition.load("English_Scrabble")
 	.then(edition => {
 		return new Game({edition: edition.name, dictionary: "Oxford_5000"})

@@ -10,6 +10,7 @@ describe("Undo", () => {
 	
 	const TS = require("./TestSupport.js");
 	before(required => TS.depend(required, {
+    FileDatabase: "server/FileDatabase",
     Fridge: "common/Fridge",
 
 		Tile: "game/Tile",
@@ -87,7 +88,7 @@ describe("Undo", () => {
 
     let A, B, C, D, E, preswap;
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(A = game.letterBag.getRandomTile());
@@ -131,7 +132,7 @@ describe("Undo", () => {
 		.on("*", (data, event) => assert.fail(event));
     let A, B, C, D, E, prepass;
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(A = game.letterBag.getRandomTile());
@@ -184,7 +185,7 @@ describe("Undo", () => {
 
     let preplay;
 		return game.create()
-    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
       //console.log(`"${game.letterBag.letters().sort().join("")}"`);
@@ -247,7 +248,7 @@ describe("Undo", () => {
 		});
     let preplay, pretakeback, posttakeback;
 		return game.create()
-    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			human1.rack.addTile(W = game.letterBag.removeTile({letter:"W"}));
@@ -273,11 +274,11 @@ describe("Undo", () => {
 
   // Unplay an entire game (including a challenge)
 	it("undo", () => {
-		const db = new Platform.Database("test", "game");
+		const db = new FileDatabase("test", "game");
     let game;
 		return db.get("finished_game", Game.classes)
 		.then(g => game = g)
-    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
     .then(() => {
       //game._debug = console.debug;
       while (game.turnCount() > 0) {
@@ -306,7 +307,7 @@ describe("Undo", () => {
 		socket.on("*", (data, event) => {
 		});
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(() => {
 			game.addPlayer(human1);
 			game.addPlayer(human2);
@@ -348,7 +349,7 @@ describe("Undo", () => {
 			assert.fail(event);
 		});
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			game.addPlayer(human2);

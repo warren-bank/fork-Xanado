@@ -11,6 +11,7 @@ describe("Timed games", function() {
     /* global Edition, Tile, Rack, Player, Game, Move, Turn */
 	const TS = require("./TestSupport.js");
 	before(required => TS.depend(required, {
+    FileDatabase: "server/FileDatabase",
 		Edition: "game/Edition",
 		Tile: "game/Tile",
 		Rack: "game/Rack",
@@ -96,7 +97,7 @@ describe("Timed games", function() {
 		});
 
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"A"}));
@@ -202,7 +203,7 @@ describe("Timed games", function() {
 		// Players don't time out in a chess clock game, so we have to
 		// explicitly pass twice
 		return game.create()
-        .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+        .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human1);
 			human1.rack.addTile(game.letterBag.removeTile({letter:"A"}));

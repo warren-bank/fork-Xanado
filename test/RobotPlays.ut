@@ -9,6 +9,7 @@ describe('RobotPlays', () => {
 
 	const TS = require("./TestSupport.js");
 	before(required => TS.depend(required, {
+    FileDatabase: "server/FileDatabase",
  		Tile: "game/Tile",
 		Player: "game/Player",
 		Game: "game/Game",
@@ -33,7 +34,7 @@ describe('RobotPlays', () => {
 		const human = new Player({name:"Man", key:"human", isRobot: false});
 
 		return game.create()
-    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(robot);
 			robot.rack.addTile(game.letterBag.removeTile({letter:"M"}));
@@ -82,7 +83,7 @@ describe('RobotPlays', () => {
 		});
 
 		return game.create()
-    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(robot);
 			robot.rack.addTile(game.letterBag.removeTile({letter:"X"}));
@@ -145,7 +146,7 @@ describe('RobotPlays', () => {
 			assert.fail(event);
 		});
 		return game.create()
-    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(robot);
 			robot.rack.addTile(game.letterBag.removeTile({letter:"G"}));
@@ -216,7 +217,7 @@ describe('RobotPlays', () => {
 			assert.fail(event);
 		});
 		return game.create()
-    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human);
 			human.rack.addTile(game.letterBag.removeTile({letter:"W"}));
@@ -284,7 +285,7 @@ describe('RobotPlays', () => {
 			assert.fail(event);
 		});
 		return game.create()
-    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			// Empty racks and bag => game over
 			game.addPlayer(human);
@@ -359,7 +360,7 @@ describe('RobotPlays', () => {
 		});
 
 		return game.create()
-    .then(() => game.onLoad(new Platform.Database("test/temp", "game")))
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
 		.then(game => {
 			game.addPlayer(human);
 			human.rack.addTile(game.letterBag.removeTile({letter:"X"}));
