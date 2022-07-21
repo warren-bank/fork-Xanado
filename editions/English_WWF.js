@@ -1,4 +1,4 @@
-define("editions/English_WWF", () => {
+define(() => {
 
 	const LAYOUT = [
 		"M___D___",

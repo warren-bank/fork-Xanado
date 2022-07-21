@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, node */
 
-define("common/Fridge", () => {
+define(() => {
 
 	const IB_ID = "_\u00CD";
 	const IB_CN = "_\u0106";

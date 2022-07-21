@@ -1,7 +1,7 @@
 // Test edition
 // 11x11 board with all tile values
 // English alphabet
-define("editions/Test", () => {
+define(() => {
 
 	const BOARD = [
 		"M_____",

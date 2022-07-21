@@ -7,7 +7,7 @@ if (typeof requirejs === "undefined") {
 	throw new Error(__filename + " is not runnable stand-alone");
 }
 
-define("test/TestSocket", [], () => {
+define([], () => {
 
   const assert = require("assert");
 

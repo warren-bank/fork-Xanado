@@ -7,7 +7,7 @@
  * Common utilities used on browser and server side
  * @return {string}
  */
-define("common/Utils", [ "platform" ], Platform => {
+define([ "platform" ], Platform => {
 
 	class Utils {
 

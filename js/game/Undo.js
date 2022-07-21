@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-define("game/Undo", [
+define([
 	"platform", "common/Utils", "game/Types", "game/Tile"
 ], (
 	Platform, Utils, Types, Tile

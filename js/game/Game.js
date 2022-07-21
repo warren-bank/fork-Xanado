@@ -10,7 +10,7 @@ const mixin = typeof process !== 'undefined' &&
       process.release.name.search(/node|io.js/) >= 0
       ? "server/ServerGame" : "browser/BrowserGame";
 
-define("game/Game", [
+define([
 	"platform", "common/Utils",
 	"game/Types", "game/Board", "game/LetterBag",
 	"game/Player", "game/Square", "game/Tile", "game/Rack",

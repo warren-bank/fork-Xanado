@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
-define("server/UserManager", [
+define([
 	"fs", "proper-lockfile", "bcrypt",
 	"express-session",
 	"passport", "passport-strategy",

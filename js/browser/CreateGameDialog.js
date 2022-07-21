@@ -6,7 +6,7 @@
 /**
  * Dialog for game creation. Demand loads the HTML.
  */
-define("browser/CreateGameDialog", [
+define([
 	"browser/Dialog", "game/Types", "game/Game"
 ], (Dialog, Types, Game) => {
 

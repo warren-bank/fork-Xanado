@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, jquery */
 
-define("game/Square", [
+define([
   "platform"
 ], Platform => {
 

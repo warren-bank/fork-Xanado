@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-define("game/Types", () => {
+define(() => {
 
   /**
    * See {@linkcode https://nodejs.org/api/http.html|http.ServerRequest}

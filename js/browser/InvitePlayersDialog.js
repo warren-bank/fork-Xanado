@@ -6,7 +6,7 @@
 /**
  * Dialog for game creation. Demand loads the HTML.
  */
-define("browser/InvitePlayersDialog", ["browser/Dialog"], Dialog => {
+define(["browser/Dialog"], Dialog => {
 
 	class InvitePlayersDialog extends Dialog {
 		

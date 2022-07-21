@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node, jquery */
 
-define("game/Surface", [
+define([
   "game/Square"
 ], Square => {
 

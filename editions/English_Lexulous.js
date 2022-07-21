@@ -1,5 +1,5 @@
 // Lexulous
-define("editions/English_Lexulous", () => {
+define(() => {
 
 	const LAYOUT = [
 		"M______T",

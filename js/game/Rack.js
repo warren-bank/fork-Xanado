@@ -7,7 +7,7 @@
  * A Rack is a set of tiles that a player can play from. It's
  * a 1D array of Square.
  */
-define("game/Rack", [
+define([
   "platform", "common/Utils", "game/Surface", "game/Tile"
 ], (Platform, Utils, Surface, Tile) => {
 

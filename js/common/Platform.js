@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-define("common/Platform", () => {
+define(() => {
 
 	/**
 	 * Interface to the server-side games database to allow for

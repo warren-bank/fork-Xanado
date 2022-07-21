@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-define("game/Edition", () => {
+define(() => {
 	// Static DB of loaded Editions, indexed by name
 	const editions = {};
 

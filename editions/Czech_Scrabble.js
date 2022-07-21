@@ -1,4 +1,4 @@
-define("editions/Czech_Scrabble", ["editions/_Scrabble"], (Scrabble) => {
+define(["editions/_Scrabble"], (Scrabble) => {
 
 	const scrabble = Scrabble();
 

@@ -18,7 +18,7 @@
  * Search</button>
  * ```
  */
-define("js/browser/icon_button", ["jqueryui"], function () {
+define(["jqueryui"], function () {
   $.widget("jquery.icon_button", $.ui.button, {
     _create: function () {
       this.options.icon = this.options.icon || this.element.data("icon");

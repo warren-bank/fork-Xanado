@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-define("browser/game", [
+define([
 	"platform", "common/Fridge", "common/Utils",
 	"game/Tile", "game/Rack", "game/Board",
 	"game/Types", "game/Game", "game/Player", "game/Turn",

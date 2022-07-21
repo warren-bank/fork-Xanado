@@ -14,7 +14,7 @@
  * @module game/findBestPlay
  * @exports game/findBestPlay
  */
-define("game/findBestPlay", [
+define([
 	"platform", "game/Edition", "game/Tile", "game/Move", "dawg/Dictionary"
 ], (Platform, Edition, Tile, Move, Dictionary) => {
 

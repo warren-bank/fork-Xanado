@@ -6,7 +6,7 @@
  */
 /* eslint-env amd */
 
-define("design/ValettCore", () => {
+define(() => {
 
 	function norm(vector) {
 		let sum = 0;

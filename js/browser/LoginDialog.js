@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-define("browser/LoginDialog", ["browser/Dialog"], Dialog => {
+define(["browser/Dialog"], Dialog => {
 
 	class LoginDialog extends Dialog {
 

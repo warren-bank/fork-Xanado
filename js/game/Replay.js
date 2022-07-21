@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-define("game/Replay", [
+define([
 	"platform", "common/Utils",
 	"game/Types", "game/LetterBag",
   "game/Player", "game/Tile", "game/Rack", "game/Turn",

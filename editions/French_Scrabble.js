@@ -1,4 +1,4 @@
-define("editions/French_Scrabble", ["editions/_Scrabble"], (Scrabble) => {
+define(["editions/_Scrabble"], (Scrabble) => {
 	const scrabble = Scrabble();
 	scrabble.bag = [
 		{ score: 0, count: 2 },

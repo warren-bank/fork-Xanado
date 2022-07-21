@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
-define("dawg/Trie", ["dawg/TrieNode"], TrieNode => {
+define(["dawg/TrieNode"], TrieNode => {
 
 	/**
 	 * Root of a tree of {@linkcode TrieNode}, and operations thereon required

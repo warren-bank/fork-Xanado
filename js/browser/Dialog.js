@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-define("browser/Dialog", () => {
+define(() => {
 
 	/**
 	 * Base class of modal dialogs. These are dialogs that support

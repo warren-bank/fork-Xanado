@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
-define("server/Server", [
+define([
 	"fs", "path", "events", "cookie", "cors", "express", "errorhandler",
 	"platform",	"common/Fridge", "common/Utils",
 	"server/UserManager",

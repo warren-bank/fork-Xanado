@@ -5,7 +5,7 @@
  * This is the controller side of a best play thread. It provides 
  * the same API as findBestPlay(). See also findBestPlayWorker.js
  */
-define("game/findBestPlayController", [
+define([
 	"worker_threads",
 	"platform", "common/Fridge",
 	"game/Types", "game/Square", "game/Game", "game/Player"

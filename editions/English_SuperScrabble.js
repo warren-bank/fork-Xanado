@@ -1,5 +1,5 @@
 // Super Scrabble
-define("editions/English_SuperScrabble", () => {
+define(() => {
 
 	// Centre 15x15 of the board is the same as Scrabble
 	const LAYOUT = [

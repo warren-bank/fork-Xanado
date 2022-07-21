@@ -1,7 +1,7 @@
 // Scrabble with tile distributions determined using Valett using
 // dictionaries/CSW2019.txt as the corpus
 
-define("editions/Custom_Scrabble", ["editions/_Scrabble"], (Scrabble) => {
+define(["editions/_Scrabble"], (Scrabble) => {
 
 	const scrabble = Scrabble();
 	

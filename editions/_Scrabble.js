@@ -2,7 +2,7 @@
  * Layout of a scrabble board as used by all classic Scrabble(R)
  * editions
  */
-define("editions/_Scrabble", () => {
+define(() => {
 	// Return a function, just in case different languages are used on
 	// the same server. Each needs its own unique Edition.
 	return () => {

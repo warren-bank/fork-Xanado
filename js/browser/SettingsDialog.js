@@ -6,7 +6,7 @@
 /**
  * Dialog for user settings.
  */
-define("browser/SettingsDialog", [ "browser/Dialog" ], Dialog => {
+define([ "browser/Dialog" ], Dialog => {
 
 	class SettingsDialog extends Dialog {
 		
