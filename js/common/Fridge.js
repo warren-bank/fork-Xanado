@@ -47,8 +47,9 @@ define(() => {
 
       function _freeze(unfrozen) {
         // Can't/don't want to serialise functions
+        /* istanbul ignore if */
         if (typeof unfrozen === "function")
-          return undefined;
+          throw Error("Can't freeze functions");
 
         if (!unfrozen || typeof unfrozen !== "object")
           return unfrozen;
@@ -139,9 +140,9 @@ define(() => {
         if (Object.prototype.hasOwnProperty.call(object, IB_REF)) {
           // Reference to another object, that must already have
           // been thawed
+          /* istanbul ignore else */
           if (objectsThawed[object[IB_REF]])
             return objectsThawed[object[IB_REF]];
-          /* istanbul ignore next */
           throw new Error(`reference to unthawed ${object[IB_REF]}`);
         }
 

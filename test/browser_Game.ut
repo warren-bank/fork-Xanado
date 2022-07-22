@@ -1,0 +1,228 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node, mocha */
+
+/**
+ * Unit tests for Game browser mixin
+ */
+describe("Game browser mixin", () => {
+
+	const TS = require("./TestSupport.js");
+	before(required => {
+    requirejs.isBrowser = true;
+    TS.before({
+		  Player: "game/Player",
+		  Game: "game/Game",
+      Tile: "game/Tile",
+      Turn: "game/Turn"
+    }, required);
+  });
+  after(() => TS.after());
+
+	function UNit() {}
+
+	it("$ui", () => {
+		const p = {
+			//_debug: console.debug,
+			edition:"English_Scrabble",
+			dictionary:"Oxford_5000",
+			timeLimit: 999,
+			predictScore: false,
+			allowTakeBack: false,
+			noPlayerShuffle: true
+		};
+
+		const robot1 = new Player(
+			{name:"Robot 1", key:"robot1", isRobot: true});
+		const human1 = new Player(
+			{name:"Human 1", key:"human1", isRobot: false});
+		const human2 = new Player(
+			{name:"Human 2", key:"human2", isRobot: false});
+
+		const game = new Game(p);
+
+    return game.create()
+		.then(() => {
+			game.addPlayer(human1, true);
+			game.addPlayer(robot1, true);
+			game.whosTurnKey = human1.key;
+
+			let $tab = $("<table></table>").addClass("player-table");
+			let $tr;
+			$tr = human1.$ui(human1, false);
+			assert($tr.hasClass("whosTurn"));
+			$tab.append($tr);
+			$tr = robot1.$ui(human1, false);
+			$tab.append($tr);
+			assert(!$tr.hasClass("whosTurn"));
+
+			let $act = game.$ui(game.getPlayer());
+
+			//console.debug(`expect: ${$tab.html()}`);
+			//console.debug(`actual: ${$act.html()}`);
+			assert($act[0].isEqualNode($tab[0]),
+				   `expected: ${$tab.html()}\n actual: ${$act.html()}`);
+
+			game.whosTurnKey = human2.key;
+			human1.missNextTurn = true;
+			$tr = human2.$ui(human1, false);
+			$tab.append($tr);
+			assert(!$tr.hasClass("whosTurn"));
+			$tab = $("<table></table>").addClass("player-table");
+			$tr = human1.$ui(human2, true);
+			$tab.append($tr);
+			assert(!$tr.hasClass("whosTurn"));
+			$tr = robot1.$ui(human2, false);
+			$tab.append($tr);
+			assert(!$tr.hasClass("whosTurn"));
+
+			$act = game.$ui(game.getPlayer());
+			assert($act.find("#playerhuman1 td.player-name")
+				   .hasClass("miss-turn"));
+			//console.debug(`expect: ${$tab.html()}`);
+			//console.debug(`actual: ${$act.html()}`);
+			assert($act[0].isEqualNode($tab[0]),
+				   `expected: ${$tab.html()}\n actual: ${$act.html()}`);
+
+      // Implicitly add player to the game
+      human2.isNextToGo = true;
+      game.updatePlayerList(game.players.concat([ human2 ]));
+
+			//console.log(game.players);
+			$tr = human2.$ui(human2, false);
+			assert($tr.hasClass("whosTurn"));
+			$tab.append($tr);
+    });
+	});
+
+	it("describeTurn", () => {
+		const p = {
+			//_debug: console.debug,
+			edition:"English_Scrabble",
+			dictionary:"Oxford_5000",
+			timeLimit: 999,
+			predictScore: false,
+			allowTakeBack: false,
+			noPlayerShuffle: true,
+      challengePenalty: Penalty.PER_WORD
+		};
+
+		const robot1 = new Player(
+			{name:"Robot 1", key:"robot1", isRobot: true});
+		const human1 = new Player(
+			{name:"Human 1", key:"human1", isRobot: false});
+		const human2 = new Player(
+			{name:"Human 2", key:"human2", isRobot: false});
+
+		const game = new Game(p);
+
+    return game.create()
+		.then(() => {
+			game.addPlayer(human1, false);
+			game.addPlayer(robot1, false);
+			game.whosTurnKey = human1.key;
+
+      let W = new Tile({letter:"W", score:1, col: 7, row: 7});
+      let O = new Tile({letter:"O", score:1, col: 8, row: 7});
+      let R = new Tile({letter:"R", score:1, col: 9, row: 7});
+      let D = new Tile({letter:"D", score:1, col: 10, row: 7});
+      let turn = new Turn(game, {
+        type: Turns.PLAYED,
+        playerKey: robot1.key,
+        placements: [ W, O, R, D ],
+        words: [ { word: "WORD", score: 10 }],
+        score: 20
+      });
+      let $exp =
+          $('<div class="turn-description">')
+          .append(
+            $('<div class="turn-player"></div>')
+            .append('<span class="player-name">Robot 1\'s</span> turn'))
+          .append(
+            $('<div class="turn-detail"></div>')
+            .append('<span> <span class="word">WORD</span> (<span class="word-score">10</span>) total 20</span>'));
+      let sexp = $("<div></div>").append($exp).html();
+      let $act = game.describeTurn(turn, human1, false);
+      let sact = $("<div></div>").append($act).html();
+      assert.equal(sact, sexp);
+			//assert($act[0].isEqualNode($exp[0]),"\n" +
+      //       "actual: " + sact + "\n" +
+      //       "expect: " + sexp + "\n");
+
+      turn = new Turn(game, {
+        type: Turns.CHALLENGE_LOST,
+        playerKey: human1.key,
+        challengerKey: human1.key,
+        emptyPlayerKey: human1.key,
+        placements: [ W, O, R, D ],
+        words: [ { word: "WORD", score: 10 }],
+        score: -20
+      });
+      $exp =
+      $('<div class="turn-description"><div class="turn-player"><span class="player-name">Your</span> challenge</div><div class="turn-detail">Your challenge of your play failed. You lost 20 point{{PLURAL:20||s}}</div></div>');
+      sexp = $("<div></div>").append($exp).html();
+      $act = game.describeTurn(turn, human1, true);
+      sact = $("<div></div>").append($act).html();
+      assert.equal(sact, sexp);
+			//assert($act[0].isEqualNode($exp[0]),"\n" +
+      //       "actual: " + sact + "\n" +
+      //       "expect: " + sexp + "\n");
+      
+      turn = new Turn(game, {
+        type: Turns.CHALLENGE_WON,
+        playerKey: human1.key,
+        challengerKey: human1.key,
+        emptyPlayerKey: human1.key,
+        placements: [ W, O, R, D ],
+        words: [ { word: "WORD", score: 10 }],
+        score: 20
+      });
+      $exp =
+      $('<div class="turn-description"><div class="turn-player"><span class="player-name">Your</span> turn</div><div class="turn-detail">You successfully challenged your play. You lost -20 point{{PLURAL:-20||s}}</div><div class="turn-narrative">You have no more tiles, game will be over if your play isn\'t challenged</div></div>');
+      sexp = $("<div></div>").append($exp).html();
+      $act = game.describeTurn(turn, human1, true);
+      sact = $("<div></div>").append($act).html();
+      assert.equal(sact, sexp);
+			//assert($act[0].isEqualNode($exp[0]),"\n" +
+      //       "actual: " + sact + "\n" +
+      //       "expect: " + sexp + "\n");
+      
+      turn = new Turn(game, {
+        type: Turns.SWAPPED,
+        playerKey: human1.key,
+        emptyPlayerKey: human1.key,
+        placements: [ W, O, R, D ],
+        replacements: [ W, O, R, D ],
+        words: [ { word: "WORD", score: 10 }],
+        score: 20
+      });
+      $exp =
+      $('<div class="turn-description"><div class="turn-player"><span class="player-name">Human 1\'s</span> turn</div><div class="turn-detail">Swapped 4 tile{{PLURAL:4||s}}</div><div class="turn-narrative">Human 1 has no more tiles, game will be over unless you challenge</div></div>');
+      sexp = $("<div></div>").append($exp).html();
+      $act = game.describeTurn(turn, robot1, true);
+      sact = $("<div></div>").append($act).html();
+      assert.equal(sact, sexp);
+			//assert($act[0].isEqualNode($exp[0]),"\n" +
+      //       "actual: " + sact + "\n" +
+      //       "expect: " + sexp + "\n");
+      
+      turn = new Turn(game, {
+        type: Turns.GAME_ENDED,
+        playerKey: human1.key,
+        challengerKey: human1.key,
+        placements: [ W, O, R, D ],
+        words: [ { word: "WORD", score: 10 }],
+        score: { human1: {tiles: 2, time: 1}, robot1: {tiles: 3, time: 0}}
+      });
+      $exp = $('<div class="turn-description"><div class="game-state">Game over</div><div class="game-winner">You and Robot 1 {{PLURAL:2|has|have}} won</div><div class="game-outcome"><div class="rack-adjust"></div><div class="time-adjust">You lost 1 point{{PLURAL:1||s}} to the clock</div><div class="rack-adjust"></div></div></div>');
+      sexp = $("<div></div>").append($exp).html();
+      $act = game.describeTurn(turn, human1, false);
+      sact = $("<div></div>").append($act).html();
+      assert.equal(sact, sexp);
+			//assert($act[0].isEqualNode($exp[0]),"\n" +
+      //       "actual: " + sact + "\n" +
+      //       "expect: " + sexp + "\n");
+    });
+  });
+});
+

@@ -23,8 +23,11 @@ requirejs.config({
   }
 });
 
+// Set to console.debug to trace module load/unload
+exports.debug = () => {};
+
 requirejs.onResourceLoad = (context, map, depArray) => {
-  //console.log("Loaded", map.name);
+  exports.debug("Loaded", map.name);
   loaded.push(map.name);
 };
 
@@ -60,6 +63,7 @@ exports.before = (deps, required) => {
     const jQuery = require('jquery');
     global.jQuery = jQuery;
     global.$ = jQuery;
+    deps.I18N = "server/I18N";
   }
   if (!deps.Platform)
     deps.Platform = 'platform';
@@ -68,10 +72,10 @@ exports.before = (deps, required) => {
   if (!deps.Types)
     deps.Types = 'game/Types';
   const modnames = Object.keys(deps);
-  //console.log("Loading", on.deps);
+  exports.debug("Loading", deps);
   const modules = modnames.map(m => new Promise(
     resolve => requirejs([ deps[m] ], mod => {
-      //console.log("Loaded", deps[m]);
+      exports.debug("Loaded", deps[m]);
       loaded.push(deps[m]);
       resolve(mod);
     })));
@@ -81,13 +85,14 @@ exports.before = (deps, required) => {
     for (let name of modnames) {
       eval(`${name}=mods[${i++}]`);
     }
-    //console.log("Modules loaded");
+    exports.debug("Modules loaded");
     for (let t of Object.keys(Types)) {
       eval(`${t}=Types.${t}`);
     }
     if (requirejs.isBrowser) {
       // Why? No idea, except without it, it won't work in npm run
       global.document = window.document;
+      $.i18n = I18N;
     }
 
     Platform
@@ -101,7 +106,7 @@ exports.after = () => {
   // browser tests
   while (loaded.length > 0) {
     const mod = loaded.pop();
-    //console.log("Unloaded", mod);
+    exports.debug("Unloaded", mod);
     requirejs.undef(mod);
   }
   requirejs.isBrowser = false;

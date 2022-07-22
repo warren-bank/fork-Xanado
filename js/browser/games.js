@@ -128,6 +128,7 @@ requirejs([
      * @param {boolean} isActive true if the game isn't over
      */
     $player(game, player, isActive) {
+      Platform.assert(player instanceof Player);
       const $tr = Player.prototype.$ui.call(player);
 
       if (isActive) {
@@ -235,6 +236,9 @@ requirejs([
       return $tr;
     }
 
+    /**
+     * Headline is the text shown when a game twisty is closed
+     */
     $headline(game) {
       const headline = [ game.edition ];
 
@@ -270,6 +274,7 @@ requirejs([
      * @param {Game|object} game a Game or Game.simple
      */
     $game(game) {
+      Platform.assert(game instanceof Game);
       const $box = $(`<div class="game" id="${game.key}"></div>`);
       const $twist = $("<div class='twist'></div>");
       const $twistButton =

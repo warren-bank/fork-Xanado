@@ -45,39 +45,48 @@ define([
    */
   class GameUI extends UI {
 
+    /**
+     * The game being played.
+     * @member {Player}
+     */
+    game;
+
+    /**
+     * The current player. init in identifyPlayer.
+     * @member {Player}
+     */
+    player;
+
+    /**
+     * Currently selected Square (if any)
+     * @member {Square?}
+     * @private
+     */
+    selectedSquare;
+
+    /**
+     * Quick reference to typing cursor DOM object
+     * lateinit in loadGame
+     * @member {jQuery}
+     */
+    $typingCursor;
+      
+    /**
+     * Typing is across if true, down if false
+     * @member {boolean}
+     * @private
+     */
+    typeAcross = true;
+
+    /**
+     * Board lock status
+     * @member {boolean}
+     * @private
+     */
+    boardLocked = false;
+
     constructor() {
       super();
-
-      /**
-       * Currently selected Square
-       * @member {Square}
-       */
-      this.selectedSquare = null;
-
-      /**
-       * Quick reference to typing cursor DOM object
-       * lateinit in loadGame
-       * @member {jQuery}
-       */
-      this.$typingCursor = null;
-      
-      /**
-       * Typing is across if true, down if false
-       * @member {boolean}
-       */
-      this.typeAcross = true;
-
-      /**
-       * lateinit in loadGame
-       * @member {Player}
-       */
-      this.player = undefined;
-
-      /**
-       * Board lock status, private
-       * @member {boolean}
-       */
-      this.boardLocked = false;
 
       /**
        * Undo stack. Head of the stack is the most recent undo.
@@ -109,34 +118,6 @@ define([
           .then (playerKey => this.loadGame(game));
         });
       });
-    }
-
-    /**
-     * Format a move score summary.
-     * @param turn {Move|Turn} the turn or move being scored.
-     * @param {boolean} hideScore true to elide the score
-     * @return {jquery} the span containing the score
-     * @private
-     */
-    $score(turn, hideScore) {
-      let sum = 0;
-      const $span = $("<span></span>");
-      for (let word of turn.words) {
-        $span
-        .append(` <span class="word">${word.word}</span>`);
-        if (!hideScore) {
-          $span
-          .append(` (<span class="word-score">${word.score}</span>)`);
-        }
-        sum += word.score;
-      }
-      // .score will always be a number after a move
-      if (!hideScore && turn.words.length > 1 || turn.score > sum) {
-        $span
-        .append(" ")
-        .append($.i18n("total $1", turn.score));
-      }
-      return $span;
     }
 
     /**
@@ -194,222 +175,6 @@ define([
       })
       .then(r => console.debug(`${command} OK`, r))
       .catch(console.error);
-    }
-
-    /**
-     * Append information on a turn to the log. This is used both on
-     * receipt of a Turn through the socket, and when replaying a game
-     * history.
-     * @param {Turn} turn a Turn
-     * @param {boolean} isLatestTurn set true if this is the most
-     * recent turn
-     * @param {boolean} interactive true if this is the latest
-     * turn during a game (as against a step in a replay)
-     */
-    describeTurn(turn, isLatestTurn, interactive) {
-      if (turn.type === Turns.GAME_ENDED) {
-        this.describeGameOver(turn, interactive);
-        return;
-      }
-
-      // Who's turn was it?
-      let player = this.game.getPlayerWithKey(turn.playerKey);
-      if (!player)
-        player = new Player({name: "Unknown player"});
-      const challenger = (typeof turn.challengerKey === "string")
-            ? this.game.getPlayerWithKey(turn.challengerKey) : undefined;
-
-      let what, who;
-      if (turn.type === Turns.CHALLENGE_LOST) {
-        what = $.i18n("challenge");
-        if (challenger === this.player)
-          who = $.i18n("Your");
-        else
-          who = $.i18n("$1's", challenger.name);
-      } else {
-        what = $.i18n("turn");
-        if (player === this.player)
-          who = $.i18n("Your");
-        else
-          who = $.i18n("$1's", player.name);
-      }
-      this.$log(interactive, $.i18n(
-        "<span class='player-name'>$1</span> $2", who, what),
-                  "turn-player");
-
-      // What did they do?
-      let turnText;
-
-      let playerPossessive;
-      let playerIndicative;
-      if (this.player === player) {
-        playerPossessive = $.i18n("your");
-        playerIndicative = $.i18n("You");
-      } else {
-        playerPossessive = $.i18n("$1's", player.name);
-        playerIndicative = player.name;
-      }
-
-      let challengerPossessive;
-      let challengerIndicative;
-      if (this.player === challenger) {
-        challengerPossessive = $.i18n("Your");
-        challengerIndicative = $.i18n("You");
-      } else if (challenger) {
-        challengerPossessive = $.i18n("$1's", challenger.name);
-        challengerIndicative = challenger.name;
-      }
-
-      switch (turn.type) {
-
-      case Turns.PLAYED:
-        turnText = this.$score(turn, false);
-        break;
-
-      case Turns.SWAPPED:
-        turnText = $.i18n(
-          "Swapped $1 tile{{PLURAL:$1||s}}",
-          turn.replacements.length);
-        break;
-
-      case Turns.TIMED_OUT:
-        turnText = $.i18n("Timed out");
-        break;
-
-      case Turns.PASSED:
-        turnText = $.i18n("Passed");
-        break;
-
-      case Turns.TOOK_BACK:
-        turnText = $.i18n("Took back their turn");
-        break;
-
-      case Turns.CHALLENGE_WON:
-        turnText = $.i18n(
-          "$1 successfully challenged $2 play.",
-          challengerIndicative, playerPossessive)
-        + " "
-        + $.i18n(
-          "$1 lost $2 point{{PLURAL:$2||s}}",
-          playerIndicative, -turn.score);
-        break;
-
-      case Turns.CHALLENGE_LOST:
-        turnText = $.i18n(
-          "$1 challenge of $2 play failed.",
-          challengerPossessive, playerPossessive);
-        switch (this.game.challengePenalty) {
-        case Penalty.PER_WORD:
-        case Penalty.PER_TURN:
-          turnText += " " + $.i18n(
-            "$1 lost $2 point{{PLURAL:$2||s}}",
-            challengerIndicative, -turn.score);
-          break;
-        case Penalty.MISS:
-          turnText += " "
-          + $.i18n("$1 will miss a turn", challengerIndicative);
-          break;
-        }
-        break;
-
-      default:
-        Platform.fail(`Unknown move type ${turn.type}`);
-      }
-
-      this.$log(interactive, turnText, "turn-detail");
-
-      if (isLatestTurn
-          && turn.emptyPlayerKey
-          && !this.game.hasEnded()
-          && turn.type !== Turns.CHALLENGE_LOST
-          && turn.type !== Turns.GAME_ENDED) {
-        if (this.isThisPlayer(turn.emptyPlayerKey)) {
-          this.$log(interactive, $.i18n(
-            "You have no more tiles, game will be over if your play isn't challenged"),
-                      "turn-narrative");
-        } else if (this.player)
-          this.$log(interactive, $.i18n(
-            "$1 has no more tiles, game will be over unless you challenge",
-            this.game.getPlayerWithKey(turn.emptyPlayerKey).name),
-                      "turn-narrative");
-      }
-    }
-
-    /**
-     * Append a formatted 'end of game' message to the log
-     * @param {Turn} turn a Turns.GAME_ENDED Turn
-     * @param {boolean} interactive false if we are replaying messages into
-     * the log, true if this is an interactive response to a player action.
-     * @private
-     */
-    describeGameOver(turn, interactive) {
-      const game = this.game;
-      const adjustments = [];
-      const winningScore = game.winningScore();
-      const winners = [];
-      let iWon = false;
-
-      // When the game ends, each player's score is reduced by
-      // the sum of their unplayed letters. If a player has used
-      // all of his or her letters, the sum of the other players'
-      // unplayed letters is added to that player's score. The
-      // score adjustments are already done, on the server side,
-      // we just need to present the results.
-      const unplayed = game.getPlayers().reduce(
-        (sum, player) => sum + player.rack.score(), 0);
-      this.$log(interactive, $.i18n(turn.endState || State.GAME_OVER),
-                  "game-state");
-      const $narrative = $("<div></div>").addClass("game-outcome");
-      game.getPlayers().forEach(player => {
-        const isMe = this.isThisPlayer(player.key);
-        const name = isMe ? $.i18n("You") : player.name;
-        const $rackAdjust = $("<div></div>").addClass("rack-adjust");
-
-        if (player.score === winningScore) {
-          if (isMe) {
-            iWon = true;
-            if (interactive && this.getSetting("cheers"))
-              this.playAudio("endCheer");
-          }
-          winners.push(name);
-        } else if (isMe && interactive && this.getSetting("cheers"))
-          this.playAudio("lost");
-
-        if (player.rack.isEmpty()) {
-          if (unplayed > 0) {
-            $rackAdjust.text($.i18n(
-              "$1 gained $2 point{{PLURAL:$2||s}} from the racks of other players",
-              name, unplayed));
-          }
-        } else if (player.rack.score() > 0) {
-          // Lost sum of unplayed letters
-          $rackAdjust.text($.i18n(
-            "$1 lost $2 point{{PLURAL:$2||s}} for a rack containing '$3'",
-            name, player.rack.score(),
-            player.rack.lettersLeft().join(",")));
-        }
-        player.$refresh();
-        $narrative.append($rackAdjust);
-
-        const timePenalty = turn.score[player.key].time;
-        if (typeof timePenalty === "number" && timePenalty !== 0) {
-          const $timeAdjust = $("<div></div>").addClass("time-adjust");
-          $timeAdjust.text($.i18n(
-            "$1 lost $2 point{{PLURAL:$2||s}} to the clock",
-            name, Math.abs(timePenalty)));
-          $narrative.append($timeAdjust);
-        }
-      });
-
-      let who = Utils.andList(winners);
-      let nWinners = 0;
-      if (iWon && winners.length === 1)
-        who = $.i18n("You");
-      else
-        nWinners = winners.length;
-      this.$log(interactive, $.i18n("$1 {{PLURAL:$2|has|have}} won",
-                                      who, nWinners));
-      this.$log(interactive, $narrative);
     }
 
     /**
@@ -564,7 +329,7 @@ define([
       // Unhighlight last placed tiles
       $(".last-placement").removeClass("last-placement");
 
-      this.describeTurn(turn, true, true);
+      this.$log(true, this.game.describeTurn(turn, this.player, true));
 
       // Was the play intiated by, or primarily affecting, us
       const wasUs = this.isThisPlayer(turn.playerKey);
@@ -680,6 +445,13 @@ define([
         /*.i18n("ui-notify-title-game-over")*/
         /*.i18n("ui-notify-body-game-over")*/
         this.notify("game-over");
+
+        if (this.player === this.game.getWinner()) {
+            if (this.getSetting("cheers"))
+              this.playAudio("endCheer");
+        } else if (this.getSetting("cheers"))
+          this.playAudio("lost");
+
         return;
       }
 
@@ -941,7 +713,7 @@ define([
      * Refresh the player table
      */
     updatePlayerTable() {
-      const $playerTable = this.game.$ui(this.player);
+      const $playerTable = this.game.$playerTable(this.player);
       $("#scoresBlock > .playerList").html($playerTable);
       $(".player-clock").toggle(this.game.timerType);
       this.updateWhosTurn();
@@ -985,6 +757,7 @@ define([
      * @param {BrwoserGame} game the game
      * @return {Promise} a promise that resolves to the player key
      * or undefined if the player is not logged in or is not in the game
+     * @private
      */
     identifyPlayer(game) {
       $(".bad-user").hide();
@@ -1044,8 +817,11 @@ define([
       this.$log(true, $.i18n("Game started"), "game-state");
 
       game.forEachTurn(
-        (turn, isLast) => this.describeTurn(turn, isLast));
+        (turn, isLast) => this.$log(
+          false, this.game.describeTurn(turn, this.player, isLast)));
+
       this.$log(true, ""); // Force scroll to end of log
+
       if (game.turnCount() > 0)
         $(".undoButton").toggle(this.getSetting("undo_redo"));
 
@@ -1158,7 +934,8 @@ define([
 
       // A turn has been taken. turn is a Turn
       .on(Notify.TURN,
-          turn => this.handle_TURN(checkSequenceNumber(turn)))
+          turn => this.handle_TURN(
+            new Turn(this.game, checkSequenceNumber(turn))))
 
       // Server clock tick.
       .on(Notify.TICK,
@@ -1545,7 +1322,7 @@ define([
           const bonus =
                 this.game.calculateBonus(move.placements.length);
           move.score += bonus; 
-          $move.append(this.$score(move, !this.game.predictScore));
+          $move.append(move.$score(!this.game.predictScore));
           this.enableTurnButton(true);
         }
 

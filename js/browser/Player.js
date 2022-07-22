@@ -18,19 +18,19 @@ define([ "platform" ], Platform => {
      * Create score table row for the player. This must work both
      * on a full Player object, and also when called statically on
      * a Player.simple
-     * @param {Player?} curPlayer the current player in the UI
+     * @param {Player?} uiPlayer the current player in the UI
      * @return {jQuery} jQuery object for the score table
      */
-    $ui(curPlayer) {
+    $ui(uiPlayer) {
       const $tr = $(`<tr id="player${this.key}"></tr>`)
             .addClass("player-row");
-      if (curPlayer && this.key === curPlayer.key)
+      if (this === uiPlayer)
         $tr.addClass("whosTurn");
       $tr.append(`<td class="turn-pointer">&#10148;</td>`);
       const $icon = $('<div class="ui-icon"></div>');
       $icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
       $tr.append($("<td></td>").append($icon));
-      const who = curPlayer && this.key === curPlayer.key
+      const who = this === uiPlayer
             ? Platform.i18n("You") : this.name;
       const $name = $(`<td class="player-name">${who}</td>`);
       if (this.missNextTurn)

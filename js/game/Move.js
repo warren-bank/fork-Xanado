@@ -4,8 +4,9 @@
 /* eslint-env amd */
 
 define([
-  "game/Tile"
-], Tile => {
+  "game/Tile",
+  requirejs.isBrowser ? "browser/Move" : "common/Mixin"
+], (Tile, Mixin) => {
 
   /**
    * A Move is a collection of tile placements, and the delta score
@@ -75,6 +76,9 @@ define([
       return `Move ${pl} words ${w} for ${this.score}`;
     }
   }
+
+  if (Mixin)
+    Object.assign(Move.prototype, Mixin);
 
   return Move;
 });

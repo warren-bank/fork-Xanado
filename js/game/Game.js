@@ -4,20 +4,19 @@
 /* eslint-env amd */
 /* global process */
 
-// Mix-in load based on platform. Done this way to simplify loading
-// the same object from freezer in different contexts (browser, server)
-const mixin = requirejs.isBrowser ? "browser/Game" : "server/Game";
 
 define([
   "platform", "common/Utils",
   "game/Types", "game/Board", "game/LetterBag",
   "game/Player", "game/Square", "game/Tile", "game/Rack",
-  "game/Edition", "game/Move", "game/Turn", mixin
+  "game/Edition", "game/Move", "game/Turn", "game/Undo",
+  requirejs.isBrowser ? "browser/Game" : "server/Game"
 ], (
   Platform, Utils,
   Types, Board, LetterBag,
   Player, Square, Tile, Rack,
-  Edition, Move, Turn, Mixin
+  Edition, Move, Turn, Undo,
+  Mixin
 ) => {
 
   const State     = Types.State;
@@ -685,6 +684,9 @@ define([
       return game;
     }
   }
+
+  // Mix in Undo functionality
+  Object.assign(Game.prototype, Undo);
 
   // Mix in platform-specific functionality
   Object.assign(Game.prototype, Mixin);

@@ -6,11 +6,11 @@
 define([
   "platform", "common/Utils",
    "dawg/Dictionary", "game/Board", "game/LetterBag",
-  "game/Types", "game/Commands", "game/Undo"
+  "game/Types", "game/Commands"
 ], (
   Platform, Utils,
   Dictionary, Board, LetterBag,
-  Types, Commands, Undo
+  Types, Commands
 ) => {
   const Notify    = Types.Notify;
   const State     = Types.State;
@@ -602,9 +602,7 @@ define([
     }
   };
 
-  // Mix-ins
   Object.assign(ServerGame, Commands);
-  Object.assign(ServerGame, Undo);
 
   return ServerGame;
 });
