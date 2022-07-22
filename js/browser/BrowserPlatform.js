@@ -4,8 +4,8 @@
 /* eslint-env browser, jquery */
 
 define("platform", [
-  "common/Platform", "common/Utils"
-], (Platform, Utils) => {
+  "common/Platform"
+], Platform => {
 
 	/**
 	 * Browser implementation of {@linkcode Platform}
@@ -26,7 +26,7 @@ define("platform", [
     }
 
     static fail(desc) {
-      alert(Utils.stringify(desc) + "\nPlease report this to the developers, including the console log in your report\nan" + new Error(desc).stack);
+      alert(desc + "\nPlease report this to the developers, including the console log in your report\nan" + new Error(desc).stack);
         throw new Error(desc || "Internal error");
     }
 
