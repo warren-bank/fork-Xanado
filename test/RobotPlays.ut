@@ -21,7 +21,7 @@ describe('RobotPlays', () => {
   }, required));
 
   function UNit() {}
-  
+
   it("robot to play when ready", () => {
     const game = new Game({
       edition: "Test",

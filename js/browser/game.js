@@ -549,14 +549,15 @@ define([
         challenger.score += turn.score;
         challenger.$refresh();
       } else {
-        if (typeof turn.score === "number")
-          player.score += turn.score;
-        else if (typeof turn.score === "object")
-          Object.keys(turn.score).forEach(
-            k => this.game.getPlayerWithKey(k)
-            .score +=
-            (turn.score[k].tiles || 0) +
-            (turn.score[k].time || 0));
+        switch (typeof turn.score) {
+        case "number": player.score += turn.score; break;
+        case "object":
+          for (const k in turn.score) {
+            const delta = turn.score[k];
+            this.game.getPlayerWithKey(k).score +=
+            (delta.tiles || 0) + (delta.time || 0);
+          }
+        }
         player.$refresh();
       }
 

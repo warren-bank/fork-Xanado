@@ -119,7 +119,7 @@ define([
      */
     unconfirmGameOver(turn, isClient) {
       // Re-adjustscores from the delta
-      for (const key of Object.keys(turn.score)) {
+      for (const key in turn.score) {
         const delta = turn.score[key];
         const player = this.getPlayerWithKey(key);
         Platform.assert(player, key);

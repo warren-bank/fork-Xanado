@@ -27,6 +27,8 @@ define(() => {
      * @return {number} the score of the play.
      */
     scorePlay(col, row, dcol, drow, tiles, words) {
+      //console.debug(`scorePlay(${col},${row},${dcol},${drow},`,
+      //            tiles.map(t => t.stringify()).join(";"));
       // Accumulator for the primary word being formed by the tiles
       let wordScore = 0;
 

@@ -13,6 +13,7 @@ define([
    * underlying attributes; a position, an owner type, and a type that
    * dictates the score multipliers that apply. The owner will be a
    * subclass of {@linkcode Surface} (a {@linkcode Rack} or a {@linkcode Board})
+   * @mixes BrowserSquare
    */
   class Square {
 

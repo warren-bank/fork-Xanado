@@ -15,6 +15,7 @@ define([
   /**
    * A Rack is a 1-column {@linkcode Surface}
    * @extends Surface
+   * @mixes BrowserRack
    */
   class Rack extends Surface {
 

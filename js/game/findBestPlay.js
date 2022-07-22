@@ -280,7 +280,9 @@ define([
           const rackTile = shrunkRack.find(l => l.letter === letter)
                 || shrunkRack.find(l => l.isBlank);
           wordSoFar.push(
-            new Tile({letter:letter, isBlank:rackTile.isBlank, score:rackTile.score,
+            new Tile({letter:letter, isBlank:rackTile.isBlank,
+                      score:rackTile.score,
+                      // Note placement is not used in score computation
                       col: ecol, row: erow}));
           shrunkRack = shrunkRack.filter(t => t !== rackTile);
         } else
@@ -365,11 +367,10 @@ define([
                 || shrunkRack.find(l => l.isBlank);
           wordSoFar.unshift(
             new Tile({
-              letter: letter,
-              isBlank: tile.isBlank,
+              letter: letter, isBlank: tile.isBlank,
               score: tile.score,
-              col: ecol,
-              row: erow
+              // Note placement is not used in score computation
+              col: ecol, row: erow
             }));
           shrunkRack = shrunkRack.filter(t => t !== tile);
         } else
@@ -415,54 +416,61 @@ define([
     bestOpeningPlay(rackTiles) {
       const ruck = rackTiles.map(l => l.letter ? l.letter : " ").join("");
       const choices = this.dictionary.findAnagrams(ruck);
+      //console.debug("Choices", choices);
       // Random whether it is played across or down
       const drow = Math.round(Math.random());
       const dcol = (drow + 1) % 2;
+      const vertical = dcol === 0;
       let bestScore = 0;
 
-      for (const choice of Object.keys(choices)) {
+      for (const choice in choices) {
         // Keep track of the rack and played letters
         const placements = [];
         let shrunkRack = rackTiles;
         for (const c of choice.split("")) {
-          const rackTile = shrunkRack.find(t => t.letter == c)
+          const rackTile = shrunkRack.find(t => t.letter === c)
                 || shrunkRack.find(t => t.isBlank);
           /* istanbul ignore next */
           Platform.assert(rackTile,
                           "Can't do this with the available tiles");
           placements.push(new Tile({
-            letter: c,
-            isBlank: rackTile.isBlank,
+            letter: c, isBlank: rackTile.isBlank,
             score:rackTile.score
+            // Placement is fixed later
           }));
           shrunkRack = shrunkRack.filter(t => t !== rackTile);
         }
 
         // Slide the word over the middle to find the optimum
         // position
-        const mid = dcol == 0 ? this.board.midcol : this.board.midrow;
+        const mid = vertical ? this.board.midcol : this.board.midrow;
         for (let end = mid;
              end < mid + choice.length;
              end++) {
 
-          for (let i = 0; i < placements.length; i++) {
-            const pos = end - placements.length + i + 1;
-            placements[i].col = dcol == 0 ? this.board.midcol : pos * dcol;
-            placements[i].row = drow == 0 ? this.board.midrow : pos * drow;
-          }
-
+          const col = vertical ? mid : end;
+          const row = vertical ? end : mid;
           const score =
-                this.board.scorePlay(end, mid, dcol, drow, placements)
+                this.board.scorePlay(col, row, dcol, drow, placements)
                 + this.edition.calculateBonus(placements.length);
 
           if (score > bestScore) {
+            //console.debug("Accepted",choice,"at",end,"for",score);
             bestScore = score;
+            // Fix the placement
+            for (let i = 0; i < placements.length; i++) {
+              const pos = end - placements.length + i + 1;
+              placements[i].col = dcol == 0 ? this.board.midcol : pos * dcol;
+              placements[i].row = drow == 0 ? this.board.midrow : pos * drow;
+            }
             //console.log(drow > 0 ? "vertical" : "horizontal")
             this.report(new Move({
               placements: placements,
               words: [{ word: choice, score: score }],
               score: score
             }));
+          } else {
+            //console.debug("Rejected",choice,"at",end,"for",score);
           }
         }
       }
@@ -472,7 +480,7 @@ define([
      * Promise to complete construction
      * @param {Game} game the game being played
      * @param {string?} dictpath optional dictionary path
-     * @param {string} dictionary name
+     * @param {string?} dictionary name
      */
     create(game, dictpath, dictname) {
       // SMELL: as long as we're running in a subthread, this shouldn't
@@ -507,16 +515,17 @@ define([
 
       this.report("Finding best play for rack " + rack);
 
-      this.report(`with dictionary ${this.dictname}`);
+      this.report(`with dictionary ${this.dictionary.name}`);
       this.report(`in edition ${this.edition.name}`);
-      this.report(`on ${this.board}`);
+      this.report("on\n" + this.board.stringify());
 
       Platform.assert(this.dictionary instanceof Dictionary,
                       "Setup failure");
       Platform.assert(this.edition instanceof Edition,
                       "Setup failure");
 
-      this.report("Starting findBestPlay computation", rackTiles);
+      this.report("Starting findBestPlay computation for "
+                  + rackTiles.map(t => t.stringify()).join(","));
       this.bestScore = 0;
 
       // Has at least one anchor been explored? If there are
