@@ -24,6 +24,7 @@ requirejs.config({
     dawg: `js/dawg`,
     common: "js/common",
     game: "js/game",
+    server: "js/server",
     platform: "js/server/Platform"
   }
 });
