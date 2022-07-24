@@ -188,6 +188,7 @@ define([
 
       if (isLastTurn
           && turn.emptyPlayerKey
+          && this.letterBag.isEmpty()
           && !this.hasEnded()
           && turn.type !== Turns.CHALLENGE_LOST
           && turn.type !== Turns.GAME_ENDED) {
