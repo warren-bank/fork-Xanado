@@ -66,7 +66,6 @@ requirejs([
   let action = getopt.argv.shift();
   if (action) action = action.toLowerCase();  else action ="list";
   const words = getopt.argv;
-  console.log(dawg, action, words);
 
   if (!dawg) {
     getopt.showHelp();
@@ -85,8 +84,9 @@ requirejs([
     let dir  = Path.dirname(dawg);
     if (dir === ".") dir = undefined;
     const dict = Path.basename(dawg, ".dict");
+    console.log(dict, action, words);
     return Dictionary.load(dict, dir)
     .then(dictionary => 
-          Explorer[action].call(dictionary, words, console.log));
+          Explorer[action].call(null, dictionary, words, console.log));
   });
 });

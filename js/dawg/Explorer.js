@@ -45,7 +45,8 @@ define([
         throw "Need letters to find anagrams of";
 
       for (const w of words) {
-        let anag = Object.keys(dictionary.findAnagrams(w));
+        console.log(w);
+        let anag = Object.keys(dictionary.findAnagrams(w.replace(/\./g, " ")));
         anag = anag.filter(word => word.length === w.length);
         report(`${anag.length} words found in "${w}":`);
         anag.forEach(w => report(w));

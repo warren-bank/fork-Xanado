@@ -73,6 +73,7 @@ define([
      * @function
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
+     * @param {boolean?} isClient if true, updates the UI associated with the board
      * @private
      */
     unswap(turn, isClient) {
@@ -92,6 +93,7 @@ define([
      * @function
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
+     * @param {boolean?} isClient if true, updates the UI associated with the board
      * @private
      */
     unplay(turn, isClient) {
@@ -115,6 +117,7 @@ define([
      * @function
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
+     * @param {boolean?} isClient if true, updates the UI associated with the board
      * @private
      */
     unconfirmGameOver(turn, isClient) {
@@ -136,6 +139,7 @@ define([
      * @function
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
+     * @param {boolean?} isClient if true, updates the UI associated with the board
      * @private
      */
     untakeBack(turn, isClient) {
@@ -157,6 +161,7 @@ define([
      * @function
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
+     * @param {boolean?} isClient if true, updates the UI associated with the board
      * @private
      */
     unpass(turn, isClient) {
@@ -173,6 +178,7 @@ define([
      * @function
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
+     * @param {boolean?} isClient if true, updates the UI associated with the board
      * @private
      */
     unchallenge(turn, isClient) {

@@ -20,21 +20,6 @@ define([
   }
 
   /**
-   * For debug, return a list of tiles as a string.
-   * This lets us see how/if blanks have been used.
-   * @param {Tile[]} tiles
-   * @return {string}
-   * @private
-   */
-  function pack(tiles) {
-    let word = tiles.map(l => l.letter).join("");
-    const blanks = tiles.map(l => l.isBlank ? " " : l.letter).join("");
-    if (blanks != word)
-      word += `/${blanks}`;
-    return word;
-  }
-
-  /**
    * Calculate the best move in a Crossword game, given a dictionary,
    * a game edition, a current board state, and a player tile rack.
    * This should really be part of the 'Game' class, but is kept separate
@@ -224,7 +209,7 @@ define([
       const ecol = col + dcol;
       const erow = row + drow;
 
-      //console.log(`forward '${pack(wordSoFar)}' ${col}:${dcol} ${row}:${drow} [${dNode.postLetters.join('')}]`);
+      //console.log(`forward '${wordSoFar}' ${col}:${dcol} ${row}:${drow} [${dNode.postLetters.join('')}]`);
 
       // Tail recurse; report words as soon as we find them
       // Are we sitting at the end of a scoring word?
@@ -333,7 +318,7 @@ define([
       let available; // the set of possible candidate letters
       let playedTile = 0;
 
-      //console.log(`back '${pack(wordSoFar)}' ${col}:${dcol} ${row}:${drow} [${dNode.preLetters.join('')}]`);
+      //console.log(`back '${wordSoFar}' ${col}:${dcol} ${row}:${drow} [${dNode.preLetters.join('')}]`);
 
       // Do we have an adjacent empty cell we can back up into?
       if (ecol >= 0 && erow >= 0) {
