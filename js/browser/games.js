@@ -129,7 +129,7 @@ requirejs([
      */
     $player(game, player, isActive) {
       Platform.assert(player instanceof Player);
-      const $tr = Player.prototype.$ui.call(player);
+      const $tr = player.$tableRow();
 
       if (isActive) {
         if (player.dictionary && player.dictionary !== game.dictionary) {

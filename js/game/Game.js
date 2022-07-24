@@ -166,14 +166,6 @@ define([
        * are required or not.
        */
 
-      if (params.dictpath)
-        /**
-         * Optional override of the path used by {@linkcode Dictionary}
-         * to load dictionaries
-         * @member {string?}
-         */
-        this.dictpath = params.dictpath;
-
       if (params.dictionary)
         /**
          * We don't keep a pointer to dictionary objects so we can
@@ -574,8 +566,6 @@ define([
       const options = [ `edition:${this.edition}` ];
       if (this.dictionary)
         options.push(`dictionary:${this.dictionary}`);
-      if (this.dictpath)
-        options.push(`dictpath:${this.dictpath}`);
       if (this.timerType) {
         options.push(`${this.timerType}:${this.timeLimit}`);
         if (this.timerType === Timer.GAME)

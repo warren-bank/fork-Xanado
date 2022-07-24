@@ -196,34 +196,39 @@ define([ "platform" ], Platform => {
      * was already there
      */
     add(word) {
-      //console.log("Adding", word);
+      //console.debug("Adding", word);
       let node = this, added = false;
 
       while (node) {
         if (node.letter === word.charAt(0)) {
-          //console.log("Matched", node.letter);
+          //console.debug("\tMatched", node.letter);
           if (word.length === 1) {
             if (!node.isEndOfWord) {
               added = true;
               node.isEndOfWord = true;
             }
             return added;
-          } else {
-            word = word.substring(1);
-            if (!node.child) {
-              node.child = new LetterNode(word.charAt(0));
-              //console.log("Added", word.charAt(0));
-              added = true;
-            }
-            node = node.child;
           }
+          word = word.substring(1);
+          if (!node.child || node.child.letter > word.charAt(0)) {
+            //console.debug("\tAdding child", word.charAt(0));
+            const t = node.child;
+            node.child = new LetterNode(word.charAt(0));
+            added = true;
+            node.child.next = t;
+          }
+          //console.debug("\t->child", node.child.letter);
+          node = node.child;
         } else if (!node.next || node.next.letter > word.charAt(0)) {
+          //console.debug("\tInserting", word.charAt(0), "before", node.next ? node.next.letter: "end");
           const t = node.next;
           node.next = new LetterNode(word.charAt(0));
           added = true;
           node.next.next = t;
-        } else
+        } else {
           node = node.next;
+          //console.debug("\t->next", node.letter);
+        }
       }
       /* istanbul ignore next */
       return Platform.fail(`Unreachable '${word}`);
@@ -280,7 +285,7 @@ define([ "platform" ], Platform => {
 
     /**
      * Find words that can be made from a sorted set of letters.
-     * @param {string} chars the available set of characters
+     * @param {string[]} chars the available set of characters
      * @param {string} realWord the string built so far in this recursion
      * @param {string} blankedWord the string built using spaces for blanks
      * if they are used
@@ -298,10 +303,12 @@ define([ "platform" ], Platform => {
 
         if (i >= 0) {
           const match = chars[i];
+          //onsole.debug("Found", match, "in chars");
 
           // The char is available from chars.
           // Is this then a word?
           if (node.isEndOfWord) {
+            //console.log("Found", realWord + node.letter);
             // A word is found
             foundWords[realWord + node.letter]
             = blankedWord + match;
@@ -336,9 +343,9 @@ define([ "platform" ], Platform => {
      * @return {LetterNode} this
      */
     decode(i, numb) {
-      if ((numb & LetterNode.END_OF_WORD_BIT_MASK) != 0)
+      if ((numb & LetterNode.END_OF_WORD_BIT_MASK) !== 0)
         this.isEndOfWord = true;
-      if ((numb & LetterNode.END_OF_LIST_BIT_MASK) == 0)
+      if ((numb & LetterNode.END_OF_LIST_BIT_MASK) === 0)
         this.next = i + 1;
       if (((numb >> LetterNode.CHILD_INDEX_SHIFT)
            & LetterNode.CHILD_INDEX_BIT_MASK) > 0)

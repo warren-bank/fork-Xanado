@@ -49,6 +49,16 @@ define([
     }
 
     // @override
+    static parsePath(p) {
+      return Path.parse(p);
+    }
+
+    // @override
+    static formatPath(p) {
+      return Path.format(p);
+    }
+
+    // @override
     static getFilePath(p) {
       return Path.normalize(requirejs.toUrl(p || ""));
     }

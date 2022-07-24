@@ -1,0 +1,86 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node, mocha */
+/*global document:writable*/
+
+/**
+ * Unit tests for Board class
+ */
+describe("Board class", () => {
+
+  const WORDS = [
+    "ATOMIC", "INFINITESIMAL", "MICROSCOPIC", "MINIATURE",
+    "MINUSCULE", "MINUTE", "TEENSY", "TEENY", "WEE", "WEENSY", "BABY",
+    "DIMINUTIVE", "DWARF", "ELFIN", "LITTLE", "PETITE", "POCKET",
+    "PYGMY", "SMALL", "DINKY", "DWARFISH", "INSIGNIFICANT", "PUNY",
+    "UNDERSIZED", "BIG", "BULKY", "BUMPER", "CONSIDERABLE",
+    "EXTENSIVE", "EWE", "GOOD", "GOODLY", "GRAND", "GREAT", "GROSS",
+    "HANDSOME", "HEFTY", "HULKING", "JUMBO", "LARGE", "LARGISH",
+    "MAJOR", "OUTSIZED", "OVERGROWN", "OVERSCALE", "OVERSIZED",
+    "SIZEABLE", "SUBSTANTIAL", "SUPER", "WHACKING", "WHOPPING",
+    "FORMIDABLE", "GRANDIOSE", "IMPOSING", "LOFTY", "MAJESTIC",
+    "MONOLITHIC", "STAGGERING", "STUPENDOUS", "TOWERING", "BOUNDLESS",
+    "CAVERNOUS", "IMMEASURABLE", "INFINITE", "VAST", "VOLUMINOUS",
+    "ASTRONOMICAL", "COLOSSAL", "COSMIC", "ELEPHANTINE", "ENORMOUS",
+    "GIANT", "GIGANTIC", "HERCULEAN", "HEROIC", "HUGE", "IMMENSE",
+    "WEED", "MAMMOTH", "MASSIVE", "MONSTER", "MONSTROUS",
+    "MONUMENTAL", "MOUNTAINOUS", "PLANETARY", "PRODIGIOUS", "TITANIC",
+    "TREMENDOUS"
+  ].sort();
+  let dictionary;
+
+  const TS = require("./TestSupport.js");
+  after(() => TS.after());
+  before(required => {
+    TS.before({
+      Dictionary: "dawg/Dictionary",
+      Explorer: "dawg/Explorer",
+      fs: "fs"
+    }, required);
+  });
+  after(() => TS.after());
+
+  function loadict() {
+    dictionary = new Dictionary("test");
+    WORDS.forEach(w => dictionary.addWord(w));
+  }
+
+  function UNit() {}
+  
+  it("list all", () => {
+    loadict();
+    const ws = [];
+    Explorer.list(dictionary, [], w => ws.push(w));
+    assert.deepEqual(ws.sort(), WORDS);
+  });
+
+  it("list some", () => {
+    loadict();
+    const ws = [];
+    Explorer.list(dictionary, ["WEE"], w => ws.push(w));
+    assert.equal("WEE -- WEED\nWEE -- WEENSY", ws.join(""));
+  });
+
+  it("anagrams", () => {
+    loadict();
+    const ws = [];
+    Explorer.anagrams(dictionary, ["WEE"], w => ws.push(w));
+    assert.deepEqual(["2 words found in \"WEE\":",
+                      "EWE", "WEE"], ws);
+  });
+
+  it("sequences", () => {
+    loadict();
+    const ws = [];
+    Explorer.sequences(dictionary, ["WEE", "CUTE"], w => ws.push(w));
+    assert.deepEqual(["Valid sequences:", "WEE"], ws);
+  });
+
+  it("arrangements", () => {
+    loadict();
+    const ws = [];
+    Explorer.arrangements(dictionary, ["WEENSY"], w => ws.push(w));
+    assert.deepEqual(["3 words found in \"WEENSY\":",
+                      "EWE", "WEE", "WEENSY"], ws);
+  });
+});

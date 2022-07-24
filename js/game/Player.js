@@ -108,7 +108,7 @@ define([
 
       if (params.dictionary)
         /**
-         * Name of the dictionary the robot will use. Defaults to
+         * Name of (or path to) the dictionary the robot will use. Defaults to
          * the game dictionary. Only used for findBestPlay for robot players.
          * Default is undefined.
          * @member {string?}

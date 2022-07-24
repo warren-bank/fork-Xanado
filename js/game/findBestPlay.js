@@ -479,10 +479,9 @@ define([
     /**
      * Promise to complete construction
      * @param {Game} game the game being played
-     * @param {string?} dictpath optional dictionary path
-     * @param {string?} dictionary name
+     * @param {string?} dictionary dictionary name or path
      */
-    create(game, dictpath, dictname) {
+    create(game, dictname) {
       // SMELL: as long as we're running in a subthread, this shouldn't
       // be the same data as in the main thread. But if we are running
       // unthreaded, it is possible that the handling of an event
@@ -490,7 +489,7 @@ define([
       // We really ought to copy the board.
       this.board = game.board;
       return Promise.all([
-        Dictionary.load(dictname, dictpath)
+        Dictionary.load(dictname)
         .then(dic => this.dictionary = dic),
 
         Edition.load(game.edition)
@@ -580,7 +579,7 @@ define([
     }
   }
 
-  /*
+  /**
    * Given a user's letter rack, compute the best possible move.
    * @function game/findBestPlay
    * @param {Game} game the Game
@@ -588,15 +587,14 @@ define([
    * @param {function} listener Function that is called with a Move each time
    * a new best play is found, or a string containing a progress or error
    * message.
-   * @param {string?} dictpath path to dictionaries, to override default
-   * @param {string?} dictionary name of dictionary to use, defaults to
-   * game dictionary
+   * @param {string?} dictionary name of (or path to) dictionary to use,
+   * defaults to game dictionary
    * @return {Promise} Promise that resolves when all best moves have been
    * identified
    * @alias module:game/findBestPlay
    */
-  function findBestPlay(game, rack, listener, dictpath, dictionary) {
-    return new FindBestPlay(listener).create(game, dictpath, dictionary)
+  function findBestPlay(game, rack, listener, dictionary) {
+    return new FindBestPlay(listener).create(game, dictionary)
     .then(fbp => fbp.find(rack));
   }
 

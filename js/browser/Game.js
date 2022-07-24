@@ -30,7 +30,7 @@ define([
     $playerTable(thisPlayer) {
       const $tab = $("<table></table>").addClass("player-table");
       this.players.forEach(
-        p => $tab.append(p.$ui(thisPlayer)));
+        p => $tab.append(p.$tableRow(thisPlayer)));
       return $tab;
     },
 

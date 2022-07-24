@@ -31,10 +31,10 @@ requirejs([
   Game, findBestPlay
 ) => {
   const info = Fridge.thaw(threads.workerData, Game.classes);
-  findBestPlay(info.game, info.rack,
-               bestPlay => threads.parentPort.postMessage(
-                 Fridge.freeze(bestPlay)),
-               info.dictpath, info.dictionary)
+  findBestPlay(
+    info.game, info.rack,
+    bestPlay => threads.parentPort.postMessage(Fridge.freeze(bestPlay)),
+    info.dictionary)
   .then(() => {
     threads.parentPort.postMessage('findBestPlayWorker is exiting');
   })

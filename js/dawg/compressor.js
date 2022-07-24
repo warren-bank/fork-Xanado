@@ -9,11 +9,8 @@
  * word lexicon. Generates a somewhat optimised Trie, encodes it in
  * an integer array, which it then gzips.
  *
- * Based on Appel & Jacobsen, with ideas from Weck and Toal. Not the
- * fastest, or the most efficient, but who cares? It works.
- *
  * `node js/dawg/compressor.js` will tell you how to use it.
- * @module
+ * @module compressor
  */
 
 const requirejs = require("requirejs");
@@ -29,8 +26,7 @@ requirejs.config({
   }
 });
 
-requirejs(["fs", "node-gzip", "dawg/Trie"], (fs, Gzip, Trie) => {
-  const Fs = fs.promises;
+requirejs(["dawg/Compressor"], (Compressor) => {
 
   const DESCRIPTION = [
     "USAGE",
@@ -43,41 +39,10 @@ requirejs(["fs", "node-gzip", "dawg/Trie"], (fs, Gzip, Trie) => {
     "Anything after a space character on a line is ignored."
   ];
 
-  if (process.argv.length < 4) {
+  if (process.argv.length === 4) {
+    const infile = process.argv[2];
+    const outfile = process.argv[3];
+    Compressor.compress(infile, outfile, console.log);
+  } else
     console.log(DESCRIPTION.join("\n"));
-    return;
-  }
-
-  const infile = process.argv[2];
-  const outfile = process.argv[3];
-
-  Fs.readFile(infile, "utf8")
-  .then(async function(data) {
-    const lexicon = data
-          .toUpperCase()
-          .split(/\r?\n/)
-          .map(w => w.replace(/\s.*$/, "")) // comments
-          .filter(line => line.length > 0)
-          .sort();
-
-    // First step; generate a Trie from the words in the lexicon
-    const trie = new Trie(lexicon, console.debug);
-
-    // Second step; generate a DAWG from the Trie
-    trie.generateDAWG();
-    
-    // Generate an integer array for use with Dictionary
-    const buffer = trie.encode();
-    const dv = new DataView(buffer);
-    const z = await Gzip.gzip(dv);
-    console.log(`Compressed ${z.length} bytes`);
-
-    // Write DAWG binary bytes
-    return Fs.writeFile(outfile, z)
-    .then(() => console.log(`Wrote DAWG to ${outfile}`));
-  })
-  .catch(e => {
-    console.log(e.toString());
-    console.log(DESCRIPTION.join("\n"));
-  });
 });

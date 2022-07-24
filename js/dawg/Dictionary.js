@@ -4,7 +4,7 @@
 /* eslint-env amd, node */
 
 define([
-  "platform", "dawg/LetterNode"
+  "platform", "dawg/LetterNode",
 ], (
   Platform, LetterNode
 ) => {
@@ -198,9 +198,10 @@ define([
       /* istanbul ignore if */
       if (word.length === 0)
         return false;
-      if (this.root)
-        return this.root.add(word);
-      this.root = new LetterNode(word.charAt(0));
+      if (!this.root)
+        this.root = new LetterNode(word.charAt(0));
+      else if (this.hasWord(word))
+        return false;
       this.root.add(word);
       return true;
     }
@@ -272,33 +273,48 @@ define([
      * Promise to load a dictionary. A dictionary can consist of a
      * `.dict` (DAWG) file, a `.white` (whitelist, text) file, or
      * both.
-     * @param {string} name name of the dictionary to load
-     * @param {string?} path path to dictionary files. If undefined,
-     * defaults to `Platform.getFilePath("dictionaries")`
+     * @param {string} name name of the dictionary to load. This can
+     * be a be a full path to a .dict file, or it can be a simple
+     * dictionary name, in which case the dictionary will be loaded from
+     * `Platform.getFilePath("dictionaries")`.
      * @return {Promise} Promise that resolves to a new {@linkcode Dictionary}
      * or undefined if a dictionary of that name could not be loaded.
      */
-    static load(name, path) {
+    static load(name) {
+      let path = Platform.parsePath(name);
+      //console.log(name,"=>",path);
+      if (path.root === "" && path.dir === "" && path.ext === "") {
+        // Simple name, load from the dictionaries path. /ignore is a
+        // placeholder
+        path = Platform.parsePath(Platform.getFilePath("dictionaries/ignore"));
+        path.name = name;
+        path.ext = ".dict";
+      } else if (path.ext === "") {
+        // root and/or dir, but no ext
+        path.ext = ".dict";
+      } else
+        name = path.name;
+      // Get rid of path.base so Platform.formatPath uses name and ext
+      delete path.base;
+
       if (Dictionary.cache[name])
         return Promise.resolve(Dictionary.cache[name]);
 
-      if (!path)
-        path = Platform.getFilePath("dictionaries");
-
       let dict;
-      const dp = `${path}/${name}.dict`;
-
-      return Platform.readZip(dp)
+      const zp = Platform.formatPath(path);
+      //console.log(zp,"<=",path);
+      return Platform.readZip(zp)
       .then(buffer => {
         dict = new Dictionary(name);
         dict.loadDAWG(buffer.buffer);
       })
       .catch(e => {
         // Mostly harmless, .dict load failed, relying on .white
-        console.debug("Failed to read", dp, e);
+        console.error("Failed to read", zp, e);
       })
       .then(() => {
-        const wp = `${path}/${name}.white`;
+        path.ext = ".white";
+        const wp = Platform.formatPath(path);
         return Platform.readFile(wp)
         .then(text => {
           if (!dict)

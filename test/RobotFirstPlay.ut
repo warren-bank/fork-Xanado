@@ -65,7 +65,7 @@ describe("RobotFirstPlay", () => {
         //console.debug(play);
         bestPlay = play;
       },
-      game.dictpath, game.dictionary))
+      game.dictionary))
 
     .then(() => {
       assert.equal(bestPlay.words[0].word, "AUDIO");
@@ -113,7 +113,7 @@ describe("RobotFirstPlay", () => {
         new Tile({letter:"U", isBlank:false, score:1})
       ],
       play => bestPlay = play,
-      game.dictpath, game.dictionary))
+      game.dictionary))
 
     .then(() => {
       assert.equal(bestPlay.words[0].word, "BE");

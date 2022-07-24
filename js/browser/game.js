@@ -294,7 +294,9 @@ define([
      */
     handle_TURN(turn) {
       console.debug("--> turn ", turn);
-      // Take back any locally placed tiles
+      // Take back any locally placed tiles from the board before
+      // we update it with the incoming turn. Doesn't touch the
+      // swap rack.
       this.game.board.forEachSquare(
         boardSquare => {
           if (this.takeBackTile(boardSquare))

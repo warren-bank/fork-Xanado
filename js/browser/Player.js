@@ -15,13 +15,11 @@ define([ "platform" ], Platform => {
   const BrowserPlayer = {
 
     /**
-     * Create score table row for the player. This must work both
-     * on a full Player object, and also when called statically on
-     * a Player.simple
+     * Create score table row for the player.
      * @param {Player?} uiPlayer the current player in the UI
      * @return {jQuery} jQuery object for the score table
      */
-    $ui(uiPlayer) {
+    $tableRow(uiPlayer) {
       const $tr = $(`<tr id="player${this.key}"></tr>`)
             .addClass("player-row");
       if (this === uiPlayer)

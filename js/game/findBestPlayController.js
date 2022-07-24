@@ -22,13 +22,12 @@ define([
    * can be switched in and out.
    */
   function findBestPlayController(
-    game, letters, listener, dictpath, dictionary) {
+    game, letters, listener, dictionary) {
 
     const ice = {
       workerData: Fridge.freeze({
         game: game,
         rack: letters,
-        dictpath: dictpath,
         dictionary: dictionary
       })
     };

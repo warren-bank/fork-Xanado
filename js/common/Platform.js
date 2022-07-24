@@ -55,22 +55,43 @@ define(() => {
      * @param {Platform~bestMoveCallback} cb accepts a best play
      * whenever a new one is found, or a string containing a
      * message
-     * @param {string?} dictpath path to dictionaries to override
-     * the default
-     * @param {string?} dictionary name of dictionary to override the
-     * game dictionary
+     * @param {string?} dictionary name of (or path to) dictionary to
+     * override the game dictionary
      * @return {Promise} Promise that resolves when all best moves
      * have been tried
      * @abstract
      */
-    static findBestPlay(game, rack, cb, dictpath, dictionary) {
+    static findBestPlay(game, rack, cb, dictionary) {
+      throw new Error("Pure virtual");
+    }
+
+    /* istanbul ignore next */
+    /**
+     * Signature as {@link https://nodejs.org/api/path.html#pathformatpathobject|path.parse}
+     * @param {string} p a path to split
+     * @return {object}
+     * @abstract
+     */
+    static parsePath(p) {
+      throw new Error("Pure virtual");
+    }
+
+    /* istanbul ignore next */
+    /**
+     * Signature as {@link https://nodejs.org/api/path.html#pathformatpathobject|path.format}
+     * @param {object} p a path object
+     * @return {string}
+     * @abstract
+     */
+    static formatPath(p) {
       throw new Error("Pure virtual");
     }
 
     /* istanbul ignore next */
     /**
      * Get the absolute path to a file or directory within the
-     * installation.
+     * installation. This can be a file path or a URL path, depending
+     * on the context.
      * @param {string} p a path relative to the root of the installation
      * @abstract
      */

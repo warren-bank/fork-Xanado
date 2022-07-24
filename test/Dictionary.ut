@@ -18,6 +18,8 @@ describe("Dictionary class", () => {
     Dictionary: "dawg/Dictionary"
   }, required));
 
+  function UNit() {}
+
   it("loads words", () => {
     let dic = new Dictionary("test");
     assert(dic.addWord('A'));
@@ -43,9 +45,6 @@ describe("Dictionary class", () => {
       TAN: 'TAN',
       RANT: " ANT"
     });
-    s = [];
-    dic.root.eachLongWord("", w => s.push(w));
-    assert.deepEqual(s, [ 'ANT', 'RANT', 'TAN' ]);
   });
 
   it("loads a dictionary", () => {
@@ -79,28 +78,6 @@ describe("Dictionary class", () => {
       assert(dic.hasWord("BISONIC"));
 
       assert(dic.hasSequence("VAAR"));
-
-      let s = {};
-      dic.root.eachNode(n => { s[n.letter] = true; return false; });
-      assert.equal(Object.keys(s).sort().join(""), "B");
-
-      dic.root.eachNode(n => s[n.letter] = true);
-      assert.equal(Object.keys(s).sort().join(""),
-                   "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-
-      s = {};
-      dic.root.eachNode(n => {
-        s[n.letter] = true; return n.letter !== 'F';
-      });
-      assert.equal(Object.keys(s).sort().join(""),
-                   "ABCDFGIKNORSVW");
-
-      s = {};
-      dic.root.eachNode(n => {
-        s[n.letter] = true; return n.letter !== 'U';
-      });
-      assert.equal(Object.keys(s).sort().join(""),
-                   "ABCDFGIJKNORSUVWX");
     });
   });
 
@@ -126,7 +103,7 @@ describe("Dictionary class", () => {
   });
 
   it("static load dict and white", () => {
-    return Dictionary.load("dictionary", Platform.getFilePath("test"))
+    return Dictionary.load(Platform.getFilePath("test/dictionary"))
     .then(dict => {
       assert(dict.hasWord("DOGS")); // dict
       assert(dict.hasWord("WALRUS")); // whitelist
@@ -135,7 +112,7 @@ describe("Dictionary class", () => {
   });
 
   it("static load no dict just white", () => {
-    return Dictionary.load("white", Platform.getFilePath("test"))
+    return Dictionary.load(Platform.getFilePath("test/white"))
     .then(dict => {
       assert(!dict.hasWord("DOGS")); // dict
       assert(dict.hasWord("WALRUS")); // whitelist
@@ -144,7 +121,7 @@ describe("Dictionary class", () => {
   });
 
   it("static load dict no white", () => {
-    return Dictionary.load("dict", Platform.getFilePath("test"))
+    return Dictionary.load(Platform.getFilePath("test/dict"))
     .then(dict => {
       assert(dict.hasWord("DOGS")); // dict
       assert(!dict.hasWord("WALRUS")); // whitelist

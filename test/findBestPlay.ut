@@ -60,7 +60,7 @@ describe("findBestPlay", () => {
         if (move instanceof Move)
           bestMoves.push(move);
       },
-      game.dictpath, game.dictionary))
+      game.dictionary))
     .then(() => {
       assert.equal(bestMoves[5].words[0].word, "HAIRIEST");
       assert.equal(bestMoves[5].words.length, 1);
@@ -109,7 +109,7 @@ describe("findBestPlay", () => {
         if (move instanceof Move)
           bestMoves.push(move);
       },
-      game.dictpath, game.dictionary))
+      game.dictionary))
 
     .then(() => {
       assert.equal(bestMoves.length, 3);
@@ -178,7 +178,7 @@ describe("findBestPlay", () => {
         if (move instanceof Move)
           bestMoves.push(move);
       },
-      game.dictpath, game.dictionary))
+      game.dictionary))
 
     .then(() => {
       assert.equal(bestMoves.length, 2);
@@ -235,7 +235,7 @@ describe("findBestPlay", () => {
         if (move instanceof Move)
           bestMoves.push(move);
       },
-      game.dictpath, game.dictionary))
+      game.dictionary))
     .then(() => {
       const last = bestMoves[bestMoves.length - 1];
       assert.equal(last.words.length, 3);
@@ -285,7 +285,7 @@ describe("findBestPlay", () => {
         if (move instanceof Move)
           bestMoves.push(move);
       },
-      game.dictpath, game.dictionary))
+      game.dictionary))
     .then(() => {
       //console.log(bestMoves[bestMoves.length-1]);
     });

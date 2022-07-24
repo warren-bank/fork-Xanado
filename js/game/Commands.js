@@ -642,7 +642,7 @@ define([
             this._debug(data);
           else
             bestPlay = data;
-        }, this.dictpath, this.dictionary)
+        }, this.dictionary)
       .then(() => {
         //this._debug("Incoming",bestPlay);
         /* istanbul ignore else */
@@ -702,7 +702,7 @@ define([
             this._debug(data);
           else
             bestPlay = data;
-        }, this.dictpath, this.dictionary)
+        }, this.dictionary)
       .then(() => {
         const hint = {
           sender: /*i18n*/"Advisor"

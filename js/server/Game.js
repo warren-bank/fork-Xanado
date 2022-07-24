@@ -50,9 +50,8 @@ define([
      */
     getDictionary() {
       if (this.dictionary)
-        return Dictionary.load(this.dictionary, this.dictpath);
+        return Dictionary.load(this.dictionary);
 
-      // Terminal, no point in translating
       /* istanbul ignore next */
       return Promise.reject("Game has no dictionary");
     },
@@ -590,7 +589,7 @@ define([
               bestPlay = data;
               this._debug("Best", bestPlay.stringify());
             }
-          }, this.dictpath, player.dictionary || this.dictionary)
+          }, player.dictionary || this.dictionary)
         .then(() => {
           if (bestPlay)
             return this.play(player, bestPlay);

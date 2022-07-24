@@ -21,7 +21,7 @@ describe("Game browser mixin", () => {
 
 	function UNit() {}
 
-	it("$ui", () => {
+	it("player table", () => {
 		const p = {
 			//_debug: console.debug,
 			edition:"English_Scrabble",
@@ -49,14 +49,14 @@ describe("Game browser mixin", () => {
 
 			let $tab = $("<table></table>").addClass("player-table");
 			let $tr;
-			$tr = human1.$ui(human1, false);
+			$tr = human1.$tableRow(human1, false);
 			assert($tr.hasClass("whosTurn"));
 			$tab.append($tr);
-			$tr = robot1.$ui(human1, false);
+			$tr = robot1.$tableRow(human1, false);
 			$tab.append($tr);
 			assert(!$tr.hasClass("whosTurn"));
 
-			let $act = game.$ui(game.getPlayer());
+			let $act = game.$playerTable(game.getPlayer());
 
 			//console.debug(`expect: ${$tab.html()}`);
 			//console.debug(`actual: ${$act.html()}`);
@@ -65,18 +65,18 @@ describe("Game browser mixin", () => {
 
 			game.whosTurnKey = human2.key;
 			human1.missNextTurn = true;
-			$tr = human2.$ui(human1, false);
+			$tr = human2.$tableRow(human1, false);
 			$tab.append($tr);
 			assert(!$tr.hasClass("whosTurn"));
 			$tab = $("<table></table>").addClass("player-table");
-			$tr = human1.$ui(human2, true);
+			$tr = human1.$tableRow(human2, true);
 			$tab.append($tr);
 			assert(!$tr.hasClass("whosTurn"));
-			$tr = robot1.$ui(human2, false);
+			$tr = robot1.$tableRow(human2, false);
 			$tab.append($tr);
 			assert(!$tr.hasClass("whosTurn"));
 
-			$act = game.$ui(game.getPlayer());
+			$act = game.$playerTable(game.getPlayer());
 			assert($act.find("#playerhuman1 td.player-name")
 				   .hasClass("miss-turn"));
 			//console.debug(`expect: ${$tab.html()}`);
@@ -89,7 +89,7 @@ describe("Game browser mixin", () => {
       game.updatePlayerList(game.players.concat([ human2 ]));
 
 			//console.log(game.players);
-			$tr = human2.$ui(human2, false);
+			$tr = human2.$tableRow(human2, false);
 			assert($tr.hasClass("whosTurn"));
 			$tab.append($tr);
     });
