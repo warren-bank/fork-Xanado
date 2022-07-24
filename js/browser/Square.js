@@ -6,13 +6,16 @@
 define([ "platform" ], Platform => {
 
   /**
-   * Browser functionality for Square
+   * Browser-side mixin for {@linkcode Square}
    * @mixin BrowserSquare
    */
   const BrowserSquare = {
 
     /**
      * Create the jquery representation
+     * @function
+     * @instance
+     * @memberof BrowserSquare
      * @param {string} base for id='s
      */
     $ui() {
@@ -25,6 +28,12 @@ define([ "platform" ], Platform => {
       return $td;
     },
 
+    /**
+     * Refresh the UI
+     * @function
+     * @instance
+     * @memberof BrowserSquare
+     */
     $refresh() {
       const $div = $(`#${this.id}`);
 
@@ -45,7 +54,10 @@ define([ "platform" ], Platform => {
     },
 
     /**
-     * Set the underlay; UI
+     * Set the underlay
+     * @function
+     * @instance
+     * @memberof BrowserSquare
      * @param {boolean} sel 
      */
     setUnderlay(ch) {
@@ -53,7 +65,10 @@ define([ "platform" ], Platform => {
     },
 
     /**
-     * Set the square as (un)selected; UI
+     * Set the square as (un)selected
+     * @function
+     * @instance
+     * @memberof BrowserSquare
      * @param {boolean} sel 
      */
     setSelected(sel) {
@@ -67,6 +82,9 @@ define([ "platform" ], Platform => {
 
     /**
      * Update a square that has a Tile dropped on it
+     * @function
+     * @instance
+     * @memberof BrowserSquare
      * @param {jQuery} $div the <div> for the square
      * @private
      */
@@ -129,6 +147,9 @@ define([ "platform" ], Platform => {
 
     /**
      * Update a square that doesn't have a Tile dropped on it
+     * @function
+     * @instance
+     * @memberof BrowserSquare
      * @param {jQuery} $div the <div> for the square
      * @private
      */

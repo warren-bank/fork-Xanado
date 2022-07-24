@@ -26,6 +26,7 @@ define([
   /**
    * Base class of Game objects. Common functionality shared by browser
    * and server sides.
+   * @mixes Undo
    * @mixes BrowserGame
    * @mixes ServerGame
    */

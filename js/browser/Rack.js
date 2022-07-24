@@ -6,12 +6,15 @@
 define(() => {
 
   /**
-   * Browser functionality for racks
+   * Browser-side mixin for {@linkcode Rack}
    * @mixin BrowserRack
    */
   const BrowserRack = {
     /**
      * Create the jquery representation for the Rack.
+     * @function
+     * @instance
+     * @memberof BrowserRack
      * @param {string} underlay a string of letters to use as background of
      * the rack squares.
      * @return {jQuery}

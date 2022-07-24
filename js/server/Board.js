@@ -17,6 +17,9 @@ define(() => {
      * the description of {@linkcode Board#analysePlay|analysePlay}
      * to understand the difference between these two related functions.
      * Note: does *not* include any bonuses due to number of tiles played.
+     * @function
+     * @instance
+     * @memberof ServerBoard
      * @param {number} col the col of the LAST letter
      * @param {number} row the row of the LAST letter
      * @param {number} dcol 1 if the word being played across

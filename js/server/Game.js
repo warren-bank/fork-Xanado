@@ -22,16 +22,16 @@ define([
   let messageSequenceNumber = 0;
 
   /**
-   * Provides server-specific functionality for {@linkcode Game}
+   * Server-side mixin for {@linkcode Game}
    * @mixin ServerGame
    * @mixes Commands
-   * @mixes Undo
    */
   const ServerGame = {
 
     /**
      * Used for testing only.
      * @function
+     * @instance
      * @memberof ServerGame
      * @param sboard string representation of a game {@linkcode Board}
      * @return {Promise} resolving to `this`
@@ -45,6 +45,7 @@ define([
     /**
      * Get the dictionary for this game, lazy-loading as necessary
      * @function
+     * @instance
      * @memberof ServerGame
      * @return {Promise} resolving to a {@linkcode Dictionary}
      */
@@ -59,6 +60,7 @@ define([
     /**
      * Promise to save the game
      * @function
+     * @instance
      * @memberof ServerGame
      * @return {Promise} that resolves to the game when it has been saved
      */
@@ -73,6 +75,7 @@ define([
      * Check if the game has timed out due to inactivity.
      * Stops game timers and sets the state of the game if it has.
      * @function
+     * @instance
      * @memberof ServerGame
      * @return {Promise} resolves to the game when timeout has
      * been checked
@@ -98,6 +101,7 @@ define([
      * database and connections are not serialised, and must be
      * reset. Only available server-side.
      * @function
+     * @instance
      * @memberof ServerGame
      * @param {Database} db the db to use to store games
      * @return {Promise} Promise that resolves to the game
@@ -135,6 +139,7 @@ define([
      * Send a message to just one player. Note that the player
      * may be connected multiple times through different sockets.
      * @function
+     * @instance
      * @memberof ServerGame
      * @param {Player} player player to send to
      * @param {string} message to send
@@ -162,6 +167,7 @@ define([
      * that an observer may be connected multiple times,
      * through different sockets.
      * @function
+     * @instance
      * @memberof ServerGame
      * @param {string} message to send
      * @param {Object} data to send with message
@@ -180,6 +186,7 @@ define([
      * Broadcast a message to all observers players except the
      * given player.
      * @function
+     * @instance
      * @memberof ServerGame
      * @param {Player} player player to exclude
      * @param {string} message to send
@@ -204,6 +211,7 @@ define([
     /**
      * Start, or continue, playing the game if preconditions are met.
      * @function
+     * @instance
      * @memberof ServerGame
      * @return {Promise} promise that resolves to the game
      */
@@ -273,6 +281,7 @@ define([
      * Log the command, determine whether the game has ended,
      * save state and notify connected players with the Turn object.
      * @function
+     * @instance
      * @memberof ServerGame
      * @param {Turn} turn the Turn to finish
      * @return {Promise} that resolves to the game
@@ -296,6 +305,7 @@ define([
     /**
      * Does player have an active connection to this game?
      * @function
+     * @instance
      * @memberof ServerGame
      * @param {Player} player the player
      * @return {WebSocket} a decorated socket, or null if not connected.
@@ -317,6 +327,7 @@ define([
      * Notify players with a list of the currently connected
      * players, non-playing observers and non-connected players.
      * @function
+     * @instance
      * @memberof ServerGame
      */
     sendCONNECTIONS() {
@@ -348,6 +359,7 @@ define([
     /**
      * Start (or restart) the turn of the given player.
      * @function
+     * @instance
      * @memberof ServerGame
      * @param {Player?} player the the player to get the turn.
      * @param {number?} timeout Only relevant when `timerType` is
@@ -402,6 +414,7 @@ define([
      * 'join'. Play the game if preconditions have been met.  Only
      * available server side.
      * @function
+     * @instance
      * @memberof ServerGame
      * @param {WebSocket} socket the connecting socket
      * @param {string} playerKey the key identifying the player
@@ -458,6 +471,7 @@ define([
      * Tell all clients a tick has happened (or
      * remind them of the current number of seconds to play)
      * @function
+     * @instance
      * @memberof ServerGame
      * @private
      */
@@ -486,6 +500,7 @@ define([
      * @return {boolean} true if the clock is started, false otherwise
      * (e.g. if it is already running)
      * @function
+     * @instance
      * @memberof ServerGame
      * @private
      */
@@ -510,6 +525,7 @@ define([
     /**
      * Stop the interval timer, if there is one
      * @function
+     * @instance
      * @memberof ServerGame
      * @return {boolean} true if the clock is stopped, false otherwise
      * @private
@@ -526,6 +542,7 @@ define([
     /**
      * Robot play for the current player. This may result in a challenge.
      * @function
+     * @instance
      * @memberof ServerGame
      * @return {Promise} resolving to this
      */

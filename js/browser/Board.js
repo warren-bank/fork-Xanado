@@ -6,7 +6,7 @@
 define([ "game/Move" ], Move => {
 
   /**
-   * Mixin for board UI functionality
+   * Browser-side mixin for {@linkcode Board}
    * @mixin BrowserBoard
    */
   const BrowserBoard = {
@@ -15,6 +15,9 @@ define([ "game/Move" ], Move => {
      * Calculate score for all words that involve new tiles.
      * This is used on the UI side, when the placement may be fragmented
      * and difficult to analyse.
+     * @function
+     * @instance
+     * @memberof BrowserBoard
      * @param {Move.wordSpec[]} words list to update
      * @return {number} the total score
      * @private
@@ -78,6 +81,9 @@ define([ "game/Move" ], Move => {
      * play being constructed on the server side by a robot, and has
      * to perform as well as possible. Note that neither `analysePlay`
      * nor `scorePlay` calculate bonuses for number of tiles played.
+     * @function
+     * @instance
+     * @memberof BrowserBoard
      * @return {(Move|string)} Move, or a string if there is a problem
      */
     analysePlay() {
@@ -166,6 +172,9 @@ define([ "game/Move" ], Move => {
 
     /**
      * Create the UI representation
+     * @function
+     * @instance
+     * @memberof BrowserBoard
      * @return {jQuery}
      */
     $ui() {

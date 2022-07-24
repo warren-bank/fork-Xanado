@@ -9,13 +9,16 @@ define([ "platform" ], Platform => {
   const BLACK_CIRCLE = "\u25cf";
 
   /**
-   * Browser functionality for players
+   * Browser-side mixin for {@linkcode Player}
    * @mixin BrowserPlayer
    */
   const BrowserPlayer = {
 
     /**
      * Create score table row for the player.
+     * @function
+     * @instance
+     * @memberof BrowserPlayer
      * @param {Player?} uiPlayer the current player in the UI
      * @return {jQuery} jQuery object for the score table
      */
@@ -49,16 +52,20 @@ define([ "platform" ], Platform => {
     },
 
     /**
-     * Refresh score table representation of the player on the browser
-     * side only.
+     * Refresh score table representation of the player.
+     * @function
+     * @instance
+     * @memberof BrowserPlayer
      */
     $refresh() {
       $(`#player${this.key} .score`).text(this.score);
     },
 
     /**
-     * Set 'online' status of player in UI on the browser
-     * side only.
+     * Set 'online' status of player.
+     * @function
+     * @instance
+     * @memberof BrowserPlayer
      * @param {boolean} tf true/false
      */
     online(tf) {

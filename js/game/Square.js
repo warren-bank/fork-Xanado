@@ -8,6 +8,16 @@ define([
   requirejs.isBrowser ? "browser/Square" : "common/Mixin"
 ], (Platform, Mixin) => {
 
+  // CSS classes; only required to keep npm run tx happy
+  // /*i18n*/"square-D"
+  // /*i18n*/"square-M"
+  // /*i18n*/"square-Q"
+  // /*i18n*/"square-T"
+  // /*i18n*/"square-_"
+  // /*i18n*/"square-d"
+  // /*i18n*/"square-q"
+  // /*i18n*/"square-t"
+
   /**
    * A square on the game board or rack. A Tile holder with some
    * underlying attributes; a position, an owner type, and a type that

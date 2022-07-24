@@ -14,7 +14,8 @@ define([
   const Notify = Types.Notify;
 
   /**
-   * Mixin that provides Undo functionality for Game
+   * Platform independent mixin that provides undo/redo functionality for
+   * {@linkcode Game}
    * @mixin Undo
    */
   return {
@@ -22,6 +23,7 @@ define([
     /**
      * Take tiles out of the letter bag and put them back on the rack
      * @function
+     * @instance
      * @memberof Undo
      * @param {Tile[]} tiles list of tiles
      * @param {Rack} rack to put the tiles on
@@ -37,6 +39,7 @@ define([
     /**
      * Move tiles from the board back to the rack
      * @function
+     * @instance
      * @memberof Undo
      * @param {Tile[]} tiles list of tiles
      * @param {Rack} rack to put the tiles on
@@ -53,6 +56,7 @@ define([
     /**
      * Move tiles from the rack to the board
      * @function
+     * @instance
      * @memberof Undo
      * @param {Tile[]} tiles list of tiles
      * @param {Rack} rack to get the tiles from
@@ -71,10 +75,10 @@ define([
     /**
      * Undo a swap. Resets the game state as if it had never happened.
      * @function
+     * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} isClient if true, updates the UI associated with the board
-     * @private
      */
     unswap(turn, isClient) {
       this.state = State.PLAYING;
@@ -91,10 +95,10 @@ define([
     /**
      * Undo a play. Resets the game state as if it had never happened.
      * @function
+     * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} isClient if true, updates the UI associated with the board
-     * @private
      */
     unplay(turn, isClient) {
       this.state = State.PLAYING;
@@ -115,10 +119,10 @@ define([
      * Undo a game over confirmation.
      * Resets the game state as if it had never happened.
      * @function
+     * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} isClient if true, updates the UI associated with the board
-     * @private
      */
     unconfirmGameOver(turn, isClient) {
       // Re-adjustscores from the delta
@@ -137,10 +141,10 @@ define([
      * Undo a TOOK_BACK or CHALLENGE_WON.
      * Resets the game state as if it had never happened.
      * @function
+     * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} isClient if true, updates the UI associated with the board
-     * @private
      */
     untakeBack(turn, isClient) {
       this.state = State.PLAYING;
@@ -159,10 +163,10 @@ define([
     /**
      * Undo a pass. Resets the game stat as if it had never happened.
      * @function
+     * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} isClient if true, updates the UI associated with the board
-     * @private
      */
     unpass(turn, isClient) {
       this.state = State.PLAYING;
@@ -176,10 +180,10 @@ define([
      * Unplay a LOST challenge (won challenges are handled in untakeBack).
      * Resets the game state as if it had never happened.
      * @function
+     * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} isClient if true, updates the UI associated with the board
-     * @private
      */
     unchallenge(turn, isClient) {
       const player = this.getPlayerWithKey(turn.challengerKey);
@@ -193,6 +197,7 @@ define([
      * happened. Sends a Notify.UNDONE to all listeners, passing the Turn
      * that was unplayed.
      * @function
+     * @instance
      * @memberof Undo
      * @param {boolean?} isClient if true, updates the UI associated with the board
      * and rack. If false, saves the game.
@@ -236,6 +241,7 @@ define([
     /**
      * Replay the given turn back into the game
      * @function
+     * @instance
      * @memberof Undo
      * @return {Promise} promise resolving to undefined
      */

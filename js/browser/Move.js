@@ -6,12 +6,15 @@
 define(() => {
 
   /**
-   * Browser functionality for Move
+   * Browser-side mixin for {@linkcode Move}
    * @mixin BrowserMove
    */
   const BrowserMove = {
     /**
      * Format a score summary.
+     * @function
+     * @instance
+     * @memberof BrowserMove
      * @param {boolean} hideScore true to elide the score
      * @return {jQuery} the span containing the score
      */

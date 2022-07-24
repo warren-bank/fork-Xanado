@@ -18,7 +18,8 @@ define([
   const Turns     = Types.Turns;
 
   /**
-   * Mixin that provides handlers for commands coming from the UI
+   * Server-side mixin to {@linkcode Game} that provides handlers for game
+   * commands.
    * @mixin Commands
    */
   return {
@@ -26,6 +27,7 @@ define([
     /**
      * Place tiles on the board.
      * @function
+     * @instance
      * @memberof Commands
      * @param {Player} player player requesting the move
      * @param {Move} move a Move (or the spec of a Move)
@@ -150,6 +152,7 @@ define([
     /**
      * Pause the game
      * @function
+     * @instance
      * @memberof Commands
      * @param {Player} player to play
      * @return {Promise} resolving to the game
@@ -171,6 +174,7 @@ define([
     /**
      * Unpause the game
      * @function
+     * @instance
      * @memberof Commands
      * @param {Player} player to play
      * @return {Promise} resolving to the game
@@ -195,6 +199,9 @@ define([
      * following the player who just emptied their rack has confirmed
      * they don't want to challenge, or they have challenged and the
      * challenge failed.
+     * @function
+     * @instance
+     * @memberof Commands
      * @param {Player} player player confirming end of game
      * @param {string} endState gives reason why game ended
      * (i18n message id) one of `State.GAME_OVER`, `State.TWO_PASSES`, or
@@ -263,6 +270,7 @@ define([
      * Undo the last move. This might be as a result of a player request,
      * or the result of a challenge.
      * @function
+     * @instance
      * @memberof Commands
      * @param {Player} player if type==Turns.CHALLENGE_WON this must be
      * the challenging player. Otherwise it is the player taking their
@@ -333,6 +341,7 @@ define([
      * Player wants to (or has to) miss their move. Either they
      * can't play, or challenged and failed.
      * @function
+     * @instance
      * @memberof Commands
      * @param {Player} player player passing (must be current player)
      * @param {string} type pass type, `Turns.PASSED` or
@@ -359,6 +368,9 @@ define([
     /**
      * Handler for 'challenge' command.
      * Check the words created by the previous move are in the dictionary
+     * @function
+     * @instance
+     * @memberof Commands
      * @param {Player} challenger player making the challenge
      * @param {Player} challenged player being challenged
      * @return {Promise} resolving to the game
@@ -480,6 +492,7 @@ define([
      * letters from the pool, then mix your discarded
      * letter(s) into the pool.
      * @function
+     * @instance
      * @memberof Commands
      * @param {Player} player player making the swap (must be current
      * player)
@@ -537,6 +550,7 @@ define([
      * Create another game the same, but with players re-ordered. The
      * key for the new game is broadcast in a `NEXT_GAME` notification.
      * @function
+     * @instance
      * @memberof Commands
      * @return {Promise} resolving to the new game
      */
@@ -587,6 +601,7 @@ define([
      * Toggle advice on/off. All players are told using
      * a `MESSAGE` notification.
      * @function
+     * @instance
      * @memberof Commands
      * @param {Player} player who is being toggled
      */
@@ -614,10 +629,10 @@ define([
      * Asynchronously advise player as to what better play they
      * might have been able to make. Server side only.
      * @function
+     * @instance
      * @memberof Commands
      * @param {Player} player a Player
      * @param {number} theirScore score they got from their play
-     * @private
      */
     advise(player, theirScore) {
       /* istanbul ignore if */
@@ -678,6 +693,7 @@ define([
      * Asynchronously calculate a play for the given player, and
      * notify all players that they requested a hint.
      * @function
+     * @instance
      * @memberof Commands
      * @param {Player} player to get a hint for
      */
@@ -743,6 +759,9 @@ define([
 
     /**
      * Add a word to the dictionary whitelist, asynchronously
+     * @function
+     * @instance
+     * @memberof Commands
      * @param {Player} player player adding the word
      * @param {string} word word to add
      */

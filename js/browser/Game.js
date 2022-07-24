@@ -14,7 +14,7 @@ define([
   const State = Types.State;
 
   /**
-   * Provides browser-specific functionality for {@linkcode Game}
+   * Browser-side mixin for {@linkcode Game}
    * @mixin BrowserGame
    */
   const BrowserGame = {
@@ -22,6 +22,7 @@ define([
     /**
      * Create the UI for the player table
      * @function
+     * @instance
      * @memberof BrowserGame
      * @param {Player} thisPlayer the player for whom the DOM is
      * being generated
@@ -38,6 +39,7 @@ define([
      * Given a list of Player.simple, update the players list
      * to reflect the members and ordering of that list.
      * @function
+     * @instance
      * @memberof BrowserGame
      * @param {object[]} observers list of observers (simple objects)
      */
