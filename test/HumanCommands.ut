@@ -21,6 +21,8 @@ describe("HumanCommands", () => {
     Types: "game/Types"
   }, required));
 
+  function UNit() {}
+
   it("swap", () => {
     const game = new Game({
       edition:"Test",
@@ -314,7 +316,7 @@ describe("HumanCommands", () => {
     .then(() => assert.equal(game.whosTurnKey, human2.key));
   });
 
-  it("play to empty", () => {
+  it("play to empty rack", () => {
     const W = new Tile({letter:"W", score:1, col: 7, row: 7});
     const O = new Tile({letter:"O", score:1, col: 8, row: 7});
     const R = new Tile({letter:"R", score:1, col: 9, row: 7});
@@ -337,24 +339,16 @@ describe("HumanCommands", () => {
       noPlayerShuffle: true
     });
     const socket = new TestSocket();
-    let turns = 0, messages = 0;
     socket.on(Notify.TURN, (turn, event) => {
       //console.debug(turn, event);
-      switch (turns++) {
-      case 0:
-        assert.equal(turn.type, Turns.PLAYED);
-        assert.equal(turn.playerKey, human1.key);
-        assert.equal(turn.nextToGoKey, human2.key);
-        assert.equal(turn.score, move.score);
-        assert.deepEqual(turn.words, move.words);
-        assert.deepEqual(turn.placements, move.placements);
-        assert.equal(turn.replacements.length, 0);
-        break;
-      default:
-        assert.fail("UNEXPECTED TURN " + turn);
-      }
-      if (turns === 1 && messages === 3)
-        socket.done();
+      assert.equal(turn.type, Turns.PLAYED);
+      assert.equal(turn.playerKey, human1.key);
+      assert.equal(turn.nextToGoKey, human2.key);
+      assert.equal(turn.score, move.score);
+      assert.deepEqual(turn.words, move.words);
+      assert.deepEqual(turn.placements, move.placements);
+      assert.equal(turn.replacements.length, 0);
+      socket.done();
     });
     socket.on("*", () => {});
     return game.create()
