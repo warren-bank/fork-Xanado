@@ -83,6 +83,7 @@ define([
       let player = this.getPlayerWithKey(turn.playerKey);
       if (!player)
         player = new Player({name: "Unknown player"});
+      const wasMe = (player === uiPlayer);
       const challenger = (typeof turn.challengerKey === "string")
             ? this.getPlayerWithKey(turn.challengerKey) : undefined;
 
@@ -95,7 +96,7 @@ define([
           who = $.i18n("$1's", challenger.name);
       } else {
         what = $.i18n("turn");
-        if (player === uiPlayer)
+        if (wasMe)
           who = $.i18n("Your");
         else
           who = $.i18n("$1's", player.name);
@@ -107,10 +108,11 @@ define([
 
       // What did they do?
       const $action = $("<div></div>").addClass("turn-detail");
+      $description.append($action);
 
       let playerPossessive;
       let playerIndicative;
-      if (player === uiPlayer) {
+      if (wasMe) {
         playerPossessive = $.i18n("your");
         playerIndicative = $.i18n("You");
       } else {
@@ -132,6 +134,21 @@ define([
 
       case Turns.PLAYED:
         $action.append(turn.$score(false));
+        // Check if the play emptied the rack of the playing player
+        if (isLastTurn
+            && turn.replacements.length === 0
+            && !this.hasEnded()) {
+
+          const $narrative = $("<div></div>").addClass("turn-narrative");
+          if (wasMe)
+            $narrative.append($.i18n(
+              "You have no more tiles, game will be over if your play isn't challenged"));
+          else
+            $narrative.append($.i18n(
+              "$1 has no more tiles, game will be over unless you challenge",
+              playerIndicative));
+          $description.append($narrative);
+        }
         break;
 
       case Turns.SWAPPED:
@@ -159,7 +176,7 @@ define([
         + " "
         + $.i18n(
           "$1 lost $2 point{{PLURAL:$2||s}}",
-          playerIndicative, -turn.score));
+          playerIndicative, turn.score));
         break;
 
       case Turns.CHALLENGE_LOST:
@@ -181,27 +198,8 @@ define([
         break;
 
       default:
+        /* istanbul ignore next */
         Platform.fail(`Unknown move type ${turn.type}`);
-      }
-
-      $description.append($action);
-
-      if (isLastTurn
-          && turn.emptyPlayerKey
-          && this.letterBag.isEmpty()
-          && !this.hasEnded()
-          && turn.type !== Turns.CHALLENGE_LOST
-          && turn.type !== Turns.GAME_ENDED) {
-
-        const $narrative = $("<div></div>").addClass("turn-narrative");
-        if (turn.emptyPlayerKey === uiPlayer.key)
-          $narrative.append($.i18n(
-            "You have no more tiles, game will be over if your play isn't challenged"));
-        else if (turn.emptyPlayerKey)
-          $narrative.append($.i18n(
-            "$1 has no more tiles, game will be over unless you challenge",
-            this.getPlayerWithKey(turn.emptyPlayerKey).name));
-        $description.append($narrative);
       }
 
       return $description;
@@ -238,8 +236,8 @@ define([
 
       const $narrative = $("<div></div>").addClass("game-outcome");
       this.getPlayers().forEach(player => {
-        const isMe = player === uiPlayer;
-        const name = isMe ? $.i18n("You") : player.name;
+        const wasMe = player === uiPlayer;
+        const name = wasMe ? $.i18n("You") : player.name;
         const $rackAdjust = $("<div></div>").addClass("rack-adjust");
 
         if (player.score === winningScore)

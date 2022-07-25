@@ -550,7 +550,6 @@ describe("Challenges", () => {
         assert.equal(turn.playerKey, human1.key);
         assert.equal(turn.nextToGoKey, human2.key);
         assert.equal(turn.score, -3);
-        assert(!turn.emptyPlayerKey);
         socket.done();
       }
     });
@@ -621,7 +620,6 @@ describe("Challenges", () => {
         assert.equal(turn.playerKey, human1.key);
         assert.equal(turn.challengerKey, human3.key);
         assert.equal(turn.nextToGoKey, human2.key);
-        assert(!turn.emptyPlayerKey);
         socket.done();
         break;
       default:
@@ -703,8 +701,6 @@ describe("Challenges", () => {
           human1: {tiles: 4 }, human2: {tiles: -4}});
         assert.equal(turn.playerKey, human2.key);
         assert.equal(turn.nextToGoKey, undefined);
-        // Still empty!
-        assert.equal(turn.emptyPlayerKey, human1.key);
         // Game should be over
         socket.done();
       }
@@ -783,7 +779,6 @@ describe("Challenges", () => {
         assert.equal(turn.playerKey, human1.key);
         assert.equal(turn.challengerKey, human3.key);
         assert.equal(turn.nextToGoKey, human2.key);
-        assert.equal(turn.emptyPlayerKey, human1.key);
         socket.done();
         break;
       default:

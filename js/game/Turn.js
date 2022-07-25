@@ -83,15 +83,6 @@ define([
          */
         this.challengerKey = params.challengerKey;
 
-      let ep = game.getPlayers().find(p => p.rack.isEmpty());
-      if (ep)
-        /**
-         * Player who's rack has been left empty by the play that
-         * resulted in this turn
-         * @member {Key?}
-         */
-        this.emptyPlayerKey = ep.key;
-
       if (params.endState)
         /**
          * String describing the reason the game ended. Only used when

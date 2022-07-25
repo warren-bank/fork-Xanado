@@ -13,7 +13,10 @@ define(["fs", "path"], (fs, Path) => {
     if (typeof s === "string") {
       if (typeof TX[s] !== "undefined")
         s = TX[s];
-      // TODO: support PLURAL
+      s = s.replace(/{{PLURAL:\$(\d+)\|([^|]*)\|([^}]*)}}/g,
+                    (m, index, sing, plur) =>
+                    (arguments[index] === 1) ? sing : plur);
+
       return s.replace(
         /\$(\d+)/g,
         (m, index) => arguments[index]);

@@ -314,7 +314,72 @@ describe("HumanCommands", () => {
     .then(() => assert.equal(game.whosTurnKey, human2.key));
   });
 
-  it("game_over", () => {
+  it("play to empty", () => {
+    const W = new Tile({letter:"W", score:1, col: 7, row: 7});
+    const O = new Tile({letter:"O", score:1, col: 8, row: 7});
+    const R = new Tile({letter:"R", score:1, col: 9, row: 7});
+    const D = new Tile({letter:"D", score:1, col: 10, row: 7});
+    const move = new Move({
+      placements: [ W, O, R, D ],
+      words: [ { word: "WORD", score: 10 }],
+      score: 20
+    });
+    const human1 = new Player({
+      name: "Human 1", key: "human1", isRobot: false});
+    const human2 = new Player({
+      name: "Human 2", key: "human2", isRobot: false});
+    const aTile = new Tile({letter:"A", score:1 });
+
+    const game = new Game({
+      edition:"Test",
+      dictionary:"Oxford_5000",
+      //_debug: console.debug,
+      noPlayerShuffle: true
+    });
+    const socket = new TestSocket();
+    let turns = 0, messages = 0;
+    socket.on(Notify.TURN, (turn, event) => {
+      //console.debug(turn, event);
+      switch (turns++) {
+      case 0:
+        assert.equal(turn.type, Turns.PLAYED);
+        assert.equal(turn.playerKey, human1.key);
+        assert.equal(turn.nextToGoKey, human2.key);
+        assert.equal(turn.score, move.score);
+        assert.deepEqual(turn.words, move.words);
+        assert.deepEqual(turn.placements, move.placements);
+        assert.equal(turn.replacements.length, 0);
+        break;
+      default:
+        assert.fail("UNEXPECTED TURN " + turn);
+      }
+      if (turns === 1 && messages === 3)
+        socket.done();
+    });
+    socket.on("*", () => {});
+    return game.create()
+    .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
+    .then(game => {
+      game.addPlayer(human1);
+      human1.rack.addTile(game.letterBag.removeTile({letter:"W"}));
+      human1.rack.addTile(game.letterBag.removeTile({letter:"O"}));
+      human1.rack.addTile(game.letterBag.removeTile({letter:"R"}));
+      human1.rack.addTile(game.letterBag.removeTile({letter:"D"}));
+      human1.rack.addTile(game.letterBag.removeTile({letter:"S"}));
+      game.addPlayer(human2, true);
+
+      // Empty the letter bag
+      game.letterBag.getRandomTiles(
+        game.letterBag.remainingTileCount());
+      game.whosTurnKey = human1.key;
+    })
+    .then(() => game.connect(socket, human1.key))
+    .then(() => game.play(human1, move))
+    .then(g => assert.strictEqual(g, game))
+    .then(() => socket.wait());
+  });
+
+  it("confirmGameOver", () => {
     const game =  new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -334,7 +399,6 @@ describe("HumanCommands", () => {
       exp[human2.key] = { tiles: 8 };
       assert.deepEqual(turn.score, exp);
       assert.equal(turn.playerKey, human1.key);
-      assert.equal(turn.emptyPlayerKey, human2.key);
       assert(!turn.nextToGoKey);
       socket.done();
     };
@@ -363,7 +427,7 @@ describe("HumanCommands", () => {
     });
   });
 
-  it("take_back", () => {
+  it("takeBack", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",

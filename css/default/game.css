@@ -45,6 +45,11 @@ div.user-interface {
   margin-left: 2em;
 }
 
+.word-score,.turn-total {
+  margin-left: 0.25em;
+  margin-right: 0.5em;
+}
+
 /* Narrative desription of the outcome of the turn */
 .turn-narrative {
   font-size: 110%;

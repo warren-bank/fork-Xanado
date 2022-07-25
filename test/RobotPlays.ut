@@ -272,7 +272,6 @@ describe('RobotPlays', () => {
         exp[robot.key] = { tiles: -4 };
         assert.deepEqual(turn.score, exp);
         assert.equal(turn.playerKey, robot.key);
-        assert.equal(turn.emptyPlayerKey, human.key);
         assert(!turn.nextToGoKey);
         assert.equal(human.score, 103);
         assert.equal(robot.score, -4);

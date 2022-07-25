@@ -21,21 +21,25 @@ define(() => {
     $score(hideScore) {
       // Could be static
       let sum = 0;
-      const $span = $("<span></span>");
+      const $span = $('<span class="turn-score"></span>');
       for (let word of this.words) {
         $span
-        .append(` <span class="word">${word.word}</span>`);
+        .append($('<span class="word"></span>')
+                .append(word.word));
+        /* istanbul ignore else */
         if (!hideScore) {
           $span
-          .append(` (<span class="word-score">${word.score}</span>)`);
+          .append($(`<span class="word-score"></span>`)
+                  .append(`(${word.score})`));
         }
         sum += word.score;
       }
       // .score will always be a number after a move
+      /* istanbul ignore else */
       if (!hideScore && this.words.length > 1 || this.score > sum) {
         $span
-        .append(" ")
-        .append($.i18n("total $1", this.score));
+        .append($(`<span class="turn-total"></span>`)
+                .append($.i18n("total $1", this.score)));
       }
       return $span;
     }

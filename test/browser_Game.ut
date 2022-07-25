@@ -95,41 +95,48 @@ describe("Game browser mixin", () => {
     });
 	});
 
-	it("describeTurn", () => {
-		const p = {
-			//_debug: console.debug,
-			edition:"English_Scrabble",
-			dictionary:"Oxford_5000",
-			timeLimit: 999,
-			predictScore: false,
-			allowTakeBack: false,
-			noPlayerShuffle: true,
+  function make_p() {
+	  const params = {
+		  //_debug: console.debug,
+		  edition:"English_Scrabble",
+		  dictionary:"Oxford_5000",
+		  timeLimit: 999,
+		  predictScore: false,
+		  allowTakeBack: false,
+		  noPlayerShuffle: true,
       challengePenalty: Penalty.PER_WORD
-		};
+	  };
 
-		const robot1 = new Player(
-			{name:"Robot 1", key:"robot1", isRobot: true});
-		const human1 = new Player(
-			{name:"Human 1", key:"human1", isRobot: false});
-		const human2 = new Player(
-			{name:"Human 2", key:"human2", isRobot: false});
+    const p = {
+	    OTHER: new Player(
+		    {name:"OtherPlayer", key:"OTHER", isRobot: true}),
+	    YOU: new Player(
+		    {name:"YouPlayer", key:"YOU", isRobot: false}),
+      W: new Tile({letter:"W", score:1, col: 7, row: 7}),
+      O: new Tile({letter:"O", score:1, col: 8, row: 7}),
+      R: new Tile({letter:"R", score:1, col: 9, row: 7}),
+      D: new Tile({letter:"D", score:1, col: 10, row: 7}),
+		  game: new Game(params)
+    };
+    return p.game.create()
+    .then(() => {
+			p.game.addPlayer(p.YOU, false);
+			p.game.addPlayer(p.OTHER, false);
+			p.game.whosTurnKey = p.YOU.key;
+      return p;
+    });
+  }
+  
+	it("describeTurn tiles played and have replacements", () => {
+    return make_p()
+		.then(p => {
 
-		const game = new Game(p);
-
-    return game.create()
-		.then(() => {
-			game.addPlayer(human1, false);
-			game.addPlayer(robot1, false);
-			game.whosTurnKey = human1.key;
-
-      let W = new Tile({letter:"W", score:1, col: 7, row: 7});
-      let O = new Tile({letter:"O", score:1, col: 8, row: 7});
-      let R = new Tile({letter:"R", score:1, col: 9, row: 7});
-      let D = new Tile({letter:"D", score:1, col: 10, row: 7});
-      let turn = new Turn(game, {
+      // Tiles played and have replacements
+      let turn = new Turn(p.game, {
         type: Turns.PLAYED,
-        playerKey: robot1.key,
-        placements: [ W, O, R, D ],
+        playerKey: p.OTHER.key,
+        placements: [ p.W, p.O, p.R, p.D ],
+        replacements: [ p.W, p.O, p.R, p.D ],
         words: [ { word: "WORD", score: 10 }],
         score: 20
       });
@@ -137,87 +144,240 @@ describe("Game browser mixin", () => {
           $('<div class="turn-description">')
           .append(
             $('<div class="turn-player"></div>')
-            .append('<span class="player-name">Robot 1\'s</span> turn'))
+            .append('<span class="player-name">OtherPlayer\'s</span> turn'))
           .append(
             $('<div class="turn-detail"></div>')
-            .append('<span> <span class="word">WORD</span> (<span class="word-score">10</span>) total 20</span>'));
+            .append('<span class="turn-score"><span class="word">WORD</span><span class="word-score">(10)</span><span class="turn-total">total 20</span></span>'));
       let sexp = $("<div></div>").append($exp).html();
-      let $act = game.describeTurn(turn, human1, false);
+      let $act = p.game.describeTurn(turn, p.YOU, true);
       let sact = $("<div></div>").append($act).html();
       assert.equal(sact, sexp);
 			//assert($act[0].isEqualNode($exp[0]),"\n" +
       //       "actual: " + sact + "\n" +
       //       "expect: " + sexp + "\n");
+    });
+  });
+    
+	it("describeTurn you played and have replacements", () => {
+    return make_p()
+		.then(p => {
+      // Tiles played and have replacements
+      const turn = new Turn(p.game, {
+        type: Turns.PLAYED,
+        playerKey: p.YOU.key,
+        placements: [ p.W, p.O, p.R, p.D ],
+        replacements: [ p.W, p.O, p.R, p.D ],
+        words: [ { word: "WORD", score: 10 }],
+        score: 20
+      });
+      const $exp = $("<div></div>")
+            .append(
+              $('<div class="turn-description">')
+              .append(
+                $('<div class="turn-player"></div>')
+                .append('<span class="player-name">Your</span> turn'))
+              .append(
+                $('<div class="turn-detail"></div>')
+                .append('<span class="turn-score"><span class="word">WORD</span><span class="word-score">(10)</span><span class="turn-total">total 20</span></span>')));
+      const $act = $("<div></div>").append(
+        p.game.describeTurn(turn, p.YOU, true));
+			assert($act[0].isEqualNode($exp[0]),"\n" +
+             "actual: " + $act.html() + "\n" +
+             "expect: " + $exp.html() + "\n");
+    });
+  });
 
-      turn = new Turn(game, {
+	it("describeTurn you played but no replacements", () => {
+    return make_p()
+		.then(p => {
+      // Tiles played and have replacements
+      const turn = new Turn(p.game, {
+        type: Turns.PLAYED,
+        playerKey: p.YOU.key,
+        placements: [ p.W, p.O, p.R, p.D ],
+        replacements: [],
+        words: [ { word: "WORD", score: 10 }],
+        score: 20
+      });
+      const $exp = $('<div><div class="turn-description"><div class="turn-player"><span class="player-name">Your</span> turn</div><div class="turn-detail"><span class="turn-score"><span class="word">WORD</span><span class="word-score">(10)</span><span class="turn-total">total 20</span></span></div><div class="turn-narrative">You have no more tiles, game will be over if your play isn\'t challenged</div></div></div>');
+      const $act = $("<div></div>").append(
+        p.game.describeTurn(turn, p.YOU, true));
+			assert($act[0].isEqualNode($exp[0]),"\n" +
+             "actual: " + $act.html() + "\n" +
+             "expect: " + $exp.html() + "\n");
+    });
+  });
+
+	it("describeTurn other played but no replacements", () => {
+    return make_p()
+		.then(p => {
+      // Tiles played but no replacements
+      const turn = new Turn(p.game, {
+        type: Turns.PLAYED,
+        playerKey: p.OTHER.key,
+        placements: [ p.W, p.O, p.R, p.D ],
+        replacements: [],
+        words: [ { word: "WORD", score: 10 }],
+        score: 20
+      });
+      const plan = `${p.OTHER.name}'s`;
+      const $player = $('<div class="turn-player"></div>')
+            .append(`<span class="player-name">${plan}</span> turn`);
+      const $word = $('<span class="word"></span>')
+            .append("WORD");
+      const $wordScore = $('<span class="word-score"></span>')
+            .append("(10)");
+      const $turnScore = $('<span class="turn-score"></span>')
+            .append($word)
+            .append($wordScore)
+            .append("<span class='turn-total'>total 20</span>");
+      const $detail = 
+            $('<div class="turn-detail"></div>')
+            .append($turnScore);
+      const nart = `${p.OTHER.name} has no more tiles, game will be over unless you challenge`;
+      const $narrative = $(`<div class="turn-narrative">${nart}</div>`);
+      const $exp = $("<div></div>")
+            .append($('<div class="turn-description"></div>')
+                    .append($player)
+                    .append($detail)
+                    .append($narrative));
+      const $act = $("<div></div>").append(
+        p.game.describeTurn(turn, p.YOU, true));
+      //console.log("", sact, "\n", sexp);
+			assert($player[0].isEqualNode($act.find(".turn-player")[0]));
+			assert($narrative[0].isEqualNode($act.find(".turn-narrative")[0]));
+			assert($word[0].isEqualNode($act.find(".word")[0]));
+			assert($wordScore[0].isEqualNode($act.find(".word-score")[0]));
+      assert($turnScore[0].isEqualNode($act.find(".turn-score")[0]));
+			assert($detail[0].isEqualNode($act.find(".turn-detail")[0]));
+
+			assert($exp[0].isEqualNode($act[0]),"\n" +
+             "actual: " + $act.html() + "\n" +
+             "expect: " + $exp.html() + "\n");
+    });
+  });
+
+	it("describeTurn you lost a challenge", () => {
+    return make_p()
+		.then(p => {
+      const turn = new Turn(p.game, {
         type: Turns.CHALLENGE_LOST,
-        playerKey: human1.key,
-        challengerKey: human1.key,
-        emptyPlayerKey: human1.key,
-        placements: [ W, O, R, D ],
+        playerKey: p.OTHER.key,
+        challengerKey: p.YOU.key,
+        placements: [ p.W, p.O, p.R, p.D ],
         words: [ { word: "WORD", score: 10 }],
         score: -20
       });
-      $exp =
-      $('<div class="turn-description"><div class="turn-player"><span class="player-name">Your</span> challenge</div><div class="turn-detail">Your challenge of your play failed. You lost 20 point{{PLURAL:20||s}}</div></div>');
-      sexp = $("<div></div>").append($exp).html();
-      $act = game.describeTurn(turn, human1, true);
-      sact = $("<div></div>").append($act).html();
+      const $tp = $('<div class="turn-player"><span class="player-name">Your</span> challenge</div>');
+      const tt = "Your challenge of OtherPlayer's play failed. You lost 20 points";
+      const $td = $('<div class="turn-detail"></div>').append(tt);
+      const $desc = $('<div class="turn-description"></div>')
+            .append($tp)
+            .append($td);
+
+      const $exp = $('<div></div>').append($desc);
+      const $act = $("<div></div>").append(
+        p.game.describeTurn(turn, p.YOU, true));
+
+      assert($tp[0].isEqualNode($act.find(".turn-player")[0]));
+      assert.equal($td.html(), $act.find(".turn-detail").html());
+
+      /* Node.isEqualNode fails, can't see why. Muddy boots. */
+      $td.text("BLAH"), $act.find(".turn-detail").text("BLAH");
+
+			assert($act[0].isEqualNode($exp[0]),"\n" +
+             "actual: " + $act.html() + "\n" +
+             "expect: " + $exp.html() + "\n"); 
+    });
+  });
+
+	it("describeTurn other lost a challenge", () => {
+    return make_p()
+		.then(p => {
+      const turn = new Turn(p.game, {
+        type: Turns.CHALLENGE_LOST,
+        playerKey: p.YOU.key,
+        challengerKey: p.OTHER.key,
+        placements: [ p.W, p.O, p.R, p.D ],
+        words: [ { word: "WORD", score: 10 }],
+        score: -20
+      });
+      const $exp =
+      $('<div class="turn-description"><div class="turn-player"><span class="player-name">OtherPlayer\'s</span> challenge</div><div class="turn-detail">OtherPlayer\'s challenge of your play failed. OtherPlayer lost 20 points</div></div>');
+      const sexp = $("<div></div>").append($exp).html();
+      const $act = p.game.describeTurn(turn, p.YOU, true);
+      const sact = $("<div></div>").append($act).html();
       assert.equal(sact, sexp);
 			//assert($act[0].isEqualNode($exp[0]),"\n" +
       //       "actual: " + sact + "\n" +
       //       "expect: " + sexp + "\n");
-      
-      turn = new Turn(game, {
+    });
+  });
+
+	it("describeTurn you won a challenge", () => {
+    return make_p()
+		.then(p => {
+      const turn = new Turn(p.game, {
         type: Turns.CHALLENGE_WON,
-        playerKey: human1.key,
-        challengerKey: human1.key,
-        emptyPlayerKey: human1.key,
-        placements: [ W, O, R, D ],
+        playerKey: p.OTHER.key,
+        challengerKey: p.YOU.key,
+        placements: [ p.W, p.O, p.R, p.D ],
         words: [ { word: "WORD", score: 10 }],
         score: 20
       });
-      $exp =
-      $('<div class="turn-description"><div class="turn-player"><span class="player-name">Your</span> turn</div><div class="turn-detail">You successfully challenged your play. You lost -20 point{{PLURAL:-20||s}}</div><div class="turn-narrative">You have no more tiles, game will be over if your play isn\'t challenged</div></div>');
-      sexp = $("<div></div>").append($exp).html();
-      $act = game.describeTurn(turn, human1, true);
-      sact = $("<div></div>").append($act).html();
+      const $exp =
+      $('<div class="turn-description"><div class="turn-player"><span class="player-name">OtherPlayer\'s</span> turn</div><div class="turn-detail">You successfully challenged OtherPlayer\'s play. OtherPlayer lost 20 points</div>');
+      const sexp = $("<div></div>").append($exp).html();
+      const $act = p.game.describeTurn(turn, p.YOU, true);
+      const sact = $("<div></div>").append($act).html();
       assert.equal(sact, sexp);
 			//assert($act[0].isEqualNode($exp[0]),"\n" +
       //       "actual: " + sact + "\n" +
       //       "expect: " + sexp + "\n");
-      
-      turn = new Turn(game, {
+    });
+  });
+
+	it("describeTurn you swapped", () => {
+    return make_p()
+		.then(p => {
+      const turn = new Turn(p.game, {
         type: Turns.SWAPPED,
-        playerKey: human1.key,
-        emptyPlayerKey: human1.key,
-        placements: [ W, O, R, D ],
-        replacements: [ W, O, R, D ],
+        playerKey: p.YOU.key,
+        placements: [ p.W, p.O, p.R, p.D ],
+        replacements: [ p.W, p.O, p.R, p.D ],
         words: [ { word: "WORD", score: 10 }],
         score: 20
       });
-      $exp =
-      $('<div class="turn-description"><div class="turn-player"><span class="player-name">Human 1\'s</span> turn</div><div class="turn-detail">Swapped 4 tile{{PLURAL:4||s}}</div><div class="turn-narrative">Human 1 has no more tiles, game will be over unless you challenge</div></div>');
-      sexp = $("<div></div>").append($exp).html();
-      $act = game.describeTurn(turn, robot1, true);
-      sact = $("<div></div>").append($act).html();
+      const $exp =
+      $('<div class="turn-description"><div class="turn-player"><span class="player-name">YouPlayer\'s</span> turn</div><div class="turn-detail">Swapped 4 tiles</div>');
+      const sexp = $("<div></div>").append($exp).html();
+      const $act = p.game.describeTurn(turn, p.OTHER, true);
+      const sact = $("<div></div>").append($act).html();
       assert.equal(sact, sexp);
 			//assert($act[0].isEqualNode($exp[0]),"\n" +
       //       "actual: " + sact + "\n" +
       //       "expect: " + sexp + "\n");
-      
-      turn = new Turn(game, {
+    });
+  });
+
+	it("describeTurn you ended the game", () => {
+    return make_p()
+		.then(p => {
+      const endScore = {};
+      endScore[p.YOU.key] = {tiles: 2, time: 1};
+      endScore[p.OTHER.key] = {tiles: 3, time: 0};
+      const turn = new Turn(p.game, {
         type: Turns.GAME_ENDED,
-        playerKey: human1.key,
-        challengerKey: human1.key,
-        placements: [ W, O, R, D ],
+        playerKey: p.YOU.key,
+        challengerKey: p.YOU.key,
+        placements: [ p.W, p.O, p.R, p.D ],
         words: [ { word: "WORD", score: 10 }],
-        score: { human1: {tiles: 2, time: 1}, robot1: {tiles: 3, time: 0}}
+        score: endScore
       });
-      $exp = $('<div class="turn-description"><div class="game-state">Game over</div><div class="game-winner">You and Robot 1 {{PLURAL:2|has|have}} won</div><div class="game-outcome"><div class="rack-adjust"></div><div class="time-adjust">You lost 1 point{{PLURAL:1||s}} to the clock</div><div class="rack-adjust"></div></div></div>');
-      sexp = $("<div></div>").append($exp).html();
-      $act = game.describeTurn(turn, human1, false);
-      sact = $("<div></div>").append($act).html();
+      const $exp = $('<div class="turn-description"><div class="game-state">Game over</div><div class="game-winner">You and OtherPlayer have won</div><div class="game-outcome"><div class="rack-adjust"></div><div class="time-adjust">You lost 1 point to the clock</div><div class="rack-adjust"></div></div></div>');
+      const sexp = $("<div></div>").append($exp).html();
+      const $act = p.game.describeTurn(turn, p.YOU, false);
+      const sact = $("<div></div>").append($act).html();
       assert.equal(sact, sexp);
 			//assert($act[0].isEqualNode($exp[0]),"\n" +
       //       "actual: " + sact + "\n" +

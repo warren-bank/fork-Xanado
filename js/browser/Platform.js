@@ -24,7 +24,7 @@ define([ "common/Platform" ], Platform => {
     }
 
     static fail(desc) {
-      alert(desc + "\nPlease report this to the developers, including the console log in your report\nan" + new Error(desc).stack);
+      alert(desc + "\nPlease report this to the developers, including the console log in your report\n" + new Error(desc).stack);
         throw new Error(desc || "Internal error");
     }
 

@@ -55,8 +55,8 @@ define([
       const s = JSON.stringify(Fridge.freeze(data), null, 1);
       //console.log("Writing", fn);
       return Fs.access(fn)
-      .then(acc => {
-        return Lock.lock(fn) // file exists
+      .then(acc => { // file exists
+        return Lock.lock(fn)
         .then(release => Fs.writeFile(fn, s)
               .then(() => release()));
       })
@@ -67,20 +67,17 @@ define([
     get(key, classes) {
       const fn = Path.join(this.directory, `${key}.${this.type}`);
 
-      /* Locking doesn't work cleanly; locks are often left dangling,
-         despite our releasing them religiously.
-
-         return Lock.lock(fn)
-         .then(release => Fs.readFile(fn)
-         .then(data => release()
-         .then(() => {
-         console.debug(`Unlocked ${fn}`);
-         return Fridge.thaw(JSON.parse(data), classes);
-         })));
-      */
-      return Fs.readFile(fn)
-      .then(data => {
-        return Fridge.thaw(JSON.parse(data), classes);
+      return Lock.lock(fn)
+      .catch(e => {
+        console.error("LOCK FAILURE", key);
+        return () => {};
+      })
+      .then(release => {
+        return Fs.readFile(fn)
+        .then(data => {
+          return release()
+          .then(() => Fridge.thaw(JSON.parse(data), classes));
+        });
       });
     }
 
