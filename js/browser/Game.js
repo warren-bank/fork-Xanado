@@ -137,6 +137,7 @@ define([
         // Check if the play emptied the rack of the playing player
         if (isLastTurn
             && turn.replacements.length === 0
+            && player.rack.isEmpty()
             && !this.hasEnded()) {
 
           const $narrative = $("<div></div>").addClass("turn-narrative");
