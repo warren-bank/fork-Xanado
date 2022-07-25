@@ -20,7 +20,7 @@ define([
     /**
      * @param {object} params named parameters, or other Player
      * object to copy. `name` and `key ` are required. Any of `_debug`,
-     * `isRobot`, `canChallenge`, `wantsAdvice`,`dictionary`, `isConnected` or
+     * `isRobot`, `canChallenge`, `wantsAdvice`,`dictionary` or
      * `missNextTurn` can be passed. The player will be initialised with
      * an empty rack (no squares).
      */
@@ -69,12 +69,13 @@ define([
          */
         this.clock = 0;
 
-      if (params.isConnected)
+      if (params._isConnected)
         /**
          * Whether the server thinks the player is connected or not.
+         * Not serialised.
          * @member {boolean}
          */
-        this.isConnected = true;
+        this._isConnected = true;
 
       if (params.missNextTurn)
         /**
@@ -145,7 +146,7 @@ define([
           score: this.score
         };
         if (this.isRobot) simple.isRobot = true;
-        if (this.isConnected) simple.isConnected = true;
+        if (this._isConnected) simple._isConnected = true;
         if (this.dictionary) simple.dictionary = this.dictionary;
         if (this.clock) simple.clock = this.clock;
         

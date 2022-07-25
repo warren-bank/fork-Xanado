@@ -42,7 +42,7 @@ define([ "platform" ], Platform => {
       // Robots are always connected
       const $status = $(`<td class='connect-state'>${BLACK_CIRCLE}</td>`);
       $status.addClass(
-        this.isConnected || this.isRobot ? "online" : "offline");
+        this._isConnected || this.isRobot ? "online" : "offline");
       $tr.append($status);
       
       $tr.append(`<td class='score'>${this.score}</td>`);
@@ -71,7 +71,7 @@ define([ "platform" ], Platform => {
     online(tf) {
       const conn = this.isRobot || tf;
       if (!this.isRobot)
-        this.isConnected = conn;
+        this._isConnected = conn;
       let rem = conn ? "offline" : "online";
       let add = conn ? "online" : "offline";
       $(`#player${this.key} .connect-state`)

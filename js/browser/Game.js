@@ -55,7 +55,7 @@ define([
           this.addPlayer(player, true);
           player._debug = this._debug;
         }
-        player.online(watcher.isConnected || watcher.isRobot);
+        player.online(watcher._isConnected || watcher.isRobot);
         newOrder.push(player);
         if (watcher.isNextToGo)
           this.whosTurnKey = player.key;

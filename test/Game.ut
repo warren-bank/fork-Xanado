@@ -164,7 +164,7 @@ describe("Game", () => {
       human3.score = 3;
       human4.score = 4;
       
-      human4.isConnected = true;
+      human4._isConnected = true;
       human4.isNextToGo = true;
       
       let player = game.getPlayer();

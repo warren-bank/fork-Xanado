@@ -199,9 +199,9 @@ define([
       };
       this._debug("<-S- !", player.key, message, messageSequenceNumber,
                   Utils.stringify(data));
-      // Player may be connected several times
       this._connections.forEach(
         socket => {
+          // Player may be connected several times, so check key and not object
           if (socket.player.key !== player.key)
             socket.emit(message, body);
           return false;
@@ -314,11 +314,11 @@ define([
       if (player) {
         for (const socket of this._connections) {
           if (socket.player && socket.player === player) {
-            player.isConnected = true;
+            player._isConnected = true;
             return socket;
           }
         }
-        player.isConnected = false;
+        player._isConnected = false;
       }
       return null;
     },
@@ -433,11 +433,11 @@ define([
       if (this.getConnection(player)) {
         console.error("WARNING:", playerKey, "already connected to",
                       this.key);
-        player.isConnected = true;
+        player._isConnected = true;
       } else if (player) {
         // This player is just connecting
         this._debug(`\t${player.name} connected to ${this.key}`);
-        player.isConnected = true;
+        player._isConnected = true;
       } else
         this._debug("\tconnected non-player");
 
@@ -456,7 +456,7 @@ define([
       /* istanbul ignore next */
       socket.on("disconnect", () => {
         if (socket.player) {
-          socket.player.isConnected = false;
+          socket.player._isConnected = false;
           this._debug(socket.player.name, "disconnected");
         } else
           this._debug("non-player disconnected");
