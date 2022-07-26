@@ -677,22 +677,22 @@ define([
       let theme = "default";
       if (req.user && req.user.settings && req.user.settings.theme)
         theme = req.user.settings.theme;
-      const dpath = Platform.getFilePath(`css/default/${req.params.css}`);
-      const path = Platform.getFilePath(`css/${theme}/${req.params.css}`);
-      this._debug("Send theme", path);
-      return new Promise(
-        (resolve, reject) => res.sendFile(
-          Path.normalize(path), {
-            dotfiles: "deny"
-          },
-          err => err ? reject(err) : resolve()))
-      .catch(e => new Promise(
-        // on error, fall back to default theme
-        (resolve, reject) => res.sendFile(
-          Path.normalize(dpath), {
-            dotfiles: "deny"
-          },
-          err => err ? reject(err) : resolve())));
+      this._debug("Send theme", theme, req.params.css);
+      let promises = [];
+      promises.push(
+        Fs.readFile(Platform.getFilePath(`css/default/${req.params.css}`))
+        .catch(e => `/*Could not load css/default/${req.params.css}`)
+        .then(data => data.toString()));
+      if (theme !== "default")
+        promises.push(
+          Fs.readFile(Platform.getFilePath(`css/${theme}/${req.params.css}`))
+          .catch(e => `/*Could not load css/${theme}/${req.params.css}`)
+          .then(data => data.toString()));
+      return Promise.all(promises)
+      .then(parts => res
+            .header('Content-Type', 'text/css')
+            .status(200)
+            .send(parts.join("")));
     }
 
     /**

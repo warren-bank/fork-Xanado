@@ -749,7 +749,7 @@ define([
           (player, i) =>
           $(countElements[i]).text(`(${player.rack.squaresUsed()})`));
       }
-      $(".swap-rack")
+      $("#swapRack")
       .toggle(remains >= this.game.rackSize);
     }
 
@@ -805,16 +805,16 @@ define([
       this.updatePlayerTable();
 
       if (this.player) {
-        $("#rackControls").prepend(this.player.rack.$ui());
+        $("#playRack .Surface").prepend(this.player.rack.$ui());
 
-        $(".swap-rack")
+        $("#swapRack")
         .append(this.swapRack.$ui("SWAP"));
 
         this.swapRack.$refresh();
       }
 
       const $board = game.board.$ui();
-      $("#board").append($board);
+      $("#board > .Surface").append($board);
 
       this.$log(true, $.i18n("Game started"), "game-state");
 
@@ -904,8 +904,7 @@ define([
         $(".turn-button").hide();
       }
       
-      this.$typingCursor = $("#typingCursor");
-      this.$typingCursor.hide(0);
+      this.$typingCursor = $("#board .typing-cursor");
 
       this.refresh();
 
@@ -1330,7 +1329,7 @@ define([
 
         // Use 'visibility' and not 'display' to keep the layout stable
         $(".unplace-button").css("visibility", "inherit");
-        $(".swap-rack").hide();
+        $("#swapRack").hide();
         return;
       }
 

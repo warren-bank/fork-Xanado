@@ -69,8 +69,8 @@ define([
 
       return Lock.lock(fn)
       .catch(e => {
-        console.error("LOCK FAILURE", key);
-        return () => {};
+        console.error("LOCK FAILURE", key, e);
+        return Promise.resolve();
       })
       .then(release => {
         return Fs.readFile(fn)

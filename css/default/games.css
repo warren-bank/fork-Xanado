@@ -1,6 +1,7 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
+
 /**
  * Styling specific to the "games" interface
  */
@@ -11,6 +12,28 @@ body {
   font-size: 1.2em;
 }
 
+/* Generic highlight for a button that does something risky e.g. a delete */
+.risky {
+  /*background-color: transparent;*/
+  color: #c33;
+}
+
+/* Wrap around signing options */
+#loginState {
+  float: right;
+  margin-top: 1em;
+}
+
+/* wrap around the sign out button */
+.logged-in {
+  display: none;
+}
+
+/* Wrap around the games list */
+#gamesTable {
+  margin-bottom: 1.5em;
+}
+
 /* A game in the games table */
 .game {
   border: 1px solid;
@@ -18,8 +41,6 @@ body {
   background-color: #F7F7E3;
   color: #333333;
   padding: 0.4em 0.2em 0.4em 0.2em;
-}
-.game {
   -webkit-box-shadow: 0 0 0.5em #000000;
   -moz-box-shadow: 0 0 0.5em #000000;
   -ms-box-shadow: 0 0 0.5em #000000;
@@ -27,39 +48,31 @@ body {
   box-shadow: 0 0 0.5em #000000;
 }
 
-.game > span {
+/* Line at the top of a game that is still visible when the game is closed */
+.headline {
   margin-left: 0.5em;
 }
 
-.logged-in {
-  display: none;
-}
-
+/* Xanado logo image */
 .logo {
   margin-top: 1em;
 }
 
+/* The key identifying the game */
 .game-key {
   float: right;
   font-size: smaller;
 }
 
+/* State of the game e.g. "Game over" */
 .game-state {
   margin-left: 1em;
   font-weight: bold;
 }
 
+/* The line describing options at the top of a row in the games table */
 .game-options {
   margin: 0.3em;
-}
-
-#gamesTable {
-  margin-bottom: 1.5em;
-}
-
-#loginState {
-  float: right;
-  margin-top: 1em;
 }
 
 #gamesCumulative, #gamesList {
@@ -77,9 +90,4 @@ body {
 
 .invitee {
   font-style: italic;
-}
-
-button.risky {
-  /*background-color: transparent;*/
-  color: #c33;
 }

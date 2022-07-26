@@ -29,11 +29,16 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
   </head>
   <body id="body" tabindex="0">
     <div class="user-interface">
-      <div class="board-wrap">
-        <div id="board" class="Surface surround-shade"></div>
-        <div id="rack" class="Surface">
-          <div id="rackControls">
+      <div id="board">
+        <div class="typing-cursor">&#8658;</div>
+        <div class="Surface surround-shade">
+          <!-- board will be inserted here in code -->
+        </div>
+        <div id="playRack">
+          <div class="Surface">
             <!-- rack will be inserted here in code -->
+          </div>
+          <div class="controls">
             <button class="shuffle-button fat-button"></button>
             <button class="unplace-button fat-button"></button>
           </div>
@@ -43,7 +48,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
         <div id="loginBlock" class="block">
           <div class="logged-in block-title">
             <span id="whoami"></span>
-            <div id="toolbox">
+            <div class="toolbox">
               <span class="settingsButton" data-i18n-tooltip="tooltip-settings">&#9881;</span>
               <span class="pauseButton" data-i18n-tooltip="tooltip-pause">&#128336;</span>
               <span class="undoButton" data-i18n-tooltip="tooltip-undo">&#11024;</span>
@@ -68,19 +73,20 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
         <div id="playBlock" class="block logged-in">
           <div class="block-title" data-i18n="Play"></div>
           <div class="your-move"></div>
-          <div class="swap-rack Surface bottom-shade"></div>
+          <div id="swapRack" class="Surface bottom-shade">
+            <!-- swap rack will be inserted here in code -->
+          </div>
           <button class="turn-button" data-action="pass" data-i18n="Pass">
           </button>
         </div>          
         <div id="chatBlock" class="block">
           <div class="block-title" data-i18n="Chat"></div>
-          <div class="chat-input" tabindex="1"><input/></div>
+          <div class="chat-input"><input tabindex="1" /></div>
         </div>
         <div id="logBlock" class="block">
           <div class="block-title" data-i18n="Log"></div>
           <div class="messages"></div>
         </div>
-        <div id="typingCursor">&#8658;</div>
       </div>
 
       <div id="blankDialog" class="dialog">

@@ -1,167 +1,36 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
-  License MIT. See README.md at the root of this distribution for full copyright
-  and license information. Author Crawford Currie http://c-dot.co.uk*/
+License MIT. See README.md at the root of this distribution for full copyright
+and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /**
  * Styling for the "game" interface
  */
 
-/* Button in the log area; challenge, take back */
-.turn-control button {
-  font-size: 120%;
-}
-
-#blocks {
-  width: 25em;
-}
-
-/* Title in one of the block areas - Scores, Play, Chat etc */
-.block-title {
-  font-size: 1em;
-  font-weight: bold;
-  color: brown;
-}
+/*------------ GENERIC ------------*/
 
 /* Wraps everything */
-div.user-interface {
+.user-interface {
   display: flex;
   justify-content: center;
 }
 
-/* Description of points gained and lost from final racks */
-.game-outcome .rack-adjust {}
-
-/* Description of points lost due to overtime */
-.game-outcome .time-adjust {}
-
-/* The player who just had a turn */
-.turn-player {
-  margin-top: 0.4em;
-  padding-left: 0.5em;
-}
-
-/* Details about the turn */
-.turn-detail {
-  margin-left: 2em;
-}
-
-.word-score,.turn-total {
-  margin-left: 0.25em;
-  margin-right: 0.5em;
-}
-
-/* Narrative desription of the outcome of the turn */
-.turn-narrative {
-  font-size: 110%;
-  margin-top: 0.5em;
-  color: #950000
-}
-
-/* A control placed in the log */
-.turn-control {
-  margin: 0.3em 0 0.3em 0;
-}
-
-/* Wrapper around the Board */
-div.board-wrap {
-  margin-top: 1em;
-  margin-left: 1em;
-  float: left;
-  /*width: 37em;*/
-}
-
-/* A tile rack */
-.rack {
-  border-width: 0.2em;
-  padding: 0.2em;
-  margin-bottom: 0.5em;
-}
-
-/* Background letters behind the swap rack */
-.underlay {
-  width: 100%;
-  height: 100%;
-  font-size: 1.7em;
-  line-height: 100%;
-  text-align: center;
-  vertical-align: middle;
-  display: flow-root list-item;
-  color: rgba(60, 60, 80, 0.3);
-}
-
-/* Highlight for the last played word */
-.last-placement {
-  background-color: #E2E298!important;
-}
-
-/* Highlight for a hint placement */
-.hint-placement {
-  background-color: #E2FF98!important;
-}
-
-/* an individual word in a list of words in the log */
-.word {
-  font-style: italic
-}
-
-/* an individual word score in a list of words in the log */
-.word-score {
-  font-size: 0.75em;
-}
-
-/* Clock in timed games */
-.player-clock {
-  visibility: none;
-  color: #080;
-}
-
-/* Clock highlights */
-.tick-alert-low {
-  color: #cc5801 !important;
-}
-
-.tick-alert-medium {
-  color:#fcae1e !important;
-}
-
-.tick-alert-high {
-  color: red !important;
-}
 
 /* Override jquery-ui for shuffle and take-back buttons */
-button.fat-button {
+.fat-button {
   width: 2em;
   height: 2em;
 }
 
-/* typing cursor on the board (there can be only one) */
-#typingCursor {
-  font-family: symbol;
-  font-size: 1.5em;
-  font-weight: bold;
-  color: green;
-  width: 80%;
-  height: 80%;
-  text-align: center;
-  position: relative;
-  z-index: 2;
+.rack {
+  border-width: 0.2em;
+  padding: 0.2em;
 }
 
-/* Div that wraps all the individual control panels */
-#controls {
-  float: left;
-  margin-top: 1em;
-  width: 20em;
-}
-
-/* Settings and signout div */
-#toolbox {
-  float: right;
-  font-size: 1.3em;
-}
+/*------------ BLOCKS ------------*/
 
 /* All divs within the controls area */
 .block {
+  min-width: 20em;
   background-color: #F7F7E3;
   border-color: #DCDCC6;
 
@@ -177,9 +46,38 @@ button.fat-button {
   padding: 0.4em;
 }
 
-/* The #controls div that contains login information and buttons */
+/* Generic */
+.player-name {
+  font-weight: bold;
+}
+
+/* Title in one of the blocks */
+.block-title {
+  font-size: 1em;
+  font-weight: bold;
+  color: brown;
+}
+
+/*------------ LOGIN BLOCK ------------*/
+
 #loginBlock {
 }
+
+/* Settings and signout div */
+#loginBlock .toolbox {
+  float: right;
+  font-size: 1.3em;
+}
+
+#loginBlock .undoButton {
+  display: none;
+}
+
+#loginBlock .redoButton {
+  display: none;
+}
+
+/*------------ "Scores" block ------------*/
 
 /* The #controls > div with the scores and letter bag state */
 #scoresBlock {
@@ -191,30 +89,51 @@ button.fat-button {
 }
 
 /* The #scoresBlock > div that has the letter bag status */
-#scoresBlock > .letterbag {
+#scoresBlock .letterbag {
   margin: 0.5em;
 }
 
-/* The #controls > div with the swap rack and turn control buttons */
+/* Clock in timed games */
+#scoresBlock .player-clock {
+  visibility: none;
+  color: #080;
+}
+
+/* Clock highlights */
+#scoresBlock .tick-alert-low {
+  color: #cc5801 !important;
+}
+
+#scoresBlock .tick-alert-medium {
+  color:#fcae1e !important;
+}
+
+#scoresBlock .tick-alert-high {
+  color: red !important;
+}
+
+/*------------ PLAY BLOCK ------------*/
+
 #playBlock {
 }
 
 /* #yourPlayBlock > div showing the proposed move */
-#playBlock > .your-move {
+#playBlock .your-move {
   margin-bottom: 0.5em;
 }
 
 /* Button for making a play */
-#playBlock > .turn-button {
+#playBlock .turn-button {
   font-size: 130%;
 }
 
-/* The #controls > div with the chat */
+/*------------ CHAT BLOCK ------------*/
+
 #chatBlock {
   max-height: 3em;
 }
 
-/* #chatBlock > div chat message capture */
+/* div that wraps message capture */
 #chatBlock > .chat-input {
   margin-top: 0.25em;
   width: 100%;
@@ -233,52 +152,157 @@ button.fat-button {
   color: #B00;
 }
 
+/*------------ LOG BLOCK ------------*/
+
 /* The div with the game events log */
 #logBlock {
 }
 
 /* container around all messages */
-#logBlock .messages {
+.messages {
   font-size: 80%;
   overflow: auto;
   max-height: 14em;
 }
 
 /* Wrapper around each individual entry in the log */
-#logBlock .message {
+.message {
 }
 
-#logBlock .game-state {
+.game-state {
   margin-top: 0.5em;
   font-weight: bold;
 }
 
-#logBlock .game-outcome {
+/* The player who just had a turn */
+.turn-player {
+  margin-top: 0.4em;
+  padding-left: 0.5em;
 }
 
-/* #rack > div, the rack and buttons used to control it */
-#rackControls {
+/* Details about the turn */
+.turn-detail {
+  margin-left: 2em;
+}
+
+.word-score, .turn-total {
+  margin-left: 0.2em;
+  margin-right: 0.25em;
+}
+
+/* Narrative generated when a player rack is empty */
+.turn-narrative {
+  font-size: 110%;
   margin-top: 0.5em;
-  width: 100%;
-  flex-direction: row;
-  justify-content: space-evenly;
-  align-items: center;
-  display: flex;
+  color: #950000
 }
 
-/* the rack */
-#rackControls .rack {
-  margin-bottom: 0;
+/* Description of points gained and lost from final racks */
+.game-outcome .rack-adjust {}
+
+/* Description of points lost due to overtime */
+.game-outcome .time-adjust {}
+
+/* A control placed in the log */
+.turn-control {
+  margin: 0.3em 0 0.3em 0;
+}
+
+/* Button in the log area; challenge, take back */
+.turn-control button {
+  font-size: 120%;
+}
+
+/* an individual word in a list of words in the log */
+.word {
+  font-style: italic
+}
+
+/* an individual word score in a list of words in the log */
+.word-score {
+  font-size: 0.75em;
+}
+
+/*------------ BOARD ------------*/
+
+#board {
+  margin-top: 1em;
+  margin-left: 1em;
+  float: left;
+  /*width: 37em;*/
+}
+
+/* Highlight for the last played word */
+#board .Surface .last-placement {
+  background-color: #E2E298!important;
+}
+
+/* Highlight for a hint placement */
+#board .Surface .hint-placement {
+  background-color: #E2FF98!important;
+}
+
+/* typing cursor (there can be only one) */
+#board .typing-cursor {
+  display: none;
+  font-family: symbol;
+  font-size: 1.5em;
+  font-weight: bold;
+  color: green;
+  width: 80%;
+  height: 80%;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+/*------------ PLAY RACK ------------*/
+
+#playRack {
+  margin-top: 0.5em;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+}
+
+#playRack .controls {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 
 /* rack control buttons - shuffle, unplace */
-#rackControls .fat-button {
+#playRack .shuffle-button {
   font-size: 1.2em;
 }
 
-.unplace-button {
+#playRack .unplace-button {
+  font-size: 1.2em;
   visibility: hidden;
 }
+
+/*------------ SWAP RACK ------------*/
+
+#swapRack {
+  margin-bottom: 0.3em;
+}
+
+/* Background letters behind the swap rack */
+#swapRack .underlay {
+  width: 100%;
+  height: 100%;
+  font-size: 1.7em;
+  line-height: 100%;
+  text-align: center;
+  vertical-align: middle;
+  display: flow-root list-item;
+  color: rgba(60, 60, 80, 0.3);
+}
+
+/*------------ DIALOGS ------------*/
 
 /* Blank letter requester dialog */
 #blankDialog .letterTable td {
@@ -299,14 +323,4 @@ button.fat-button {
   border-width: 0.1em;
 }
 
-.player-name {
-  font-weight: bold;
-}
 
-.undoButton {
-  display: none;
-}
-
-.redoButton {
-  display: none;
-}
