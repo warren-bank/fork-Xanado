@@ -60,7 +60,7 @@ requirejs([
       await db.get(gameKey, Game.classes)
       .then(game => game.onLoad(db))
       .then(game => {
-        return game.autoplay(game.getPlayer())
+        return game.autoplay()
         .then(turn => {
           if (game.hasEnded()) {
             console.log(game.state);
