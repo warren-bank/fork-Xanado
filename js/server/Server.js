@@ -681,7 +681,6 @@ define([
       let promises = [];
       promises.push(
         Fs.readFile(Platform.getFilePath(`css/default/${req.params.css}`))
-        .catch(e => `/*Could not load css/default/${req.params.css}`)
         .then(data => data.toString()));
       if (theme !== "default")
         promises.push(
