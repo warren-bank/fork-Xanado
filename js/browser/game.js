@@ -366,18 +366,18 @@ define([
             if (this.getSetting("warnings"))
               this.playAudio("oops");
             this.notify(
-              /*.i18n("ui-notify-title-succeeded")*/
-              /*.i18n("ui-notify-body-succeeded")*/
+              /*i18n*/"Challenge succeeded!",
+              /*i18n*/"$1 has successfully challenged your turn. You have lost the $2 points you scored, and the tiles you played are back on your rack",
               this.game.getPlayerWithKey(turn.playerKey).name,
               -turn.score);
           }
         }
 
         if (turn.type == Turns.TOOK_BACK) {
-          /*.i18n("ui-notify-title-retracted")*/
-          /*.i18n("ui-notify-body-retracted")*/
-          this.notify("retracted",
-                      this.game.getPlayerWithKey(turn.playerKey).name);
+          this.notify(
+            /*i18n*/"Move retracted!",
+            /*i18n*/"$1 has taken back their turn",
+            this.game.getPlayerWithKey(turn.playerKey).name);
         }
         break;
 
@@ -386,13 +386,12 @@ define([
           this.playAudio("oops");
         if (challenger === this.player) {
           // Our challenge failed
-          /*.i18n("ui-notify-title-you-failed")*/
-          /*.i18n("ui-notify-body-you-failed")*/
-          this.notify("you-failed");
+          this.notify(/*i18n*/"Your challenge failed",
+            /*i18n*/"Your challenge failed");
         } else {
-          /*.i18n("ui-notify-title-they-failed")*/
-          /*.i18n("ui-notify-body-they-failed")*/
-          this.notify("they-failed", player.name);
+          this.notify(/*.i18n*/"Failed challenge!",
+            /*i18n*/"$1 challenged your turn, but the dictionary backed you up",
+            player.name);
         }
         break;
 
@@ -444,9 +443,9 @@ define([
         this.takeBackTiles();
         this.setAction("action_anotherGame", /*i18n*/"Another game?");
         this.enableTurnButton(true);
-        /*.i18n("ui-notify-title-game-over")*/
-        /*.i18n("ui-notify-body-game-over")*/
-        this.notify("game-over");
+        this.notify(
+          /*i18n*/"Game over",
+          /*i18n*/"Your game is over...");
 
         if (this.player === this.game.getWinner()) {
             if (this.getSetting("cheers"))
@@ -485,10 +484,9 @@ define([
         if (this.isThisPlayer(turn.nextToGoKey)
             && turn.type !== Turns.TOOK_BACK) {
           // It's our turn next, and we didn't just take back
-          /*.i18n("ui-notify-title-your-turn")*/
-          /*.i18n("ui-notify-body-your-turn")*/
-          this.notify("your-turn",
-                      this.game.getPlayerWithKey(turn.playerKey).name);
+          this.notify(/*i18n*/"Your turn",
+            /*i18n*/"$1 has taken their turn and now it is your turn",
+            this.game.getPlayerWithKey(turn.playerKey).name);
         }
         this.game.whosTurnKey = turn.nextToGoKey;
         this.updateWhosTurn();

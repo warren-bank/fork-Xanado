@@ -357,14 +357,13 @@ define([
 
     /**
      * Generate a notification using the HTML5 notifications API
-     * @param {string} id notification id
+     * @param {string} title i18n notification title id
+     * @param {string} body i18n notification body id
+     * @param [...] arguments to i18n body id
      */
     notify() {
       const args = Array.from(arguments);
-      const id = args[0];
-      args[0] = `ui-notify-title-${id}`;
-      const title = $.i18n.call(args);
-      args[0] = `ui-notify-body-${id}`;
+      const title = $.i18n(args.shift());
       const body = $.i18n.call(args);
       this.canNotify()
       .then(() => {
