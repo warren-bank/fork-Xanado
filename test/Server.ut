@@ -272,7 +272,7 @@ describe("Server", () => {
       .end((err, res) => {
         //console.log(res.headers);
         assert.equal(
-          res.headers['content-type'], "text/css; charset=UTF-8");
+          res.headers['content-type'].toLowerCase(), "text/css; charset=utf-8");
         assert.equal(res.status, 200);
         resolve();
       });
