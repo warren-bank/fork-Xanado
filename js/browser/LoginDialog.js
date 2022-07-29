@@ -39,7 +39,7 @@ define(["browser/Dialog"], Dialog => {
       if ($las.length > 0) {
         $.get("/session")
         .then(user => $las.text(
-          $.i18n("um-logged-in-as", user.name)));
+          $.i18n("Logged in as $1", user.name)));
       }
       
       this.$dlg.find(".forgotten-password")

@@ -49,19 +49,5 @@
   "tooltip-time-penalty": "'Game timer' only; points lost for each minute the player has gone over their allotted time. Default is 5 points.",
   "tooltip-timer-type": "'Turn timer' lets you set a maximum time for each player to play before they are forced to pass. 'Game timer' is like a chess clock, it lets you set a total amount of time a player has to play all their moves before incurring penalties.",
   "tooltip-undo": "Undo the last play",
-  "tooltip-word-check": "You can check words after the play is committed (only the player is told if the word is valid) or have the computer reject unknown words.",
-  "um-bad-pass": "Wrong password for '$1'",
-  "um-bad-user": "Bad username '$1'",
-  "um-forgot": "Lost your password? Please enter the email you registered with, and I'll send you a reset link.",
-  "um-logged-in-as": "$1",
-  "um-logged-out": "$1 signed out",
-  "um-mail-not-configured": "Sorry, but email is not available on this server. You will have to ask the server admin for your password.",
-  "um-no-such-user": "Player '$1' is not known. Use the 'Sign up' tab to register.",
-  "um-not-logged-in": "Not signed in",
-  "um-pass-changed": "Password for $1 changed",
-  "um-password-reset": "Password reset",
-  "um-reset-html": "Click <a href='$1'>here</a> to reset your password.",
-  "um-reset-sent": "Password reset email has been sent",
-  "um-reset-text": "Follow this link to reset your password: ",
-  "um-user-exists": "'$1' is already registered"
+  "tooltip-word-check": "You can check words after the play is committed (only the player is told if the word is valid) or have the computer reject unknown words."
 }

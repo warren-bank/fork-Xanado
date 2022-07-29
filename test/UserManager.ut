@@ -38,7 +38,7 @@ describe("UserManager class", () => {
     .get("/session")
     .end((err, res) => {
       assert.equal(res.status, 401);
-      chai.assert.deepEqual(res.body, ["um-not-logged-in"]);
+      chai.assert.deepEqual(res.body, ["Not signed in"]);
       resolve();
     });
   }));
@@ -54,7 +54,7 @@ describe("UserManager class", () => {
       .send({})
       .end((err, res) => {
         assert.equal(res.status, 403);
-        chai.assert.deepEqual(res.body, ["um-bad-user", null]);
+        chai.assert.deepEqual(res.body, ["Bad username '$1'", null]);
         resolve();
       });
     }));
@@ -93,7 +93,8 @@ describe("UserManager class", () => {
             .send(details)
             .end((err, res) => {
               assert.equal(res.status, 403);
-              chai.assert.deepEqual(res.body, ["um-user-exists", "test_user"]);
+              chai.assert.deepEqual(res.body, [
+                "'$1' is already registered", "test_user"]);
               resolve();
             });
           })));
@@ -181,7 +182,7 @@ describe("UserManager class", () => {
       })
       .end((err, res) => {
         assert.equal(res.status, 401);
-        // NO! chai.assert.deepEqual(res.body, ["um-not-logged-in"]);
+        // NO! chai.assert.deepEqual(res.body, ["Not signed in"]);
         resolve();
       });
     }))
@@ -210,7 +211,7 @@ describe("UserManager class", () => {
       .set('Cookie', cookie)
       .end((err, res) => {
         assert.equal(res.status, 401);
-        chai.assert.deepEqual(res.body, ["um-not-logged-in"]);
+        chai.assert.deepEqual(res.body, ["Not signed in"]);
         resolve();
       });
     }))
@@ -229,7 +230,7 @@ describe("UserManager class", () => {
       })
       .end((err, res) => {
         assert.equal(res.status, 401);
-        // NO! chai.assert.deepEqual(res.body, ["um-not-logged-in"]);
+        // NO! chai.assert.deepEqual(res.body, ["Not signed in"]);
         resolve();
       });
     }))
@@ -307,7 +308,7 @@ describe("UserManager class", () => {
       .end((err, res) => {
         //console.log(res.body);
         assert.equal(res.status, 401);
-        TS.sparseEqual(res.body, [ 'um-not-logged-in']);
+        TS.sparseEqual(res.body, [ 'Not signed in']);
         resolve();
       });
     })
@@ -368,7 +369,7 @@ describe("UserManager class", () => {
         //console.log(res.body);
         assert.equal(res.status, 403);
         TS.sparseEqual(res.body, [
-          "um-no-such-user",
+          "Player '$1' is not known. Use the 'Sign up' tab to register.",
           "unknown@email.com"
         ]);
         resolve();
@@ -382,7 +383,7 @@ describe("UserManager class", () => {
         //console.log(res.text, token);
         assert.equal(res.status, 200);
         TS.sparseEqual(res.body, [
-          "um-reset-sent",
+          "Password reset email has been sent",
           "test_user"
         ]);
         assert(token);
@@ -419,7 +420,7 @@ describe("UserManager class", () => {
       .send({password: "wtf"})
       .end((err, res) => {
         assert.equal(res.status, 401);
-        TS.sparseEqual(res.body, ["um-not-logged-in"]);
+        TS.sparseEqual(res.body, ["Not signed in"]);
         resolve();
       });
     }))
@@ -436,7 +437,7 @@ describe("UserManager class", () => {
       .end((err, res) => {
         assert.equal(res.status, 200);
         TS.sparseEqual(res.body, [
-          "um-pass-changed",
+          "Password for $1 changed",
           "test_user"
         ]);
         resolve();
@@ -468,7 +469,7 @@ describe("UserManager class", () => {
       })
       .end((err, res) => {
         assert.equal(res.status, 401);
-        // NO! chai.assert.deepEqual(res.body, ["um-not-logged-in"]);
+        // NO! chai.assert.deepEqual(res.body, ["Not signed in"]);
         resolve();
       });
     }));

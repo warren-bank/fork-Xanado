@@ -350,18 +350,18 @@ define([
             if (typeof uo.pass === "undefined") {
               if (desc.pass === uo.pass)
                 return uo;
-              throw new Error(/*i18n*/"um-bad-pass");
+              throw new Error(/*i18n*/"Wrong password for '$1'");
             }
             return pw_compare(desc.pass, uo.pass)
             .then(ok => {
               if (ok)
                 return uo;
-              throw new Error(/*i18n*/"um-bad-pass");
+              throw new Error(/*i18n*/"Wrong password for '$1'");
             })
             .catch(e => {
               this._debug("getUser", desc,
                           "failed; bad pass", e);
-              throw new Error(/*i18n*/"um-bad-pass");
+              throw new Error(/*i18n*/"Wrong password for '$1'");
             });
           }
 
@@ -370,7 +370,8 @@ define([
             return uo;
         }
         this._debug("getUser", desc, "failed; no such user");
-        throw new Error(/*i18n*/"um-no-such-user");
+        throw new Error(
+          /*i18n*/"Player '$1' is not known. Use the 'Sign up' tab to register.");
       });
     }
 
@@ -511,11 +512,11 @@ define([
       const pass = req.body.register_password;
       if (!username)
         return this.sendResult(
-          res, 403, [ /*i18n*/"um-bad-user", username ]);
+          res, 403, [ /*i18n*/"Bad username '$1'", username ]);
       return this.getUser({name: username }, true)
       .then(() => {
         this.sendResult(
-          res, 403, [ /*i18n*/"um-user-exists", username ]);
+          res, 403, [ /*i18n*/"'$1' is already registered", username ]);
       })
       .catch(() => {
         // New user
@@ -543,10 +544,10 @@ define([
         this._debug("Logging out", departed);
         return new Promise(resolve => req.logout(resolve))
         .then(() => this.sendResult(res, 200, [
-          /*i18n*/"um-logged-out", departed ]));
+          /*i18n*/"$1 signed out", departed ]));
       }
       return this.sendResult(
-        res, 401, [ /*i18n*/"um-not-logged-in" ]);
+        res, 401, [ /*i18n*/"Not signed in" ]);
     }
 
     /**
@@ -565,7 +566,7 @@ define([
         })));
 
       return this.sendResult(
-        res, 401, [ /*i18n*/"um-not-logged-in" ]);
+        res, 401, [ /*i18n*/"Not signed in" ]);
     }
 
     /**
@@ -589,11 +590,11 @@ define([
         })
         .then(() => this.writeDB())
         .then(() => this.sendResult(res, 200, [
-          /*i18n*/"um-pass-changed",
+          /*i18n*/"Password for $1 changed",
           req.session.passport.user.name ]));
       }
       return this.sendResult(
-        res, 401, [ /*i18n*/"um-not-logged-in" ]);
+        res, 401, [ /*i18n*/"Not signed in" ]);
     }
 
     /**
@@ -616,22 +617,24 @@ define([
           /* istanbul ignore if */
           if (!this.config.mail)
             return this.sendResult(res, 500, [
-              /*i18n*/"um-mail-not-configured" ]);
+              /*i18n*/"Sorry, but email is not available on this server. You will have to ask the server admin for your password." ]);
           return this.config.mail.transport.sendMail({
             from: this.config.mail.sender,
             to:  user.email,
-            subject: Platform.i18n("um-password-reset"),
-            text: Platform.i18n("um-reset-text") + url,
-            html: Platform.i18n("um-reset-html", url)
+            subject: Platform.i18n("Password reset"),
+            text: Platform.i18n(
+              "Follow this link to reset your password: $1", url),
+            html: Platform.i18n(
+              "Click <a href='$1'>here</a> to reset your password.", url)
           })
           .then(() => this.sendResult(
-            res, 200, [ /*i18n*/"um-reset-sent", user.name ]))
+            res, 200, [ /*i18n*/"Password reset email has been sent", user.name ]))
           .catch(
             /* istanbul ignore next */
             e => {
               console.error("WARNING: Mail misconfiguration?", e);
               return this.sendResult(
-                res, 500, [  /*i18n*/"um-mail-not-configured" ]);
+                res, 500, [  /*i18n*/"Sorry, but email is not available on this server. You will have to ask the server admin for your password." ]);
             });
         });
       })
@@ -654,7 +657,7 @@ define([
           key: req.user.key,
           settings: req.user.settings
         });
-      return this.sendResult(res, 401, [  /*i18n*/"um-not-logged-in" ]);
+      return this.sendResult(res, 401, [  /*i18n*/"Not signed in" ]);
     }
 
     /**
@@ -675,7 +678,7 @@ define([
         });
       }
       /* istanbul ignore next */
-      return this.sendResult(res, 401, [  /*i18n*/"um-not-logged-in" ]);
+      return this.sendResult(res, 401, [  /*i18n*/"Not signed in" ]);
     }
 
     /**
@@ -688,7 +691,7 @@ define([
     checkLoggedIn(req, res, next) {
       if (req.isAuthenticated())
         return next();
-      return this.sendResult(res, 401, [ /*i18n*/"um-not-logged-in" ]);
+      return this.sendResult(res, 401, [ /*i18n*/"Not signed in" ]);
     }
   }
 
