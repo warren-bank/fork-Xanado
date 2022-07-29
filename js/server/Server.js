@@ -419,6 +419,10 @@ define([
 
       switch (verb) {
 
+      case "autoplay":
+        socket.game.autoplay();
+        break;
+
       case "hint":
         socket.game.hint(socket.player);
         break;
