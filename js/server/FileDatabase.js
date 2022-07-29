@@ -75,8 +75,9 @@ define([
       .then(release => {
         return Fs.readFile(fn)
         .then(data => {
-          return release()
-          .then(() => Fridge.thaw(JSON.parse(data), classes));
+          if (typeof release === "function")
+            release();
+          return Fridge.thaw(JSON.parse(data), classes);
         });
       });
     }
