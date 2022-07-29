@@ -6,6 +6,7 @@
   " $1 won": "winner name in game headline",
   "$1 and $2": "Presenting a list of N players; $1 is a player or a comma-separated list of N-1 players, $2 is the Nth player in the list",
   "$1 asked for a hint": "log message sent to all players when player $1 asks for a hint",
+  "$1 asked the robot to play for them": "log message sent to other players when player $1 asks the robot to take their play",
   "$1 at row $2 column $3 would have scored $4": "post-play Advisor indication of a better play $1 is word, $2 row, $3 col, $4 score",
   "$1 challenge of $2 play failed.": "log message, $1 is You or player's, $2 is Your or player's",
   "$1 gained $2 point{{PLURAL:$2||s}} from the racks of other players": "End-of-game log message, $1 is player name, $2 is points",

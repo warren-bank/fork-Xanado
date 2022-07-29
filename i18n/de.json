@@ -7,6 +7,7 @@
   " $1 won": "$1 gewonnen",
   "$1 and $2": "$1 und $2",
   "$1 asked for a hint": "$1 hat nach einem Hinweis gefragt",
+  "$1 asked the robot to play for them": "$1 asked the robot to play for them",
   "$1 at row $2 column $3 would have scored $4": "$1 in Zeile $2 Spalte $3 hätte $4 erzielt",
   "$1 challenge of $2 play failed." : "$1-Herausforderung von $2-Spiel fehlgeschlagen.",
   "$1 gained $2 point{{PLURAL:$2||s}} from the racks of other players": "$1 hat $2 Punkte{{PLURAL:$2||s}} von den Racks anderer Spieler gewonnen",

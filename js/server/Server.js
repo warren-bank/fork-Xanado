@@ -420,6 +420,14 @@ define([
       switch (verb) {
 
       case "autoplay":
+        // Tell *everyone else* that they asked for a hint
+        socket.game.notifyOthers(socket.player, Notify.MESSAGE, {
+          sender: /*i18n*/"Advisor",
+          text: /*i18n*/"$1 asked the robot to play for them",
+          classes: "warning",
+          args: [ socket.player.name ],
+          timestamp: Date.now()
+        });
         socket.game.autoplay();
         break;
 

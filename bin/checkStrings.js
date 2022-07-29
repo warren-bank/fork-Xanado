@@ -122,6 +122,16 @@ requirejs([
       if (mess.length > 0)
         console.error("----", lang, "has strings that are not in qqq\n",
                       mess.join("\n"));
+      if (lang !== "en") {
+        mess = [];
+        for (const string of Object.keys(strings[lang])) {
+          if (lang !== "en" && string == strings[lang][string])
+            mess.push(`\t${string}`);
+        }
+        if (mess.length > 0)
+          console.error("----", lang, "has strings that may not have been translated\n",
+                        mess.join("\n"));
+      }
     }
   });
 });
