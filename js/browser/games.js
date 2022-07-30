@@ -166,7 +166,7 @@ requirejs([
           $("<button name='join' title=''></button>")
           .button({ label: $.i18n("Open game") })
           .tooltip({
-            content: $.i18n("tooltip-open-game")
+            content: $.i18n("Open this game in a new window.")
           }) .on("click", () => {
             console.log(`Join game ${game.key}/${this.session.key}`);
             $.post(`/join/${game.key}`)
@@ -183,7 +183,7 @@ requirejs([
           $("<button name='leave' title='' class='risky'></button>")
           .button({ label: $.i18n("Leave game") })
           .tooltip({
-            content: $.i18n("tooltip-leave-game")
+            content: $.i18n("If you leave the game your score will still count towards the leader board.")
           })
           .on("click", () => {
             console.log(`Leave game ${game.key}`);
@@ -199,7 +199,7 @@ requirejs([
           $("<button name='removeRobot' title=''></button>")
           .button({ label: $.i18n("Remove robot") })
           .tooltip({
-            content: $.i18n("tooltip-remove-robot")
+            content: $.i18n("Remove the robot from this game.")
           })
           .on("click", () => {
             console.log(`Remove robot from ${game.key}`);
@@ -218,7 +218,7 @@ requirejs([
           $("<button name='email' title=''></button>")
           .button({ label: $.i18n("Send reminder") })
           .tooltip({
-            content: $.i18n("tooltip-email-reminder")
+            content: $.i18n("Email a reminder to player whose turn it is.")
           })
           .on("click", () => {
             console.log("Send reminder");
@@ -376,7 +376,7 @@ requirejs([
           $join
           .button({ label: $.i18n("Join game") })
           .tooltip({
-            content: $.i18n("tooltip-join-game")
+            content: $.i18n("Join the game and open it in a new window.")
           })
           .on("click", () => {
             console.log(`Join game ${game.key}`);
@@ -394,7 +394,7 @@ requirejs([
             $(`<button name='robot' title=''></button>`)
             .button({ label: $.i18n("Add robot") })
             .tooltip({
-              content: $.i18n("tooltip-add-robot")
+              content: $.i18n("Add a robot player to this game.")
             })
             .on("click", () =>
                 Dialog.open("AddRobotDialog", {
@@ -412,7 +412,7 @@ requirejs([
             $("<button name='invite' title=''></button>")
             .button({ label: $.i18n("Invite players")})
             .tooltip({
-              content: $.i18n("tooltip-invite-players")
+              content: $.i18n("Send emails to invite people to join the game.")
             })
             .on("click", () => Dialog.open("InvitePlayersDialog", {
               postAction: `/invitePlayers/${game.key}`,
@@ -441,7 +441,7 @@ requirejs([
         $twist.append(
           $("<button name='delete' title='' class='risky'></button>")
           .tooltip({
-            content: $.i18n("tooltip-delete-game")
+            content: $.i18n("CAREFUL! This cannot be undone!")
           })
           .button({ label: $.i18n("Delete") })
           .on("click", () => $.post(`/deleteGame/${game.key}`)
@@ -457,7 +457,7 @@ requirejs([
         $("<button name='observe' title=''></button>")
         .button({ label: obs })
         .tooltip({
-          content: $.i18n("tooltip-observe-game")
+          content: $.i18n("Open a board to watch the game, but not play.")
         })
         .on("click", () => $("#observeDialog")
             .dialog({
@@ -579,7 +579,7 @@ requirejs([
           $gt.empty();
           data.forEach(player => {
             const s = $.i18n(
-              "games-scores", n++, player.name, player.score,
+              "$1: <b>$2</b>: $3 ($5 win{{PLURAL:$5||s}} from $4 game{{PLURAL:$4||s}})", n++, player.name, player.score,
               player.games, player.wins);
             $gt.append(`<div class="player-cumulative">${s}</div>`);
           });

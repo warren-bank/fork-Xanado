@@ -177,7 +177,7 @@ define([
         + " "
         + $.i18n(
           "$1 lost $2 point{{PLURAL:$2||s}}",
-          playerIndicative, -turn.score));
+          playerIndicative, turn.score));
         break;
 
       case Turns.CHALLENGE_LOST:
