@@ -1251,6 +1251,7 @@ define([
           this.promptForLetter()
           .then(letter => {
             tile.letter = letter;
+            tile.$div(); // Force a refresh of the tile
           });
         }
       }
