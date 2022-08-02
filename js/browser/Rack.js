@@ -19,16 +19,14 @@ define(() => {
      * the rack squares.
      * @return {jQuery}
      */
-    $ui(underlay) {
+    $table(underlay) {
       const $table = $('<table class="rack"></table>');
       const $tbody = $("<tbody></tbody>");
       $table.append($tbody);
-      const $tr = $(`<tr></tr>`);
-      let idx = 0;
+      const $tr = $("<tr></tr>");
       this.forEachSquare(square => {
-        const $td = square.$ui(idx);
-        $tr.append($td);
-        idx++;
+        $tr.append(square.$td());
+        return false;
       });
       $tbody.append($tr);
       return $table;

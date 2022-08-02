@@ -24,6 +24,9 @@ define([
   const State   = Types.State;
   const Turns   = Types.Turns;
 
+  const RIGHT_ARROW = "&#8658;";
+  const DOWN_ARROW  = "&#8659;";
+  
   // Check that incoming notifications are in the sequence we expect.
   // The sequence may have gaps, because some notifications only
   // go to a subset of users.
@@ -230,7 +233,7 @@ define([
       if (message.sender === "Advisor"
           && args[0] === /*i18n*/"_hint_") {
         let row = args[2] - 1, col = args[3] - 1;
-        $(`#Board_${col}x${row}`).addClass("hint-placement");
+        $(`#Board_${col}x${row} .Tile`).addClass("hint-placement");
       }
     }
 
@@ -301,6 +304,7 @@ define([
         boardSquare => {
           if (this.takeBackTile(boardSquare))
             this.placedCount--;
+          return false;
         });
 
       this.game.pushTurn(turn);
@@ -314,18 +318,21 @@ define([
 
       if (turn.type === Turns.CHALLENGE_LOST) {
         challenger.score += turn.score;
-        challenger.$refresh();
+        challenger.$refreshScore();
       } else {
         switch (typeof turn.score) {
-        case "number": player.score += turn.score; break;
+        case "number":
+          player.score += turn.score;
+          player.$refreshScore();
+          break;
         case "object":
           for (const k in turn.score) {
             const delta = turn.score[k];
-            this.game.getPlayerWithKey(k).score +=
-            (delta.tiles || 0) + (delta.time || 0);
+            const p = this.game.getPlayerWithKey(k);
+            p.score += (delta.tiles || 0) + (delta.time || 0);
+            p.$refreshScore();
           }
         }
-        player.$refresh();
       }
 
       // Unhighlight last placed tiles
@@ -360,8 +367,6 @@ define([
 
         // Was it us?
         if (wasUs) {
-          player.rack.$refresh();
-
           if (turn.type === Turns.CHALLENGE_WON) {
             if (this.getSetting("warnings"))
               this.playAudio("oops");
@@ -406,11 +411,9 @@ define([
           const square = this.game.at(placement.col, placement.row);
           const tile = player.rack.removeTile(placement);
           square.placeTile(tile, true);
-          if (wasUs)
-            square.$refresh();
-          else
+          if (!wasUs)
             // Highlight the tile as "just placed"
-            $(`#${square.id}`).addClass("last-placement");
+            $(`#${square.id} .Tile`).addClass("last-placement");
         }
 
         // Shrink the bag by the number of new
@@ -430,8 +433,6 @@ define([
         if (turn.replacements) {
           for (const newTile of turn.replacements)
             player.rack.addTile(new Tile(newTile));
-
-          player.rack.$refresh();
         }
 
         break;
@@ -803,16 +804,15 @@ define([
       this.updatePlayerTable();
 
       if (this.player) {
-        $("#playRack .Surface").prepend(this.player.rack.$ui());
+        $("#playRack .Surface")
+        .append(this.player.rack.$table());
 
         $("#swapRack")
-        .append(this.swapRack.$ui("SWAP"));
-
-        this.swapRack.$refresh();
+        .append(this.swapRack.$table("SWAP"));
       }
 
-      const $board = game.board.$ui();
-      $("#board > .Surface").append($board);
+      const $board = game.board.$table();
+      $("#board").append($board);
 
       this.$log(true, $.i18n("Game started"), "game-state");
 
@@ -902,9 +902,7 @@ define([
         $(".turn-button").hide();
       }
       
-      this.$typingCursor = $("#board .typing-cursor");
-
-      this.refresh();
+      this.$typingCursor = $("#typingCursor");
 
       return Promise.resolve();
     }
@@ -1000,14 +998,17 @@ define([
 
       // Events raised by game components
       $(document)
-      .on("SquareChanged",
-          (e, square) => square.$refresh())
+      .on("TilePlaced",
+          (e, square) => square.$placeTile())
+
+      .on("TileUnplaced",
+          (e, square, tile) => square.$unplaceTile(tile))
 
       .on("SelectSquare",
           (e, square) => this.selectSquare(square))
 
-      .on("DropSquare",
-          (e, source, square) => this.dropSquare(source, square))
+      .on("DropTile",
+          (e, source, square) => this.dropTile(source, square))
 
       // Keydown anywhere in the document
       .on("keydown", event => this.keyDown(event));
@@ -1072,21 +1073,22 @@ define([
     }
 
     /**
-     * Square selection is used for click-click moves when dragging
-     * isn't available
-     * @param {Square?} square square to select, or null to clear the
-     * selection
+     * Selection is used for click-click tile moves when dragging
+     * isn't available. It's just a visual aid.
+     * @param {Square?} square square containing tile to select, or
+     * undefined to clear the selection
      */
     selectSquare(square) {
       if (square)
         console.debug(`select ${square.id}`);
 
-      if (this.selectedSquare) {
+     if (this.selectedSquare) {
         // Is a square already selected?
         if (!this.selectedSquare.isEmpty()) {
           // The the destination available for a move?
           if (square && square.isEmpty() && square !== this.selectedSquare) {
             this.moveTile(this.selectedSquare, square);
+            square = undefined;
           }
         } else if (square === this.selectedSquare) {
           this.rotateTypingCursor();
@@ -1108,10 +1110,10 @@ define([
      */
     rotateTypingCursor() {
       if (this.typeAcross) {
-        this.$typingCursor.html("&#8659;"); // Down arrow
+        this.$typingCursor.html(DOWN_ARROW);
         this.typeAcross = false;
       } else {
-        this.$typingCursor.html("&#8658;"); // Right arrow
+        this.$typingCursor.html(RIGHT_ARROW);
         this.typeAcross = true;
       }
     }
@@ -1120,12 +1122,14 @@ define([
      *  Update the typing cursor DOM to sit over the selectedSquare
      */
     updateTypingCursor() {
-      if (this.selectedSquare && this.selectedSquare.isEmpty()) {
+      if (this.selectedSquare
+          && this.selectedSquare.isOnBoard
+          && this.selectedSquare.isEmpty()) {
         const $dom = $(`#${this.selectedSquare.id}`);
         $dom.prepend(this.$typingCursor);
         this.$typingCursor.show();
       } else
-        this.$typingCursor.hide();
+        this.$typingCursor.remove();
     }
 
     /**
@@ -1158,29 +1162,18 @@ define([
     }
 
     /**
-     * Handler for 'DropSquare' event, invoked when a draggable has
+     * Handler for 'DropTile' event, invoked when a tile has
      * been dropped on a square.
      * @param {Square} fromSquare the square the tile is coming from
      * @param {Square} toSquare the square the tile is moving to
      */
-    dropSquare(fromSource, toSquare) {
-      if (fromSource.tile) {
-        this.moveTile(fromSource, toSquare);
-        this.selectSquare(null);
+    dropTile(fromSquare, toSquare) {
+      if (fromSquare.tile) {
+        this.moveTile(fromSquare, toSquare);
+        this.selectSquare();
         if (this.getSetting("tile_click"))
           this.playAudio("tiledown");
       }
-    }
-
-    /**
-     * Redraw the interface
-     */
-    refresh() {
-      if (this.player)
-        this.player.rack.$refresh();
-      this.game.board.$refresh();
-      if (this.game.pausedBy)
-        this.pause(this.game.pausedBy, true);
     }
 
     /**
@@ -1254,12 +1247,10 @@ define([
           tile.reset();
         } else if (ifBlank) {
           tile.letter = ifBlank;
-          toSquare.$refresh();
         } else if (tile.letter === " ") {
           this.promptForLetter()
           .then(letter => {
             tile.letter = letter;
-            toSquare.$refresh();
           });
         }
       }
@@ -1354,7 +1345,6 @@ define([
      */
     lockBoard(newVal) {
       this.boardLocked = newVal;
-      this.game.board.$refresh();
     }
 
     /**
@@ -1545,9 +1535,13 @@ define([
         boardSquare => {
           if (this.takeBackTile(boardSquare))
             this.placedCount--;
+          return false;
         });
       this.swapRack.forEachSquare(
-        swapSquare => this.takeBackTile(swapSquare));
+        swapSquare => {
+          this.takeBackTile(swapSquare);
+          return false;
+        });
       this.updateGameStatus();
     }
 
@@ -1563,8 +1557,6 @@ define([
       const tile = square.unplaceTile();
       if (tile) {
         const rackSquare = this.player.rack.addTile(tile);
-        rackSquare.$refresh();
-        square.$refresh();
         return true;
       }
       return false;
@@ -1574,7 +1566,7 @@ define([
      * Handler for click on the 'Shuffle' button
      */
     shuffleRack() {
-      this.player.rack.shuffle().$refresh();
+      this.player.rack.shuffle();
     }
 
     /**
@@ -1591,5 +1583,5 @@ define([
     }
   }
 
-  new GameUI().create();
+  requirejs(["touch-punch"], () => new GameUI().create());
 });

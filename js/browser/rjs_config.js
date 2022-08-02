@@ -29,7 +29,7 @@ requirejs.config({
     i18n_parser:
     "/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.parser",
     
-    touchpunch:
+    "touch-punch":
     "/node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch.min",
     
     "socket.io-client":

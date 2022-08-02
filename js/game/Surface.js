@@ -169,22 +169,6 @@ define([
     isEmpty() {
       return this.tiles().length === 0;
     }
-
-    /* istanbul ignore next */
-    /**
-     * Refresh the UI for all squares.  Must be implemented by
-     * subclasses.
-     */
-    $ui() {
-      throw new Error("Pure virtual");
-    }
-
-    /**
-     * Refresh the UI for all squares on the surface.
-     */
-    $refresh() {
-      this.forEachSquare(s => s.$refresh());
-    }
   }
 
   return Surface;

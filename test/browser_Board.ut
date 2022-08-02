@@ -15,7 +15,8 @@ describe("Board browser mixin", () => {
       Board: "game/Board",
       Edition: "game/Edition",
       Tile: "game/Tile",
-      Square: "game/Square"
+      Square: "game/Square",
+      jQueryUI: "jquery-ui"
     }, required);
   });
 
@@ -262,6 +263,6 @@ describe("Board browser mixin", () => {
 
     // Not going to bother with a detailed check because it's obvious
     // from the UI
-    const s = b.$ui();
+    const s = b.$table();
   });
 });

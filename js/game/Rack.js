@@ -154,17 +154,21 @@ define([
      * @return {Rack} this
      */
     shuffle() {
-      const len = this.cols;
-      function random() {
-        return Math.floor(Math.random() * len);
+      const tiles = [];
+      let i;
+      for (i = 0; i < this.cols; i++) {
+        const square = this.at(i);
+        if (square.tile)
+          tiles.push(square.unplaceTile());
       }
-      for (let i = 0; i < 16; i++) {
-        const from = this.at(random());
-        const to = this.at(random());
-        const tmp = from.tile;
-        from.tile = to.tile;
-        to.tile = tmp;
+      for (i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = tiles[i];
+        tiles[i] = tiles[j];
+        tiles[j] = temp;
       }
+      this.addTiles(tiles);
+
       return this;
     }
 

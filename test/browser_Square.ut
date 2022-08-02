@@ -20,96 +20,122 @@ describe("Square browser mixin", () => {
       }, required);
   });
 
+  function UNit() {}
+
   it('$ui', () => {
     let sq = new Square({type: 'q', base: "base", col: 56, row: 42});
-    assert.equal(sq.$ui().html(),
-                 '<div id="base_56x42"><a></a></div>');
+    let $dact = $("<div></div>").append(sq.$td());
+    $("body").append($dact);
+    assert.equal(
+      $dact.html(),
+      '<td class="square-q ui-droppable" id="base_56x42"><div class="underlay" data-long="QUAD LETTER SCORE" data-short="QL"></div></td>');
     sq = new Square({type: '_', base: "base", col: 56});
-    assert.equal(sq.$ui().html(),
-                 '<div id="base_56"><a></a></div>');
+    assert.equal(sq.$td().html(),
+                 '');
     $("body").empty();
   });
 
-  it("refresh empty", () => {
+  it("empty", () => {
     let sq = new Square({type: 'q', base: "base", col: 56, row: 42});
     sq.setUnderlay('T');
-    let $td = sq.$ui();
-    $("body").append($td);
-    sq.$refresh();
-    //console.log($("body").html());
-    assert($td.hasClass("square-q"));
-    const $div = $td.find("#base_56x42");
-    assert($div.hasClass("empty-square"));
-    assert($div.hasClass("ui-droppable"));
-    assert.equal($div.find("A").text(), "QUAD LETTER SCORE");
-    const $u = $("#base_56x42 > div.underlay");
-    assert($u.hasClass("underlay"));
-    assert.equal($u.text(), "T");
+    let $dact = $("<div></div>").append(sq.$td());
+    $("body").append($dact);
+    assert.equal(
+      $dact.html(),
+      '<td class="square-q ui-droppable" id="base_56x42"><div class="underlay">T</div></td>');
     $("body").empty();
   });
   
-  it("refresh occupied unlocked", () => {
+  it("occupied unlocked", () => {
     let sq = new Square({type: 'q', base: 'surface', col: 56, row: 42});
     sq.setUnderlay('T');
     assert(!sq.tileLocked);
     let tile = new Tile({ letter:'S', isBlank:false });
     sq.placeTile(tile);
     assert(!sq.tileLocked);
-    let $td = sq.$ui();
-    $("body").append($td);
-    sq.$refresh();
     sq.setSelected(true);
-    //console.log($("body").html());
-    assert($td.hasClass("square-q"));
-    const $div = $("div[id=surface_56x42]");
-    assert($div.hasClass("selected"));
-    assert(!$div.hasClass("Locked"));
-    assert($div.hasClass("tiled-square"));
-    assert(!$div.hasClass("ui-droppable"));
-    let $letter = $("#surface_56x42>a>span.letter");
-    assert.equal($letter.text(), "S");
-    let $score = $("#surface_56x42>a>span.score");
-    assert.equal($score.text(), "0");
-    sq.setSelected(false);
-    assert(!$div.hasClass("selected"));
-    assert.equal($("div.underlay").length, 0);
+    $("body").append($("<div id='act'></div>").append(sq.$td()));
+    const $glyph = $('<div class="glyph"><span class="letter">S</span><span class="score">0</span></div>');
+    const $tile = $('<div class="Tile ui-draggable ui-draggable-handle unlocked-tile"></div>').append($glyph);
+    const $underlay = $('<div class="underlay">T</div>');
+    const $td = $('<td class="square-q" id="surface_56x42"></td>')
+          .append($underlay).append($tile);
+    $("body").append($('<div id="exp"></div>').append($td));
 
-    sq.unplaceTile();
-    tile = new Tile({ letter:'Q', isBlank:true });
-    sq.placeTile(tile);
-    sq.$refresh();
-    assert($div.hasClass("blank-letter"));
-
+    const $act = $("#act").children().first();
+    const $exp = $("#exp").children().first();
+    assert($act[0].isEqualNode($exp[0]),
+           "\n\t" + $("#act").html() + "\n\t" + $("#exp").html());
     $("body").empty();
   });
-  
-  it("refresh occupied locked", () => {
-    let sq = new Square({type:'q', base: 'surface', col:56, row:42});
+
+  it("occupied locked", () => {
+    let sq = new Square({type:'_', base: 'surface', col:56, row:42});
+    let $dact = $("<div></div>").append(sq.$td());
+    $("body").append($dact);
     assert(!sq.tileLocked);
-    let tile = new Tile({ letter:'S', isBlank:false });
+    let tile = new Tile({ letter:'W', isBlank:false });
     sq.placeTile(tile, true);
     assert(sq.isLocked());
-    let $td = sq.$ui();
-    $("body").append($td);
-    sq.$refresh();
-    //console.log($("body").html());
-    assert($td.hasClass("square-q"));
-    const $div = $("div[id=surface_56x42]");
-    assert(!$div.hasClass("selected"));
-    assert($div.hasClass("Locked"));
-    assert($div.hasClass("tiled-square"));
-    assert(!$div.hasClass("ui-droppable"));
-    let $letter = $("#surface_56x42>a>span.letter");
-    assert.equal($letter.text(), "S");
-    let $score = $("#surface_56x42>a>span.score");
-    assert.equal($score.text(), "0");
-    sq.setSelected(false);
-    assert(!$div.hasClass("selected"));
-    $("body").empty();
+    // No handler in place to deal with this, muddy boots
+    sq.$placeTile();
 
-    sq.unplaceTile();
+    const $glyph = $('<div class="glyph"><span class="letter">W</span><span class="score">0</span></div>');
+    const $tile = $('<div class="Tile locked-tile"></div>').append($glyph);
+    const $td = $('<td class="square-_" id="surface_56x42"></td>').append($tile);
+    const $dexp = $('<div></div>').append($td);
+    
+    assert($dact[0].isEqualNode($dexp[0]),
+           "\n" + $dact.html() + "\n" + $dexp.html());
+
+    sq.$unplaceTile(sq.unplaceTile());
+
+    $td.addClass("ui-droppable");
+    $tile.remove();
+    assert($dact[0].isEqualNode($dexp[0]),
+           "\n" + $dact.html() + "\n\n" + $dexp.html());
     assert(sq.isEmpty());
     assert(!sq.isLocked());
+    $("body").empty();
+  });
+
+  // Checked dispatched events
+  it("place-unplace", () => {
+    $(document)
+    .on("TilePlaced",
+        (e, square) => {
+          square.$placeTile();
+        })
+    
+    .on("TileUnplaced",
+        (e, square, tile) => {
+          square.$unplaceTile(tile);
+        });
+
+    let sq = new Square({type:'_', base: 'surface', col:56, row:42});
+    let $dact = $("<div></div>").append(sq.$td());
+    $("body").append($dact);
+    assert(!sq.tileLocked);
+    let tile = new Tile({ letter:'W', isBlank:false });
+    sq.placeTile(tile);
+
+    const $glyph = $('<div class="glyph"><span class="letter">W</span><span class="score">0</span></div>');
+    const $tile = $('<div class="Tile ui-draggable ui-draggable-handle unlocked-tile"></div>').append($glyph);
+    const $td = $('<td class="square-_" id="surface_56x42"></td>').append($tile);
+    const $dexp = $('<div></div>').append($td);
+    
+    assert($dact[0].isEqualNode($dexp[0]),
+           "\n" + $dact.html() + "\n" + $dexp.html());
+
+    sq.unplaceTile();
+
+    $td.addClass("ui-droppable");
+    $tile.remove();
+    assert($dact[0].isEqualNode($dexp[0]),
+           "\n" + $dact.html() + "\n\n" + $dexp.html());
+    assert(sq.isEmpty());
+    assert(!sq.isLocked());
+    $("body").empty();
   });
 });
 

@@ -257,7 +257,7 @@ define([
             name, player.rack.score(),
             player.rack.lettersLeft().join(",")));
         }
-        player.$refresh();
+        player.$refreshScore();
         $narrative.append($rackAdjust);
 
         const timePenalty = turn.score[player.key].time;

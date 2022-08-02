@@ -93,6 +93,7 @@ exports.before = (deps, required) => {
       // Why? No idea, except without it, it won't work in npm run
       global.document = window.document;
       $.i18n = I18N;
+      Platform.trigger = (e, a) => $(document).trigger(e, a);
     }
 
     Platform

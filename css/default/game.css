@@ -12,8 +12,8 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 .user-interface {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
 }
-
 
 /* Override jquery-ui for shuffle and take-back buttons */
 .fat-button {
@@ -60,13 +60,9 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /*------------ LOGIN BLOCK ------------*/
 
-#loginBlock {
-}
-
 /* Settings and signout div */
 #loginBlock .toolbox {
   float: right;
-  font-size: 1.3em;
 }
 
 #loginBlock .undoButton {
@@ -225,25 +221,18 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /*------------ BOARD ------------*/
 
-#board {
-  margin-top: 1em;
-  margin-left: 1em;
-  float: left;
-  /*width: 37em;*/
-}
-
 /* Highlight for the last played word */
-#board .Surface .last-placement {
+#board .last-placement {
   background-color: #E2E298!important;
 }
 
 /* Highlight for a hint placement */
-#board .Surface .hint-placement {
+#board .hint-placement {
   background-color: #E2FF98!important;
 }
 
 /* typing cursor (there can be only one) */
-#board .typing-cursor {
+#typingCursor {
   display: none;
   font-family: symbol;
   font-size: 1.5em;
@@ -266,12 +255,10 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
   align-items: center;
 }
 
+#playRack .rack{
+}
+
 #playRack .controls {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
 }
 
 /* rack control buttons - shuffle, unplace */
@@ -292,13 +279,8 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /* Background letters behind the swap rack */
 #swapRack .underlay {
-  width: 100%;
-  height: 100%;
+  padding-top: 7%; /* looks nicer */
   font-size: 1.7em;
-  line-height: 100%;
-  text-align: center;
-  vertical-align: middle;
-  display: flow-root list-item;
   color: rgba(60, 60, 80, 0.3);
 }
 
@@ -323,4 +305,39 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
   border-width: 0.1em;
 }
 
+/*------------ SMALL SCREEN ------------*/
+
+@media all and (max-width: 800px) {
+  /* Position the login block above the board */
+  #loginBlock {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 95vw;
+    padding: 1vw;
+    border-width: 2px;
+    margin: 1vw;
+  }
+
+  /* Board is full width */
+  #board {
+    margin-top: 7vw;
+    margin-left: 0;
+    width: 100vw;
+  }
+
+  #board table {
+    width: 100%;
+    aspect-ratio: 1/1;
+    height: auto;
+    margin: 0 auto;
+    padding: 2px;
+  }
+
+  /* Blocks are full width. flex layout deals with it. */
+  #blocks {
+    width: 100vw;
+    margin: 0;
+  }
+}
 

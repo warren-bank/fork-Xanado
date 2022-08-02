@@ -2,7 +2,10 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 
-define(() => {
+define([
+    requirejs.isBrowser ? "browser/Tile" : "common/Mixin"
+], Mixin => {
+
   /**
    * A tile in a LetterBag, on a Board, or on a Rack, or during best move
    * computation.
@@ -104,6 +107,9 @@ define(() => {
     if (a.letter > b.letter) return 1;
     return 0;
   };
+
+  if (Mixin)
+    Object.assign(Tile.prototype, Mixin);
 
   return Tile;
 });

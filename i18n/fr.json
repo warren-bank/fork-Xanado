@@ -232,7 +232,7 @@
   "_hint_": "Astuce : $1 à la ligne $2, colonne $3 pour $4",
   "challenge": "défi",
   "created $1": "créé $1",
-  "introduction": "Pour jouer à un jeu, vous devez d'abord vous connecter. Vous pourrez peut-être vous connecter en utilisant un service public, tel que Google ou Facebook, ou vous pouvez créer votre propre utilisateur XANADO.",
+  "To play in a game you have to sign in first. You may be able to sign in using a public service, such as Google or Facebook, or you can create your own XANADO user.": "Pour jouer à un jeu, vous devez d'abord vous connecter. Vous pourrez peut-être vous connecter en utilisant un service public, tel que Google ou Facebook, ou vous pouvez créer votre propre utilisateur XANADO.",
   "minutes": "minutes",
   "or sign in as XANADO user:": "ou connectez-vous en tant qu'utilisateur XANADO :",
   "players $1": "joueurs $1",

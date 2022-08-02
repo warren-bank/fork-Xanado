@@ -42,7 +42,7 @@ describe("Player browser mixin", () => {
            `expected: ${$tr.html()}\n actual: ${$act.html()}`);
     player.score = 666;
     $("body").append("<div id='playerplayerkey'><div class='score'>fail</div></div>");
-    player.$refresh();
+    player.$refreshScore();
     assert.equal($("#playerplayerkey .score").text(), player.score);
   });
 

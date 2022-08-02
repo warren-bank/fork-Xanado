@@ -57,7 +57,7 @@ define([ "platform" ], Platform => {
      * @instance
      * @memberof BrowserPlayer
      */
-    $refresh() {
+    $refreshScore() {
       $(`#player${this.key} .score`).text(this.score);
     },
 

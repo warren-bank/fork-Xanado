@@ -175,15 +175,15 @@ define([ "game/Move" ], Move => {
      * @function
      * @instance
      * @memberof BrowserBoard
-     * @return {jQuery}
+     * @return {jQuery} table
      */
-    $ui() {
+    $table() {
       const $table = $("<table></table>");
       for (let row = 0; row < this.rows; row++) {
         const $tr = $("<tr></tr>");
         for (let col = 0; col < this.cols; col++) {
           const square = this.at(col, row);
-          const $td = square.$ui("Board", col, row);
+          const $td = square.$td("Board", col, row);
           if (col == this.midcol && row == this.midrow)
             $td.addClass("StartField");
           else if (square.type != "_")

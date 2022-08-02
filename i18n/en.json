@@ -2,17 +2,24 @@
   "@metadata": {
 	"authors": [ "Crawford Currie" ],
     "locale": "en",
-	"NOTE": "English strings are in code. Only particulary long or complex strings are expanded here, where possible we use the full string rather than a token. Use checkStrings.js to determine what needs to be translated."
+	"NOTE": "Most English strings are in code. Use checkStrings.js to determine what needs to be translated."
   },
   
   "_hint_": "Hint: $1 at row $2 column $3 for $4",
-  "introduction": "To play in a game you have to sign in first. You may be able to sign in using a public service, such as Google or Facebook, or you can create your own XANADO user.",
-  "square-D": "DOUBLE WORD SCORE",
-  "square-M": "\u2605",
-  "square-Q": "QUAD WORD SCORE",
-  "square-T": "TRIPLE WORD SCORE",
-  "square-_": " ",
-  "square-d": "DOUBLE LETTER SCORE",
-  "square-q": "QUAD LETTER SCORE",
-  "square-t": "TRIPLE LETTER SCORE"
+  "long-D": "DOUBLE WORD SCORE",
+  "short-D": "DW",
+  "long-M": "\u2605",
+  "short-M": "\u2605",
+  "long-Q": "QUAD WORD SCORE",
+  "short-Q": "QW",
+  "long-T": "TRIPLE WORD SCORE",
+  "short-T": "TW",
+  "long-_": " ",
+  "short-_": " ",
+  "long-d": "DOUBLE LETTER SCORE",
+  "short-d": "DL",
+  "long-q": "QUAD LETTER SCORE",
+  "short-q": "QL",
+  "long-t": "TRIPLE LETTER SCORE",
+  "short-t": "TL"
 }

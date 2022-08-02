@@ -14,6 +14,7 @@ define([ "common/Platform" ], Platform => {
 
     /** See {@linkcode Platform#trigger|Platform.trigger} for documentation */
     static trigger(e, args) {
+      console.debug("Triggering", e);
       // Pass events straight to the document
       return $(document).trigger(e, args);
     }

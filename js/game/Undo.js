@@ -88,8 +88,6 @@ define([
       this.letterBag.returnTiles(racked);
       player.passes--;
       this.whosTurnKey = player.key;
-      if (isClient)
-        player.rack.$refresh();
     },
 
     /**
@@ -109,10 +107,6 @@ define([
       player.score -= turn.score;
       player.passes = turn.prepasses || 0;
       this.whosTurnKey = player.key;
-      if (isClient) {
-        player.rack.$refresh();
-        this.board.$refresh();
-      }
     },
 
     /**
@@ -154,10 +148,6 @@ define([
       player.score -= turn.score;
       this.whosTurnKey = this.nextPlayer(player).key;
       this._debug(`\tplayer now ${this.whosTurnKey}`,turn);
-      if (isClient) {
-        player.rack.$refresh();
-        this.board.$refresh();
-      }
     },
 
     /**

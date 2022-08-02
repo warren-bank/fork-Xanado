@@ -8,16 +8,6 @@ define([
   requirejs.isBrowser ? "browser/Square" : "common/Mixin"
 ], (Platform, Mixin) => {
 
-  // CSS classes; only required to keep npm run tx happy
-  // /*i18n*/"square-D"
-  // /*i18n*/"square-M"
-  // /*i18n*/"square-Q"
-  // /*i18n*/"square-T"
-  // /*i18n*/"square-_"
-  // /*i18n*/"square-d"
-  // /*i18n*/"square-q"
-  // /*i18n*/"square-t"
-
   /**
    * A square on the game board or rack. A Tile holder with some
    * underlying attributes; a position, an owner type, and a type that
@@ -139,25 +129,21 @@ define([
      * @param {Tile} tile the tile to place
      * @param {boolean} [lock] whether the tile is to be locked to
      * the square (fixed on the board).
-     * @return {Tile?} tile unplaced from the square, if any
      */
     placeTile(tile, lock) {
-      Platform.assert(!this.tile || tile !== this.tile,
-                      `Square already occupied: ${this.stringify()} placing ${tile.stringify()}`);
+      Platform.assert(
+        !this.tile || tile !== this.tile, "Square already occupied");
 
-      const oldTile = this.tile;
       tile.col = this.col;
       if (typeof this.row !== "undefined")
         tile.row = this.row;
-      this.tile = tile;
-
       if (lock)
         this.tileLocked = true;
-
-      // Used in the UI to update the square
-      Platform.trigger("SquareChanged", [ this ]);
-
-      return oldTile;
+      if (tile === this.tile)
+        return; // Tile hasn't changed
+      this.tile = tile;
+      // Signal to get the Tile UI attached to the Square UI
+      Platform.trigger("TilePlaced", [ this ]);
     }
 
     /**
@@ -178,7 +164,7 @@ define([
         delete unplaced.row;
         delete this.tile;
 
-        Platform.trigger("SquareChanged", [ this ]);
+        Platform.trigger("TileUnplaced", [ this, unplaced ]);
         return unplaced;
       }
       return undefined;

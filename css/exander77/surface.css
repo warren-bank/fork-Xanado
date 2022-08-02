@@ -4,144 +4,50 @@
 /* eslint-env browser */
 
 /**
- * Styling for the "game" interface
+ * Example of overriding colour styling for the "game" interface
  */
 
-div.Surface td {
+.Surface td {
   border-color:#ada48f;
 }
 
-div.Surface td.square-_ {
-  border-style: solid;
-}
-
-div.Surface td.square-D,
-div.Surface td.square-M {
-  border-color: #00CD87;
-}
-
-div.Surface td.square-T {
-  border-color: #FF5E54;
-}
-
-div.Surface td.square-Q {
-  border-color: #a21505;
-}
-
-div.Surface td.square-d {
-  border-color: #A0CFEC;
-}
-
-div.Surface td.square-t {
-  border-color: #157DEC;
-}
-
-div.Surface td.square-q {
-  border-color: #0e6993;
-}
-
-div.Surface td div {
-  display: block;
-
-  margin: 0;
-  padding: 0;
-
-  border: 1px solid #ada48f;
-
-  width: 2em;
-  height: 2em;
-
-  color: #333333;
-  cursor: crosshair;
-}
-
-@-webkit-keyframes glow {
-  0% {
-    border: 0.15em solid #FF9900;
-  }
-  100% {
-    border: 0.15em solid #DC143C;
-  }
-}
-
-@-moz-keyframes glow {
-  0% {
-    border: 0.15em solid #FF9900;
-  }
-  100% {
-    border: 0.15em solid #DC143C;
-  }
-}
-
-@keyframes glow {
-  0% {
-    border: 0.15em solid #FFFFFF;
-  }
-  100% {
-    border: 0.15em solid #333333;
-  }
-}
-
-div.Surface td.square-D div,
-div.Surface td.square-M div {
+.Surface td.square-D,
+.Surface td.square-M {
   background-color: #05cd85;
   border-color: #00ee00;
   color: #ffffff;
 }
 
-div.Surface td.square-T div {
+.Surface td.square-T {
   background-color: #f75e59;
   border-color: #ee0000;
 }
 
-div.Surface td.square-Q div {
+.Surface td.square-Q {
   background-color: #a21505;
   border-color: #a21505;
 }
 
-div.Surface td.square-_ div {
+.Surface td.square-_ {
   background-color: #beb9a6;
 }
 
-div.Surface td.square-d div {
+.Surface td.square-d {
   background-color: #6da3ed;
   border-color: #0000ee;
   color: #ffffff;
 }
 
-div.Surface td.square-t div {
+.Surface td.square-t {
   background-color: #e99e65;
   border-color: #ffcc33;
 }
 
-div.Surface td.square-q div {
+.Surface td.square-q {
   background-color: #0e6993;
   border-color: #0e6900;
 }
 
-div.Surface td.score-multiplier div.empty-square a {
-  font-size: 0.50em;
-  padding-top: 0.0em;
-  line-height: 1.4em;
-  letter-spacing: 0.0em;
-}
-
-div.Surface td div.tiled-square {
-  cursor: move;
-  background-color: #ffcf5a;
-  border-color: #000000;
-  border-style: solid;
-
-  color: #333333;
-
-  -webkit-border-radius: 0.2em;
-  -moz-border-radius: 0.2em;
-  -ms-border-radius: 0.2em;
-  -o-border-radius: 0.2em;
-  border-radius: 0.2em;
-}
-
-div.Surface td div.blank-letter a {
-  border-left: 0.2em solid #ADFF2F;
-  border-right: 0.2em solid #ADFF2F;
+.Tile {
+  background-color: #ffcf5a !important;
 }

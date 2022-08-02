@@ -5,6 +5,19 @@
 
 define([ "platform" ], Platform => {
 
+  // Translation strings, only required to keep npm run tx happy
+  // /*i18n*/"long-D" /*i18n*/"short-D"
+  // /*i18n*/"long-M" /*i18n*/"short-M"
+  // /*i18n*/"long-Q" /*i18n*/"short-Q"
+  // /*i18n*/"long-T" /*i18n*/"short-T"
+  // /*i18n*/"long-_" /*i18n*/"short-_"
+  // /*i18n*/"long-d" /*i18n*/"short-d"
+  // /*i18n*/"long-q" /*i18n*/"short-q"
+  // /*i18n*/"long-t" /*i18n*/"short-t"
+
+  // .data() recording Square on a $tile
+  const DATA_SQUARE = "Square";
+
   /**
    * Browser-side mixin for {@linkcode Square}
    * @mixin BrowserSquare
@@ -12,45 +25,112 @@ define([ "platform" ], Platform => {
   const BrowserSquare = {
 
     /**
-     * Create the jquery representation
+     * Create the jquery representation of the base square. This is a
+     * td element that will be inserted in a Surface table.
+     * Note that the table is initially empty.
      * @function
      * @instance
      * @memberof BrowserSquare
      * @param {string} base for id='s
      */
-    $ui() {
-      const $td = $(`<td></td>`);
-      $td.addClass(`square-${this.type}`);
-      const $div = $(`<div id="${this.id}"><a></a></div>`);
-      // Associate the square with the div for dragging
-      $div.data("square", this);
-      $td.append($div);
+    $td() {
+      const $td =
+            $(`<td></td>`)
+            .addClass(`square-${this.type}`)
+            .attr("id", this.id)
+            .on("click", () => Platform.trigger("SelectSquare", [ this ]));
+      // map long- and short- to language strings. long is for when the
+      // display resolution is high, short for when it is tight e.g. on
+      // mobile devices. The relevant string is selected in CSS.
+      if (typeof this.underlay !== "undefined") {
+        const $underlay = $("<div></div>").addClass("underlay");
+        $underlay.text(this.underlay);
+        $td.append($underlay);
+      } else if (this.type !== "_") {
+        const $underlay = $("<div></div>").addClass("underlay");
+        $underlay
+        .attr("data-long", Platform.i18n(`long-${this.type}`))
+        .attr("data-short", Platform.i18n(`short-${this.type}`));
+        $td.append($underlay);
+      }
+
+      // Can't place or unplace tiles until the td is attached
+      // to the table and the table is in the body. Triggering
+      // a TilePlaced event doesn't work, so have to pass in the $td
+      if (this.tile)
+        this.$placeTile($td);
+      else
+        this.$unplaceTile(undefined, $td);
+
       return $td;
     },
 
     /**
-     * Refresh the UI
+     * Attach a tile's UI to the square's UI, constructing the tile
+     * UI as necessary.
      * @function
      * @instance
      * @memberof BrowserSquare
+     * @param {jQuery?} $td jquery object for the TD of the square. This
+     * optional parameter is needed during initialisation, before the
+     * square objects are added to the body.
      */
-    $refresh() {
-      const $div = $(`#${this.id}`);
+    $placeTile($td) {
+      if (!$td) $td = $(`#${this.id}`);
 
-      /* istanbul ignore if */
-      if ($div.length === 0)
-        // No visual representation for this square - for
-        // example, might be a square in another player's rack
-        return;
+      // Can't drop on a tiled square
+      if($td.hasClass("ui-droppable"))
+        $td.droppable("destroy");
 
-      $div.removeClass("selected")
-      .removeClass("temporary")
-      .off("click");
+      const $tile = this.tile.$div();
+      $td.append($tile);
 
-      if (this.tile)
-        this.refreshOccupied($div);
-      else
-        this.refreshEmpty($div);
+      // Associate the square with $tile
+      $tile.data(DATA_SQUARE, this);
+      
+      if (this.tileLocked) {
+        if ($tile.hasClass("ui-draggable"))
+          $tile.draggable("destroy");
+        $tile
+        .removeClass("unlocked-tile")
+        .addClass("locked-tile");
+      } else {
+        // tile isn't locked, make it draggable
+        $tile
+        .removeClass("locked-tile")
+        .addClass("unlocked-tile");
+      }
+    },
+
+    /**
+     * Remove the currently placed tile's UI from the square's UI.
+     * @function
+     * @instance
+     * @memberof BrowserSquare
+     * @param {Tile?} tile the tile being unplaced, if there is one. Normally
+     * there will be, but if the square is being initialised as an empty
+     * square, it won't.
+     * @param {jQuery?} $td jquery object for the TD of the square. This
+     * optional parameter is needed during initialisation, before the
+     * square objects are added to the body.
+     */
+    $unplaceTile(tile, $td) {
+      // Remove the tile UI (without deleting it)
+      if (tile)
+        tile.$div().detach();
+
+      if (!$td) $td = $(`#${this.id}`);
+      // Reinstate the droppable target, which was removed
+      // in $placeTile (or not yet added)
+      Platform.assert(!$td.hasClass("ui-droppable"));
+      $td.droppable({
+        hoverClass: "drop-active",
+        drop: (event, jui) => {
+          const from = $(jui.draggable).data(DATA_SQUARE);
+          // Tell the main UI about it
+          Platform.trigger("DropTile", [ from, this ]);
+        }
+      });
     },
 
     /**
@@ -75,115 +155,9 @@ define([ "platform" ], Platform => {
       /* istanbul ignore if */
       if (sel && this.tile) {
         Platform.assert(!this.tileLocked, "Attempt to select locked tile");
-        $(`#${this.id}`).addClass("selected");
+        $(`#${this.id} .Tile`).addClass("selected");
       } else
-        $(`#${this.id}`).removeClass("selected");
-    },
-
-    /**
-     * Update a square that has a Tile dropped on it
-     * @function
-     * @instance
-     * @memberof BrowserSquare
-     * @param {jQuery} $div the <div> for the square
-     * @private
-     */
-    refreshOccupied($div) {
-      if ($div.hasClass("ui-droppable"))
-        /* istanbul ignore next */
-        $div.droppable("destroy");
-
-      $div
-      .removeClass("empty-square")
-      .addClass("tiled-square");
-
-      if (this.tile.isBlank)
-        $div.addClass("blank-letter");
-      else
-        $div.removeClass("blank-letter");
-
-      if (this.tileLocked) {
-        $div.addClass("Locked");
-        if ($div.hasClass("ui-draggable"))
-          /* istanbul ignore next */
-          $div.draggable("destroy");
-      } else {
-        // tile isn't locked, valid drag source
-        $div.removeClass("Locked");
-        /* istanbul ignore next */
-        $div
-        .addClass("temporary")
-        .on("click", () => Platform.trigger("SelectSquare", [ this ]));
-
-        /* istanbul ignore next */
-        $div.draggable({
-          revert: "invalid",
-          opacity: 1,
-          helper: "clone",
-
-          start: (event, jui) => {
-            $div.css({ opacity: 0.5 });
-            // Clear selection
-            Platform.trigger("SelectSquare");
-            // Configure drag helper
-            $(jui.helper)
-            .animate({"font-size" : "120%"}, 300)
-            .addClass("drag-border");
-          },
-
-          drag: (event, jui) => $(jui.helper).addClass("drag-border"),
-
-          stop: () => $div.css({ opacity: 1 })
-        });
-      }
-
-      const letter = this.tile.letter;
-      const score = this.tile.score;
-      const $a = $("<a></a>");
-      $a.append(`<span class="letter">${letter}</span>`);
-      $a.append(`<span class="score">${score}</span>`);
-      $div.empty().append($a);
-    },
-
-    /**
-     * Update a square that doesn't have a Tile dropped on it
-     * @function
-     * @instance
-     * @memberof BrowserSquare
-     * @param {jQuery} $div the <div> for the square
-     * @private
-     */
-    refreshEmpty($div) {
-
-      // Not draggable
-      if ($div.hasClass("ui-draggable"))
-        /* istanbul ignore next */
-        $div.draggable("destroy");
-
-      // no tile on the square, valid drop target
-      $div
-      .removeClass("tiled-square")
-      .removeClass("blank-letter")
-      .removeClass("Locked")
-      .addClass("empty-square");
-
-      /* istanbul ignore next */
-      $div.on("click", () => Platform.trigger("SelectSquare", [ this ]))
-      // Handle something dropping on us
-      .droppable({
-        hoverClass: "drop-active",
-        drop: (event, jui) => {
-          const source = $(jui.draggable).data("square");
-          // Tell the main UI about it
-          Platform.trigger("DropSquare", [ source, this ]);
-        }
-      });
-
-      const text = Platform.i18n(`square-${this.type}`);
-      $div.empty().append($("<a></a>").text(text));
-
-      if (typeof this.underlay !== "undefined")
-        $div.append(`<div class="underlay">${this.underlay}</div>`);
+        $(`#${this.id} .Tile`).removeClass("selected");
     }
   };
 
