@@ -82,6 +82,18 @@ describe the score multiplier */
   }
 }
 
+/* Reduce font size for full text in underlay */
+.Surface td.score-multiplier .underlay {
+  font-size: 55%;
+}
+
+@media screen and (max-width: 800px) {
+  /* Increase font size for acronym in underlay */
+  .Surface td.score-multiplier .underlay {
+    font-size: 130%;
+  }
+}
+
 .Surface tr {
   margin: 0;
   padding: 0;
@@ -144,18 +156,6 @@ describe the score multiplier */
 .Surface td.square-q {
   background-color: #0e6993;
   color: #eeeeee;
-}
-
-/* Reduce font size for full text in underlay */
-.Surface td.score-multiplier .underlay {
-  font-size: 55%;
-}
-
-@media screen and (max-width: 800px) {
-  /* Increase font size for acronym in underlay */
-  .Surface td.score-multiplier .underlay {
-    font-size: 130%;
-  }
 }
 
 /* Applied when a square is active as a potential drop target */
