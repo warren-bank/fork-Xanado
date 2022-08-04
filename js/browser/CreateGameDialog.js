@@ -7,7 +7,7 @@
  * Dialog for game creation. Demand loads the HTML.
  */
 define([
-  "browser/Dialog", "game/Types", "game/Game"
+  "browser/Dialog", "common/Types", "game/Game"
 ], (Dialog, Types, Game) => {
 
   const Timer = Types.Timer;

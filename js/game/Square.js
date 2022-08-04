@@ -5,8 +5,11 @@
 
 define([
   "platform",
+  "common/Types",
   requirejs.isBrowser ? "browser/Square" : "common/Mixin"
-], (Platform, Mixin) => {
+], (Platform, Types, Mixin) => {
+
+  const UIEvents = Types.UIEvents;
 
   /**
    * A square on the game board or rack. A Tile holder with some
@@ -65,16 +68,6 @@ define([
          * @member {Tile?}
          */
         this.tile = spec.tile;
-
-        if (spec.tileLocked)
-          /**
-           * True if the placed tile cannot be moved i.e. it was
-           * placed in a prior move. Locked tiles don't gather
-           * bonuses.
-           * @member {boolean}
-           * @private
-           */
-          this.tileLocked = true;
       }
 
       if (spec.underlay)
@@ -120,7 +113,8 @@ define([
      * @return {boolean} true if a tile is placed and it is locked
      */
     isLocked() {
-      return this.tile && this.tileLocked;
+      // this.tileLocked for old game compatibility
+      return this.tile && (this.tile.isLocked || this.tileLocked);
     }
 
     /**
@@ -137,13 +131,12 @@ define([
       tile.col = this.col;
       if (typeof this.row !== "undefined")
         tile.row = this.row;
-      if (lock)
-        this.tileLocked = true;
+      tile.isLocked = lock;
       if (tile === this.tile)
         return; // Tile hasn't changed
       this.tile = tile;
       // Signal to get the Tile UI attached to the Square UI
-      Platform.trigger("TilePlaced", [ this ]);
+      Platform.trigger(UIEvents.PLACE_TILE, [ this ]);
     }
 
     /**
@@ -156,15 +149,10 @@ define([
       // the tile letter be reset.
       const unplaced = this.tile;
       if (unplaced) {
-        if (this.tileLocked) {
-          unplaced.reset(); // clear letter
-          delete this.tileLocked;
-        }
-        delete unplaced.col;
-        delete unplaced.row;
+        unplaced.reset(); // clear letter and lock
         delete this.tile;
 
-        Platform.trigger("TileUnplaced", [ this, unplaced ]);
+        Platform.trigger(UIEvents.UNPLACE_TILE, [ this, unplaced ]);
         return unplaced;
       }
       return undefined;
@@ -181,11 +169,8 @@ define([
       if (this.row >= 0)
         string += "," + this.row;
 
-      if (this.tile) {
+      if (this.tile)
         string += ` => ${this.tile}`;
-        if (this.tileLocked)
-          string += " (Locked)";
-      }
       return string;
     }
   }

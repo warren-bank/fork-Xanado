@@ -243,8 +243,8 @@ define([
     findSequence(seq) {
       if (!this.sequenceRoots)
         this.createSequenceRoots();
-      const roots = this.sequenceRoots[seq[0]];
-      Platform.assert(roots && roots.length > 0, `'${seq[0]}' has no roots`);
+      const roots = this.sequenceRoots[seq.charAt(0)];
+      Platform.assert(roots && roots.length > 0, `'${seq}' has no roots`);
       for (let root of roots) {
         if (root.match(seq, 0))
           return root;

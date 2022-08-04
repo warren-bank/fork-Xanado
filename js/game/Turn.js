@@ -4,7 +4,7 @@
 /* eslint-env amd */
 
 define([
-  "game/Tile", "game/Move", "game/Types"
+  "game/Tile", "game/Move", "common/Types"
 ], (Tile, Move, Types) => {
 
   const Penalty = Types.Penalty;

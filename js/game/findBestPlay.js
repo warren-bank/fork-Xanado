@@ -497,7 +497,8 @@ define([
         return a.letter < b.letter ? -1  : a.score > b.score ? 1 : 0;
       }).reverse();
 
-      this.report("Finding best play for rack " + rack);
+      this.report("Finding best play for rack "
+                  + rack.map(t => t.stringify()).join(","));
 
       this.report(`with dictionary ${this.dictionary.name}`);
       this.report(`in edition ${this.edition.name}`);

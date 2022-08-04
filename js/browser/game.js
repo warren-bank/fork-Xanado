@@ -6,7 +6,7 @@
 define([
   "platform", "common/Fridge", "common/Utils",
   "game/Tile", "game/Rack", "game/Board",
-  "game/Types", "game/Game", "game/Player", "game/Turn",
+  "common/Types", "game/Game", "game/Player", "game/Turn",
   "browser/UI", "browser/Dialog",
   "jquery", "jqueryui", "cookie", "browser/icon_button"
 ], (
@@ -17,16 +17,14 @@ define([
 ) => {
 
   // Enumerated types
-  const Command = Types.Command;
-  const Notify  = Types.Notify;
-  const Penalty = Types.Penalty;
-  const Timer   = Types.Timer;
-  const State   = Types.State;
-  const Turns   = Types.Turns;
+  const Command  = Types.Command;
+  const Notify   = Types.Notify;
+  const Penalty  = Types.Penalty;
+  const Timer    = Types.Timer;
+  const State    = Types.State;
+  const Turns    = Types.Turns;
+  const UIEvents = Types.UIEvents;
 
-  const RIGHT_ARROW = "&#8658;";
-  const DOWN_ARROW  = "&#8659;";
-  
   // Check that incoming notifications are in the sequence we expect.
   // The sequence may have gaps, because some notifications only
   // go to a subset of users.
@@ -50,7 +48,7 @@ define([
 
     /**
      * The game being played.
-     * @member {Player}
+     * @member {Game}
      */
     game;
 
@@ -66,20 +64,6 @@ define([
      * @private
      */
     selectedSquare;
-
-    /**
-     * Quick reference to typing cursor DOM object
-     * lateinit in loadGame
-     * @member {jQuery}
-     */
-    $typingCursor;
-      
-    /**
-     * Typing is across if true, down if false
-     * @member {boolean}
-     * @private
-     */
-    typeAcross = true;
 
     /**
      * Board lock status
@@ -174,7 +158,15 @@ define([
         url: `/command/${command}/${this.game.key}`,
         type: "POST",
         contentType: "application/json",
-        data: JSON.stringify(args)
+        data: JSON.stringify(
+          args,
+          (key, value) => {
+            // Don't stringify fields used by the UI.
+            // These all start with "$"
+            if (key.charAt(0) === "$")
+              return undefined;
+            return value;
+          })
       })
       .then(r => console.debug(`${command} OK`, r))
       .catch(console.error);
@@ -233,7 +225,7 @@ define([
       if (message.sender === "Advisor"
           && args[0] === /*i18n*/"_hint_") {
         let row = args[2] - 1, col = args[3] - 1;
-        $(`#Board_${col}x${row} .Tile`).addClass("hint-placement");
+        $(`#Board_${col}x${row}`).addClass("hint-placement");
       }
     }
 
@@ -804,15 +796,12 @@ define([
       this.updatePlayerTable();
 
       if (this.player) {
-        $("#playRack .Surface")
-        .append(this.player.rack.$table());
-
-        $("#swapRack")
-        .append(this.swapRack.$table("SWAP"));
+        this.player.rack.$populate($("#playRack .Surface"));
+        this.swapRack.$populate($("#swapRack"));
       }
 
-      const $board = game.board.$table();
-      $("#board").append($board);
+      const $board = $("#board");
+      game.board.$populate($board);
 
       this.$log(true, $.i18n("Game started"), "game-state");
 
@@ -901,8 +890,6 @@ define([
         $(".shuffle-button").hide();
         $(".turn-button").hide();
       }
-      
-      this.$typingCursor = $("#typingCursor");
 
       return Promise.resolve();
     }
@@ -996,18 +983,22 @@ define([
       $(".pauseButton")
       .on("click", () => this.sendCommand(Command.PAUSE));
 
-      // Events raised by game components
+      // Events raised by game components to request UI updates
+      // See common/Types for meanings
       $(document)
-      .on("TilePlaced",
+      .on(UIEvents.PLACE_TILE,
           (e, square) => square.$placeTile())
 
-      .on("TileUnplaced",
-          (e, square, tile) => square.$unplaceTile(tile))
+      .on(UIEvents.UNPLACE_TILE,
+          (e, square, tile) => square.$unplaceTile())
 
-      .on("SelectSquare",
+      .on(UIEvents.SELECT_SQUARE,
           (e, square) => this.selectSquare(square))
 
-      .on("DropTile",
+      .on(UIEvents.CLEAR_SELECT,
+          e => this.clearSelect())
+
+      .on(UIEvents.DROP_TILE,
           (e, source, square) => this.dropTile(source, square))
 
       // Keydown anywhere in the document
@@ -1038,10 +1029,10 @@ define([
         this.moveTile(rackSquare, this.selectedSquare, letter);
         if (this.getSetting("tile_click"))
           this.playAudio("tiledown");
-        if (this.typeAcross)
-          this.moveTypingCursor(1, 0);
-        else
+        if ($("#typingCursor").hasClass("down"))
           this.moveTypingCursor(0, 1);
+        else
+          this.moveTypingCursor(1, 0);
       } else
         this.$log($.i18n("'$1' is not on the rack", letter));
     }
@@ -1068,68 +1059,84 @@ define([
         }
       } while (this.selectedSquare && !this.selectedSquare.isEmpty());
       if (this.selectedSquare)
-        this.selectedSquare.setSelected(true);
-      this.updateTypingCursor();
+        this.selectedSquare.select(true);
     }
 
     /**
-     * Selection is used for click-click tile moves when dragging
-     * isn't available. It's just a visual aid.
-     * @param {Square?} square square containing tile to select, or
-     * undefined to clear the selection
+     * Selection is used both for click-click tile moves when dragging
+     * isn't available, and for the typing cursor.
+     * @param {Square} square square to select
      */
     selectSquare(square) {
-      if (square)
-        console.debug(`select ${square.id}`);
+      Platform.assert(square, "No square selected");
+      console.debug(`select ${square.id}`);
 
-     if (this.selectedSquare) {
-        // Is a square already selected?
-        if (!this.selectedSquare.isEmpty()) {
-          // The the destination available for a move?
-          if (square && square.isEmpty() && square !== this.selectedSquare) {
-            this.moveTile(this.selectedSquare, square);
-            square = undefined;
+      // Is the target square on the board and occupied by a locked tile?
+      const isLocked = square.isOnBoard && square.isLocked();
+
+      // Is the target square an empty square on a rack?
+      const isRackVoid = !square.isOnBoard && square.isEmpty();
+
+      // Is a square already selected?
+      if (this.selectedSquare) {
+        if (this.selectedSquare.isEmpty()) {
+          if (square === this.selectedSquare) {
+            // Same square selected again
+            this.rotateTypingCursor();
+            return;
           }
-        } else if (square === this.selectedSquare) {
-          this.rotateTypingCursor();
+          // Selecting a different square
         }
-        this.selectedSquare.setSelected(false);
+        else {
+          // The selected square has a tile on it. Is the square
+          // being selected empty?
+
+          if (square && square.isEmpty()) {
+            // It's empty, so this is a move
+            this.selectedSquare.select(false);
+            this.moveTile(this.selectedSquare, square);
+            this.selectedSquare = undefined;
+            return;
+          }
+
+          if (isLocked)
+            // Target occupied and locked, can't move and can't select,
+            // so ignore, keeping the old selection.
+            return;
+
+          // Selecting a different square
+        }
+        // Switch off the selection on the old square
+        this.selectedSquare.select(false);
+        this.selectedSquare = undefined;
       }
-      this.selectedSquare = undefined;
-      if (square
-          // Only select empty squares on the board
-          && (!square.isEmpty() || square.isOnBoard)) {
-        this.selectedSquare = square;
-        this.selectedSquare.setSelected(true);
+
+      // No pre-selection, or prior selection cancelled.
+
+      if (isLocked || isRackVoid)
+          // Only unlocked & empty squares on the board
+          return;
+
+      this.selectedSquare = square;
+      square.select(true);
+    }
+
+    clearSelect() {
+      if (this.selectedSquare) {
+        this.selectedSquare.select(false);
+        this.selectedSquare = undefined;
       }
-      this.updateTypingCursor();
     }
 
     /**
      * Swap the typing cursor between across and down
      */
     rotateTypingCursor() {
-      if (this.typeAcross) {
-        this.$typingCursor.html(DOWN_ARROW);
-        this.typeAcross = false;
-      } else {
-        this.$typingCursor.html(RIGHT_ARROW);
-        this.typeAcross = true;
-      }
-    }
-
-    /**
-     *  Update the typing cursor DOM to sit over the selectedSquare
-     */
-    updateTypingCursor() {
-      if (this.selectedSquare
-          && this.selectedSquare.isOnBoard
-          && this.selectedSquare.isEmpty()) {
-        const $dom = $(`#${this.selectedSquare.id}`);
-        $dom.prepend(this.$typingCursor);
-        this.$typingCursor.show();
-      } else
-        this.$typingCursor.remove();
+      const $tc = $("#typingCursor");
+      if ($tc.hasClass("down"))
+        $tc.removeClass("down");
+      else
+        $tc.addClass("down");
     }
 
     /**
@@ -1137,13 +1144,14 @@ define([
      * it is set to an unplace the next unlocked tile encountered
      */
     unplaceLastTyped() {
-      if (!this.selectedSquare || this.$typingCursor.is(":hidden"))
+      if (!this.selectedSquare || $("#typingCursor").is(":hidden"))
         return;
       let row = 0, col = 0;
-      if (this.typeAcross)
-        col = -1;
-      else
+      if ($("#typingCursor").hasClass("down"))
         row = -1;
+      else
+        col = -1;
+
       let sq = this.selectedSquare;
       do {
         try {
@@ -1157,7 +1165,6 @@ define([
         // Unplace the tile, returning it to the rack
         this.takeBackTile(sq);
         this.selectSquare(sq);
-        this.updateTypingCursor();
       }
     }
 
@@ -1169,8 +1176,8 @@ define([
      */
     dropTile(fromSquare, toSquare) {
       if (fromSquare.tile) {
+        this.clearSelect();
         this.moveTile(fromSquare, toSquare);
-        this.selectSquare();
         if (this.getSetting("tile_click"))
           this.playAudio("tiledown");
       }
@@ -1251,7 +1258,7 @@ define([
           this.promptForLetter()
           .then(letter => {
             tile.letter = letter;
-            tile.$div(); // Force a refresh of the tile
+            tile.$ui(); // Force a refresh of the tile
           });
         }
       }
@@ -1488,6 +1495,7 @@ define([
      * Handler for the 'Swap' button clicked. Invoked via 'click_turnButton'.
      */
     action_swap() {
+      // We have to copy the tiles so they can be stringified
       const tiles = this.swapRack.tiles();
       this.swapRack.empty();
       this.sendCommand(Command.SWAP, tiles);

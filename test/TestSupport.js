@@ -70,7 +70,7 @@ exports.before = (deps, required) => {
   if (!deps.testSocket)
     deps.TestSocket = 'test/TestSocket';
   if (!deps.Types)
-    deps.Types = 'game/Types';
+    deps.Types = 'common/Types';
   const modnames = Object.keys(deps);
   exports.debug("Loading", deps);
   const modules = modnames.map(m => new Promise(

@@ -6,7 +6,7 @@
 /**
  * Unit tests for Square class
  */
-describe("Square browser mixin", () => {
+describe("browser/Square mixin", () => {
 
   /* global Platform, Square, Tile */
   const TS = require("./TestSupport.js");
@@ -30,8 +30,7 @@ describe("Square browser mixin", () => {
       $dact.html(),
       '<td class="square-q ui-droppable" id="base_56x42"><div class="underlay" data-long="QUAD LETTER SCORE" data-short="QL"></div></td>');
     sq = new Square({type: '_', base: "base", col: 56});
-    assert.equal(sq.$td().html(),
-                 '');
+    assert.equal(sq.$td().html(), '');
     $("body").empty();
   });
 
@@ -49,11 +48,10 @@ describe("Square browser mixin", () => {
   it("occupied unlocked", () => {
     let sq = new Square({type: 'q', base: 'surface', col: 56, row: 42});
     sq.setUnderlay('T');
-    assert(!sq.tileLocked);
     let tile = new Tile({ letter:'S', isBlank:false });
     sq.placeTile(tile);
-    assert(!sq.tileLocked);
-    sq.setSelected(true);
+    assert(!tile.isLocked);
+    sq.select(true);
     $("body").append($("<div id='act'></div>").append(sq.$td()));
     const $glyph = $('<div class="glyph"><span class="letter">S</span><span class="score">0</span></div>');
     const $tile = $('<div class="Tile ui-draggable ui-draggable-handle unlocked-tile"></div>').append($glyph);
@@ -73,7 +71,7 @@ describe("Square browser mixin", () => {
     let sq = new Square({type:'_', base: 'surface', col:56, row:42});
     let $dact = $("<div></div>").append(sq.$td());
     $("body").append($dact);
-    assert(!sq.tileLocked);
+    assert(!sq.isLocked());
     let tile = new Tile({ letter:'W', isBlank:false });
     sq.placeTile(tile, true);
     assert(sq.isLocked());
@@ -115,7 +113,7 @@ describe("Square browser mixin", () => {
     let sq = new Square({type:'_', base: 'surface', col:56, row:42});
     let $dact = $("<div></div>").append(sq.$td());
     $("body").append($dact);
-    assert(!sq.tileLocked);
+    assert(!sq.isLocked());
     let tile = new Tile({ letter:'W', isBlank:false });
     sq.placeTile(tile);
 

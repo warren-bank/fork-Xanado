@@ -28,16 +28,16 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
 
   </head>
   <body id="body" tabindex="0">
-    <div id="typingCursor">&#8658;</div>
+    <div id="typingCursor"></div>
     <div class="user-interface">
       <div id="baize">
-        <div id="board" class="Surface surround-shade">
-          <!-- board will be inserted here in code -->
-        </div>
+        <table id="board" class="Surface surround-shade">
+          <!-- board will be created here in code -->
+        </table>
         <div id="playRack">
-          <div class="Surface">
-            <!-- rack will be inserted here in code -->
-          </div>
+          <table class="Surface rack">
+            <!-- rack will be created here in code -->
+          </table>
           <div class="controls">
             <button class="shuffle-button fat-button"></button>
             <button class="unplace-button fat-button"></button>
@@ -51,8 +51,8 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
             <div class="toolbox">
               <span class="settingsButton" data-i18n-tooltip="Adjust user settings">&#9881;</span>
               <span class="pauseButton" data-i18n-tooltip="Pause the game; stops timers for all players until someone unpauses the game again">&#128336;</span>
-              <span class="undoButton" data-i18n-tooltip="Undo the last play.">&#11024;</span>
               <span class="redoButton" data-i18n-tooltip="Re-do the last undone play">&#11023;</span>
+              <span class="undoButton" data-i18n-tooltip="Undo the last play.">&#11024;</span>
             </div>
           </div>
           <div class="bad-user" class="hidden">
@@ -73,9 +73,9 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
         <div id="playBlock" class="block logged-in">
           <div class="block-title" data-i18n="Play"></div>
           <div class="your-move"></div>
-          <div id="swapRack" class="Surface bottom-shade">
-            <!-- swap rack will be inserted here in code -->
-          </div>
+          <table id="swapRack" class="Surface rack bottom-shade">
+            <!-- swap rack will be created here in code -->
+          </table>
           <button class="turn-button" data-action="pass" data-i18n="Pass">
           </button>
         </div>          

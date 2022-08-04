@@ -4,7 +4,7 @@
 /* eslint-env amd, jquery */
 
 define([
-  "platform", "game/Types", "game/Rack",
+  "platform", "common/Types", "game/Rack",
   requirejs.isBrowser ? "browser/Player" : "common/Mixin"
 ], (Platform, Types, Rack, Mixin) => {
 

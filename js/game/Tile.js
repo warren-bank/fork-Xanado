@@ -61,6 +61,13 @@ define([
          * @member {boolean}
          */
         this.isBlank = true;
+
+      if (spec.isLocked)
+        /**
+         * True if the tile is locked to a surface and cannot be moved.
+         * @member {boolean}
+         */
+        this.isLocked = true;
     }
 
     /**
@@ -69,10 +76,12 @@ define([
      * @return {Tile} this
      */
     reset() {
+      delete this.isLocked;
       delete this.row;
       delete this.col;
       if (this.isBlank)
         this.letter = " ";
+
       return this;
     }
 
@@ -81,14 +90,14 @@ define([
      * String representation for debugging
      */
     stringify(showPos) {
-      let pl = "";
+      const letter = this.isBlank ? this.letter.toLowerCase() : this.letter;
+      const brackets = this.isLocked ? "<>" : "[]";
+      let pos = "";
       if (typeof this.row === "number") {
-        pl = typeof this.col === "number" ? `[${this.col}` : ""
+        pos = typeof this.col === "number" ? `@${this.col}` : ""
         + `,${this.row}`;
       }
-      pl += "]";
-      const l = this.isBlank ? this.letter.toLowerCase() : this.letter;
-      return `[${l}${pl}`;
+      return `${brackets.charAt(0)}${letter}${pos}${brackets.charAt(1)}`;
     }
   }
 

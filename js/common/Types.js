@@ -3,11 +3,14 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
+/**
+ * Grouping together enumerated types
+ */
 define(() => {
 
   /**
    * See {@linkcode https://nodejs.org/api/http.html|http.ServerRequest}
-   * @typedef {http.SereverRequest} Request
+   * @typedef {http.ServerRequest} Request
    */
 
   /**
@@ -31,7 +34,7 @@ define(() => {
    * @typedef {WAITING|PLAYING|GAME_OVER|TWO_PASSES|FAILED_CHALLENGE|TIMED_OUT} State
    */
   const State = {
-     WAITING:          /*i18n*/"Waiting for players",
+    WAITING:          /*i18n*/"Waiting for players",
     PLAYING:          /*i18n*/"Playing",
     GAME_OVER:        /*i18n*/"Game over",
     TWO_PASSES:       /*i18n*/"All players passed twice",
@@ -159,7 +162,29 @@ define(() => {
     REJECT:  /*i18n*/"Reject unknown words"
   };
 
-  // ordered types for <select> in UI
+  /**
+   * Events issued by the game code to update the UI - ignored on server side
+   * * PLACE_TILE - a tile has just been placed on the square passed
+   * * UNPLACE_TILE - a tile has just been removed from the square passed. The
+   *   square and the removed tile are passed.
+   * * SELECT_SQUARE - the square passed has been selected. This will
+   *   either delegate to the tile placed on the square, or enable the
+   *   typing cursor on an empty square.
+   * * CLEAR_SELECT - clear the current selection (deselect selected tile,
+   *   and/or disable the typing cursor)
+   * * DROP_TILE - a tile has been drag/dropped on the square passed. The
+   *   source and destination squares are passed.
+   * @typedef {PLACE_TILE|UNPLACE_TILE|SELECT_SQUARE|CLEAR_SELECT|DROP_TILE} UIEvents
+   */
+  const UIEvents = {
+    CLEAR_SELECT:  "ClearSelect",
+    DROP_TILE:     "DropTile",
+    PLACE_TILE:    "PlaceTile",
+    SELECT_SQUARE: "SelectSquare",
+    UNPLACE_TILE:  "UnplaceTile"
+  };
+
+  // ordered types for <select>s in UI
   Timer._types = [
     Timer.NONE, Timer.TURN, Timer.GAME
   ];
@@ -174,12 +199,13 @@ define(() => {
   ];
 
   return {
-    State: State,
     Command: Command,
     Notify: Notify,
-    Timer: Timer,
     Penalty: Penalty,
+    State: State,
+    Timer: Timer,
     Turns: Turns,
+    UIEvents: UIEvents,
     WordCheck: WordCheck
   };
 });

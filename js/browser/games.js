@@ -9,7 +9,7 @@
 requirejs([
   "platform", "common/Utils",
   "browser/UI", "browser/Dialog",
-  "game/Types", "game/Player", "game/Game",
+  "common/Types", "game/Player", "game/Game",
   "jquery"
 ], (
   Platform, Utils,

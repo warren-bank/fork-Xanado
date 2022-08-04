@@ -4,7 +4,7 @@
 /* eslint-env amd */
 
 define([
-  "platform", "common/Utils", "game/Player", "game/Types"
+  "platform", "common/Utils", "game/Player", "common/Types"
 ], (
   Platform, Utils, Player, Types
 ) => {

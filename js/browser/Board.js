@@ -175,24 +175,21 @@ define([ "game/Move" ], Move => {
      * @function
      * @instance
      * @memberof BrowserBoard
-     * @return {jQuery} table
+     * @param {jQuery} $table table to populate
      */
-    $table() {
-      const $table = $("<table></table>");
+    $populate($table) {
+      const $tbody = $("<tbody></tbody>");
+      $table.append($tbody);
       for (let row = 0; row < this.rows; row++) {
         const $tr = $("<tr></tr>");
+        $tbody.append($tr);
         for (let col = 0; col < this.cols; col++) {
           const square = this.at(col, row);
-          const $td = square.$td("Board", col, row);
-          if (col == this.midcol && row == this.midrow)
-            $td.addClass("StartField");
-          else if (square.type != "_")
-            $td.addClass("score-multiplier"); // score multiplier
+          const $td = $("<td></td>");
           $tr.append($td);
+          square.$populate($td);
         }
-        $table.append($tr);
       }
-      return $table;
     }
   };
 

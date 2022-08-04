@@ -30,14 +30,8 @@
   }
 }
 
-/* Surface is the base class for Board and Rack, it's an array of squares */
+/* A surface is a table, the cells of which represent the squares */
 .Surface {
-  margin: 0;
-  padding: 0;
-}
-
-/* A surface contains a table, that cells of which represent the squares */
-.Surface table {
   border-collapse: separate;
   border-spacing: 0;
 
@@ -45,6 +39,7 @@
   border-style: solid;
   border-color:  #54534A;
 
+  margin: 0;
   padding: 1px;
 
   background-color: #AAA38E;

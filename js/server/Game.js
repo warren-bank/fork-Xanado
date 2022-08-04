@@ -6,7 +6,7 @@
 define([
   "platform", "common/Utils",
    "dawg/Dictionary", "game/Board", "game/LetterBag",
-  "game/Types", "game/Commands"
+  "common/Types", "game/Commands"
 ], (
   Platform, Utils,
   Dictionary, Board, LetterBag,

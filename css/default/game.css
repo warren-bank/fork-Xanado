@@ -235,14 +235,31 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 #typingCursor {
   display: none;
   font-family: symbol;
-  font-size: 1.5em;
+  font-size: 180%;
   font-weight: bold;
   color: green;
+  background-color: #D0F2D0;
   width: 80%;
   height: 80%;
   text-align: center;
   position: relative;
-  z-index: 2;
+  z-index: 2000;
+ -webkit-border-radius: 0.25em;
+ -moz-border-radius: 0.25em;
+ -o-border-radius: 0.25em;
+ -ms-border-radius: 0.25em;
+ -khtml-border-radius: 0.25em;
+ border-radius: 0.25em;
+}
+
+/* Right-facing arrow */
+#typingCursor:before {
+  content: "\261E";
+}
+
+/* Down-facing arrow */
+#typingCursor.down:before {
+  content: "\261F";
 }
 
 /*------------ PLAY RACK ------------*/
@@ -319,18 +336,13 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
     margin: 1vw;
   }
 
-  /* Board is full width */
+  /* Override Surface - Board is full width */
   #board {
     margin-top: 7vw;
     margin-left: 0;
     width: 100vw;
-  }
-
-  #board table {
-    width: 100%;
     aspect-ratio: 1/1;
     height: auto;
-    margin: 0 auto;
     padding: 2px;
   }
 

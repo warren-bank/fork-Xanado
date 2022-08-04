@@ -7,7 +7,7 @@
 
 define([
   "platform", "common/Utils",
-  "game/Types", "game/Board", "game/LetterBag",
+  "common/Types", "game/Board", "game/LetterBag",
   "game/Player", "game/Square", "game/Tile", "game/Rack",
   "game/Edition", "game/Move", "game/Turn", "game/Undo",
   requirejs.isBrowser ? "browser/Game" : "server/Game"

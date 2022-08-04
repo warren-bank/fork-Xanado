@@ -5,7 +5,7 @@
 
 define([
   "platform", "common/Utils",
-  "game/Types", "game/LetterBag",
+  "common/Types", "game/LetterBag",
   "game/Player", "game/Tile", "game/Rack", "game/Turn",
   "game/Game"
 ], (

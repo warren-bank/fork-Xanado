@@ -15,21 +15,19 @@ define(() => {
      * @function
      * @instance
      * @memberof BrowserRack
-     * @param {string} underlay a string of letters to use as background of
-     * the rack squares.
-     * @return {jQuery}
+     * @param {jQuery} $table table to populate
      */
-    $table(underlay) {
-      const $table = $('<table class="rack"></table>');
+    $populate($table) {
       const $tbody = $("<tbody></tbody>");
       $table.append($tbody);
       const $tr = $("<tr></tr>");
+      $tbody.append($tr);
       this.forEachSquare(square => {
-        $tr.append(square.$td());
+        const $td = $("<td></td>");
+        $tr.append($td);
+        square.$populate($td);
         return false;
       });
-      $tbody.append($tr);
-      return $table;
     }
   };
 

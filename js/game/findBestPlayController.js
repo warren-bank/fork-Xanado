@@ -8,7 +8,7 @@
 define([
   "worker_threads",
   "platform", "common/Fridge",
-  "game/Types", "game/Square", "game/Game", "game/Player"
+  "common/Types", "game/Square", "game/Game", "game/Player"
 ], (
   threads,
   Platform, Fridge,

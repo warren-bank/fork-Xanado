@@ -21,7 +21,7 @@ describe("Undo", () => {
     
     Move: "game/Move",
     Turn: "game/Turn",
-    Types: "game/Types"
+    Types: "common/Types"
   }, required));
 
   function assertGameEqual(actual, expected, noTurns) {

@@ -7,7 +7,7 @@ define([
   "fs", "path", "events", "cookie", "cors", "express", "errorhandler",
   "platform",  "common/Fridge", "common/Utils",
   "server/UserManager", "server/FileDatabase",
-  "game/Types",
+  "common/Types",
   "game/Game", "game/Player", "game/Turn", "game/Edition"
 ], (
   fs, Path, Events, Cookie, cors, Express, ErrorHandler,

@@ -5,7 +5,7 @@
 
 define([
   "platform", "common/Utils",
-  "game/Types", "game/Player", "game/Turn"
+  "common/Types", "game/Player", "game/Turn"
 ], (
   Platform, Utils,
   Types, Player, Turn

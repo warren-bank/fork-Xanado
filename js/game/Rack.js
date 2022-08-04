@@ -122,14 +122,15 @@ define([
      * @return {Tile} the removed tile
      */
     removeTile(remove) {
-      const square = this.findSquare(remove.letter);
+      const letter = remove.letter;
+      const square = this.findSquare(letter);
       Platform.assert(square,
-      `Cannot find '${remove.letter}' on ${this.stringify()}`);
+      `Cannot find '${letter}' on ${this.stringify()}`);
       const tile = square.tile;
+      square.unplaceTile();
       // If the tile is a blank, set the letter to the remove letter
       if (tile.isBlank)
-        tile.letter = remove.letter;
-      square.unplaceTile();
+        tile.letter = letter;
       return tile;
     }
 
