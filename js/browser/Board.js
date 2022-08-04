@@ -60,12 +60,12 @@ define([ "game/Move" ], Move => {
         for (col = 0; col < this.cols - 1; col++)
           if (this.at(col, row).tile && this.at(col + 1, row).tile)
             taste(1, 0);
-      
+
       for (col = 0; col < this.cols; col++)
         for (row = 0; row < this.rows - 1; row++)
           if (this.at(col, row).tile && this.at(col, row + 1).tile)
             taste(0, 1);
-      
+
       return totalScore;
     },
 
@@ -146,7 +146,7 @@ define([ "game/Move" ], Move => {
         totalTiles++;
         disco = disco || (!square.isLocked() && !legalPlacements[col][row]);
       });
-      
+
       if (disco)
         return /*i18n*/"Disconnected placement";
 
@@ -159,7 +159,7 @@ define([ "game/Move" ], Move => {
           placements.push(square.tile);
         }
       });
-      
+
       const words = [];
       const score = this.scoreNewWords(words);
       return new Move(

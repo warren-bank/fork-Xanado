@@ -9,7 +9,7 @@
 define(["browser/Dialog"], Dialog => {
 
   class InvitePlayersDialog extends Dialog {
-    
+
     constructor(options) {
       super("InvitePlayersDialog", $.extend({
         title: $.i18n("Invite players")

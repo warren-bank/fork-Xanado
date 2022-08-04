@@ -44,7 +44,7 @@ define([ "platform" ], Platform => {
       $status.addClass(
         this._isConnected || this.isRobot ? "online" : "offline");
       $tr.append($status);
-      
+
       $tr.append(`<td class='score'>${this.score}</td>`);
       $tr.append(`<td class='player-clock'></td>`);
 

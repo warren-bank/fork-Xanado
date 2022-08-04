@@ -41,7 +41,7 @@ define(["browser/Dialog"], Dialog => {
         .then(user => $las.text(
           $.i18n("Logged in as $1", user.name)));
       }
-      
+
       this.$dlg.find(".forgotten-password")
       .on("click", () => $tabs.tabs("option", "active", 2));
 
@@ -89,6 +89,6 @@ define(["browser/Dialog"], Dialog => {
       }, options));
     }
   }
-  
+
   return LoginDialog;
 });

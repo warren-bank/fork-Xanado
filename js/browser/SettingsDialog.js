@@ -9,7 +9,7 @@
 define([ "browser/Dialog" ], Dialog => {
 
   class SettingsDialog extends Dialog {
-    
+
     constructor(options) {
       super("SettingsDialog", $.extend({
         title: $.i18n("Options")

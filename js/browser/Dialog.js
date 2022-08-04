@@ -24,7 +24,6 @@ define(() => {
      * @param {function} options.postResult passed result
      * of postAction AJAX call
      * @param {function} options.error error function, passed jqXHR
-     * 
      */
     constructor(id, options) {
       /**
@@ -130,7 +129,7 @@ define(() => {
             $(this).blur();
             self.$dlg.data("this").enableSubmit();
           });
-      
+
       setTimeout(
         () => this.$dlg
         .find('select[data-i18n-tooltip] ~ .ui-selectmenu-button')

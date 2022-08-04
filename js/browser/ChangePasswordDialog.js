@@ -30,6 +30,6 @@ define(["browser/Dialog"], (Dialog) => {
       return super.createDialog();
     }
   }
-  
+
   return ChangePasswordDialog;
 });

@@ -15,7 +15,7 @@ define([
   const WordCheck = Types.WordCheck;
 
   class CreateGameDialog extends Dialog {
-    
+
     /**
      * @override
      */

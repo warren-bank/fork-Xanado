@@ -105,7 +105,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
      * @function
      * @instance
      * @memberof BrowserSquare
-     * @param {Tile?} tile the tile being unplaced. 
+     * @param {Tile?} tile the tile being unplaced.
      * @param {jQuery?} $td jquery object for the TD of the square. If
      * undefined, the TD will be found from the ID.
      */

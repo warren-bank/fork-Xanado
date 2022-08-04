@@ -9,7 +9,7 @@
 define(["browser/Dialog"], Dialog => {
 
   class AddRobotDialog extends Dialog {
-    
+
     constructor(options) {
       super("AddRobotDialog", $.extend({
         title: $.i18n("Add robot")
