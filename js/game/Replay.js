@@ -88,7 +88,7 @@ define([
           if (turn.type === Turns.TOOK_BACK
               || turn.type === Turns.CHALLENGE_WON) {
             player.rack.removeTiles(turn.placements);
-            this.bag2rack(turn.replacements, player.rack);
+            this.bagToRack(turn.replacements, player);
           } else {
             let racked;
             if (turn.replacements)
