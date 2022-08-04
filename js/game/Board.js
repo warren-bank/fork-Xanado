@@ -4,9 +4,9 @@
 /* eslint-env amd, node, jquery */
 
 define([
-  "game/Surface", "game/Tile", "game/Move",
+  "platform", "common/Utils", "game/Surface", "game/Tile", "game/Move",
   requirejs.isBrowser ? "browser/Board" : "server/Board"
-], (Surface, Tile, Move, Mixin) => {
+], (Platform, Utils, Surface, Tile, Move, Mixin) => {
 
   /**
    * The square game board.

@@ -4,8 +4,8 @@
 /* eslint-env amd */
 
 define([
-  "platform", "game/Tile"
-], (Platform, Tile) => {
+  "platform", "common/Utils", "game/Tile"
+], (Platform, Utils, Tile) => {
 
   /**
    * The bag of letters during a game.

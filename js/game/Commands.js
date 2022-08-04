@@ -85,13 +85,7 @@ define([
       const game = this;
 
       // Move tiles from the rack to the board
-      for (const placement of move.placements) {
-        const square = game.board.at(placement.col, placement.row);
-        Platform.assert(square, `${placement.col},${placement.row}`);
-        const tile = player.rack.removeTile(placement);
-        Platform.assert(tile);
-        square.placeTile(tile, true);
-      }
+      this.rackToBoard(move.placements, player);
 
       player.score += move.score;
 
@@ -290,22 +284,10 @@ define([
 
       // Move tiles that were added to the rack as a consequence
       // of the previous move, back to the letter bag
-      if (previousMove.replacements) {
-        for (let newTile of previousMove.replacements) {
-          const tile = prevPlayer.rack.removeTile(newTile);
-          this.letterBag.returnTile(tile);
-        }
-      }
+      this.rackToBag(previousMove.replacements, prevPlayer);
 
       // Move placed tiles from the board back to the player's rack
-      if (previousMove.placements) {
-        for (let placement of previousMove.placements) {
-          const boardSquare =
-                this.board.at(placement.col, placement.row);
-          prevPlayer.rack.addTile(boardSquare.tile);
-          boardSquare.unplaceTile();
-        }
-      }
+      this.boardToRack(previousMove.placements, prevPlayer);
 
       prevPlayer.score -= previousMove.score;
 
@@ -511,21 +493,11 @@ define([
       player.passes++;
 
       // Get the right number of new tiles from the bag
-      const replacements = [];
-      for (let i = 0; i < tiles.length; i++) {
-        const rep = this.letterBag.getRandomTile();
-        replacements.push(rep);
-      }
+      const replacements = this.letterBag.getRandomTiles(tiles.length);
 
       // Return discarded tiles to the letter bag to make space
       // on the player's rack
-      for (const tile of tiles) {
-        const removed = player.rack.removeTile(tile);
-        Platform.assert(
-          removed,
-          `Cannot swap, player rack does not contain letter ${tile.letter}`);
-        this.letterBag.returnTile(removed);
-      }
+      this.rackToBag(tiles, player);
 
       // Place new tiles on the rack, now that there's space
       for (const rep of replacements)
@@ -538,8 +510,8 @@ define([
           type: Turns.SWAPPED,
           playerKey: player.key,
           nextToGoKey: nextPlayer.key,
-          placements: tiles,
-          replacements: replacements
+          placements: tiles, // the tiles that were swapped out
+          replacements: replacements // the tiles that are replacing them
         });
 
       return this.finishTurn(turn)

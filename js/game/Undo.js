@@ -21,58 +21,6 @@ define([
   return {
 
     /**
-     * Take tiles out of the letter bag and put them back on the rack
-     * @function
-     * @instance
-     * @memberof Undo
-     * @param {Tile[]} tiles list of tiles
-     * @param {Rack} rack to put the tiles on
-     */
-    bag2rack(tiles, rack) {
-      for (const tile of tiles) {
-        const removed = this.letterBag.removeTile(tile);
-        Platform.assert(removed, `${Utils.stringify(tile)} missing from bag`);
-        rack.addTile(removed);
-      }
-    },
-
-    /**
-     * Move tiles from the board back to the rack
-     * @function
-     * @instance
-     * @memberof Undo
-     * @param {Tile[]} tiles list of tiles
-     * @param {Rack} rack to put the tiles on
-     */
-    board2rack(tiles, rack) {
-      for (const pl of tiles) {
-        const sq = this.board.at(pl.col, pl.row);
-        Platform.assert(sq, "Bad placement");
-        const t = sq.unplaceTile();
-        rack.addTile(t);
-      }
-    },
-
-    /**
-     * Move tiles from the rack to the board
-     * @function
-     * @instance
-     * @memberof Undo
-     * @param {Tile[]} tiles list of tiles
-     * @param {Rack} rack to get the tiles from
-     */
-    rack2board(tiles, rack) {
-      // Move tiles from the rack back onto the board
-      for (const place of tiles) {
-        const tile = rack.removeTile(place);
-        Platform.assert(tile);
-        const square = this.board.at(place.col, place.row);
-        Platform.assert(square && !square.tile);
-        square.placeTile(tile, true);
-      }
-    },
-
-    /**
      * Undo a swap. Resets the game state as if it had never happened.
      * @function
      * @instance
@@ -83,9 +31,8 @@ define([
     unswap(turn, isClient) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
-      const racked = player.rack.removeTiles(turn.replacements);
-      this.bag2rack(turn.placements, player.rack);
-      this.letterBag.returnTiles(racked);
+      this.rackToBag(turn.replacements, player);
+      this.bagToRack(turn.placements, player);
       player.passes--;
       this.whosTurnKey = player.key;
     },
@@ -101,9 +48,8 @@ define([
     unplay(turn, isClient) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
-      const racked = player.rack.removeTiles(turn.replacements);
-      this.board2rack(turn.placements, player.rack);
-      this.letterBag.returnTiles(racked);
+      this.rackToBag(turn.replacements, player);
+      this.boardToRack(turn.placements, player);
       player.score -= turn.score;
       player.passes = turn.prepasses || 0;
       this.whosTurnKey = player.key;
@@ -143,8 +89,8 @@ define([
     untakeBack(turn, isClient) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
-      this.rack2board(turn.placements, player.rack);
-      this.bag2rack(turn.replacements, player.rack);
+      this.rackToBoard(turn.placements, player);
+      this.bagToRack(turn.replacements, player);
       player.score -= turn.score;
       this.whosTurnKey = this.nextPlayer(player).key;
       this._debug(`\tplayer now ${this.whosTurnKey}`,turn);
