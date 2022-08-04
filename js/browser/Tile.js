@@ -61,6 +61,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
         // a new UI, or it may have lost its draggability when it was
         // locked onto the board, and is being unlocked by an undo.
         if (!this.$tile.hasClass("ui-draggable")) {
+          /* istanbul ignore next */
           this.$tile
           .draggable({
             revert: "invalid",
