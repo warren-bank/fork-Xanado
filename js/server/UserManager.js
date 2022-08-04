@@ -128,7 +128,7 @@ define([
 
       app.use(Passport.initialize());
 
-      // Same as app.use(passport.authenticate("session")); 
+      // Same as app.use(passport.authenticate("session"));
       app.use(Passport.session());
 
       Passport.serializeUser((userObject, done) => {
@@ -213,12 +213,12 @@ define([
           return this.passportLogin(req, res, req.userObject)
           .then(() => this.sendResult(res, 200, []));
         });
-      
+
       /* istanbul ignore next */
       app.get(
         "/oauth2-providers",
         (req, res) => this.handle_oauth2_providers(req, res));
-      
+
       // Log out the current signed-in user
       app.post(
         "/logout",

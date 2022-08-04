@@ -33,7 +33,7 @@ requirejs(['node-getopt', 'fs', 'design/ValettCore'], (Getopt, fs, Valett) => {
     maxPoints: 10,
     tileCount: 98
   };
-  
+
   const DESCRIPTION = [
     'USAGE',
     `node ${process.argv[1].replace(/.*\//, '')} [options] <wordfile>`,
@@ -105,8 +105,8 @@ requirejs(['node-getopt', 'fs', 'design/ValettCore'], (Getopt, fs, Valett) => {
         c => chars[c] = true));
     const letters = Object.keys(chars);
     letters.sort();
-    
-    const v = new Valett(words, letters); 
+
+    const v = new Valett(words, letters);
     const values = v.analyze(config.maxPoints - config.minPoints,
                              config.weights,
                              config.frequencyByLengthWeights,

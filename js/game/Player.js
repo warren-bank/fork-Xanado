@@ -132,7 +132,7 @@ define([
      * the `games` interface using JSON.
      * @param {Game} game the game the player is participating in
      * @param {UserManager?} um user manager for getting emails if wanted
-     * @return {Promise} resolving to a simple structure describing 
+     * @return {Promise} resolving to a simple structure describing
      * the player
      */
     simple(game, um) {
@@ -149,7 +149,7 @@ define([
         if (this._isConnected) simple._isConnected = true;
         if (this.dictionary) simple.dictionary = this.dictionary;
         if (this.clock) simple.clock = this.clock;
-        
+
         // Can they be emailed?
         if (ump.email) simple.email = true;
 

@@ -36,7 +36,7 @@ define([
 
         // Second step; generate a DAWG from the Trie
         trie.generateDAWG();
-    
+
         // Generate an integer array for use with Dictionary
         const buffer = trie.encode();
         const dv = new DataView(buffer);

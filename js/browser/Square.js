@@ -140,7 +140,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
      * @function
      * @instance
      * @memberof BrowserSquare
-     * @param {boolean} sel 
+     * @param {boolean} sel
      */
     setUnderlay(ch) {
       this.underlay = ch;
@@ -152,7 +152,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
      * @function
      * @instance
      * @memberof BrowserSquare
-     * @param {boolean} sel 
+     * @param {boolean} sel
      */
     select(sel) {
       const $tc = $("#typingCursor").hide();

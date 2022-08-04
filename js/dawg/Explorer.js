@@ -104,10 +104,10 @@ define([
           let list = [];
           biglist[root.word] = true;
           root.node.child.eachWord(root.word, w => list.push(w));
-        
+
           list = list.filter(w => !biglist[w]);
           list.forEach(w => biglist[w] = true);
-          
+
           report(list.map(w => `${root.word} -- ${w}`).join("\n"));
         }
       });

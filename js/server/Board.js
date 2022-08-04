@@ -10,7 +10,7 @@ define(() => {
    * @mixin ServerBoard
    */
   const ServerBoard = {
-    
+
     /**
      * Given a play at col, row, compute it's score. Used in
      * findBestPlay, and must perform as well as possible. Read

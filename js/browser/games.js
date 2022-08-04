@@ -97,7 +97,7 @@ requirejs([
         postResult: () => this.refresh().catch(UI.report),
         error: UI.report
       }));
-      
+
       super.attachHandlers();
     }
 
@@ -141,12 +141,12 @@ requirejs([
           const left = $.i18n("$1s left to play", player.clock);
           $tr.append(`<td>${left}</td>`);
         }
-        
+
       } else {
         const winningScore = game.getPlayers().reduce(
           (max, p) =>
           Math.max(max, p.score), 0);
-        
+
         if (player.score === winningScore) {
           $tr.append('<td class="ui-icon icon-winner"></td>');
         }
@@ -252,7 +252,7 @@ requirejs([
 
       const isActive = (game.state === State.PLAYING
                         || game.state === State.WAITING);
-      
+
       const $h = $("<span></span>")
       .addClass("headline")
       .text(headline.join(", "));
@@ -294,7 +294,7 @@ requirejs([
           this.isUntwisted[game.key] = false;
         }
       };
-      
+
       showHideTwist(this.isUntwisted && this.isUntwisted[game.key]);
 
       $box
@@ -405,7 +405,7 @@ requirejs([
                 })));
         }
       }
-      
+
       if (this.session) {
         if (isActive && this.getSetting("canEmail")) {
           $twist.append(
@@ -485,7 +485,6 @@ requirejs([
       return $box;
     }
 
-    
     /**
      * Refresh the display of a single game
      * @param {Game|object} game a Game or Game.simple

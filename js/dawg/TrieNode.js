@@ -70,7 +70,7 @@ define([
      * @member {number}
      */
     maxChildDepth = 0;
-    
+
     /**
      * Number of child nodes under this node - used for optimisation
      * @member {number}
@@ -83,7 +83,7 @@ define([
      * @member {number}
      */
     index = -1;
-    
+
     /**
      * @param {string} letter codepoint
      * @param {TrieNode} next next node pointer
@@ -94,7 +94,7 @@ define([
      * @param {boolean} isFirstChild is the first child of the parent node
      */
     constructor(letter, next, isWordEnding, starterDepth, isFirstChild) {
-      this.letter = letter; 
+      this.letter = letter;
       this.next = next;
       this.isEndOfWord = isWordEnding;
       this.maxChildDepth = starterDepth;
@@ -184,7 +184,7 @@ define([
     }
 
     /**
-     * Search along this's child next chain for a node with the 
+     * Search along this's child next chain for a node with the
      * given letter.
      * @param {string} thisLetter letter to look for
      * @return {TrieNode} the node found, or null

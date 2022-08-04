@@ -158,7 +158,7 @@ define([
     /**
      * Take a list of matching tiles out of the letter bag.
      * @param {Tile[]} tiles list of tiles to match and remove
-     * @return {Tile[]} list of tiles removed from the bag 
+     * @return {Tile[]} list of tiles removed from the bag
      */
     removeTiles(tiles) {
       const unbagged = [];

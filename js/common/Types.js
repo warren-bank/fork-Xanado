@@ -41,7 +41,7 @@ define(() => {
     FAILED_CHALLENGE: /*i18n*/"Challenge failed",
     TIMED_OUT:        /*i18n*/"Timed out"
   };
-  
+
   /**
    * Commands that can be sent from the UI to the Server.
    * @typedef {UNPAUSE|PAUSE|CHALLENGE|PLAY|TAKE_BACK|PASS|GAME_OVER|SWAP} Command
@@ -151,7 +151,7 @@ define(() => {
    * Ways to check played words.
    * * NONE - don't check played words
    * * AFTER - report to player (only) if played words were in dictionary
-   * * REJECT - refuse to accept words not in the dictionary. A bad play 
+   * * REJECT - refuse to accept words not in the dictionary. A bad play
    *   in this case does not result in a penalty, it just won't accept
    *   the play.
    * @typedef {NONE|AFTER|REJECT} WordCheck

@@ -79,7 +79,7 @@ define([
        * Undo stack. Head of the stack is the most recent undo.
        * The undo stack is cleared when a normal play (swap, place, challenge etc)
        * is executed. The only command that retains the stack is REDO.
-       * 
+       *
        */
       this.undoStack = [];
     }
@@ -204,7 +204,7 @@ define([
         args.push(message.args);
       else if (message.args instanceof Array)
         args = args.concat(message.args);
-      
+
       const sender = /^chat-/.test(message.sender)
             ? $.i18n(message.sender) : message.sender;
       const $pn = $("<span></span>").addClass("chat-sender");
@@ -874,13 +874,13 @@ define([
           }
         })
         .on("click", () => this.shuffleRack());
-        
+
         $(".unplace-button").button({
           showLabel: false,
           icon: "unplace-icon",
           classes: {
             "ui-button-icon": "fat-icon"
-          }        
+          }
         })
         .on("click", () => this.takeBackTiles());
 
@@ -1249,7 +1249,7 @@ define([
       }
 
       fromSquare.unplaceTile();
-      if (tile.isBlank) {      
+      if (tile.isBlank) {
         if (!toSquare.isOnBoard) {
           tile.reset();
         } else if (ifBlank) {
@@ -1319,7 +1319,7 @@ define([
           // Play is legal, calculate bonus if any
           const bonus =
                 this.game.calculateBonus(move.placements.length);
-          move.score += bonus; 
+          move.score += bonus;
           $move.append(move.$score(!this.game.predictScore));
           this.enableTurnButton(true);
         }
@@ -1477,7 +1477,7 @@ define([
       })
       .catch(console.error);
     }
-    
+
     /**
      * Handler for the 'Next game" button. Invoked via click_turnButton.
      */
@@ -1522,7 +1522,7 @@ define([
      * Handler for a click on the 'Make Move' button. This button
      * may be associated with different actions depending on the
      * state, through the 'data-action' attribute.
-     * 
+     *
      * * 'commitMove' will send the current tile placements to the server
      * * 'swap' will sawp the tiles currently on the swap rack
      * * 'pass' will pass the current move (set when no tiles are placed)

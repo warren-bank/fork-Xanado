@@ -91,7 +91,7 @@ define(() => {
         const proto = Object.getPrototypeOf(unfrozen);
         if (proto && typeof proto.Freeze === "function") {
           frozen[IB_DATA] = unfrozen.Freeze();
-          
+
         } else if (frozen[IB_CN] === "Date") {
           // Special handling because the fields are just noise
           frozen[IB_DATA] = unfrozen.getTime();

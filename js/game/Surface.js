@@ -39,7 +39,7 @@ define([
     squares = [];
 
     /**
-     * @param {string} id unique id for the surface 
+     * @param {string} id unique id for the surface
      * @param {number} cols number of columns
      * @param {number} rows number of rows (1 for a rack)
      * @param {function} type function(col, row) returning the square type

@@ -2,7 +2,7 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /**
- * This is the controller side of a best play thread. It provides 
+ * This is the controller side of a best play thread. It provides
  * the same API as findBestPlay(). See also findBestPlayWorker.js
  */
 define([

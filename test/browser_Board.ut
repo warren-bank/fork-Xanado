@@ -225,6 +225,24 @@ describe("Board browser mixin", () => {
   });
 
   it("$ui", () => {
+    $(document)
+    .on(UIEvents.PLACE_TILE,
+        (e, square) => {
+          square.$placeTile();
+        })
+    
+    .on(UIEvents.UNPLACE_TILE,
+        (e, square, tile) => {
+          square.$unplaceTile();
+        });
+
+    let $dact = $("<div></div>");
+    $("body").append($dact);
+
+    let $table = $("<table></table>");
+    $dact.append($table);
+
+    // 5x5 board
     const edition = new Edition({
       layout: [
         "Dd_",
@@ -246,6 +264,9 @@ describe("Board browser mixin", () => {
     });
 
     let b = new Board(edition);
+
+    b.$populate($table);
+
     const W = new Tile({letter: "W", score:4});
     const O = new Tile({letter: "O", score:1});
     const R = new Tile({letter: "R", score:2, isBlank:true});
@@ -254,15 +275,14 @@ describe("Board browser mixin", () => {
     const L = new Tile({letter: "L", isBlank:true, score: 2});
     const K = new Tile({letter: "K", score: 5});
     
-    // Lock down the play. This should not affect $ui!
+    // Lock down the play.
     b.at(0, 0).placeTile(W, true);
     b.at(0, 1).placeTile(O, true);
     b.at(0, 2).placeTile(R, true);
     b.at(1, 0).placeTile(A);
     b.at(2, 0).placeTile(L);
 
-    // Not going to bother with a detailed check because it's obvious
-    // from the UI
-    const s = b.$table();
+    // Not going to do a detailed check because it should be obvious
+    // from interface testing if it worked
   });
 });

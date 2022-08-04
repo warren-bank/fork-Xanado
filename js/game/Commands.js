@@ -241,7 +241,7 @@ define([
           deltas[player.key].tiles -= rackScore;
           pointsRemainingOnRacks += rackScore;
           this._debug(`\t${player.name} has ${rackScore} points left`);
-        } 
+        }
         if (this.timerType === Timer.GAME && player.clock < 0) {
           const points = Math.round(
             player.clock * this.timePenalty / 60);
@@ -287,7 +287,7 @@ define([
         return Promise.reject(`Cannot challenge a ${previousMove.type}`);
 
       const prevPlayer = this.getPlayerWithKey(previousMove.playerKey);
-      
+
       // Move tiles that were added to the rack as a consequence
       // of the previous move, back to the letter bag
       if (previousMove.replacements) {
@@ -530,7 +530,7 @@ define([
       // Place new tiles on the rack, now that there's space
       for (const rep of replacements)
         player.rack.addTile(rep);
-      
+
       const nextPlayer = this.nextPlayer();
       const turn = new Turn(
         this,
@@ -736,7 +736,7 @@ define([
 
         // Tell the requesting player the hint
         this.notifyPlayer(player, Notify.MESSAGE, hint);
-        
+
         // Tell *everyone else* that they asked for a hint
         this.notifyOthers(player, Notify.MESSAGE, {
           sender: /*i18n*/"Advisor",

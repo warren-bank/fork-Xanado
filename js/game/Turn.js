@@ -118,7 +118,7 @@ define([
 
       if (this.placements)
         s += " <=" + this.placements.map(t => t.stringify(true));
-      
+
       if (this.words)
         s += ' "' + this.words.map(w => w.word) + '"';
 
@@ -127,7 +127,7 @@ define([
 
       if (this.penalty === Penalty.MISS)
         s += ` MISS`;
-      
+
       if (this.endState)
         s += ` ${this.endState}`;
 

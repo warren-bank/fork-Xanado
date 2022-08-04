@@ -22,7 +22,7 @@ define([
      * @param {number?} spec.row optional row where the tile is placed
      */
     constructor(spec) {
-      
+
       /**
        * Character(s) represented by this tile.
        * Caution; during gameplay, `letter` for a blank will be set

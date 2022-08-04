@@ -24,7 +24,7 @@ define(["dawg/TrieNode"], TrieNode => {
      * @member {number}
      */
     numberOfNodes = 0;
-    
+
     /**
      * Maximum word length, computed during conversion to DAWG
      * @member {number}
@@ -60,7 +60,7 @@ define(["dawg/TrieNode"], TrieNode => {
       if (typeof debug === "function")
         this._debug = debug;
       this._debug("\nConstruct Trie and fill from lexicon");
-      
+
       for (let word of lexicon)
         this.addWord(word);
 

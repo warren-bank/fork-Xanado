@@ -19,7 +19,7 @@ define([
   I18N
 ) => {
   const Fs = fs.promises;
-  
+
   /**
    * Implementation of {@linkcode common/Platform} for use in node.js.
    */

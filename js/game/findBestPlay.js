@@ -186,7 +186,7 @@ define([
      * word plays by extending down/across the board. For each word,
      * compute its point value, and update the best score
      * accordingly.
-     * 
+     *
      * @param {number} col index of the current position on the board. This
      * is the posiiton of the last character of the word constructed so far.
      * @param {number} row index of the current position on the board. This
@@ -244,7 +244,7 @@ define([
         if (this.board.at(ecol, erow).isEmpty()) {
           const haveBlank = rackTiles.find(l => l.isBlank);
           const xc = this.crossChecks[ecol][erow][dcol];
-          
+
           available = intersection(
             dNode.postLetters,
             haveBlank ? xc : intersection(
@@ -291,7 +291,7 @@ define([
      * Given a position that may be part of a word, and the letters of
      * the word it may be part of, try to back up/left before extending
      * down/right.
-     * 
+     *
      * @param {number} col index of the current position on the board. This
      * is the posiiton of the last character of the word constructed so far.
      * @param {number} row index of the current position on the board. This

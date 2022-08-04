@@ -86,7 +86,7 @@ requirejs([
     const dict = Path.basename(dawg, ".dict");
     console.log(dict, action, words);
     return Dictionary.load(dict, dir)
-    .then(dictionary => 
+    .then(dictionary =>
           Explorer[action].call(null, dictionary, words, console.log));
   });
 });

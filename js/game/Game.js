@@ -57,7 +57,7 @@ define([
      * (may be null).
      * @param {object} params Parameter object. This can be another
      * Game to copy game parameters, or a generic object with fields
-     * the same name as Game fields. 
+     * the same name as Game fields.
      * Note that `players` and `turns` are not copied.
      */
     constructor(params) {
@@ -77,7 +77,7 @@ define([
        * @member {State}
        */
       this.state = State.WAITING;
-    
+
       /**
        * Key that uniquely identifies this game.
        * @member {Key}
@@ -154,7 +154,7 @@ define([
       /**
        * The name of the edition.
        * We don't keep a pointer to the {@linkcode Edition} so we can
-       * cheaply freeze and send to the games interface. 
+       * cheaply freeze and send to the games interface.
        * @member {string}
        */
       this.edition = params.edition;
@@ -624,7 +624,7 @@ define([
           edition: this.edition,
           dictionary: this.dictionary,
           state: this.state,
-          players: ps,          
+          players: ps,
           whosTurnKey: this.whosTurnKey,
           timerType: this.timerType,
           challengePenalty: this.challengePenalty,

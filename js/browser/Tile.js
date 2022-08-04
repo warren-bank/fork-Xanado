@@ -48,7 +48,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
 
       if (this.isBlank)
         this.$tile.addClass("blank-letter");
-      
+
       if (this.isLocked) {
         if (this.$tile.hasClass("ui-draggable"))
           this.$tile.draggable("destroy");
@@ -93,7 +93,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
      * @function
      * @instance
      * @memberof BrowserTile
-     * @param {boolean} sel 
+     * @param {boolean} sel whether to select or deselect
      */
     showSelected(sel) {
       if (sel) {

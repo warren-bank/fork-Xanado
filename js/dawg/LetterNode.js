@@ -93,7 +93,7 @@ define([ "platform" ], Platform => {
      * @member {string[]?}
      */
     preLetters;
-    
+
     /**
      * List of nodes that are linked to from this node. Set up
      * by {@linkcode LetterNode#buildLists|buildLists}.

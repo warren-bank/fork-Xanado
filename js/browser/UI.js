@@ -107,7 +107,7 @@ define([
         // canplaythrough might help (though it's really a bit of
         // overkill, as none of Xanado's audio is "important")
         $(audio).on(
-          "canplaythrough", 
+          "canplaythrough",
           () => {
             $(audio).off("canplaythrough");
             audio.play()

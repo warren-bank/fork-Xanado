@@ -5,7 +5,7 @@
 /**
  * Unit tests for Rack
  */
-describe("browser_Rack mixin", () => {
+describe("browser/Rack mixin", () => {
 
   const TS = require("./TestSupport.js");
   after(() => TS.after());
@@ -20,67 +20,82 @@ describe("browser_Rack mixin", () => {
   });
 
   it("$ui empty", () => {
-    let r = new Rack("base", 2);
-
-    let $act = r.$table();
-    assert($act.hasClass("rack"));
-
-    let $dact = $("<div></div>").append($act);
+    let $dact = $("<div></div>");
     $("body").append($dact);
 
-    let $exp = $('<table class="rack"><tbody><tr><td class="square-_ ui-droppable" id="base_0"></td><td class="square-_ ui-droppable" id="base_1"></td></tr></tbody></table>');
+    let $table = $("<table></table>");
+    $dact.append($table);
 
-    let $dexp = $("<div></div>").append($exp);
+    let r = new Rack("base", 2);
+    r.$populate($table);
+
+    let $dexp = $("<div></div>");
     $("body").append($dexp);
-    assert($act[0].isEqualNode($exp[0]),
+
+    let $exp = $('<table><tbody><tr><td class="square-_ ui-droppable" id="base_0"></td><td class="square-_ ui-droppable" id="base_1"></td></tr></tbody></table>');
+    $dexp.append($exp);
+
+    assert($dact[0].isEqualNode($dexp[0]),
            "\nexpected:" + $dexp.html() + "\n" +
            "  actual:" + $dact.html());
     $("body").empty();
   });
 
   it('$ui empty underlay', () => {
-    let r = new Rack('base', 2, "£");
-
-    let $act = r.$table();
-    assert($act.hasClass("rack"));
-
-    let $dact = $("<div></div>").append($act);
+    let $dact = $("<div></div>");
     $("body").append($dact);
 
-    let $exp = $('<table class="rack"><tbody><tr><td class="square-_ ui-droppable" id="base_0"><div class="underlay">£</div></td><td class="square-_ ui-droppable" id="base_1"></td></tr></tbody></table>');
+    let $table = $("<table></table>");
+    $dact.append($table);
 
-    let $dexp = $("<div></div>").append($exp);
+    let r = new Rack('base', 2, "£");
+    r.$populate($table);
+
+    let $dexp = $("<div></div>");
     $("body").append($dexp);
 
-    assert($act[0].isEqualNode($exp[0]),
+    let $exp = $('<table><tbody><tr><td class="square-_ ui-droppable" id="base_0"><div class="underlay">£</div></td><td class="square-_ ui-droppable" id="base_1"></td></tr></tbody></table>');
+    $dexp.append($exp);
+
+    assert($dact[0].isEqualNode($dexp[0]),
            "\nexpected:" + $dexp.html() + "\n" +
            "  actual:" + $dact.html());
-
     $("body").empty();
   });
 
   it('$ui tiled', () => {
-    let r = new Rack('base', 2);
-    r.addTile(new Tile({letter:'S'}), 0, 0);
-    r.addTile(new Tile({letter:'Q'}), 0, 0);
+    $(document)
+    .on(UIEvents.PLACE_TILE,
+        (e, square) => {
+          square.$placeTile();
+        })
+    
+    .on(UIEvents.UNPLACE_TILE,
+        (e, square, tile) => {
+          square.$unplaceTile();
+        });
 
-    assert.deepEqual(r.letters().sort(), ['Q', 'S']);
-
-    let $act = r.$table();
-    assert($act.hasClass("rack"));
-
-    let $dact = $("<div></div>").append($act);
-
-    // Must be in the body before refresh or #id's won't be found
+    let $dact = $("<div></div>");
     $("body").append($dact);
 
-    let $exp = $('<table class="rack"><tbody><tr><td class="square-_" id="base_0"><div class="Tile ui-draggable ui-draggable-handle unlocked-tile"><div class="glyph"><span class="letter">S</span><span class="score">0</span></div></div></td><td class="square-_" id="base_1"><div class="Tile ui-draggable ui-draggable-handle unlocked-tile"><div class="glyph"><span class="letter">Q</span><span class="score">0</span></div></div></td></tr></tbody></table>');
+    let $table = $("<table></table>");
+    $dact.append($table);
 
-    let $dexp = $("<div></div>").append($exp);
+    let r = new Rack('base', 2);
+    r.$populate($table);
 
-    assert($act[0].isEqualNode($exp[0]),
-           "\nexpected: " + $dexp.html() +
-           "\n  actual: " + $dact.html());
+    r.addTile(new Tile({letter:'S'}));
+    r.addTile(new Tile({letter:'Q'}));
+
+    let $dexp = $("<div></div>");
+    $("body").append($dexp);
+
+    let $exp = $('<table><tbody><tr><td class="square-_" id="base_0"><div class="Tile ui-draggable ui-draggable-handle unlocked-tile"><div class="glyph"><span class="letter">S</span><span class="score">0</span></div></div></td><td class="square-_" id="base_1"><div class="Tile ui-draggable ui-draggable-handle unlocked-tile"><div class="glyph"><span class="letter">Q</span><span class="score">0</span></div></div></td></tr></tbody></table>');
+    $dexp.append($exp);
+
+    assert($dact[0].isEqualNode($dexp[0]),
+           "\nexpected:" + $dexp.html() + "\n" +
+           "  actual:" + $dact.html());
     $("body").empty();
   });
 });

@@ -232,7 +232,7 @@ define([
         return Promise.resolve(this);
       }
 
-      // If no turn has been allocated yet, 
+      // If no turn has been allocated yet,
       // shuffle the players, and pick a random tile from the bag.
       // The shuffle can be suppressed for unit testing.
       if (this.state === State.WAITING) {
@@ -508,7 +508,7 @@ define([
       if (typeof this._intervalTimer === "undefined"
           && this.timerType
           && this.state === State.PLAYING) {
-      
+
         // Broadcast a ping every second
         /**
          * Timer object for ticking.

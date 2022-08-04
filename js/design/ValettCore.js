@@ -11,17 +11,17 @@ define(() => {
   function norm(vector) {
     let sum = 0;
     const normedVector = [];
-    
+
     for (let num of vector)
       sum += num;
-    
+
     for (let i = 0; i < vector.length; i++) {
       if (sum > 0)
         normedVector[i] = vector[i] / sum;
       else
         normedVector[i] = 0; // Ignore zero vectors
     }
-    
+
     return normedVector;
   }
 
@@ -34,16 +34,16 @@ define(() => {
     return normedMatrix;
   }
 
-  
+
   function transposeMatrix(matrix) {
     const transposedMatrix = [];
     for (let i = 0; i < matrix.length; i++)
       transposedMatrix[i] = [];
-    
+
     for (let i = 0; i < matrix.length; i++)
       for (let j = 0; j < matrix.length; j++)
         transposedMatrix[i][j] = matrix[j][i];
-    
+
     return transposedMatrix;
   }
 
@@ -59,7 +59,7 @@ define(() => {
       this.hash = [];
       for (let i = 0; i < letters.length; i++)
         this.hash[letters[i]] = i;
-      
+
       // maxLength
       this.maxLength = 0;
       for (let word of this.words)
@@ -83,14 +83,14 @@ define(() => {
       }
       for (let i = 0; i < this.maxLength; i++)
         this.totalFrequencyByLength[i] = 0;
-      
+
       for (let word of words) {
         this.totalFrequencyByLength[word.length - 1] += word.length;
         for (let letter of word.split("")) {
           this.frequencyByLength[this.hash[letter]][word.length - 1]++;
         }
       }
-      
+
       for (let i = 0; i < this.letters.length; i++) {
         for (let j = 0; j < this.maxLength; j++)
           if (this.totalFrequencyByLength[j] !== 0)
@@ -98,7 +98,7 @@ define(() => {
       }
 
       this._transitionFrequency();
-      
+
       this._entropy();
     }
 
@@ -107,7 +107,7 @@ define(() => {
         frequencyByLengthWeights.push(0);
       const normedFrequencyByLengthWeights = norm(frequencyByLengthWeights);
       const normedEntropyWeights = norm(entropyWeights);
-      
+
       const entropyValues = [];
 
       const frequencyValues = norm(this.frequency);
@@ -122,11 +122,11 @@ define(() => {
 
       for (let i = 0; i < this.letters.length; i++)
         utility[i].score += frequencyValues[i] * weights.frequency;
-      
+
       for (let i = 0; i < this.maxLength; i++)
         for (let j = 0; j < this.letters.length; j++)
           utility[j].score += frequencyByLengthValues[j][i] * normedFrequencyByLengthWeights[i] * weights.frequencyByLength;
-      
+
 
       for (let j = 0; j < this.letters.length; j++) {
         utility[j].score += entropyValues[0][j] * normedEntropyWeights[0] * weights.entropy;
@@ -141,14 +141,14 @@ define(() => {
       }
       for (let i = 0; i < this.letters.length; i++)
         utility[i].score /= maxUtility;
-      
+
       // Scale to desired range, could end up with zeros
       for (let i = 0; i < this.letters.length; i++)
         utility[i].score = Math.round(utility[i].score * maxValue);
-      
+
       return utility;
     }
-    
+
     _transitionFrequency() {
       this.transitionFrequency = [];
       for (let i = 0; i <= this.letters.length; i++) { // Extra slot for start/end of word
@@ -156,7 +156,7 @@ define(() => {
         for (let j = 0; j <= this.letters.length; j++)
           this.transitionFrequency[i][j] = 0;
       }
-      
+
       for (let word of this.words) {
         let i = 0;
         const wl = word.split("");
@@ -164,19 +164,19 @@ define(() => {
           let prevLetter = null;
           let nextLetter = null;
           let curLetter = null;
-          
+
           if (i == 0) // Start of word
             prevLetter = this.letters.length;
           else
             prevLetter = this.hash[wl[i - 1]];
-          
+
           if (i == word.length - 1) // End of word
             nextLetter = this.letters.length;
           else
             nextLetter = this.hash[wl[i + 1]];
-          
+
           curLetter = this.hash[letter];
-          
+
           if (curLetter) {
             if (prevLetter)
               this.transitionFrequency[prevLetter][curLetter]++;
@@ -191,7 +191,7 @@ define(() => {
       const inOut = [];
       inOut[0] = normMatrix(transposeMatrix(this.transitionFrequency));
       inOut[1] = normMatrix(this.transitionFrequency);
-      
+
       // Prevent zero probability
       for (let i = 0; i <= 1; i++) {
         for (let j = 0; j < this.letters.length; j++)
@@ -208,7 +208,7 @@ define(() => {
         }
       }
     }
-  }    
-  
+  }
+
   return Valett;
 });

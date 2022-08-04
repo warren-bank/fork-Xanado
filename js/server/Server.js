@@ -354,9 +354,9 @@ define([
         this._debug("\tanonymous disconnect");
       this.updateMonitors();
     }
-   
+
     /**
-     * Handle game monitor (games interface) ann9ouncing on 
+     * Handle game monitor (games interface) ann9ouncing on
      * a socket.
      * @param {socket.io} socket the socket
      * @private
@@ -1052,7 +1052,7 @@ define([
         // The command name and arguments
         const args = req.body;
 
-        // Add a timestamp, unless the sender provided one 
+        // Add a timestamp, unless the sender provided one
         if (typeof req.body.timestamp === "undefined")
           req.body.timestamp = Date.now();
 
@@ -1108,6 +1108,6 @@ define([
       });
     }
   }
-  
+
   return Server;
 });

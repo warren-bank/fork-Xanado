@@ -105,7 +105,7 @@ define([ "platform" ], Platform => {
       if (Object.prototype.toString.apply(value) === "[object Array]") {
         for (const v of value)
           partial.push(Utils.stringify(v));
-        
+
         return `[${partial.join(",")}]`;
       }
 

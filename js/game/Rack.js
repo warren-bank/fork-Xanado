@@ -44,7 +44,7 @@ define([
         });
       } else
         super(id, size, 1, () => "_");
-    
+
       if (typeof underlay !== "undefined") {
         let idx = 0;
         this.forEachSquare(square => {
