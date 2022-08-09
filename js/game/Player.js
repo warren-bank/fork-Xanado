@@ -116,6 +116,15 @@ define([
          */
         this.dictionary = params.dictionary;
 
+      if (params.delayBeforePlay && params.delayBeforePlay > 0)
+        /**
+         * Number of seconds that a robot player must wait before it
+         * can play it's move. This delay is to give the revious player
+         * time to take back their move (or just think!)
+         * @member {number?}
+         */
+        this.delayBeforePlay = params.delayBeforePlay;
+
       if (typeof params._debug === "function")
         /**
          * Debug function

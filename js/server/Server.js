@@ -870,7 +870,6 @@ define([
     request_addRobot(req, res, next) {
       const gameKey = req.params.gameKey;
       const dic = req.body.dictionary;
-      const canChallenge = req.body.canChallenge || false;
       let game;
       return this.loadGame(gameKey)
       .then(g => game = g)
@@ -884,7 +883,8 @@ define([
             name: "Robot",
             key: UserManager.ROBOT_KEY,
             isRobot: true,
-            canChallenge: canChallenge
+            canChallenge: req.body.canChallenge,
+            delayBeforePlay: parseInt(req.body.delayBeforePlay || "0")
           });
         if (dic && dic !== "none")
           /* istanbul ignore next */

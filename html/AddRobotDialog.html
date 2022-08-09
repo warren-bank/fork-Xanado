@@ -13,6 +13,11 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
   <input type="checkbox" id="canChallenge" checked name="canChallenge"/>
 </div>
 
+<div class="dialog-row" data-i18n-tooltip="How many seconds the robot must wait before it can play. Setting this longer gives the previous player more time to take back their move (or to think!)">
+  <label for="delayBeforePlay" data-i18n="Delay"></label>
+  <input type="number" id="delayBeforePlay" name="delayBeforePlay" min="0" data-i18n-placeholder="seconds"/>
+</div>
+
 <div class="dialog_row">
   <!--autofocus to stop the dictionary tooltip from popping up-->
   <button class="submit" data-i18n="Add robot" autofocus></button>

@@ -625,7 +625,7 @@ define([
         this.action_pass();
         break;
 
-      case "!": // Challenge
+      case "!": // Challenge / take back
         {
           const lastTurn = this.game.lastTurn();
           if (lastTurn && lastTurn.type == Turns.PLAYED) {

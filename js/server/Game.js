@@ -551,11 +551,18 @@ define([
       this._debug("Autoplaying", player.name,
                   "using", player.dictionary || this.dictionary);
 
+      let pre = ((player.delayBeforePlay || 0) > 0)
+          ? new Promise(
+            resolve => setTimeout(resolve, player.delayBeforePlay * 500))
+          : Promise.resolve();
+      let mid = ((player.delayBeforePlay || 0) > 0)
+          ? new Promise(
+            resolve => setTimeout(resolve, player.delayBeforePlay * 500))
+          : Promise.resolve();
       // Before making a robot move, consider challenging the last
       // player.
       // challenge is a Promise that will resolve to true if a
       // challenge is made, or false otherwise.
-      let challenge = Promise.resolve(false);
       let lastPlay = this.lastTurn();
       if (lastPlay && lastPlay.type === Turns.PLAYED
           && this.dictionary
@@ -566,7 +573,7 @@ define([
         // only be one robot.
         if (!lastPlayer.isRobot) {
           // use game dictionary, not robot dictionary
-          challenge = this.getDictionary()
+          pre = pre.then(() => this.getDictionary())
           .then(dict => {
             const bad = lastPlay.words
                   .filter(word => !dict.hasWord(word.word));
@@ -582,12 +589,8 @@ define([
         }
       }
 
-      return challenge
+      return pre
       .then(challenged => {
-        // if (challenged) then the challenge succeeded, so at
-        // least one other player can play again.
-        // Challenge cannot fail - robot never challenges unless
-        // it is sure it will win.
         if (!challenged && lastPlay) {
           // Last play was good, check the last player has tiles
           // otherwise the game is over
@@ -596,6 +599,7 @@ define([
             return this.confirmGameOver(player, State.GAME_OVER);
         }
 
+        // We can play.
         let bestPlay = null;
         return Platform.findBestPlay(
           this, player.rack.tiles(),
@@ -609,7 +613,7 @@ define([
           }, player.dictionary || this.dictionary)
         .then(() => {
           if (bestPlay)
-            return this.play(player, bestPlay);
+            return mid.then(() => this.play(player, bestPlay));
 
           this._debug(`${player.name} can't play, passing`);
           return this.pass(player, Turns.PASSED);
