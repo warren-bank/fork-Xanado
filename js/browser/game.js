@@ -945,7 +945,9 @@ define([
       const wh = $(window).height();
       const sz = Math.max(this.game.board.cols, this.game.board.rows);
       const landscape = ww > wh;
-      const tdSize = (landscape ? wh * 0.8 : ww) / sz;
+      const border = parseInt($(".Surface td").css("border-width")) * 2;
+      const tdSize = landscape ? (wh * 0.8 / sz) : (ww / sz - border);
+      console.debug("Window", ww, "x", wh, "td", tdSize);
       $(".Surface td").css("width", `${tdSize}px`);
       $(".Surface td").css("height", `${tdSize}px`);
       const tileSize = tdSize * 0.85;

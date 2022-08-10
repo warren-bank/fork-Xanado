@@ -76,7 +76,7 @@
 
 /* Reduce font size for full text in underlay */
 .Surface td.score-multiplier .underlay {
-  font-size: 55%;
+  font-size: 53%;
 }
 
 @media screen and (max-width: 800px) {
@@ -101,7 +101,7 @@
 .Surface td {
   background-color: #BEB9A6;
   border-style: solid;
-  border-width: 2px;
+  border-width: 1px;
   border-color: #AAA38E;
   white-space: normal;
   overflow: hidden;

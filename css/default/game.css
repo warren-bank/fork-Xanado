@@ -43,8 +43,8 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
   -o-border-radius: 0.4em;
   border-radius: 0.4em;
 
-  margin: 0.2vw;
-  padding: 0.3vw;
+  margin: 2px;
+  padding: 2px;
 }
 
 /* Generic */
@@ -54,7 +54,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /* Title in one of the blocks */
 .block-title {
-  font-size: 1vw;
+  font-size: 120%;
   font-weight: bold;
   color: brown;
 }
@@ -331,15 +331,13 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
     position: absolute;
     top: 0;
     left: 0;
-    width: 95vw;
-    padding: 1vw;
-    border-width: 2px;
-    margin: 1vw;
+    width: 100%;
+    margin-top: 3px;
   }
 
   /* Override Surface - Board is full width */
   #board {
-    margin-top: 7vw;
+    margin-top: 30px;
     margin-left: 0;
     width: 100vw;
     aspect-ratio: 1/1;
@@ -349,7 +347,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
   /* Blocks are full width. flex layout deals with it. */
   #blocks {
-    width: 100vw;
+    width: 100%;
     margin: 0;
   }
 }
