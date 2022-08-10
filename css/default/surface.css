@@ -88,7 +88,7 @@
 
   /* Increase font size for acronym in underlay */
   .Surface td.score-multiplier .underlay {
-    font-size: 130%;
+    font-size: 90%;
   }
 }
 
@@ -171,7 +171,7 @@
 
   /* Code in game.js calculates a suitable tile size */
   width: 2em;
-  font-size: 1em;
+/*  font-size: 1em;*/
   aspect-ratio: 1/1;
 
   background-color: #F7F7E3;

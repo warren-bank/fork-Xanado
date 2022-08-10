@@ -935,6 +935,9 @@ define([
       .on(Notify.JOIN, () => console.debug("--> join"));
     }
 
+    /**
+     * Handle a screen resize, switching into porttrait mode as required
+     */
     handle_resize() {
       if (!this.game)
         return;
@@ -946,7 +949,9 @@ define([
       $(".Surface td").css("width", `${tdSize}px`);
       $(".Surface td").css("height", `${tdSize}px`);
       const tileSize = tdSize * 0.85;
-      $(".Tile").css("width", `${tileSize}px`);
+      $(".Tile")
+      .css("width", `${tileSize}px`)
+      .css("font-size", `${tileSize * 0.55}px`);
     }
 
     /**
