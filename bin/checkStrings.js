@@ -45,13 +45,21 @@ requirejs([
     .catch(e => undefined);
   }
 
-  function checkParameters(qqq, lang, mess) {
+  function checkParameters(qqqString, langString, mess) {
+    if (/^_.*_$/.test(qqqString))
+        return;
     let m, rea = /(\$\d+)/g;
-    while ((m = rea.exec(qqq))) {
+    while ((m = rea.exec(qqqString))) {
       let p = m[1];
       const reb = new RegExp(`\\${p}([^\\d]|\$)`);
-      if (!reb.test(lang))
-        mess.push(`\t"${qqq}": ${p} not found in "${lang}"`);
+      if (!reb.test(langString))
+        mess.push(`\t"${qqqString}": ${p} not found in "${langString}"`);
+    }
+    while ((m = rea.exec(langString))) {
+      let p = m[1];
+      const reb = new RegExp(`\\${p}([^\\d]|\$)`);
+      if (!reb.test(qqqString))
+        mess.push(`\t"${qqqString}": ${p} unexpected in "${langString}"`);
     }
   }
 
@@ -129,8 +137,11 @@ requirejs([
             mess.push(`\t${string}`);
         }
         if (mess.length > 0)
-          console.error("----", lang, "has strings that may not have been translated\n",
-                        mess.join("\n"));
+          console.error(
+            "----",
+            lang,
+            "has strings that may not have been translated\n",
+            mess.join("\n"));
       }
     }
   });

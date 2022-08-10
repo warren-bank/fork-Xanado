@@ -125,31 +125,34 @@ define([
      */
     create() {
       // Set up translations
-      return Promise.all([
-        $.get("/locales")
-        .then(locales => {
-          const params = {};
-          locales.forEach(locale => {
-            params[locale] = `/i18n/${locale}.json`;
+      return $.get("/defaults")
+      .then(defaults => this.defaults = defaults)
+      .then(() => this.getSession())
+      .then(() => $.get("/locales"))
+      .then(locales => {
+        const params = {};
+        locales.forEach(locale => {
+          params[locale] = `/i18n/${locale}.json`;
+        });
+        // Note: without other guidance, i18n will use the locale
+        // returned by navigator.language
+        const ulang = this.getSetting("language");
+        console.debug("User language", ulang);
+        return $.i18n(ulang ? { locale: ulang } : undefined)
+        .load(params)
+        .then(() => locales);
+      })
+      .then(locales => {
+        console.debug("Locales available", locales.join(", "));
+        // Expand/translate strings in the HTML
+        return new Promise(resolve => {
+          $(document).ready(() => {
+            console.log("Translating HTML to", $.i18n().locale);
+            $("body").i18n();
+            resolve(locales);
           });
-          // Note: without other guidance, i18n will use the locale
-          // already in the browser - which is fine by us!
-          return $.i18n().load(params).then(() => locales);
-        })
-        .then(locales => {
-          console.log("Locales available", locales.join(", "));
-          // Expand/translate strings in the HTML
-          return new Promise(resolve => {
-            $(document).ready(() => {
-              console.log("Translating HTML to", $.i18n().locale);
-              $("body").i18n();
-              resolve(locales);
-            });
-          });
-        }),
-        $.get("/defaults")
-        .then(defaults => this.defaults = defaults)
-      ])
+        });
+      })
       .then(() => {
         $("button").button();
         $(document)
@@ -197,7 +200,6 @@ define([
       // gear button
       $(".settingsButton")
       .on("click", () => {
-        const curTheme = this.getSetting("theme");
         Dialog.open("SettingsDialog", {
           ui: this,
           postAction: "/session-settings",

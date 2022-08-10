@@ -21,12 +21,18 @@ define([ "browser/Dialog" ], Dialog => {
     }
 
     createDialog() {
-      const $sel = this.$dlg.find('[name=theme]');
-      $sel.selectmenu();
-      return $.get("/themes")
-      .then(themes => {
-        themes
-        .forEach(d => $sel.append(`<option>${d}</option>`));
+      const curlan = $.i18n().locale;
+      console.log("Curlan",curlan);
+      const $theme = this.$dlg.find('[name=theme]');
+      const $locale = this.$dlg.find('[name=language]');
+      return Promise.all([ $.get("/themes"), $.get("/locales") ])
+      .then(all => {
+        all[0].forEach(d => $theme.append(`<option>${d}</option>`));
+        all[1].sort((a, b) => new RegExp(`^${a}`,"i").test(curlan) ? -1 :
+                    new RegExp(`^${b}`,"i").test(curlan) ? 1 : 0)
+        .forEach(d => $locale.append(`<option>${d}</option>`));
+        $theme.selectmenu();
+        $locale.selectmenu();
         this.enableSubmit();
         super.createDialog();
       });

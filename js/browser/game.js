@@ -784,6 +784,7 @@ define([
 
       const $board = $("#board");
       game.board.$populate($board);
+      this.handle_resize();
 
       this.$log(true, $.i18n("Game started"), "game-state");
 
@@ -934,6 +935,20 @@ define([
       .on(Notify.JOIN, () => console.debug("--> join"));
     }
 
+    handle_resize() {
+      if (!this.game)
+        return;
+      const ww = $(window).width();
+      const wh = $(window).height();
+      const sz = Math.max(this.game.board.cols, this.game.board.rows);
+      const landscape = ww > wh;
+      const tdSize = (landscape ? wh * 0.8 : ww) / sz;
+      $(".Surface td").css("width", `${tdSize}px`);
+      $(".Surface td").css("height", `${tdSize}px`);
+      const tileSize = tdSize * 0.85;
+      $(".Tile").css("width", `${tileSize}px`);
+    }
+
     /**
      * @override
      */
@@ -985,6 +1000,8 @@ define([
 
       // Keydown anywhere in the document
       .on("keydown", event => this.keyDown(event));
+
+      $(window).on("resize", () => this.handle_resize());
 
       super.attachHandlers();
     }

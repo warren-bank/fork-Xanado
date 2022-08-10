@@ -74,20 +74,18 @@
   content: attr(data-long);
 }
 
-/* if screen width is too small, use an acronym instead of long text to
-describe the score multiplier */
-@media screen and (max-width: 800px) {
-  .Surface .underlay:before {
-    content: attr(data-short);
-  }
-}
-
 /* Reduce font size for full text in underlay */
 .Surface td.score-multiplier .underlay {
   font-size: 55%;
 }
 
 @media screen and (max-width: 800px) {
+  /* if screen width is too small, use an acronym instead of long text to
+     describe the score multiplier */
+  .Surface .underlay:before {
+    content: attr(data-short);
+  }
+
   /* Increase font size for acronym in underlay */
   .Surface td.score-multiplier .underlay {
     font-size: 130%;
@@ -171,13 +169,10 @@ describe the score multiplier */
   margin: 0;
   padding: 0;
 
-  /* TODO: width and height of a tile should be calculated so that the
-   * board fills a small (<800px) device, but doesn't go over ~80% of
-   * the viewport height.  This requires calculation of the font
-   * size, based on the board size, which is non-trivial, so for
-   * now... */
+  /* Code in game.js calculates a suitable tile size */
   width: 2em;
-  height: 2em;
+  font-size: 1em;
+  aspect-ratio: 1/1;
 
   background-color: #F7F7E3;
   border-color: #DCDCC6;

@@ -91,17 +91,23 @@ define(() => {
           $(this).data("i18n-placeholder")));
       });
 
-      this.$dlg
-      .tooltip({
-        items: '[data-i18n-tooltip]',
-        position: {
-          my: "left+15 center",
-          at: "right center"
-        },
-        content: function() {
-          return $.i18n($(this).data('i18n-tooltip'));
-        }
-      });
+      // Disable tooltip on touch-enabled devices
+      /*
+Doesn't seem to be required, and breaks on mobile devices (stops
+inputs from accepting the focus)
+      if (!("ontouchend" in document)) {
+        this.$dlg
+        .tooltip({
+          items: '[data-i18n-tooltip]',
+          position: {
+            my: "left+15 center",
+            at: "right center"
+          },
+          content: function() {
+            return $.i18n($(this).data('i18n-tooltip'));
+          }
+        });
+      }*/
 
       this.$dlg
       .find("label[data-image]")

@@ -39,7 +39,7 @@ requirejs.config({
     "/node_modules/jquery.cookie/jquery.cookie",
 
     cldrpluralruleparser:
-    "/node_modules/cldrpluralruleparser/dist/cldrpluralruleparser",
+    "/node_modules/cldrpluralruleparser/dist/cldrpluralruleparser.cjs",
 
     browser: "/js/browser",
     common: "/js/common",
@@ -55,7 +55,11 @@ requirejs.config({
     i18n_fallbacks: ["i18n"],
     i18n_language: ["i18n"],
     i18n_messagestore: ["i18n"],
-    i18n_parser: ["i18n"]
+    i18n_parser: ["i18n"],
+    cldrpluralruleparser: {
+      deps: [ "i18n_parser" ],
+      exports: "pluralRuleParser"
+    }
   }
 });
 
