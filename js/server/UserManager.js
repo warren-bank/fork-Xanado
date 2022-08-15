@@ -538,7 +538,7 @@ define([
       const pass = req.body.register_password;
       if (!username)
         return this.sendResult(
-          res, 403, [ /*i18n*/"Bad username '$1'", username ]);
+          res, 403, [ /*i18n*/"bad-user", username ]);
       return this.getUser({name: username }, true)
       .then(() => {
         this.sendResult(

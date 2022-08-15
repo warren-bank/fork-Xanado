@@ -54,7 +54,7 @@ describe("UserManager class", () => {
       .send({})
       .end((err, res) => {
         assert.equal(res.status, 403);
-        chai.assert.deepEqual(res.body, ["Bad username '$1'", null]);
+        chai.assert.deepEqual(res.body, ["bad-user", null]);
         resolve();
       });
     }));

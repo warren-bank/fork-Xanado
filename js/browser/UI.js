@@ -296,7 +296,7 @@ define([
         $(".not-logged-in").show();
         if (typeof this.observer === "string")
           $(".observer").show().text($.i18n(
-            "Observer '$1'", this.observer));
+            "observer", this.observer));
         $(".not-logged-in>button")
         .on("click", () => Dialog.open("LoginDialog", {
           // postAction is set in code

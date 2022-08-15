@@ -61,7 +61,7 @@ define([ "platform" ], Platform => {
       if (list.length == 1)
         return list[0];
 
-      return Platform.i18n("$1 and $2",
+      return Platform.i18n("players-tail",
                            list.slice(0, list.length - 1).join(", "),
                            list[list.length - 1]);
     }

@@ -377,7 +377,7 @@ requirejs([
         .append(
           $(document.createElement("span"))
           .addClass("who-won")
-          .text($.i18n(" $1 won", game.getWinner().name)));
+          .text($.i18n("who-won", game.getWinner().name)));
       return $h;
     }
 

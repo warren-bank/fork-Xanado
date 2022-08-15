@@ -13,6 +13,8 @@ requirejs.config({
   nodeRequire: require
 });
 
+const readline = require('readline');
+
 requirejs([
   "fs", "path"
 ], (
@@ -25,6 +27,8 @@ requirejs([
 
   const found = {};
 
+  const fileContents = {};
+
   function addString(string, file) {
     if (!found[string])
       found[string] = {};
@@ -35,6 +39,7 @@ requirejs([
     if (ext.test(file)) {
       return Fs.readFile(file)
       .then(html => {
+        fileContents[file] = html;
         let m;
         while ((m = re.exec(html)))
           addString(m[2], file);
@@ -45,7 +50,7 @@ requirejs([
     .catch(e => undefined);
   }
 
-  function checkParameters(qqqString, langString, mess) {
+  function checkParameters(id, qqqString, langString, mess) {
     if (/^_.*_$/.test(qqqString))
         return;
     let m, rea = /(\$\d+)/g;
@@ -53,13 +58,50 @@ requirejs([
       let p = m[1];
       const reb = new RegExp(`\\${p}([^\\d]|\$)`);
       if (!reb.test(langString))
-        mess.push(`\t"${qqqString}": ${p} not found in "${langString}"`);
+        mess.push(`\t"${id}": ${p} not found in "${langString}"`);
     }
     while ((m = rea.exec(langString))) {
       let p = m[1];
       const reb = new RegExp(`\\${p}([^\\d]|\$)`);
       if (!reb.test(qqqString))
-        mess.push(`\t"${qqqString}": ${p} unexpected in "${langString}"`);
+        mess.push(`\t"${id}": ${p} unexpected in "${langString}"`);
+    }
+  }
+
+  function changeString(string) {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    return new Promise(resolve => {
+      rl.question(
+        `Change ID "${string}"? `,
+        answer => {
+          rl.close();
+          if (answer && answer !== "n" && answer !== "N") {
+            console.log(`\tChanging "${string}" to "${answer}"`);
+            for (const lang in strings) {
+              if (lang[answer])
+                throw Error(`Conflict ${answer}`);
+              lang[answer] = lang[string];
+              delete lang[string];
+            }
+            const re = new RegExp(`"${string}"`, "g");
+            for (const file in fileContents) {
+              fileContents[file] =
+              fileContents[file].replace(re, `"${answer}"`);
+            }
+            console.log(`\tChanged "${string}" to "${answer}"`);
+          }
+          resolve();
+        });
+    });
+  }
+
+  async function changeStrings() {
+    for (const string in strings.qqq) {
+      if (/\$/.test(string))
+        await changeString(string);
     }
   }
 
@@ -80,9 +122,13 @@ requirejs([
              const lang = lingo.replace(/\.json$/, "");
              strings[lang] = JSON.parse(json);
              delete strings[lang]["@metadata"];
+           })
+           .catch(e => {
+             console.error(`Parse error reading ${lingo}`);
+             throw e;
            }))))
   ])
-  .then(() => {
+  .then(() => {   
     let qqqError = false;
 
     // Check strings are in qqq and add to en if necessary
@@ -121,7 +167,7 @@ requirejs([
       mess = [];
       for (const string of Object.keys(strings[lang])) {
         if (strings[lang][string])
-          checkParameters(string, strings[lang][string], mess);
+          checkParameters(string, strings.qqq[string], strings[lang][string], mess);
       }
       if (mess.length > 0)
         console.error("----", lang, "has parameter inconsistencies:\n",
@@ -149,5 +195,9 @@ requirejs([
             mess.join("\n"));
       }
     }
+
+    // strings[lang] contains the JSON for than language
+
+    changeStrings();
   });
 });

@@ -376,7 +376,7 @@ define([
               this.playAudio("oops");
             this.notify(
               /*i18n*/"Challenge succeeded!",
-              /*i18n*/"$1 has successfully challenged your turn. You have lost the $2 points you scored, and the tiles you played are back on your rack",
+              /*i18n*/"notify:challenge-won",
               this.game.getPlayerWithKey(turn.playerKey).name,
               -turn.score);
           }
@@ -595,7 +595,7 @@ define([
       this.lockBoard(!isMyGo);
       this.enableTurnButton(isMyGo);
       this.$log(true, $.i18n(
-        "Undone $1, waiting for $2",
+        "undone",
         turn.type, this.game.getPlayer().name));
       $(".undoButton")
       .toggle(this.game.turns.length > 0 && this.getSetting("undo_redo"));
