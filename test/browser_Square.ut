@@ -49,7 +49,7 @@ describe("browser/Square mixin", () => {
     assert($dact[0].isEqualNode($dexp[0]));
     $("body").empty();
   });
-  
+
   it("occupied unlocked", () => {
     let sq = new Square({type: 'q', base: 'surface', col: 56, row: 42});
     sq.setUnderlay('T');

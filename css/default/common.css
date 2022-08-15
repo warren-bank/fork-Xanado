@@ -40,7 +40,7 @@ body {
 
 /* Strip all padding off element */
 .no-padding {
-  padding: 0;
+  padding: 0 !important;
 }
 
 /* This took a lot of faffing around to get right! */

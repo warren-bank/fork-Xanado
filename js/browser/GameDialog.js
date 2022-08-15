@@ -1,0 +1,151 @@
+/*Copyright (C) 2022 The Xanado Project https://github.com/cdot/Xanado
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
+/* eslint-env browser, jquery */
+
+/**
+ * Dialog for game display. Demand loads the HTML.
+ */
+define(["browser/Dialog", "common/Types"], (Dialog, Types) => {
+
+  const State = Types.State;
+
+  /**
+   * Dialog for opening / editing a game
+   */
+  class GameDialog  extends Dialog {
+
+    constructor(options) {
+      super("GameDialog", $.extend({
+        title: $.i18n("Game $1", options.game.key)
+      }, options));
+    }
+
+    createDialog() {
+
+      this.$dlg.find("button[name=options]")
+      .button()
+      .on(
+        "click", () => {
+          const dlg = this.$dlg.data("this");
+          dlg.options.ui.gameOptions(dlg.options.game);
+        });
+
+      this.$dlg.find("button[name=observe]")
+      .hide()
+      .button()
+      .on("click", () => {
+        this.$dlg.dialog("close");
+        const dlg = this.$dlg.data("this");
+        dlg.options.ui.observe(dlg.options.game);
+      });
+
+      this.$dlg.find("button[name=join]")
+      .hide()
+      .button()
+      .on("click", () => {
+        this.$dlg.dialog("close");
+        const dlg = this.$dlg.data("this");
+        dlg.options.ui.joinGame(dlg.options.game);
+      });
+
+      this.$dlg.find("button[name=robot]")
+      .hide()
+      .button()
+      .on("click", () => {
+        const dlg = this.$dlg.data("this");
+        dlg.options.ui.addRobot(dlg.options.game);
+      });
+
+      this.$dlg.find("button[name=invite]")
+      .hide()
+      .button()
+      .on("click", () => {
+        const dlg = this.$dlg.data("this");
+        dlg.options.ui.invitePlayers(dlg.options.game);
+      });
+
+      this.$dlg.find("button[name=another]")
+      .hide()
+      .button()
+      .on("click", () => {
+        const dlg = this.$dlg.data("this");
+        dlg.options.ui.anotherGame(dlg.options.game);
+      });
+
+      this.$dlg.find("button[name=delete]")
+      .hide()
+      .button()
+      .on("click", () => {
+        this.$dlg.dialog("close");
+        const dlg = this.$dlg.data("this");
+        dlg.options.ui.deleteGame(dlg.options.game);
+      });
+
+      return super.createDialog();
+    }
+
+    /**
+     * Update dynamic fields.
+     * @param {Game} game will replace the game
+     * the dialog was constructed with. Used when refreshing the dialog.
+     */
+    populate(game) {
+      if (game)
+        this.options.game = game;
+      else
+        game = this.options.game;
+      console.log("Populating", game.key);
+      this.$dlg.attr("name", game.key);
+
+      const $options = this.$dlg.find("button[name=options]");
+      $options.toggle(this.options.ui.session && game.turns.length === 0);
+
+      this.$dlg.find("div[name=headline]").empty().append(
+        this.options.ui.$headline(game));
+
+      const $table = this.$dlg.find(".player-table")
+            .empty()
+            .attr("name", game.key);
+      const isActive = !game.hasEnded();
+
+      game.getPlayers().forEach(
+        player => $table.append(this.options.ui.$player(game, player, isActive)));
+
+      if (isActive)
+        // .find because it's not in the document yet
+        $table.find(`#player${game.whosTurnKey}`).addClass("whosTurn");
+
+      const $join = this.$dlg.find("button[name=join]").hide();
+      const $robot = this.$dlg.find("button[name=robot]").hide();
+      const $invite = this.$dlg.find("button[name=invite]").hide();
+      const $another = this.$dlg.find("button[name=another]").hide();
+      const $observe = this.$dlg.find("button[name=observe]").hide();
+      const $delete = this.$dlg.find("button[name=delete]").hide();
+      if (isActive) {
+        if (this.options.ui.session) {
+          $delete.show();
+          if (!game.getPlayerWithKey(this.options.ui.session.key)
+              && ((game.maxPlayers || 0) === 0
+                  || game.getPlayers().length < game.maxPlayers))
+            $join.show().button("option", { label: $.i18n("Join game") });
+          // "Open game" is handled in the player table
+          if (this.options.ui.getSetting("canEmail"))
+            $invite.show();
+          if (!game.getPlayers().find(p => p.isRobot))
+            $robot.show();
+        } else
+          // Nobody logged in, offer to observe
+          $observe.show();
+      } else if (this.options.ui.session && !game.nextGameKey)
+        $another.show();
+    }
+
+    openDialog() {
+      this.populate();
+      return super.openDialog();
+    }
+  }
+  
+  return GameDialog;
+});

@@ -66,7 +66,8 @@ requirejs([
       });
 
       $("#create-game")
-      .on("click", () => Dialog.open("CreateGameDialog", {
+      .on("click", () => Dialog.open("GameSetupDialog", {
+        title: $.i18n("Create game"),
         ui: this,
         postAction: "/createGame",
         postResult: () => this.refresh_games(),
@@ -122,6 +123,110 @@ requirejs([
     }
 
     /**
+     * Used by GameDialog
+     */
+    gameOptions(game) {
+      Dialog.open("GameSetupDialog", {
+        title: $.i18n("Game setup"),
+        game: game,
+        onSubmit: dialog => {
+          const desc = dialog.getFieldValues();
+          game.makeChanges(desc);
+          this.refresh_game(game.key);
+        },
+        ui: this,
+        error: UI.report
+      });
+    }
+
+    /**
+     * Used by GameDialog
+     */
+    joinGame(game) {
+      $.post(`/join/${game.key}`)
+      .then(info => {
+        window.open(`/html/game.html?game=${game.key}&player=${this.session.key}`, "_blank");
+        this.refresh_game(game.key);
+      })
+      .catch(UI.report);
+    }
+
+    /**
+     * Used by GameDialog
+     */
+    addRobot(game) {
+      Dialog.open("AddRobotDialog", {
+        ui: this,
+        postAction: `/addRobot/${game.key}`,
+        postResult: () => this.refresh_game(game.key),
+        error: UI.report
+      });
+    }
+
+    /**
+     * Used by GameDialog
+     */
+    invitePlayers(game) {
+      Dialog.open("InvitePlayersDialog", {
+        postAction: `/invitePlayers/${game.key}`,
+        postResult: names => {
+          $("#alertDialog")
+          .text($.i18n("Invited $1", names.join(", ")))
+          .dialog({
+            title: $.i18n("Invitations"),
+            modal: true
+          });
+        },
+        error: UI.report
+      });
+    }
+
+    /**
+     * Used by GameDialog
+     */
+    anotherGame(game) {
+      $.post(`/anotherGame/${game.key}`)
+      .then(() => this.refresh_games())
+      .catch(UI.report);
+    }
+
+    /**
+     * Used by GameDialog
+     */
+    deleteGame(game) {
+      $.post(`/deleteGame/${game.key}`)
+      .then(() => this.refresh_games())
+      .catch(UI.report);
+    }
+
+    /**
+     * Used by GameDialog
+     */
+    observe(game) {
+      const obs = $.i18n("Observe game");
+      $("#observeDialog")
+      .dialog({
+        create: function () {
+          $(this).find("button[type=submit]")
+          .on("click", () => $(this).dialog("close"));
+        },
+        title: obs,
+        closeText: obs,
+        modal: true,
+        close: function() {
+          const name = encodeURIComponent(
+            $(this).find("#observerName").val());
+          console.log("Observe game", this.game.key,
+                      "as", name);
+          window.open(
+            `/html/game.html?game=${this.game.key};observer=${name}`,
+            "_blank");
+          this.refresh_game(this.game.key);
+        }
+      });
+    }
+
+    /**
      * Construct a table row that shows the state of the given player
      * @param {Game|object} game a Game or Game.simple
      * @param {Player} player the player
@@ -157,30 +262,29 @@ requirejs([
       if (!this.session)
         return $tr;
 
-      const $box = $("<td></td>");
+      const $box = $(document.createElement("td"));
       $tr.append($box);
 
       if (player.key === this.session.key) {
         // Currently signed in player
         $box.append(
-          $("<button name='join' title=''></button>")
+          $(document.createElement("button"))
+          .attr("name", `join${game.key}`)
           .button({ label: $.i18n("Open game") })
           .tooltip({
             content: $.i18n("Open this game in a new window.")
-          }) .on("click", () => {
+          })
+          .on("click", () => {
             console.log(`Join game ${game.key}/${this.session.key}`);
             $.post(`/join/${game.key}`)
-            .then(() => {
-              window.open(
-                `/html/game.html?game=${game.key}&player=${this.session.key}`,
-                "_blank");
-              this.refresh_game(game.key);
-            })
+            .then(() => this.joinGame(game))
             .catch(UI.report);
           }));
 
         $box.append(
-          $("<button name='leave' title='' class='risky'></button>")
+          $(document.createElement("button"))
+          .addClass("risky")
+          .attr("name", `leave${game.key}`)
           .button({ label: $.i18n("Leave game") })
           .tooltip({
             content: $.i18n("If you leave the game your score will still count towards the leader board.")
@@ -196,7 +300,8 @@ requirejs([
       }
       else if (player.isRobot) {
         $box.append(
-          $("<button name='removeRobot' title=''></button>")
+          $(document.createElement("button"))
+          .attr("name", "removeRobot")
           .button({ label: $.i18n("Remove robot") })
           .tooltip({
             content: $.i18n("Remove the robot from this game.")
@@ -215,10 +320,11 @@ requirejs([
           && !player.isRobot
           && game.whosTurnKey === player.key) {
         $box.append(
-          $("<button name='email' title=''></button>")
+          $(document.createElement("button"))
+          .attr("name", "email")
           .button({ label: $.i18n("Send reminder") })
           .tooltip({
-            content: $.i18n("Email a reminder to player whose turn it is.")
+            content: $.i18n("Email a reminder to player whose turn it is")
           })
           .on("click", () => {
             console.log("Send reminder");
@@ -237,33 +343,39 @@ requirejs([
     }
 
     /**
-     * Headline is the text shown when a game twisty is closed
+     * Headline is the text shown in the game table and the head
+     * of the game dialog.
+     * @param {Game} game the game to headline
+     * @param {boolean} inTable true if this is being prepared for the
+     * table, false for the dialog.
      */
-    $headline(game) {
+    $headline(game, inTable) {
       const headline = [ game.edition ];
 
-      if (game.getPlayers().length > 0)
+      if (inTable) {
+        if (game.getPlayers().length > 0)
+          headline.push($.i18n(
+            "players $1",
+            Utils.andList(game.getPlayers().map(p => p.name))));
         headline.push($.i18n(
-          "players $1",
-          Utils.andList(game.getPlayers().map(p => p.name))));
-      headline.push($.i18n(
-        "created $1",
-        new Date(game.creationTimestamp).toDateString()));
+          "created $1",
+          new Date(game.creationTimestamp).toDateString()));
+      }
 
-      const isActive = (game.state === State.PLAYING
-                        || game.state === State.WAITING);
+      const isActive = !game.hasEnded();
 
-      const $h = $("<span></span>")
-      .addClass("headline")
-      .text(headline.join(", "));
+      const $h = $(document.createElement("span"))
+            .addClass("headline")
+            .attr("name", game.key)
+            .text(headline.join(", "));
 
       if (!isActive)
         $h.append(
-          $("<span></span>")
+          $(document.createElement("span"))
           .addClass("game-state")
           .text($.i18n(game.state)))
         .append(
-          $("<span></span>")
+          $(document.createElement("span"))
           .addClass("who-won")
           .text($.i18n(" $1 won", game.getWinner().name)));
       return $h;
@@ -275,214 +387,14 @@ requirejs([
      */
     $game(game) {
       Platform.assert(game instanceof Game);
-      const $box = $(`<div class="game" id="${game.key}"></div>`);
-      const $twist = $("<div class='twist'></div>");
-      const $twistButton =
-            $("<button name='twist'></button>")
-            .button({ label: TWIST_OPEN })
-            .addClass("no-padding")
-            .on("click", () => showHideTwist(!$twist.is(":visible")));
-
-      const showHideTwist = show => {
-        if (show) {
-          $twist.show();
-          $twistButton.button("option", "label", TWIST_CLOSE);
-          this.isUntwisted[game.key] = true;
-        } else {
-          $twist.hide();
-          $twistButton.button("option", "label", TWIST_OPEN);
-          this.isUntwisted[game.key] = false;
-        }
-      };
-
-      showHideTwist(this.isUntwisted && this.isUntwisted[game.key]);
-
-      $box
-      .append($('<div></div>')
-              .addClass("game-key")
-              .text(game.key))
-      .append($twistButton)
-      .append(this.$headline(game))
-      .append($twist);
-
-      const options = [];
-      if (game.dictionary)
-        options.push($.i18n("Dictionary $1", game.dictionary));
-      if (game.timerType === Timer.TURN)
-        options.push($.i18n("Turn time limit $1",
-                            Utils.formatTimeInterval(game.timeLimit)));
-      else if (game.timerType === Timer.GAME) {
-        options.push($.i18n("Game time limit $1",
-                            Utils.formatTimeInterval(game.timeLimit)));
-        options.push($.i18n("Overtime penalty $1 point{{PLURAL:$1||s}} per minute",
-                            game.timePenalty));
-      }
-      if (game.predictScore)
-        options.push($.i18n("Predict score"));
-      if (game.wordCheck)
-        options.push($.i18n(game.wordCheck));
-      if (game.allowTakeBack)
-        options.push($.i18n("Allow 'Take back'"));
-      if (game.minPlayers && game.maxPlayers === game.minPlayers)
-        options.push($.i18n("$1 players", game.minPlayers));
-      else if (game.maxPlayers > game.minPlayers)
-        options.push($.i18n("$1 to $2 players",
-                            game.minPlayers, game.maxPlayers));
-      else if (game.minPlayers > 2)
-        options.push($.i18n("At least $1 players", game.minPlayers));
-
-      switch (game.challengePenalty) {
-      case Penalty.PER_TURN:
-        options.push($.i18n("Lose $1 points for a failed challenge",
-                            game.penaltyPoints));
-        break;
-      case Penalty.PER_WORD:
-        options.push($.i18n(
-          "Lose $1 points for each wrongly challenged word",
-          game.penaltyPoints));
-        break;
-      case Penalty.MISS:
-        options.push($.i18n("Miss a turn after a failed challenge"));
-        break;
-      }
-
-      if (options.length > 0) {
-        $twist.append(
-          $(`<div class="game-options"></div>`)
-          .text($.i18n("Options: " + options.join(", "))));
-      }
-
-      const isActive = (game.state === State.PLAYING
-                        || game.state === State.WAITING);
-
-      const $table = $("<table></table>").addClass("player-table");
-      $twist.append($table);
-      game.getPlayers().forEach(
-        player => $table.append(this.$player(game, player, isActive)));
-
-      if (isActive)
-        // .find because it's not in the document yet
-        $table.find(`#player${game.whosTurnKey}`).addClass("whosTurn");
-
-      if (isActive
-          && this.session
-          && ((game.maxPlayers || 0) === 0
-              || game.getPlayers().length < game.maxPlayers)) {
-
-        if (!game.getPlayerWithKey(this.session.key)) {
-          // Can join game
-          const $join = $(`<button name="join" title=''></button>`);
-          $twist.append($join);
-          $join
-          .button({ label: $.i18n("Join game") })
-          .tooltip({
-            content: $.i18n("Join the game and open it in a new window.")
-          })
-          .on("click", () => {
-            console.log(`Join game ${game.key}`);
-            $.post(`/join/${game.key}`)
-            .then(info => {
-              window.open(`/html/game.html?game=${game.key}&player=${this.session.key}`, "_blank");
-              this.refresh_game(game.key);
-            })
-            .catch(UI.report);
-          });
-        }
-
-        if (!game.getPlayers().find(p => p.isRobot)) {
-          $twist.append(
-            $(`<button name='robot' title=''></button>`)
-            .button({ label: $.i18n("Add robot") })
-            .tooltip({
-              content: $.i18n("Add a robot player to this game.")
-            })
-            .on("click", () =>
-                Dialog.open("AddRobotDialog", {
-                  ui: this,
-                  postAction: `/addRobot/${game.key}`,
-                  postResult: () => this.refresh_game(game.key),
-                  error: UI.report
-                })));
-        }
-      }
-
-      if (this.session) {
-        if (isActive && this.getSetting("canEmail")) {
-          $twist.append(
-            $("<button name='invite' title=''></button>")
-            .button({ label: $.i18n("Invite players")})
-            .tooltip({
-              content: $.i18n("Send emails to invite people to join the game.")
-            })
-            .on("click", () => Dialog.open("InvitePlayersDialog", {
-              postAction: `/invitePlayers/${game.key}`,
-              postResult: names => {
-                $("#alertDialog")
-                .text($.i18n("Invited $1", names.join(", ")))
-                .dialog({
-                  title: $.i18n("Invitations"),
-                  modal: true
-                });
-              },
-              error: UI.report
-            })));
-        }
-
-        if (!(isActive || game.nextGameKey)) {
-          $twist.append(
-            $("<button name='another' title=''></button>")
-            .button({ label: $.i18n("Another game like this") })
-            .on("click",
-                () => $.post(`/anotherGame/${game.key}`)
-                .then(() => this.refresh_games())
-                .catch(UI.report)));
-        }
-
-        $twist.append(
-          $("<button name='delete' title='' class='risky'></button>")
-          .tooltip({
-            content: $.i18n("CAREFUL! This cannot be undone!")
-          })
-          .button({ label: $.i18n("Delete") })
-          .on("click", () => $.post(`/deleteGame/${game.key}`)
-              .then(() => this.refresh_games())
-              .catch(UI.report)));
-
-        return $box;
-      }
-
-      // Nobody logged in, offer to observe
-      const obs = $.i18n("Observe game");
-      $twist.append(
-        $("<button name='observe' title=''></button>")
-        .button({ label: obs })
-        .tooltip({
-          content: $.i18n("Open a board to watch the game, but not play.")
-        })
-        .on("click", () => $("#observeDialog")
-            .dialog({
-              create: function () {
-                $(this).find("button[type=submit]")
-                .on("click", () => {
-                  $(this).dialog("close");
-                });
-              },
-              title: obs,
-              closeText: obs,
-              modal: true,
-              close: function() {
-                const name = encodeURIComponent(
-                  $(this).find("#observerName").val());
-                console.log("Observe game", game.key,
-                            "as", name);
-                window.open(
-                  `/html/game.html?game=${game.key};observer=${name}`,
-                  "_blank");
-                this.refresh_game(game.key);
-              }
-            })));
-
-      return $box;
+      return $(`<div class="game" id="${game.key}"></div>`)
+      .append(this.$headline(game, true))
+      .on("click", () => {
+        Dialog.open("GameDialog", {
+          game: game,
+          ui: this
+        });
+      });
     }
 
     /**
@@ -491,7 +403,12 @@ requirejs([
      */
     show_game(game) {
       console.log(`Reshow ${game.key}`);
-      $(`#${game.key}`).replaceWith(this.$game(game));
+      // Update the games list and dialog headlines as appropriate
+      $(`#${game.key}`).replaceWith(this.$headline(game));
+      // Update the dialog if appropriate
+      $(`#GameDialog[name=${game.key}]`)
+      .data("this")
+      .populate(game);
     }
 
     /**
@@ -507,7 +424,7 @@ requirejs([
       const $gt = $("#gamesTable");
       $gt.empty();
 
-      const games = simples.map(simple => Game.fromSimple(simple));
+      const games = simples.map(simple => Game.fromSerialisable(simple));
 
       games.forEach(game => $gt.append(this.$game(game)));
 
@@ -517,7 +434,7 @@ requirejs([
         if (games.reduce((em, game) => {
           // game is Game.simple, not a Game object
           // Can't remind a game that hasn't started or has ended.
-          if (game.state !== State.PLAYING)
+          if (game.hasEnded() || game.state === State.WAITING)
             return em;
           return em || game.getPlayerWithKey(game.whosTurnKey)
           .email;
@@ -532,8 +449,8 @@ requirejs([
      * @param {string} key Game key
      */
     refresh_game(key) {
-      return $.get(`/simple/${key}`)
-      .then(simple => this.show_game(Game.fromSimple(simple[0])))
+      return $.get(`/games/${key}`)
+      .then(simple => this.show_game(Game.fromSerialisable(simple[0])))
       .catch(UI.report);
     }
 
@@ -543,14 +460,15 @@ requirejs([
     refresh_games() {
       console.debug("refresh_games");
       const what = $("#showAllGames").is(":checked") ? "all" : "active";
-      return $.get(`/simple/${what}`)
+      return $.get(`/games/${what}`)
       .then(games => this.show_games(games))
       .catch(UI.report);
     }
 
     /**
      * Request an update for session status and all games lists
-     * @return {Promise} promise that resolves when all AJAX calls have completed
+     * @return {Promise} promise that resolves when all AJAX calls
+     * have completed
      */
     refresh() {
       console.debug("refresh");
@@ -574,7 +492,7 @@ requirejs([
           }
           let n = 1;
           $("#gamesCumulative").show();
-          const $gt = $("#player-list");
+          const $gt = $("#playerList");
           $gt.empty();
           data.forEach(player => {
             const s = $.i18n(

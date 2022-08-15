@@ -21,7 +21,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
    * Browser-side mixin for {@linkcode Square}
    * @mixin BrowserSquare
    */
-  const BrowserSquare = {
+  class BrowserSquare {
 
     /**
      * Create the jquery representation of the square.
@@ -39,7 +39,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
 
       if (typeof this.underlay !== "undefined") {
         // Simple underlay character i.e. SWAP
-        const $underlay = $("<div></div>").addClass("underlay");
+        const $underlay = $(document.createElement("div")).addClass("underlay");
         $td.append($underlay);
         $underlay.text(this.underlay);
       } else if (this.type !== "_") {
@@ -48,7 +48,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
         // multiplier. data-long is for when the display resolution
         // is high, data-short for when it is tight e.g. on mobile
         // devices. The relevant string is selected in CSS.
-        const $underlay = $("<div></div>").addClass("underlay");
+        const $underlay = $(document.createElement("div")).addClass("underlay");
         $td.append($underlay);
         $underlay
         .attr("data-long", Platform.i18n(`long-${this.type}`))
@@ -64,7 +64,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
         this.$unplaceTile($td);
 
       return $td;
-    },
+    }
 
     /**
      * A tile has been placed on this square and we have to adjust the
@@ -93,7 +93,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
 
       const $tile = this.tile.$ui(this);
       $td.append($tile);
-    },
+    }
 
     /**
      * Remove the currently placed tile's UI from the square's
@@ -133,7 +133,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
           Platform.trigger(UIEvents.DROP_TILE, [ from, this ]);
         }
       });
-    },
+    }
 
     /**
      * Set the underlay
@@ -144,7 +144,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
      */
     setUnderlay(ch) {
       this.underlay = ch;
-    },
+    }
 
     /**
      * Change the visual representation of the square (or the tile on it)
@@ -165,4 +165,3 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
 
   return BrowserSquare;
 });
-

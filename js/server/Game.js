@@ -22,11 +22,9 @@ define([
   let messageSequenceNumber = 0;
 
   /**
-   * Server-side mixin for {@linkcode Game}
-   * @mixin ServerGame
-   * @mixes Commands
+   * Server-side base class for {@linkcode Game}
    */
-  const ServerGame = {
+  class ServerGame extends Commands {
 
     /**
      * Used for testing only.
@@ -40,7 +38,7 @@ define([
       return this.getEdition()
       .then(ed => this.board.parse(sboard, ed))
       .then(() => this);
-    },
+    }
 
     /**
      * Get the dictionary for this game, lazy-loading as necessary
@@ -55,7 +53,7 @@ define([
 
       /* istanbul ignore next */
       return Promise.reject("Game has no dictionary");
-    },
+    }
 
     /**
      * Promise to save the game
@@ -69,7 +67,7 @@ define([
       this._debug("Saving game", this.key);
       return this._db.set(this.key, this)
       .then(() => this);
-    },
+    }
 
     /**
      * Check if the game has timed out due to inactivity.
@@ -92,7 +90,7 @@ define([
 
       this.state = State.TIMED_OUT;
       return this.save();
-    },
+    }
 
     /**
      * Promise to finish the construction or load from serialisation
@@ -127,13 +125,17 @@ define([
        */
       this._connections = [];
 
+      // Compatibility; timeLimit in s to timeAllowed in minutes
+      if (this.timeLimit && !this.timeAllowed)
+        this.timeAllowed = this.timeLimit / 60;
+
       if (!this._debug) {
         this._debug = () => {};
         this.players.forEach(p => p._debug = this._debug);
       }
 
       return Promise.resolve(this);
-    },
+    }
 
     /**
      * Send a message to just one player. Note that the player
@@ -160,7 +162,7 @@ define([
             socket.emit(message, body);
           return false;
         });
-    },
+    }
 
     /**
      * Broadcast a message to all game observers. Note
@@ -180,7 +182,7 @@ define([
       if (message !== Notify.TICK)
         this._debug("<-S- *", message, messageSequenceNumber, Utils.stringify(data));
       this._connections.forEach(socket => socket.emit(message, body));
-    },
+    }
 
     /**
      * Broadcast a message to all observers players except the
@@ -206,7 +208,7 @@ define([
             socket.emit(message, body);
           return false;
         });
-    },
+    }
 
     /**
      * Start, or continue, playing the game if preconditions are met.
@@ -274,7 +276,7 @@ define([
         this.startTheClock();
       }
       return Promise.resolve(this);
-    },
+    }
 
     /**
      * Wrap up after a command handler that is returning a Turn.
@@ -300,7 +302,7 @@ define([
       return this.save()
       .then(() => this.notifyAll(Notify.TURN, turn))
       .then(() => this);
-    },
+    }
 
     /**
      * Does player have an active connection to this game?
@@ -321,7 +323,7 @@ define([
         player._isConnected = false;
       }
       return null;
-    },
+    }
 
     /**
      * Notify players with a list of the currently connected
@@ -333,7 +335,7 @@ define([
     sendCONNECTIONS() {
       Promise.all(
         this.players
-        .map(player => player.simple(this)
+        .map(player => player.serialisable(this)
              .then(cat => {
                cat.gameKey = this.key;
                if (cat.key === this.whosTurnKey)
@@ -354,7 +356,7 @@ define([
           }));
         this.notifyAll(Notify.CONNECTIONS, res);
       });
-    },
+    }
 
     /**
      * Start (or restart) the turn of the given player.
@@ -365,7 +367,7 @@ define([
      * @param {number?} timeout Only relevant when `timerType` is
      * `Timer.TURN`. Turn timeout for this turn. Set if
      * this is a restart of an unfinished turn, defaults to
-     * this.timeLimit if undefined.
+     * this.timeAllowed if undefined.
      * @return {Promise} a promise that resolves to undefined
      * @private
      */
@@ -391,7 +393,7 @@ define([
 
       if (this.timerType) {
         this._debug("\ttimed game,", player.name,
-                    "has", (timeout || this.timeLimit), "left to play",this.timerType);
+                    "has", (timeout || this.timeAllowed), "left to play",this.timerType);
         this.startTheClock(); // does nothing if already started
       }
       else {
@@ -403,11 +405,11 @@ define([
       if (this.timerType === Timer.TURN)
         // Make the player pass when their clock reaches 0
         player.setTimeout(
-          timeout || this.timeLimit,
+          timeout || this.timeAllowed * 60,
           () => this.pass(player, Turns.TIMED_OUT));
 
       return Promise.resolve(this);
-    },
+    }
 
     /**
      * Player is on the given socket, as determined from an incoming
@@ -465,7 +467,7 @@ define([
       });
 
       return this.playIfReady();
-    },
+    }
 
     /**
      * Tell all clients a tick has happened (or
@@ -493,7 +495,7 @@ define([
           clock: player.clock,
           timestamp: Date.now()
         });
-    },
+    }
 
     /**
      * If the game has a time limit, start an interval timer.
@@ -520,7 +522,7 @@ define([
         return true;
       }
       return false;
-    },
+    }
 
     /**
      * Stop the interval timer, if there is one
@@ -537,7 +539,7 @@ define([
       clearInterval(this._intervalTimer);
       delete(this._intervalTimer);
       return true;
-    },
+    }
 
     /**
      * Robot play for the current player. This may result in a challenge.
@@ -621,8 +623,6 @@ define([
       });
     }
   };
-
-  Object.assign(ServerGame, Commands);
 
   return ServerGame;
 });

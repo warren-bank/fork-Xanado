@@ -91,3 +91,33 @@ body {
 .invitee {
   font-style: italic;
 }
+
+/*------------ PORTRAIT SCREEN ------------*/
+
+@media screen and (max-aspect-ratio: 1/1) {
+  body {
+    margin: 10px;
+  }
+
+  #loginState {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .game-key {
+    display: none;
+  }
+
+  button[name=twist] {
+    margin-bottom: 0.2em;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .ui-dialog {
+    top: 0;
+    bottom: 0;
+    min-width: 100vw;
+    min-height: 100vh;
+  }
+}

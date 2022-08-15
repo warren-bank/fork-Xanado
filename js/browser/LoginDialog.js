@@ -3,9 +3,26 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-define(["browser/Dialog"], Dialog => {
+define([
+  "browser/Dialog", "browser/PasswordMixin"
+], (
+  Dialog, PasswordMixin
+) => {
 
-  class LoginDialog extends Dialog {
+  /**
+   * @extends Dialog
+   * @mixes PasswordMixin
+   */
+  class LoginDialog extends PasswordMixin(Dialog) {
+
+    constructor(options) {
+      options.onSubmit = () => {
+        this.options.postAction = this.getAction();
+      };
+      super("LoginDialog", $.extend({
+        title: $.i18n("Sign in")
+      }, options));
+    }
 
     enableSubmit() {
       if (this.getAction() === "register") {
@@ -26,11 +43,6 @@ define(["browser/Dialog"], Dialog => {
       }[active];
     }
 
-    onSubmit(p) {
-      this.options.postAction = this.getAction();
-      super.onSubmit(p);
-    }
-
     createDialog() {
       const $tabs = this.$dlg.find("#tabs");
       $tabs.tabs();
@@ -49,15 +61,16 @@ define(["browser/Dialog"], Dialog => {
       .then(list => {
         if (!list || list.length === 0)
           return;
-        const $table = $("<table width='100%'></table>");
+        const $table = $(document.createElement("table"))
+              .attr("width", "100%");
         for (let provider of list) {
-          const $td = $("<td></td>")
+          const $td = $(document.createElement("td"))
                 .addClass("provider-logo")
                 .attr("title", $.i18n("Sign in using $1", provider.name));
           const $logo = $(`<img src="${provider.logo}" />`);
           // Note: this MUST be done using from an href and
           // not an AJAX request, or CORS will foul up.
-          const $a = $("<a></a>");
+          const $a = $(document.createElement("a"));
           $a.attr("href", `/oauth2/login/${provider.name}?origin=${encodeURI(window.location)}`);
           $a.append($logo);
           $td.append($a);
@@ -70,23 +83,6 @@ define(["browser/Dialog"], Dialog => {
                  .append(`<br /><div class="sign-in-using">${$.i18n("or sign in as XANADO user:")}</div>`));
       })
       .then(() => super.createDialog());
-    }
-
-    constructor(options) {
-      const ddone = options.done;
-      options.done = data => {
-        if (this.getAction() === "register") {
-          Dialog.open("AlertDialog", {
-             message: $.i18n("Welcome to XANADO, $1!", data.name),
-            title: $.i18n("New player registered")
-          });
-        }
-        if (typeof ddone === "function")
-          ddone(data);
-      };
-      super("LoginDialog", $.extend({
-        title: $.i18n("Sign in")
-      }, options));
     }
   }
 

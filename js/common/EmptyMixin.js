@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /**
- * Null mixin, used as a stub to keep requirejs happy where a module
+ * Null mixin, used to keep requirejs happy where a module
  * doesn't have context-specific functionality.
  */
-define(() => undefined);
+define(() => superclass => class EmptyMixin extends superclass {});

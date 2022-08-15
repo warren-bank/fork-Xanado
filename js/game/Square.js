@@ -6,8 +6,8 @@
 define([
   "platform",
   "common/Types",
-  requirejs.isBrowser ? "browser/Square" : "common/Mixin"
-], (Platform, Types, Mixin) => {
+  requirejs.isBrowser ? "browser/Square" : "common/EmptyBase"
+], (Platform, Types, PlatformBase) => {
 
   const UIEvents = Types.UIEvents;
 
@@ -18,7 +18,7 @@ define([
    * subclass of {@linkcode Surface} (a {@linkcode Rack} or a {@linkcode Board})
    * @mixes BrowserSquare
    */
-  class Square {
+  class Square extends PlatformBase {
 
     /**
      * @param {object} spec Specification
@@ -29,6 +29,8 @@ define([
      * (undefined on a rack)
      */
     constructor(spec) {
+      super();
+
       /**
        * /^[QqTtSs_]$/ see {@linkcode Board}
        * @member {string}
@@ -174,9 +176,6 @@ define([
       return string;
     }
   }
-
-  if (Mixin)
-    Object.assign(Square.prototype, Mixin);
 
   return Square;
 });

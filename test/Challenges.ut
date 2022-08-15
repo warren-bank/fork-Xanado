@@ -667,7 +667,7 @@ describe("Challenges", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       noPlayerShuffle: true,
-      //_debug: console.debug,
+      _debug: console.debug,
       challengePenalty: Penalty.MISS
     });
     const human1 = new Player({

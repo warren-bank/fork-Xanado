@@ -3,11 +3,11 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-/**
- * Dialog for game creation. Demand loads the HTML.
- */
 define(["browser/Dialog"], Dialog => {
 
+  /**
+   * Dialog for inviting players to a game.
+   */
   class InvitePlayersDialog extends Dialog {
 
     constructor(options) {
@@ -72,7 +72,8 @@ define(["browser/Dialog"], Dialog => {
         return;
 
       const $removeText = this.$dlg.find("#removeText");
-      const $in = $("<span class='invitee'></span>")
+      const $in = $(document.createElement("span"))
+            .addCLoass("invitee")
             .text((known.name || known.email))
             .data("uo", known)
             .on('click', function() {

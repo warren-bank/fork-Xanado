@@ -9,7 +9,7 @@ define(() => {
    * Server-side Board functionality mix-in
    * @mixin ServerBoard
    */
-  const ServerBoard = {
+  return superclass => class ServerBoard extends superclass {
 
     /**
      * Given a play at col, row, compute it's score. Used in
@@ -120,6 +120,4 @@ define(() => {
       return wordScore;
     }
   };
-
-  return ServerBoard;
 });

@@ -22,7 +22,7 @@ define([
    * commands.
    * @mixin Commands
    */
-  return {
+  class Commands {
 
     /**
      * Place tiles on the board.
@@ -130,7 +130,8 @@ define([
       // Report the result of the turn
       const nextPlayer = this.nextPlayer();
       this.whosTurnKey = nextPlayer.key;
-      return this.finishTurn(new Turn(this, {
+      return this.finishTurn(new Turn({
+        gameKey: this.key,
         type: Turns.PLAYED,
         playerKey: player.key,
         nextToGoKey: nextPlayer.key,
@@ -141,7 +142,7 @@ define([
         passes: prepasses
       }))
       .then(() => this.startTurn(nextPlayer));
-    },
+    }
 
     /**
      * Pause the game
@@ -163,7 +164,7 @@ define([
         timestamp: Date.now()
       });
       return this.save();
-    },
+    }
 
     /**
      * Unpause the game
@@ -186,7 +187,7 @@ define([
       this.pausedBy = undefined;
       this.startTheClock();
       return this.save();
-    },
+    }
 
     /**
      * Called when the game has been confirmed as over - the player
@@ -251,14 +252,15 @@ define([
         deltas[playerWithNoTiles.key].tiles = pointsRemainingOnRacks;
         this._debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
       }
-      const turn = new Turn(this, {
+      const turn = new Turn({
+        gameKey: this.key,
         type: Turns.GAME_ENDED,
         endState: endState,
         playerKey: this.whosTurnKey, // NOT the winning player
         score: deltas
       });
       return this.finishTurn(turn);
-    },
+    }
 
     /**
      * Undo the last move. This might be as a result of a player request,
@@ -291,7 +293,8 @@ define([
 
       prevPlayer.score -= previousMove.score;
 
-      const turn = new Turn(this, {
+      const turn = new Turn({
+        gameKey: this.key,
         type: type,
         nextToGoKey: type === Turns.CHALLENGE_WON
         ? this.whosTurnKey : player.key,
@@ -316,7 +319,7 @@ define([
         // with their timer reset
         return Promise.resolve(this);
       });
-    },
+    }
 
     /**
      * Handler for 'pass' command.
@@ -338,14 +341,14 @@ define([
 
       const nextPlayer = this.nextPlayer();
 
-      return this.finishTurn(new Turn(
-        this, {
+      return this.finishTurn(new Turn({
+          gameKey: this.key,
           type: type || Turns.PASSED,
           playerKey: player.key,
           nextToGoKey: nextPlayer.key
         }))
       .then(() => this.startTurn(nextPlayer));
-    },
+    }
 
     /**
      * Handler for 'challenge' command.
@@ -362,7 +365,7 @@ define([
       if (challenger.key === challenged.key)
         return Promise.reject("Cannot challenge your own play");
 
-      if (this.turnCount() === 0)
+      if (this.turns.length === 0)
         return Promise.reject("No previous move to challenge");
 
       let previousMove = this.lastTurn();
@@ -420,14 +423,14 @@ define([
               this.getPlayer(), State.FAILED_CHALLENGE);
           // Otherwise issue turn type=Turns.CHALLENGE_LOST
 
-          const turn = new Turn(
-            this, {
-              type: Turns.CHALLENGE_LOST,
-              penalty: Penalty.MISS,
-              playerKey: prevPlayerKey,
-              challengerKey: challenger.key,
-              nextToGoKey: nextPlayer.key
-            });
+          const turn = new Turn({
+            gameKey: this.key,
+            type: Turns.CHALLENGE_LOST,
+            penalty: Penalty.MISS,
+            playerKey: prevPlayerKey,
+            challengerKey: challenger.key,
+            nextToGoKey: nextPlayer.key
+          });
 
           // Penalty for a failed challenge is miss a turn,
           // and the challenger is the current player, so their
@@ -453,18 +456,18 @@ define([
         }
 
         challenger.score += lostPoints;
-        return this.finishTurn(new Turn(
-          this, {
-            type: Turns.CHALLENGE_LOST,
-            score: lostPoints,
-            playerKey: prevPlayerKey,
-            challengerKey: challenger.key,
-            nextToGoKey: currPlayerKey
-          }));
+        return this.finishTurn(new Turn({
+          gameKey: this.key,
+          type: Turns.CHALLENGE_LOST,
+          score: lostPoints,
+          playerKey: prevPlayerKey,
+          challengerKey: challenger.key,
+          nextToGoKey: currPlayerKey
+        }));
         // no startTurn, because the challenge is asynchronous and
         // shouldn't move the player on
       });
-    },
+    }
 
     /**
      * Handler for swap command.
@@ -504,19 +507,18 @@ define([
         player.rack.addTile(rep);
 
       const nextPlayer = this.nextPlayer();
-      const turn = new Turn(
-        this,
-        {
-          type: Turns.SWAPPED,
-          playerKey: player.key,
-          nextToGoKey: nextPlayer.key,
-          placements: tiles, // the tiles that were swapped out
-          replacements: replacements // the tiles that are replacing them
-        });
+      const turn = new Turn({
+        gameKey: this.key,
+        type: Turns.SWAPPED,
+        playerKey: player.key,
+        nextToGoKey: nextPlayer.key,
+        placements: tiles, // the tiles that were swapped out
+        replacements: replacements // the tiles that are replacing them
+      });
 
       return this.finishTurn(turn)
       .then(() => this.startTurn(nextPlayer));
-    },
+    }
 
     /**
      * Create another game the same, but with players re-ordered. The
@@ -535,6 +537,8 @@ define([
       // so rather than mucking around with requirejs simply use
       // this.constructor to get the class.
       const newGame = new (this.constructor)(this);
+      // Constructor will copy the old game key
+      newGame.key = Utils.genKey();
       return newGame.create()
       .then(() => newGame.onLoad(this._db))
       .then(() => this.nextGameKey = newGame.key)
@@ -567,7 +571,7 @@ define([
         timestamp: Date.now()
       }))
       .then(() => newGame);
-    },
+    }
 
     /**
      * Toggle advice on/off. All players are told using
@@ -595,7 +599,7 @@ define([
           args: [ player.name ],
           timestamp: Date.now()
         });
-    },
+    }
 
     /**
      * Asynchronously advise player as to what better play they
@@ -658,7 +662,7 @@ define([
         /* istanbul ignore next */
         console.error("Error", e);
       });
-    },
+    }
 
     /**
      * Handler for 'hint' request. This is NOT a turn handler.
@@ -727,7 +731,7 @@ define([
           timestamp: Date.now()
         });
       });
-    },
+    }
 
     /**
      * Add a word to the dictionary whitelist, asynchronously
@@ -763,5 +767,7 @@ define([
       });
     }
   };
+
+  return Commands;
 });
 

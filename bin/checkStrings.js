@@ -83,14 +83,15 @@ requirejs([
            }))))
   ])
   .then(() => {
+    let qqqError = false;
+
     // Check strings are in qqq and add to en if necessary
     for (const string of Object.keys(found).sort()) {
       if (!strings.qqq[string]) {
         console.error(`"${string}" not found in qqq`);
         strings.qqq[string] = string;
+        qqqError = true;
       }
-      if (!strings.en[string])
-        strings.en[string] = string;
     }
 
     // Check strings in qqq.json occur at least once in html/js
@@ -99,8 +100,12 @@ requirejs([
       console.error(
         `"${string}" was found in qqq, but is not used in code`);
       delete strings.qqq[string];
+      qqqError = true;
     }
-    
+
+    if (qqqError)
+      throw Error("qqq.json must be correct");
+
     for (const lang of Object.keys(strings).filter(l => l !== "qqq")) {
       let mess = [];
       // Check that all keys in qqq are also in other language and

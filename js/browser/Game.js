@@ -14,10 +14,9 @@ define([
   const State = Types.State;
 
   /**
-   * Browser-side mixin for {@linkcode Game}
-   * @mixin BrowserGame
+   * Browser-side base class for {@linkcode Game}
    */
-  const BrowserGame = {
+  class BrowserGame {
 
     /**
      * Create the UI for the player table
@@ -29,11 +28,11 @@ define([
      * @return {jQuery} jQuery object representing the player table
      */
     $playerTable(thisPlayer) {
-      const $tab = $("<table></table>").addClass("player-table");
+      const $tab = $(document.createElement("table")).addClass("player-table");
       this.players.forEach(
         p => $tab.append(p.$tableRow(thisPlayer)));
       return $tab;
-    },
+    }
 
     /**
      * Given a list of Player.simple, update the players list
@@ -51,7 +50,7 @@ define([
         let player = this.getPlayerWithKey(watcher.key);
         if (!player) {
           // New player in game
-          player = Player.fromSimple(watcher);
+          player = Player.fromSerialisable(watcher);
           this.addPlayer(player, true);
           player._debug = this._debug;
         }
@@ -61,7 +60,7 @@ define([
           this.whosTurnKey = player.key;
       }
       this.players = newOrder;
-    },
+    }
 
     /**
      * Generate a description of the given turn
@@ -76,10 +75,10 @@ define([
       if (turn.type === Turns.GAME_ENDED)
         return this.describeGameOver(turn, uiPlayer);
 
-      const $description = $("<div></div>").addClass("turn-description");
+      const $description = $(document.createElement("div")).addClass("turn-description");
 
       // Who's turn was it?
-      const $player = $("<div></div>").addClass("turn-player");
+      const $player = $(document.createElement("div")).addClass("turn-player");
       let player = this.getPlayerWithKey(turn.playerKey);
       if (!player)
         player = new Player({name: "Unknown player"});
@@ -107,7 +106,7 @@ define([
       $description.append($player);
 
       // What did they do?
-      const $action = $("<div></div>").addClass("turn-detail");
+      const $action = $(document.createElement("div")).addClass("turn-detail");
       $description.append($action);
 
       let playerPossessive;
@@ -140,7 +139,7 @@ define([
             && player.rack.isEmpty()
             && !this.hasEnded()) {
 
-          const $narrative = $("<div></div>").addClass("turn-narrative");
+          const $narrative = $(document.createElement("div")).addClass("turn-narrative");
           if (wasMe)
             $narrative.append($.i18n(
               "You have no more tiles, game will be over if your play isn't challenged"));
@@ -204,7 +203,7 @@ define([
       }
 
       return $description;
-    },
+    }
 
     /**
      * Append a formatted 'end of game' message to the log
@@ -219,7 +218,7 @@ define([
       const winningScore = this.winningScore();
       const winners = [];
 
-      const $description = $("<div></div>").addClass("turn-description");
+      const $description = $(document.createElement("div")).addClass("turn-description");
 
       // When the game ends, each player's score is reduced by
       // the sum of their unplayed letters. If a player has used
@@ -230,16 +229,16 @@ define([
       const unplayed = this.getPlayers().reduce(
         (sum, player) => sum + player.rack.score(), 0);
 
-      const $state = $("<div></div>").addClass("game-state")
+      const $state = $(document.createElement("div")).addClass("game-state")
       .append($.i18n(turn.endState || State.GAME_OVER));
 
       $description.append($state);
 
-      const $narrative = $("<div></div>").addClass("game-outcome");
+      const $narrative = $(document.createElement("div")).addClass("game-outcome");
       this.getPlayers().forEach(player => {
         const wasMe = player === uiPlayer;
         const name = wasMe ? $.i18n("You") : player.name;
-        const $rackAdjust = $("<div></div>").addClass("rack-adjust");
+        const $rackAdjust = $(document.createElement("div")).addClass("rack-adjust");
 
         if (player.score === winningScore)
           winners.push(name);
@@ -262,7 +261,7 @@ define([
 
         const timePenalty = turn.score[player.key].time;
         if (typeof timePenalty === "number" && timePenalty !== 0) {
-          const $timeAdjust = $("<div></div>").addClass("time-adjust");
+          const $timeAdjust = $(document.createElement("div")).addClass("time-adjust");
           $timeAdjust.text($.i18n(
             "$1 lost $2 point{{PLURAL:$2||s}} to the clock",
             name, Math.abs(timePenalty)));
@@ -270,7 +269,7 @@ define([
         }
       });
 
-      const $whoWon = $("<div></div>").addClass("game-winner");
+      const $whoWon = $(document.createElement("div")).addClass("game-winner");
       let who;
       let nWinners = 0;
       if (this.getWinner() === uiPlayer && winners.length === 1)

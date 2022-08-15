@@ -14,11 +14,11 @@ define([
   const Notify = Types.Notify;
 
   /**
-   * Platform independent mixin that provides undo/redo functionality for
+   * Methods that provide undo/redo functionality for
    * {@linkcode Game}
    * @mixin Undo
    */
-  return {
+  return superclass => class Undo extends superclass {
 
     /**
      * Undo a swap. Resets the game state as if it had never happened.
@@ -35,7 +35,7 @@ define([
       this.bagToRack(turn.placements, player);
       player.passes--;
       this.whosTurnKey = player.key;
-    },
+    }
 
     /**
      * Undo a play. Resets the game state as if it had never happened.
@@ -53,7 +53,7 @@ define([
       player.score -= turn.score;
       player.passes = turn.prepasses || 0;
       this.whosTurnKey = player.key;
-    },
+    }
 
     /**
      * Undo a game over confirmation.
@@ -75,7 +75,7 @@ define([
       this.state = State.PLAYING;
       // TODO: Notify
       // TODO: reset the clock
-    },
+    }
 
     /**
      * Undo a TOOK_BACK or CHALLENGE_WON.
@@ -94,7 +94,7 @@ define([
       player.score -= turn.score;
       this.whosTurnKey = this.nextPlayer(player).key;
       this._debug(`\tplayer now ${this.whosTurnKey}`,turn);
-    },
+    }
 
     /**
      * Undo a pass. Resets the game stat as if it had never happened.
@@ -110,7 +110,7 @@ define([
       player.passes--;
       this.whosTurnKey = player.key;
       // TODO: Notify
-    },
+    }
 
     /**
      * Unplay a LOST challenge (won challenges are handled in untakeBack).
@@ -126,21 +126,21 @@ define([
       this._debug("\t", Utils.stringify(player), "regained", turn.score);
       player.score -= turn.score;
       // TODO: Notify
-    },
+    }
 
     /**
-     * Undo the most recent turn. Resets the play state as if the turn had never
-     * happened. Sends a Notify.UNDONE to all listeners, passing the Turn
-     * that was unplayed.
+     * Undo the most recent turn. Resets the play state as if the turn
+     * had never happened. Sends a Notify.UNDONE to all listeners,
+     * passing the Turn that was unplayed.
      * @function
      * @instance
      * @memberof Undo
-     * @param {boolean?} isClient if true, updates the UI associated with the board
-     * and rack. If false, saves the game.
+     * @param {boolean?} isClient if true, updates the UI associated with
+     * the board and rack. If false, saves the game.
      * @return {Promise} promise resolving to undefined
      */
     undo(isClient) {
-      Platform.assert(this.turnCount() > 0);
+      Platform.assert(this.turns.length > 0);
       const turn = this.popTurn();
       this._debug(`un-${turn.type}`);
       switch (turn.type) {
@@ -172,7 +172,7 @@ define([
 
       return this.save()
       .then(() => this.notifyAll(Notify.UNDONE, turn));
-    },
+    }
 
     /**
      * Replay the given turn back into the game

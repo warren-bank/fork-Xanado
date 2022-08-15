@@ -8,16 +8,13 @@
  * a 1D array of Square.
  */
 define([
-  "platform", "common/Utils", "game/Surface", "game/Tile",
-  requirejs.isBrowser ? "browser/Rack" : "common/Mixin"
-], (Platform, Utils, Surface, Tile, Mixin) => {
+  "platform", "common/Utils", "game/Surface", "game/Tile"
+], (Platform, Utils, Surface, Tile) => {
 
   /**
    * A Rack is a 1-column {@linkcode Surface}
-   * @extends Surface
-   * @mixes BrowserRack
    */
-  class Rack extends Surface {
+  class Rack extends Surface{
 
     /**
      * @param {string|Rack} id unique id for this rack, or a rack to copy.
@@ -52,14 +49,6 @@ define([
           return idx === underlay.length;
         });
       }
-    }
-
-    /**
-     * One dimensional
-     * @override
-     */
-    at(col) {
-      return super.at(col, 0);
     }
 
     /**
@@ -190,9 +179,6 @@ define([
       return `[${this.tiles().map(t => Utils.stringify(t)).join(",")}]`;
     }
   }
-
-  if (Mixin)
-    Object.assign(Rack.prototype, Mixin);
 
   return Rack;
 });

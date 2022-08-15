@@ -74,21 +74,26 @@ define([
    * and Passport. User object will be kept in req, and contains
    * `{ name:, email:, key:, pass: }`
    *
-   * This makes no pretence of being secure, it is simply a means to manage
-   * simple player login to a game.
-   * Routes specific to Xanado users are:
-   * * `POST /register` register a new Xanado user
-   * * `POST /login` login a Xanado used
-   * * `POST /reset-password` request a password rest token. This won't invalidate
-   * the password.
-   * * `POST /change-password` (pass)
-   * * `GET /password-reset/:token`
-   * Routes relevant to all login session are:
-   * * `POST /logout` logout the current session. Note this won't discard any
-   * session cookies set by OAuth2 modules.
-   * * `GET /session` get the redacted user object for the logged-in player.
-   * This includes extra settings.
-   * * `GET /session-settings` set new extra settings in the session.
+   * This makes no pretence of being secure, it is simply a means to
+   * manage simple player login to a game. The following HTTP status
+   * codes are used in responses: 200, 401, 403, 500
+   *
+   * Routes specific to XANADO users are:
+   * * {@linkcode UserManager#POST_register|POST /register}
+   * * {@linkcode UserManager#POST_login|POST /login}
+   * * {@linkcode UserManager#POST_change_password|POST /change-password}
+   * * {@linkcode UserManager#POST_reset_password|GET /password-reset/:token}
+   * * {@linkcode UserManager#GET_users|GET /users}
+   *
+   * Routes relevant to all login sessions are:
+   * * {@linkcode UserManager#POST_logout|POST /logout}
+   * * {@linkcode UserManager#GET_session|GET /session}
+   * * {@linkcode UserManager#POST_session_settings|POST /session-settings}
+   *
+   * Routes relevant to OAuth2 providers are:
+   * * {@linkcode UserManager#GET_oauth2_providers|GET /oauth2-providers}
+   * * {@linkcode UserManager#GET_oauth2_login|GET /oauth2/login/:provider}
+   * * {@linkcode UserManager#GET_oauth2_callback|GET /oauth2/login/:provider}
    */
   class UserManager {
 
@@ -171,12 +176,12 @@ define([
       // See if there is a current session
       app.get(
         "/session",
-        (req, res) => this.handle_session(req, res));
+        (req, res) => this.GET_session(req, res));
 
       // Post a preference update
       app.post(
         "/session-settings",
-        (req, res) => this.handle_session_settings(req, res));
+        (req, res) => this.POST_session_settings(req, res));
 
       // Remember where we came from
       app.use((req, res, next) => {
@@ -191,13 +196,11 @@ define([
       app.post(
         "/register",
         (req, res, next) =>
-        this.handle_xanado_register(req, res, next));
+        this.POST_register(req, res, next));
 
-      // Return a list of known users. Only the user name and
-      // key are sent.
       app.get(
         "/users",
-        (req, res) => this.handle_users(req, res));
+        (req, res) => this.GET_users(req, res));
 
       // Log in a user
       app.post(
@@ -206,28 +209,22 @@ define([
           // Assign this property in req
           assignProperty: "userObject"
         }),
-        (req, res) => {
-          // error in passport will -> 401
-          req.userObject.provider = "xanado";
-          // Have to call .login or the cookie doesn't get set
-          return this.passportLogin(req, res, req.userObject)
-          .then(() => this.sendResult(res, 200, []));
-        });
+        (req, res) => this.POST_login(req, res));
 
       /* istanbul ignore next */
       app.get(
         "/oauth2-providers",
-        (req, res) => this.handle_oauth2_providers(req, res));
+        (req, res) => this.GET_oauth2_providers(req, res));
 
       // Log out the current signed-in user
       app.post(
         "/logout",
-        (req, res) => this.handle_logout(req, res));
+        (req, res) => this.POST_logout(req, res));
 
       // Send a password reset email to the user with the given email
       app.post(
         "/reset-password",
-        (req, res) => this.handle_xanado_reset_password(req, res));
+        (req, res) => this.POST_reset_password(req, res));
 
       // Receive a password reset from a link in email
       app.get(
@@ -246,7 +243,24 @@ define([
       // Change the password for the current user
       app.post(
         "/change-password",
-        (req, res) => this.handle_xanado_change_password(req, res));
+        (req, res) => this.POST_change_password(req, res));
+
+      // Login using oauth2 service
+      // Note: this route MUST be a GET and MUST come from an href and
+      // not an AJAX request, or CORS will foul up.
+      app.get(
+        "/oauth2/login/:provider",
+        (req, res) => this.GET_oauth2_login(req, res));
+
+      // oauth2 redirect target
+      app.get(
+        "/oauth2/callback/:provider",
+        (req, res, next) => {
+          const mw = Passport.authenticate(
+            req.params.provider, { assignProperty: "userObject" });
+          return mw(req, res, next);
+        },
+        (req, res) => this.GET_oauth2_callback(req, res));
     }
 
     /**
@@ -414,43 +428,53 @@ define([
           .then(uo => done(null, uo));
           // uo will end up in userObject
         }));
-
-      // Login using oauth2 service
-      // Note: this route MUST be a GET and MUST come from an href and
-      // not an AJAX request, or CORS will foul up.
-      app.get(
-        `/oauth2/login/${provider}`,
-        Passport.authenticate(provider));
-
-      // oauth2 redirect target
-      app.get(
-        `/oauth2/callback/${provider}`,
-        Passport.authenticate(provider, { assignProperty: "userObject" }),
-        (req, res) => {
-          // error will -> 401
-          //this._debug("OAuth2 user is", Utils.stringify(req.userObject));
-          req.login(req.userObject, () => {
-            // Back to where we came from
-            //this._debug("Redirect to",req.session.origin);
-            res.redirect(req.session.origin);
-          });
-        });
     }
 
     /* istanbul ignore next */
     /**
-     * Get a list of oauth2 providers
+     * Get a list of oauth2 providers.
      * @param {Request} req
-     * @param {Response} res
+     * @param {Response} res Responds body will be a list of oauth2
+     * provider objects, each with the provider name and the logo URL
      * @private
      */
-    handle_oauth2_providers(req, res) {
+    GET_oauth2_providers(req, res) {
       const list = [];
       for (let name in this.config.auth.oauth2) {
         const cfg = this.config.auth.oauth2[name];
         list.push({ name: name, logo: cfg.logo });
       }
       this.sendResult(res, 200, list);
+    }
+
+    /* istanbul ignore next */
+    /**
+     * Log in to an oauth2 provider.
+     * @param {Request} req
+     * @param {string} req.provider the provider name
+     * @param {Response} res
+     * @private
+     */
+    GET_oauth2_login(req, res) {
+      return Passport.authenticate(req.params.provider)(req, res);
+    }
+
+    /* istanbul ignore next */
+    /**
+     * Callback used by an OAuth2 provider.
+     * @param {Request} req
+     * @param {string} req.provider the provider name
+     * @param {Response} res
+     * @private
+     */
+    GET_oauth2_callback(req, res) {
+      // error will -> 401
+      //this._debug("OAuth2 user is", Utils.stringify(req.userObject));
+      return req.login(req.userObject, () => {
+        // Back to where we came from
+        //this._debug("Redirect to",req.session.origin);
+        res.redirect(req.session.origin);
+      });
     }
 
     /**
@@ -502,11 +526,13 @@ define([
 
     /**
      * Handle registration of a user using Xanado password database
-     * @param {Request} req
+     * @param {Request} req The body of the
+     * request must contain `register_username` and may contain
+     * `register_email` and `register_password`.
      * @param {Response} res
      * @private
      */
-    handle_xanado_register(req, res, next) {
+    POST_register(req, res, next) {
       const username = req.body.register_username;
       const email = req.body.register_email;
       const pass = req.body.register_password;
@@ -527,18 +553,18 @@ define([
           pass: pass
         })
         .then(userObject => this.passportLogin(req, res, userObject))
-        .then(() => this.handle_session(req, res));
+        .then(() => this.GET_session(req, res));
       });
     }
 
     /**
-     * Simply forgets the user, doesn't log OAuth2 users out from
-     * the provider.
+     * Simply forgets the currently logged-in user, doesn't log OAuth2
+     * users out from the provider.
      * @param {Request} req
      * @param {Response} res
      * @private
      */
-    handle_logout(req, res) {
+    POST_logout(req, res) {
       if (req.isAuthenticated()) {
         const departed = req.session.passport.user.name;
         this._debug("Logging out", departed);
@@ -551,12 +577,13 @@ define([
     }
 
     /**
-     * Gets a list of known users, user name and player key only
-     * @param {Request} req
-     * @param {Response} res
+     * Gets a list of known users
+     * @param {Request} req request
+     * @param {Response} res Sends a list of users. Only the user name and
+     * key are sent.
      * @private
      */
-    handle_users(req, res) {
+    GET_users(req, res) {
       if (req.isAuthenticated())
         return this.getDB()
       .then(db => this.sendResult(
@@ -570,12 +597,29 @@ define([
     }
 
     /**
-     * Change the current users' password
-     * @param {Request} req
+     * Handle XANADO login.
+     * @param {Request} req The body of the request
+     * must contain `login_username` and `login_password`
+     * fields. BasicAuth is NOT supported.
+     * @param {Response} res response
+     * @private
+     */
+    POST_login(req, res) {
+      // error in passport will -> 401
+      req.userObject.provider = "xanado";
+      // Have to call .login or the cookie doesn't get set
+      return this.passportLogin(req, res, req.userObject)
+      .then(() => this.sendResult(res, 200, []));
+    }
+
+    /**
+     * Change the current users' password.
+     * @param {Request} req The request body must contain `password`,
+     * the new password
      * @param {Response} res
      * @private
      */
-    handle_xanado_change_password(req, res) {
+    POST_change_password(req, res) {
       if (req.session
           && req.session.passport
           && req.session.passport.user) {
@@ -600,11 +644,11 @@ define([
     /**
      * Reset the password for the given email address. A reset token will
      * be mailed to the user that they can then use to log in.
-     * @param {Request} req
+     * @param {Request} req The request body must contain `reset_email`
      * @param {Response} res
      * @private
      */
-    handle_xanado_reset_password(req, res) {
+    POST_reset_password(req, res) {
       const email = req.body.reset_email;
       this._debug("/reset-password for", email);
       const surly = `${req.protocol}://${req.get("Host")}`;
@@ -643,12 +687,17 @@ define([
 
     /**
      * Report who is logged in. This will return a redacted user
-     * object, with just the user name and uniqe key
+     * object, with just the user name and uniqe key.
      * @param {Request} req
-     * @param {Response} res
+     * @param {Response} res Response body will contain a redacted user
+     * object, with
+     * * name: the player name
+     * * key: the player unique key
+     * * provider: the login provider
+     * * settings: the cached user settings for the user
      * @private
      */
-    handle_session(req, res) {
+    GET_session(req, res) {
       if (req.user)
         // Return redacted user object
         return this.sendResult(res, 200, {
@@ -666,7 +715,7 @@ define([
      * @param {Response} res
      * @private
      */
-    handle_session_settings(req, res) {
+    POST_session_settings(req, res) {
       if (req.user) {
         req.user.settings = req.body;
         return this.getUser(req.user)

@@ -246,7 +246,7 @@ describe("Game server mixin", () => {
 
       // Make it a timed game
       game.timerType = Timer.GAME;
-      game.timeLimit = 1500;
+      game.timeAllowed = 1500 / 60;
     })
 		.then(() => game.anotherGame())
 		.then(g => newgame = g)
@@ -259,7 +259,7 @@ describe("Game server mixin", () => {
       assert.equal(newgame.timerType, game.timerType);
       assert.equal(newgame.challengePenalty, game.challengePenalty);
       assert.equal(newgame.timePenalty, 5);
-      assert.equal(newgame.timeLimit, 1500);
+      assert.equal(newgame.timeAllowed, 1500 / 60);
       assert.equal(newgame.state, State.PLAYING);
       assert.equal(newgame.whosTurnKey, "human");
       assert.equal(newgame.turns.length, 0);
@@ -295,12 +295,12 @@ describe("Game server mixin", () => {
       reload._debug = game._debug;
       delete(game.nextGameKey);
 
-      return Promise.all([reload.simple(), game.simple()])
+      return Promise.all([reload.serialisable(), game.serialisable()])
       .then(s => assert.deepEqual(s[0], s[1]));
     })
     .then(() => reload.playIfReady()) // should start the clock
     .then(() => assert(reload.stopTheClock()))
-    .then(() => Promise.all([reload.simple(), game.simple()]))
+    .then(() => Promise.all([reload.serialisable(), game.serialisable()]))
     .then(s => assert.deepEqual(s[0], s[1]));
 	});
 
@@ -360,38 +360,46 @@ describe("Game server mixin", () => {
     .then(() => {
       game.turns = [];
       //game._debug = console.debug;
-      game.finishTurn(new Turn(game, {
+      game.finishTurn(new Turn({
+        gameKey: game.key,
         type: Turns.PLAYED,
         playerKey: 1
       }));
-      game.finishTurn(new Turn(game, {
+      game.finishTurn(new Turn({
+        gameKey: game.key,
         type: Turns.PLAYED,
         playerKey: 2
       }));
-      game.finishTurn(new Turn(game, {
+      game.finishTurn(new Turn({
+        gameKey: game.key,
         type: Turns.TOOK_BACK,
         playerKey: 3
       }));
       assert.equal(game.lastTurn().playerKey, 3);
-      game.finishTurn(new Turn(game, {
+      game.finishTurn(new Turn({
+        gameKey: game.key,
         type: Turns.PLAYED,
         playerKey: 4
       }));
-      game.finishTurn(new Turn(game, {
+      game.finishTurn(new Turn({
+        gameKey: game.key,
         type: Turns.CHALLENGE_WON,
         playerKey: 5
       }));
       assert.equal(game.lastTurn().playerKey, 5);
-      game.finishTurn(new Turn(game, {
+      game.finishTurn(new Turn({
+        gameKey: game.key,
         type: Turns.PLAYED,
         playerKey: 6
       }));
-      game.finishTurn(new Turn(game, {
+      game.finishTurn(new Turn({
+        gameKey: game.key,
         type: Turns.CHALLENGE_LOST,
         playerKey: 7
       }));
       assert.equal(game.lastTurn().playerKey, 7);
-      game.finishTurn(new Turn(game, {
+      game.finishTurn(new Turn({
+        gameKey: game.key,
         type: Turns.GAME_ENDED,
         playerKey: 8
       }));

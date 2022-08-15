@@ -32,6 +32,7 @@
 
 /* A surface is a table, the cells of which represent the squares */
 .Surface {
+  font-family: helvetica, arial, sans-serif;
   border-collapse: separate;
   border-spacing: 0;
 
@@ -74,9 +75,9 @@
   content: attr(data-long);
 }
 
-/* Reduce font size for full text in underlay */
+/* Font size for full text in underlay is computed in JS */
 .Surface td.score-multiplier .underlay {
-  font-size: 53%;
+  padding-top: 5%;
 }
 
 @media screen and (max-width: 800px) {
@@ -88,7 +89,7 @@
 
   /* Increase font size for acronym in underlay */
   .Surface td.score-multiplier .underlay {
-    font-size: 90%;
+    font-size: 200%;
   }
 }
 
@@ -99,15 +100,18 @@
 }
 
 .Surface td {
+  width: 2.3em;      /* Edited in code */
+  height: 2.3em;     /* Edited in code */
+  font-size: 2em;    /* Edited in code */
+  line-height: 1em;  /* Edited in code */
+
   background-color: #BEB9A6;
   border-style: solid;
-  border-width: 1px;
+  border-width: 2px;
   border-color: #AAA38E;
   white-space: normal;
   overflow: hidden;
   padding: 0;
-  width: 2.3em;
-  height: 2.3em;
   aspect-ratio: 1/1;
   /* Must be positioned relative to allow absolute positioning of
    * contained underlay and tile */
@@ -123,7 +127,7 @@
 
 /* The centre double-word square */
 .Surface td.square-M .underlay {
-  font-size: 150%;
+  font-size: 300%;
 }
 
 /* triple-word squares */
@@ -162,7 +166,12 @@
 }
 
 /* A tile. Tiles can be dropped on Surfaces */
+
 .Tile {
+  width: 2em;     /* Edited in code */
+  height: 2em;    /* Edited in code */
+  font-size: 1em; /* Edited in code */
+
   display: block;
   cursor: move;
 
@@ -170,21 +179,20 @@
   padding: 0;
 
   /* Code in game.js calculates a suitable tile size */
-  width: 2em;
-/*  font-size: 1em;*/
   aspect-ratio: 1/1;
 
   background-color: #F7F7E3;
   border-color: #DCDCC6;
   border-style: solid;
+  border-width: 3px;
 
   color: #333333;
 
-  -webkit-border-radius: 2px;
+/*  -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   -ms-border-radius: 2px;
-  -o-border-radius: 2px;
-  border-radius: 2px;
+  -o-border-radius: 2px;*/
+  border-radius: 6px;
 
   -webkit-box-shadow: 0 0 2px #000000;
   -moz-box-shadow: 0 0 2px #000000;

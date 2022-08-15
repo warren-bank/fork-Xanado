@@ -126,7 +126,7 @@ describe("Replay", () => {
     .then(game => game.onLoad(new FileDatabase("test/temp", "game")))
     .then(game => {
       let promise = Promise.resolve();
-      for (let i = 0; i < game.playedGame.turnCount(); i++)
+      for (const i in game.playedGame.turns)
         promise = promise.then(() => {
           checkBag(game, preBag);
           return game.step()
@@ -189,7 +189,7 @@ describe("Replay", () => {
     })
     .then(game => game.onLoad(new FileDatabase("test/temp", "game")))
     .then(async game => {
-      for (let i = 0; i <  preGame.turnCount(); i++) {
+      for (const i in preGame.turns) {
         checkBag(game, preBag);
         await game.step();
         checkBag(game, preBag);

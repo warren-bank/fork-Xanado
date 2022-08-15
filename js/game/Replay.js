@@ -47,7 +47,7 @@ define([
     constructor(playedGame) {
       super(playedGame);
       this.playedGame = playedGame;
-      this.state = State.PLAYING;
+      this.state = State.WAITING;
       this.nextTurn = 0;
     }
 
@@ -122,7 +122,7 @@ define([
      */
     step() {
       // Copy the turn to avoid accidental overwrite
-      const turn = new Turn(this, this.playedGame.turns[this.nextTurn++]);
+      const turn = new Turn(this.playedGame.turns[this.nextTurn++]);
       return this.redo(turn)
       .then(() => {
         for (const pl of this.players)

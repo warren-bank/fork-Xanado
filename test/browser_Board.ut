@@ -236,10 +236,10 @@ describe("Board browser mixin", () => {
           square.$unplaceTile();
         });
 
-    let $dact = $("<div></div>");
+    let $dact = $(document.createElement("div"));
     $("body").append($dact);
 
-    let $table = $("<table></table>");
+    let $table = $(document.createElement("table"));
     $dact.append($table);
 
     // 5x5 board

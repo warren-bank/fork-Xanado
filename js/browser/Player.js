@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, browser, jquery */
 
-define([ "platform" ], Platform => {
+define([ "jquery" ], () => {
 
   // Unicode characters
   const BLACK_CIRCLE = "\u25cf";
@@ -12,7 +12,7 @@ define([ "platform" ], Platform => {
    * Browser-side mixin for {@linkcode Player}
    * @mixin BrowserPlayer
    */
-  const BrowserPlayer = {
+  class BrowserPlayer {
 
     /**
      * Create score table row for the player.
@@ -30,9 +30,8 @@ define([ "platform" ], Platform => {
       $tr.append(`<td class="turn-pointer">&#10148;</td>`);
       const $icon = $('<div class="ui-icon"></div>');
       $icon.addClass(this.isRobot ? "icon-robot" : "icon-person");
-      $tr.append($("<td></td>").append($icon));
-      const who = this === uiPlayer
-            ? Platform.i18n("You") : this.name;
+      $tr.append($(document.createElement("td")).append($icon));
+      const who = this === uiPlayer ? $.i18n("You") : this.name;
       const $name = $(`<td class="player-name">${who}</td>`);
       if (this.missNextTurn)
         $name.addClass("miss-turn");
@@ -49,7 +48,7 @@ define([ "platform" ], Platform => {
       $tr.append(`<td class='player-clock'></td>`);
 
       return $tr;
-    },
+    }
 
     /**
      * Refresh score table representation of the player.
@@ -59,7 +58,7 @@ define([ "platform" ], Platform => {
      */
     $refreshScore() {
       $(`#player${this.key} .score`).text(this.score);
-    },
+    }
 
     /**
      * Set 'online' status of player.

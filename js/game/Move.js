@@ -5,8 +5,8 @@
 
 define([
   "game/Tile",
-  requirejs.isBrowser ? "browser/Move" : "common/Mixin"
-], (Tile, Mixin) => {
+  requirejs.isBrowser ? "browser/Move" : "common/EmptyBase"
+], (Tile, PlatformBase) => {
 
   /**
    * A Move is a collection of tile placements, and the delta score
@@ -14,7 +14,7 @@ define([
    * move. It is used to send a human player's play to the server,
    * which then sends a matching {@linkcode Turn} to every player.
    */
-  class Move {
+  class Move extends PlatformBase {
 
     /**
      * Score for the play.
@@ -32,6 +32,8 @@ define([
      * params.
      */
     constructor(params) {
+      super();
+
       if (params.words)
         /**
          * List of words created by the play:
@@ -76,9 +78,6 @@ define([
       return `Move ${pl} words ${w} for ${this.score}`;
     }
   }
-
-  if (Mixin)
-    Object.assign(Move.prototype, Mixin);
 
   return Move;
 });

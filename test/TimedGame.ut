@@ -38,7 +38,7 @@ describe("Timed games", function() {
       //_debug: console.debug,
       noPlayerShuffle: true,
       timerType: Timer.TURN,
-      timeLimit: 1
+      timeAllowed: 1 / 60
     });
     let nextTurn = 0;
     const socket = new TestSocket();
@@ -125,7 +125,7 @@ describe("Timed games", function() {
       //_debug: console.debug,
       noPlayerShuffle: true,
       timerType: Timer.GAME,
-      timeLimit: 1,
+      timeAllowed: 1 / 60,
       timePenalty: 60
     });
     let nextTurn = 0;

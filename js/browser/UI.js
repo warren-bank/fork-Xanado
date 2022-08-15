@@ -131,14 +131,12 @@ define([
       .then(() => $.get("/locales"))
       .then(locales => {
         const params = {};
-        locales.forEach(locale => {
-          params[locale] = `/i18n/${locale}.json`;
-        });
-        // Note: without other guidance, i18n will use the locale
-        // returned by navigator.language
-        const ulang = this.getSetting("language");
+        const ulang = this.getSetting("language") || "en";
         console.debug("User language", ulang);
-        return $.i18n(ulang ? { locale: ulang } : undefined)
+        // Set up to load the language file
+        params[ulang] = `/i18n/${ulang}.json`;
+        // Select the language and load
+        return $.i18n({ locale: ulang })
         .load(params)
         .then(() => locales);
       })
@@ -301,6 +299,7 @@ define([
             "Observer '$1'", this.observer));
         $(".not-logged-in>button")
         .on("click", () => Dialog.open("LoginDialog", {
+          // postAction is set in code
           postResult: () => window.location.reload(),
           error: UI.report
         }));

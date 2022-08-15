@@ -16,7 +16,7 @@ define([
   Types, Board, LetterBag,
   Player, Square, Tile, Rack,
   Edition, Move, Turn, Undo,
-  Mixin
+  PlatformMixin
 ) => {
 
   const State     = Types.State;
@@ -26,11 +26,11 @@ define([
   /**
    * Base class of Game objects. Common functionality shared by browser
    * and server sides.
-   * @mixes Undo
+   * @extends Undo
    * @mixes BrowserGame
    * @mixes ServerGame
    */
-  class Game {
+  class Game extends Undo(PlatformMixin) {
 
     // Classes used in Freeze/Thaw
     static classes = {
@@ -61,6 +61,8 @@ define([
      * Note that `players` and `turns` are not copied.
      */
     constructor(params) {
+      super();
+
       /* istanbul ignore if */
       if (typeof params._debug === "function")
         /**
@@ -73,22 +75,22 @@ define([
         this._debug = () => {};
 
       /**
+       * Key that uniquely identifies this game.
+       * @member {Key}
+       */
+      this.key = params.key || Utils.genKey();
+
+      /**
        * An i18n message identifier indicating the game state.
        * @member {State}
        */
       this.state = State.WAITING;
 
       /**
-       * Key that uniquely identifies this game.
-       * @member {Key}
-       */
-      this.key = Utils.genKey();
-
-      /**
        * Epoch ms when this game was created.
        * @member {number}
        */
-      this.creationTimestamp = Date.now();
+      this.creationTimestamp = params.creationTimestamp || Date.now();
 
       /**
        * List of players in the game.
@@ -149,19 +151,28 @@ define([
        * Key of next player to play in this game.
        * @member {string?}
        */
-      this.whosTurnKey = undefined; // Note: playIfReady sets it.
+      this.whosTurnKey = undefined;
 
       /**
-       * The name of the edition.
-       * We don't keep a pointer to the {@linkcode Edition} so we can
-       * cheaply freeze and send to the games interface.
+       * Undo engine for this game. Lazy init when required.
+       * @member {Undo?}
+       * @private
+       */
+      this._undoer = undefined;
+
+      /**
+       * Name of the edition (see {@linkcode Edition}).
+       * Edition objects are stored in the Edition class and
+       * demand-loaded as required. This allows us to
+       * throw Game objects around without worrying too much about
+       * the data volume.
        * @member {string}
        */
       this.edition = params.edition;
 
       /*
-       * When you name a field in the class declaration without an
-       * initial value, it gets intitialised to undefined. This means the
+       * When you name a field in a class declaration without an
+       * initial value, it gets initialised to undefined. This means the
        * object gets cluttered with undefined fields that are not used
        * in the configuration. So we test whether these optional fields
        * are required or not.
@@ -169,9 +180,15 @@ define([
 
       if (params.dictionary)
         /**
-         * We don't keep a pointer to dictionary objects so we can
-         * cheaply serialise the game and send to the UI. We just
-         * keep the name of the dictionary.
+         * Name of the dictionary used for checking words and
+         * generating robot plays. A game doesn't need to have a
+         * dictionary if words are not checked and there is no robot
+         * player.
+         * This is just the name of the dictionary. Dictionary objects
+         * are stored in the {@linkcode Dictionary} class and
+         * demand-loaded as and when required. This allows us to
+         * throw Game objects around without worrying too much about
+         * the data volume.
          * @member {string?}
          */
         this.dictionary = params.dictionary;
@@ -184,28 +201,27 @@ define([
         this.timerType = params.timerType;
 
       if (this.timerType) {
-        if (typeof params.timeLimit !== "undefined")
+        if (typeof params.timeAllowed !== "undefined")
           /**
-           * Time limit for this game.. If `timerType` is `TIMER_GAME`
-           * defaults to 25 minutes, and 1 minute for `TIMER_TURN`.
+           * Time limit for this game, in minutes. If `timerType` is
+           * `TIMER_GAME` defaults to 25 minutes, and 1 minute for
+           * `TIMER_TURN`.
            * @member {number?}
            */
-          this.timeLimit = params.timeLimit;
-        else if (typeof params.timeLimitMinutes !== "undefined")
-          this.timeLimit = params.timeLimitMinutes * 60;
+          this.timeAllowed = params.timeAllowed;
         else
-          this.timeLimit = 0;
-        if (this.timeLimit <= 0) {
+          this.timeAllowed = 0;
+        if (this.timeAllowed <= 0) {
           if (this.timerType === Timer.GAME)
-            this.timeLimit = 25 * 60; // 25 minutes
+            this.timeAllowed = 25; // 25 minutes
           else
-            this.timeLimit = 1 * 60; // 1 minute
+            this.timeAllowed = 1; // 1 minute
         }
 
         if (this.timerType === Timer.GAME)
           /**
            * Time penalty for this game, points lost per minute over
-           * timeLimit. Only used if `timerType` is `TIMER_GAME`.
+           * timeAllowed. Only used if `timerType` is `TIMER_GAME`.
            * @member {number?}
            */
           this.timePenalty = params.timePenalty || 5;
@@ -294,13 +310,6 @@ define([
          * @member {string?}
          */
         this.pausedBy = params.pausedBy;
-
-      /**
-       * Undo engine for this game. Lazy init when required.
-       * @member {Undo}
-       * @private
-       */
-      this._undoer = undefined;
     }
 
     /**
@@ -322,6 +331,13 @@ define([
         this.swapSize = edo.swapCount;
         return this;
       });
+    }
+
+    /**
+     * Make changes as required by the structure passed. Any field
+     * in the game can be changed. The game will be saved.
+     */
+    makeChanges(vals) {
     }
 
     /**
@@ -347,7 +363,7 @@ define([
       player._debug = this._debug;
       this.players.push(player);
       if (this.timerType)
-        player.clock = this.timeLimit;
+        player.clock = this.timeAllowed * 60;
       if (fillRack)
         player.fillRack(this.letterBag, this.rackSize);
       this._debug(this.key, "added player", player.stringify());
@@ -486,8 +502,19 @@ define([
      * Return true if the game state indicates the game has ended
      */
     hasEnded() {
-      return !(this.state === State.WAITING
-               || this.state === State.PLAYING);
+      switch (this.state) {
+      case State.WAITING:
+      case State.FAILED_CHALLENGE:
+      case State.PLAYING:
+        return false;
+      case State.GAME_OVER:
+      case State.TWO_PASSES:
+      case State.TIMED_OUT:
+        return true;
+      default:
+        Platform.assert(false, `Bad game state ${this.state}`);
+        return true;
+      }
     }
 
     /**
@@ -501,14 +528,6 @@ define([
         return last.timestamp;
 
       return this.creationTimestamp;
-    }
-
-    /**
-     * Get the number of turns in the game so far
-     * @return {number} the number of turns so far
-     */
-    turnCount() {
-      return this.turns.length;
     }
 
     /**
@@ -568,7 +587,7 @@ define([
       if (this.dictionary)
         options.push(`dictionary:${this.dictionary}`);
       if (this.timerType) {
-        options.push(`${this.timerType}:${this.timeLimit}`);
+        options.push(`${this.timerType}:${this.timeAllowed}`);
         if (this.timerType === Timer.GAME)
         options.push(`timePenalty:${this.timePenalty}`);
       }
@@ -607,16 +626,21 @@ define([
     }
 
     /**
-     * Create a simple structure describing a subset of the
-     * game state, for sending to the 'games' interface using JSON.
+     * Create a simple structure describing a subset of the game
+     * state, for sending to the 'games' interface using JSON.  The
+     * structure does not suffice to fully reconstruct the game; there
+     * will be no `board`, `rackSize`, `swapSize`, `bonuses`, `turns`
+     * will be a list of {@linkcode Turn#serialisable|Turn.serialisable},
+     * and `players` will be a list of
+     * {@linkcode Player#serialisable|Player.serialisable}.
      * @param {UserManager} um user manager object for getting emails; only
      * works on server side
-     * @return {Promise} resolving to a {@linkcode Simple} object with
+     * @return {Promise} resolving to a simple object with
      * key game data
      */
-    simple(um) {
+    serialisable(um) {
       return Promise.all(
-        this.players.map(player => player.simple(this, um)))
+        this.players.map(player => player.serialisable(this, um)))
       .then(ps => {
         const simple = {
           key: this.key,
@@ -624,22 +648,24 @@ define([
           edition: this.edition,
           dictionary: this.dictionary,
           state: this.state,
+          // players is a list of Player.serialisable
           players: ps,
           whosTurnKey: this.whosTurnKey,
           timerType: this.timerType,
           challengePenalty: this.challengePenalty,
-          lastActivity: this.lastActivity() // epoch ms
+          lastActivity: this.lastActivity(), // epoch ms
           // this.board is not sent
           // this.rackSize not sent
           // this.swapSize not sent
           // this.bonuses not sent
-          // this.turns not sent
+          // turns is a list of Turn.serialisable
+          turns: this.turns.map(t => t.serialisable())
         };
         if (this.minPlayers) simple.minPlayers = this.minPlayers;
         if (this.maxPlayers) simple.maxPlayers = this.maxPlayers;
         if (this.wordCheck) simple.wordCheck = this.wordCheck;
         if (this.timerType != Game.TIMER_NONE) {
-          simple.timeLimit = this.timeLimit;
+          simple.timeAllowed = this.timeAllowed;
           simple.timePenalty = this.timePenalty;
         }
         if (this.challengePenalty === Penalty.PER_TURN
@@ -655,23 +681,16 @@ define([
     }
 
     /**
-     * Load a game from a structure generated by simple. This method
-     * is designed to use to support rapid loading of games into the
-     * games browser interface. The game will be incomplete, only the
-     * fields supported by simple will be populated, so there will be
-     * no board or turns.
+     * Load a game from a structure generated by serialisable. This
+     * method is designed to use to support rapid loading of games
+     * into the `games` browser interface. The game will be incomplete,
+     * only the fields supported by serialisable will be populated.
+     * @param {object} simple object generated by serialisable()
      */
-    static fromSimple(simple) {
+    static fromSerialisable(simple) {
       const game = new Game(simple);
-      for (const k in simple) {
-        if (game.hasOwnProperty(k)
-            && k.indexOf("_") !== 0
-            && k !== "players"
-            && k !== "turns") {
-          game[k] = simple[k];
-        }
-      }
-      game.players = simple.players.map(p => Player.fromSimple(p));
+      game.players = simple.players.map(p => Player.fromSerialisable(p));
+      game.turns = simple.turns.map(t => Turn.fromSerialisable(t));
       return game;
     }
 
@@ -740,12 +759,6 @@ define([
     }
 
   }
-
-  // Mix in Undo functionality
-  Object.assign(Game.prototype, Undo);
-
-  // Mix in platform-specific functionality
-  Object.assign(Game.prototype, Mixin);
 
   return Game;
 });

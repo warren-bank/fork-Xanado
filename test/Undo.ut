@@ -282,7 +282,7 @@ describe("Undo", () => {
     .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
     .then(() => {
       //game._debug = console.debug;
-      while (game.turnCount() > 0) {
+      while (game.turns.length > 0) {
         game.undo();
       }
       for (const p of game.players)
@@ -362,7 +362,7 @@ describe("Undo", () => {
       // player
       assert.equal(newGame.whosTurnKey, human1.key);
       assert.equal(newGame.timerType, game.timerType);
-      assert.equal(newGame.timeLimit, game.timeLimit);
+      assert.equal(newGame.timeAllowed, game.timeAllowed);
       assert.equal(newGame.timePenalty, game.timePenalty);
       assert.equal(newGame.edition, game.edition);
       assert.equal(newGame.dictionary, game.dictionary);

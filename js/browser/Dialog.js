@@ -5,27 +5,50 @@
 
 define(() => {
 
+  // Index of dialog instances.
+  const instances = {};
+
   /**
-   * Base class of modal dialogs. These are dialogs that support
-   * a set of fields and a submit button.
+   * Base class of modal dialogs with demand-loadable HTML and a submit
+   * button.
+   *
    * In the HTML, any input or select that has a "name" attribute will
-   * be used to populate a structure that is posted to the server.
-   * The URL posted to is '/action' where 'action' is the result of
-   * a call to getAction on the Dialog.
+   * be used to populate a structure representing the dialog data.
+   *
+   * If a `postAction` URL is set, this structure will be posted to the
+   * URL and the result passed to an optional `postResult` function.
+   *
+   * Alternatively (or additionally), the `onSubmit` option can be set to
+   * a function that will be called with `this` when the submit button
+   * is pressed, *before* the `postAction` is sent.
+   * 
+   * Note that each dialog type has a single Dialog instance associated
+   * with it, and only one
    */
   class Dialog {
 
     /**
      * Construct the named dialog, demand-loading the HTML as
-     * necessary.
+     * necessary. Do not use this - use {@linkcode Dialog#open|open()}
+     * instead.
      * @param {string} dlg the dialog name
      * @param {object} options options
-     * @param {string} options.postAction AJAX call name
-     * @param {function} options.postResult passed result
-     * of postAction AJAX call
+     * @param {string?} options.postAction AJAX call name. If defined,
+     * the dialog fields will be posted here on close.
+     * @param {function?} options.postResult passed result
+     * of postAction AJAX call. Does nothing unless `postAction` is also
+     * defined.
+     * @param {function?} options.onSubmit Passed this, can be used without
+     * postAction.
      * @param {function} options.error error function, passed jqXHR
+     * @private
      */
     constructor(id, options) {
+      /**
+       * Identifier for this dialog
+       */
+      this.id = id;
+
       /**
        * Cache of settings
        * @member {object}
@@ -33,53 +56,67 @@ define(() => {
       this.options = options;
 
       /**
-       * Cache of dialog object
+       * Cache of HTML.
        * @member {jQuery}
+       * @private
        */
       this.$dlg = $(`#${id}`);
 
+      let pre_dialog;
+
       if (this.$dlg.length === 0) {
-        // Demand-load the HTML
-        $.get(`/html/${id}.html`)
+        // HTML is not already present; load it asynchronously.
+        pre_dialog = $.get(`/html/${id}.html`)
         .then(html_code => {
-          const $div = $(`<div id="${id}" class="dialog"></div>`)
-                .html(html_code);
-          $("body").append($div);
+          $("body").append(
+            $(document.createElement("div"))
+            .attr("id", id)
+            .addClass("dialog")
+            .html(html_code));
           this.$dlg = $(`#${id}`);
-          this.$dlg.dialog({
-            title: options.title,
-            minWidth: 400,
-            width: 'auto',
-            modal: true,
-            open: () => this.openDialog(),
-            create: () => this.createDialog()
-          });
         });
-      } else {
-        this.$dlg.dialog({
+      } else
+        pre_dialog = Promise.resolve();
+
+      /**
+       * Flag set true when createDialog has been called
+       * @private
+       */
+      this._created = false;
+
+      pre_dialog.then(
+        () => this.$dlg.dialog({
           title: options.title,
+          width: 'auto',
           minWidth: 400,
           modal: true,
-          open: () => this.openDialog(),
-          create: () => this.createDialog()
-        });
-      }
+          open: () => {
+            if (this._created)
+              this.openDialog();
+            else {
+              this._created = true;
+              this.createDialog().then(() => this.openDialog());
+            }
+          }
+        }));
     }
 
     /**
-     * Handle dialog creation once the HTML has been loaded.
-     * Override in subclasses to attach handlers etc.
-     * @return {Promise} promise that will be resolved when
-     * it is OK to populate the dialog. super.createDialog()
-     * must be called as the LAST step in any subclass createDialog
-     * so that selectmenus get correctly initialised.
-     * IMPORTANT: event handlers added to elements in subclasses
-     * that refer to `this` Dialog object must retrieve it using
-     * `this = this.$dlg.data("this")`. Otherwise `this` will
-     * refer to the Dialog object in scope when the Dialog was
-     * first constructed.
+     * Handle dialog creation once the HTML has been loaded, mainly
+     * for associating handlers and loading background data. This is
+     * invoked on an `open` event rather than `create` so we can be
+     * sure all initialisation steps are complete before the dialog
+     * opens.
+     * Override in subclasses to attach handlers etc. Subclasses should
+     * return super.createDialog()
+     * @protected
      */
     createDialog() {
+      // createDialog is invoked on the dialog `create` event, but
+      // because selectmenus can take a long time to populate, we
+      // may see an `open` event before it is complete. So we use an
+      // internal `readyToOpen` promise that only resolves when
+      // the the last createDialog (this one) is called.
       this.$dlg
       .find("[data-i18n]")
       .i18n();
@@ -90,24 +127,6 @@ define(() => {
         $(this).attr("placeholder", $.i18n(
           $(this).data("i18n-placeholder")));
       });
-
-      // Disable tooltip on touch-enabled devices
-      /*
-Doesn't seem to be required, and breaks on mobile devices (stops
-inputs from accepting the focus)
-      if (!("ontouchend" in document)) {
-        this.$dlg
-        .tooltip({
-          items: '[data-i18n-tooltip]',
-          position: {
-            my: "left+15 center",
-            at: "right center"
-          },
-          content: function() {
-            return $.i18n($(this).data('i18n-tooltip'));
-          }
-        });
-      }*/
 
       this.$dlg
       .find("label[data-image]")
@@ -123,7 +142,7 @@ inputs from accepting the focus)
       // created until some indeterminate time in the future,
       // and there is no event triggered.
       //
-      // What have to do is to wait until the selectmenus
+      // What we have to do is to wait until the selectmenus
       // have (hopefully!) been created before creating the
       // tooltips.
       const self = this;
@@ -155,53 +174,24 @@ inputs from accepting the focus)
         }),
         100);
 
-      // hide or show a password
-      this.$dlg.find('.hide-password')
-      .button({
-        icon: "icon-eye-open"
-      })
-      .on("click", function() {
-        const $icon = $(this);
-        const $field = $icon.prev("input");
-        if ($field.attr("type") === "password") {
-          $field.attr("type", "text");
-          $icon.button("option", "icon", "icon-eye-closed");
-        } else {
-          $field.attr("type", "password");
-          $icon.button("option", "icon", "icon-eye-open");
-        }
-        // focus and move cursor to the end of input field
-        var len = $field.val().length * 2;
-        $field[0].setSelectionRange(len, len);
-      });
-
-      this.$dlg.find(".is-password")
-      .on("keyup", evt => {
-        if (evt.keyCode === 13)
-          this.$dlg.data("this").submit();
-      });
-
       this.$dlg.find(".submit")
-      .on("click", () => this.$dlg.data("this").submit());
+      .on("click", () => this.submit());
 
       this.enableSubmit();
 
-      this.created = true;
-      if (this.onCreation)
-        this.onCreation();
+      console.log("Created", this.id);
+      return Promise.resolve();
     }
 
     /**
      * Subclass to set any dynamic values from context.
-     * Superclass must be called.
-     * @return {Promise} promise that will be resolved when
-     * it is OK to populate the dialog.
+     * Superclass must be called BEFORE subclass code.
+     * @return {Promise} promise that resolves to undefined
      */
     openDialog() {
+      console.log("Opening", this.id);
       this.$dlg.data("this", this);
-      if (this.created)
-        return Promise.resolve();
-      return new Promise(resolve => this.onCreation = resolve);
+      return Promise.resolve(this);
     }
 
     /**
@@ -222,13 +212,11 @@ inputs from accepting the focus)
     }
 
     /**
-     * Handle submit button
+     * Populate a structure mapping field names to values.
      * @param {object} p optional hash of param values, so subclasses
      * can handle non-input type data.
-     * @private
      */
-    submit(p) {
-      this.$dlg.dialog("close");
+    getFieldValues(p)  {
       if (!p)
         p = {};
       this.$dlg
@@ -260,16 +248,22 @@ inputs from accepting the focus)
           p[name].push(value);
       });
 
-      this.onSubmit(p);
+      return p;
     }
 
     /**
-     * Default onSubmit. Where `this.options.postAction` is defined,
-     * make an AJAX call passing the parameters. Override in
-     * subclasses for alternative behaviours. Default is no `postAction`
-     * so this is a NOP.
+     * Handle submit button
+     * @param {object} vals optional hash of param values, so subclasses
+     * can handle non-input type data.
+     * @private
      */
-    onSubmit(p) {
+    submit(vals) {
+      this.$dlg.dialog("close");
+      vals = this.getFieldValues(vals);
+
+      if (this.options.onSubmit)
+        this.options.onSubmit(this, vals);
+
       if (!this.options.postAction)
         return;
 
@@ -281,7 +275,7 @@ inputs from accepting the focus)
         url: this.options.postAction,
         type: "POST",
         contentType: "application/json",
-        data: JSON.stringify(p)
+        data: JSON.stringify(vals)
       })
       .then(data => {
         if (typeof this.options.postResult === "function")
@@ -298,14 +292,34 @@ inputs from accepting the focus)
     /**
      * Open the named dialog, demand-loading the JS and HTML as
      * needed. Some day we may demand-load css as well, but there's
-     * no need right now. Parameters as for constructor.
+     * no need right now.
+     * @param {string} dlg the dialog name
+     * @param {object} options options
+     * @param {string?} options.postAction AJAX call name. If defined,
+     * the dialog fields will be posted here on close.
+     * @param {function?} options.postResult passed result
+     * of postAction AJAX call. Does nothing unless `postAction` is also
+     * defined.
+     * @param {function?} options.onSubmit Passed this, can be used without
+     * postAction.
+     * @param {function} options.error error function, passed jqXHR
      * @return {Promise} resolving to the Dialog object
      */
     static open(dlg, options) {
-      console.log(`Opening dialog ${dlg}`);
+      console.log("Static open", dlg, options);
       return new Promise(resolve => {
         requirejs([`browser/${dlg}`], Clas => {
-          resolve(new Clas(options));
+          let inst = instances[dlg];
+          if (inst) {
+            if (options)
+              Object.assign(inst.options, options);
+            if (!inst.$dlg.dialog("isOpen")) {
+              console.log("Open trigger", inst.options.game.key);
+              inst.$dlg.dialog("open");
+            }
+          } else
+            inst = instances[dlg] = new Clas(options);
+          resolve(inst);
         });
       });
     }

@@ -23,7 +23,33 @@ define([
   const Turns = Types.Turns;
 
   /**
-   * Web server for crossword game.
+   * Web server for crossword game. Errors will result in an
+   * appropriate status code:
+   * * 404 - usually a file read error
+   * * 500 internal server error e.g. an assert
+   *
+   * Routes supported:
+   * * `GET /` - Get the HTML for the main interface (the "games" page)
+   * * {@linkcode Server#GET_games|GET /games/:send}
+   * * {@linkcode Server#GET_history|GET /history}
+   * * {@linkcode Server#GET_locales|GET /locales}
+   * * {@linkcode Server#GET_editions|GET /editions}
+   * * {@linkcode Server#GET_dictionaries|GET /dictionaries}
+   * * {@linkcode Server#GET_themes|GET /themes}
+   * * {@linkcode Server#GET_theme|GET /theme/:css
+   * * {@linkcode Server#GET_defaults|`GET /defaults`}
+   * * {@linkcode Server#GET_game|GET /game/:gameKey}
+   * * {@linkcode Server#POST_createGame|POST /createGame}
+   * * {@linkcode Server#POST_invitePlayers|POST /invitePlayers/:gameKey}
+   * * {@linkcode Server#POST_deleteGame|POST /deleteGame/:gameKey}
+   * * {@linkcode Server#POST_anotherGame|POST /anotherGame/:gameKey}
+   * * {@linkcode Server#POST_sendReminder|POST /sendReminder/:gameKey}
+   * * {@linkcode Server#POST_join|POST /join/:gameKey}
+   * * {@linkcode Server#POST_leave|POST /leave/:gameKey}
+   * * {@linkcode Server#POST_addRobot|POST /addRobot/:gameKey}
+   * * {@linkcode Server#POST_removeRobot|POST /removeRobot/:gameKey}
+   *
+   * See also {@link UserManager} for other user management routes.
    */
   class Server {
 
@@ -122,151 +148,122 @@ define([
       // Create a router for game commands
       const cmdRouter = Express.Router();
 
-      // Get the HTML for the main interface (the "games" page)
       cmdRouter.get(
         "/",
         (req, res) => res.sendFile(
           Platform.getFilePath("html/games.html")));
 
-      // Get a simplified version of games list or a single game
-      // (no board, bag etc) for the "games" page. You can request
-      // "active" games (those still in play), "all" games (for
-      // finished games too), or a single game key
       cmdRouter.get(
-        "/simple/:send",
-        (req, res, next) => this.request_simple(req, res)
+        "/games/:send",
+        (req, res, next) => this.GET_games(req, res)
         .catch(next));
 
-      // Get a games history. Sends a summary of cumulative player
-      // scores to date, for each unique player.
       cmdRouter.get(
         "/history",
-        (req, res, next) => this.request_history(req, res)
+        (req, res, next) => this.GET_history(req, res)
         .catch(next));
 
-      // Get a list of available locales
       cmdRouter.get(
         "/locales",
-        (req, res, next) => this.request_locales(req, res)
+        (req, res, next) => this.GET_locales(req, res)
         .catch(next));
 
-      // Get a list of of available editions
       cmdRouter.get(
         "/editions",
-        (req, res, next) => this.request_editions(req, res)
+        (req, res, next) => this.GET_editions(req, res)
         .catch(next));
 
-      // Get a description of the available dictionaries
       cmdRouter.get(
         "/dictionaries",
-        (req, res, next) => this.request_dictionaries(req, res)
+        (req, res, next) => this.GET_dictionaries(req, res)
         .catch(next));
 
-      // Get a description of the available themes
       cmdRouter.get(
         "/themes",
-        (req, res, next) => this.request_themes(req, res)
+        (req, res, next) => this.GET_themes(req, res)
         .catch(next));
 
-      // Get a css for the current theme.
       cmdRouter.get(
         "/theme/:css",
-        (req, res, next) => this.request_theme(req, res)
+        (req, res, next) => this.GET_theme(req, res)
         .catch(next));
 
-      // Defaults for user session settings.
-      // Some of these can be overridden by a user.
       cmdRouter.get(
         "/defaults",
-        (req, res, next) => res.send(config.defaults));
+        (req, res, next) => this.GET_defaults(req, res));
 
-      // Get Game. This is a full description of the game, including
-      // the Board. c.f. /simple which provides a cut-down version
-      // of the same thing.
       cmdRouter.get(
         "/game/:gameKey",
-        (req, res, next) => this.request_game(req, res));
+        (req, res, next) => this.GET_game(req, res));
 
-      // Construct a new game. Invoked from games.js
       cmdRouter.post(
         "/createGame",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.request_createGame(req, res)
+        (req, res, next) => this.POST_createGame(req, res)
         .catch(next));
 
-      // Invite players by email. Invoked from games.js
       cmdRouter.post(
         "/invitePlayers/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.request_invitePlayers(req, res)
+        (req, res, next) => this.POST_invitePlayers(req, res)
         .catch(next));
 
-      // Delete an active or old game. Invoked from games.js
       cmdRouter.post(
         "/deleteGame/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.request_deleteGame(req, res)
+        (req, res, next) => this.POST_deleteGame(req, res)
         .catch(next));
 
-      // Request another game in a series
-      // Note this is NOT auth-protected, it is invoked
-      // from the game interface to create a follow-on game
       cmdRouter.post(
         "/anotherGame/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.request_anotherGame(req, res)
+        (req, res, next) => this.POST_anotherGame(req, res)
         .catch(next));
 
-      // send email reminders about active games
       cmdRouter.post(
         "/sendReminder/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.request_sendReminder(req, res)
+        (req, res, next) => this.POST_sendReminder(req, res)
         .catch(next));
 
-      // Handler for player joining a game.
       cmdRouter.post(
         "/join/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.request_join(req, res)
+        (req, res, next) => this.POST_join(req, res)
         .catch(next));
 
-      // Handler for player leaving a game
       cmdRouter.post(
         "/leave/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.request_leave(req, res)
+        (req, res, next) => this.POST_leave(req, res)
         .catch(next));
 
-      // Handler for adding a robot to a game
       cmdRouter.post(
         "/addRobot/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.request_addRobot(req, res)
+        (req, res, next) => this.POST_addRobot(req, res)
         .catch(next));
 
-      // Handler for adding a robot to a game
       cmdRouter.post(
         "/removeRobot/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.request_removeRobot(req, res)
+        (req, res, next) => this.POST_removeRobot(req, res)
         .catch(next));
 
-      // Request handler for a turn (or other game command)
       cmdRouter.post(
         "/command/:command/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.request_command(req, res)
+        (req, res, next) => this.POST_command(req, res)
         .catch(next));
 
       this.express.use(cmdRouter);
@@ -524,20 +521,23 @@ define([
     }
 
     /**
-     * Handle /simple/:send
-     * Sends a simple description of active games (optionally with
-     * completed games). Note: this
-     * sends simple objects, not {@linkcode Game}s.
+     * Get a simplified version of games or a single game (no board,
+     * bag etc) for the "games" page. You can request "active" games
+     * (those still in play), "all" games (for finished games too),
+     * or a single game key. c.f. /game/:gameKey, which is used to
+     * get a full Game.
      * @param {Request} req the request object
      * @param {string} req.params.send a single game key to
      * get a single game, `active` to get active games, or `all`
      * to get all games, including finished games.
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response body is
+     * a list of objects generated by
+     * {@linkcode Game#serialisable|Game.serialisabable()}
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_simple(req, res, next) {
+    GET_games(req, res, next) {
       const server = this;
       const send = req.params.send;
       // Make list of keys we are interested in
@@ -550,7 +550,7 @@ define([
       .then(games => Promise.all(
         games
         .filter(game => (send !== "active" || !game.hasEnded()))
-        .map(game => game.simple(this.userManager))))
+        .map(game => game.serialisable(this.userManager))))
       // Sort the resulting list by last activity, so the most
       // recently active game bubbles to the top
       .then(gs => gs.sort((a, b) => a.lastActivity < b.lastActivity ? 1
@@ -563,16 +563,21 @@ define([
     }
 
     /**
-     * Handler for GET /history
      * Sends a summary of cumulative player scores to date, for all
      * unique players.
      * @param {Request} req the request object
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response body
+     * is a list of objects, each with keys as follows:
+     * * key: player key
+     * * name: player name
+     * * score: total cumulative score
+     * * wins: number of wins
+     * * games: number of games played
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_history(req, res, next) {
+    GET_history(req, res, next) {
       const server = this;
 
       return this.db.keys()
@@ -614,31 +619,31 @@ define([
     }
 
     /**
-     * Handler for GET /locales
-     * Sends a list of available translation locales.  Used when
-     * selecting a presentation language for the UI.
+     * Sends a list of available translation locales, as read from the
+     * `/i18n` directory.
      * @param {Request} req the request object
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response body
+     * will be a list of locale name strings.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_locales(req, res, next) {
+    GET_locales(req, res, next) {
       const db = new FileDatabase("i18n", "json");
       return db.keys()
       .then(keys => res.status(200).send(keys));
     }
 
     /**
-     * Handler for GET /editions
-     * Promise to get an index of available editions.
+     * Sends a list of available editions.
      * @param {Request} req the request object
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response body
+     * will be a list of edition name strings.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_editions(req, res, next) {
+    GET_editions(req, res, next) {
       return Fs.readdir(Platform.getFilePath("editions"))
       .then(list => res.status(200).send(
         list.filter(f => /^[^_].*\.js$/.test(f))
@@ -646,14 +651,15 @@ define([
     }
 
     /**
-     * Handler for GET /dictionaries
+     * Get a list of the available dictionaries.
      * @param {Request} req the request object
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response body
+     * will be a list of available dictionary name strings.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_dictionaries(req, res) {
+    GET_dictionaries(req, res) {
       return Fs.readdir(Platform.getFilePath("dictionaries"))
       .then(list => res.status(200).send(
         list.filter(f => /\.dict$/.test(f))
@@ -661,31 +667,36 @@ define([
     }
 
     /**
-     * Handler for GET /themes/:css
+     * Sends a list of the available themes. A theme is a set of CSS
+     * files in a subdirectory of `/css`, each of which corresponds to
+     * a CSS file in `css/default`. The theme CS can override some or
+     * all of the default CSS.
      * @param {Request} req the request object
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response will be
+     * a list of theme name strings.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_themes(req, res) {
+    GET_themes(req, res) {
       const dir = Platform.getFilePath("css");
       return Fs.readdir(dir)
       .then(list => res.status(200).send(list));
     }
 
     /**
-     * Handler for GET /theme
-     * return {Promise} Promise to return css for current theme, if
-     * a user is logged in and they have selected a theme.
+     * Sends the css for current theme, if a user is logged in and
+     * they have selected a theme. The CSS sent is created by concatenating
+     * `/css/default/<file>` and `/css/<theme>/<file>`.
      * @param {Request} req the request object
      * @param {string} req.params.css name of the css file to send
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The result will be the
+     * generated CSS content.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_theme(req, res) {
+    GET_theme(req, res) {
       let theme = "default";
       if (req.user && req.user.settings && req.user.settings.theme)
         theme = req.user.settings.theme;
@@ -707,14 +718,16 @@ define([
     }
 
     /**
-     * Handler for POST /createGame
-     * @param {Request} req the request object
+     * Create a new game.
+     * @param {Request} req the request object. The body will contain
+     * the parameters to pass to the {@linkcode Game} constructor.
      * @param {Response} res the response object
      * @return {Promise} promise that resolves to undefined
-     * when the response has been sent.
+     * when the response has been sent. The response is the game key of
+     * the new game.
      * @private
      */
-    request_createGame(req, res) {
+    POST_createGame(req, res) {
       return Edition.load(req.body.edition)
       .then(edition => new Game(req.body).create())
       .then(game => game.onLoad(this.db))
@@ -722,7 +735,7 @@ define([
         /* istanbul ignore if */
         if (this.config.debug_game)
           game._debug = console.debug;
-        this._debug("Created", game.stringify());
+        this._debug("Created game", game.stringify());
         return game.save();
       })
       .then(game => res.status(200).send(game.key))
@@ -730,7 +743,9 @@ define([
     }
 
     /**
-     * Handle /invitePlayers/:gameKey
+     * Invite players by email. Parameters are passed in the request body.
+     * This wil ldo nothing if the server is not configured to send
+     * email.
      * @param {Request} req the request object
      * @param {string} req.params.gameKey the game key
      * @param {Response} res the response object
@@ -738,7 +753,7 @@ define([
      * when the response has been sent.
      * @private
      */
-    request_invitePlayers(req, res, next) {
+    POST_invitePlayers(req, res, next) {
       Platform.assert(this.config.mail && this.config.mail.transport,
                       "Mail is not configured");
       Platform.assert(req.body.player, "Nobody to notify");
@@ -764,16 +779,17 @@ define([
     }
 
     /**
-     * Handler for POST /sendReminder
      * Email reminders to next human player in (each) game
      * @param {Request} req the request object
      * @param {string} req.params.gameKey the game key
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response body
+     * will be a list of the player names (or email, if they have no
+     * player name) of players who have been notified.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_sendReminder(req, res, next) {
+    POST_sendReminder(req, res, next) {
       const gameKey = req.params.gameKey;
       this._debug("Sending turn reminders to", gameKey);
       const gameURL =
@@ -811,25 +827,26 @@ define([
             subject, textBody, htmlBody);
         }))))
       .then(reminders => reminders.filter(e => typeof e !== "undefined"))
-      .then(names=> {
+      .then(names => {
         this._debug("<-- 200", names);
         return res.status(200).send(names);
       });
     }
 
     /**
-     * Handle /join/:gameKey player joining a game. /join is requested
-     * by the games interface, and by the "Next game" button in
-     * the game UI. It ensures the game is loaded and adds the player
-     * indicated by the session indicated in the request (if necessary).
+     * Player wants to join a game. Requested by the games interface,
+     * and by the "Next game" button in the game UI. It ensures the
+     * game is loaded and adds the player indicated by the session
+     * indicated in the request (if necessary).
      * @param {Request} req the request object
      * @param {string} req.params.gameKey the game key
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response body
+     * will be the player key.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_join(req, res, next) {
+    POST_join(req, res, next) {
       const gameKey = req.params.gameKey;
       return this.loadGame(gameKey)
       .then(game => {
@@ -848,26 +865,27 @@ define([
           prom = game.save();
         }
         // The game may now be ready to start
-        return prom.then(game => game.playIfReady());
-      })
-      .then(() => res.status(200).send("OK"));
-      // Don't need to send connections, that will be done
-      // in the connect event handler
+        return prom.then(game => game.playIfReady())
+        .then(() => res.status(200).send(player.key));
+        // Don't need to send connections, that will be done
+        // in the connect event handler
+      });
     }
 
     /**
-     * Handle /addRobot to add a robot to the game
-     * It's an error to add a robot to a game that already has a robot.
-     * Note the gameKey is passed in the request body, this is because it
-     * comes from a dialog.
+     * Add a robot to the game.  It's an error to add a robot to a
+     * game that already has a robot.
      * @param {Request} req the request object
      * @param {string} req.params.gameKey the game key
-     * @param {Response} res the response object
+     * @param {string} req.body.dictionary optional dictionary name to
+     * use for generating robot plays. May be `non` for no dictionary.
+     * @param {Response} res the response object. The response body will
+     * be the robot player key.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_addRobot(req, res, next) {
+    POST_addRobot(req, res, next) {
       const gameKey = req.params.gameKey;
       const dic = req.body.dictionary;
       let game;
@@ -897,20 +915,22 @@ define([
           this.updateMonitors();
           game.sendCONNECTIONS();
         })
-        .then(() => res.status(200).send("OK"));
+        .then(() => res.status(200).send(robot.key));
       });
     }
 
     /**
-     * Handle /removeRobot/:gameKey to remove the robot from a game
+     * Remove the robot from a game. Will throw an error if the game doesn't
+     * have a robot.
      * @param {Request} req the request object
      * @param {string} req.params.gameKey the game key
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response body will
+     * be the removed robot player key.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_removeRobot(req, res, next) {
+    POST_removeRobot(req, res, next) {
       const gameKey = req.params.gameKey;
       return this.loadGame(gameKey)
       .then(game => {
@@ -918,17 +938,15 @@ define([
         Platform.assert(robot, "Game doesn't have a robot");
         this._debug("Robot leaving", gameKey);
         game.removePlayer(robot);
-        return game.save();
-      })
-      // Game may now be ready to start
-      .then(game => {
-        return game.playIfReady()
+        return game.save()
+        // Game may now be ready to start
+        .then(game => game.playIfReady())
         .then(() => {
           game.sendCONNECTIONS();
           this.updateMonitors();
-        });
-      })
-      .then(() => res.status(200).send("OK"));
+        })
+        .then(() => res.status(200).send(robot.key));
+      });
     }
 
     /**
@@ -940,7 +958,7 @@ define([
      * when the response has been sent.
      * @private
      */
-    request_leave(req, res, next) {
+    POST_leave(req, res, next) {
       const gameKey = req.params.gameKey;
       const playerKey = req.user.key;
       return this.loadGame(gameKey)
@@ -963,7 +981,16 @@ define([
     }
 
     /**
-     * Handle /game/:gameKey request for a dump of the game.
+     * Send the `defaults` section of the server configuration.
+     * @param {Request} req the request object
+     * @param {Response} res the response object. The body will be
+     * the defaults object from the server configuration file.
+     */
+    GET_defaults(req, res) {
+      res.send(this.config.defaults);
+    }
+
+    /**
      * This is designed for use when opening the `game` interface.
      * The game is frozen using {@linkcode Fridge} before sending to fully
      * encode the entire {@linkcode Game} object, including the
@@ -978,48 +1005,48 @@ define([
      * when the response has been sent.
      * @private
      */
-    request_game(req, res, next) {
+    GET_game(req, res, next) {
       const gameKey = req.params.gameKey;
       return this.db.get(gameKey, Game.classes)
       .then(game => res.status(200).send(Fridge.freeze(game)));
     }
 
     /**
-     * Handle /deleteGame/:gameKey
      * Delete a game.
      * @param {Request} req the request object
      * @param {string} req.params.gameKey the game key
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response body
+     * will be the deleted game key.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_deleteGame(req, res, next) {
+    POST_deleteGame(req, res, next) {
       const gameKey = req.params.gameKey;
       this._debug("Delete game", gameKey);
       return this.loadGame(gameKey)
       .then(game => game.stopTheClock()) // in case it's running
       .then(() => this.db.rm(gameKey))
-      .then(() => res.status(200).send("OK"))
+      .then(() => res.status(200).send(gameKey))
       .then(() => this.updateMonitors());
     }
 
     /**
-     * Handle /anotherGame. See {@linkcode Game#anotherGame}
      * Create another game with the same players.
+     * Note this is NOT auth-protected, it is invoked
+     * from the game interface to create a follow-on game
      * @param {Request} req the request object
      * @param {string} req.params.gameKey the game key
-     * @param {Response} res the response object
+     * @param {Response} res the response object. The response body
+     * will be the follow-on game key.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
      * @private
      */
-    request_anotherGame(req, res, next) {
+    POST_anotherGame(req, res, next) {
       return this.loadGame(req.params.gameKey)
-      .then(game => {
-        return game.anotherGame()
-        .then(() => res.status(200).send(game.nextGameKey));
-      });
+      .then(game => game.anotherGame())
+      .then(newGame => res.status(200).send(newGame.key));
     }
 
     /**
@@ -1034,7 +1061,7 @@ define([
      * when the response has been sent.
      * @private
      */
-    request_command(req, res, next) {
+    POST_command(req, res, next) {
       const command = req.params.command;
       const gameKey = req.params.gameKey;
       const playerKey = req.user.key;

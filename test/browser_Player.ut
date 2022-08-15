@@ -25,7 +25,7 @@ describe("Player browser mixin", () => {
     };
     const player = new Player(p);
 
-    const $tr = $("<tr></tr>").addClass("player-row");
+    const $tr = $(document.createElement("tr")).addClass("player-row");
     $tr[0].id = `player${p.key}`;
     $tr.append("<td class='turn-pointer'>&#10148;</td>");
     $tr.append("<td><div class='ui-icon icon-robot'></div></td>");
@@ -60,8 +60,8 @@ describe("Player browser mixin", () => {
     player.score = 20;
     player.online(false);
 
-    const $div = $("<table></table>");
-    const $tr = $("<tr></tr>").addClass("player-row whosTurn");
+    const $div = $(document.createElement("table"));
+    const $tr = $(document.createElement("tr")).addClass("player-row whosTurn");
     $tr[0].id = `player${p.key}`;
 
     $tr.append("<td class='turn-pointer'>&#10148;</td>");

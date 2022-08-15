@@ -113,10 +113,10 @@ describe("Server", () => {
     });
   }));
 
-  it("/simple/all", () => new Promise(resolve => {
+  it("/games/all", () => new Promise(resolve => {
     const s = new Server(config);
     chai.request(s.express)
-    .get("/simple/all")
+    .get("/games/all")
     .end((err, res) => {
       assert.equal(res.status, 200, res.body);
       //console.log(res.body);
@@ -124,10 +124,10 @@ describe("Server", () => {
     });
   }));
 
-  it("/simple/active", () => new Promise(resolve => {
+  it("/games/active", () => new Promise(resolve => {
     const s = new Server(config);
     chai.request(s.express)
-    .get("/simple/active")
+    .get("/games/active")
     .end((err, res) => {
       assert.equal(res.status, 200, res.body);
       //console.log(res.body);
@@ -135,7 +135,7 @@ describe("Server", () => {
     });
   }));
 
-  it("/simple/:gameKey", () => new Promise(resolve => {
+  it("/games/:gameKey", () => new Promise(resolve => {
     const config = {
       auth: {
         "sessionSecret": "cross words",
@@ -180,7 +180,7 @@ describe("Server", () => {
     }))
     .then(() => new Promise(resolve => {
       chai.request(server.express)
-      .get(`/simple/${gamekey}`)
+      .get(`/games/${gamekey}`)
       .end((err, res) => {
         assert.equal(res.status, 200, res.body);
         const simple = res.body[0];
@@ -315,7 +315,7 @@ describe("Server", () => {
     .then(() => resolve());
   }));
 
-  it("/createGame - /join - /addRobot - /game - /leave - /removeRobot - /simple / - /history - /deleteGame", () => {
+  it("/createGame - /join - /addRobot - /game - /leave - /removeRobot - /games / - /history - /deleteGame", () => {
     const config = {
       auth: {
         "sessionSecret": "cross words",
@@ -566,9 +566,9 @@ describe("Server", () => {
       .post(`/anotherGame/${gamekey}`)
       .set('Cookie', cookie)
       .end((err, res) => {
-        //console.log(res.text);
-        assert.equal(res.status, 200, res.text);
+        assert.equal(res.status, 200);
         assert.notEqual(res.text, gamekey);
+        assert.match(res.text, /^[0-9a-z]{16}$/i);
         resolve(res.text);
       });
     }));

@@ -3,14 +3,14 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 define([
-    requirejs.isBrowser ? "browser/Tile" : "common/Mixin"
-], Mixin => {
+    requirejs.isBrowser ? "browser/Tile" : "common/EmptyBase"
+], PlatformBase => {
 
   /**
    * A tile in a LetterBag, on a Board, or on a Rack, or during best move
    * computation.
    */
-  class Tile {
+  class Tile extends PlatformBase {
 
     /**
      * @param {Tile|object} spec optional Tile to copy or spec of tile
@@ -22,6 +22,7 @@ define([
      * @param {number?} spec.row optional row where the tile is placed
      */
     constructor(spec) {
+      super();
 
       /**
        * Character(s) represented by this tile.
@@ -116,9 +117,6 @@ define([
     if (a.letter > b.letter) return 1;
     return 0;
   };
-
-  if (Mixin)
-    Object.assign(Tile.prototype, Mixin);
 
   return Tile;
 });

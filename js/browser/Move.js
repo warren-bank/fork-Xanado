@@ -9,7 +9,7 @@ define(() => {
    * Browser-side mixin for {@linkcode Move}
    * @mixin BrowserMove
    */
-  const BrowserMove = {
+  class BrowserMove {
     /**
      * Format a score summary.
      * @function

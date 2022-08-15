@@ -9,7 +9,7 @@ define([ "game/Move" ], Move => {
    * Browser-side mixin for {@linkcode Board}
    * @mixin BrowserBoard
    */
-  const BrowserBoard = {
+  return superclass => class BrowserBoard extends superclass {
 
     /**
      * Calculate score for all words that involve new tiles.
@@ -67,7 +67,7 @@ define([ "game/Move" ], Move => {
             taste(0, 1);
 
       return totalScore;
-    },
+    }
 
     /**
      * UI-side move calculation. Constructs a {@linkcode Move}.
@@ -168,30 +168,7 @@ define([ "game/Move" ], Move => {
           score: score,
           words: words
         });
-    },
-
-    /**
-     * Create the UI representation
-     * @function
-     * @instance
-     * @memberof BrowserBoard
-     * @param {jQuery} $table table to populate
-     */
-    $populate($table) {
-      const $tbody = $("<tbody></tbody>");
-      $table.append($tbody);
-      for (let row = 0; row < this.rows; row++) {
-        const $tr = $("<tr></tr>");
-        $tbody.append($tr);
-        for (let col = 0; col < this.cols; col++) {
-          const square = this.at(col, row);
-          const $td = $("<td></td>");
-          $tr.append($td);
-          square.$populate($td);
-        }
-      }
     }
   };
 
-  return BrowserBoard;
 });

@@ -66,6 +66,14 @@ define([
     selectedSquare;
 
     /**
+     * Cache for CSS rules that will be modified in the resize handler
+     */
+    cssRules = {
+      ".Surface td": null,
+      ".Tile": null
+    };
+
+    /**
      * Board lock status
      * @member {boolean}
      * @private
@@ -77,11 +85,28 @@ define([
 
       /**
        * Undo stack. Head of the stack is the most recent undo.
-       * The undo stack is cleared when a normal play (swap, place, challenge etc)
-       * is executed. The only command that retains the stack is REDO.
+       * The undo stack is cleared when a normal play (swap, place,
+       * challenge etc) is executed.
        *
        */
       this.undoStack = [];
+    }
+
+    // @override
+    create() {
+      // Cache the rules we will edit during resize from the stylesheet
+      for (const sheet of document.styleSheets) {
+        try {
+          for (const rule of sheet.cssRules) {
+            if (rule instanceof CSSStyleRule
+                && this.cssRules[rule.selectorText] === null)
+              this.cssRules[rule.selectorText] = rule;
+          }
+        } catch(e) {
+          // Not allowed to access cross-origin stylesheets
+        }
+      }
+      return super.create();
     }
 
     // @override
@@ -118,7 +143,8 @@ define([
      * @private
      */
     $log(interactive, mess, css) {
-      const $div = $("<div class='message'></div>");
+      const $div = $(document.createElement("div"))
+            .addClass("message");
       if (css)
         $div.addClass(css);
       $div.append(mess);
@@ -207,15 +233,15 @@ define([
 
       const sender = /^chat-/.test(message.sender)
             ? $.i18n(message.sender) : message.sender;
-      const $pn = $("<span></span>").addClass("chat-sender");
+      const $pn = $(document.createElement("span")).addClass("chat-sender");
       $pn.text(sender);
 
-      const $mess = $("<div></div>").addClass("chat-message");
+      const $mess = $(document.createElement("div")).addClass("chat-message");
       if (message.classes)
         $mess.addClass(message.classes);
       $mess.append($pn).append(": ");
 
-      const $msg =  $("<span></span>").addClass("chat-text");
+      const $msg =  $(document.createElement("span")).addClass("chat-text");
       $msg.text($.i18n.apply(null, args));
       $mess.append($msg);
 
@@ -254,23 +280,24 @@ define([
       const clocks = Utils.formatTimeInterval(remains);
 
       let extraClass = "tick-alert-none";
+      const allowedSecs = this.game.timeAllowed * 60;
       if (this.game.timerType === Timer.TURN) {
         if (this.player && ticked.key === this.player.key
             && remains <= 10
             && this.getSetting("warnings"))
           this.playAudio("tick");
 
-        if (remains < this.game.timeLimit / 6)
+        if (remains < allowedSecs / 6)
           extraClass = "tick-alert-high";
-        else if (remains < this.game.timeLimit / 3)
+        else if (remains < allowedSecs / 3)
           extraClass = "tick-alert-medium";
-        else if (remains < this.game.timeLimit / 2)
+        else if (remains < allowedSecs / 2)
           extraClass = "tick-alert-low";
       }
       else if (this.game.timerType === Timer.GAME) {
-        if (remains < this.game.timeLimit / 10) // 2.5 mins
+        if (remains < allowedSecs / 10)
           extraClass = "tick-alert-high";
-        else if (remains < this.game.timeLimit / 5) // 5 mins
+        else if (remains < allowedSecs / 5)
           extraClass = "tick-alert-medium";
       }
 
@@ -563,7 +590,7 @@ define([
       $(".redoButton").toggle(this.getSetting("undo_redo"));
       $(".last-placement")
       .removeClass("last-placement");
-      if (this.game.turnCount() === 0)
+      if (this.game.turns.length === 0)
         $(".undoButton").hide();
       this.lockBoard(!isMyGo);
       this.enableTurnButton(isMyGo);
@@ -571,7 +598,7 @@ define([
         "Undone $1, waiting for $2",
         turn.type, this.game.getPlayer().name));
       $(".undoButton")
-      .toggle(this.game.turnCount() > 0 && this.getSetting("undo_redo"));
+      .toggle(this.game.turns.length > 0 && this.getSetting("undo_redo"));
     }
 
     /**
@@ -780,6 +807,8 @@ define([
       if (this.player) {
         this.player.rack.$populate($("#playRack .Surface"));
         this.swapRack.$populate($("#swapRack"));
+      } else {
+        $("#playRack .Surface").hide();
       }
 
       const $board = $("#board");
@@ -794,7 +823,7 @@ define([
 
       this.$log(true, ""); // Force scroll to end of log
 
-      if (game.turnCount() > 0)
+      if (game.turns.length > 0)
         $(".undoButton").toggle(this.getSetting("undo_redo"));
 
       if (game.hasEnded()) {
@@ -902,7 +931,7 @@ define([
       // A turn has been taken. turn is a Turn
       .on(Notify.TURN,
           turn => this.handle_TURN(
-            new Turn(this.game, checkSequenceNumber(turn))))
+            new Turn(checkSequenceNumber(turn))))
 
       // Server clock tick.
       .on(Notify.TICK,
@@ -936,6 +965,23 @@ define([
     }
 
     /**
+     * Modify one of the cached CSS rules
+     * @param {string} selector selector of rule to modify
+     * @param {Object.<string,number>} changes map of css attribute
+     * name to new pixel value.
+     * @private
+     */
+    editCSSRule(name, changes) {
+      const rule = this.cssRules[name];
+      let text = rule.style.cssText;
+      $.each(changes, (prop, val) => {
+        const re = new RegExp(`(^|[{; ])${prop}:[^;]*`);
+        text = text.replace(re, `$1${prop}:${val}px`);
+      });
+      rule.style.cssText = text;
+    }
+
+    /**
      * Handle a screen resize, switching into porttrait mode as required
      */
     handle_resize() {
@@ -943,17 +989,30 @@ define([
         return;
       const ww = $(window).width();
       const wh = $(window).height();
-      const sz = Math.max(this.game.board.cols, this.game.board.rows);
+      // Board is always square, so only need one axis
+      const sz = this.game.board.cols;
       const landscape = ww > wh;
-      const border = parseInt($(".Surface td").css("border-width")) * 2;
-      const tdSize = landscape ? (wh * 0.8 / sz) : (ww / sz - border);
-      console.debug("Window", ww, "x", wh, "td", tdSize);
-      $(".Surface td").css("width", `${tdSize}px`);
-      $(".Surface td").css("height", `${tdSize}px`);
-      const tileSize = tdSize * 0.85;
-      $(".Tile")
-      .css("width", `${tileSize}px`)
-      .css("font-size", `${tileSize * 0.55}px`);
+      // Constrain board to 80% of screen height in landscape, and the
+      // full screen width in portrait capped at 80% of the screen height
+      const available = landscape ? (wh * 0.8) : Math.max(ww, wh * 0.8);
+      // A .Surface td has a 2px border-width
+      const tdSize = available / sz - 4;
+      this.editCSSRule(".Surface td", {
+        width: tdSize,
+        height: tdSize,
+        // The font size and line height govern the underlay
+        "font-size": tdSize * 0.23,
+        "line-height": tdSize / 3
+      });
+
+      // A tile has a 3px border-width
+      const tileSize = tdSize - 6;
+      this.editCSSRule(".Tile", {
+        width: tileSize,
+        height: tileSize,
+        // and the base font size is 55% of that
+        "font-size": tileSize * 0.55
+      });
     }
 
     /**
@@ -1207,7 +1266,7 @@ define([
           if (rowlength == dim) {
             if ($row)
               $tab.append($row);
-            $row = $("<tr></tr>");
+            $row = $(document.createElement("tr"));
             rowlength = 0;
           }
           const $td = $(`<td>${letter}</td>`);

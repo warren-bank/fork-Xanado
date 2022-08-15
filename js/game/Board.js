@@ -6,14 +6,15 @@
 define([
   "platform", "common/Utils", "game/Surface", "game/Tile", "game/Move",
   requirejs.isBrowser ? "browser/Board" : "server/Board"
-], (Platform, Utils, Surface, Tile, Move, Mixin) => {
+], (Platform, Utils, Surface, Tile, Move, PlatformMixin) => {
 
   /**
    * The square game board.
    * @extends Surface
    * @mixes BrowserBoard
+   * @mixes ServerBoard
    */
-  class Board extends Surface {
+  class Board extends PlatformMixin(Surface) {
 
     /**
      * Row of middle square on board.
@@ -120,7 +121,6 @@ define([
       return s;
     }
   }
-  Object.assign(Board.prototype, Mixin);
 
   return Board;
 });

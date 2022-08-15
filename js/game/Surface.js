@@ -4,13 +4,16 @@
 /* eslint-env amd, node, jquery */
 
 define([
-  "game/Square"
-], Square => {
+  "game/Square",
+  requirejs.isBrowser ? "browser/Surface" : "common/EmptyBase"
+], (
+  Square, PlatformBase
+) => {
 
   /**
    * Abstract base class of a 2D grid of {@linkcode Sqaure} (a Rack or a Board)
    */
-  class Surface {
+  class Surface extends PlatformBase {
 
     /**
      * Unique id for the surface. This is used in the construction
@@ -45,6 +48,8 @@ define([
      * @param {function} type function(col, row) returning the square type
      */
     constructor(id, cols, rows, type) {
+      super();
+
       this.id = id;
       this.cols = cols;
       this.rows = rows;
@@ -67,9 +72,11 @@ define([
 
     /**
      * Get the square at [col][row]
+     * @param {number} col the column containing the square
+     * @param {number?} row the column containing the square, 0 if undefined
      */
     at(col, row) {
-      return this.squares[col][row];
+      return this.squares[col][row || 0];
     }
 
     /**

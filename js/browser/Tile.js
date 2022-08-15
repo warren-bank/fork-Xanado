@@ -11,7 +11,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
    * Browser-side mixin for {@linkcode Tile}
    * @mixin BrowserTile
    */
-  const BrowserTile = {
+  class BrowserTile {
 
     /**
      * Create or refresh the jQuery representation of the tile.
@@ -27,11 +27,11 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
           this.$tile.find(".letter").text(this.letter);
       }
       else {
-        const $glyph = $("<div></div>")
+        const $glyph = $(document.createElement("div"))
               .addClass("glyph")
               .append(`<span class="letter">${this.letter}</span>`)
               .append(`<span class="score">${this.score}</span>`);
-        this.$tile = $("<div></div>")
+        this.$tile = $(document.createElement("div"))
         .addClass("Tile")
         .append($glyph);
       }
@@ -86,7 +86,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
       }
 
       return this.$tile;
-    },
+    }
 
     /**
      * Change the visual representation of the tile to show it as

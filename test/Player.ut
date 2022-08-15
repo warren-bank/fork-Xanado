@@ -30,7 +30,7 @@ describe("Player class", () => {
     assert.equal(player.clock, 0);
   });
   
-  it("valueOf, toString, and simple", () => {
+  it("valueOf, toString, and serialisable", () => {
     const p = {
       name: "Player 1",
       key: "playerkey",
@@ -44,7 +44,7 @@ describe("Player class", () => {
     player.isRobot = true;
     player.score = 20;
 
-    return player.simple()
+    return player.serialisable()
     .then(d => {
       assert.deepEqual(d, {
         name: 'Player 1',
@@ -53,7 +53,7 @@ describe("Player class", () => {
         key: 'playerkey',
         score: 20
       });
-      const pp = Player.fromSimple(d);
+      const pp = Player.fromSerialisable(d);
       pp._debug = player._debug;
       delete player.rack;
       delete pp.rack;

@@ -323,6 +323,10 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
   border-width: 0.1em;
 }
 
+/*------------ LANDSCAPE SCREEN ------------*/
+@media screen and (min-aspect-ratio: 1/1) {
+}
+
 /*------------ PORTRAIT SCREEN ------------*/
 
 @media screen and (max-aspect-ratio: 1/1) {

@@ -113,3 +113,13 @@ exports.after = () => {
   requirejs.isBrowser = false;
 };
 
+exports.tracePrototypeChain = object => {
+  let proto = object.constructor.prototype;
+  const chain = [];
+
+  while (proto) {
+    chain.push(proto.constructor.name);
+    proto = Object.getPrototypeOf(proto);
+  }
+  return chain.join("->");
+};

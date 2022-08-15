@@ -42,7 +42,7 @@ define([
         timer = setTimeout(() => {
           console.log("findBestPlay timed out");
           worker.terminate();
-        }, game.timeLimit * 1000);
+        }, game.timeAllowed * 60000);
       }
 
       // Pass worker messages on to listener

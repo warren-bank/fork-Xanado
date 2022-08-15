@@ -81,6 +81,9 @@ play will result in a sequence of turns. `Turn` objects are recorded
 in the game history, allowing a full replay of game events at a later
 date (e.g. when refreshing the Ui.)
 
+A complete list of the routes handled by the server can be found in
+the code documentation for the `Server` class.
+
 ## Testing
 The `test` subdirectory contains unit tests for the server
 written using the `mocha` framework. Run them using `npm run test`.
