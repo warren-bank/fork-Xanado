@@ -89,7 +89,7 @@ define([ "game/Move" ], Move => {
     analysePlay() {
       // Check that the start field is occupied
       if (!this.at(this.midcol, this.midrow).tile)
-        return /*i18n*/"Centre must be used";
+        return /*i18n*/"centre-required";
 
       // Determine that the placement of the Tile(s) is legal
 
@@ -137,7 +137,7 @@ define([ "game/Move" ], Move => {
       }
 
       if (!isTouchingOld && !legalPlacements[this.midcol][this.midrow])
-        return /*i18n*/"Disconnected placement";
+        return /*i18n*/"warn-disco";
 
       // Check whether there are any unconnected placements
       let totalTiles = 0;
@@ -148,10 +148,10 @@ define([ "game/Move" ], Move => {
       });
 
       if (disco)
-        return /*i18n*/"Disconnected placement";
+        return /*i18n*/"warn-disco";
 
       if (totalTiles < 2)
-        return /*i18n*/"First word must be at least two tiles";
+        return /*i18n*/"warn-2-tiles";
 
       const placements = [];
       this.forEachTiledSquare(square => {

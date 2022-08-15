@@ -59,7 +59,7 @@ requirejs([
         .then(info => $("#alertDialog")
               .text($.i18n.apply(null, info))
               .dialog({
-                title: $.i18n("Email turn reminders"),
+                title: $.i18n("label-send-rem"),
                 modal: true
               }))
         .catch(UI.report);
@@ -171,7 +171,7 @@ requirejs([
         postAction: `/invitePlayers/${game.key}`,
         postResult: names => {
           $("#alertDialog")
-          .text($.i18n("Invited $1", names.join(", ")))
+          .text($.i18n("sent-invite", names.join(", ")))
           .dialog({
             title: $.i18n("Invitations"),
             modal: true
@@ -238,12 +238,12 @@ requirejs([
 
       if (isActive) {
         if (player.dictionary && player.dictionary !== game.dictionary) {
-          const dic = $.i18n("using dictionary $1", player.dictionary);
+          const dic = $.i18n("using-dic", player.dictionary);
           $tr.append(`<td>${dic}</td>`);
         }
 
         if (game.timerType && player.clock) {
-          const left = $.i18n("$1s left to play", player.clock);
+          const left = $.i18n("left-to-play", player.clock);
           $tr.append(`<td>${left}</td>`);
         }
 
@@ -272,7 +272,7 @@ requirejs([
           .attr("name", `join${game.key}`)
           .button({ label: $.i18n("Open game") })
           .tooltip({
-            content: $.i18n("Open this game in a new window.")
+            content: $.i18n("tt-open")
           })
           .on("click", () => {
             console.log(`Join game ${game.key}/${this.session.key}`);
@@ -287,7 +287,7 @@ requirejs([
           .attr("name", `leave${game.key}`)
           .button({ label: $.i18n("Leave game") })
           .tooltip({
-            content: $.i18n("If you leave the game your score will still count towards the leader board.")
+            content: $.i18n("tt-leave")
           })
           .on("click", () => {
             console.log(`Leave game ${game.key}`);
@@ -304,7 +304,7 @@ requirejs([
           .attr("name", "removeRobot")
           .button({ label: $.i18n("Remove robot") })
           .tooltip({
-            content: $.i18n("Remove the robot from this game.")
+            content: $.i18n("tt-remove-robot")
           })
           .on("click", () => {
             console.log(`Remove robot from ${game.key}`);
@@ -324,15 +324,15 @@ requirejs([
           .attr("name", "email")
           .button({ label: $.i18n("Send reminder") })
           .tooltip({
-            content: $.i18n("Email a reminder to player whose turn it is")
+            content: $.i18n("tt-send-rem")
           })
           .on("click", () => {
             console.log("Send reminder");
             $.post(`/sendReminder/${game.key}`)
             .then(names => $("#alertDialog")
-                  .text($.i18n(/*i18n*/"Reminded $1", names.join(", ")))
+                  .text($.i18n(/*i18n*/"player-reminded", names.join(", ")))
                   .dialog({
-                    title: $.i18n("Reminded $1", player.name),
+                    title: $.i18n("player-reminded", player.name),
                     modal: true
                   }))
             .catch(UI.report);
@@ -355,10 +355,10 @@ requirejs([
       if (inTable) {
         if (game.getPlayers().length > 0)
           headline.push($.i18n(
-            "players $1",
+            "players",
             Utils.andList(game.getPlayers().map(p => p.name))));
         headline.push($.i18n(
-          "created $1",
+          "created",
           new Date(game.creationTimestamp).toDateString()));
       }
 
@@ -496,7 +496,7 @@ requirejs([
           $gt.empty();
           data.forEach(player => {
             const s = $.i18n(
-              "$1: <b>$2</b>: $3 ($5 win{{PLURAL:$5||s}} from $4 game{{PLURAL:$4||s}})", n++, player.name, player.score,
+              "leader-board-row", n++, player.name, player.score,
               player.games, player.wins);
             $gt.append(`<div class="player-cumulative">${s}</div>`);
           });

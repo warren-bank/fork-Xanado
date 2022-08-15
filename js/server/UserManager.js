@@ -364,18 +364,18 @@ define([
             if (typeof uo.pass === "undefined") {
               if (desc.pass === uo.pass)
                 return uo;
-              throw new Error(/*i18n*/"Wrong password for '$1'");
+              throw new Error(/*i18n*/"wrong-pass");
             }
             return pw_compare(desc.pass, uo.pass)
             .then(ok => {
               if (ok)
                 return uo;
-              throw new Error(/*i18n*/"Wrong password for '$1'");
+              throw new Error(/*i18n*/"wrong-pass");
             })
             .catch(e => {
               this._debug("getUser", desc,
                           "failed; bad pass", e);
-              throw new Error(/*i18n*/"Wrong password for '$1'");
+              throw new Error(/*i18n*/"wrong-pass");
             });
           }
 
@@ -385,7 +385,7 @@ define([
         }
         this._debug("getUser", desc, "failed; no such user");
         throw new Error(
-          /*i18n*/"Player '$1' is not known. Use the 'Sign up' tab to register.");
+          /*i18n*/"player-unknown");
       });
     }
 
@@ -542,7 +542,7 @@ define([
       return this.getUser({name: username }, true)
       .then(() => {
         this.sendResult(
-          res, 403, [ /*i18n*/"'$1' is already registered", username ]);
+          res, 403, [ /*i18n*/"already-registered", username ]);
       })
       .catch(() => {
         // New user
@@ -570,7 +570,7 @@ define([
         this._debug("Logging out", departed);
         return new Promise(resolve => req.logout(resolve))
         .then(() => this.sendResult(res, 200, [
-          /*i18n*/"$1 signed out", departed ]));
+          /*i18n*/"signed-out", departed ]));
       }
       return this.sendResult(
         res, 401, [ /*i18n*/"Not signed in" ]);
@@ -634,7 +634,7 @@ define([
         })
         .then(() => this.writeDB())
         .then(() => this.sendResult(res, 200, [
-          /*i18n*/"Password for $1 changed",
+          /*i18n*/"pass-changed",
           req.session.passport.user.name ]));
       }
       return this.sendResult(
@@ -661,24 +661,24 @@ define([
           /* istanbul ignore if */
           if (!this.config.mail)
             return this.sendResult(res, 500, [
-              /*i18n*/"Sorry, but email is not available on this server. You will have to ask the server admin for your password." ]);
+              /*i18n*/"text-no-email" ]);
           return this.config.mail.transport.sendMail({
             from: this.config.mail.sender,
             to:  user.email,
             subject: Platform.i18n("Password reset"),
             text: Platform.i18n(
-              "Follow this link to reset your password: $1", url),
+              "email-reset-plain", url),
             html: Platform.i18n(
-              "Click <a href='$1'>here</a> to reset your password.", url)
+              "email-reset-body", url)
           })
           .then(() => this.sendResult(
-            res, 200, [ /*i18n*/"Password reset email has been sent", user.name ]))
+            res, 200, [ /*i18n*/"text-reset-sent", user.name ]))
           .catch(
             /* istanbul ignore next */
             e => {
               console.error("WARNING: Mail misconfiguration?", e);
               return this.sendResult(
-                res, 500, [  /*i18n*/"Sorry, but email is not available on this server. You will have to ask the server admin for your password." ]);
+                res, 500, [  /*i18n*/"text-no-email" ]);
             });
         });
       })

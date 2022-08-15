@@ -29,7 +29,7 @@ define([
       if ($las.length > 0) {
         $.get("/session")
         .then(user => $las.text(
-          $.i18n("Logged in as $1", user.name)));
+          $.i18n("logged-in-as", user.name)));
       }
       return super.createDialog();
     }

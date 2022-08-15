@@ -148,7 +148,7 @@ describe("Board browser mixin", () => {
       b.at(1, 1).placeTile(S);
 
       move = b.analysePlay();
-      assert.equal(move, "Disconnected placement");
+      assert.equal(move, "warn-disco");
     });
   });
 
@@ -173,7 +173,7 @@ describe("Board browser mixin", () => {
       b.at(mr, mc+3).placeTile(D);
 
       let move = b.analysePlay();
-      assert.equal(move, "Disconnected placement");
+      assert.equal(move, "warn-disco");
     });
   });
 
@@ -198,7 +198,7 @@ describe("Board browser mixin", () => {
       b.at(mr, mc+4).placeTile(D);
 
       let move = b.analysePlay();
-      assert.equal(move, "Centre must be used");
+      assert.equal(move, "centre-required");
     });
   });
 
@@ -220,7 +220,7 @@ describe("Board browser mixin", () => {
       b.at(mr, mc).placeTile(W);
 
       let move = b.analysePlay();
-      assert.equal(move, "First word must be at least two tiles");
+      assert.equal(move, "warn-2-tiles");
     });
   });
 

@@ -272,13 +272,13 @@ describe("HumanCommands", () => {
         assert.equal(m.sender, 'Advisor');
         assert.equal(
           m.text,
-          '$1 has asked for advice from the robot');
+          "advised");
         break;
       case 2:
         assert.equal(m.sender, 'Advisor');
         assert.equal(
           m.text,
-          '$1 at row $2 column $3 would have scored $4');
+          "possible-score");
         break;
       default:
         assert.fail("UNEXPECTED MESSAGE" + m);

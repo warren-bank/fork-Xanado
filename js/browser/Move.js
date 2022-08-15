@@ -39,7 +39,7 @@ define(() => {
       if (!hideScore && this.words.length > 1 || this.score > sum) {
         $span
         .append($(`<span class="turn-total"></span>`)
-                .append($.i18n("total $1", this.score)));
+                .append($.i18n("play-score", this.score)));
       }
       return $span;
     }

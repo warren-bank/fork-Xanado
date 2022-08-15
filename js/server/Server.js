@@ -420,7 +420,7 @@ define([
         // Tell *everyone else* that they asked for a hint
         socket.game.notifyOthers(socket.player, Notify.MESSAGE, {
           sender: /*i18n*/"Advisor",
-          text: /*i18n*/"$1 asked the robot to play for them",
+          text: /*i18n*/"played-for",
           classes: "warning",
           args: [ socket.player.name ],
           timestamp: Date.now()
@@ -503,7 +503,7 @@ define([
               .then(uo => resolve(uo)))
             .then(uo => {
               if (!uo.email) // no email
-                return Platform.i18n("($1 has no email address)",
+                return Platform.i18n("no-email",
                                      uo.name || uo.key);
               this._debug(
                 subject,
@@ -761,12 +761,12 @@ define([
       const gameURL =
             `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${gameKey}`;
       let textBody = (req.body.message || "") + "\n" + Platform.i18n(
-        "Join the game by following this link: $1", gameURL);
+        "email-invite-plain", gameURL);
       // Handle XSS risk posed by HTML in the textarea
       let htmlBody = (req.body.message.replace(/</g, "&lt;") || "")
           + "<br>" + Platform.i18n(
-            "Click <a href='$1'>here</a> to join the game.", gameURL);
-      let subject = Platform.i18n("You have been invited to play XANADO");
+            "email-html-link", gameURL);
+      let subject = Platform.i18n("email-invited");
       return Promise.all(req.body.player.map(
         to => this.sendMail(
           to, req, res, req.body.gameKey,
@@ -815,12 +815,12 @@ define([
                       `${player.name}/${player.key}`);
 
           const subject = Platform.i18n(
-            "It is your turn in your XANADO game");
+            "email-remind");
           const textBody = Platform.i18n(
-            "Join the game by following this link: $1",
+            "email-invite-plain",
             gameURL);
           const htmlBody = Platform.i18n(
-            "Click <a href='$1'>here</a> to join the game.",
+            "email-html-link",
             gameURL);
           return this.sendMail(
             player, req, res, game.key,

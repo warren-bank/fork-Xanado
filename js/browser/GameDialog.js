@@ -17,7 +17,7 @@ define(["browser/Dialog", "common/Types"], (Dialog, Types) => {
 
     constructor(options) {
       super("GameDialog", $.extend({
-        title: $.i18n("game-dialog-title", options.game.key)
+        title: $.i18n("title-game-dlg", options.game.key)
       }, options));
     }
 

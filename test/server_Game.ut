@@ -310,16 +310,16 @@ describe("Game server mixin", () => {
 		const socket1 = new TestSocket();
 		const socket2 = new TestSocket();
 		socket1.on(Notify.MESSAGE, mess => {
-      if (mess.text === "$1 asked for a hint")
+      if (mess.text === "hinted")
         return;
       assert.equal(mess.args[0], "TRAWL");
       socket1.done();
 		})
     .on("*", () => {});
 		socket2.on(Notify.MESSAGE, mess => {
-      if (mess.text === "$1 asked for a hint")
+      if (mess.text === "hinted")
         return;
-      assert.equal(mess.text, "Can't find a play");
+      assert.equal(mess.text, "log-no-play");
       socket2.done();
 		})
     .on("*", () => {});

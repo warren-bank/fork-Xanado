@@ -13,7 +13,7 @@ requirejs.config({
   nodeRequire: require
 });
 
-const readline = require('readline');
+const readline = require('readline/promises');
 
 requirejs([
   "fs", "path"
@@ -25,31 +25,46 @@ requirejs([
 
   const basePath = Path.normalize(Path.join(__dirname, ".."));
 
-  const found = {};
-
+  // map string to file where it was found. Seed with @metadata which is
+  // always in .json files
+  const found = { "@metadata": "all .json" };
+  // map file path to contents
   const fileContents = {};
 
+  // Add string to found list
   function addString(string, file) {
     if (!found[string])
       found[string] = {};
     found[string][file] = true;
   }
 
-  function scan(file, ext, re) {
+  // Recursively load all files with given extension into fileContents
+  // return a promise that resolves to a flat list of files loaded
+  function load(file, ext) {
     if (ext.test(file)) {
       return Fs.readFile(file)
-      .then(html => {
-        fileContents[file] = html;
-        let m;
-        while ((m = re.exec(html)))
-          addString(m[2], file);
-      });
-    }           
+      .then(buff => fileContents[file] = buff.toString())
+      .then(() => [ file ]);
+    }
     return Fs.readdir(file)
-    .then(files => Promise.all(files.map(f => scan(Path.join(file, f), ext, re))))
-    .catch(e => undefined);
+    .then(files => Promise.all(
+      files.map(
+        f => load(Path.join(file, f), ext)))
+          .then(files => files.flat()))
+    .catch(e => []);
   }
 
+  // Scan file for occurrences of re in the given files
+  // and add them to found list
+  function scan(files, re) {
+    let m;
+    for (const file of files) {
+      while ((m = re.exec(fileContents[file])))
+        addString(m[2], file);
+    }
+  }
+
+  // check the paramers of string 'id' match in qqqString and the langString
   function checkParameters(id, qqqString, langString, mess) {
     if (/^_.*_$/.test(qqqString))
         return;
@@ -68,52 +83,81 @@ requirejs([
     }
   }
 
-  function changeString(string) {
+  // Prompt to change the id of string
+  // return -2 to abort the run, -1 to ask again, 0 for no change, 1
+  // if the string was changed
+  async function changeString(string) {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout
     });
-    return new Promise(resolve => {
-      rl.question(
-        `Change ID "${string}"? `,
-        answer => {
-          rl.close();
-          if (answer && answer !== "n" && answer !== "N") {
-            console.log(`\tChanging "${string}" to "${answer}"`);
-            for (const lang in strings) {
-              if (lang[answer])
-                throw Error(`Conflict ${answer}`);
-              lang[answer] = lang[string];
-              delete lang[string];
-            }
-            const re = new RegExp(`"${string}"`, "g");
-            for (const file in fileContents) {
-              fileContents[file] =
-              fileContents[file].replace(re, `"${answer}"`);
-            }
-            console.log(`\tChanged "${string}" to "${answer}"`);
-          }
-          resolve();
-        });
+    console.log(strings.qqq[string]);
+    return rl.question(`Change ID "${string}"? `)
+    .then(answer => {
+      rl.close();
+      if (answer === "q" || answer === "Q")
+        return -2;
+      if (!answer || answer === "n" || answer === "N")
+        return 0;
+      if (strings.qqq[answer]) {
+        console.error(`${answer} is already used`);
+        return -1; // conflict, try again
+      }
+      console.log(`\tChanging "${string}" to "${answer}"`);
+      for (const lang in strings) {
+        strings[lang][answer] = strings[lang][string];
+        delete strings[lang][string];
+      }
+      const rs = string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(`(["'])${rs}\\1`, "g");
+      const filesChanged = {};
+      for (const file in fileContents) {
+        const m = /i18n\/(.*)\.json$/.exec(file);
+        if (m) {
+          fileContents[file] = JSON.stringify(strings[m[1]], null, "  ");
+          filesChanged[file] = true;
+        } else if(re.test(fileContents[file])) {
+          fileContents[file] =
+          fileContents[file].replace(re, `"${answer}"`);
+          filesChanged[file] = true;
+        }
+      }
+      return Promise.all(
+        Object.keys(filesChanged)
+        .map(file => Fs.writeFile(file, fileContents[file])))
+      .then(() => 1);
     });
   }
 
   async function changeStrings() {
     for (const string in strings.qqq) {
-      if (/\$/.test(string))
-        await changeString(string);
+      if (string.length > 20) {
+        console.log(string,"is too long");
+        let go = -1;
+        while (go === -1) {
+          await changeString(string)
+          .then(g => go = g);
+        }
+        if (go === -2)
+          break;
+      }
     }
   }
 
   const strings = {};
 
   Promise.all([
-    scan("html", /\.html$/,
-         /data-i18n(?:|-placeholder|-tooltip)=(["'])(.*?)\1/g),
-    scan("js", /\.js$/,
-         /\.i18n\s*\(\s*(["'])(.*?)\1/g),
-    scan("js", /\.js$/,
-         /\/\*i18n\*\/\s*(["'])(.*?)\1/g),
+    // load with scan to extract strings
+    load("html", /\.html$/)
+    .then(files => scan(
+      files, /data-i18n(?:|-placeholder|-tooltip)=(["'])(.*?)\1/g)),
+    load("js", /\.js$/)
+    .then(files => scan(files, /\.i18n\s*\(\s*(["'])(.*?)\1/g)),
+    load("js", /\.js$/)
+    .then(files => scan(files, /\/\*i18n\*\/\s*(["'])(.*?)\1/g)),
+    // just to get fileContents
+    load("test", /\.ut$/),
+    load("i18n", /\.json$/),
     Fs.readdir(Path.join(basePath, "i18n"))
     .then(lingos => Promise.all(
       lingos.filter(f => /\.json$/.test(f))
@@ -121,7 +165,6 @@ requirejs([
            .then(json => {
              const lang = lingo.replace(/\.json$/, "");
              strings[lang] = JSON.parse(json);
-             delete strings[lang]["@metadata"];
            })
            .catch(e => {
              console.error(`Parse error reading ${lingo}`);
@@ -195,9 +238,6 @@ requirejs([
             mess.join("\n"));
       }
     }
-
-    // strings[lang] contains the JSON for than language
-
-    changeStrings();
-  });
+  })
+  .then(() => changeStrings());
 });

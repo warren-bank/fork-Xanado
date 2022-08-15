@@ -375,8 +375,8 @@ define([
             if (this.getSetting("warnings"))
               this.playAudio("oops");
             this.notify(
-              /*i18n*/"Challenge succeeded!",
-              /*i18n*/"notify:challenge-won",
+              /*i18n*/"not-chall-ok",
+              /*i18n*/"not-chall-won",
               this.game.getPlayerWithKey(turn.playerKey).name,
               -turn.score);
           }
@@ -385,7 +385,7 @@ define([
         if (turn.type == Turns.TOOK_BACK) {
           this.notify(
             /*i18n*/"Move retracted!",
-            /*i18n*/"$1 has taken back their turn",
+            /*i18n*/"took-back-turn",
             this.game.getPlayerWithKey(turn.playerKey).name);
         }
         break;
@@ -395,11 +395,11 @@ define([
           this.playAudio("oops");
         if (challenger === this.player) {
           // Our challenge failed
-          this.notify(/*i18n*/"Your challenge failed",
-            /*i18n*/"Your challenge failed");
+          this.notify(/*i18n*/"not-you-failed",
+            /*i18n*/"not-you-failed");
         } else {
           this.notify(/*.i18n*/"Failed challenge!",
-            /*i18n*/"$1 challenged your turn, but the dictionary backed you up",
+            /*i18n*/"log-play-ok",
             player.name);
         }
 
@@ -487,7 +487,7 @@ define([
             && turn.type !== Turns.TOOK_BACK) {
           // It's our turn next, and we didn't just take back
           this.notify(/*i18n*/"Your turn",
-            /*i18n*/"$1 has taken their turn and now it is your turn",
+            /*i18n*/"now-your-turn",
             this.game.getPlayerWithKey(turn.playerKey).name);
         }
         this.game.whosTurnKey = turn.nextToGoKey;
@@ -525,7 +525,7 @@ define([
       if (this.getSetting("warnings"))
         this.playAudio("oops");
       this.$log(true, $.i18n(
-        "The word{{PLURAL:$1||s}} $2 {{PLURAL:$1|was|were}} not found in the dictionary",
+        "word-rejected",
         rejection.words.length,
         rejection.words.join(", ")), "turn-narrative");
     }
@@ -545,14 +545,14 @@ define([
       $(".Surface .letter").addClass("hidden");
       $(".Surface .score").addClass("hidden");
       $("#pauseDialog > .banner")
-      .text($.i18n("$1 has paused the game", params.name));
+      .text($.i18n("game-paused", params.name));
       $("#pauseDialog")
       .dialog({
         dialogClass: "no-close",
         modal: true,
         buttons: [
           {
-            text: $.i18n("Continue the game"),
+            text: $.i18n("label-unpause"),
             click: () => {
               this.sendCommand(Command.UNPAUSE);
               $("#pauseDialog").dialog("close");
@@ -705,7 +705,7 @@ define([
       if (obs.length > 0) {
         $("#scoresBlock > .observerCount")
         .show()
-        .text($.i18n("+ $1 observer{{PLURAL:$1||s}}",
+        .text($.i18n("observers",
                      obs.length));
       } else
         $("#scoresBlock > .observerCount").hide();
@@ -738,12 +738,12 @@ define([
       const remains = this.game.letterBag.remainingTileCount();
       if (remains > 0) {
         const mess = $.i18n(
-          "$1 tile{{PLURAL:$1||s}} left in the bag", remains);
+          "tiles-left", remains);
         $("#scoresBlock > .letterbag").text(mess);
         $("#scoresBlock td.remaining-tiles").empty();
       } else {
         $("#scoresBlock > .letterbag")
-        .text($.i18n("The letter bag is empty"));
+        .text($.i18n("warn-empty-bag"));
         const countElements = $("#scoresBlock td.remaining-tiles");
         this.game.getPlayers().forEach(
           (player, i) =>
@@ -1099,7 +1099,7 @@ define([
         else
           this.moveTypingCursor(1, 0);
       } else
-        this.$log($.i18n("'$1' is not on the rack", letter));
+        this.$log($.i18n("not-on-rack", letter));
     }
 
     /**
@@ -1440,7 +1440,7 @@ define([
       if (!player)
         return;
       const text = $.i18n(
-        "Challenge $1's turn", player.name);
+        "button-challenge", player.name);
       const $button =
             $(`<button name="challenge">${text}</button>`)
             .addClass("moveAction")

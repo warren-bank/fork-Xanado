@@ -94,7 +94,7 @@ describe("UserManager class", () => {
             .end((err, res) => {
               assert.equal(res.status, 403);
               chai.assert.deepEqual(res.body, [
-                "'$1' is already registered", "test_user"]);
+                "already-registered", "test_user"]);
               resolve();
             });
           })));
@@ -369,7 +369,7 @@ describe("UserManager class", () => {
         //console.log(res.body);
         assert.equal(res.status, 403);
         TS.sparseEqual(res.body, [
-          "Player '$1' is not known. Use the 'Sign up' tab to register.",
+          "player-unknown",
           "unknown@email.com"
         ]);
         resolve();
@@ -383,7 +383,7 @@ describe("UserManager class", () => {
         //console.log(res.text, token);
         assert.equal(res.status, 200);
         TS.sparseEqual(res.body, [
-          "Password reset email has been sent",
+          "text-reset-sent",
           "test_user"
         ]);
         assert(token);
@@ -437,7 +437,7 @@ describe("UserManager class", () => {
       .end((err, res) => {
         assert.equal(res.status, 200);
         TS.sparseEqual(res.body, [
-          "Password for $1 changed",
+          "pass-changed",
           "test_user"
         ]);
         resolve();

@@ -92,16 +92,16 @@ define([
         if (challenger === uiPlayer)
           who = $.i18n("Your");
         else
-          who = $.i18n("$1's", challenger.name);
+          who = $.i18n("player-s", challenger.name);
       } else {
         what = $.i18n("turn");
         if (wasMe)
           who = $.i18n("Your");
         else
-          who = $.i18n("$1's", player.name);
+          who = $.i18n("player-s", player.name);
       }
       $player.append(
-        $.i18n("<span class='player-name'>$1</span> $2", who, what));
+        $.i18n("player-name", who, what));
 
       $description.append($player);
 
@@ -115,7 +115,7 @@ define([
         playerPossessive = $.i18n("your");
         playerIndicative = $.i18n("You");
       } else {
-        playerPossessive = $.i18n("$1's", player.name);
+        playerPossessive = $.i18n("player-s", player.name);
         playerIndicative = player.name;
       }
 
@@ -125,7 +125,7 @@ define([
         challengerPossessive = $.i18n("Your");
         challengerIndicative = $.i18n("You");
       } else if (challenger) {
-        challengerPossessive = $.i18n("$1's", challenger.name);
+        challengerPossessive = $.i18n("player-s", challenger.name);
         challengerIndicative = challenger.name;
       }
 
@@ -142,10 +142,10 @@ define([
           const $narrative = $(document.createElement("div")).addClass("turn-narrative");
           if (wasMe)
             $narrative.append($.i18n(
-              "You have no more tiles, game will be over if your play isn't challenged"));
+              "log-no-tiles"));
           else
             $narrative.append($.i18n(
-              "$1 has no more tiles, game will be over unless you challenge",
+              "log-no-more-tiles",
               playerIndicative));
           $description.append($narrative);
         }
@@ -153,7 +153,7 @@ define([
 
       case Turns.SWAPPED:
         $action.append($.i18n(
-          "Swapped $1 tile{{PLURAL:$1||s}}",
+          "swapped",
           turn.replacements.length));
         break;
 
@@ -171,28 +171,28 @@ define([
 
       case Turns.CHALLENGE_WON:
         $action.append($.i18n(
-          "$1 successfully challenged $2 play.",
+          "log-challenge-won",
           challengerIndicative, playerPossessive)
         + " "
         + $.i18n(
-          "$1 lost $2 point{{PLURAL:$2||s}}",
+          "lost-to-challenge",
           playerIndicative, turn.score));
         break;
 
       case Turns.CHALLENGE_LOST:
         $action.append($.i18n(
-          "$1 challenge of $2 play failed.",
+          "log-chall-fail",
           challengerPossessive, playerPossessive));
         switch (this.challengePenalty) {
         case Penalty.PER_WORD:
         case Penalty.PER_TURN:
           $action.append(" " + $.i18n(
-            "$1 lost $2 point{{PLURAL:$2||s}}",
+            "lost-to-challenge",
             challengerIndicative, -turn.score));
           break;
         case Penalty.MISS:
           $action.append(
-            " " + $.i18n("$1 will miss a turn", challengerIndicative));
+            " " + $.i18n("miss-turn", challengerIndicative));
           break;
         }
         break;
@@ -246,13 +246,13 @@ define([
         if (player.rack.isEmpty()) {
           if (unplayed > 0) {
             $rackAdjust.text($.i18n(
-              "$1 gained $2 point{{PLURAL:$2||s}} from the racks of other players",
+              "log-gained",
               name, unplayed));
           }
         } else if (player.rack.score() > 0) {
           // Lost sum of unplayed letters
           $rackAdjust.text($.i18n(
-            "$1 lost $2 point{{PLURAL:$2||s}} for a rack containing '$3'",
+            "lost-from-rack",
             name, player.rack.score(),
             player.rack.lettersLeft().join(",")));
         }
@@ -263,7 +263,7 @@ define([
         if (typeof timePenalty === "number" && timePenalty !== 0) {
           const $timeAdjust = $(document.createElement("div")).addClass("time-adjust");
           $timeAdjust.text($.i18n(
-            "$1 lost $2 point{{PLURAL:$2||s}} to the clock",
+            "lost-to-clock",
             name, Math.abs(timePenalty)));
           $narrative.append($timeAdjust);
         }
@@ -278,7 +278,7 @@ define([
         who = Utils.andList(winners);
         nWinners = winners.length;
       }
-      $whoWon.append($.i18n("$1 {{PLURAL:$2|has|have}} won",
+      $whoWon.append($.i18n("log-winner",
                             who, nWinners));
 
       $description.append($whoWon);

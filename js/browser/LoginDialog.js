@@ -51,7 +51,7 @@ define([
       if ($las.length > 0) {
         $.get("/session")
         .then(user => $las.text(
-          $.i18n("Logged in as $1", user.name)));
+          $.i18n("logged-in-as", user.name)));
       }
 
       this.$dlg.find(".forgotten-password")
@@ -66,7 +66,7 @@ define([
         for (let provider of list) {
           const $td = $(document.createElement("td"))
                 .addClass("provider-logo")
-                .attr("title", $.i18n("Sign in using $1", provider.name));
+                .attr("title", $.i18n("sign-in-using", provider.name));
           const $logo = $(`<img src="${provider.logo}" />`);
           // Note: this MUST be done using from an href and
           // not an AJAX request, or CORS will foul up.
@@ -80,7 +80,7 @@ define([
         $("#login-tab")
         .prepend($(`<div class="sign-in-using">${$.i18n("Sign in using:")}</div>`)
                  .append($table)
-                 .append(`<br /><div class="sign-in-using">${$.i18n("or sign in as XANADO user:")}</div>`));
+                 .append(`<br /><div class="sign-in-using">${$.i18n("text-or-xanado")}</div>`));
       })
       .then(() => super.createDialog());
     }

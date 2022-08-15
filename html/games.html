@@ -30,14 +30,14 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
       <img src="/images/logo.svg" class="logo" />
       <div id="loginState">
         <span class="not-logged-in">
-          <div data-i18n="To play in a game you have to sign in first. You may be able to sign in using a public service, such as Google or Facebook, or you can create your own XANADO user."></div>
+          <div data-i18n="text-sign-in"></div>
           <button id="login-button" data-i18n="Sign in"></button>
         </span>
         <span class="logged-in">
           <span id="id"></span>
           <button id="logout-button" data-i18n="Sign out"></button>
           <button id="chpw_button" data-i18n="Change password"></button>
-          <span class="settingsButton" data-i18n-tooltip="Adjust user settings">&#9881;</span>
+          <span class="settingsButton" data-i18n-tooltip="tt-settings">&#9881;</span>
         </span>
       </div>
 
@@ -57,8 +57,8 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
       </div>
 
       <div class="dialog-row">
-        <button id="create-game" class="hidden" data-i18n="Create a new game"></button>
-        <button id="reminder-button" class="hidden" data-i18n="Send turn reminders" data-i18n-tooltip="Email reminders to players whose turn it is"></button>
+        <button id="create-game" class="hidden" data-i18n="label-create-game"></button>
+        <button id="reminder-button" class="hidden" data-i18n="Send turn reminders" data-i18n-tooltip="tt-send-rems"></button>
       </div>
     </div>
 
@@ -68,7 +68,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <div id="observeDialog" class="dialog">
       <div class="dialog-row">
         <label for="observerName" data-i18n="Your name"></label>
-        <input id="observerName" type="text" data-i18n-tooltip="Name by which you want to be known to others in the game">
+        <input id="observerName" type="text" data-i18n-tooltip="tt-observer-name">
       </div>
       <div class="dialog-row">
         <button type="submit" id="observerClose" data-i18n="Observe game">

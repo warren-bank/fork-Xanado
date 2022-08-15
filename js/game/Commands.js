@@ -106,7 +106,7 @@ define([
                 player, Notify.MESSAGE,
                 {
                   sender: /*i18n*/"Advisor",
-                  text: /*i18n*/"$1 not found in $2",
+                  text: /*i18n*/"word-not-found",
                   args: [ w.word, dict.name ]
                 });
             }
@@ -594,7 +594,7 @@ define([
       if (player.wantsAdvice)
         this.notifyAll(Notify.MESSAGE, {
           sender: /*i18n*/"Advisor",
-          text: /*i18n*/"$1 has asked for advice from the robot",
+          text: /*i18n*/"advised",
           classes: "warning",
           args: [ player.name ],
           timestamp: Date.now()
@@ -643,14 +643,14 @@ define([
           const words = bestPlay.words.map(w => w.word).join(",");
           const advice = {
             sender: /*i18n*/"Advisor",
-            text: /*i18n*/"$1 at row $2 column $3 would have scored $4",
+            text: /*i18n*/"possible-score",
             args: [  words, start.row + 1, start.col + 1,
                     bestPlay.score ]
           };
           this.notifyPlayer(player, Notify.MESSAGE, advice);
           this.notifyOthers(player, Notify.MESSAGE, {
             sender: /*i18n*/"Advisor",
-            text: /*i18n*/"$1 has received advice from the robot",
+            text: /*i18n*/"was-advised",
             classes: "warning",
             args: [ player.name ],
             timestamp: Date.now()
@@ -700,7 +700,7 @@ define([
           sender: /*i18n*/"Advisor"
         };
         if (!bestPlay)
-          hint.text = /*i18n*/"Can't find a play";
+          hint.text = /*i18n*/"log-no-play";
         else {
           const start = bestPlay.placements[0];
           hint.text = "_hint_";
@@ -716,7 +716,7 @@ define([
         // Tell *everyone else* that they asked for a hint
         this.notifyOthers(player, Notify.MESSAGE, {
           sender: /*i18n*/"Advisor",
-          text: /*i18n*/"$1 asked for a hint",
+          text: /*i18n*/"hinted",
           classes: "warning",
           args: [ player.name ],
           timestamp: Date.now()
@@ -750,7 +750,7 @@ define([
             Notify.MESSAGE, {
               sender: /*i18n*/"Advisor",
               text:
-              /*i18n*/"$1 has added '$2' to $3",
+              /*i18n*/"log-word-added",
               args: [
                 player.name, word, dict.name
               ]
@@ -760,7 +760,7 @@ define([
             player,
             Notify.MESSAGE, {
               sender: /*i18n*/"Advisor",
-              text: /*i18n*/"'$1' is already in $2",
+              text: /*i18n*/"word-there",
               args: [ word, dict.name ]
             });
         }

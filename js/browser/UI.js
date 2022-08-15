@@ -253,7 +253,7 @@ define([
         // Socket has disconnected for some reason
         // (server died, maybe?) Back off and try to reconnect.
         console.debug(`--> disconnect`);
-        const mess = $.i18n("Server disconnected, trying to reconnect");
+        const mess = $.i18n("text-disconnected");
         $reconnectDialog = $("#alertDialog")
         .text(mess)
         .dialog({

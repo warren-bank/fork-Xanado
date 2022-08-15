@@ -5,12 +5,12 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
   <ul>
     <li><a href="#login-tab" data-i18n="Sign in"></a></li>
     <li><a href="#register-tab" data-i18n='Sign up'></a></li>
-    <li class="hidden"><a href="#reset-password-tab" data-i18n='Forgotten password'></a></li>
+    <li class="hidden"><a href="#reset-password-tab" data-i18n="label-forgot-pass"></a></li>
   </ul>
 
   <div id="login-tab">
     <div class="dialog-row">
-      <input type="text" id="login_username" data-i18n-placeholder="Name" data-i18n-tooltip="Name of an existing XANADO user" name="login_username" tabindex="0">
+      <input type="text" id="login_username" data-i18n-placeholder="Name" data-i18n-tooltip="tt-login-name" name="login_username" tabindex="0">
     </div>
     
     <div class="dialog-row">
@@ -24,18 +24,18 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     </div>
     
     <div class="forgotten-password">
-      <a data-i18n="Forgotten password"></a>
+      <a data-i18n="label-forgot-pass"></a>
     </div>
   </div>
   
   <div id="register-tab">
-    <div data-i18n="Create XANADO user"></div>
+    <div data-i18n="label-create-user"></div>
     <div class="dialog-row">
-      <input type="text" class="full-width" id="register_username" data-i18n-placeholder="Name" data-i18n-tooltip="Name you want to be known as in games" name="register_username" tabindex="0">
+      <input type="text" class="full-width" id="register_username" data-i18n-placeholder="Name" data-i18n-tooltip="tt-reg-name" name="register_username" tabindex="0">
     </div>
     
     <div class="dialog-row">
-      <input type="email" class="full-width" id="register_email" data-i18n-placeholder="Email" data-i18n-tooltip="Leave blank if you don't want to get emails from XANADO. Emails only relate to gameplay, and addresses are never shared with anyone else" name="register_email" tabindex="0">
+      <input type="email" class="full-width" id="register_email" data-i18n-placeholder="Email" data-i18n-tooltip="tt-reg-email" name="register_email" tabindex="0">
     </div>
     
     <div class="dialog-row">
@@ -49,7 +49,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
   </div>
   
   <div id="reset-password-tab">
-    <div data-i18n="Lost your password? Please enter the email you registered with, and we'll send you a reset link."></div>
+    <div data-i18n="label-forgot"></div>
     <div class="dialog-row">
       <input type="email" id="reset_email" data-i18n-placeholder="Email" name="reset_email" tabindex="0">
     </div>
