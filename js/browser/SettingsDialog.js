@@ -20,6 +20,7 @@ define([ "browser/Dialog" ], Dialog => {
       this.users = [];
     }
 
+    // @override
     createDialog() {
       const curlan = $.i18n().locale;
       console.log("Curlan",curlan);
@@ -38,6 +39,7 @@ define([ "browser/Dialog" ], Dialog => {
       });
     }
 
+    // @override
     openDialog() {
       return super.openDialog()
       .then(() => {
