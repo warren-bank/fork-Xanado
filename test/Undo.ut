@@ -107,7 +107,7 @@ describe("Undo", () => {
       const postswap = Fridge.thaw(Fridge.freeze(game), Game.classes);
       assert.deepEqual(postswap.board, preswap.board);
     })
-    .then(() => game.undo())
+    .then(() => game.undo(game.popTurn(), true))
     .then(() => {
       const postundo = Fridge.thaw(Fridge.freeze(game), Game.classes);
       assert.deepEqual(postundo.board, preswap.board);
@@ -148,7 +148,7 @@ describe("Undo", () => {
     .then(() => prepass = Fridge.thaw(Fridge.freeze(game), Game.classes))
     .then(() => game.pass(human1, Turns.PASSED))
     .then(() => socket.wait())
-    .then(() => game.undo())
+    .then(() => game.undo(game.popTurn()))
     .then(() => {
       const postundo = Fridge.thaw(Fridge.freeze(game), Game.classes);
       assertGameEqual(postundo, prepass);
@@ -201,7 +201,7 @@ describe("Undo", () => {
     .then(() => preplay = Fridge.thaw(Fridge.freeze(game), Game.classes))
     .then(() => game.play(human1, move))
     .then(() => socket.wait())
-    .then(() => game.undo())
+    .then(() => game.undo(game.popTurn()))
     .then(() => {
       const postundo = Fridge.thaw(Fridge.freeze(game), Game.classes);
       assertGameEqual(postundo, preplay);
@@ -266,7 +266,7 @@ describe("Undo", () => {
     .then(() => posttakeback = Fridge.thaw(Fridge.freeze(game), Game.classes))
     .then(() => assertGameEqual(posttakeback, preplay, true))
     .then(() => socket.wait())
-    .then(() => game.undo())
+    .then(() => game.undo(game.popTurn()))
     .then(() => {
       const postundo = Fridge.thaw(Fridge.freeze(game), Game.classes);
       assertGameEqual(postundo, pretakeback);
@@ -283,7 +283,7 @@ describe("Undo", () => {
     .then(() => {
       //game._debug = console.debug;
       while (game.turns.length > 0) {
-        game.undo();
+        game.undo(game.popTurn());
       }
       for (const p of game.players)
         assert.equal(p.score, 0);

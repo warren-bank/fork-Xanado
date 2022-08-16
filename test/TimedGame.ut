@@ -78,7 +78,7 @@ describe("Timed games", function() {
         assert.deepEqual(turn.score, {
           human1: { tiles: -1 }, human2: {tiles: -1 }});
         assert.equal(turn.type, Turns.GAME_ENDED);
-        assert.equal(turn.endState, "log-all-passed");
+        assert.equal(turn.endState, State.TWO_PASSES);
         assert.equal(turn.gameKey, game.key);
         assert(!turn.nextToGoKey);
         socket.done();
@@ -164,7 +164,7 @@ describe("Timed games", function() {
         break;
       case 4:
         assert.equal(turn.type, Turns.GAME_ENDED);
-        assert.equal(turn.endState, "log-all-passed");
+        assert.equal(turn.endState, State.TWO_PASSES);
         assert.equal(turn.score.human1.tiles, -1);
         assert.equal(turn.score.human2.tiles, -1);
         // Human 1 should be over-time by one clock tick, which

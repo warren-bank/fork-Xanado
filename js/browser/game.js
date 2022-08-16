@@ -582,7 +582,8 @@ define([
      */
     handle_UNDONE(turn) {
       this.undoStack.push(turn);
-      this.game.undo(true);
+      this.game.popTurn();
+      this.game.undo(turn, true);
       const isMyGo = this.isThisPlayer(this.game.whosTurnKey);
       this.updatePlayerTable();
       this.updateWhosTurn();

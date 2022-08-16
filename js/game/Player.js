@@ -250,7 +250,8 @@ define([
         s += " (Robot)";
       if (this.key)
         s += ` key ${this.key}`;
-      return s;
+      s += ` rack "${this.rack.letters().sort().join("")}"`;
+      return s + ` score ${this.score}`;
     }
 
     /**

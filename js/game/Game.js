@@ -9,13 +9,13 @@ define([
   "platform", "common/Utils",
   "common/Types", "game/Board", "game/LetterBag",
   "game/Player", "game/Square", "game/Tile", "game/Rack",
-  "game/Edition", "game/Move", "game/Turn", "game/Undo",
+  "game/Edition", "game/Move", "game/Turn", "game/Undo", "game/Replay",
   requirejs.isBrowser ? "browser/Game" : "server/Game"
 ], (
   Platform, Utils,
   Types, Board, LetterBag,
   Player, Square, Tile, Rack,
-  Edition, Move, Turn, Undo,
+  Edition, Move, Turn, Undo, Replay,
   PlatformMixin
 ) => {
 
@@ -26,11 +26,11 @@ define([
   /**
    * Base class of Game objects. Common functionality shared by browser
    * and server sides.
-   * @extends Undo
+   * @mixes Undo
    * @mixes BrowserGame
    * @mixes ServerGame
    */
-  class Game extends Undo(PlatformMixin) {
+  class Game extends Undo(Replay(PlatformMixin)) {
 
     // Classes used in Freeze/Thaw
     static classes = {

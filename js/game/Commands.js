@@ -400,7 +400,7 @@ define([
           return this.takeBack(challenger, Turns.CHALLENGE_WON);
         }
 
-        // Challenge failed
+        this._debug("Challenge failed,", this.challengePenalty);
 
         const prevPlayerKey = previousMove.playerKey;
         const currPlayerKey = this.getPlayer().key;

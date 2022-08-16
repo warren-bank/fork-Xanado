@@ -139,13 +139,13 @@ define([
           s += ` (${this.score})`;
 
       if (this.placements)
-        s += " <=" + this.placements.map(t => t.stringify(true));
+        s += " place" + this.placements.map(t => t.stringify(true));
 
       if (this.words)
         s += ' "' + this.words.map(w => w.word) + '"';
 
       if (this.replacements)
-        s += " => " + this.replacements.map(t => t.stringify(true));
+        s += " replace" + this.replacements.map(t => t.stringify(true));
 
       if (this.penalty === Penalty.MISS)
         s += ` MISS`;

@@ -4,18 +4,19 @@
 /* eslint-env amd, node */
 
 define([
-  "fs", "proper-lockfile", "bcrypt",
+  "fs", "proper-lockfile", "async-lock", "bcrypt",
   "express-session",
   "passport", "passport-strategy",
   "platform", "common/Utils"
 ], (
-  fs, Lock, BCrypt,
+  fs, Lockfile, AsyncLock, BCrypt,
   ExpressSession,
   Passport, Strategy,
   Platform, Utils
 ) => {
 
   const Fs = fs.promises;
+  const dbLock = new AsyncLock();
 
   function pw_hash(pw) {
     if (typeof pw === "undefined")
@@ -289,23 +290,26 @@ define([
      * @private
      */
     getDB() {
-      if (this.db)
-        return Promise.resolve(this.db);
+      return this.db
+      ? Promise.resolve(this.db)
 
-      return Lock.lock(this.config.auth.db_file)
-      .then(release => Fs.readFile(this.config.auth.db_file)
-            .then(data => release()
-                  .then(() => {
-                    return JSON.parse(data);
-                  })))
-      .then(db => {
-        this.db = db || [];
-        return db;
-      })
-      .catch(e => {
-        this.db = [];
-        return this.db;
-      });
+      // In an ideal world, proper-lockfile would wait for a lock
+      // to be released - but it doesn't, it just errors. So we have
+      // to wrap it in a concurrency lock.
+      : dbLock.acquire(
+        this.config.auth.db_file,
+        () => this.db
+        ? Promise.resolve(this.db)
+        : (Lockfile.lock(this.config.auth.db_file)
+           .then(release => Fs.readFile(this.config.auth.db_file)
+                 .then(buffer => release()
+                       .then(() => this.db = JSON.parse(buffer))))
+           .catch(e => {
+             // File is unreadable
+             this.db = [];
+           })
+          ))
+      .then(() => this.db);
     }
 
     /**
@@ -315,12 +319,14 @@ define([
      */
     writeDB() {
       const s = JSON.stringify(this.db, null, 1);
-      return Fs.access(this.config.auth.db_file)
-      .then(acc => Lock.lock(this.config.auth.db_file)
-            .then(release => Fs.writeFile(
-              this.config.auth.db_file, s)
-                  .then(() => release())))
-      .catch(e => Fs.writeFile(this.config.auth.db_file, s)); // file does not exist
+      return dbLock.acquire(
+        this.config.auth.db_file,
+        () => Fs.access(this.config.auth.db_file)
+        .then(acc => Lockfile.lock(this.config.auth.db_file))
+        .then(release => Fs.writeFile(
+          this.config.auth.db_file, s)
+              .then(() => release()))
+        .catch(e => Fs.writeFile(this.config.auth.db_file, s))); // file does not exist
     }
 
     /**
@@ -340,14 +346,14 @@ define([
     getUser(desc, ignorePass) {
       return this.getDB()
       .then(db => {
+        let uo;
         if (typeof desc.key !== "undefined") {
-          for (let uo of db) {
-            if (uo.key === desc.key)
-              return uo;
-          }
+          uo = db.find(uo => uo.key === desc.key);
+          if (uo)
+            return uo;
         }
 
-        for (let uo of db) {
+        for (uo of db) {
           if (typeof desc.token !== "undefined"
               && uo.token === desc.token) {
             // One-time password change token
@@ -383,7 +389,8 @@ define([
               && uo.email === desc.email)
             return uo;
         }
-        this._debug("getUser", desc, "failed; no such user");
+        this._debug("getUser", desc, "failed; no such user in",
+                    db.map(uo=>uo.key).join(";"));
         throw new Error(
           /*i18n*/"player-unknown");
       });
@@ -502,9 +509,12 @@ define([
      * @return {Promise} resolve to user object, or reject if duplicate
      */
     addUser(desc) {
-      if (!desc.key)
-        desc.key = Utils.genKey(this.db.map(f => f.key));
-      return pw_hash(desc.pass)
+      return this.getDB()
+      .then(() => {
+        if (!desc.key)
+          desc.key = Utils.genKey(this.db.map(f => f.key));
+        return pw_hash(desc.pass);
+      })
       .then(pw => {
         if (typeof pw !== "undefined")
           desc.pass = pw;

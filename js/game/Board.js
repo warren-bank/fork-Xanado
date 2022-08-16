@@ -32,11 +32,16 @@ define([
      * @param {Edition} edition the edition defining the board layout
      */
     constructor(edition) {
-      super("Board", edition.cols, edition.rows,
-            (col, row) => edition.squareType(col, row));
+      if (edition instanceof Board) {
+        super("Board", edition.cols, edition.rows,
+              (col, row) => edition.at(col, row).type);
+      } else {
+        super("Board", edition.cols, edition.rows,
+              (col, row) => edition.squareType(col, row));
 
-      this.midrow = Math.floor(edition.rows / 2);
-      this.midcol = Math.floor(edition.cols / 2);
+        this.midrow = Math.floor(edition.rows / 2);
+        this.midcol = Math.floor(edition.cols / 2);
+      }
     }
 
     /**

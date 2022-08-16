@@ -1117,7 +1117,7 @@ define([
           return game.takeBack(player, Turns.TOOK_BACK);
 
         case Command.UNDO:
-          game.undo();
+          game.undo(game.popTurn());
           break;
 
         case Command.UNPAUSE:

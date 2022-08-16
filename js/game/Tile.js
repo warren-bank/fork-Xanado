@@ -93,11 +93,8 @@ define([
     stringify(showPos) {
       const letter = this.isBlank ? this.letter.toLowerCase() : this.letter;
       const brackets = this.isLocked ? "<>" : "[]";
-      let pos = "";
-      if (typeof this.row === "number") {
-        pos = typeof this.col === "number" ? `@${this.col}` : ""
-        + `,${this.row}`;
-      }
+      const pos = (typeof this.col === "number" ? `@${this.col}` : "")
+            + (typeof this.row === "number" ? `,${this.row}` : "");
       return `${brackets.charAt(0)}${letter}${pos}${brackets.charAt(1)}`;
     }
   }

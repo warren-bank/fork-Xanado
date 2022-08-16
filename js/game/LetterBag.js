@@ -27,41 +27,44 @@ define([
     /**
      * Construct a new letter bag using the distribution for the
      * given edition
-     * @param {Edition} edition the Edition defining the bag contents
-     * @param {boolean?} predictable set to turn off sshuffling the
-     * bag contents (for testing)
+     * @param {Edition|LetterBag} edition the Edition defining the
+     * bag contents. Can also be an existing LetterBag to give a predictable,
+     * non-random bag
      */
-    constructor(edition, predictable) {
-      for (let letter of edition.bag) {
-        // legalLetters is an array, not a string, to support
-        // multi-character tiles
-        if (!letter.isBlank)
-          // Not blank
-          this.legalLetters.push(letter.letter);
-
-        const count = Math.floor(letter.count);
-        for (let n = 0; n < count; ++n) {
-          const tile = new Tile({
-            letter:  letter.letter,
-            score: letter.score
-          });
-          if (letter.isBlank)
-            tile.isBlank = true;
-          this.tiles.push(tile);
-        }
-      }
-
-      /* istanbul ignore if */
-      if (predictable)
+    constructor(edition) {
+      if (edition instanceof LetterBag) {
         /**
          * Set to disable shuffling the bag. This is used when
          * replaying moves, when we need a predictable set for tiles
          * to be delivered next out of the bag.
          * @member {boolean?}
          */
-        this.predictable = predictable;
+        this.predictable = true;
+        this.tiles = [];
+        for (const tile of edition.tiles)
+          this.tiles.push(new Tile(tile));
+        // Don't shake, we want it predictable!
+      } else {
+        for (let letter of edition.bag) {
+          // legalLetters is an array, not a string, to support
+          // multi-character tiles
+          if (!letter.isBlank)
+            // Not blank
+            this.legalLetters.push(letter.letter);
 
-      this.shake();
+          const count = Math.floor(letter.count);
+          for (let n = 0; n < count; ++n) {
+            const tile = new Tile({
+              letter:  letter.letter,
+              score: letter.score
+            });
+            if (letter.isBlank)
+              tile.isBlank = true;
+            this.tiles.push(tile);
+          }
+        }
+        this.shake();
+      }
     }
 
     /**

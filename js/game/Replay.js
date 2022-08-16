@@ -5,114 +5,104 @@
 
 define([
   "platform", "common/Utils",
-  "common/Types", "game/LetterBag",
-  "game/Player", "game/Tile", "game/Rack", "game/Turn",
-  "game/Game"
+  "common/Types", "game/LetterBag", "game/Board",
+  "game/Player", "game/Tile", "game/Rack", "game/Turn"
 ], (
   Platform, Utils,
-  Types, LetterBag,
-  Player, Tile, Rack, Turn,
-  Game
+  Types, LetterBag, Board,
+  Player, Tile, Rack, Turn
 ) => {
 
   const Turns = Types.Turns;
   const State = Types.State;
 
-  // Remove randomness from the letterbag
-  class SimBag extends LetterBag {
-    constructor(edition, bag) {
-      super(edition);
-      this.tiles = [];
-      for (const tile of bag.tiles)
-        this.tiles.push(new Tile(tile));
-    }
-    shake() {}
-  }
-
   /**
    * Extend Game to support replay of another game
-   * @extends Game
+   * @mixin Replay
    */
-  class Replay extends Game {
+  return superclass => class Replay extends superclass {
 
     /*
-     * Copy another game and play the turns in that game, to arrive
-     * at the same state.
-     * The letter bag, players, and some other initial conditions
-     * are copied from the other game. All players are played as
-     * human players - there is no move computation done.
+     * Replay the turns in another game, to arrive at the same state.
+     * The letter bag, players, and some other conditions
+     * are copied from the other game, and each turn is undone
+     * back to the game's initial state. Then each turn is replayed.
+     * all players are played as human players - there is no move
+     * computation done.
+     * Usage
+     * ```
+     * let simulation = new Game(gameToPlay).replay(gameToPlay)
+     * for (let i = 0; i < gameToPlay.turns.length)
+     *    simulation.step();
+     * ```
      * @param {Game} playedGame the game containing turns and players
      * to simulate.
      */
-    constructor(playedGame) {
-      super(playedGame);
+    replay(playedGame) {
       this.playedGame = playedGame;
-      this.state = State.WAITING;
+      // Reset to the first turn
       this.nextTurn = 0;
-    }
+      // Override the bag and board (this is what create() would do)
+      this.letterBag = new LetterBag(this.playedGame.letterBag);
+      this.board = new Board(this.playedGame.board);
+      this.bonuses = this.playedGame.bonuses;
+      this.rackSize = this.playedGame.rackCount;
+      this.swapSize = this.playedGame.swapCount;
+      this.state = State.PLAYING;
+      this.whosTurnKey = this.playedGame.turns[0].playerKey;
 
-    /**
-     * @override
-     */
-    create() {
-      return super.create()
-      .then(() => this.getEdition())
-      .then(edition => {
-        this.letterBag = new SimBag(edition, this.playedGame.letterBag);
-        this.state = State.PLAYING;
-        this.whosTurnKey = this.playedGame.turns[0].playerKey;
-        // Copy players and their racks.
-        for (const p of this.playedGame.players) {
-          const np = new Player(p);
-          np.isRobot = false;
-          np.rack = new Rack(p.rack);
-          np.passes = 0;
-          np.score = 0;
-          this.addPlayer(np);
-          this._debug("\tlast rack for", np.key, "was", np.rack.stringify());
+      // Copy players and their racks.
+      for (const p of this.playedGame.players) {
+        const np = new Player(p);
+        np.isRobot = false;
+        np.rack = new Rack(p.rack);
+        np.passes = p.passes;
+        np.score = p.score;
+        this.addPlayer(np);
+        this._debug("\tlast rack for", np.key, "was", np.rack.stringify());
+      }
+
+      // Copy the board
+      this.playedGame.board.forEachTiledSquare(
+        (square, c, r) => {
+          this.board.at(c, r).tile = new Tile(square.tile);
+          return false;
+        });
+
+      // Remember the initial bag tiles
+      const preUndoBag = new LetterBag(this.playedGame.letterBag).tiles;
+
+      // To get back to the initial game state we have to run through
+      // the turn history backwards to reconstruct initial racks.
+      // Could use Undo to do this, but it's overkill as we don't need
+      // (or want) to modify the board
+      const turns = this.playedGame.turns;
+      this._debug("unwrap", turns.length, "turns");
+      for (let i = this.playedGame.turns.length - 1; i >= 0; i--) {
+        const turn = this.playedGame.turns[i];
+        this.undo(turn, true);
+        /*const tiles = this.letterBag.letters();
+        this._debug(
+          `Bag  "${this.letterBag.letters().sort().join("")}"`);
+        const ts =
+              this.board.tiles().map(bt => bt.isBlank ? " " : bt.letter);
+        this._debug(`Board"${ts.sort().join("")}"`);
+        tiles.push(ts);
+        for (const p of this.players) {
+          tiles.push(p.rack.letters());
+          this._debug(`Rack "${p.rack.letters().sort().join("")}"`);
         }
+        this._debug(`All  "${tiles.flat().sort().join("")}"`);*/
+      }
 
-        // Remember the initial bag tiles
-        const preUndoBag = new LetterBag(edition).tiles;
+      for (const pl of this.players) {
+        pl.missNextTurn = false;
+        this._debug("Start player", pl.stringify());
+      }
+      this._debug("Start bag", this.letterBag.stringify());
+      this._debug("--------------------------------");
 
-        // To get back to the initial game state we have to run through
-        // the turn history backwards to reconstruct initial racks.
-        // Could use Undo to do this, but it's overkill as we don't need
-        // (or want) to modify the board
-        const turns = this.playedGame.turns;
-        this.letterBag.predictable = true;
-        this._debug("unwrap", turns.length, "turns");
-        for (let i = turns.length - 1; i >= 0; i--) {
-          const turn = turns[i];
-          const player = this.getPlayerWithKey(turn.playerKey);
-          if (turn.type === Turns.TOOK_BACK
-              || turn.type === Turns.CHALLENGE_WON) {
-            player.rack.removeTiles(turn.placements);
-            this.bagToRack(turn.replacements, player);
-          } else {
-            let racked;
-            if (turn.replacements)
-              racked = player.rack.removeTiles(turn.replacements);
-            if (turn.placements)
-              // Copy the tiles so we don't lose placement info
-              player.rack.addTiles(turn.placements.map(t => new Tile(t)));
-            if (racked)
-              this.letterBag.returnTiles(racked);
-          }
-        }
-        this.letterBag.tiles = preUndoBag;
-        for (const pl of this.players) {
-          pl.missNextTurn = false;
-          for (const tile of pl.rack.tiles())
-            this.letterBag.removeTile(tile);
-          this._debug("Start rack for", pl.name, pl.key, pl.rack.stringify());
-        }
-
-        this._debug("Start bag", this.letterBag.stringify());
-        this._debug("--------------------------------");
-
-        return this;
-      });
+      return this;
     }
 
     /**
@@ -123,15 +113,14 @@ define([
     step() {
       // Copy the turn to avoid accidental overwrite
       const turn = new Turn(this.playedGame.turns[this.nextTurn++]);
-      return this.redo(turn)
+      turn.gameKey = this.key;
+      return this.redo(turn) // redo comes from Undo.js
       .then(() => {
         for (const pl of this.players)
-          this._debug(pl.key, pl.score, pl.rack.stringify());
+          this._debug(pl.stringify());
         this._debug("---------------------");
         return turn;
       });
     }
-  }
-
-  return Replay;
+  };
 });

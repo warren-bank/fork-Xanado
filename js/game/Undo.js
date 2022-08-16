@@ -26,9 +26,10 @@ define([
      * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
-     * @param {boolean?} isClient if true, updates the UI associated with the board
+     * @param {boolean?} quiet if true, don't perform any saves
+     * or notifications.
      */
-    unswap(turn, isClient) {
+    unswap(turn, quiet) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
       this.rackToBag(turn.replacements, player);
@@ -43,9 +44,10 @@ define([
      * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
-     * @param {boolean?} isClient if true, updates the UI associated with the board
+     * @param {boolean?} quiet if true, don't perform any saves
+     * or notifications.
      */
-    unplay(turn, isClient) {
+    unplay(turn, quiet) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
       this.rackToBag(turn.replacements, player);
@@ -62,9 +64,10 @@ define([
      * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
-     * @param {boolean?} isClient if true, updates the UI associated with the board
+     * @param {boolean?} quiet if true, don't perform any saves
+     * or notifications.
      */
-    unconfirmGameOver(turn, isClient) {
+    unconfirmGameOver(turn, quiet) {
       // Re-adjustscores from the delta
       for (const key in turn.score) {
         const delta = turn.score[key];
@@ -84,9 +87,10 @@ define([
      * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
-     * @param {boolean?} isClient if true, updates the UI associated with the board
+     * @param {boolean?} quiet if true, don't perform any saves
+     * or notifications.
      */
-    untakeBack(turn, isClient) {
+    untakeBack(turn, quiet) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
       this.rackToBoard(turn.placements, player);
@@ -102,9 +106,10 @@ define([
      * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
-     * @param {boolean?} isClient if true, updates the UI associated with the board
+     * @param {boolean?} quiet if true, don't perform any saves
+     * or notifications.
      */
-    unpass(turn, isClient) {
+    unpass(turn, quiet) {
       this.state = State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
       player.passes--;
@@ -119,9 +124,10 @@ define([
      * @instance
      * @memberof Undo
      * @param {Turn} turn the Turn to unplay
-     * @param {boolean?} isClient if true, updates the UI associated with the board
+     * @param {boolean?} quiet if true, don't perform any saves
+     * or notifications.
      */
-    unchallenge(turn, isClient) {
+    unchallenge(turn, quiet) {
       const player = this.getPlayerWithKey(turn.challengerKey);
       this._debug("\t", Utils.stringify(player), "regained", turn.score);
       player.score -= turn.score;
@@ -135,39 +141,40 @@ define([
      * @function
      * @instance
      * @memberof Undo
-     * @param {boolean?} isClient if true, updates the UI associated with
+     * @param {Turn} turn the turn to undo
+     * @param {boolean?} quiet if true, don't perform any saves
+     * or notifications.
      * the board and rack. If false, saves the game.
      * @return {Promise} promise resolving to undefined
      */
-    undo(isClient) {
-      Platform.assert(this.turns.length > 0);
-      const turn = this.popTurn();
+    undo(turn, quiet) {
       this._debug(`un-${turn.type}`);
       switch (turn.type) {
       case Turns.SWAPPED:
-        this.unswap(turn, isClient);
+        this.unswap(turn, quiet);
         break;
       case Turns.PASSED:
       case Turns.TIMED_OUT:
-        this.unpass(turn, isClient);
+        this.unpass(turn, quiet);
         break;
       case Turns.PLAYED:
-        this.unplay(turn, isClient);
+        this.unplay(turn, quiet);
         break;
       case Turns.TOOK_BACK:
       case Turns.CHALLENGE_WON:
-        this.untakeBack(turn, isClient);
+        this.untakeBack(turn, quiet);
         break;
       case Turns.GAME_ENDED:
-        this.unconfirmGameOver(turn, isClient);
+        this.unconfirmGameOver(turn, quiet);
         break;
       case Turns.CHALLENGE_LOST:
-        this.unchallenge(turn, isClient);
+        this.unchallenge(turn, quiet);
         break;
       default:
         Platform.fail(`Unknown turn type '${turn.type}'`);
       }
-      if (isClient)
+
+      if (quiet)
         return Promise.resolve();
 
       return this.save()
@@ -179,11 +186,12 @@ define([
      * @function
      * @instance
      * @memberof Undo
+     * param {Turn} trun turn to redo
      * @return {Promise} promise resolving to undefined
      */
     redo(turn) {
       const player = this.getPlayerWithKey(turn.playerKey);
-      this._debug("REDO", turn.type, new Date(turn.timestamp).toISOString());
+      this._debug("REDO", turn.type, turn);
       switch (turn.type) {
       case Turns.SWAPPED:
         // Remove and return the expected tiles to the the unshaken bag

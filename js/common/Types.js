@@ -37,7 +37,7 @@ define(() => {
     WAITING:          /*i18n*/"Waiting for players",
     PLAYING:          /*i18n*/"Playing",
     GAME_OVER:        /*i18n*/"Game over",
-    TWO_PASSES:       /*i18n*/"log-all-passed",
+    TWO_PASSES:       /*i18n*/"All players passed twice",
     FAILED_CHALLENGE: /*i18n*/"Challenge failed",
     TIMED_OUT:        /*i18n*/"Timed out"
   };
@@ -121,7 +121,7 @@ define(() => {
     NONE:     undefined,
     MISS:     /*i18n*/"Miss next turn",
     PER_TURN: /*i18n*/"Lose points",
-    PER_WORD: /*i18n*/"label-points-per"
+    PER_WORD: /*i18n*/"Lose points per word"
   };
 
   /**
@@ -158,7 +158,7 @@ define(() => {
    */
   const WordCheck = {
     NONE:    undefined,
-    AFTER:   /*i18n*/"label-check-after",
+    AFTER:   /*i18n*/"Check words after play",
     REJECT:  /*i18n*/"Reject unknown words"
   };
 
