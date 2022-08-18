@@ -40,6 +40,7 @@ define([
      */
     replay(playedGame) {
       this.playedGame = playedGame;
+      this.allowUndo = true;
       // Reset to the first turn
       this.nextTurn = 0;
       // Override the bag and board (this is what create() would do)

@@ -319,7 +319,7 @@ define([
 
       this.game.pushTurn(turn);
 
-      $(".undoButton").toggle(this.getSetting("undo_redo"));
+      $(".undoButton").toggle(this.game.allowUndo);
 
       this.removeMoveActionButtons();
       const player = this.game.getPlayerWithKey(turn.playerKey);
@@ -581,6 +581,7 @@ define([
      * been undone on the server.
      */
     handle_UNDONE(turn) {
+      Platform.assert(this.game.allowUndo);
       this.undoStack.push(turn);
       this.game.popTurn();
       this.game.undo(turn, true);
@@ -588,7 +589,7 @@ define([
       this.updatePlayerTable();
       this.updateWhosTurn();
       this.updateGameStatus();
-      $(".redoButton").toggle(this.getSetting("undo_redo"));
+      $(".redoButton").show();
       $(".last-placement")
       .removeClass("last-placement");
       if (this.game.turns.length === 0)
@@ -599,7 +600,8 @@ define([
         "undone",
         turn.type, this.game.getPlayer().name));
       $(".undoButton")
-      .toggle(this.game.turns.length > 0 && this.getSetting("undo_redo"));
+      .toggle(this.game.allowUndo
+              && this.game.turns.length > 0);
     }
 
     /**
@@ -825,7 +827,7 @@ define([
       this.$log(true, ""); // Force scroll to end of log
 
       if (game.turns.length > 0)
-        $(".undoButton").toggle(this.getSetting("undo_redo"));
+        $(".undoButton").toggle(this.game.allowUndo);
 
       if (game.hasEnded()) {
         if (game.nextGameKey)

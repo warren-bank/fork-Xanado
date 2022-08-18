@@ -74,7 +74,8 @@ describe("Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      noPlayerShuffle: true,
+      allowUndo: true
     });
     const human1 = new Player({
       name: "Human 1", key: "human1", isRobot: false});
@@ -125,11 +126,13 @@ describe("Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      noPlayerShuffle: true,
+      allowUndo: true
     });
     const socket = new TestSocket();
     socket.on(Notify.TURN, (turn, event) => socket.done())
     .on(Notify.CONNECTIONS, () => {})
+    .on(Notify.UNDONE, (data, event) => {})
     .on("*", (data, event) => assert.fail(event));
     let A, B, C, D, E, prepass;
     return game.create()
@@ -176,7 +179,8 @@ describe("Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      noPlayerShuffle: true,
+      allowUndo: true
     });
     const socket = new TestSocket();
     socket.on(Notify.TURN, (turn, event) => {
@@ -213,7 +217,8 @@ describe("Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      noPlayerShuffle: true,
+      allowUndo: true
     });
     const human1 = new Player({
       name: "Human 1", key: "human1", isRobot: false});
@@ -281,6 +286,7 @@ describe("Undo", () => {
     .then(g => game = g)
     .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
     .then(() => {
+      game.allowUndo = true;
       //game._debug = console.debug;
       while (game.turns.length > 0) {
         game.undo(game.popTurn());
@@ -297,7 +303,8 @@ describe("Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      noPlayerShuffle: true,
+      allowUndo: true
     });
     const human1 = new Player({
       name: "Human 1", key: "human1", isRobot: false});
@@ -336,7 +343,8 @@ describe("Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      noPlayerShuffle: true,
+      allowUndo: true
     });
     const socket = new TestSocket();
     socket.on(Notify.NEXT_GAME, (info, event) => {

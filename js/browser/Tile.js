@@ -102,7 +102,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
       } else
         this.$tile.removeClass("selected");
     }
-  };
+  }
 
   return BrowserTile;
 });

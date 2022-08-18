@@ -353,6 +353,9 @@ describe("Game server mixin", () => {
 
 	it("last play", () => {
 		let game;
+    const players = [];
+    for (let i = 0; i < 8; i++)
+      players.push(new Player({key: i}));
 		const db = new FileDatabase("test", "game");
 		return db.get("unfinished_game", Game.classes)
 		.then(g => game = g)
@@ -360,57 +363,25 @@ describe("Game server mixin", () => {
     .then(() => {
       game.turns = [];
       //game._debug = console.debug;
-      game.finishTurn(new Turn({
-        gameKey: game.key,
-        type: Turns.PLAYED,
-        playerKey: 1
-      }));
-      game.finishTurn(new Turn({
-        gameKey: game.key,
-        type: Turns.PLAYED,
-        playerKey: 2
-      }));
-      game.finishTurn(new Turn({
-        gameKey: game.key,
-        type: Turns.TOOK_BACK,
-        playerKey: 3
-      }));
-      assert.equal(game.lastTurn().playerKey, 3);
-      game.finishTurn(new Turn({
-        gameKey: game.key,
-        type: Turns.PLAYED,
-        playerKey: 4
-      }));
-      game.finishTurn(new Turn({
-        gameKey: game.key,
-        type: Turns.CHALLENGE_WON,
-        playerKey: 5
-      }));
-      assert.equal(game.lastTurn().playerKey, 5);
-      game.finishTurn(new Turn({
-        gameKey: game.key,
-        type: Turns.PLAYED,
-        playerKey: 6
-      }));
-      game.finishTurn(new Turn({
-        gameKey: game.key,
-        type: Turns.CHALLENGE_LOST,
-        playerKey: 7
-      }));
-      assert.equal(game.lastTurn().playerKey, 7);
-      game.finishTurn(new Turn({
-        gameKey: game.key,
-        type: Turns.GAME_ENDED,
-        playerKey: 8
-      }));
+      game.finishTurn(players[0], { type: Turns.PLAYED });
+      game.finishTurn(players[1], { type: Turns.PLAYED });
+      game.finishTurn(players[2], { type: Turns.TOOK_BACK });
+      assert.equal(game.lastTurn().playerKey, 2);
+      game.finishTurn(players[3], { type: Turns.PLAYED });
+      game.finishTurn(players[4], { type: Turns.CHALLENGE_WON });
+      assert.equal(game.lastTurn().playerKey, 4);
+      game.finishTurn(players[5], { type: Turns.PLAYED });
+      game.finishTurn(players[6], { type: Turns.CHALLENGE_LOST });
+      assert.equal(game.lastTurn().playerKey, 6);
+      game.finishTurn(players[7], { type: Turns.GAME_ENDED });
       game.state = State.GAME_OVER;
-      assert.equal(game.lastTurn().playerKey, 8);
+      assert.equal(game.lastTurn().playerKey, 7);
 
       game.playIfReady();
 
       let counter = 0;
       game.forEachTurn((turn, isLast) => {
-        assert.equal(turn.playerKey, ++counter);
+        assert.equal(turn.playerKey, counter++);
         assert.equal(isLast, counter === 8);
       });
       assert.equal(counter, 8);

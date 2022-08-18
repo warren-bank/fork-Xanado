@@ -41,9 +41,10 @@ define([], () => {
         else if (this.listeners["*"])
           this.listeners["*"].forEach(l => l(data, event));
       } catch (e) {
-        //console.error("EMIT ERROR", e);
+        //console.error("ERROR", e);
         this.sawError = e;
         this.done();
+        throw e;
       }
     }
 

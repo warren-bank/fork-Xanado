@@ -1,7 +1,7 @@
 /*Copyright (C) 2021-2022 The Xanado Project https://github.com/cdot/Xanado
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
-/* eslint-env amd */
+/* eslint-env amd, browser */
 
 define([
   "platform", "common/Utils", "game/Player", "common/Types"
@@ -17,6 +17,44 @@ define([
    * Browser-side base class for {@linkcode Game}
    */
   class BrowserGame {
+
+    /**
+     * Headline is the text shown in the game table and the head
+     * of the game dialog.
+     * @param {boolean} inTable true if this is being prepared for the
+     * table, false for the dialog.
+     */
+    $headline(inTable) {
+      const headline = [ this.edition ];
+
+      if (inTable) {
+        if (this.getPlayers().length > 0)
+          headline.push($.i18n(
+            "players",
+            Utils.andList(this.getPlayers().map(p => p.name))));
+        headline.push($.i18n(
+          "created",
+          new Date(this.creationTimestamp).toDateString()));
+      }
+
+      const isActive = !this.hasEnded();
+
+      const $h = $(document.createElement("span"))
+            .addClass("headline")
+            .attr("name", this.key)
+            .text(headline.join(", "));
+
+      if (!isActive)
+        $h.append(
+          $(document.createElement("span"))
+          .addClass("game-state")
+          .text($.i18n(this.state)))
+        .append(
+          $(document.createElement("span"))
+          .addClass("who-won")
+          .text($.i18n("who-won", this.getWinner().name)));
+      return $h;
+    }
 
     /**
      * Create the UI for the player table
@@ -286,7 +324,7 @@ define([
 
       return $description;
     }
-  };
+  }
 
   return BrowserGame;
 });

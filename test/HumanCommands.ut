@@ -15,6 +15,7 @@ describe("HumanCommands", () => {
     Tile: "game/Tile",
     Player: "game/Player",
     Game: "game/Game",
+    Utils: "common/Utils",
     
     Move: "game/Move",
     Turn: "game/Turn",
@@ -42,7 +43,8 @@ describe("HumanCommands", () => {
       case 0:
         assert.equal(turn.type, Turns.SWAPPED);
         assert(!turn.words);
-        assert(turn.placements);// tiles that were replaced
+        assert.deepEqual(turn.placements.map(t=>t.letter).sort(),
+                         ["A","C","E"]);// tiles that were replaced
         assert.deepEqual(turn.replacements.map(t=>t.letter).sort(),
                          ["P","Q","R"]);
         assert.equal(turn.score, 0);
@@ -62,8 +64,17 @@ describe("HumanCommands", () => {
 
     const socket2 = new TestSocket();
     socket2.on(Notify.TURN, (turn, event) => {
-      // human2 should NOT see the SWAP turn
-      assert.fail("UNEXPECTED TURN " + Utils.stringify(turn));
+      // human2 should see a redacted version of the SWAPPED turn
+      assert.equal(turn.type, Turns.SWAPPED);
+      assert(!turn.words);
+      assert.deepEqual(turn.placements.map(t=>t.letter).sort(),
+                       ["A","C","E"]);// tiles that were replaced
+      assert.deepEqual(turn.replacements.map(t=>t.letter).sort(),
+                       ["#","#","#"]);
+      assert.equal(turn.score, 0);
+      assert.equal(turn.playerKey, human1.key);
+      assert.equal(turn.nextToGoKey, human2.key);
+      socket2.done();
     })
     .on(Notify.CONNECTIONS, () => {})
     .on("*", (data, event) => {
@@ -93,7 +104,7 @@ describe("HumanCommands", () => {
         new Tile({letter:"R", score:1}));
     })
     .then(() => game.connect(socket1, human1.key))
-    //    .then(() => game.connect(socket2, human2.key))
+    .then(() => game.connect(socket2, human2.key))
     .then(() => assert.equal(game.state, State.PLAYING))
     .then(() => game.swap(
       human1, [
@@ -239,11 +250,12 @@ describe("HumanCommands", () => {
       //_debug: console.debug,
       noPlayerShuffle: true
     });
-    const socket = new TestSocket();
-    let turns = 0, messages = 0;
-    socket.on(Notify.TURN, (turn, event) => {
+    const socket1 = new TestSocket();
+    let turns1 = 0;
+    let messages1 = 0;
+    socket1.on(Notify.TURN, (turn, event) => {
       //console.debug(turn, event);
-      switch (turns++) {
+      switch (turns1++) {
       case 0:
         assert.equal(turn.type, Turns.PLAYED);
         assert.equal(turn.playerKey, human1.key);
@@ -256,39 +268,69 @@ describe("HumanCommands", () => {
       default:
         assert.fail("UNEXPECTED TURN " + turn);
       }
-      if (turns === 1 && messages === 3)
-        socket.done();
+      if (turns1 === 1 && messages1 === 3)
+        socket1.done();
     });
-    socket.on(Notify.MESSAGE, (m, e) => {
-      //console.debug(e, m);
-      switch (messages++) {
+    socket1.on(Notify.MESSAGE, (m, e) => {
+      //console.debug("ONE", messages1, m);
+      switch (messages1++) {
       case 0:
         assert.equal(m.sender, 'Advisor');
-        assert.equal(
-          m.text,
-          'Enabled');
+        assert.equal(m.text, 'Enabled');
         break;
       case 1:
         assert.equal(m.sender, 'Advisor');
-        assert.equal(
-          m.text,
-          "advised");
+        assert.equal(m.text, "advised");
+        assert.equal(m.args[0], human1.name);
         break;
       case 2:
         assert.equal(m.sender, 'Advisor');
-        assert.equal(
-          m.text,
-          "possible-score");
+        assert.equal(m.text, "possible-score");
         break;
       default:
         assert.fail("UNEXPECTED MESSAGE" + m);
       }
-      if (turns === 1 && messages === 3)
-        socket.done();
+      if (turns1 === 1 && messages1 === 3)
+        socket1.done();
     });
-    socket.on(Notify.CONNECTIONS, () => {});
-    socket.on("*", (data, event) => {
+    socket1.on(Notify.CONNECTIONS, () => {});
+    socket1.on("*", (data, event) => {
       assert.fail("UNEXPECTED EVENT " + event);
+    });
+
+    const socket2 = new TestSocket();
+    let turns2 = 0;
+    let messages2 = 0;
+    socket2.on(Notify.TURN, (turn, event) => {
+      //console.debug(turn, event);
+      assert.equal(turn.type, Turns.PLAYED);
+      assert.equal(turn.playerKey, human1.key);
+      assert.equal(turn.nextToGoKey, human2.key);
+      assert.equal(turn.score, move.score);
+      assert.deepEqual(turn.words, move.words);
+      assert.deepEqual(turn.placements, move.placements);
+      TS.sparseEqual(turn.replacements, [ new Tile({letter:"#", score:1 }) ]);
+      if (++turns2 === 1)
+        socket2.done();
+    });
+    socket2.on(Notify.MESSAGE, (m, e) => {
+      //console.debug("TWO", messages2, m);
+      switch (messages2++) {
+      case 0:
+        assert.equal(m.sender, 'Advisor');
+        assert.equal(m.text, "advised");
+        assert.equal(m.args[0], human1.name);
+        break;
+      case 1:
+        assert.equal(m.sender, 'Advisor');
+        assert.equal(m.text, "was-advised");
+        assert.equal(m.args[0], human1.name);
+        break;
+      default:
+        assert.fail("UNEXPECTED MESSAGE" + m);
+      }
+      if (turns2 === 1 && messages2 === 2)
+        socket2.done();
     });
     return game.create()
     .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
@@ -309,14 +351,17 @@ describe("HumanCommands", () => {
       game.whosTurnKey = human1.key;
       game.wordCheck = WordCheck.AFTER;
     })
-    .then(() => game.connect(socket, human1.key))
+    .then(() => game.connect(socket1, human1.key))
+    .then(() => game.connect(socket2, human2.key))
     .then(() => game.toggleAdvice(human1))
     .then(() => assert.equal(game.state, State.PLAYING))
     .then(() => game.play(human1, move))
     .then(g => assert.strictEqual(g, game))
     .then(() => assert.equal(game.state, State.PLAYING))
-    .then(() => socket.wait())
-    .then(() => assert.equal(game.whosTurnKey, human2.key));
+    .then(() => Promise.all([socket1.wait(), socket2.wait()]))
+    .then(() => {
+      assert.equal(game.whosTurnKey, human2.key);
+    });
   });
 
   it("play to empty rack", () => {

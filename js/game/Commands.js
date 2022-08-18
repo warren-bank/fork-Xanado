@@ -130,17 +130,15 @@ define([
       // Report the result of the turn
       const nextPlayer = this.nextPlayer();
       this.whosTurnKey = nextPlayer.key;
-      return this.finishTurn(new Turn({
-        gameKey: this.key,
+      return this.finishTurn(player, {
         type: Turns.PLAYED,
-        playerKey: player.key,
         nextToGoKey: nextPlayer.key,
         score: move.score,
         placements: move.placements,
         replacements: replacements,
         words: move.words,
         passes: prepasses
-      }))
+      })
       .then(() => this.startTurn(nextPlayer));
     }
 
@@ -252,14 +250,11 @@ define([
         deltas[playerWithNoTiles.key].tiles = pointsRemainingOnRacks;
         this._debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
       }
-      const turn = new Turn({
-        gameKey: this.key,
+      return this.finishTurn(player, {
         type: Turns.GAME_ENDED,
         endState: endState,
-        playerKey: this.whosTurnKey, // NOT the winning player
         score: deltas
       });
-      return this.finishTurn(turn);
     }
 
     /**
@@ -293,21 +288,19 @@ define([
 
       prevPlayer.score -= previousMove.score;
 
-      const turn = new Turn({
-        gameKey: this.key,
+      const turn = {
         type: type,
         nextToGoKey: type === Turns.CHALLENGE_WON
         ? this.whosTurnKey : player.key,
         score: -previousMove.score,
         placements: previousMove.placements,
         replacements: previousMove.replacements
-      });
+      };
 
-      turn.playerKey = prevPlayer.key;
       if (type === Turns.CHALLENGE_WON)
         turn.challengerKey = player.key;
 
-      return this.finishTurn(turn)
+      return this.finishTurn(prevPlayer, turn)
       .then(() => {
         if (type === Turns.TOOK_BACK) {
           // Let the taking-back player go again,
@@ -341,12 +334,10 @@ define([
 
       const nextPlayer = this.nextPlayer();
 
-      return this.finishTurn(new Turn({
-          gameKey: this.key,
-          type: type || Turns.PASSED,
-          playerKey: player.key,
-          nextToGoKey: nextPlayer.key
-        }))
+      return this.finishTurn(player, {
+        type: type || Turns.PASSED,
+        nextToGoKey: nextPlayer.key
+      })
       .then(() => this.startTurn(nextPlayer));
     }
 
@@ -402,7 +393,6 @@ define([
 
         this._debug("Challenge failed,", this.challengePenalty);
 
-        const prevPlayerKey = previousMove.playerKey;
         const currPlayerKey = this.getPlayer().key;
         const nextPlayer = this.nextPlayer();
 
@@ -423,19 +413,15 @@ define([
               this.getPlayer(), State.FAILED_CHALLENGE);
           // Otherwise issue turn type=Turns.CHALLENGE_LOST
 
-          const turn = new Turn({
-            gameKey: this.key,
-            type: Turns.CHALLENGE_LOST,
-            penalty: Penalty.MISS,
-            playerKey: prevPlayerKey,
-            challengerKey: challenger.key,
-            nextToGoKey: nextPlayer.key
-          });
-
           // Penalty for a failed challenge is miss a turn,
           // and the challenger is the current player, so their
           // turn is at an end.
-          return this.finishTurn(turn)
+          return this.finishTurn(challenged, {
+            type: Turns.CHALLENGE_LOST,
+            penalty: Penalty.MISS,
+            challengerKey: challenger.key,
+            nextToGoKey: nextPlayer.key
+          })
           .then(() => this.startTurn(nextPlayer));
         }
 
@@ -456,14 +442,12 @@ define([
         }
 
         challenger.score += lostPoints;
-        return this.finishTurn(new Turn({
-          gameKey: this.key,
+        return this.finishTurn(challenged, {
           type: Turns.CHALLENGE_LOST,
           score: lostPoints,
-          playerKey: prevPlayerKey,
           challengerKey: challenger.key,
           nextToGoKey: currPlayerKey
-        }));
+        });
         // no startTurn, because the challenge is asynchronous and
         // shouldn't move the player on
       });
@@ -507,16 +491,13 @@ define([
         player.rack.addTile(rep);
 
       const nextPlayer = this.nextPlayer();
-      const turn = new Turn({
-        gameKey: this.key,
+
+      return this.finishTurn(player, {
         type: Turns.SWAPPED,
-        playerKey: player.key,
         nextToGoKey: nextPlayer.key,
         placements: tiles, // the tiles that were swapped out
         replacements: replacements // the tiles that are replacing them
-      });
-
-      return this.finishTurn(turn)
+      })
       .then(() => this.startTurn(nextPlayer));
     }
 
@@ -766,7 +747,7 @@ define([
         }
       });
     }
-  };
+  }
 
   return Commands;
 });

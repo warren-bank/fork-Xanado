@@ -77,7 +77,7 @@ define([ "jquery" ], () => {
       .removeClass(rem)
       .addClass(add);
     }
-  };
+  }
 
   return BrowserPlayer;
 });

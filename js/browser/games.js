@@ -343,52 +343,15 @@ requirejs([
     }
 
     /**
-     * Headline is the text shown in the game table and the head
-     * of the game dialog.
-     * @param {Game} game the game to headline
-     * @param {boolean} inTable true if this is being prepared for the
-     * table, false for the dialog.
-     */
-    $headline(game, inTable) {
-      const headline = [ game.edition ];
-
-      if (inTable) {
-        if (game.getPlayers().length > 0)
-          headline.push($.i18n(
-            "players",
-            Utils.andList(game.getPlayers().map(p => p.name))));
-        headline.push($.i18n(
-          "created",
-          new Date(game.creationTimestamp).toDateString()));
-      }
-
-      const isActive = !game.hasEnded();
-
-      const $h = $(document.createElement("span"))
-            .addClass("headline")
-            .attr("name", game.key)
-            .text(headline.join(", "));
-
-      if (!isActive)
-        $h.append(
-          $(document.createElement("span"))
-          .addClass("game-state")
-          .text($.i18n(game.state)))
-        .append(
-          $(document.createElement("span"))
-          .addClass("who-won")
-          .text($.i18n("who-won", game.getWinner().name)));
-      return $h;
-    }
-
-    /**
      * Construct a table that shows the state of the given game
      * @param {Game|object} game a Game or Game.simple
      */
     $game(game) {
       Platform.assert(game instanceof Game);
-      return $(`<div class="game" id="${game.key}"></div>`)
-      .append(this.$headline(game, true))
+      return $(document.createElement("div"))
+      .addClass("game")
+      .attr("id", game.key)
+      .append(game.$headline(true))
       .on("click", () => {
         Dialog.open("GameDialog", {
           game: game,
@@ -404,7 +367,7 @@ requirejs([
     show_game(game) {
       console.log(`Reshow ${game.key}`);
       // Update the games list and dialog headlines as appropriate
-      $(`#${game.key}`).replaceWith(this.$headline(game));
+      $(`#${game.key}`).replaceWith(game.$headline());
       // Update the dialog if appropriate
       $(`#GameDialog[name=${game.key}]`)
       .data("this")

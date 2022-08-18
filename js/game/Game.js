@@ -288,6 +288,16 @@ define([
          */
         this.allowTakeBack = true;
 
+      if (params.allowUndo)
+        /**
+         * Whether or not to allow players to undo previous
+         * moves without penalty. Disables encryption of move
+         * data, so any player could potentially reverse-engineer
+         * the entire board and all racks if this is enabled.
+         * @member {boolean}
+         */
+        this.allowUndo = true;
+
       if (params.noPlayerShuffle || params._noPlayerShuffle)
         /**
          * Internal, for debug only.
@@ -648,6 +658,7 @@ define([
           edition: this.edition,
           dictionary: this.dictionary,
           state: this.state,
+          allowUndo: this.allowUndo,
           // players is a list of Player.serialisable
           players: ps,
           whosTurnKey: this.whosTurnKey,

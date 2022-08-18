@@ -43,7 +43,7 @@ define(() => {
       }
       return $span;
     }
-  };
+  }
 
   return BrowserMove;
 });

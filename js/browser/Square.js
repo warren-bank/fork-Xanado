@@ -161,7 +161,7 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
       else if (sel)
         $(`#${this.id}`).prepend($tc.show());
     }
-  };
+  }
 
   return BrowserSquare;
 });

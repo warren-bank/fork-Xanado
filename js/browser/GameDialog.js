@@ -101,8 +101,9 @@ define(["browser/Dialog", "common/Types"], (Dialog, Types) => {
       const $options = this.$dlg.find("button[name=options]");
       $options.toggle(this.options.ui.session && game.turns.length === 0);
 
-      this.$dlg.find("div[name=headline]").empty().append(
-        this.options.ui.$headline(game));
+      this.$dlg.find("div[name=headline]")
+      .empty()
+      .append(game.$headline());
 
       const $table = this.$dlg.find(".player-table")
             .empty()
@@ -146,6 +147,6 @@ define(["browser/Dialog", "common/Types"], (Dialog, Types) => {
       return super.openDialog();
     }
   }
-  
+
   return GameDialog;
 });

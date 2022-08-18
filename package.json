@@ -57,7 +57,7 @@
 	"scripts": {
 		"server": "node server.js",
 		"doc": "jsdoc --verbose -c doc/config.json -r -p -d doc js",
-		"lint": "eslint js",
+		"lint": "eslint js -f unix",
 		"test": "mocha --extension ut --timeout=5000",
 		"coverage": "nyc --hook-run-in-context --hook-run-in-this-context --reporter=html --reporter text mocha --extension ut --timeout=5000",
 		"tx": "node bin/checkStrings.js",

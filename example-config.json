@@ -29,6 +29,9 @@
 	// robot player requires a dictionary. Dictionaries can be found
 	// in the 'dictionaries' directory.
 	"dictionary": "CSW2019_English",
+    // Enable/disable undo/redo for new games
+    "undo_redo": false,
+
 	// Whether to generate notifications in the UI. Requires HTTPS.
 	"notification": true,
 	// User interface theme, must be the name of a subdiurectory of css
@@ -40,9 +43,7 @@
 	// Whether to make a click when a tile is placed
 	"tile_click": true,
 	// Whether to bong when it's your turn
-	"turn_alert": true,
-    // Enable/disable undo/redo for debugging
-    "undo_redo": false
+	"turn_alert": true
   },
 
   // Access control

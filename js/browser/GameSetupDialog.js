@@ -120,7 +120,7 @@ define([
 
     openDialog() {
       return super.openDialog()
-      .then(() => {q
+      .then(() => {
         this.$dlg.find(".dialog-row").show();
         const game = this.options.game;
        if (game) {

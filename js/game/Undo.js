@@ -148,6 +148,7 @@ define([
      * @return {Promise} promise resolving to undefined
      */
     undo(turn, quiet) {
+      Platform.assert(this.allowUndo);
       this._debug(`un-${turn.type}`);
       switch (turn.type) {
       case Turns.SWAPPED:

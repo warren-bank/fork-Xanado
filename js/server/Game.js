@@ -5,11 +5,11 @@
 
 define([
   "platform", "common/Utils",
-   "dawg/Dictionary", "game/Board", "game/LetterBag",
+  "dawg/Dictionary", "game/Board", "game/Tile", "game/LetterBag", "game/Turn",
   "common/Types", "game/Commands"
 ], (
   Platform, Utils,
-  Dictionary, Board, LetterBag,
+  Dictionary, Board, Tile, LetterBag, Turn,
   Types, Commands
 ) => {
   const Notify    = Types.Notify;
@@ -285,22 +285,42 @@ define([
      * @function
      * @instance
      * @memberof ServerGame
-     * @param {Turn} turn the Turn to finish
+     * @param {Player} player player who's turn it was
+     * @param {object} turn fields to populate the Turn to finish
      * @return {Promise} that resolves to the game
      */
-    finishTurn(turn) {
+    finishTurn(player, turn) {
+      turn = new Turn(turn);
+      turn.gameKey = this.key;
+      turn.playerKey = player.key;
       turn.timestamp = Date.now();
 
       // store turn (server side)
       this.pushTurn(turn);
 
+      let redacted = turn;
+
+      // Censor replacements for all but the player who's play it was
+      if (!this.allowUndo && turn.replacements) {
+        redacted = new Turn(turn);
+        redacted.replacements = [];
+        for (const tile of turn.replacements) {
+          const rt = new Tile(tile);
+          rt.letter = '#';
+          redacted.replacements.push(rt);
+        }
+      }
+      
       // TODO: the results of a turn should not simply be broadcast,
       // because a client could intercept and reconstruct other
       // player's racks from the results. Really there should be
       // one turn broadcast, and a different turn sent to the
       // playing player.
       return this.save()
-      .then(() => this.notifyAll(Notify.TURN, turn))
+      .then(() => Promise.all([
+        this.notifyPlayer(player, Notify.TURN, turn),
+        this.notifyOthers(player, Notify.TURN, redacted)
+      ]))
       .then(() => this);
     }
 
@@ -622,7 +642,7 @@ define([
         });
       });
     }
-  };
+  }
 
   return ServerGame;
 });
