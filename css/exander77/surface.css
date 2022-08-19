@@ -51,3 +51,8 @@
 .Tile {
   background-color: #ffcf5a !important;
 }
+
+.Surface .underlay:before {
+  content: attr(data-short);
+  font-size: 2em;
+}
