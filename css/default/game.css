@@ -127,7 +127,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 /*------------ CHAT BLOCK ------------*/
 
 #chatBlock {
-  max-height: 3em;
+  max-height: 8em;
 }
 
 /* div that wraps message capture */

@@ -23,10 +23,9 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
      */
     $ui(square) {
       if (this.$tile) {
-        if (this.isBlank)
-          this.$tile.find(".letter").text(this.letter);
-      }
-      else {
+        this.$tile.find(".letter").text(this.letter);
+        this.$tile.find(".score").text(this.score);
+      } else {
         const $glyph = $(document.createElement("div"))
               .addClass("glyph")
               .append(`<span class="letter">${this.letter}</span>`)

@@ -409,15 +409,16 @@ define([
         if (wasUs)
           this.takeBackTiles();
 
-        // Take the placed tiles out of the players rack and
+        // Take the placed tiles out of the player's rack and
         // lock them onto the board.
         if (wasUs)
           this.game.rackToBoard(turn.placements, player);
-        else
+        else {
           this.game.rackToBoard(
             turn.placements, player,
             tile => // Highlight the tile as "just placed"
             tile.$tile.addClass("last-placement"));
+        }
 
         // Remove the new tiles from our copy of the bag and put them
         // on the rack.
@@ -797,6 +798,14 @@ define([
 
       game._debug = console.debug;
       this.game = game;
+
+      // Make racks of other players wild to mask their contents
+      if (!game.allowUndo) {
+        for (const plyer of game.players)
+          if (plyer !== this.player)
+            plyer.rack.isWild = true;
+        game.letterBag.isWild = true;
+      }
 
       // Number of tiles placed on the board since the last turn
       this.placedCount = 0;

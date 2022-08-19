@@ -25,6 +25,16 @@ define([
     legalLetters = [];
 
     /**
+     * Whether this bag is wild or not. When a bag is wild, any tile
+     * taken from in the bag can be used as any other tile. This is
+     * used client-side, where we are only concerned about the number
+     * of tiles left in the bag and we want to prevent reverse
+     * engineering of bag and rack contents. By default, bags are not
+     * wild.
+     */
+    isWild = false;
+
+    /**
      * Construct a new letter bag using the distribution for the
      * given edition
      * @param {Edition|LetterBag} edition the Edition defining the
@@ -40,7 +50,7 @@ define([
          * @member {boolean?}
          */
         this.predictable = true;
-        this.tiles = [];
+
         for (const tile of edition.tiles)
           this.tiles.push(new Tile(tile));
         // Don't shake, we want it predictable!
@@ -80,7 +90,7 @@ define([
      * can be disabled by setting {@linkcode LetterBag#predictable}
      */
     shake() {
-      if (this.predictable)
+      if (this.predictable || this.isWild)
         return;
 
       for (let i = this.tiles.length - 1; i > 0; i--) {
@@ -94,27 +104,29 @@ define([
     /**
      * Get a single random tile from the bag. Assumes the bag is
      * already randomised, and there is no need to shuffle it
-     * again.
-     * @return {Tile} a Tile or null if there are no tiles left
+     * again. Note that you cannot get random tiles from a wild bag.
+     * @return {Tile} a Tile or undefined if there are no tiles left
      */
     getRandomTile() {
+      Platform.assert(!this.isWild);
       if (this.tiles.length > 0)
         return this.tiles.pop();
-      return null;
+      return undefined;
     }
 
     /**
      * Remove count random tiles from the bag. Assumes the bag is
      * already randomised, and there is no need to shuffle it
-     * again.
+     * again. Note that you cannot get random tiles from a wild bag.
      * @return {Tile[]} 'count' Tile. If there aren't enough
      * tiles in the bag, may return a shorter array.
      */
     getRandomTiles(count) {
+      Platform.assert(!this.isWild);
       const tiles = [];
       Platform.assert(count >= 0);
       for (let i = 0; this.tiles.length > 0 && i < count; i++)
-        tiles.push(this.tiles.pop());
+        tiles.push(this.getRandomTile());
       return tiles;
     }
 
@@ -124,7 +136,7 @@ define([
      * @param {Tile} tile tile to return to bag
      */
     returnTile(tile) {
-      this.tiles.push(tile.reset());
+      this.tiles.push(tile.reset(this.isWild));
       this.shake();
     }
 
@@ -134,7 +146,7 @@ define([
      */
     returnTiles(tiles) {
       for (const tile of tiles)
-        this.tiles.push(tile.reset());
+        this.tiles.push(tile.reset(this.isWild));
       this.shake();
     }
 
@@ -142,13 +154,19 @@ define([
      * Remove a matching tile from the bag. Either the exact tile
      * will be matched or a tile that represents the same letter.
      * Blanks only match blanks.
+     * If the bag is wild, we simply pop a tile, make it look like
+     * the requested tile, and return it.
      * @param {Tile} tile tile to match in the bag
      * @return {Tile?} the tile removed, or undefined if it wasn't found
      */
     removeTile(tile) {
+      if (this.isWild)
+        // Grab a tile, any tile
+        return this.tiles.pop().copy(tile);
       for (let i = 0; i < this.tiles.length; i++) {
         const t = this.tiles[i];
-        if (t === tile || (t.isBlank && tile.isBlank)
+        if (t === tile
+            || (t.isBlank && tile.isBlank)
             || (!t.isBlank && !tile.isBlank && t.letter === tile.letter))
         {
           this.tiles.splice(i, 1);
@@ -180,6 +198,7 @@ define([
 
     /**
      * Return an unsorted list of letters in the bag
+     * @return {string[]} array of letters
      */
     letters() {
       return this.tiles.map(tile => tile.letter);

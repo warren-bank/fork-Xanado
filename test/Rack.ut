@@ -5,7 +5,7 @@
 /**
  * Unit tests for Rack
  */
-describe("Rack class", () => {
+describe("Rack", () => {
 
   const TS = require("./TestSupport.js");
   after(() => TS.after());
@@ -53,5 +53,31 @@ describe("Rack class", () => {
     assert.deepEqual(r.letters().sort(), [" ", "B", "C", "D"]);
     assert.deepEqual(r.lettersLeft().sort(), ["B", "C", "D"]);
   });
+  
+  it("wild", () => {
+    let r = new Rack("base", 10);
+    r.isWild = true;
+
+    // Add an "A" to the rack. Should go to position 0
+    const aTile = new Tile({letter: "A"});
+    assert.equal(r.addTile(aTile).col, 0);
+    assert(!r.isEmpty());
+
+    // Add a "B" at position 1
+    assert.strictEqual(r.addTile(new Tile({letter: "B"})), r.at(1));
+    assert.deepEqual(r.letters().sort(), ["#", "#"]);
+
+    // Remove the first tile that matches
+    const t = new Tile({letter: "Q", row: 99, col: -99, score: 10});
+    const b = r.removeTile(t);
+    assert.deepEqual(b, t);
+    assert.equal(r.lettersLeft().length, 1);
+
+    // Remove the first tile that matches
+    const t2 = new Tile({letter: "F", isBlank: true, score: 8});
+    const b2 = r.removeTile(t2);
+    assert.deepEqual(b2, t2);
+    assert.equal(r.lettersLeft().length, 0);
+ });
 });
 

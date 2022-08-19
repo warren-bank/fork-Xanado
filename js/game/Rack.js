@@ -14,7 +14,14 @@ define([
   /**
    * A Rack is a 1-column {@linkcode Surface}
    */
-  class Rack extends Surface{
+  class Rack extends Surface {
+
+    /**
+     * Whether this rack is wild or not. When a rack is wild, the tiles
+     * taken from in the rack can be used as any other tile. This is
+     * used client-side, for players other than the current player.
+     */
+    isWild = false;
 
     /**
      * @param {string|Rack} id unique id for this rack, or a rack to copy.
@@ -59,7 +66,7 @@ define([
      */
     addTile(tile) {
       let rackSquare;
-      tile.reset();
+      tile.reset(this.isWild);
       this.forEachEmptySquare(square => {
         rackSquare = square;
         square.placeTile(tile);
@@ -97,8 +104,9 @@ define([
     findSquare(letter) {
       let square;
       this.forEachTiledSquare(sq => {
-        if (!square && sq.tile.isBlank
-            || sq.tile.letter === letter)
+        if (this.isWild)
+          square = sq;
+        else if (!square && sq.tile.isBlank || sq.tile.letter === letter)
           square = sq;
       });
 
@@ -107,7 +115,8 @@ define([
 
     /**
      * Find and remove a tile from the rack.
-     * @param {Tile} remove the Tile to remove
+     * @param {Tile?} remove if defined, the tile removed must match
+     * this tile. If undefined, any tile can be removed.
      * @return {Tile} the removed tile
      */
     removeTile(remove) {
@@ -117,8 +126,9 @@ define([
       `Cannot find '${letter}' on ${this.stringify()}`);
       const tile = square.tile;
       square.unplaceTile();
-      // If the tile is a blank, set the letter to the remove letter
-      if (tile.isBlank)
+      if (this.isWild)
+        tile.copy(remove);
+      else if (tile.isBlank)
         tile.letter = letter;
       return tile;
     }

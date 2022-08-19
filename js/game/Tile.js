@@ -14,12 +14,6 @@ define([
 
     /**
      * @param {Tile|object} spec optional Tile to copy or spec of tile
-     * @param {string} spec.letter character(s) represented by this tile
-     * @param {boolean?} spec.isBlank true if this tile is a blank
-     * (irresepective of letter)
-     * @param {number?} spec.score value of this tile, default 0
-     * @param {number?} spec.col optional column where the tile is placed
-     * @param {number?} spec.row optional row where the tile is placed
      */
     constructor(spec) {
       super();
@@ -72,15 +66,42 @@ define([
     }
 
     /**
-     * Remove letter cast and positional information from the tile e.g. before
-     * returning it to the bag or rack.
+     * Fix a tile to look like the given tile.
+     * @param {Tile} tile the tile to copy
      * @return {Tile} this
      */
-    reset() {
+    copy(tile) {
+      this.reset();
+      if (tile.isBlank)
+        this.isBlank = true;
+      else
+        delete this.isBlank;
+      this.letter = tile.letter;
+      this.score = tile.score;
+      if (typeof tile.col !== "undefined")
+        this.col = tile.col;
+      if (typeof tile.row !== "undefined")
+        this.row = tile.row;
+      return this;
+    }
+
+    /**
+     * Remove letter cast and positional information from the tile e.g. before
+     * returning it to the bag or rack.
+     * @param {boolean?} wild true if this tile needs to be masked. Wild tiles
+     * are used on the client side to mask the contents of the letter bag and
+     * other players racks.
+     * @return {Tile} this
+     */
+    reset(wild) {
       delete this.isLocked;
       delete this.row;
       delete this.col;
-      if (this.isBlank)
+      if (wild) {
+        this.letter = '#';
+        this.score = 0;
+      }
+      else if (this.isBlank)
         this.letter = " ";
 
       return this;
