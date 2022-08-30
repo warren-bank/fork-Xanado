@@ -86,24 +86,32 @@ requirejs([
   // Prompt to change the id of string
   // return -2 to abort the run, -1 to ask again, 0 for no change, 1
   // if the string was changed
-  async function changeString(string) {
+  async function changeLabel(lang, string, probably) {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout
     });
-    console.log(strings.qqq[string]);
-    return rl.question(`Change ID "${string}"? `)
+    console.log(strings[lang][string]);
+    const q = `Change ID "${string}"${probably ? (' to "'+probably+'"') : ""} in ${lang}? `;
+    return rl.question(q)
     .then(answer => {
       rl.close();
-      if (answer === "q" || answer === "Q")
+      switch (answer) {
+      case "q": case "Q": // quit
         return -2;
-      if (!answer || answer === "n" || answer === "N")
+      case undefined: case "": case "n": case "N":
         return 0;
-      if (strings.qqq[answer]) {
-        console.error(`${answer} is already used`);
+      case 'y': case 'Y':
+        if (probably) {
+          answer = probably;
+          break;
+        }
+      }
+      if (strings[lang][answer]) {
+        console.error(`${answer} is already used in ${lang}`);
         return -1; // conflict, try again
       }
-      console.log(`\tChanging "${string}" to "${answer}"`);
+      console.log(`\tChanging "${string}" to "${answer}" in ${lang}`);
       for (const lang in strings) {
         strings[lang][answer] = strings[lang][string];
         delete strings[lang][string];
@@ -114,9 +122,14 @@ requirejs([
       for (const file in fileContents) {
         const m = /i18n\/(.*)\.json$/.exec(file);
         if (m) {
-          fileContents[file] = JSON.stringify(strings[m[1]], null, "  ");
-          filesChanged[file] = true;
-        } else if(re.test(fileContents[file])) {
+          // A i18n/.json file. If the label is changed in qqq, change it everywhere.
+          // If it's just changing local to a single lang, only change it there
+          if (lang === "qqq" || m[1] === lang) {
+            fileContents[file] = JSON.stringify(strings[m[1]], null, "  ");
+            filesChanged[file] = true;
+          }
+        } else if (lang === "qqq" && re.test(fileContents[file])) {
+          // Another file, only change the label when qqq is changing
           fileContents[file] =
           fileContents[file].replace(re, `"${answer}"`);
           filesChanged[file] = true;
@@ -129,13 +142,13 @@ requirejs([
     });
   }
 
-  async function changeStrings() {
+  async function shortenIDs() {
     for (const string in strings.qqq) {
-      if (string.length > 20) {
-        console.log(string,"is too long");
+      if (string.length > 20 && !/^Types\./.test(strings.qqq[string])) {
+        console.error(`"${string}" is too long for a label`);
         let go = -1;
         while (go === -1) {
-          await changeString(string)
+          await changeLabel("qqq", string)
           .then(g => go = g);
         }
         if (go === -2)
@@ -171,7 +184,7 @@ requirejs([
              throw e;
            }))))
   ])
-  .then(() => {   
+  .then(async () => {   
     let qqqError = false;
 
     // Check strings are in qqq and add to en if necessary
@@ -197,47 +210,57 @@ requirejs([
 
     for (const lang of Object.keys(strings).filter(l => l !== "qqq")) {
       let mess = [];
-      // Check that all keys in qqq are also in other language and
-      // that the same parameters are present
+
+      // Check that all keys in qqq are also in other language
       for (const string of Object.keys(strings.qqq)) {
         if (!strings[lang][string])
-          mess.push(`\t${string}`);
+          mess.push(`\t"${string}" : qqq "${strings.qqq[string]}" en "${strings.en[string]}"`);
       }
       if (mess.length > 0)
         console.error("----", lang, "is missing translations for:\n",
                       mess.join("\n"));
 
-      mess = [];
+      // check that the same parameters are present in translated strings
+      let messes = 0;
       for (const string of Object.keys(strings[lang])) {
-        if (strings[lang][string])
+        if (strings.qqq[string] && strings[lang][string]) {
+          mess = [];
           checkParameters(string, strings.qqq[string], strings[lang][string], mess);
+          if (mess.length > 0) {
+            messes++;
+            if (messes == 1)
+              console.error("----", lang, "has parameter inconsistencies:");
+            console.error(mess.join("\n"));
+          }
+        }
       }
-      if (mess.length > 0)
-        console.error("----", lang, "has parameter inconsistencies:\n",
-                      mess.join("\n"));
 
-      mess = [];
       for (const string of Object.keys(strings[lang])) {
-        if (!strings.qqq[string])
-          mess.push(`\t${string}`);
+        if (!strings.qqq[string]) {
+          console.error(`${lang}: id "${string}" was not found in qqq`);
+          for (const enlabel in strings.en) {
+            if (strings.en[enlabel] == string) {
+              console.error(`${string} is the English translation for id ${enlabel}`);
+              await changeLabel(lang, string, enlabel);
+            }
+          }
+        }
       }
-      if (mess.length > 0)
-        console.error("----", lang, "has strings that are not in qqq\n",
-                      mess.join("\n"));
+
       if (lang !== "en") {
         mess = [];
-        for (const string of Object.keys(strings[lang])) {
-          if (lang !== "en" && string == strings[lang][string])
-            mess.push(`\t${string}`);
+        for (const id of Object.keys(strings[lang])) {
+          if (strings[lang][id] == strings.en[id] && strings.en[id].length > 1)
+            mess.push(`\t${id} : "${strings.en[id]}"`);
         }
         if (mess.length > 0)
           console.error(
             "----",
             lang,
-            "has strings that may not have been translated\n",
+            "has strings that are the same as in English\n",
             mess.join("\n"));
       }
     }
   })
-  .then(() => changeStrings());
+  .then(() => shortenIDs());
 });
