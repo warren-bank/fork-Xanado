@@ -35,6 +35,10 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
         .append($glyph);
       }
 
+      // Vary the font to accommodate longer strings
+      if (this.letter.length > 1)
+        this.$tile.find(".glyph").addClass(`length-${this.letter.length}`);
+
       // Associate the square passed with the tile UI. This is only
       // used when dragging the tile away from the square, so we know
       // where it was previously placed. Note that this creates a

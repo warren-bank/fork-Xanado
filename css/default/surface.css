@@ -215,6 +215,18 @@
 .Tile .glyph {
 }
 
+/* 2 or more letters in a glyph shrink it proportionally.
+ * Add glyph-length-4 etc as needed.
+ * TODO: this would be better done as part of the
+ * edition, as unicode characters may vary in width. */
+.glyph-length-2 {
+  font-size: 80%;
+}
+
+.glyph.length-3 {
+  font-size: 60%;
+}
+
 /* The letter represented by a tile */
 .Tile .glyph .letter {
   font-size: 120%;
