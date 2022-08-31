@@ -1,5 +1,9 @@
-define(["editions/_Scrabble"], (Scrabble) => {
+// French
+// @see https://www.liquisearch.com/scrabble_letter_distributions/french
+define(["editions/_Scrabble"], Scrabble => {
+
   const scrabble = Scrabble();
+
   scrabble.bag = [
     { score: 0, count: 2 },
     { letter: "E", score: 1, count: 15 },
@@ -14,7 +18,7 @@ define(["editions/_Scrabble"], (Scrabble) => {
     { letter: "L", score: 1, count: 5 },
     { letter: "D", score: 2, count: 3 },
     { letter: "G", score: 2, count: 2 },
-    { letter: "M", score: 3, count: 3 },
+    { letter: "M", score: 2, count: 3 },
     { letter: "B", score: 3, count: 2 },
     { letter: "C", score: 3, count: 2 },
     { letter: "P", score: 3, count: 2 },
@@ -29,6 +33,6 @@ define(["editions/_Scrabble"], (Scrabble) => {
     { letter: "Y", score: 10, count: 1 },
     { letter: "Z", score: 10, count: 1 }
   ];
-  
+
   return scrabble;
 });

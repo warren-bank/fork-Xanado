@@ -1,7 +1,7 @@
 ## Multiplayer word grid game Server and Web Interface
 
 Host your own web server to play crossword games according to most of the rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, or Lexulous. Or invent your own!
-Has tile sets for English, French, German, Dutch, Czech, Estonian, and Hungarian, with dictionaries in English, French, and German, and it's easy to add more.
+Has tile sets for many languages, with dictionaries in English, French, German, and Catalan, and it's easy to add more.
 <p style="text-align:center;">
 	<img src="/images/splash.png" width="265" height="300" alt="Board" />
 </p>
@@ -18,7 +18,7 @@ work for me because:
 
 - Their code is not public, and setting up your own server is not an option.
 - They are generally limited to a single version of the game.
-- Their (English) dictionaries are usually based on the standard American Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes the games inaccessible for casual players, as a computer player will beat them every time.
+- Their (English) dictionaries are usually based on the standard American Scrabble Tournament dictionary, which is stuffed full of obscure words that only a dedicated aficionado would know. This makes their robot games inaccessible for casual players, as a computer player will beat them every time.
 - They plague you with tedious advertisements and in-app purchases.
 
 Enter [Hans Hübner's html-scrabble](https://github.com/hanshuebner/html-scrabble), which this is a fork of.
@@ -33,8 +33,9 @@ This fork has some major differences:
 * It supports logins, which helps you to set up tournaments and record long-term player performance.
 * It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players.
 * You can optionally play against the clock.
-* The UI has been massaged to make it more mobile device friendly.
-* Lots of bug fixes and improvements.
+* Can optionally let players explore alternative moves.
+* The UI has been massaged to make it more mobile device friendly, and translated to several languages.
+* Lots of bug fixes and small improvements.
 
 # Installation
 
@@ -85,24 +86,18 @@ Players start on the games page. This shows a leader board and a list
 of games. You can select "Show finished games" to view games that have
 ended.
 
-You will see an arrow icon ▼ against each game. By clicking on the
-arrow, you can see a list of players in the game with their scores and
+When you click on a game, a dialog opens up showing a list of players in the game
+with their scores and
 whether they are currently connected or not.
 If you are signed in, you can join the game (or open a game you have
 previously joined), leave the game, add a robot, or delete it.
- Close the player list with ▲.
  
 If you are signed in you can also create a new game.  Normally one
-player will create a new game, then other players sign in and join
-the game from the games page. Anyone signed in can add or remove a
-robot player, or even delete the game, even if they are not a player.
+player will create a game, then other players sign in and join
+the game from the games page. 
 
 The game interface is fairly self explanatory if you know
 the [rules of Scrabble](https://www.officialgamerules.org/scrabble).
-The game starts with a randomly selected player.
-
-You can only have one robot in any one game, and you need at least one
-human player (otherwise, what's the point?)
 
 When you create a game you can select the edition (the game board,
 rules, and tile set), the dictionary for checking words, and whether
@@ -110,12 +105,17 @@ there is to be a time limit. You can also set a minimum number of
 players, or a maximum number of players who can join, and enable or
 disable some gameplay features.
 
+Anyone signed in can add or remove a
+robot player, or even delete the game, even if they are not a player.
+You can only have one robot in any one game, and you need at least one
+human player (otherwise, what's the point?)
+
 When you add a robot to a game, you can optionally select a different
 dictionary that the robot will search to find plays. Limiting the
 robot to a smaller dictionary will give less challenging gameplay, but
 may be more suitable for less experienced players.
 
-The installation comes with editions that emulate a number of
+The installation comes with a number of 'editions' that emulate some
 commercially available games - SCRABBLE®, Super SCRABBLE®, Lexulous,
 and Words With Friends - all of which have very similar
 gameplay. Guidance for creating your own custom game is given below.
@@ -161,10 +161,10 @@ games that can be played. Each specification is made up from:
 * Bonuses to be given for long words
 
 The following editions are included:
-* Scrabble, for English, French, Czech, Estonian, German, Hungarian, and Dutch
-* SuperScrabble (21x21 board), for English
-* Words with Friends, for English
-* Lexulous, for English
+* Scrabble, with tile sets for several languages
+* SuperScrabble (21x21 board)
+* Words with Friends
+* Lexulous
 
 # Dictionaries
 The `/dictionaries` directory contains all the
@@ -175,6 +175,8 @@ dictionaries. Included with the installation are a number of pre-built dictionar
 - `British_English` - a custom 68k word British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American spellings are also included, to reflect the flexible nature of our shared language.
 - `ODS8_French` - 411k word French SCRABBLE® competition dictionary.
 - `Oxford_5000` - 29K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
+- `DISC_Catalan` - 580k words.
+Other dictionaries may be added over time.
 
 ## Whitelists
 Regenerating a docitionary can be time consuming, so dictionaries can be

@@ -315,6 +315,11 @@ define(() => {
               Object.assign(inst.options, options);
             if (!inst.$dlg.dialog("isOpen")) {
               console.log("Open trigger", inst.options.game.key);
+              // Options for a particular showing of the dialog
+              for (const opt of ["height", "width", "title" ]) {
+                if (typeof options[opt] !== "undefined")
+                  inst.$dlg.dialog("option", opt, options.title);
+              }
               inst.$dlg.dialog("open");
             }
           } else

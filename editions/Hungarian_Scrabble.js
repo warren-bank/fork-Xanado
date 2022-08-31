@@ -1,7 +1,9 @@
-define(["editions/_Scrabble"], (Scrabble) => {
+// Hungarian
+// @see https://www.liquisearch.com/scrabble_letter_distributions/hungarian
+define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();
-  
+
   scrabble.bag = [
     { score: 0, count: 2 },
     { letter: "A", score: 1, count: 6 },
@@ -37,13 +39,12 @@ define(["editions/_Scrabble"], (Scrabble) => {
     { letter: "NY", score: 5, count: 1 },
     { letter: "CS", score: 7, count: 1 },
     { letter: "Ő", score: 7, count: 1 },
-    { letter: "Ő", score: 7, count: 1 },
     { letter: "Ú", score: 7, count: 1 },
     { letter: "Ű", score: 7, count: 1 },
     { letter: "LY", score: 8, count: 1 },
     { letter: "ZS", score: 8, count: 1 },
     { letter: "TY", score: 10, count: 1 }
   ];
-  
+
   return scrabble;
 });
