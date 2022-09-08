@@ -76,7 +76,6 @@ define([ "platform", "common/Types" ], (Platform, Types) => {
               // Highlight drag source
               this.$tile.css({ opacity: 0.5 });
               $(jui.helper)
-              .animate({"font-size" : "110%"}, 300)
               .addClass("being-dragged");
             },
             drag: (event, jui) => $(jui.helper).addClass("being-dragged"),
