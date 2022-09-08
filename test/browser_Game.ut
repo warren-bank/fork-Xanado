@@ -108,10 +108,10 @@ describe("Game browser mixin", () => {
 	  };
 
     const p = {
-	    OTHER: new Player(
-		    {name:"OtherPlayer", key:"OTHER", isRobot: true}),
+	    THEM: new Player(
+		    {name:"PlayerThem", key:"THEM", isRobot: true}),
 	    YOU: new Player(
-		    {name:"YouPlayer", key:"YOU", isRobot: false}),
+		    {name:"PlayerYou", key:"YOU", isRobot: false}),
       W: new Tile({letter:"W", score:1, col: 7, row: 7}),
       O: new Tile({letter:"O", score:1, col: 8, row: 7}),
       R: new Tile({letter:"R", score:1, col: 9, row: 7}),
@@ -121,7 +121,7 @@ describe("Game browser mixin", () => {
     return p.game.create()
     .then(() => {
 			p.game.addPlayer(p.YOU, false);
-			p.game.addPlayer(p.OTHER, false);
+			p.game.addPlayer(p.THEM, false);
 			p.game.whosTurnKey = p.YOU.key;
       return p;
     });
@@ -135,7 +135,7 @@ describe("Game browser mixin", () => {
       let turn = new Turn({
         gameKey: p.game.key,
         type: Turns.PLAYED,
-        playerKey: p.OTHER.key,
+        playerKey: p.THEM.key,
         placements: [ p.W, p.O, p.R, p.D ],
         replacements: [ p.W, p.O, p.R, p.D ],
         words: [ { word: "WORD", score: 10 }],
@@ -145,7 +145,7 @@ describe("Game browser mixin", () => {
           $('<div class="turn-description">')
           .append(
             $('<div class="turn-player"></div>')
-            .append('<span class="player-name">OtherPlayer\'s</span> turn'))
+            .append('<span class="player-name">PlayerThem\'s</span> turn'))
           .append(
             $('<div class="turn-detail"></div>')
             .append('<span class="turn-score"><span class="word">WORD</span><span class="word-score">(10)</span><span class="turn-total">total 20</span></span>'));
@@ -218,13 +218,13 @@ describe("Game browser mixin", () => {
       const turn = new Turn({
         gameKey: p.game.key,
         type: Turns.PLAYED,
-        playerKey: p.OTHER.key,
+        playerKey: p.THEM.key,
         placements: [ p.W, p.O, p.R, p.D ],
         replacements: [],
         words: [ { word: "WORD", score: 10 }],
         score: 20
       });
-      const plan = `${p.OTHER.name}'s`;
+      const plan = `${p.THEM.name}'s`;
       const $player = $('<div class="turn-player"></div>')
             .append(`<span class="player-name">${plan}</span> turn`);
       const $word = $('<span class="word"></span>')
@@ -238,7 +238,7 @@ describe("Game browser mixin", () => {
       const $detail = 
             $('<div class="turn-detail"></div>')
             .append($turnScore);
-      const nart = `${p.OTHER.name} has no more tiles, game will be over unless you challenge`;
+      const nart = `${p.THEM.name} has no more tiles, game will be over unless you challenge`;
       const $narrative = $(`<div class="turn-narrative">${nart}</div>`);
       const $exp = $(document.createElement("div"))
             .append($('<div class="turn-description"></div>')
@@ -267,14 +267,14 @@ describe("Game browser mixin", () => {
       const turn = new Turn({
         gameKey: p.game.key,
         type: Turns.CHALLENGE_LOST,
-        playerKey: p.OTHER.key,
+        playerKey: p.THEM.key,
         challengerKey: p.YOU.key,
         placements: [ p.W, p.O, p.R, p.D ],
         words: [ { word: "WORD", score: 10 }],
         score: -20
       });
       const $tp = $('<div class="turn-player"><span class="player-name">Your</span> challenge</div>');
-      const tt = "Your challenge of OtherPlayer's play failed. You lost 20 points";
+      const tt = "Your challenge of PlayerThem's play failed. You lost 20 points";
       const $td = $('<div class="turn-detail"></div>').append(tt);
       const $desc = $('<div class="turn-description"></div>')
             .append($tp)
@@ -303,13 +303,13 @@ describe("Game browser mixin", () => {
         gameKey: p.game.key,
         type: Turns.CHALLENGE_LOST,
         playerKey: p.YOU.key,
-        challengerKey: p.OTHER.key,
+        challengerKey: p.THEM.key,
         placements: [ p.W, p.O, p.R, p.D ],
         words: [ { word: "WORD", score: 10 }],
         score: -20
       });
       const $exp =
-      $('<div class="turn-description"><div class="turn-player"><span class="player-name">OtherPlayer\'s</span> challenge</div><div class="turn-detail">OtherPlayer\'s challenge of your play failed. OtherPlayer lost 20 points</div></div>');
+      $('<div class="turn-description"><div class="turn-player"><span class="player-name">PlayerThem\'s</span> challenge</div><div class="turn-detail">PlayerThem\'s challenge of your play failed. PlayerThem lost 20 points</div></div>');
       const sexp = $(document.createElement("div")).append($exp).html();
       const $act = p.game.describeTurn(turn, p.YOU, true);
       const sact = $(document.createElement("div")).append($act).html();
@@ -326,14 +326,14 @@ describe("Game browser mixin", () => {
       const turn = new Turn({
         gameKey: p.game.key,
         type: Turns.CHALLENGE_WON,
-        playerKey: p.OTHER.key,
+        playerKey: p.THEM.key,
         challengerKey: p.YOU.key,
         placements: [ p.W, p.O, p.R, p.D ],
         words: [ { word: "WORD", score: 10 }],
         score: 20
       });
       const $exp =
-      $('<div class="turn-description"><div class="turn-player"><span class="player-name">OtherPlayer\'s</span> turn</div><div class="turn-detail">You successfully challenged OtherPlayer\'s play. OtherPlayer lost 20 points</div>');
+      $('<div class="turn-description"><div class="turn-player"><span class="player-name">PlayerThem\'s</span> turn</div><div class="turn-detail">You successfully challenged PlayerThem\'s play. PlayerThem lost 20 points</div>');
       const sexp = $(document.createElement("div")).append($exp).html();
       const $act = p.game.describeTurn(turn, p.YOU, true);
       const sact = $(document.createElement("div")).append($act).html();
@@ -357,9 +357,9 @@ describe("Game browser mixin", () => {
         score: 20
       });
       const $exp =
-      $('<div class="turn-description"><div class="turn-player"><span class="player-name">YouPlayer\'s</span> turn</div><div class="turn-detail">Swapped 4 tiles</div>');
+      $('<div class="turn-description"><div class="turn-player"><span class="player-name">PlayerYou\'s</span> turn</div><div class="turn-detail">Swapped 4 tiles</div>');
       const sexp = $(document.createElement("div")).append($exp).html();
-      const $act = p.game.describeTurn(turn, p.OTHER, true);
+      const $act = p.game.describeTurn(turn, p.THEM, true);
       const sact = $(document.createElement("div")).append($act).html();
       assert.equal(sact, sexp);
 			//assert($act[0].isEqualNode($exp[0]),"\n" +
@@ -368,29 +368,113 @@ describe("Game browser mixin", () => {
     });
   });
 
-	it("describeTurn you ended the game", () => {
+	it("describeTurn end game you won", () => {
     return make_p()
 		.then(p => {
+      p.YOU.score = 99;
+      // rack on the client side (should be ignored)
+      p.THEM.rack.addTile(new Tile({letter: "A", score: 1}));
       const endScore = {};
-      endScore[p.YOU.key] = {tiles: 2, time: 1};
-      endScore[p.OTHER.key] = {tiles: 3, time: 0};
+      // You gained 10 points
+      endScore[p.YOU.key] = { tiles: 10 };
+      // They lost 10 points
+      endScore[p.THEM.key] = {tiles: -10, tilesRemaining: "Q", time: 0};
       const turn = new Turn({
         gameKey: p.game.key,
         type: Turns.GAME_ENDED,
         playerKey: p.YOU.key,
-        challengerKey: p.YOU.key,
-        placements: [ p.W, p.O, p.R, p.D ],
-        words: [ { word: "WORD", score: 10 }],
         score: endScore
       });
-      const $exp = $('<div class="turn-description"><div class="game-state">Game over</div><div class="game-winner">You and OtherPlayer have won</div><div class="game-outcome"><div class="rack-adjust"></div><div class="time-adjust">You lost 1 point to the clock</div><div class="rack-adjust"></div></div></div>');
-      const sexp = $(document.createElement("div")).append($exp).html();
-      const $act = p.game.describeTurn(turn, p.YOU, false);
-      const sact = $(document.createElement("div")).append($act).html();
-      assert.equal(sact, sexp);
-			//assert($act[0].isEqualNode($exp[0]),"\n" +
-      //       "actual: " + sact + "\n" +
-      //       "expect: " + sexp + "\n");
+      const $exp = $(`<div>
+<div class="turn-description">
+ <div class="game-state">Game over</div>
+ <div class="game-winner">You have won</div>
+ <div class="game-end-adjustments">
+  <div class="rack-adjust">You gained 10 points from the racks of other players</div>
+  <div class="rack-adjust">PlayerThem lost 10 points for a rack containing 'Q'</div>
+ </div>
+</div></div>`.replace(/>\s*</g, "><"));
+      const $act = $("<div></div>").append(
+        p.game.describeTurn(turn, p.YOU, false));
+			assert($act[0].isEqualNode($exp[0]),"\n" +
+             "actual: " + $act.html() + "\n\n" +
+             "expect: " + $exp.html() + "\n");
+    });
+  });
+
+	it("describeTurn end game you lost", () => {
+    return make_p()
+		.then(p => {
+      p.YOU.score = -99;
+      p.THEM.score = 99;
+      // rack on the client side
+      p.YOU.rack.addTile(new Tile({letter: "A", score: 1}));
+      const endScore = {};
+      endScore[p.YOU.key] = {tiles: -10, tilesRemaining: "Z", time: -1};
+      endScore[p.THEM.key] = {tiles: 10, time: 0};
+      const turn = new Turn({
+        gameKey: p.game.key,
+        type: Turns.GAME_ENDED,
+        playerKey: p.YOU.key,
+        score: endScore
+      });
+      const $exp = $(`<div>
+
+<div class="turn-description">
+ <div class="game-state">Game over</div>
+ <div class="game-winner">PlayerThem has won</div>
+ <div class="game-end-adjustments">
+  <div class="rack-adjust">You lost 10 points for a rack containing 'Z'</div>
+  <div class="time-adjust">You lost 1 point to the clock</div>
+  <div class="rack-adjust">PlayerThem gained 10 points from the racks of other players</div>
+ </div>
+</div>
+
+</div>`.replace(/>\s*</g, "><"));
+      const $act = $("<div></div>").append(p.game.describeTurn(turn, p.YOU, false));
+			assert($act[0].isEqualNode($exp[0]),"\n" +
+             "actual: " + $act.html() + "\n\n" +
+             "expect: " + $exp.html() + "\n");
+    });
+  });
+
+	it("describeTurn end game you drew", () => {
+    // e.g. both players passed twice, result was a draw
+    return make_p()
+		.then(p => {
+      p.THEM.score = 100;
+      p.YOU.score = 100;
+      p.YOU.rack.addTile(new Tile({letter: "R", score: 1}));
+      p.YOU.rack.addTile(new Tile({letter: "S", score: 1}));
+      p.YOU.rack.addTile(new Tile({letter: "T", score: 1}));
+      p.THEM.rack.addTile(new Tile({letter: "A", score: 1}));
+      const endScore = {};
+      endScore[p.YOU.key] = {tiles: -3, tilesRemaining: "A,E,I", time: 0};
+      endScore[p.THEM.key] = {tiles: -7, tilesRemaining: "Q", time: -10};
+      const turn = new Turn({
+        gameKey: p.game.key,
+        type: Turns.GAME_ENDED,
+        playerKey: p.YOU.key,
+        score: endScore
+      });
+      const $exp = $(`<div>
+
+<div class="turn-description">
+ <div class="game-state">Game over</div>
+ <div class="game-winner">You and PlayerThem have won</div>
+ <div class="game-end-adjustments">
+  <div class="rack-adjust">You lost 3 points for a rack containing 'A,E,I'</div>
+  <div class="rack-adjust">PlayerThem lost 7 points for a rack containing 'Q'</div>
+  <div class="time-adjust">PlayerThem lost 10 points to the clock</div>
+ </div>
+</div>
+
+</div>`.replace(/>\s*</g, "><"));
+      const $act = $("<div></div>").append(
+        p.game.describeTurn(turn, p.YOU, false));
+			assert($act[0].isEqualNode($exp[0]),"\n" +
+             "actual: " + $act.html() + "\n\n" +
+             "expect: " + $exp.html() + "\n");
     });
   });
 });

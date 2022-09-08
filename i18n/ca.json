@@ -12,7 +12,7 @@
   "played-for": "$1 demana que el robot faci una jugada",
   "possible-score": "$1 a la fila $2 columna $3 hauria fet $4 punts",
   "log-chall-fail": "La impugnació de $1 a $2 ha fallat.",
-  "log-gained": "$1: suma $2 punt{{PLURAL:$2||s}} del faristol dels altres jugadors",
+  "gained-from-racks": "$1: suma $2 punt{{PLURAL:$2||s}} del faristol dels altres jugadors",
   "Accept last move": "Accepta l'última jugada",
   "Add robot": "Afegeix un robot",
   "Add": "Afegeix",

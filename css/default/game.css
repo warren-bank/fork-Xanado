@@ -195,10 +195,10 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 }
 
 /* Description of points gained and lost from final racks */
-.game-outcome .rack-adjust {}
+.game-end-adjustments .rack-adjust {}
 
 /* Description of points lost due to overtime */
-.game-outcome .time-adjust {}
+.game-end-adjustments .time-adjust {}
 
 /* A control placed in the log */
 .turn-control {

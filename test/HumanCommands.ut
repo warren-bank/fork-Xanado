@@ -428,23 +428,25 @@ describe("HumanCommands", () => {
       //_debug: console.debug,
       noPlayerShuffle: true
     });
+    let remains = 0;
     const human1 = new Player({
       name:"Human1", key:"human1", isRobot: false});
     const human2 = new Player({
       name:"Human2", key:"human2", isRobot: false});
     const socket = new TestSocket();
-    const handle = (turn, event) => {
+    socket.on(Notify.TURN, (turn, event) => {
       assert.equal(event, Notify.TURN);
       assert.equal(turn.type, Turns.GAME_ENDED);
-      const exp = {};
-      exp[human1.key] = { tiles: -8 };
-      exp[human2.key] = { tiles: 8 };
-      assert.deepEqual(turn.score, exp);
+      assert.deepEqual(
+        turn.score,
+        {
+          human1: { tiles: -remains, tilesRemaining: "X,Y,Z" },
+          human2: { tiles: remains }
+        });
       assert.equal(turn.playerKey, human1.key);
       assert(!turn.nextToGoKey);
       socket.done();
-    };
-    socket.on(Notify.TURN, handle);
+    });
     socket.on(Notify.CONNECTIONS, () => {});
     socket.on("*", (data, event) => {
       console.error("UNEXPECTED EVENT", event);
@@ -453,20 +455,25 @@ describe("HumanCommands", () => {
     return game.create()
     .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
     .then(game => {
-      game.addPlayer(human1);
-      human1.rack.addTile(game.letterBag.removeTile({letter:"X"}));
-      human1.rack.addTile(game.letterBag.removeTile({letter:"Y"}));
-      human1.rack.addTile(game.letterBag.removeTile({letter:"Z"}));
-      game.addPlayer(human2);
+      game.addPlayer(human1, false);
+      let l = game.letterBag.removeTile({letter:"X"});
+      remains += l.score;
+      human1.rack.addTile(l);
+      l = game.letterBag.removeTile({letter:"Y"});
+      remains += l.score;
+      human1.rack.addTile(l);
+      l = game.letterBag.removeTile({letter:"Z"});
+      remains += l.score;
+      human1.rack.addTile(l);
+      game.addPlayer(human2, false);
+      // human2's rack is empty
       // Empty the bag
       game.letterBag.getRandomTiles(
         game.letterBag.remainingTileCount());
       game.whosTurnKey = human1.key;
     })
     .then(() => game.connect(socket, human1.key))
-    .then(() => game.confirmGameOver(human1))
-    .then(() => {
-    });
+    .then(() => game.confirmGameOver(human1, State.GAME_OVER));
   });
 
   it("takeBack", () => {

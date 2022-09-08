@@ -210,7 +210,7 @@ define([
 
       this.state = endState || State.GAME_OVER;
 
-      this._debug(`Confirming game over because ${endState}`);
+      this._debug(`Confirming game over because ${this.state}`);
       this.stopTheClock();
 
       // When the game ends, each player's score is reduced by
@@ -221,7 +221,10 @@ define([
       let pointsRemainingOnRacks = 0;
       const deltas = {};
       this.players.forEach(player => {
-        deltas[player.key] = { tiles: 0 };
+        const delta = { tiles: 0 };
+        // Unless undo is enabled, the client receives redacted versions of
+        // the rack tiles. We have to send the actual tiles remaining on racks
+        // for the "game ended" message.
         if (player.rack.isEmpty()) {
           Platform.assert(
             !playerWithNoTiles,
@@ -231,9 +234,12 @@ define([
         else {
           const rackScore = player.rack.score();
           player.score -= rackScore;
-          deltas[player.key].tiles -= rackScore;
+          // Points lost for tiles remaining
+          delta.tiles -= rackScore;
+          // Tiles remaining on this player's rack
+          delta.tilesRemaining = player.rack.lettersLeft().join(",");
           pointsRemainingOnRacks += rackScore;
-          this._debug(`\t${player.name} has ${rackScore} points left`);
+          this._debug(`\t${player.name}: ${rackScore} points left ${delta.tilesRemaining}`);
         }
         if (this.timerType === Timer.GAME && player.clock < 0) {
           const points = Math.round(
@@ -241,8 +247,9 @@ define([
           this._debug(player.name, "over by", -player.clock,
                       "s, score", points, "points");
           if (points < 0)
-            deltas[player.key].time = points;
+            delta.time = points;
         }
+        deltas[player.key] = delta;
       });
 
       if (playerWithNoTiles) {
@@ -250,11 +257,11 @@ define([
         deltas[playerWithNoTiles.key].tiles = pointsRemainingOnRacks;
         this._debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
       }
-      return this.finishTurn(player, {
+      return this.finishTurn(player, new Turn({
         type: Turns.GAME_ENDED,
         endState: endState,
         score: deltas
-      });
+      }));
     }
 
     /**

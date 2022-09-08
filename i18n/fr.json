@@ -134,7 +134,7 @@
   "All players passed twice": "Tous les joueurs ont passé deux fois",
   "log-chall-fail": "Le défi à $1 du jeu à $2 a échoué.",
   "log-challenge-won": "$1 a défié avec succès $2 de jeu",
-  "log-gained": "$1 a gagné $2 de points{{PLURAL:$2||s}} sur les racks des autres joueurs",
+  "gained-from-racks": "$1 a gagné $2 de points{{PLURAL:$2||s}} sur les racks des autres joueurs",
   "log-no-more-tiles": "$1 n'a plus de tuiles, le jeu sera terminé à moins que vous ne défiiez",
   "log-no-play": "Je ne trouve pas de pièce",
   "log-no-tiles": "Vous n'avez plus de tuiles, le jeu sera terminé si votre jeu n'est pas contesté",

@@ -104,11 +104,10 @@ define([
     /**
      * Get a single random tile from the bag. Assumes the bag is
      * already randomised, and there is no need to shuffle it
-     * again. Note that you cannot get random tiles from a wild bag.
+     * again.
      * @return {Tile} a Tile or undefined if there are no tiles left
      */
     getRandomTile() {
-      Platform.assert(!this.isWild);
       if (this.tiles.length > 0)
         return this.tiles.pop();
       return undefined;

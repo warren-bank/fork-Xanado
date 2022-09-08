@@ -667,7 +667,7 @@ describe("Challenges", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       noPlayerShuffle: true,
-      _debug: console.debug,
+      //_debug: console.debug,
       challengePenalty: Penalty.MISS
     });
     const human1 = new Player({
@@ -698,7 +698,7 @@ describe("Challenges", () => {
         assert.equal(turn.type, Turns.GAME_ENDED);
         assert.equal(turn.endState, State.FAILED_CHALLENGE);
         assert.deepEqual(turn.score, {
-          human1: {tiles: 4 }, human2: {tiles: -4}});
+          human1: {tiles: 4 }, human2: {tiles: -4, tilesRemaining: "Q"}});
         assert.equal(turn.playerKey, human2.key);
         assert.equal(turn.nextToGoKey, undefined);
         // Game should be over

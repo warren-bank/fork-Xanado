@@ -136,7 +136,7 @@
   "All players passed twice": "All players passed twice",
   "log-chall-fail": "$1 challenge of $2 play failed.",
   "log-challenge-won": "$1 successfully challenged $2 play.",
-  "log-gained": "$1 gained $2 {{PLURAL:$2|point|points}} from the racks of other players",
+  "gained-from-racks": "$1 gained $2 {{PLURAL:$2|point|points}} from the racks of other players",
   "log-no-more-tiles": "$1 has no more tiles, game will be over unless you challenge",
   "log-no-play": "Can't find a play",
   "log-no-tiles": "You have no more tiles, game will be over if your play isn't challenged",

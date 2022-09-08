@@ -5,7 +5,7 @@
 /**
  * Unit tests for behavious specific to timed games
  */
-describe("Timed games", function() {
+describe("TimedGame", function() {
 
   /* global TestSocket, Platform */
   /* global Edition, Tile, Rack, Player, Game, Move, Turn */
@@ -76,7 +76,8 @@ describe("Timed games", function() {
         break;
       case 4:
         assert.deepEqual(turn.score, {
-          human1: { tiles: -1 }, human2: {tiles: -1 }});
+          human1: { tiles: -1, tilesRemaining: "A" },
+          human2: { tiles: -1, tilesRemaining: "A" }});
         assert.equal(turn.type, Turns.GAME_ENDED);
         assert.equal(turn.endState, State.TWO_PASSES);
         assert.equal(turn.gameKey, game.key);

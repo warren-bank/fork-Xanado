@@ -135,7 +135,7 @@
   "All players passed twice": "Alle Spieler haben zweimal gepasst",
   "log-chall-fail": "$1-Herausforderung von $2-Spiel fehlgeschlagen.",
   "log-challenge-won": "$1 hat $2 erfolgreich herausgefordert.",
-  "log-gained": "$1 hat $2 Punkte{{PLURAL:$2||s}} von den Racks anderer Spieler gewonnen",
+  "gained-from-racks": "$1 hat $2 Punkte{{PLURAL:$2||s}} von den Racks anderer Spieler gewonnen",
   "log-no-more-tiles": "$1 hat keine Kacheln mehr, das Spiel ist vorbei, es sei denn, Sie fordern heraus",
   "log-no-play": "Kann kein Stück finden",
   "log-no-tiles": "Du hast keine Plättchen mehr, das Spiel ist vorbei, wenn dein Spiel nicht herausgefordert wird",

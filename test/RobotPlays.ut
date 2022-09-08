@@ -269,7 +269,7 @@ describe('RobotPlays', () => {
         assert.equal(turn.endState, State.GAME_OVER);
         const exp = {};
         exp[human.key] = { tiles: 4 };
-        exp[robot.key] = { tiles: -4 };
+        exp[robot.key] = { tiles: -4, tilesRemaining: "Q" };
         assert.deepEqual(turn.score, exp);
         assert.equal(turn.playerKey, robot.key);
         assert(!turn.nextToGoKey);
