@@ -64,10 +64,6 @@ define([
        */
       this.config = config;
 
-      Platform.assert(
-        config.defaults,
-        "No config.defaults, see example-config.json for requirements");
-
       /* istanbul ignore if */
       if (config.debug_server)
         this._debug = console.debug;
@@ -84,11 +80,7 @@ define([
        * Games database
        * @member {Database}
        */
-      this.db = new FileDatabase(
-        // Allow (undocumented) override of default /games
-        // database path, primarily for unit testing.
-        config.games || "games",
-        "game");
+      this.db = new FileDatabase(config.games, "game");
 
       /**
        * Map from game key to Game. Games in this map have been loaded
@@ -482,6 +474,8 @@ define([
      * @private
      */
     sendMail(to, req, res, gameKey, subject, text, html) {
+      Platform.assert(this.config.mail && this.config.mail.transport,
+                      "Mail is not configured");
       return this.userManager.getUser(
         {key: req.session.passport.user.key})
       .then(sender => `${sender.name}<${sender.email}>`)

@@ -38,29 +38,66 @@ requirejs([
 
   const Fs = fs.promises;
 
+  // Default configuration.
+  const DEFAULT_CONFIG = {
+    port: 9093,
+    games: "games",
+    defaults: {
+	    edition: "English_Scrabble",
+	    dictionary: "CSW2019_English",
+	    notification: false,
+	    theme: "default",
+	    warnings: true,
+	    cheers: true,
+	    tile_click: true,
+      turn_alert: true
+    }
+  };
+
+  // Populate sparse config structure with defaults from DEFAULT_CONFIG
+  function addDefaults(config, from) {
+    for (const field in from) {
+      if (typeof config[field] === "undefined")
+        config[field] = from[field];
+      else if (typeof from[field] === "object") {
+        if (typeof config[field] !== "object")
+          throw Error(typeof config[field]);
+        addDefaults(config[field], from[field]);
+      }
+    }
+    return config;
+  }
+
   // Command-line arguments
   const cliopt = Getopt.create([
     ["h", "help", "Show this help"],
     ["S", "debug_server", "output cserver debug messages"],
     ["G", "debug_game", "output game logic messages"],
-    ["c", "config=ARG", "Path to config file (default config.json)"]
+    ["c", "config=ARG", "Path to config file"]
   ])
         .bindHelp()
         .setHelp("Xanado server\n[[OPTIONS]]")
         .parseSystem()
         .options;
 
-  // Load config.json
-  Fs.readFile(cliopt.config || "config.json")
-  .then(json => JSON.parse(json))
+  if (!cliopt.config)
+    cliopt.config = "config.json";
 
-  // Configure email
+  Fs.readFile(cliopt.config)
+  .then(json => addDefaults(JSON.parse(json), DEFAULT_CONFIG))
+  .catch(e => {
+    console.error(e);
+    console.warn(`Using default configuration`);
+    return DEFAULT_CONFIG;
+  })
+
   .then(config => {
 
     if (cliopt.debug_server)
       config.debug_server = true;
     if (cliopt.debug_game)
       config.debug_game = true;
+    console.log(config);
     if (config.mail) {
       let transport;
       if (config.mail.transport === "mailgun") {

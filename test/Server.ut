@@ -72,7 +72,6 @@ describe("Server", () => {
 
   const config = {
     auth: {
-      "sessionSecret": "cross words",
       "db_file" : USER_DB_FILE
     },
     defaults: {
@@ -138,7 +137,6 @@ describe("Server", () => {
   it("/games/:gameKey", () => new Promise(resolve => {
     const config = {
       auth: {
-        "sessionSecret": "cross words",
         "db_file" : `${__dirname}/temp/passwd.json`
       },
       defaults: {
@@ -318,7 +316,6 @@ describe("Server", () => {
   it("/createGame - /join - /addRobot - /game - /leave - /removeRobot - /games / - /history - /deleteGame", () => {
     const config = {
       auth: {
-        "sessionSecret": "cross words",
         "db_file" : `${__dirname}/temp/passwd.json`
       },
       defaults: {
@@ -505,7 +502,6 @@ describe("Server", () => {
   it("/anotherGame", () => {
     const config = {
       auth: {
-        "sessionSecret": "cross words",
         "db_file" : `${__dirname}/temp/passwd.json`
       },
       defaults: {
@@ -577,7 +573,6 @@ describe("Server", () => {
   it("/command/:command/:gameKey", () => {
     const config = {
       auth: {
-        "sessionSecret": "cross words",
         "db_file" : `${__dirname}/temp/passwd.json`
       },
       defaults: {

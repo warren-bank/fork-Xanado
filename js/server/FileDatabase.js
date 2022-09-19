@@ -77,7 +77,12 @@ define([
         .then(data => {
           if (typeof release === "function")
             release();
-          return Fridge.thaw(JSON.parse(data), classes);
+          return Fridge.thaw(JSON.parse(data.toString()), classes);
+        })
+        .catch(e => {
+          if (typeof release === "function")
+            release();
+          throw Error(`Error reading ${fn}: ${e}`);
         });
       });
     }

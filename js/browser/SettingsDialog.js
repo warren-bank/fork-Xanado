@@ -23,7 +23,7 @@ define([ "browser/Dialog" ], Dialog => {
     // @override
     createDialog() {
       const curlan = $.i18n().locale;
-      console.log("Curlan",curlan);
+      //console.log("Curlan",curlan);
       const $theme = this.$dlg.find('[name=theme]');
       const $locale = this.$dlg.find('[name=language]');
       return Promise.all([ $.get("/themes"), $.get("/locales") ])

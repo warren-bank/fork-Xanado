@@ -22,7 +22,6 @@ describe("UserManager class", () => {
 
   const config = {
     auth: {
-      "sessionSecret": "cross words",
       "db_file" : `${__dirname}/temp/passwd.json`
     },
     defaults: {
