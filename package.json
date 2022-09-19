@@ -40,6 +40,7 @@
 		"passport-google-oauth20": "^2.0.0",
 		"proper-lockfile": "^4.1.2",
 		"requirejs": ">=2.3.6",
+		"session-file-store": "^1.5.0",
 		"socket.io": ">=4.5.1"
 	},
 	"devDependencies": {
@@ -62,7 +63,7 @@
 		"coverage": "nyc --hook-run-in-context --hook-run-in-this-context --reporter=html --reporter text mocha --extension ut --timeout=5000",
 		"tx": "node bin/checkStrings.js",
 		"update": "ncu -u ",
-		"docker": "docker build . --tag xword"
+		"docker": "docker build . --tag xanado"
 	},
 	"eslintConfig": {
 		"extends": "eslint:recommended",
