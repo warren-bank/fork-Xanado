@@ -41,9 +41,12 @@ This fork has some major differences:
 
 ## Using Docker
 The simplest way to install the game is to use the latest Docker
-image, which you can find at
-https://github.com/cdot/Xanado/pkgs/container/xanado.  The
-Docker image takes care of all dependencies etc. for you.
+image, which you can find on [github](https://github.com/cdot/Xanado/pkgs/container/xanado).
+The Docker image takes care of all dependencies etc. for you. Download the image and:
+```
+$ docker run -p 9093:9093 xanado
+```
+to run the server on port 9093 of the host machine.
 
 ## The Hard Way
 First use `git clone` to clone the repository to your local machine. Then in
@@ -53,12 +56,11 @@ $ npm install
 ```
 to install dependencies.
 
-You must create a configuration file named `config.json` and place it
-in the root directory.  A template configuration file is included in
-['example-config.json'](example-config.json). It can be copied to
-`config.json` and edited as described in the file.
+The default configuration is described [here](CONFIGURATION.md).
+You can override any of the configuration defaults by creating a file named `config.json`
+and placing it in the root directory, or by passing your own file using `--config`.
 
-Once you have a suitable configuration, run the server using:
+Once you are happy wih the configuration, run the server using:
 ```
 $ node server.js
 ```

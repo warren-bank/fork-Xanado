@@ -7,4 +7,4 @@ COPY ["package.json", "package-lock.json*", "./"]
 RUN npm install --production
 COPY . .
 EXPOSE 9093
-CMD [ "node", "server.js", "-c", "docker_config.json" ]
+CMD [ "node", "server.js" ]
