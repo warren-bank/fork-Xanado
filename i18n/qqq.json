@@ -1,6 +1,8 @@
 {
- "@metadata": {
-       "authors": [ "Crawford Currie" ]
+  "@metadata": {
+    "authors": [
+      "Crawford Currie"
+    ]
   },
   "Accept last move": "Button text to accept last move without a challenge",
   "Add robot": "button title",
@@ -8,6 +10,7 @@
   "Advisor": "title of the robot adviser, used for player hints and advice",
   "All players passed twice": "Types.State.TWO_PASSES: reason for end of game",
   "Another game?": "label: button",
+  "BLANK": "blank in letter distribution chart",
   "Can challenge": "checkbox title",
   "Challenge failed": "Types.State.FAILED_CHALLENGE: a challenge failed",
   "Challenges": "fieldset title",
@@ -116,7 +119,7 @@
   "label-allow-takeback": "label: checkbox in game create dialog",
   "label-allow-undo": "label: checkbox in game create dialog",
   "label-another": "label: button",
-  "label-blank-dlg": "dialog title",
+  "label-blank-dlg": "choose blank dialog title",
   "label-create-game": "label: button",
   "label-create-user": "label: button",
   "label-feedback": "fieldset title",
@@ -208,6 +211,7 @@
   "tt-check-type": "tooltip: word check type select in game setup dialog",
   "tt-delete": "tooltip: delete button in game dialog",
   "tt-dictionary": "tooltip: dictionary select",
+  "tt-distribution": "tooltip: letter distribution button",
   "tt-edition": "tooltip: edition select in create game dialog",
   "tt-invite": "tooltip: button in game dialog",
   "tt-invite-mess": "tooltip: input",
@@ -247,5 +251,6 @@
   "word-rejected": "Log message when a player word is auto-rejected $1 is just used for pluralisation, $2 is the missing word",
   "word-there": "output when an allowed word $1 didn't need to be added to dictionary $2",
   "wrong-pass": "reporting a bad password during login, $1 is the user name",
-  "your": "used in compiling complex sentences"
+  "your": "used in compiling complex sentences",
+  "title-dist-dlg": "title for letter distribution dialog"
 }

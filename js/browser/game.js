@@ -848,6 +848,9 @@ define([
       $(".pauseButton")
       .toggle(game.timerType);
 
+      $(".distributionButton")
+      .on("click", () => this.showLetterDistributions());
+
       $(".undoButton")
       .on(
         "click", () => {
@@ -1258,6 +1261,27 @@ define([
         if (this.getSetting("tile_click"))
           this.playAudio("tiledown");
       }
+    }
+
+    /**
+     * Show letter distributions dialog (non-modal)
+     */
+    showLetterDistributions() {
+      $.get(`/edition/${this.game.edition}.js`)
+      .then(dist => {
+        const $dlg = $("#distributionDialog");
+        const $tab = $dlg.find(".distribution");
+        $tab.empty();
+        $tab.append(
+          dist.bag.map(t => t.isBlank ? `${$.i18n("BLANK")}-${t.count}`
+                       : `${t.letter}-${t.count}`).join(" "));
+
+        $dlg.dialog({
+          title: $.i18n("title-dist-dlg"),
+          modal: false,
+          closeText: "hide"
+        });
+      });
     }
 
     /**

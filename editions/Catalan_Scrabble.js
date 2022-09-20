@@ -1,7 +1,6 @@
 define(["editions/_Scrabble"], (Scrabble) => {
   const scrabble = Scrabble();
   scrabble.bag = [
-    {                score: 0, count: 2 },
     { letter:   "A", score:  1, count: 12 },
     { letter:   "B", score:  3, count:  2 },
     { letter:   "C", score:  3, count:  2 },
@@ -27,7 +26,8 @@ define(["editions/_Scrabble"], (Scrabble) => {
     { letter:   "U", score:  1, count:  4 },
     { letter:   "V", score:  1, count:  1 },
     { letter:   "X", score: 10, count:  1 },
-    { letter:   "Z", score: 10, count:  1 }
+    { letter:   "Z", score: 10, count:  1 },
+    {                score: 0, count: 2 }
   ];
   
   return scrabble;

@@ -1,6 +1,9 @@
 {
   "@metadata": {
-    "authors": [ "Crawford Currie", "Google translate" ],
+    "authors": [
+      "Crawford Currie",
+      "Google translate"
+    ],
     "locale": "it",
     "NOTE": "Use checkStrings.js to determine what needs to be translated."
   },
@@ -9,6 +12,7 @@
   "Add": "Aggiungere",
   "Advisor": "Consulente",
   "Another game?": "Un altro gioco?",
+  "BLANK": "VUOTO",
   "Can challenge": "Può sfidare",
   "Challenge failed": "Sfida fallita",
   "Challenges": "Sfide",
@@ -197,6 +201,7 @@
   "text-reset-sent": "L'e-mail di reimpostazione della password è stata inviata",
   "text-sign-in": "Per giocare in un gioco devi prima accedere. Potresti essere in grado di accedere utilizzando un servizio pubblico, come Google o Facebook, oppure puoi creare il tuo utente XANADO.",
   "tiles-left": "$1 tessera{{PLURAL:$1||s}} rimasta nella borsa",
+  "title-dist-dlg": "Distribuzione di lettere",
   "title-game-dlg": "Gioco $1",
   "took-back-turn": "$1 ha ripreso il loro turno",
   "tooltip-redo": "Ripeti l'ultima giocata annullata",
@@ -208,6 +213,7 @@
   "tt-check-type": "Puoi controllare le parole dopo che il gioco è stato commesso (solo al giocatore viene detto se la parola è valida) o fare in modo che il computer rifiuti le parole sconosciute",
   "tt-delete": "ATTENTO! Questo non può essere annullato!",
   "tt-dictionary": "Un dizionario è facoltativo per i giochi con giocatori umani, ma puoi selezionarne uno da utilizzare per controllare automaticamente le sfide. Un dizionario è richiesto per i giocatori di computer",
+  "tt-distribution": "Mostra la distribuzione delle lettere",
   "tt-edition": "Seleziona il gioco a cui vuoi giocare",
   "tt-invite": "Invia e-mail per invitare le persone a partecipare al gioco",
   "tt-invite-mess": "Aggiungi un messaggio che verrà incluso nell'e-mail di invito",

@@ -13,7 +13,6 @@ define(() => {
   ];
 
   const BAG = [
-    { score: 0, count: 1 },
     { letter: "A", score: 1, count: 5 },
     { letter: "B", score: 3, count: 1 },
     { letter: "C", score: 3, count: 1 },
@@ -39,7 +38,8 @@ define(() => {
     { letter: "W", score: 3, count: 1 },
     { letter: "X", score: 2, count: 1 },
     { letter: "Y", score: 2, count: 1 },
-    { letter: "Z", score: 4, count: 1 }
+    { letter: "Z", score: 4, count: 1 },
+    { score: 0, count: 1 }
   ];
 
   return {

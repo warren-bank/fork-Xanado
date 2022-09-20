@@ -1,6 +1,9 @@
 {
- "@metadata": {
-       "authors": [ "Crawford Currie", "Google Translate" ],
+  "@metadata": {
+    "authors": [
+      "Crawford Currie",
+      "Google Translate"
+    ],
     "locale": "de"
   },
   "Accept last move": "Letzten Zug akzeptieren",
@@ -8,6 +11,7 @@
   "Add": "Addieren",
   "Advisor": "Berater",
   "Another game?": "Ein anderes Spiel?",
+  "BLANK": "LEER",
   "Can challenge": "Kann herausfordern",
   "Challenge failed": "Herausforderung fehlgeschlagen",
   "Challenges": "Herausforderungen",
@@ -22,7 +26,6 @@
   "Enabled": "Aktiviert",
   "Finished Turn": "Beendete Runde",
   "Game over": "Spiel vorbei",
-  "Game setup": "Game setup",
   "Game setup": "Spiel-Setup",
   "Game started": "Spiel gestartet",
   "Game timer": "Spieltimer",
@@ -196,6 +199,7 @@
   "text-reset-sent": "E-Mail zum Zurücksetzen des Passworts wurde gesendet",
   "text-sign-in": "Um in einem Spiel zu spielen, müssen Sie sich zuerst anmelden. Möglicherweise können Sie sich über einen öffentlichen Dienst wie Google oder Facebook anmelden oder Ihren eigenen XANADO-Benutzer erstellen.",
   "tiles-left": "$1 Plättchen{{PLURAL:$1||s}} noch im Beutel",
+  "title-dist-dlg": "Verteilung von Buchstaben",
   "title-game-dlg": "Spiel $1",
   "took-back-turn": "$1 ist wieder an der Reihe",
   "tooltip-redo": "Letztes rückgängig gemachtes Spiel wiederholen",
@@ -206,6 +210,7 @@
   "tt-check-type": "Wählen Sie aus, welche Art von Wortprüfung Sie wünschen. Sie können Wörter überprüfen, nachdem das Spiel ausgeführt wurde (nur dem Spieler wird mitgeteilt, ob das Wort gültig ist) oder den Computer unbekannte Wörter ablehnen lassen.",
   "tt-delete": "ACHTUNG! Dies kann nicht rückgängig gemacht werden!",
   "tt-dictionary": "Ein Wörterbuch ist für Spiele mit menschlichen Spielern optional, aber für Computerspieler erforderlich und kann verwendet werden, um Herausforderungen zu automatisieren",
+  "tt-distribution": "Buchstabenverteilung anzeigen",
   "tt-edition": "Wählen Sie das Spiel aus, das Sie spielen möchten",
   "tt-invite": "E-Mails senden, um Personen zur Teilnahme am Spiel einzuladen",
   "tt-invite-mess": "Fügen Sie eine Nachricht hinzu, die in der Einladungs-E-Mail enthalten sein wird",
@@ -242,7 +247,7 @@
   "using-dic": "Wörterbuch $1 verwenden",
   "warn-2-tiles": "Das erste Wort muss aus mindestens zwei Kacheln bestehen",
   "warn-disco": "Getrennte Platzierung",
-  "warn-empty-bag": "Der Briefsack ist leer",
+  "warn-empty-bag": "Der Buchstabensack ist leer",
   "was-advised": "$1 hat Ratschläge vom Roboter erhalten",
   "who-won": "$1 gewonnen",
   "word-not-found": "$1 nicht in $2 gefunden",

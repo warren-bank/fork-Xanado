@@ -19,6 +19,7 @@
   "Advisor": "Conseller",
   "All players passed twice": "Tots els jugadors han passat dues vegades",
   "Another game?": "Voleu un altra partida?",
+  "BLANK": "BUIT",
   "Can challenge": "Es pot impugnar",
   "Challenge failed": "La impugnació ha fallat",
   "Challenges": "Impugnacions",
@@ -31,7 +32,7 @@
   "Dictionary": "Diccionari",
   "Disabled": "Desactivat",
   "Email": "Adreça electrònica",
-  "label-allow-undo": "Permet desfer i refer",
+  "label-allow-undo": "Permet desfer/refer",
   "Enabled": "Activat",
   "Finished Turn": "Final del torn",
   "Game over": "La partida ha finalitzat",
@@ -230,8 +231,8 @@
   "tt-add-robot": "Afegeix un jugador robot a la partida.",
   "tt-allow-takeback": "Deixa que el jugador que acaba de jugar desfaci la jugada abans que el següent jugador impugni o jugui",
   "tt-allow-undo": "Permetre als jugadors desfer jugades anteriors",
-  "label-allow-undo": "Permet desfer/refer",
   "title-game-dlg": "Joc $1",
+  "tt-distribution": "Mostrar distribució de lletres",
   "tt-robot-wait": "Quants segons ha d'esperar el robot abans que pugui jugar. Establir-ho més temps dóna al jugador anterior més temps per recuperar el seu moviment (o per pensar!)",
   "tt-can-chall": "Seleccioneu si el jugador robot pot impugnar jugades.",
   "tt-dictionary": "El diccionari és opcional per a partides de jugadors humans, però podeu seleccionar-ne un per a utilitzar-lo per a comprovar automàticament les impugnacions. Es requereix un diccionari per als jugadors robot.",
@@ -252,5 +253,6 @@
   "tt-max-time": "«Temps màxim per torn» és el temps màxim permès durant un torn. «Temmps màxim per partida» és el temps total màxim per a un jugador per fer totes les jugades abans de rebre penalitzacions.",
   "tt-time-penalty": "Només «Temps màxim per partida»; punts perduts durant cada minut que el jugador ha superat el temps assignat. Per defecte són 5 punts.",
   "tt-turn-timer": "«Temps màxim per torn» us permet assginar un temps màxim per a cada jugador abans de passar. «Temps màxim per partida» és com un rellotge d'escacs, us permet assignar un temps total a un jugador per a fer totes les jugades abans de rebre una penalització",
-  "tt-check-type": "Podeu verificar els mots després d'enviar la jugada (només s'informa a l'usuari si el mot és vàlid)"
+  "tt-check-type": "Podeu verificar els mots després d'enviar la jugada (només s'informa a l'usuari si el mot és vàlid)",
+  "title-dist-dlg": "Distribució de lletres"
 }

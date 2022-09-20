@@ -273,6 +273,10 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
   align-items: center;
 }
 
+#playRack .distributionButton {
+  font-weight: bold;
+}
+
 #playRack .rack{
 }
 

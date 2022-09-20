@@ -1,14 +1,17 @@
 {
   "@metadata": {
-       "authors": [ "Crawford Currie" ],
+    "authors": [
+      "Crawford Currie"
+    ],
     "locale": "en",
-       "NOTE": "Use checkStrings.js to determine what needs to be translated."
+    "NOTE": "Use checkStrings.js to determine what needs to be translated."
   },
   "Accept last move": "Accept last move",
   "Add robot": "Add robot",
   "Add": "Add",
   "Advisor": "Advisor",
   "Another game?": "Another game?",
+  "BLANK": "BLANK",
   "Can challenge": "Can challenge",
   "Challenge failed": "Challenge failed",
   "Challenges": "Challenges",
@@ -197,6 +200,7 @@
   "text-reset-sent": "Password reset email has been sent",
   "text-sign-in": "To play in a game you have to sign in first. You may be able to sign in using a public service, such as Google or Facebook, or you can create your own XANADO user.",
   "tiles-left": "$1 {{PLURAL:$1|tile|tiles}} left in the bag",
+  "title-dist-dlg": "Letter distribution",
   "title-game-dlg": "Game $1",
   "took-back-turn": "$1 has taken back their turn",
   "tooltip-redo": "Re-do the last undone play",
@@ -208,6 +212,7 @@
   "tt-check-type": "You can check words after the play is committed (only the player is told if the word is valid) or have the computer reject unknown words",
   "tt-delete": "CAREFUL! This cannot be undone!",
   "tt-dictionary": "A dictionary is optional for human player games, but you can select one to use to automatically check challenges. A dictionary is required for computer players",
+  "tt-distribution": "Show letter distribution",
   "tt-edition": "Select the game you want to play",
   "tt-invite": "Send emails to invite people to join the game",
   "tt-invite-mess": "Add a message that will be included in the invitation email",

@@ -1,6 +1,9 @@
 {
- "@metadata": {
-       "authors": [ "Crawford Currie", "Google Translate" ],
+  "@metadata": {
+    "authors": [
+      "Crawford Currie",
+      "Google Translate"
+    ],
     "locale": "fr"
   },
   "Accept last move": "Accepter le dernier coup",
@@ -8,6 +11,7 @@
   "Add": "Ajouter",
   "Advisor": "Conseiller",
   "Another game?": "Un autre jeu?",
+  "BLANK": "VIDE",
   "Can challenge": "Peut défier",
   "Challenge failed": "Échec du défi",
   "Challenges": "Défis",
@@ -195,6 +199,7 @@
   "text-reset-sent": "L'e-mail de réinitialisation du mot de passe a été envoyé",
   "text-sign-in": "Pour jouer à un jeu, vous devez d'abord vous connecter. Vous pourrez peut-être vous connecter en utilisant un service public, tel que Google ou Facebook, ou vous pouvez créer votre propre utilisateur XANADO.",
   "tiles-left": "$1 tuile{{PLURAL:$1||s}} reste dans le sac",
+  "title-dist-dlg": "Distribution de lettres",
   "title-game-dlg": "Jeu $1",
   "took-back-turn": "$1 a repris son tour",
   "tooltip-redo": "Refaire la dernière lecture annulée",
@@ -205,6 +210,7 @@
   "tt-check-type": "Sélectionnez le type de vérification de mots que vous souhaitez. Vous pouvez vérifier les mots une fois le jeu validé (seul le joueur est informé si le mot est valide) ou demander à l'ordinateur de rejeter les mots inconnus.",
   "tt-delete": "ATTENTION! Cela ne peut pas être annulé!",
   "tt-dictionary": "Un dictionnaire est facultatif pour les jeux de joueurs humains, mais est requis pour les joueurs sur ordinateur et peut être utilisé pour automatiser les défis",
+  "tt-distribution": "Afficher la distribution des lettres",
   "tt-edition": "Sélectionnez le jeu auquel vous voulez jouer",
   "tt-invite": "Envoyer des e-mails pour inviter des personnes à rejoindre le jeu",
   "tt-invite-mess": "Ajouter un message qui sera inclus dans l'e-mail d'invitation",

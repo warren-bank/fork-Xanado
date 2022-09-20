@@ -166,6 +166,11 @@ define([
         .catch(next));
 
       cmdRouter.get(
+        "/edition/:edition",
+        (req, res, next) => this.GET_edition(req, res)
+        .catch(next));
+
+      cmdRouter.get(
         "/dictionaries",
         (req, res, next) => this.GET_dictionaries(req, res)
         .catch(next));
@@ -637,11 +642,29 @@ define([
      * when the response has been sent.
      * @private
      */
-    GET_editions(req, res, next) {
+    GET_editions(req, res) {
       return Fs.readdir(Platform.getFilePath("editions"))
       .then(list => res.status(200).send(
         list.filter(f => /^[^_].*\.js$/.test(f))
         .map(fn => fn.replace(/\.js$/, ""))));
+    }
+
+    /**
+     * Get the named edition.
+     * @param {Request} req the request object
+     * @param {string} req.params.edition name of edition to send
+     * @param {Response} res the response object. The response body
+     * will be the JSON for the edition.
+     * @return {Promise} promise that resolves to undefined
+     * when the response has been sent.
+     * @private
+     */
+    GET_edition(req, res) {
+      return Edition.load(req.params.edition)
+      .then(edition => {
+        console.log(edition);
+        res.status(200).send(edition);
+      });
     }
 
     /**
@@ -981,7 +1004,7 @@ define([
      * the defaults object from the server configuration file.
      */
     GET_defaults(req, res) {
-      res.send(this.config.defaults);
+      res.status(200).send(this.config.defaults);
     }
 
     /**
