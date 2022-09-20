@@ -29,8 +29,10 @@ define([ "browser/Dialog" ], Dialog => {
       return Promise.all([ $.get("/themes"), $.get("/locales") ])
       .then(all => {
         all[0].forEach(d => $theme.append(`<option>${d}</option>`));
-        all[1].sort((a, b) => new RegExp(`^${a}`,"i").test(curlan) ? -1 :
-                    new RegExp(`^${b}`,"i").test(curlan) ? 1 : 0)
+        all[1]
+        .filter(d => d !== "qqq")
+        .sort((a, b) => new RegExp(`^${a}`,"i").test(curlan) ? -1 :
+              new RegExp(`^${b}`,"i").test(curlan) ? 1 : 0)
         .forEach(d => $locale.append(`<option>${d}</option>`));
         $theme.selectmenu();
         $locale.selectmenu();

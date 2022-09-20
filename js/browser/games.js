@@ -10,12 +10,17 @@ requirejs([
   "platform", "common/Utils",
   "browser/UI", "browser/Dialog",
   "common/Types", "game/Player", "game/Game",
-  "jquery"
+  "cldrpluralruleparser"
 ], (
   Platform, Utils,
   UI, Dialog,
-  Types, Player, Game
+  Types, Player, Game,
+  cldrpluralruleparser
 ) => {
+
+  // Importing the AMD module for cldrpluralruleparser is not enough;
+  // we have to set the global symbol too.
+  pluralRuleParser = cldrpluralruleparser;
 
   const TWIST_OPEN = "\u25BC";
   const TWIST_CLOSE = "\u25B2";

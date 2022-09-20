@@ -97,7 +97,8 @@ requirejs([
       config.debug_server = true;
     if (cliopt.debug_game)
       config.debug_game = true;
-    console.log(config);
+    if (config.debug_server)
+      console.debug(config);
     if (config.mail) {
       let transport;
       if (config.mail.transport === "mailgun") {

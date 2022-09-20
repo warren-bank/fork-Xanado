@@ -2,9 +2,11 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
+/* global pluralRuleParser */
 
 define([
   "socket.io-client",  "browser/Dialog", "platform", "common/Utils",
+  "cldrpluralruleparser",
 
   "jquery",
   "jqueryui",
@@ -13,11 +15,14 @@ define([
   "i18n_fallbacks",
   "i18n_language",
   "i18n_messagestore",
-  "i18n_parser",
-  "cldrpluralruleparser"
+  "i18n_parser"
 ], (
-  Sockets, Dialog, Platform, Utils
+  Sockets, Dialog, Platform, Utils, cldrpluralruleparser
 ) => {
+
+  // Importing the AMD module for cldrpluralruleparser is not enough;
+  // we have to set the global symbol too.
+  pluralRuleParser = cldrpluralruleparser;
 
   /**
    * Common code shared between game and games interfaces
