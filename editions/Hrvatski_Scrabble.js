@@ -1,5 +1,5 @@
-// Croatian
-// @see https://www.liquisearch.com/scrabble_letter_distributions/croatian
+// Hrvatski
+// @see https://en.wikipedia.org/wiki/Scrabble_letter_distributions#Croatian
 define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();

@@ -36,6 +36,7 @@ This fork has some major differences:
 * Can optionally let players explore alternative moves.
 * The UI has been massaged to make it more mobile device friendly, and translated to several languages.
 * Lots of bug fixes and small improvements.
+* Tile sets for many different languages.
 
 # Installation
 
@@ -163,7 +164,7 @@ games that can be played. Each specification is made up from:
 * Bonuses to be given for long words
 
 The following editions are included:
-* Scrabble, with tile sets for several languages
+* Scrabble, with tile sets for many languages
 * SuperScrabble (21x21 board)
 * Words with Friends
 * Lexulous

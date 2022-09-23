@@ -1,5 +1,5 @@
-// Arabic
-// @see https://www.liquisearch.com/scrabble_letter_distributions/arabic
+// العربية
+// @see https://en.wikipedia.org/wiki/Scrabble_letter_distributions#Arabic
 define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();

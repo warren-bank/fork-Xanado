@@ -1,5 +1,5 @@
-// Italian
-// @see https://www.liquisearch.com/scrabble_letter_distributions/italian
+// Italiano
+// @see https://en.wikipedia.org/wiki/Scrabble_letter_distributions#Italian
 define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();

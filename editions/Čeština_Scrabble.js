@@ -1,5 +1,5 @@
-// Czech
-// @see https://www.liquisearch.com/scrabble_letter_distributions/czech
+// Čeština
+// @see https://en.wikipedia.org/wiki/Scrabble_letter_distributions#Czech
 define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();

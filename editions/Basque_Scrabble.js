@@ -1,5 +1,5 @@
 // Basque
-// @see https://www.liquisearch.com/scrabble_letter_distributions/basque
+// @see https://www.liquisearch.com/scrabble_letter_distributions#basque
 define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();

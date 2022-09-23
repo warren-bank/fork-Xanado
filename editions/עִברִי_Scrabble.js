@@ -1,5 +1,5 @@
-// Hebrew
-// @see https://www.liquisearch.com/scrabble_letter_distributions/hebrew
+// עִברִי
+// @see https://en.wikipedia.org/wiki/Scrabble_letter_distributions#Hebrew
 define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();

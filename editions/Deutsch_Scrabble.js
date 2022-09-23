@@ -1,5 +1,5 @@
-// German
-// @see https://www.liquisearch.com/scrabble_letter_distributions/german
+// Deutsch
+// @see https://en.wikipedia.org/wiki/Scrabble_letter_distributions#German
 define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();

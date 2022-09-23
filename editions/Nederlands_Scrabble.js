@@ -1,7 +1,9 @@
-define(["editions/_Scrabble"], (Scrabble) => {
+// Nederlands
+// @see https://en.wikipedia.org/wiki/Scrabble_letter_distributions#Dutch
+define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();
-  
+
   scrabble.bag = [
     { letter: "A", score: 1, count: 6 },
     { letter: "B", score: 3, count: 2 },
@@ -27,7 +29,7 @@ define(["editions/_Scrabble"], (Scrabble) => {
     { letter: "V", score: 4, count: 2 },
     { letter: "W", score: 5, count: 2 },
     { letter: "X", score: 8, count: 1 },
-    { letter: "Y", score: 4, count: 2 },
+    { letter: "Y", score: 8, count: 1 },
     { letter: "Z", score: 4, count: 2 },
     { score: 0, count: 2 }
   ];

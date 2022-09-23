@@ -1,5 +1,5 @@
-// Greek
-// @see https://www.liquisearch.com/scrabble_letter_distributions/greek
+// ελληνικός
+// @see https://en.wikipedia.org/wiki/Scrabble_letter_distributions#Greek
 define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();

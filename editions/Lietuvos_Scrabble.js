@@ -1,5 +1,5 @@
-// Lithuanian
-// @see https://www.liquisearch.com/scrabble_letter_distributions/lithuanian
+// Lietuvos
+// @see https://en.wikipedia.org/wiki/Scrabble_letter_distributions#Lithuanian
 define(["editions/_Scrabble"], Scrabble => {
 
   const scrabble = Scrabble();
