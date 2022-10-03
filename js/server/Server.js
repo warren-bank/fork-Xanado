@@ -143,7 +143,7 @@ define([
       cmdRouter.get(
         "/",
         (req, res) => res.sendFile(
-          Platform.getFilePath("html/games.html")));
+          Platform.getFilePath("html/games_ui.html")));
 
       cmdRouter.get(
         "/games/:send",
@@ -776,7 +776,7 @@ define([
       Platform.assert(req.body.player, "Nobody to notify");
       const gameKey = req.params.gameKey;
       const gameURL =
-            `${req.protocol}://${req.get("Host")}/html/games.html?untwist=${gameKey}`;
+            `${req.protocol}://${req.get("Host")}/html/games_ui.html?untwist=${gameKey}`;
       let textBody = (req.body.message || "") + "\n" + Platform.i18n(
         "email-invite-plain", gameURL);
       // Handle XSS risk posed by HTML in the textarea

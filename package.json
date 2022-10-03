@@ -56,6 +56,7 @@
 	},
 	"scripts": {
 		"server": "node server.js",
+		"debug": "node server.js --debug_game --debug_server",
 		"doc": "jsdoc --verbose -c doc/config.json -r -p -d doc js",
 		"lint": "eslint js -f unix",
 		"test": "mocha --extension ut --timeout=5000",

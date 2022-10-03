@@ -735,7 +735,7 @@ describe("Server", () => {
             assert.equal(email.subject, Platform.i18n("email-invited"));
             assert(email.text);
             assert(email.text.indexOf("Hollow Wurld") >= 0);
-            assert(email.text.indexOf(`/html/games.html?untwist=${gamekey}`) >= 0);
+            assert(email.text.indexOf(`/html/games_ui.html?untwist=${gamekey}`) >= 0);
             return Promise.resolve();
           }
         }

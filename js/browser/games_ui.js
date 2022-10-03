@@ -4,7 +4,7 @@
 /* eslint-env browser, jquery */
 
 /**
- * Browser app for games.html; populate the list of live games
+ * Browser app for games_ui.html; populate the list of live games
  */
 requirejs([
   "platform", "common/Utils",
@@ -144,7 +144,7 @@ requirejs([
     joinGame(game) {
       $.post(`/join/${game.key}`)
       .then(info => {
-        window.open(`/html/game.html?game=${game.key}&player=${this.session.key}`, "_blank");
+        window.open(`/html/game_ui.html?game=${game.key}&player=${this.session.key}`, "_blank");
         this.refresh_game(game.key);
       })
       .catch(UI.report);
@@ -218,7 +218,7 @@ requirejs([
           console.log("Observe game", this.game.key,
                       "as", name);
           window.open(
-            `/html/game.html?game=${this.game.key};observer=${name}`,
+            `/html/game_ui.html?game=${this.game.key};observer=${name}`,
             "_blank");
           this.refresh_game(this.game.key);
         }

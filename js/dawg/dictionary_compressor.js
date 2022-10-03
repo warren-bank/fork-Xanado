@@ -9,8 +9,8 @@
  * word lexicon. Generates a somewhat optimised Trie, encodes it in
  * an integer array, which it then gzips.
  *
- * `node js/dawg/compressor.js` will tell you how to use it.
- * @module compressor
+ * `node js/dawg/dictionary_compressor.js` will tell you how to use it.
+ * @module dictionary_compressor
  */
 
 const requirejs = require("requirejs");

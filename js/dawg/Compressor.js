@@ -4,7 +4,8 @@
 /* eslint-env node */
 
 /**
- * AMD module defining the body of the 'compressor' command-line program
+ * AMD module defining the body of the 'dictionary_compressor'
+ * command-line program
  */
 define([
   "fs", "node-gzip", "dawg/Trie"

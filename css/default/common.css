@@ -2,7 +2,7 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /**
- * CSS shared between the "games" and "game" interfaces
+ * CSS shared between the "games_ui" and "game_ui" interfaces
  */
 body {
   font-family: helvetica, arial, sans-serif;

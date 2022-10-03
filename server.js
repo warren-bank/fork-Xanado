@@ -71,7 +71,7 @@ requirejs([
   // Command-line arguments
   const cliopt = Getopt.create([
     ["h", "help", "Show this help"],
-    ["S", "debug_server", "output cserver debug messages"],
+    ["S", "debug_server", "output server debug messages"],
     ["G", "debug_game", "output game logic messages"],
     ["c", "config=ARG", "Path to config file"]
   ])

@@ -1587,7 +1587,7 @@ define([
       $.post(`/join/${key}`)
       .then(info => {
         location.replace(
-          `/html/game.html?game=${key}&player=${this.player.key}`);
+          `/html/game_ui.html?game=${key}&player=${this.player.key}`);
       })
       .catch(console.error);
     }
