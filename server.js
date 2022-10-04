@@ -50,6 +50,7 @@ requirejs([
 	    warnings: true,
 	    cheers: true,
 	    tile_click: true,
+      one_window: false,
       turn_alert: true
     }
   };

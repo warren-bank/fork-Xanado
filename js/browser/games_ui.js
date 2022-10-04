@@ -143,8 +143,13 @@ requirejs([
     joinGame(game) {
       $.post(`/join/${game.key}`)
       .then(info => {
-        window.open(`/html/game_ui.html?game=${game.key}&player=${this.session.key}`, "_blank");
-        this.refresh_game(game.key);
+        const url = `/html/game_ui.html?game=${game.key}&player=${this.session.key}`;
+        if (this.getSetting("one_window"))
+          location.replace(url);
+        else {
+          window.open(url, "_blank");
+          this.refresh_game(game.key);
+        }
       })
       .catch(UI.report);
     }
