@@ -399,8 +399,7 @@ define([
         }
         this._debug("getUser", desc, "failed; no such user in",
                     db.map(uo=>uo.key).join(";"));
-        throw new Error(
-          /*i18n*/"player-unknown");
+        throw new Error(/*i18n*/"player-unknown");
       });
     }
 

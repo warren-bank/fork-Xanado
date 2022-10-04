@@ -179,7 +179,7 @@ define(() => {
 
       this.enableSubmit();
 
-      console.log("Created", this.id);
+      console.debug("Created", this.id);
       return Promise.resolve();
     }
 
@@ -189,7 +189,7 @@ define(() => {
      * @return {Promise} promise that resolves to undefined
      */
     openDialog() {
-      console.log("Opening", this.id);
+      console.debug("Opening", this.id);
       this.$dlg.data("this", this);
       return Promise.resolve(this);
     }
@@ -282,6 +282,11 @@ define(() => {
           this.options.postResult(data);
       })
       .catch((jqXHR, textStatus, errorThrown) => {
+        // Note that the console sees an XML parsing error on a 401
+        // response to /login, due to the response body containing a
+        // non-XML string ("Unauthorized"). It would be nice to catch
+        // this gracefully and suppress the console print, but I can't
+        // find any way to do that.
         if (typeof this.options.error === "function")
           this.options.error(jqXHR);
         else
@@ -306,7 +311,7 @@ define(() => {
      * @return {Promise} resolving to the Dialog object
      */
     static open(dlg, options) {
-      console.log("Static open", dlg, options);
+      console.debug("Static open", dlg, options);
       return new Promise(resolve => {
         requirejs([`browser/${dlg}`], Clas => {
           let inst = instances[dlg];
@@ -314,7 +319,6 @@ define(() => {
             if (options)
               Object.assign(inst.options, options);
             if (!inst.$dlg.dialog("isOpen")) {
-              console.log("Open trigger", inst.options.game.key);
               // Options for a particular showing of the dialog
               for (const opt of ["height", "width", "title" ]) {
                 if (typeof options[opt] !== "undefined")

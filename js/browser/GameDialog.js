@@ -95,7 +95,6 @@ define(["browser/Dialog", "common/Types"], (Dialog, Types) => {
         this.options.game = game;
       else
         game = this.options.game;
-      console.log("Populating", game.key);
       this.$dlg.attr("name", game.key);
 
       const $options = this.$dlg.find("button[name=options]");

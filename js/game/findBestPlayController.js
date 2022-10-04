@@ -40,7 +40,7 @@ define([
       if (game.timerType === Timer.TURN) {
         /* istanbul ignore next */
         timer = setTimeout(() => {
-          console.log("findBestPlay timed out");
+          console.error("findBestPlay timed out");
           worker.terminate();
         }, game.timeAllowed * 60000);
       }

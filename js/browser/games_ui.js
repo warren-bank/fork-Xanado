@@ -53,7 +53,6 @@ requirejs([
 
       $("#reminder-button")
       .on("click", () => {
-        console.log("Send reminders");
         $.post("/sendReminder/*")
         .then(info => $("#alertDialog")
               .text($.i18n.apply(null, info))
@@ -84,7 +83,7 @@ requirejs([
       .on("click", () => {
         $.post("/logout")
         .then(result => {
-          console.log("Logged out", result);
+          console.debug("Logged out", result);
           this.session = undefined;
           this.refresh().catch(UI.report);
         })
@@ -215,7 +214,7 @@ requirejs([
         close: function() {
           const name = encodeURIComponent(
             $(this).find("#observerName").val());
-          console.log("Observe game", this.game.key,
+          console.debug("Observe game", this.game.key,
                       "as", name);
           window.open(
             `/html/game_ui.html?game=${this.game.key};observer=${name}`,
@@ -274,7 +273,7 @@ requirejs([
             content: $.i18n("tt-open")
           })
           .on("click", () => {
-            console.log(`Join game ${game.key}/${this.session.key}`);
+            console.debug(`Join game ${game.key}/${this.session.key}`);
             $.post(`/join/${game.key}`)
             .then(() => this.joinGame(game))
             .catch(UI.report);
@@ -289,7 +288,7 @@ requirejs([
             content: $.i18n("tt-leave")
           })
           .on("click", () => {
-            console.log(`Leave game ${game.key}`);
+            console.debug(`Leave game ${game.key}`);
             $.post(`/leave/${game.key}`)
             .then(() => this.refresh_game(game.key))
             .catch(UI.report);
@@ -306,7 +305,7 @@ requirejs([
             content: $.i18n("tt-remove-robot")
           })
           .on("click", () => {
-            console.log(`Remove robot from ${game.key}`);
+            console.debug(`Remove robot from ${game.key}`);
             $.post(`/removeRobot/${game.key}`)
             .then(() => this.refresh_game(game.key))
             .catch(UI.report);
@@ -326,7 +325,7 @@ requirejs([
             content: $.i18n("tt-send-rem")
           })
           .on("click", () => {
-            console.log("Send reminder");
+            console.debug("Send reminder");
             $.post(`/sendReminder/${game.key}`)
             .then(names => $("#alertDialog")
                   .text($.i18n(/*i18n*/"player-reminded", names.join(", ")))
@@ -364,7 +363,6 @@ requirejs([
      * @param {Game|object} game a Game or Game.simple
      */
     show_game(game) {
-      console.log(`Reshow ${game.key}`);
       // Update the games list and dialog headlines as appropriate
       $(`#${game.key}`).replaceWith(game.$headline());
       // Update the dialog if appropriate

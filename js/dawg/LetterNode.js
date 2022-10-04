@@ -303,12 +303,12 @@ define([ "platform" ], Platform => {
 
         if (i >= 0) {
           const match = chars[i];
-          //onsole.debug("Found", match, "in chars");
+          //console.debug("Found", match, "in chars");
 
           // The char is available from chars.
           // Is this then a word?
           if (node.isEndOfWord) {
-            //console.log("Found", realWord + node.letter);
+            //console.debug("Found", realWord + node.letter);
             // A word is found
             foundWords[realWord + node.letter]
             = blankedWord + match;

@@ -84,7 +84,7 @@ define([
         modal: true,
         title: $.i18n("XANADO problem")
       })
-      .append(`<p>${message}</p>`);
+      .html(`<p>${message}</p>`);
     }
 
     /**
@@ -150,7 +150,7 @@ define([
         // Expand/translate strings in the HTML
         return new Promise(resolve => {
           $(document).ready(() => {
-            console.log("Translating HTML to", $.i18n().locale);
+            console.debug("Translating HTML to", $.i18n().locale);
             $("body").i18n();
             resolve(locales);
           });
