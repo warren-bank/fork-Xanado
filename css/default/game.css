@@ -6,14 +6,14 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
  * Styling for the "game_ui" interface
  */
 
-/*------------ GENERIC ------------*/
-
-/* Wraps everything */
+/* Wraps UI components */
 .user-interface {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
 }
+
+/*------------ GENERIC ------------*/
 
 /* Override jquery-ui for shuffle and take-back buttons */
 .fat-button {

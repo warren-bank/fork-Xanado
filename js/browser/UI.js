@@ -173,7 +173,11 @@ define([
         this.socket = Sockets.connect();
         this.attachSocketListeners();
       })
-      .then(() => this.attachHandlers());
+      .then(() => this.attachHandlers())
+      .then(() => {
+        $(".loading").hide();
+        $(".waiting").removeClass("waiting");
+      });
     }
 
     /**
@@ -213,8 +217,6 @@ define([
           error: UI.report
         });
       });
-
-      $(".user-interface").show();
     }
 
     /**

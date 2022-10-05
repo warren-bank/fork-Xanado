@@ -7,6 +7,7 @@
 
 requirejs.config({
   baseUrl: "../..",
+  waitSeconds: 60,
   paths: {
     jquery: "/node_modules/jquery/dist/jquery.min",
 
