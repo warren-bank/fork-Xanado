@@ -73,7 +73,7 @@ define(["browser/Dialog"], Dialog => {
 
       const $removeText = this.$dlg.find("#removeText");
       const $in = $(document.createElement("span"))
-            .addCLoass("invitee")
+            .addClass("invitee")
             .text((known.name || known.email))
             .data("uo", known)
             .on('click', function() {
