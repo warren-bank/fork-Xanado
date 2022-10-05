@@ -93,12 +93,13 @@ define([
       if (this.predictable || this.isWild)
         return;
 
-      for (let i = this.tiles.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+      for (let i = this.tiles.length - 1; i > 1; i--) {
+        const j = Math.floor(Math.random() * i);
         const temp = this.tiles[i];
         this.tiles[i] = this.tiles[j];
         this.tiles[j] = temp;
       }
+      console.debug("Initial bag", this.tiles.map(t => t.letter));
     }
 
     /**

@@ -50,7 +50,7 @@ body {
 
 /* Line at the top of a game that is still visible when the game is closed */
 .headline {
-  margin-left: 0.5em;
+  margin: 0.5em;
 }
 
 /* Xanado logo image */
