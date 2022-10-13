@@ -115,7 +115,7 @@ define([
      * @param {Express} app Express application object
      */
     constructor(config, app) {
-      this.config = config;
+      this.config = config || {};
       this.pwfile = (config.auth && config.auth.db_file)
             ? config.auth.db_file : 'passwd.json';
       this.db = undefined;
@@ -126,14 +126,12 @@ define([
       else
         this._debug = () => {};
       // Passport requires ExpressSession to be configured
+      const FileStore = SessionFileStore(ExpressSession);
       app.use(ExpressSession({
-        // In theory, using the same secret should allows session
-        // cookies to be re-used between server restarts. In practice,
-        // if you restart the server existing sessions are invalidated
-        // even if we re-use the same secret, so might as well use a
-        // random key.
-        secret: Utils.genKey(),
-        store: new SessionFileStore(ExpressSession)(),
+        name: "XANADO.sid",
+        secret: (config.auth ? config.auth.session_secret : undefined)
+        || Utils.genKey(),
+        store: new FileStore(),
         resave: false,
         saveUninitialized: false
       }));
@@ -354,14 +352,13 @@ define([
     getUser(desc, ignorePass) {
       return this.getDB()
       .then(db => {
-        let uo;
         if (typeof desc.key !== "undefined") {
-          uo = db.find(uo => uo.key === desc.key);
+          const uo = db.find(uo => uo.key === desc.key);
           if (uo)
             return uo;
         }
 
-        for (uo of db) {
+        for (const uo of db) {
           if (typeof desc.token !== "undefined"
               && uo.token === desc.token) {
             // One-time password change token
