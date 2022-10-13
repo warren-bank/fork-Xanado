@@ -90,16 +90,22 @@ define([
      * can be disabled by setting {@linkcode LetterBag#predictable}
      */
     shake() {
-      if (this.predictable || this.isWild)
+      if (this.predictable || this.isWild) {
         return;
+      }
 
+      // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
       for (let i = this.tiles.length - 1; i > 1; i--) {
-        const j = Math.floor(Math.random() * i);
+        // j ← random integer such that 0 ≤ j ≤ i
+        // Note that j < i turns this into Sattolo's algorithm (wrong)
+        const j = Math.floor(Math.random() * (i + 1));
+        if (j === i)
+          continue;
         const temp = this.tiles[i];
         this.tiles[i] = this.tiles[j];
         this.tiles[j] = temp;
       }
-      console.debug("Initial bag", this.tiles.map(t => t.letter));
+      //console.debug("Initial bag", this.tiles.map(t => t.letter));
     }
 
     /**
