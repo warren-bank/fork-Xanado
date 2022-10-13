@@ -310,7 +310,7 @@ define([
           redacted.replacements.push(rt);
         }
       }
-      
+
       // TODO: the results of a turn should not simply be broadcast,
       // because a client could intercept and reconstruct other
       // player's racks from the results. Really there should be

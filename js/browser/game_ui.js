@@ -194,7 +194,7 @@ define([
             return value;
           })
       })
-      .then(r => console.debug(`${command} OK`, r))
+      .then(r => console.debug(`command '${command}'`, r))
       .catch(console.error);
     }
 
@@ -1610,7 +1610,6 @@ define([
      * @private
      */
     setAction(action, title) {
-      console.debug("setAction", action);
       if (this.player) {
         $(".turn-button")
         .data("action", action)

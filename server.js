@@ -143,6 +143,7 @@ requirejs([
             ? Https.Server(config.https, server.express)
             : Http.Server(server.express);
 
+      console.log(`Server starting on port ${config.port}`);
       http.listen(config.port);
 
       const io = new socket_io.Server(http);

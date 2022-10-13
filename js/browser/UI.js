@@ -6,16 +6,9 @@
 
 define([
   "socket.io-client",  "browser/Dialog", "platform", "common/Utils",
-  "cldrpluralruleparser",
+  "cldrpluralruleparser", // requirejs shim pulls in jquery.i18n
 
-  "jquery",
-  "jqueryui",
-  "i18n",
-  "i18n_emitter",
-  "i18n_fallbacks",
-  "i18n_language",
-  "i18n_messagestore",
-  "i18n_parser"
+  "jquery", "jqueryui"
 ], (
   Sockets, Dialog, Platform, Utils, cldrpluralruleparser
 ) => {
