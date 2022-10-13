@@ -19,6 +19,7 @@ the following fields:
   + `tile` : Whether to make a click when a tile is placed. Defaults to `true`.
   + `turn` : Whether to bong when it's your turn. Defaults to `true`.
  + `auth` : A structure that gives authentication options.
+  + `session_secret` : Optional secret used to sign session cookies. This lets you keep sessions alive over server restarts. If it is not given a new random string will be generated when the server starts, invalidating all existing sessions.
   + `db_file` : Optional path to file used to store usernames and passwords, relative to the
     root directory of the installation. Default is `passwd.json`.
   + `oauth2` : Structure containing configurations for oauth2 providers. You have to have registered the
@@ -65,6 +66,7 @@ Example configuration file, overriding selected fields and giving oauth2, https,
 	"notification": true
   },
   "auth": {
+    "session_secret": "xanado cookie secret",
 	"db_file" : "/var/www/xanado/passwd.json",
 	"oauth2": {
 	  "google": {
