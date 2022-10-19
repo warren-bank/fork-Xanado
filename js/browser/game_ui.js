@@ -319,7 +319,7 @@ define([
 
       this.game.pushTurn(turn);
 
-      $(".undoButton").toggle(this.game.allowUndo);
+      $(".undoButton").toggle(this.game.allowUndo === true);
 
       this.removeMoveActionButtons();
       const player = this.game.getPlayerWithKey(turn.playerKey);
@@ -721,7 +721,7 @@ define([
     updatePlayerTable() {
       const $playerTable = this.game.$playerTable(this.player);
       $("#scoresBlock > .playerList").html($playerTable);
-      $(".player-clock").toggle(this.game.timerType);
+      $(".player-clock").toggle(typeof this.game.timerType !== "undefined");
       this.updateWhosTurn();
     }
 
@@ -836,7 +836,7 @@ define([
       this.$log(true, ""); // Force scroll to end of log
 
       if (game.turns.length > 0)
-        $(".undoButton").toggle(this.game.allowUndo);
+        $(".undoButton").toggle(this.game.allowUndo === true);
 
       if (game.hasEnded()) {
         if (game.nextGameKey)
@@ -846,7 +846,7 @@ define([
       }
 
       $(".pauseButton")
-      .toggle(game.timerType);
+      .toggle(typeof game.timerType !== "undefined");
 
       $(".distributionButton")
       .on("click", () => this.showLetterDistributions());

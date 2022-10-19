@@ -510,7 +510,8 @@ define([
                       "Setup failure");
 
       this.report("Starting findBestPlay computation for "
-                  + rackTiles.map(t => t.stringify()).join(","));
+                  + rackTiles.map(t => t.stringify()).join(",")
+                  + " on " + this.board.stringify());
       this.bestScore = 0;
 
       // Has at least one anchor been explored? If there are

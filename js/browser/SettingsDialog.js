@@ -54,7 +54,7 @@ define([ "browser/Dialog" ], Dialog => {
           $(this).prop('checked', ui.getSetting(this.name));
         });
         // Notification requires https
-        this.$dlg.find(".require-https").toggle(ui.usingHttps);
+        this.$dlg.find(".require-https").toggle(ui.usingHttps === true);
       });
     }
   }

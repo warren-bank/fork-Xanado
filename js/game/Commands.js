@@ -79,7 +79,7 @@ define([
         // Do this before we place the tiles
         // on the board, so that the game and tiles get frozen
         // and passed to the findBestPlayWorker.
-        this.advise(player, move.score);
+        await this.advise(player, move.score);
       }
 
       const game = this;
@@ -590,13 +590,14 @@ define([
     }
 
     /**
-     * Asynchronously advise player as to what better play they
+     * Promise to advise player as to what better play they
      * might have been able to make. Server side only.
      * @function
      * @instance
      * @memberof Commands
      * @param {Player} player a Player
      * @param {number} theirScore score they got from their play
+     * @return {Promise} resolves to undefined when the advice is ready.
      */
     advise(player, theirScore) {
       /* istanbul ignore if */
@@ -607,7 +608,7 @@ define([
              sender: /*i18n*/"Advisor",
             text: /*i18n*/"No dictionary"
           });
-        return;
+        return Promise.resolve();
       }
 
       this._debug(`Computing advice for ${player.name} > ${theirScore}`,
@@ -615,7 +616,7 @@ define([
                   this.board.stringify());
 
       let bestPlay = null;
-      Platform.findBestPlay(
+      return Platform.findBestPlay(
         this, player.rack.tiles(), data => {
           if (typeof data === "string")
             this._debug(data);

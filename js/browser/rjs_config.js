@@ -6,7 +6,7 @@
 /*global rjs_main*/
 
 requirejs.config({
-  baseUrl: "../..",
+  baseUrl: "..",
   waitSeconds: 60,
   paths: {
     jquery: "node_modules/jquery/dist/jquery.min",
