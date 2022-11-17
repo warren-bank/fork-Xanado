@@ -147,7 +147,7 @@ define([
     findAnagrams(theChars) {
       theChars = theChars.toUpperCase();
 
-      Platform.assert(theChars.length >= 2, "Too short to find anagrams");
+      assert(theChars.length >= 2, "Too short to find anagrams");
 
       // Sort the list of characters.
       // Sorting makes it easier to debug.
@@ -244,7 +244,7 @@ define([
       if (!this.sequenceRoots)
         this.createSequenceRoots();
       const roots = this.sequenceRoots[seq.charAt(0)];
-      Platform.assert(roots && roots.length > 0, `'${seq}' has no roots`);
+      assert(roots && roots.length > 0, `'${seq}' has no roots`);
       for (let root of roots) {
         if (root.match(seq, 0))
           return root;
@@ -301,16 +301,15 @@ define([
         return Promise.resolve(Dictionary.cache[name]);
 
       let dict;
-      const zp = Platform.formatPath(path);
-      //console.log(zp,"<=",path);
-      return Platform.readZip(zp)
+      const fp = Platform.formatPath(path);
+      return Platform.readBinaryFile(fp)
       .then(buffer => {
         dict = new Dictionary(name);
         dict.loadDAWG(buffer.buffer);
       })
       .catch(e => {
-        // Mostly harmless, .dict load failed, relying on .white
-        console.error("Failed to read", zp, e);
+        // Mostly harmless, .dict.gz and .dict load failed, relying on .white
+        console.error("Failed to read", fp, e);
       })
       .then(() => {
         path.ext = ".white";

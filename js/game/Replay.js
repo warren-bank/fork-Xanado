@@ -5,22 +5,27 @@
 
 define([
   "platform", "common/Utils",
-  "common/Types", "game/LetterBag", "game/Board",
-  "game/Player", "game/Tile", "game/Rack", "game/Turn"
+  "game/LetterBag", "game/Board", "game/Game",
+  "game/Player", "game/Tile", "game/Rack", "game/Turn", "game/Undo"
 ], (
   Platform, Utils,
-  Types, LetterBag, Board,
-  Player, Tile, Rack, Turn
+  LetterBag, Board, Game,
+  Player, Tile, Rack, Turn, Undo
 ) => {
 
-  const Turns = Types.Turns;
-  const State = Types.State;
-
   /**
-   * Extend Game to support replay of another game
-   * @mixin Replay
+   * Extend Game to support replay of another game. Requires
+   * {@linkcode game/Undo} and {@linkcode game/Commands}
+   * to be mixed in.
+   * @mixin game/Replay
    */
   return superclass => class Replay extends superclass {
+
+    /**
+     * @see Fridge
+     * @memberof game/Replay
+     */
+    static UNFREEZABLE = true;
 
     /*
      * Replay the turns in another game, to arrive at the same state.
@@ -37,6 +42,8 @@ define([
      * ```
      * @param {Game} playedGame the game containing turns and players
      * to simulate.
+     * @instance
+     * @memberof game/!Replay
      */
     replay(playedGame) {
       this.playedGame = playedGame;
@@ -45,18 +52,18 @@ define([
       this.nextTurn = 0;
       // Override the bag and board (this is what create() would do)
       this.letterBag = new LetterBag(this.playedGame.letterBag);
-      this.board = new Board(this.playedGame.board);
+      this.board = new Board(Game, this.playedGame.board);
       this.bonuses = this.playedGame.bonuses;
       this.rackSize = this.playedGame.rackCount;
       this.swapSize = this.playedGame.swapCount;
-      this.state = State.PLAYING;
+      this.state = Game.State.PLAYING;
       this.whosTurnKey = this.playedGame.turns[0].playerKey;
 
       // Copy players and their racks.
       for (const p of this.playedGame.players) {
-        const np = new Player(p);
+        const np = new Player(Game, p);
         np.isRobot = false;
-        np.rack = new Rack(p.rack);
+        np.rack = new Rack(Game, p.rack);
         np.passes = p.passes;
         np.score = p.score;
         this.addPlayer(np);
@@ -108,6 +115,8 @@ define([
 
     /**
      * Promise to perform a single step in the simulation
+     * @instance
+     * @memberof game/Replay
      * @return {Promise} promise that resolves to the simulated turn when
      * the simulation step has been run
      */

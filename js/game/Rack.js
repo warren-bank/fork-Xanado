@@ -8,52 +8,75 @@
  * a 1D array of Square.
  */
 define([
-  "platform", "common/Utils", "game/Surface", "game/Tile"
-], (Platform, Utils, Surface, Tile) => {
+  "platform",
+  "common/Utils",
+  "game/Surface", "game/Tile"
+], (
+  Platform,
+  Utils,
+  Surface, Tile) => {
 
   /**
    * A Rack is a 1-column {@linkcode Surface}
    */
   class Rack extends Surface {
 
-    /**
-     * Whether this rack is wild or not. When a rack is wild, the tiles
-     * taken from in the rack can be used as any other tile. This is
-     * used client-side, for players other than the current player.
-     */
-    isWild = false;
+    // Note that we do NOT use the field syntax for the fields that
+    // are serialised. If we do that, then the constructor blows the
+    // field away when loading using Freeze.
 
     /**
-     * @param {string|Rack} id unique id for this rack, or a rack to copy.
+     * @param {object} factory class object mapping class name to a class
+     * @param {Rack|object} spec specification of the rack, or a rack to copy
+     * @param {string|Rack} spec.id unique id for this rack, or a rack to copy.
      * The squares and the tiles they carry will be copied as well.
-     * @param {number} size rack size
-     * @param {string?} underlay text string with one character for
+     * @param {number} spec.size rack size
+     * @param {string?} spec.underlay text string with one character for
      * each cell in UI of the rack. This is the SWAP string that
      * underlies the swap rack.
      */
-    constructor(id, size, underlay) {
+    constructor(factory, spec) {
       // The id will be used as the base for generating the id's
       // for the Squares in the underlying Surface. Note that
       // the UI will have Rack objects for the player rack and
       // the swap rack, but will also have racks that have no UI
       // for the other players. The ID for these racks must be
       // player specific.
-      if (id instanceof Rack) {
+      if (spec instanceof Rack) {
         // Copy constructor
         // Only used in game simulation. Underlay not supported.
-        super(id.id, id.cols, 1, () => "_");
-        id.forEachTiledSquare(square => {
-          this.addTile(new Tile(square.tile));
+        super(factory, {
+          id: spec.id,
+          cols: spec.cols,
+          rows: 1,
+          type: () => "_"
+        });
+        spec.forEachTiledSquare(square => {
+          this.addTile(new factory.Tile(square.tile));
           return false;
         });
-      } else
-        super(id, size, 1, () => "_");
+      } else {
+        super(factory, {
+          id: spec.id,
+          cols: spec.size,
+          rows: 1,
+          type: () => "_"
+        });
+      }
 
-      if (typeof underlay !== "undefined") {
+      /**
+       * Whether this rack is wild or not. When a rack is wild, the tiles
+       * taken from in the rack can be used as any other tile. This is
+       * used client-side, for players other than the current player.
+       */
+      if (spec.isWild)
+        this.isWild = true;
+
+      if (typeof spec.underlay !== "undefined") {
         let idx = 0;
         this.forEachSquare(square => {
-          square.setUnderlay(underlay.charAt(idx++));
-          return idx === underlay.length;
+          square.setUnderlay(spec.underlay.charAt(idx++));
+          return idx === spec.underlay.length;
         });
       }
     }
@@ -122,8 +145,7 @@ define([
     removeTile(remove) {
       const letter = remove.letter;
       const square = this.findSquare(letter);
-      Platform.assert(square,
-      `Cannot find '${letter}' on ${this.stringify()}`);
+      assert(square, `Cannot find '${letter}' on ${this.stringify()}`);
       const tile = square.tile;
       square.unplaceTile();
       if (this.isWild)
@@ -143,7 +165,7 @@ define([
       const racked = [];
       for (const tile of tiles) {
         const removed = this.removeTile(tile);
-        Platform.assert(removed, `${Utils.stringify(tile)} missing from rack`);
+        assert(removed, `${Utils.stringify(tile)} missing from rack`);
         racked.push(removed);
       }
       return racked;

@@ -8,13 +8,6 @@ define(() => {
   const editions = {};
 
   /**
-   * @typedef {object} BagLetter
-   * @param {string} BagLetter.letter - a code point (undefined for blank)
-   * @param {number} BagLetter.score - score for this letter
-   * @param {number} BagLetter.count - number of tiles for this letter
-   */
-
-  /**
    * A Scrabble-like crossword game edition.
    *
    * Editions define the board layout and letter bag for a specific

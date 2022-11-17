@@ -178,7 +178,7 @@
   margin: 0;
   padding: 0;
 
-  /* Code in game_ui.js calculates a suitable tile size */
+  /* Code in client_game.js calculates a suitable tile size */
   aspect-ratio: 1/1;
 
   background-color: #F7F7E3;

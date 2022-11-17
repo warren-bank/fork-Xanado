@@ -26,7 +26,8 @@ define([ "browser/Dialog" ], Dialog => {
       //console.log("Curlan",curlan);
       const $theme = this.$dlg.find('[name=theme]');
       const $locale = this.$dlg.find('[name=language]');
-      return Promise.all([ $.get("/themes"), $.get("/locales") ])
+      const ui = this.options.ui;
+      return Promise.all([ ui.getThemes(), ui.getLocales() ])
       .then(all => {
         all[0].forEach(d => $theme.append(`<option>${d}</option>`));
         all[1]

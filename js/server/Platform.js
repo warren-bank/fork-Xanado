@@ -3,75 +3,80 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node */
 
-/**
- * This is the node.js implementation of common/Platform. There is an
- * implementation for the browser, too, in js/browser/Platform.js
- */
 define([
-  "assert", "fs", "path",
-  "proper-lockfile", "node-gzip", "get-user-locale",
+  "assert", "fs", "path", "proper-lockfile", "get-user-locale",
   "common/Fridge", "common/Platform",
   "server/I18N"
 ], (
-  Assert, fs, Path,
-  Lock, Gzip, Locale,
+  Assert, fs, Path, Lock, Locale,
   Fridge, Platform,
   I18N
 ) => {
   const Fs = fs.promises;
 
   /**
+   * Map global assert to node:assert
+   */
+  global.assert = Assert;
+
+  /**
    * Implementation of {@linkcode common/Platform} for use in node.js.
+   * @implements Platform
    */
   class ServerPlatform extends Platform {
     static i18n = I18N;
 
-    // @override
-    static assert = Assert;
-
-    // @override
+    /**
+     * @implements Platform
+     */
     static trigger(e, args) {
+      assert.fail("ServerPlatform.trigger");
     }
 
-    /* istanbul ignore next */
-    // @override
-    static fail(descr) {
-      Assert(false, descr);
-    }
-
-    // @override
+    /**
+     * @implements Platform
+     */
     static async findBestPlay() {
-      // game/findBestPlay to block
-      // game/findBestPlayController to use a worker thread
+      // backend/findBestPlay to block
+      // backend/findBestPlayController to use a worker thread
       return new Promise(
-        resolve => requirejs([ "game/findBestPlayController" ],
+        resolve => requirejs([ "backend/findBestPlayController" ],
                              fn => resolve(fn.apply(null, arguments))));
     }
 
-    // @override
+    /**
+     * @implements Platform
+     */
     static parsePath(p) {
       return Path.parse(p);
     }
 
-    // @override
+    /**
+     * @implements Platform
+     */
     static formatPath(p) {
       return Path.format(p);
     }
 
-    // @override
+    /**
+     * @implements Platform
+     */
     static getFilePath(p) {
       return Path.normalize(requirejs.toUrl(p || ""));
     }
 
-    // @override
+    /**
+     * @implements Platform
+     */
     static readFile(p) {
       return Fs.readFile(p);
     }
 
-    // @override
-    static readZip(p) {
-      return Fs.readFile(p)
-      .then(data => Gzip.ungzip(data));
+    /**
+     * @implements Platform
+     */
+    static readBinaryFile(p) {
+      return Fs.readFile(p);
     }
   }
 

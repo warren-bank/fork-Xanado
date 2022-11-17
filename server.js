@@ -21,6 +21,7 @@ requirejs.config({
 
     common: "js/common",
     server: "js/server",
+    backend: "js/backend",
     game: "js/game",
     dawg: "js/dawg",
 

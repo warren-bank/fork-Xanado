@@ -11,7 +11,7 @@ define(() => {
   const IB_REF = "_\u0154";
 
   /**
-   * Simple selecting serialisation/deserialisation of a JS object
+   * Simple serialisation/deserialisation of a JS object
    * graph to stand-alone JSON. Does not handle function
    * references. Full restoration of objects requires classes
    * to be passed in to thaw().
@@ -34,6 +34,10 @@ define(() => {
    * IB_CN: constructor name
    * IB_REF: the IB_ID of another object being referenced
    * Date objects are serialised to string.
+   *
+   * If the class of an object has the UNFREEZABLE attribute, then
+   * the name of that class won't be frozen. Instead the identifier of
+   * the superclass will be used (ultimately, Object).
    */
   class Fridge {
 
@@ -86,7 +90,18 @@ define(() => {
         if (unfrozen.constructor
             && unfrozen.constructor.name
             && unfrozen.constructor.name !== "Object")
-          frozen[IB_CN] = unfrozen.constructor.name;
+        {
+          let freezable = unfrozen.constructor;
+          // The static UNFREEZABLE attribute on a class indicates that
+          // the superclass should be used in the freeze
+          while (freezable.UNFREEZABLE) {
+            //console.log(freezable, "unfreezable");
+            freezable = Object.getPrototypeOf(freezable);
+            if (freezable.name === "Object")
+              throw Error("Bottomless unfreezable chain");
+          }
+          frozen[IB_CN] = freezable.name;
+        }
 
         const proto = Object.getPrototypeOf(unfrozen);
         if (proto && typeof proto.Freeze === "function") {
@@ -102,8 +117,13 @@ define(() => {
           for (let prop in unfrozen)
             // Exclude _* to avoid _events etc
             // Don't try to freeze code, might overwrite mixins
-            if (!/^#?_/.test(prop) && typeof unfrozen[prop] !== "function")
-              frozen[IB_DATA][prop] = _freeze(unfrozen[prop]);
+            if (!/^#?_/.test(prop) && typeof unfrozen[prop] !== "function") {
+              try {
+                frozen[IB_DATA][prop] = _freeze(unfrozen[prop]);
+              } catch (e) {
+                debugger;
+              }
+            }
         }
         return frozen;
       }
@@ -128,7 +148,6 @@ define(() => {
      */
     static thaw(object, typeMap) {
       const objectsThawed = [];
-
       function _thaw(object) {
         if (!object || typeof object !== "object")
           return object;
@@ -147,7 +166,7 @@ define(() => {
         }
 
         let thawed, thawProps = false;
-        const clzz = typeMap[object[IB_CN]];
+        let clzz = typeMap[object[IB_CN]];
         if (object[IB_CN] === "Date")
           // Special handling because we just serialise an integer
           return new Date(object[IB_DATA]);
@@ -159,7 +178,10 @@ define(() => {
             thawed = Object.create(clzz.prototype);
             thawProps = true;
           }
+
         } else {
+          if (object[IB_CN])
+            throw Error(`${object[IB_CN]} missing from type map`);
           thawed = {};
           thawProps = true;
         }

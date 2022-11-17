@@ -4,42 +4,48 @@
 /* eslint-env amd, jquery */
 
 define([
-  "platform", "common/Types", "game/Rack",
-  requirejs.isBrowser ? "browser/Player" : "common/EmptyBase"
+  "game/Rack"
 ], (
-  Platform, Types, Rack, PlatformBase
+  Rack
 ) => {
-
-  const Timer = Types.Timer;
 
   /**
    * A player in a {@linkcode Game}. Player objects are specific to
    * a single game, and are used on both browser and server sides.
-   * @mixes BrowserPlayer
    */
-  class Player extends PlatformBase {
+  class Player {
+
+    // Note that we do NOT use the field syntax for the fields that
+    // are serialised. If we do that, then the constructor blows the
+    // field away when loading using Freeze.
 
     /**
-     * @param {object} params named parameters, or other Player
+     * @param {object} factory class object mapping class name to a class
+     * @param {object} spec named parameters, or other Player
      * object to copy. `name` and `key ` are required. Any of `_debug`,
      * `isRobot`, `canChallenge`, `wantsAdvice`,`dictionary` or
      * `missNextTurn` can be passed. The player will be initialised with
      * an empty rack (no squares).
      */
-    constructor(params) {
-      super();
+    constructor(factory, spec) {
+
+      /**
+       * Factory object used to create this object (not serialiable)
+       * @private
+       */
+      this._factory = factory;
 
       /**
        * Player unique key. Required.
        * @member {Key}
        */
-      this.key = params.key;
+      this.key = spec.key;
 
       /**
        * Player name. Required.
        * @member {string}
        */
-      this.name = params.name;
+      this.name = spec.name;
 
       /**
        * Rack of tiles. By default an 8-cell rack is created, but
@@ -47,7 +53,7 @@ define([
        * it's only then we know how big it has to be.
        * @member {Rack}
        */
-      this.rack = new Rack(`Rack_${this.key}`, 8);
+      this.rack = new factory.Rack(factory, {id: `Rack_${this.key}`, size: 8 });
 
       /**
        * Number of times this player has passed (or swapped)
@@ -62,7 +68,7 @@ define([
        */
       this.score = 0;
 
-      if (params.clock)
+      if (spec.clock)
         /**
          * Player countdown clock. In games with `timerType` `TIMER_TURN`,
          * this is the number of seconds before the player's turn times
@@ -73,15 +79,15 @@ define([
          */
         this.clock = 0;
 
-      if (params._isConnected)
+      if (spec._isConnected)
         /**
-         * Whether the server thinks the player is connected or not.
+         * Whether the backend thinks the player is connected or not.
          * Not serialised.
-         * @member {boolean}
+         * @member {boolean?}
          */
         this._isConnected = true;
 
-      if (params.missNextTurn)
+      if (spec.missNextTurn)
         /**
          * True if this player is due to miss their next play due
          * to a failed challenge. Default is false.
@@ -89,52 +95,52 @@ define([
          */
         this.missNextTurn = true;
 
-      if (params.wantsAdvice)
+      if (spec.wantsAdvice)
         /**
          * Set true to advise human player of better plays than the one
          * they used. Default is false.
-         * @member {boolean}
+         * @member {boolean?}
          */
         this.wantsAdvice = true;
 
-      if (params.isRobot)
+      if (spec.isRobot)
         /**
          * Is player a robot? Default is false.
-         * @member {boolean}
+         * @member {boolean?}
          */
         this.isRobot = true;
 
-      if (params.canChallenge)
+      if (spec.canChallenge)
         /**
          * Can robot player challenge? Default is false.
-         * @member {boolean}
+         * @member {boolean?}
          */
         this.canChallenge = true;
 
-      if (params.dictionary)
+      if (spec.dictionary)
         /**
          * Name of (or path to) the dictionary the robot will use. Defaults to
          * the game dictionary. Only used for findBestPlay for robot players.
          * Default is undefined.
          * @member {string?}
          */
-        this.dictionary = params.dictionary;
+        this.dictionary = spec.dictionary;
 
-      if (params.delayBeforePlay && params.delayBeforePlay > 0)
+      if (spec.delayBeforePlay && spec.delayBeforePlay > 0)
         /**
          * Number of seconds that a robot player must wait before it
          * can play it's move. This delay is to give the revious player
          * time to take back their move (or just think!)
          * @member {number?}
          */
-        this.delayBeforePlay = params.delayBeforePlay;
+        this.delayBeforePlay = spec.delayBeforePlay;
 
-      if (typeof params._debug === "function")
+      if (typeof spec._debug === "function")
         /**
          * Debug function
          * @member {function}
          */
-        this._debug = params._debug;
+        this._debug = spec._debug;
       else
         this._debug = () => {};
     }
@@ -175,10 +181,11 @@ define([
     /**
      * Construct a player object from a structure generated by
      * serialisable()
+     * @param {object} factory class object mapping class name to a class
      * @param {object} simple object generated by serialisable()
      */
-    static fromSerialisable(simple) {
-      const player = new Player(simple);
+    static fromSerialisable(factory, simple) {
+      const player = new factory.Player(factory, simple);
       if (simple.passes)
         player.passes = simple.passes;
       if (simple.score)
@@ -189,17 +196,20 @@ define([
     }
 
     /**
-     * Draw an initial rack from the letter bag. Server side only.
-     * @param {LetterBag} letterBag LetterBag to draw tiles from
+     * Draw an initial rack from the letter bag.
+     * @param {LetterBag} letterBag LetterBag to draw tiles from. Note that
+     * tiles are copied, with the copy being constructed using the
+     * factory that was passed to the constructor.
      * @param {number} rackSize size of the rack
      */
     fillRack(letterBag, rackSize) {
       // +1 to allow space for tile sorting in the UI
       // Use the player key for the rack id, so we can maintain
       // unique racks for different players
-      this.rack = new Rack(`Rack_${this.key}`, rackSize + 1);
+      this.rack = new (this._factory.Rack)(
+        this._factory, { id: `Rack_${this.key}`, size: rackSize + 1 });
       for (let i = 0; i < rackSize; i++)
-        this.rack.addTile(letterBag.getRandomTile());
+        this.rack.addTile(new (this._factory.Tile)(letterBag.getRandomTile()));
       this.score = 0;
     }
 

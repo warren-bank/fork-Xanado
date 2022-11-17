@@ -3,29 +3,27 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-define(() => {
+define([
+], (
+) => {
 
   /**
    * Interface isolating platform details from the rest of
    * the code. The purpose is to allow common code to run on
    * both browser and server.
+   * @interface
    */
   class Platform {
 
     /* istanbul ignore next */
     /**
-     * Platform-specific assert
-     * @param {boolean} condition must be true or will throw an Error
+     * Make a loud noise about a failure and throw a suitable error.
      * @param {string} descr Error description
+     * @throws {Error}
      */
-    static assert(condition, descr) {}
-
-    /* istanbul ignore next */
-    /**
-     * assert(false)
-     * @param {string} descr Error description
-     */
-    static fail(descr) {}
+    static fail(descr) {
+      assert.fail("Platform.fail");
+    }
 
     /* istanbul ignore next */
     /**
@@ -36,7 +34,7 @@ define(() => {
      * @abstract
      */
     static trigger(event, args) {
-      throw new Error("Pure virtual");
+      assert.fail("Platform.trigger");
     }
 
     /**
@@ -62,7 +60,7 @@ define(() => {
      * @abstract
      */
     static findBestPlay(game, rack, cb, dictionary) {
-      throw new Error("Pure virtual");
+      assert.fail("Platform.findBestPlay");
     }
 
     /* istanbul ignore next */
@@ -73,7 +71,7 @@ define(() => {
      * @abstract
      */
     static parsePath(p) {
-      throw new Error("Pure virtual");
+      assert.fail("Platform.parsePath");
     }
 
     /* istanbul ignore next */
@@ -84,7 +82,7 @@ define(() => {
      * @abstract
      */
     static formatPath(p) {
-      throw new Error("Pure virtual");
+      assert.fail("Platform.formatPath");
     }
 
     /* istanbul ignore next */
@@ -96,7 +94,7 @@ define(() => {
      * @abstract
      */
     static getFilePath(p) {
-      throw new Error("Pure virtual");
+      assert.fail("Platform.getFilePath");
     }
 
     /* istanbul ignore next */
@@ -106,17 +104,17 @@ define(() => {
      * @abstract
      */
     static readFile(path) {
-      throw new Error("Pure virtual");
+      assert.fail("Platform.readFile");
     }
 
     /* istanbul ignore next */
     /**
-     * Read a gz file
-     * @return {Promise} resolves to the file contents
+     * Read a binary file
+     * @return {Promise} resolves to the file contents (a Buffer)
      * @abstract
      */
-    static readZip(path) {
-      throw new Error("Pure virtual");
+    static readBinaryFile(path) {
+      assert.fail("Platform.readBinaryFile");
     }
   }
 

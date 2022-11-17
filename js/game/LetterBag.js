@@ -4,8 +4,14 @@
 /* eslint-env amd */
 
 define([
-  "platform", "common/Utils", "game/Tile"
-], (Platform, Utils, Tile) => {
+  "platform",
+  "common/Utils",
+  "game/Tile"
+], (
+  Platform,
+  Utils,
+  Tile
+) => {
 
   /**
    * The bag of letters during a game.
@@ -23,16 +29,6 @@ define([
      * @member {string}
      */
     legalLetters = [];
-
-    /**
-     * Whether this bag is wild or not. When a bag is wild, any tile
-     * taken from in the bag can be used as any other tile. This is
-     * used client-side, where we are only concerned about the number
-     * of tiles left in the bag and we want to prevent reverse
-     * engineering of bag and rack contents. By default, bags are not
-     * wild.
-     */
-    isWild = false;
 
     /**
      * Construct a new letter bag using the distribution for the
@@ -75,6 +71,18 @@ define([
         }
         this.shake();
       }
+
+      if (edition.isWild) // never true, doc only
+        /**
+         * Whether this bag is wild or not. When a bag is wild, any tile
+         * taken from in the bag can be used as any other tile. This is
+         * used client-side, where we are only concerned about the number
+         * of tiles left in the bag and we want to prevent reverse
+         * engineering of bag and rack contents. By default, bags are not
+         * wild.
+         * @member {boolean?}
+         */
+        this.isWild = true;
     }
 
     /**
@@ -128,9 +136,9 @@ define([
      * tiles in the bag, may return a shorter array.
      */
     getRandomTiles(count) {
-      Platform.assert(!this.isWild);
+      assert(!this.isWild, "Bag is wild");
       const tiles = [];
-      Platform.assert(count >= 0);
+      console.assert(count >= 0, "Bag is empty");
       for (let i = 0; this.tiles.length > 0 && i < count; i++)
         tiles.push(this.getRandomTile());
       return tiles;

@@ -4,46 +4,47 @@
 /* eslint-env amd */
 
 define([
-  "platform", "common/Utils",
-  "common/Types", "game/Player", "game/Turn"
+  "platform",
+  "common/Utils",
+  "game/Game"
 ], (
-  Platform, Utils,
-  Types, Player, Turn
+  Platform,
+  Utils,
+  Game
 ) => {
-  const Notify    = Types.Notify;
-  const State     = Types.State;
-  const Penalty   = Types.Penalty;
-  const Timer     = Types.Timer;
-  const WordCheck = Types.WordCheck;
-  const Turns     = Types.Turns;
 
   /**
-   * Server-side mixin to {@linkcode Game} that provides handlers for game
+   * Mixin to {@linkcode Game} that provides handlers for game
    * commands.
-   * @mixin Commands
+   * @mixin game/Commands
    */
-  class Commands {
+  return superclass => class Commands extends superclass {
+
+    /**
+     * @see Fridge
+     * @memberof game/Commands
+     */
+    static UNFREEZABLE = true;
 
     /**
      * Place tiles on the board.
-     * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} player player requesting the move
      * @param {Move} move a Move (or the spec of a Move)
      * @return {Promise} resolving to a the game
      */
     async play(player, move) {
-      Platform.assert(move);
-      Platform.assert(player && player.key === this.whosTurnKey,
+      assert(move, "No move");
+      assert(player && player.key === this.whosTurnKey,
                       `Not ${player.name}'s turn`);
 
       this._debug("Playing", Utils.stringify(move));
-      //this._debug(`Player's rack is ${player.rack}`);
+      this._debug(`Player's rack is ${player.rack.stringify()}`);
 
       if (this.dictionary
           && !this.isRobot
-          && this.wordCheck === WordCheck.REJECT) {
+          && this.wordCheck === Game.WordCheck.REJECT) {
 
         this._debug("Validating play");
 
@@ -65,7 +66,7 @@ define([
           // game state yet, so we can just ping the
           // player back and let the UI sort it out.
           this.notifyPlayer(
-            player, Notify.REJECT,
+            player, Game.Notify.REJECT,
             {
               playerKey: player.key,
               words: badWords
@@ -85,6 +86,7 @@ define([
       const game = this;
 
       // Move tiles from the rack to the board
+      assert(move.placements, "No placements");
       this.rackToBoard(move.placements, player);
 
       player.score += move.score;
@@ -92,23 +94,25 @@ define([
       //console.debug("words ", move.words);
 
       if (this.dictionary
-          && this.wordCheck === WordCheck.AFTER
+          && this.wordCheck === Game.WordCheck.AFTER
           && !player.isRobot) {
         // Asynchronously check word and notify player if it
         // isn't found.
         this.getDictionary()
         .then(dict => {
-          for (let w of move.words) {
-            this._debug("Checking ",w);
-            if (!dict.hasWord(w.word)) {
-              // Only want to notify the player
-              this.notifyPlayer(
-                player, Notify.MESSAGE,
-                {
-                  sender: /*i18n*/"Advisor",
-                  text: /*i18n*/"word-not-found",
-                  args: [ w.word, dict.name ]
-                });
+          if (move.words) {
+            for (let w of move.words) {
+              this._debug("Checking ",w);
+              if (!dict.hasWord(w.word)) {
+                // Only want to notify the player
+                this.notifyPlayer(
+                  player, Game.Notify.MESSAGE,
+                  {
+                    sender: /*i18n*/"Advisor",
+                    text: /*i18n*/"word-not-found",
+                    args: [ w.word, dict.name ]
+                  });
+              }
             }
           }
         });
@@ -131,7 +135,7 @@ define([
       const nextPlayer = this.nextPlayer();
       this.whosTurnKey = nextPlayer.key;
       return this.finishTurn(player, {
-        type: Turns.PLAYED,
+        type: Game.Turns.PLAYED,
         nextToGoKey: nextPlayer.key,
         score: move.score,
         placements: move.placements,
@@ -146,7 +150,7 @@ define([
      * Pause the game
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} player to play
      * @return {Promise} resolving to the game
      */
@@ -156,7 +160,7 @@ define([
       this.stopTheClock();
       this.pausedBy = player.name;
       this._debug(`${this.pausedBy} has paused game`);
-      this.notifyAll(Notify.PAUSE, {
+      this.notifyAll(Game.Notify.PAUSE, {
         key: this.key,
         name: player.name,
         timestamp: Date.now()
@@ -168,7 +172,7 @@ define([
      * Unpause the game
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} player to play
      * @return {Promise} resolving to the game
      */
@@ -177,7 +181,7 @@ define([
       if (!this.pausedBy)
         return Promise.resolve(this); // not paused
       this._debug(`${player.name} has unpaused game`);
-      this.notifyAll(Notify.UNPAUSE, {
+      this.notifyAll(Game.Notify.UNPAUSE, {
         key: this.key,
         name: player.name,
         timestamp: Date.now()
@@ -194,21 +198,21 @@ define([
      * challenge failed.
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} player player confirming end of game
      * @param {string} endState gives reason why game ended
-     * (i18n message id) one of `State.GAME_OVER`, `State.TWO_PASSES`, or
-     * `State.CHALLENGE_LOST`
+     * (i18n message id) one of `Game.State.GAME_OVER`, `Game.State.TWO_PASSES`, or
+     * `Game.State.CHALLENGE_LOST`
      * @return {Promise} resolving to undefined
      */
     confirmGameOver(player, endState) {
       // If players pass twice then a game-over will be automatically
       // handled in startTurn. We don't want to repeat the processing
       // again.
-      if (this.state !== State.PLAYING)
+      if (this.state !== Game.State.PLAYING)
         return Promise.resolve();
 
-      this.state = endState || State.GAME_OVER;
+      this.state = endState || Game.State.GAME_OVER;
 
       this._debug(`Confirming game over because ${this.state}`);
       this.stopTheClock();
@@ -226,7 +230,7 @@ define([
         // the rack tiles. We have to send the actual tiles remaining on racks
         // for the "game ended" message.
         if (player.rack.isEmpty()) {
-          Platform.assert(
+          assert(
             !playerWithNoTiles,
             "Found more than one player with no tiles when finishing game");
           playerWithNoTiles = player;
@@ -241,7 +245,7 @@ define([
           pointsRemainingOnRacks += rackScore;
           this._debug(`\t${player.name}: ${rackScore} points left ${delta.tilesRemaining}`);
         }
-        if (this.timerType === Timer.GAME && player.clock < 0) {
+        if (this.timerType === Game.Timer.GAME && player.clock < 0) {
           const points = Math.round(
             player.clock * this.timePenalty / 60);
           this._debug(player.name, "over by", -player.clock,
@@ -257,8 +261,8 @@ define([
         deltas[playerWithNoTiles.key].tiles = pointsRemainingOnRacks;
         this._debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
       }
-      return this.finishTurn(player, new Turn({
-        type: Turns.GAME_ENDED,
+      return this.finishTurn(player, new this.constructor.Turn({
+        type: Game.Turns.GAME_ENDED,
         endState: endState,
         score: deltas
       }));
@@ -269,19 +273,19 @@ define([
      * or the result of a challenge.
      * @function
      * @instance
-     * @memberof Commands
-     * @param {Player} player if type==Turns.CHALLENGE_WON this must be
+     * @memberof game/Commands
+     * @param {Player} player if type==Game.Turns.CHALLENGE_WON this must be
      * the challenging player. Otherwise it is the player taking their
      * play back.
-     * @param {string} type the type of the takeBack; Turns.TOOK_BACK
-     * or Turns.CHALLENGE_WON.
+     * @param {string} type the type of the takeBack; Game.Turns.TOOK_BACK
+     * or Game.Turns.CHALLENGE_WON.
      * @return {Promise} Promise resolving to the game
      */
     takeBack(player, type) {
       const previousMove = this.lastTurn();
       if (!previousMove)
         return Promise.reject("No previous move to take back");
-      if (previousMove.type !== Turns.PLAYED)
+      if (previousMove.type !== Game.Turns.PLAYED)
         return Promise.reject(`Cannot challenge a ${previousMove.type}`);
 
       const prevPlayer = this.getPlayerWithKey(previousMove.playerKey);
@@ -291,25 +295,26 @@ define([
       this.rackToBag(previousMove.replacements, prevPlayer);
 
       // Move placed tiles from the board back to the player's rack
-      this.boardToRack(previousMove.placements, prevPlayer);
+      if (previousMove.placements)
+        this.boardToRack(previousMove.placements, prevPlayer);
 
       prevPlayer.score -= previousMove.score;
 
       const turn = {
         type: type,
-        nextToGoKey: type === Turns.CHALLENGE_WON
+        nextToGoKey: type === Game.Turns.CHALLENGE_WON
         ? this.whosTurnKey : player.key,
         score: -previousMove.score,
         placements: previousMove.placements,
         replacements: previousMove.replacements
       };
 
-      if (type === Turns.CHALLENGE_WON)
+      if (type === Game.Turns.CHALLENGE_WON)
         turn.challengerKey = player.key;
 
       return this.finishTurn(prevPlayer, turn)
       .then(() => {
-        if (type === Turns.TOOK_BACK) {
+        if (type === Game.Turns.TOOK_BACK) {
           // Let the taking-back player go again,
           // but with just the remaining time from their move.
           return this.startTurn(player, previousMove.remainingTime);
@@ -327,14 +332,14 @@ define([
      * can't play, or challenged and failed.
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} player player passing (must be current player)
-     * @param {string} type pass type, `Turns.PASSED` or
-     * `Turns.TIMED_OUT`. If undefined, defaults to `Turns.PASSED`
+     * @param {string} type pass type, `Game.Turns.PASSED` or
+     * `Game.Turns.TIMED_OUT`. If undefined, defaults to `Game.Turns.PASSED`
      * @return {Promise} resolving to the game
      */
     pass(player, type) {
-      Platform.assert(player.key === this.whosTurnKey,
+      assert(player.key === this.whosTurnKey,
                       `Not ${player.name}'s turn`);
 
       player.passes++;
@@ -342,7 +347,7 @@ define([
       const nextPlayer = this.nextPlayer();
 
       return this.finishTurn(player, {
-        type: type || Turns.PASSED,
+        type: type || Game.Turns.PASSED,
         nextToGoKey: nextPlayer.key
       })
       .then(() => this.startTurn(nextPlayer));
@@ -353,7 +358,7 @@ define([
      * Check the words created by the previous move are in the dictionary
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} challenger player making the challenge
      * @param {Player} challenged player being challenged
      * @return {Promise} resolving to the game
@@ -370,7 +375,7 @@ define([
 
       if (!previousMove)
         return Promise.reject("No previous move to challenge");
-      if (previousMove.type !== Turns.PLAYED)
+      if (previousMove.type !== Game.Turns.PLAYED)
         return Promise.reject(`Cannot challenge a ${previousMove.type}`);
 
       if (challenged.key !== previousMove.playerKey)
@@ -381,7 +386,7 @@ define([
         /* istanbul ignore next */
         () => {
           this._debug("No dictionary, so challenge always succeeds");
-          return this.takeBack(challenger, Turns.CHALLENGE_WON);
+          return this.takeBack(challenger, Game.Turns.CHALLENGE_WON);
         })
       .then(dict => {
         const bad = previousMove.words
@@ -395,7 +400,7 @@ define([
           // whether the challenger is the current player or
           // not, takeBack should leave the next player
           // after the challenged player with the turn.
-          return this.takeBack(challenger, Turns.CHALLENGE_WON);
+          return this.takeBack(challenger, Game.Turns.CHALLENGE_WON);
         }
 
         this._debug("Challenge failed,", this.challengePenalty);
@@ -404,7 +409,7 @@ define([
         const nextPlayer = this.nextPlayer();
 
         if (challenger.key === currPlayerKey &&
-            this.challengePenalty === Penalty.MISS) {
+            this.challengePenalty === Game.Penalty.MISS) {
 
           // Current player issued the challenge, they lose the
           // rest of this turn
@@ -417,15 +422,15 @@ define([
           if ((!previousMove.replacements
                || previousMove.replacements.length === 0))
             return this.confirmGameOver(
-              this.getPlayer(), State.FAILED_CHALLENGE);
-          // Otherwise issue turn type=Turns.CHALLENGE_LOST
+              this.getPlayer(), Game.State.FAILED_CHALLENGE);
+          // Otherwise issue turn type=Game.Turns.CHALLENGE_LOST
 
           // Penalty for a failed challenge is miss a turn,
           // and the challenger is the current player, so their
           // turn is at an end.
           return this.finishTurn(challenged, {
-            type: Turns.CHALLENGE_LOST,
-            penalty: Penalty.MISS,
+            type: Game.Turns.CHALLENGE_LOST,
+            penalty: Game.Penalty.MISS,
             challengerKey: challenger.key,
             nextToGoKey: nextPlayer.key
           })
@@ -436,21 +441,21 @@ define([
         // was not the next player
         let lostPoints = 0;
         switch (this.challengePenalty) {
-        case Penalty.MISS:
+        case Game.Penalty.MISS:
           // tag them as missing their next turn
           challenger.missNextTurn = true;
           break;
-        case Penalty.PER_TURN:
+        case Game.Penalty.PER_TURN:
           lostPoints = -this.penaltyPoints;
           break;
-        case Penalty.PER_WORD:
+        case Game.Penalty.PER_WORD:
           lostPoints = -this.penaltyPoints * previousMove.words.length;
           break;
         }
 
         challenger.score += lostPoints;
         return this.finishTurn(challenged, {
-          type: Turns.CHALLENGE_LOST,
+          type: Game.Turns.CHALLENGE_LOST,
           score: lostPoints,
           challengerKey: challenger.key,
           nextToGoKey: currPlayerKey
@@ -469,16 +474,16 @@ define([
      * letter(s) into the pool.
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} player player making the swap (must be current
      * player)
      * @param {Tile[]} tiles list of tiles to swap
      * @return {Promise} resolving to the game
      */
     swap(player, tiles) {
-      Platform.assert(player.key === this.whosTurnKey,
+      assert(player.key === this.whosTurnKey,
                       `Not ${player.name}'s turn`);
-      Platform.assert(
+      assert(
         this.letterBag.remainingTileCount() >= tiles.length,
         `Cannot swap, bag only has ${this.letterBag.remainingTileCount()} tiles`);
 
@@ -500,7 +505,7 @@ define([
       const nextPlayer = this.nextPlayer();
 
       return this.finishTurn(player, {
-        type: Turns.SWAPPED,
+        type: Game.Turns.SWAPPED,
         nextToGoKey: nextPlayer.key,
         placements: tiles, // the tiles that were swapped out
         replacements: replacements // the tiles that are replacing them
@@ -513,7 +518,7 @@ define([
      * key for the new game is broadcast in a `NEXT_GAME` notification.
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @return {Promise} resolving to the new game
      */
     anotherGame() {
@@ -539,11 +544,11 @@ define([
 
         // copy the players
         for (const p of this.players) {
-          const np = new Player(p);
+          const np = new this.constructor.Player(this.constructor, p);
           newGame.addPlayer(np, true);
         }
 
-        newGame.state = State.WAITING;
+        newGame.state = Game.State.WAITING;
         // Players will be shuffled in playIfReady
         newGame.whosTurnKey = undefined;
 
@@ -554,7 +559,7 @@ define([
       })
       .then(() => newGame.save())
       .then(() => newGame.playIfReady())
-      .then(() => this.notifyAll(Notify.NEXT_GAME, {
+      .then(() => this.notifyAll(Game.Notify.NEXT_GAME, {
         gameKey: newGame.key,
         timestamp: Date.now()
       }))
@@ -566,13 +571,13 @@ define([
      * a `MESSAGE` notification.
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} player who is being toggled
      */
     toggleAdvice(player) {
       player.toggleAdvice();
       this.notifyPlayer(
-        player, Notify.MESSAGE,
+        player, Game.Notify.MESSAGE,
         {
           sender: /*i18n*/"Advisor",
           text: (player.wantsAdvice
@@ -580,7 +585,7 @@ define([
                  : /*i18n*/"Disabled")
         });
       if (player.wantsAdvice)
-        this.notifyAll(Notify.MESSAGE, {
+        this.notifyAll(Game.Notify.MESSAGE, {
           sender: /*i18n*/"Advisor",
           text: /*i18n*/"advised",
           classes: "warning",
@@ -591,10 +596,10 @@ define([
 
     /**
      * Promise to advise player as to what better play they
-     * might have been able to make. Server side only.
+     * might have been able to make.
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} player a Player
      * @param {number} theirScore score they got from their play
      * @return {Promise} resolves to undefined when the advice is ready.
@@ -603,7 +608,7 @@ define([
       /* istanbul ignore if */
       if (!this.dictionary) {
         this.notifyPlayer(
-          player, Notify.MESSAGE,
+          player, Game.Notify.MESSAGE,
           {
              sender: /*i18n*/"Advisor",
             text: /*i18n*/"No dictionary"
@@ -636,8 +641,8 @@ define([
             args: [  words, start.row + 1, start.col + 1,
                     bestPlay.score ]
           };
-          this.notifyPlayer(player, Notify.MESSAGE, advice);
-          this.notifyOthers(player, Notify.MESSAGE, {
+          this.notifyPlayer(player, Game.Notify.MESSAGE, advice);
+          this.notifyOthers(player, Game.Notify.MESSAGE, {
             sender: /*i18n*/"Advisor",
             text: /*i18n*/"was-advised",
             classes: "warning",
@@ -659,14 +664,14 @@ define([
      * notify all players that they requested a hint.
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} player to get a hint for
      */
     hint(player) {
       /* istanbul ignore if */
       if (!this.dictionary) {
         this.notifyPlayer(
-          player, Notify.MESSAGE,
+          player, Game.Notify.MESSAGE,
           {
              sender: /*i18n*/"Advisor",
             text: /*i18n*/"No dictionary"
@@ -700,10 +705,10 @@ define([
         }
 
         // Tell the requesting player the hint
-        this.notifyPlayer(player, Notify.MESSAGE, hint);
+        this.notifyPlayer(player, Game.Notify.MESSAGE, hint);
 
         // Tell *everyone else* that they asked for a hint
-        this.notifyOthers(player, Notify.MESSAGE, {
+        this.notifyOthers(player, Game.Notify.MESSAGE, {
           sender: /*i18n*/"Advisor",
           text: /*i18n*/"hinted",
           classes: "warning",
@@ -714,7 +719,7 @@ define([
       .catch(e => {
         this._debug("Error:", e);
         /* istanbul ignore next */
-        this.notifyAll(Notify.MESSAGE, {
+        this.notifyAll(Game.Notify.MESSAGE, {
           sender: /*i18n*/"Advisor",
           text: e.toString(),
           timestamp: Date.now()
@@ -726,7 +731,7 @@ define([
      * Add a word to the dictionary whitelist, asynchronously
      * @function
      * @instance
-     * @memberof Commands
+     * @memberof game/Commands
      * @param {Player} player player adding the word
      * @param {string} word word to add
      */
@@ -736,7 +741,7 @@ define([
       .then(dict => {
         if (dict.addWord(word)) {
           this.notifyAll(
-            Notify.MESSAGE, {
+            Game.Notify.MESSAGE, {
               sender: /*i18n*/"Advisor",
               text:
               /*i18n*/"log-word-added",
@@ -747,7 +752,7 @@ define([
         } else {
           this.notifyPlayer(
             player,
-            Notify.MESSAGE, {
+            Game.Notify.MESSAGE, {
               sender: /*i18n*/"Advisor",
               text: /*i18n*/"word-there",
               args: [ word, dict.name ]
@@ -755,8 +760,60 @@ define([
         }
       });
     }
-  }
 
-  return Commands;
+    /**
+     * Dispatcher for commands coming from the UI.
+     * @instance
+     * @memberof game/Commands
+     * @param {Game.Command} command the command
+     * @param {Player} player the player issuing the command
+     * @param {Object} args arguments to the command
+     */
+    dispatchCommand(command, player, args) {
+      this._debug("COMMAND", command,
+                  "player", player.name,
+                  "game", this.key);
+
+      // Istanbul can ignore next because it's just routing
+      /* istanbul ignore next */
+      switch (command) {
+
+        case Game.Command.CHALLENGE:
+          return this.challenge(
+            player, this.getPlayerWithKey(args.challengedKey));
+
+        case Game.Command.CONFIRM_GAME_OVER:
+          return this.confirmGameOver(player);
+
+        case Game.Command.PASS:
+          return this.pass(player, Game.Turns.PASSED);
+
+        case Game.Command.PAUSE:
+          return this.pause(player);
+
+        case Game.Command.PLAY:
+          return this.play(player, args);
+
+        case Game.Command.REDO:
+          return this.redo(args);
+
+        case Game.Command.SWAP:
+          return this.swap(player, args);
+
+        case Game.Command.TAKE_BACK:
+          return this.takeBack(player, Game.Turns.TOOK_BACK);
+
+        case Game.Command.UNDO:
+          this.undo(this.popTurn());
+          break;
+
+        case Game.Command.UNPAUSE:
+          return this.unpause(player);
+
+        default:
+          return assert.fail(`unrecognized command: ${command}`);
+      }
+    }
+  };
 });
 

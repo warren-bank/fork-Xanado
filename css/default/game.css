@@ -3,7 +3,7 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /**
- * Styling for the "game_ui" interface
+ * Styling for the "client_game" interface
  */
 
 /* Wraps UI components */
@@ -59,18 +59,18 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
   color: brown;
 }
 
-/*------------ LOGIN BLOCK ------------*/
-
-/* Settings and signout div */
-#loginBlock .toolbox {
+.toolbox {
   float: right;
 }
 
-#loginBlock .undoButton {
+/*------------ LOGIN BLOCK ------------*/
+
+/* Settings and signout div */
+#undoButton {
   display: none;
 }
 
-#loginBlock .redoButton {
+#redoButton {
   display: none;
 }
 
@@ -130,13 +130,8 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
   max-height: 8em;
 }
 
-/* div that wraps message capture */
-#chatBlock > .chat-input {
+#chatInput {
   margin-top: 0.25em;
-  width: 100%;
-}
-
-#chatBlock input {
   width: 95%;
 }
 
@@ -212,7 +207,8 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /* an individual word in a list of words in the log */
 .word {
-  font-style: italic
+  font-style: italic;
+  margin-left: 0.25em;
 }
 
 /* an individual word score in a list of words in the log */

@@ -4,65 +4,76 @@
 /* eslint-env amd, node, jquery */
 
 define([
-  "platform", "common/Utils", "game/Surface", "game/Tile", "game/Move",
-  requirejs.isBrowser ? "browser/Board" : "server/Board"
-], (Platform, Utils, Surface, Tile, Move, PlatformMixin) => {
+  "platform", "common/Utils",
+  "game/Surface", "game/Tile", "game/Move", "game/Edition"
+], (
+  Platform, Utils,
+  Surface, Tile, Move, Edition,
+) => {
 
   /**
    * The square game board.
-   * @extends Surface
-   * @mixes BrowserBoard
-   * @mixes ServerBoard
    */
-  class Board extends PlatformMixin(Surface) {
+  class Board extends Surface {
 
     /**
      * Row of middle square on board.
      * @member {number}
      */
-    midrow;
+    midrow = -1;
 
     /**
      * Column of middle square on board.
      * @member {number}
      */
-    midcol;
+    midcol = -1;
 
     /**
-     * @param {Edition} edition the edition defining the board layout
+     * @param {object} factory class object mapping class name to a class
+     * @param {Edition|Board} spec an Edition defining the board layout,
+     * or a Board to copy. The tiles on the old board will NOT be copied.
      */
-    constructor(edition) {
-      if (edition instanceof Board) {
-        super("Board", edition.cols, edition.rows,
-              (col, row) => edition.at(col, row).type);
-      } else {
-        super("Board", edition.cols, edition.rows,
-              (col, row) => edition.squareType(col, row));
+    constructor(factory, spec) {
+      const info = {
+        id: "Board",
+        rows: spec.rows,
+        cols: spec.cols
+      };
+      if (spec instanceof Board)
+        info.type = (col, row) => spec.at(col, row).type;
+      else // if (spec instanceof Edition)
+        info.type = (col, row) => spec.squareType(col, row);
 
-        this.midrow = Math.floor(edition.rows / 2);
-        this.midcol = Math.floor(edition.cols / 2);
-      }
+      super(factory, info);
+
+      this.midrow = Math.floor(this.rows / 2);
+      this.midcol = Math.floor(this.cols / 2);
     }
 
     /**
-     * Load the board from the string representation output by
+     * Populate the board from a string output by
      * {@linkcode Board#toString|toString}. This is for use in tests.
-     * @param {string} sboard string representation of the board
+     * @param {object} factory object giving Game classes to instantiate
      * @param {Edition} edition the edition defining the board layout.
      * This has to be provided because we don't cache the actual
      * Edition in the Board.
+     * @param {string} tiles string representation of the board
+     * @private
      */
-    parse(sboard, edition) {
-      const rows = sboard.split("\n");
+    parse(factory, edition, tiles) {
+      const rows = tiles.split("\n");
+      assert(rows.length >= this.rows, "Too many rows");
       for (let row = 0; row < this.rows; row++) {
         const r = rows[row].split("|");
+        assert(r.length === this.cols + 2,
+                        `${r.length} === ${this.cols} + 2`);
         for (let col = 0; col < this.cols; col++) {
           const letter = r[col + 1];
           if (letter != " ") {
             // Treat lower-case letters as cast blanks.
             // May not work in non-latin languages.
             const isBlank = (letter.toUpperCase() != letter);
-            const tile = new Tile({
+            const tile = new factory.Tile({
               letter: letter.toUpperCase(),
               isBlank: isBlank,
               score: isBlank ? 0 : edition.letterScore(letter)

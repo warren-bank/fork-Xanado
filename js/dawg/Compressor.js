@@ -3,26 +3,26 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node */
 
-/**
- * AMD module defining the body of the 'dictionary_compressor'
- * command-line program
- */
 define([
-  "fs", "node-gzip", "dawg/Trie"
+  "fs", "dawg/Trie"
 ], (
-  fs, Gzip, Trie
+  fs, Trie
 ) => {
   const Fs = fs.promises;
 
+  /**
+   * The body of the 'dictionary_compressor' command-line program
+   */
   class Compressor {
 
     /**
      * Generate a compressed dictionary from the text file of words.
      * @param {string} infile file of words, one per line, # for comments
-     * @param {string} outfile file for zipped dictionary
+     * @param {string} outfile file for dictionary
      * @return {Promise} a promise to create the dictionary
      */
     static compress(infile, outfile, report) {
+      //console.log("Compress",infile,"to",outfile);
       return Fs.readFile(infile, "utf8")
       .then(async function(data) {
         const lexicon = data
@@ -40,12 +40,10 @@ define([
 
         // Generate an integer array for use with Dictionary
         const buffer = trie.encode();
-        const dv = new DataView(buffer);
-        const z = await Gzip.gzip(dv);
-        report(`Compressed ${z.length} bytes`);
 
         // Write DAWG binary bytes
-        return Fs.writeFile(outfile, z)
+        const dv = new DataView(buffer);
+        return Fs.writeFile(outfile, dv)
         .then(() => report(`Wrote DAWG to ${outfile}`));
       })
       .catch(e => {

@@ -2,21 +2,22 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 
-define([
-    requirejs.isBrowser ? "browser/Tile" : "common/EmptyBase"
-], PlatformBase => {
+define(() => {
 
   /**
    * A tile in a LetterBag, on a Board, or on a Rack, or during best move
    * computation.
    */
-  class Tile extends PlatformBase {
+  class Tile {
+
+    // Note that we do NOT use the field syntax for the fields that
+    // are serialised. If we do that, then the constructor blows the
+    // field away when loading using Freeze.
 
     /**
      * @param {Tile|object} spec optional Tile to copy or spec of tile
      */
     constructor(spec) {
-      super();
 
       /**
        * Character(s) represented by this tile.
@@ -53,14 +54,14 @@ define([
       if (spec.isBlank)
         /**
          * True if this tile is a blank (irresepective of letter)
-         * @member {boolean}
+         * @member {boolean?}
          */
         this.isBlank = true;
 
       if (spec.isLocked)
         /**
          * True if the tile is locked to a surface and cannot be moved.
-         * @member {boolean}
+         * @member {boolean?}
          */
         this.isLocked = true;
     }

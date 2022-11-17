@@ -7,7 +7,11 @@ if (typeof requirejs === "undefined") {
   throw new Error(__filename + " is not runnable stand-alone");
 }
 
-define([], () => {
+define([
+  "common/Channel"
+], (
+  Channel
+) => {
 
   const assert = require("assert");
 
@@ -27,35 +31,31 @@ define([], () => {
    * });
    */
 
-  class TestSocket {
-    listeners = {};
+  class TestSocket extends Channel {
     resolve;
     reject;
     finished;
     sawError;
+    idNum = 0;
 
-    _emit(event, data) {
-      try {
-        if (this.listeners[event] && this.listeners[event].length > 0)
-          this.listeners[event].forEach(l => l(data, event));
-        else if (this.listeners["*"])
-          this.listeners["*"].forEach(l => l(data, event));
-      } catch (e) {
-        //console.error("ERROR", e);
-        this.sawError = e;
-        this.done();
-        throw e;
+    // @override
+    emit(event, data, nomore) {
+      if (this.connection && !nomore) // connection to another socket?
+        this.connection.emit(event, data, true);
+      else {
+        try {
+          if (this.handlers[event] && this.handlers[event].length > 0)
+            this.handlers[event].forEach(l => l(data, event, this.idNum));
+          else if (this.handlers["*"] && this.handlers['*'].length > 0)
+            this.handlers["*"].forEach(l => l(data, event, this.idNum));
+          this.idNum++;
+        } catch (e) {
+          //console.error("ERROR", e);
+          this.sawError = e;
+          this.done();
+          throw e;
+        }
       }
-    }
-
-    /** Simulate socket.io */
-    emit(event, data) {
-      if (data && data.messageID)
-        data = data.data;
-      if (this.connection)
-        this.connection._emit(event, data);
-      else
-        this._emit(event, data);
     }
 
     // Couple to another TestSocket
@@ -66,19 +66,6 @@ define([], () => {
       endPoint.connection = this;
     }
     
-    /**
-     * Register a listener for the given event. Pass "*" for the event
-     * for a catch-all handler that will handle any events not
-     * otherwise handled.
-     */
-    on(event, listener) {
-      if (this.listeners[event])
-        this.listeners[event].push(listener);
-      else
-        this.listeners[event] = [listener];
-      return this;
-    }
-
     /**
      * Wait for the socket to be marked as `done()`. This will normally
      * be after all the expected messages have been received. If done()

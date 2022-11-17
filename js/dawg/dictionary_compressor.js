@@ -10,7 +10,7 @@
  * an integer array, which it then gzips.
  *
  * `node js/dawg/dictionary_compressor.js` will tell you how to use it.
- * @module dictionary_compressor
+ * @module
  */
 
 const requirejs = require("requirejs");

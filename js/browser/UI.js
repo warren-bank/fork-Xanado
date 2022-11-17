@@ -5,12 +5,14 @@
 /* global pluralRuleParser */
 
 define([
-  "socket.io-client",  "browser/Dialog", "platform", "common/Utils",
+  "platform",
+  "common/Utils",
   "cldrpluralruleparser", // requirejs shim pulls in jquery.i18n
-
   "jquery", "jqueryui"
 ], (
-  Sockets, Dialog, Platform, Utils, cldrpluralruleparser
+  Platform,
+  Utils,
+  cldrpluralruleparser
 ) => {
 
   // Importing the AMD module for cldrpluralruleparser is not enough;
@@ -18,42 +20,40 @@ define([
   pluralRuleParser = cldrpluralruleparser;
 
   /**
-   * Common code shared between game and games interfaces
+   * Base class of functionality shared between all browser UIs.
    */
   class UI {
 
-    constructor() {
-      /**
-       * Are we using https?
-       * @member {boolean}
-       */
-      this.usingHttps = document.URL.indexOf("https:") === 0;
-
-      /**
-       * Session object describing signed-in user
-       * @member {object}
-       */
-      this.session = undefined;
-
-      /**
-       * Cache of defaults object, lateinit in build()
-       */
-      this.defaults = undefined;
-
-      /**
-       * Cache of Audio objects, indexed by name of clip.
-       * Empty until a clip is played.
-       */
-      this.soundClips = {};
-    }
+    /**
+     * Debug function. Same signature as console.debug.
+     * @member {function}
+     */
+    debug = () => {};
 
     /**
-     * Report an error returned from an ajax request.
+     * Debug flag.
+     * @member {boolean}
+     */
+    debugging = false;
+
+    /**
+     * Communications channel which the backend will be sending and
+     * receiving notifications on. In a client-server configuration,
+     * this will be a WebSocket. For standalone, it will be a
+     * {@linkcode Dispatcher}.
+     * @member {Channel}
+     */
+    channel = undefined;
+
+    /**
+     * Report an error.  Access in mixins using this.constructor.report.
      * @param {string|Error|array|jqXHR} args This will either be a
      * simple i18n string ID, or an array containing an i18n ID and a
      * series of arguments, or a jqXHR.
      */
     static report(args) {
+      console.error("REPORT", args);
+
       // Handle a jqXHR
       if (typeof args === "object") {
         if (args.responseJSON)
@@ -81,10 +81,30 @@ define([
     }
 
     /**
+     * Cache of Audio objects, indexed by name of clip.
+     * Empty until a clip is played.
+     * @member {Object<string,Audio>}
+     * @private
+     */
+    soundClips = {};
+
+    /**
+     * Send notifications to the backend.
+     * In a client-server configuration, this will send a notification
+     * over a WebSocket. In a standalone configuration, it will
+     * invoke a Dispatcher.
+     */
+    notifyBackend(notification, data) {
+      this.channel.emit(notification, data);
+    }
+
+    /**
      * Play an audio clip, identified by id. Clips must be
      * pre-loaded in the HTML. Note that most (all?) browsers require
      * some sort of user interaction before they will play audio
      * embedded in the page.
+     * @instance
+     * @memberof client/UIMixin
      * @param {string} id name of the clip to play (no extension). Clip
      * must exist as an mp3 file in the /audio directory.
      */
@@ -92,7 +112,7 @@ define([
       let audio = this.soundClips[id];
 
       if (!audio) {
-        audio = new Audio(`/audio/${id}.mp3`);
+        audio = new Audio(`../audio/${id}.mp3`);
         this.soundClips[id] = audio;
       }
 
@@ -117,22 +137,77 @@ define([
     }
 
     /**
-     * Complete construction using promises
-     * @return {Promise} promise that resolves when the UI is ready
-     * @protected
+     * Initialise CSS style cache
+     * @return {Promise} a promise that resolves when the theme has changed.
+     * Note this doesn't mean the CSS has actually changed - that is done
+     * asynchronously, as link tags don't support onload reliably on all
+     * browsers.
      */
-    create() {
-      // Set up translations
-      return $.get("/defaults")
-      .then(defaults => this.defaults = defaults)
-      .then(() => this.getSession())
-      .then(() => $.get("/locales"))
+    initTheme() {
+      // Note that themes must now define ALL CSS files from the
+      // default thme. Soft links will work in decent operating
+      // systems.
+      const theme = this.getSetting("theme");
+      $("link.theme").remove();
+      $("meta[name=theme]").each((idx, el) => {
+        const css = el.content;
+        const href = requirejs.toUrl(`css/${theme}/${css}`);
+        $("head").append(`<link class="theme" href="${href}" rel="stylesheet" type="text/css">`);
+      });
+      return Promise.resolve();
+    }
+
+    /**
+     * Find the first CSS rule for the given selector.
+     * @param {string} selector selector for the rule to search for
+     * @private
+     */
+    findCSSRule(selector) {
+      for (const sheet of document.styleSheets) {
+        try {
+          for (const rule of sheet.cssRules) {
+            if (rule instanceof CSSStyleRule
+                && rule.selectorText == selector)
+              return rule;
+          }
+        } catch(e) {
+          // Not allowed to access cross-origin stylesheets
+        }
+      }
+      return this;
+    }
+
+    /**
+     * Modify a CSS rule. This is used for scaling elements such as tiles
+     * when the display is resized.
+     * @param {string} selector selector of rule to modify
+     * @param {Object.<string,number>} changes map of css attribute
+     * name to new pixel value.
+     * @private
+     */
+    editCSSRule(selector, changes) {
+      const rule = this.findCSSRule(selector);
+      assert(rule, selector);
+      let text = rule.style.cssText;
+      $.each(changes, (prop, val) => {
+        const re = new RegExp(`(^|[{; ])${prop}:[^;]*`);
+        text = text.replace(re, `$1${prop}:${val}px`);
+      });
+      rule.style.cssText = text;
+    }
+
+    /**
+     * Promise to initialise the locale.
+     * @return {Promise}
+     */
+    initLocale() {
+      return this.getLocales()
       .then(locales => {
-        const params = {};
         const ulang = this.getSetting("language") || "en";
         console.debug("User language", ulang);
         // Set up to load the language file
-        params[ulang] = `/i18n/${ulang}.json`;
+        const params = {};
+        params[ulang] = `../i18n/${ulang}.json`;
         // Select the language and load
         return $.i18n({ locale: ulang })
         .load(params)
@@ -156,245 +231,83 @@ define([
           items: "[data-i18n-tooltip]",
           content: function() {
             return $.i18n($(this).data("i18n-tooltip"));
+          },
+          open: function(event, ui) {
+            // Handle special case of a button that opens a dialog.
+            // When the dialog closes, a focusin event is sent back
+            // to the tooltip, that we want to ignore.
+            if (event.originalEvent.type === "focusin")
+              ui.tooltip.hide();
           }
         });
-      })
-      .then(() => this.handleURLArguments())
-      .then(() => {
-        console.debug("Connecting to socket");
-        // The server URL will be deduced from the request
-        this.socket = Sockets.connect();
-        this.attachSocketListeners();
-      })
-      .then(() => this.attachHandlers())
-      .then(() => {
-        $(".loading").hide();
-        $(".waiting").removeClass("waiting");
       });
     }
 
     /**
-     * Parse the URL used to load this page to extract parameters.
-     * @return {Promise } promise that resolves to a key-value map
-     */
-    handleURLArguments() {
-      const bits = document.URL.split("?");
-      const urlArgs = {};
-      if (bits.length > 1) {
-        const sargs = bits[1].split(/[;&]/);
-        for (const sarg of sargs) {
-          const kv = sarg.split("=");
-          urlArgs[decodeURIComponent(kv[0])] =
-          decodeURIComponent(kv[1]);
-        }
-      }
-      return Promise.resolve(urlArgs);
-    }
-
-    /**
-     * Attach handlers for jquery and game events. This must NOT
-     * attach socket handlers, just DOM object handlers.  Subclasses
-     * should override this calling to super.attachHandlers() last.
-     */
-    attachHandlers() {
-      // gear button
-      $(".settingsButton")
-      .on("click", () => {
-        Dialog.open("SettingsDialog", {
-          ui: this,
-          postAction: "/session-settings",
-          postResult: settings => {
-            this.session.settings = settings;
-            window.location.reload();
-          },
-          error: UI.report
-        });
-      });
-    }
-
-    /**
-     * Called when a connection to the server is reported by the
-     * socket. Use to update the UI to reflect the game state.
-     * Implement in subclasses.
-     * @abstract
-     */
-    readyToListen() {
-      return Promise.reject("Not implemented");
-    }
-
-    /**
-     * Attach socket communications listeners. Override in subclasses,
-     * making sure to call super.attachSocketListeners()
-     */
-    attachSocketListeners() {
-
-      Platform.assert(!this._socketListenersAttached);
-      this._socketListenersAttached = true;
-
-      let $reconnectDialog = null;
-
-      // socket.io events 'new_namespace', 'disconnecting',
-      // 'initial_headers', 'headers', 'connection_error' are not handled
-
-      this.socket
-
-      .on("connect", skt => {
-        // Note: "connect" is synonymous with "connection"
-        // Socket has connected to the server
-        console.debug("--> connect");
-        if ($reconnectDialog) {
-          $reconnectDialog.dialog("close");
-          $reconnectDialog = null;
-        }
-        this.readyToListen();
-      })
-
-      .on("disconnect", skt => {
-        // Socket has disconnected for some reason
-        // (server died, maybe?) Back off and try to reconnect.
-        console.debug(`--> disconnect`);
-        const mess = $.i18n("text-disconnected");
-        $reconnectDialog = $("#alertDialog")
-        .text(mess)
-        .dialog({
-          title: $.i18n("XANADO problem"),
-          modal: true
-        });
-        setTimeout(() => {
-          // Try and rejoin after a 3s timeout
-          this.readyToListen()
-          .catch(e => {
-            console.debug(e);
-            if (!$reconnectDialog)
-              UI.report(mess);
-          });
-        }, 3000);
-      });
-    }
-
-    /**
-     * Identify the logged-in user
-     * @return {Promise} a promise that resolves to the (redacted)
-     * session object if someone is logged in, or undefined otherwise.
-     */
-    getSession() {
-      $(".logged-in,.not-logged-in").hide();
-      return $.get("/session")
-      .then(session => {
-         console.debug(`Signed in as '${session.name}'`);
-        $(".not-logged-in").hide();
-        $(".logged-in")
-        .show()
-        .find("span")
-        .first()
-        .text(session.name);
-        this.session = session;
-        return session;
-      })
-      .catch(e => {
-        $(".logged-in").hide();
-        $(".not-logged-in").show();
-        if (typeof this.observer === "string")
-          $(".observer").show().text($.i18n(
-            "observer", this.observer));
-        $(".not-logged-in>button")
-        .on("click", () => Dialog.open("LoginDialog", {
-          // postAction is set in code
-          postResult: () => window.location.reload(),
-          error: UI.report
-        }));
-        return undefined;
-      });
-    }
-
-    /**
-     * Get the current value for a setting. If a user is logged in, the
-     * value will be taken from their session (and will default if it
-     * is not defined).
-     * @param {string} key setting to retrieve
-     * @return {string|number|boolean} setting value
+     * Get a user setting
+     * @param {string} key setting to get
      */
     getSetting(key) {
-      return (this.session && this.session.settings
-              && typeof this.session.settings[key] !== "undefined")
-      ? this.session.settings[key]
-      : this.defaults[key];
-    }
-
-    getSettings() {
-      return this.session && this.session.settings
-      ? this.session.settings
-      : this.defaults;
+      return undefined;
     }
 
     /**
-     * Promise to check if we have been granted permission to
-     * create Notifications.
-     * @return {Promise} Promise that resolves to undefined if we can notify
+     * Set a user setting
+     * @param {string} key setting to set
+     * @param {string} value value to set
      */
-    canNotify() {
-      if (!(this.usingHttps
-            && this.getSetting("notification")
-            && "Notification" in window))
-        return Promise.reject();
-
-      switch (Notification.permission) {
-      case "denied":
-        return Promise.reject();
-      case "granted":
-        return Promise.resolve();
-      default:
-        return new Promise((resolve, reject) => {
-          return Notification.requestPermission()
-          .then(result => {
-            if (result === "granted")
-              resolve();
-            else
-              reject();
-          });
-        });
-      }
+    setSetting(key, value) {
     }
 
     /**
-     * Generate a notification using the HTML5 notifications API
-     * @param {string} title i18n notification title id
-     * @param {string} body i18n notification body id
-     * @param [...] arguments to i18n body id
+     * Set a groups of user setting
+     * @param {object<string,object>} settings set of settings
      */
-    notify() {
-      const args = Array.from(arguments);
-      const title = $.i18n(args.shift());
-      const body = $.i18n.call(args);
-      this.canNotify()
-      .then(() => {
-        this.cancelNotification();
-        const notification = new Notification(
-          title,
-          {
-            icon: "/images/favicon.ico",
-            body: body
-          });
-        this._notification = notification;
-        $(notification)
-        .on("click", function () {
-          this.cancel();
-        })
-        .on("close", () => {
-          delete this._notification;
-        });
-      })
-      .catch(() => {});
+    setSettings(settings) {
+      for (const f of Object.keys(settings))
+        this.setSetting(f, settings[f]);
     }
 
     /**
-     * Cancel any outstanding Notification
+     * Get the available locales.
+     * @return {Promise} promise resolves to list of available locale names
      */
-    cancelNotification() {
-      if (this._notification) {
-        this._notification.close();
-        delete this._notification;
-      }
+    getLocales() {
+      assert.fail("UI.getLocales");
+    }
+
+    /**
+     * Gets a list of the available themes. A theme is a set of CSS
+     * files`, each of which corresponds to a CSS file in `css/default`.
+     * The theme CS can override some or all of the default CSS.
+     * @return {Promise} promise that resolves to
+     * a list of theme name strings.
+     */
+    getThemes() {
+      assert.fail("UI.getThemes");
+    }
+
+    /**
+     * Get a list of available dictionaries
+     * @memberof GameUIMixin
+     * @instance
+     * @return {Promise} resolving to a list of available dictionary
+     * name strings.
+     */
+    getDictionaries() {
+      assert.fail("UI.getDictionaries");
+    }
+
+    /**
+     * Get a list of available editions.
+     * Must be implemented by a sub-mixin or final class.
+     * @memberof GameUIMixin
+     * @instance
+     * @return {Promise} resolving to a list of available edition
+     * name strings.
+     */
+    getEditions() {
+      assert.fail("UI.getEditions");
     }
   }
 

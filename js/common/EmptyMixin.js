@@ -6,4 +6,4 @@
  * Null mixin, used to keep requirejs happy where a module
  * doesn't have context-specific functionality.
  */
-define(() => superclass => class EmptyMixin extends superclass {});
+define(() => superclass => superclass);

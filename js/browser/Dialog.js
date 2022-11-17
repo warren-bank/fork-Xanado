@@ -5,34 +5,43 @@
 
 define(() => {
 
-  // Index of dialog instances.
-  const instances = {};
-
   /**
    * Base class of modal dialogs with demand-loadable HTML and a submit
    * button.
    *
+   * HTML is loaded on demand from the html directory, based in the `id`
+   * of the dialog (or the `html` option.
+   *
    * In the HTML, any input or select that has a "name" attribute will
    * be used to populate a structure representing the dialog data.
    *
-   * If a `postAction` URL is set, this structure will be posted to the
+   * If a `postAction` URL option is set, this structure will be posted to the
    * URL and the result passed to an optional `postResult` function.
    *
    * Alternatively (or additionally), the `onSubmit` option can be set to
    * a function that will be called with `this` when the submit button
    * is pressed, *before* the `postAction` is sent.
    *
-   * Note that each dialog type has a single Dialog instance associated
-   * with it, and only one
+   * Note that each dialog id has a single Dialog instance associated
+   * with it. You cannot have two of the same type of dialog visible
+   * at once.
    */
   class Dialog {
+
+    /**
+     * Index of dialog instances.
+     * @private
+     */
+    static instances = {};
 
     /**
      * Construct the named dialog, demand-loading the HTML as
      * necessary. Do not use this - use {@linkcode Dialog#open|open()}
      * instead.
-     * @param {string} dlg the dialog name
+     * @param {string} id the dialog name
      * @param {object} options options
+     * @param {string?} options.html optional name of HTML file to
+     * load, defaults to the id of the dialog
      * @param {string?} options.postAction AJAX call name. If defined,
      * the dialog fields will be posted here on close.
      * @param {function?} options.postResult passed result
@@ -41,7 +50,6 @@ define(() => {
      * @param {function?} options.onSubmit Passed this, can be used without
      * postAction.
      * @param {function} options.error error function, passed jqXHR
-     * @private
      */
     constructor(id, options) {
       /**
@@ -66,7 +74,8 @@ define(() => {
 
       if (this.$dlg.length === 0) {
         // HTML is not already present; load it asynchronously.
-        pre_dialog = $.get(`/html/${id}.html`)
+        // standalone, / is /html. client it's /. How?
+        pre_dialog = $.get(requirejs.toUrl(`html/${options.html || id}.html`))
         .then(html_code => {
           $("body").append(
             $(document.createElement("div"))
@@ -74,6 +83,9 @@ define(() => {
             .addClass("dialog")
             .html(html_code));
           this.$dlg = $(`#${id}`);
+        })
+        .catch(e => {
+          console.error("Dialog HTML load failed " + e);
         });
       } else
         pre_dialog = Promise.resolve();
@@ -313,8 +325,8 @@ define(() => {
     static open(dlg, options) {
       console.debug("Static open", dlg, options);
       return new Promise(resolve => {
-        requirejs([`browser/${dlg}`], Clas => {
-          let inst = instances[dlg];
+        requirejs([dlg], Clas => {
+          let inst = Dialog.instances[dlg];
           if (inst) {
             if (options)
               Object.assign(inst.options, options);
@@ -327,7 +339,7 @@ define(() => {
               inst.$dlg.dialog("open");
             }
           } else
-            inst = instances[dlg] = new Clas(options);
+            inst = Dialog.instances[dlg] = new Clas(options);
           resolve(inst);
         });
       });

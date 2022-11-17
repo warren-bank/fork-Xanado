@@ -1,0 +1,119 @@
+/* See README.md at the root of this distribution for copyright and
+   license information */
+/* eslint-env node, mocha */
+
+/**
+ * Test first play on an empty board.
+ */
+describe("RobotFirstPlay", () => {
+
+  const TS = require("../TestSupport.js");
+  after(() => TS.after());
+  before(required => TS.before({
+    MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
+    Game: "backend/BackendGame", /* global Game */
+    findBestPlay: "backend/findBestPlay" /* global findBestPlay */
+  }, required));
+
+  it("first play English Scrabble", () => {
+    let bestPlay;
+
+    let game = new Game({
+      edition:"English_Scrabble",
+      dictionary:"Oxford_5000"
+    });
+    return game.create()
+    .then(() => game.onLoad(new MemoryDatabase()))
+    .then(() => {
+      game.addPlayer(new Game.Player(Game, {
+        name:"test", key:"anonymous", isRobot:false
+      }), true);
+      return game.loadBoard(
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n");
+    })
+
+    .then(game => findBestPlay(
+      game, [
+        new Game.Tile({letter:"A", isBlank:false, score:1}),
+        new Game.Tile({letter:"E", isBlank:false, score:1}),
+        new Game.Tile({letter:"I", isBlank:false, score:1}),
+        new Game.Tile({letter:"O", isBlank:false, score:1}),
+        new Game.Tile({letter:"U", isBlank:false, score:1}),
+        new Game.Tile({letter:" ", isBlank:true, score:0}),
+        new Game.Tile({letter:" ", isBlank:true, score:0})
+      ],
+      play => {
+        //console.debug(play);
+        bestPlay = play;
+      },
+      game.dictionary))
+
+    .then(() => {
+      assert.equal(bestPlay.words[0].word, "AUDIO");
+      assert.equal(bestPlay.words[0].score, 10);
+      let tile = bestPlay.placements[2];
+      assert(tile instanceof Game.Tile);
+      assert.equal(tile.letter, "D");
+      assert.equal(tile.score, 0);
+      assert(tile.isBlank);
+    });
+  });
+
+  it("first play English WWF", () => {
+    let bestPlay;
+
+    let game = new Game({edition:"English_WWF", dictionary:"Oxford_5000"});
+    return game.create()
+    .then(() => game.onLoad(new MemoryDatabase()))
+    .then(game => {
+      game.addPlayer(
+        new Game.Player(Game, {name:"test", key:"slight", isRobot:false}), true);
+      return game.loadBoard(
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n");
+    })
+
+    .then(game => findBestPlay(
+      game, [
+        new Game.Tile({letter:"Z", isBlank:false, score:1}),
+        new Game.Tile({letter:"E", isBlank:false, score:1}),
+        new Game.Tile({letter:"B", isBlank:false, score:1}),
+        new Game.Tile({letter:"U", isBlank:false, score:1})
+      ],
+      play => bestPlay = play,
+      game.dictionary))
+
+    .then(() => {
+      assert.equal(bestPlay.words[0].word, "BE");
+      assert.equal(bestPlay.words[0].score, 4);
+    });
+  });
+});
+

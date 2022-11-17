@@ -70,7 +70,7 @@
   "SWAP": "Letters underlying the swap rack",
   "Save": "button title",
   "Scores": "title of Scores block",
-  "Select your language": "tooltip: select in options dialog",
+  "tt-lang-code": "tooltip: select in options dialog",
   "Send email": "label: LoginDialog: button",
   "Send reminder": "label: Button for sending an email reminder",
   "Send turn reminders": "label: button",
@@ -200,10 +200,11 @@
   "text-reset-sent": "report that email was sent",
   "text-sign-in": "Text at top of page when player no-one is signed in",
   "tiles-left": "Letter bag status in the Scores block, $1 is number of tiles left",
+  "title-dist-dlg": "title for letter distribution dialog",
   "title-game-dlg": "title for game dialog, $1 is game id",
   "took-back-turn": "Notify body content when move retracted, $1 is the player who retracted",
-  "tooltip-redo": "tooltip: redo button in game screen",
-  "tooltip-register-pw": "tooltip: input in register dialog",
+  "tt-redo": "tooltip: redo button in game screen",
+  "tt-register-pw": "tooltip: input in register dialog",
   "tt-add-robot": "tooltip: for add robot button",
   "tt-allow-takeback": "tooltip in create game dialog",
   "tt-allow-undo": "tooltip: for allow undo checkbox in game setup dialog",
@@ -214,6 +215,7 @@
   "tt-dictionary": "tooltip: dictionary select",
   "tt-distribution": "tooltip: letter distribution button",
   "tt-edition": "tooltip: edition select in create game dialog",
+  "tt-game-setup": "tooltip: for playing card in standalone UI and 'Game setup' button in Game dialog",
   "tt-invite": "tooltip: button in game dialog",
   "tt-invite-mess": "tooltip: input",
   "tt-join": "tooltip: button in game dialog",
@@ -252,6 +254,5 @@
   "word-rejected": "Log message when a player word is auto-rejected $1 is just used for pluralisation, $2 is the missing word",
   "word-there": "output when an allowed word $1 didn't need to be added to dictionary $2",
   "wrong-pass": "reporting a bad password during login, $1 is the user name",
-  "your": "used in compiling complex sentences",
-  "title-dist-dlg": "title for letter distribution dialog"
+  "your": "used in compiling complex sentences"
 }
