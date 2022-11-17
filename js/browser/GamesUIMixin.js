@@ -17,6 +17,18 @@ define([
   return superclass => class GamesUIMixin extends superclass {
 
     /**
+     * Format of rows in the games table.
+     * See {@linkcode browser/BrowserGame#headline}
+     */
+    static GAME_TABLE_ROW = '<tr class="game" id="%i">'
+    + '<td class="h-edition">%e</td>'
+    + '<td class="h-created">%c</td>'
+    + '<td class="h-players">%p</td>'
+    + '<td class="h-state">%s</td>'
+    + '<td class="h-won">%w</td>'
+    + '</tr>';
+
+    /**
      * Attach event handlers to objects in the UI
      * @instance
      * @memberof browser/GamesUIMixin
@@ -155,20 +167,15 @@ define([
     }
 
     /**
-     * Construct a table that shows the state of the given game
+     * Construct a table row that shows the state of the given game
      * @instance
      * @memberof browser/GamesUIMixin
      * @param {Game|object} game a Game or Game.simple
-     * @param {boolean?} noPlayers true to omit players from the
-     * table headline
      * @private
      */
-    $game(game, noPlayers) {
+    $gameTableRow(game) {
       assert(game instanceof Game, "Not a game");
-      return $(document.createElement("div"))
-      .addClass("game")
-      .attr("id", game.key)
-      .append(game.$headline(true, noPlayers))
+      return $(game.tableRow(this.constructor.GAME_TABLE_ROW))
       .on("click", () => {
         Dialog.open("browser/GameDialog", {
           game: game,
@@ -182,13 +189,12 @@ define([
      * @instance
      * @memberof browser/GamesUIMixin
      * @param {Game|object} game a Game or Game.simple
-     * @param {boolean?} noPlayers true to omit players from the
-     * table headline
      * @private
      */
-    showGame(game, noPlayers) {
+    showGame(game) {
       // Update the games list and dialog headlines as appropriate
-      $(`#${game.key}`).replaceWith(game.$headline(true, noPlayers));
+      $(`#${game.key}`).replaceWith(
+        game.tableRow(this.constructor.GAME_TABLE_ROW));
       // Update the dialog if appropriate
       $(`#GameDialog[name=${game.key}]`)
       .data("this")
@@ -200,35 +206,36 @@ define([
      * @instance
      * @memberof browser/GamesUIMixin
      * @param {object[]} games array of Game.simple
-     * @param {boolean?} standalone true to omit players
      */
-    showGames(simples, standalone) {
+    showGames(simples) {
       if (simples.length === 0) {
         $("#gamesList").hide();
         return;
       }
 
-      const $gt = $("#gamesTable");
+      const $gt = $("#gamesList > tbody");
       $gt.empty();
 
-      const games = simples.map(simple => Game.fromSerialisable(simple, Game));
+      const games = simples.map(simple => Game.fromSerialisable(simple, Game))
+            .sort((a, b) => a.creationTimestamp < b.creationTimestamp ? -1 :
+                  a.creationTimestamp > b.creationTimestamp ? 1 : 0);
 
-      games.forEach(game => $gt.append(this.$game(game, standalone)));
+      games.forEach(game => $gt.append(this.$gameTableRow(game)));
 
       $("#gamesList").show();
     }
 
     /**
-     * Request an update for all games
+     * Request an update for all games in a games table
      * @instance
      * @memberof browser/GamesUIMixin
      * @param {boolean?} noPlayers true to omit players from the
      * table headline
      */
-    refreshGames(noPlayers) {
+    refreshGames() {
       const what = $("#showAllGames").is(":checked") ? "all" : "active";
       return this.getGames(what)
-      .then(games => this.showGames(games, noPlayers))
+      .then(games => this.showGames(games))
       .catch(this.constructor.report);
     }
 
@@ -238,12 +245,11 @@ define([
      * @instance
      * @memberof browser/GamesUIMixin
      * @param {string} key Game key
-     * @param {boolean?} noPlayers true to omit players from the
-     * table headline
      */
-    refreshGame(key, noPlayers) {
+    refreshGame(key) {
       return this.getGame(key)
-      .then(simple => this.showGame(Game.fromSerialisable(simple[0], Game), noPlayers))
+      .then(simple => this.showGame(
+        Game.fromSerialisable(simple[0], Game)))
       .catch(this.constructor.report);
     }
 

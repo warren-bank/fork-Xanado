@@ -58,9 +58,18 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
         <h2 data-i18n="Games"></h2>
         <label for="showAllGames" data-i18n="Show finished games"></label>
         <input type="checkbox" id="showAllGames" />
-        <div id="gamesList">
-          <div id="gamesTable"></div>
-        </div>
+        <table id="gamesList">
+          <thead>
+            <tr>
+              <th data-i18n="Edition"></th>
+              <th data-i18n="Created"></th>
+              <th data-i18n="Players">%s</th>
+              <th data-i18n="State">%s</th>
+              <th data-i18n="Outcome">%w</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
 
       <div class="dialog-row">

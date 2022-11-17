@@ -33,10 +33,15 @@ define([
   return superclass => class StandaloneUIMixin extends superclass {
 
     /**
-     * The database that will be used for saving and reading games
-     * @member {BrowserDatabase}
+     * Format of entries in the games table.
+     * See {@linkcode browser/BrowserGame#headline}
      */
-    db = new BrowserDatabase();
+    static GAME_TABLE_ROW = '<tr class="game" id="%i">'
+    + '<td class="h-edition">%e</td>'
+    + '<td class="h-created">%c</td>'
+    + '<td class="h-state">%s</td>'
+    + '<td class="h-won">%w</td>'
+    + '</tr>';
 
     /**
      * Key for the robot player
@@ -47,18 +52,6 @@ define([
      * Key for the human player
      */
     static HUMAN_KEY = "You";
-
-    /**
-     * There can be only one (player)
-     */
-    session = { key: null };
-
-    /**
-     * Arguments passed in the URL and parsed out using
-     * {@linkcode Utils#parseURLArguments}
-     * @member {object}
-     */
-    args = undefined;
 
     /**
      * Game defaults, for getGameDefaults
@@ -78,6 +71,24 @@ define([
       // for ease of debug, frontend and backend racks should be the same
       syncRacks: true
     };
+
+    /**
+     * The database that will be used for saving and reading games
+     * @member {BrowserDatabase}
+     */
+    db = new BrowserDatabase();
+
+    /**
+     * There can be only one (player)
+     */
+    session = { key: null };
+
+    /**
+     * Arguments passed in the URL and parsed out using
+     * {@linkcode Utils#parseURLArguments}
+     * @member {object}
+     */
+    args = undefined;
 
     /**
      * @implements UI
@@ -196,6 +207,7 @@ define([
           key: this.constructor.HUMAN_KEY,
           isRobot: false
         }, BackendGame);
+
         game.addPlayer(robot, true);
         game.addPlayer(human, true);
 
@@ -203,6 +215,8 @@ define([
           game.whosTurnKey = this.constructor.HUMAN_KEY;
         else
           game.whosTurnKey = this.constructor.ROBOT_KEY;
+
+        game.state = game.constructor.State.PLAYING;
 
         return game;
       });

@@ -45,40 +45,40 @@ define([
      * of the game dialog.
      * @param {boolean?} inTable true if this is being prepared for the
      * table, false for the dialog.
-     * @param {boolean?} noPlayers true to omit players from the
-     * table headline, does nothing unless inTable.
+     * @param {string} format format to use for the headline. The following
+     * escapes can be used:
+     * * %e - the edition being players e.g. "English_Scrabble"
+     * * %c - the creation date e.g. "Thu Jan 01 1970"
+     * * %p - list of players in the game e.g "Player 1 and Player 2"
+     * * %s - final game state e.g. "Game over"
+     * * %w - who won
+     * @return {string} html string
      */
-    $headline(inTable, noPlayers) {
-      const headline = [ this.edition ];
-
-      if (inTable) {
-        if (!noPlayers)
-          if (this.getPlayers().length > 0)
-            headline.push($.i18n(
-              "players",
-              Utils.andList(this.getPlayers().map(p => p.name))));
-        headline.push($.i18n(
-          "created",
-          new Date(this.creationTimestamp).toDateString()));
-      }
-
-      const isActive = !this.hasEnded();
-
-      const $h = $(document.createElement("span"))
-            .addClass("headline")
-            .attr("name", this.key)
-            .text(headline.join(", "));
-
-      if (!isActive)
-        $h.append(
-          $(document.createElement("span"))
-          .addClass("game-state")
-          .text($.i18n(this.state)))
-        .append(
-          $(document.createElement("span"))
-          .addClass("who-won")
-          .text($.i18n("who-won", this.getWinner().name)));
-      return $h;
+    tableRow(format) {
+      const wrap = (cls, v) => `<span class="${cls}">${v}</span>`;
+      const repl = (m, p1) => {
+        switch (p1) {
+        case "c":
+          return wrap("h-created", $.i18n(
+            "h-created", new Date(this.creationTimestamp).toDateString()));
+        case "e":
+          return wrap("h-edition", $.i18n("h-edition", this.edition));
+        case "i":
+          return wrap("h-key", $.i18n("h-key", this.key));
+        case "p":
+          return wrap("h-players", $.i18n(
+            "h-players",
+            Utils.andList(this.getPlayers().map(p => p.name))));
+        case "s": return wrap("h-state", $.i18n("h-state", this.state));
+        case "w": return wrap("h-won", this.hasEnded() ? $.i18n(
+          "h-won", this.getWinner().name) : "");
+        case "k": return wrap("h-key", $.i18n("h-key", this.key));
+        default:
+          assert.fail(`Bad ${p1}`);
+        }
+        return p1;
+      };
+      return format.replace(/%([ceikpsw])/g, repl);
     }
 
     /**

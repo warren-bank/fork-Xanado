@@ -22,7 +22,7 @@ requirejs([
 ) => {
 
   // Maximum length for a string identifier
-  const MAX_ID_LENGTH = 16;
+  const MAX_ID_LENGTH = 20;
   
   const Fs = fs.promises;
 

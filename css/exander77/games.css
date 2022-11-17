@@ -30,8 +30,10 @@ body {
 }
 
 /* Wrap around the games list */
-#gamesTable {
+#gamesList {
   margin-bottom: 1.5em;
+  width: 100%;
+  display: none;
 }
 
 /* A game in the games table */
@@ -70,12 +72,7 @@ body {
   font-weight: bold;
 }
 
-/* The line describing options at the top of a row in the games table */
-.game-options {
-  margin: 0.3em;
-}
-
-#gamesCumulative, #gamesList {
+#gamesCumulative {
   display: none;
 }
 

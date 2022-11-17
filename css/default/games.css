@@ -30,8 +30,23 @@ body {
 }
 
 /* Wrap around the games list */
-#gamesTable {
+#gamesList {
   margin-bottom: 1.5em;
+  width: 100%;
+  display: none;
+}
+
+#gamesList > thead > tr {
+  border: 1px solid;
+  padding: 0.2em;
+  background-color: #F0E7E0;
+  color: #333333;
+  padding: 0.4em 0.2em 0.4em 0.2em;
+  -webkit-box-shadow: 0 0 0.5em #000000;
+  -moz-box-shadow: 0 0 0.5em #000000;
+  -ms-box-shadow: 0 0 0.5em #000000;
+  -o-box-shadow: 0 0 0.5em #000000;
+  box-shadow: 0 0 0.5em #000000;
 }
 
 /* A game in the games table */
@@ -70,12 +85,7 @@ body {
   font-weight: bold;
 }
 
-/* The line describing options at the top of a row in the games table */
-.game-options {
-  margin: 0.3em;
-}
-
-#gamesCumulative, #gamesList {
+#gamesCumulative {
   display: none;
 }
 

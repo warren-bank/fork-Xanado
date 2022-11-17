@@ -105,7 +105,7 @@ define([
 
       this.$dlg.find("div[name=headline]")
       .empty()
-      .append(game.$headline());
+      .append(`${game.edition} ${game.key}`);
 
       const $table = this.$dlg.find(".player-table")
             .empty()

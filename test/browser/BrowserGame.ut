@@ -19,6 +19,62 @@ describe("BrowserGame", () => {
 
 	function UNit() {}
 
+  it("headline", () => {
+		const p = {
+			//_debug: console.debug,
+			edition:"English_Scrabble",
+			dictionary:"Oxford_5000",
+			timeAllowed: 999 / 60,
+			predictScore: false,
+			allowTakeBack: false,
+			noPlayerShuffle: true
+		};
+
+		const robot1 = new Game.Player(
+			{name:"Robot 1", key:"robot1", isRobot: true}, Game);
+		const human1 = new Game.Player(
+			{name:"Human 1", key:"human1", isRobot: false}, Game);
+		const human2 = new Game.Player(
+			{name:"Human 2", key:"human2", isRobot: false}, Game);
+
+		const game = new Game(p);
+    const e = "</span>";
+    return game.create()
+		.then(() => {
+			game.addPlayer(human1, true);
+			game.addPlayer(robot1, true);
+			game.whosTurnKey = human1.key;
+      
+      game.creationTimestamp = 0;
+      
+      game.state = Game.State.PLAYING;
+      assert.equal(
+        game.headline("%e"),
+        `<span class="h-edition">English_Scrabble${e}`);
+      assert.equal(
+        game.headline("%p"),
+        `<span class="h-players">players Human 1 and Robot 1${e}`);
+      assert.equal(
+        game.headline("%c"),
+        `<span class="h-created">created Thu Jan 01 1970${e}`);
+      assert.equal(
+        game.headline("%s"),
+        `<span class="h-state">Playing${e}`);
+      assert.equal(
+        game.headline("%w"), `<span class="h-won">${e}`);
+      game.state = Game.State.GAME_OVER;
+      assert.equal(
+        game.headline("%s"),
+        `<span class="h-state">Game over${e}`);
+      assert.equal(
+        game.headline("%w"),
+        `<span class="h-won">Human 1 won${e}`);
+      assert.equal(
+        game.headline("%k"),
+        `<span class="h-key">${game.key}${e}`);
+    });
+  });
+  
 	it("player table", () => {
 		const p = {
 			//_debug: console.debug,
