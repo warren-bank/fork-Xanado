@@ -197,6 +197,7 @@ define([
     /**
      * Identify the logged-in user.
      * @instance
+     * @implements browser/UI
      * @memberof client/ClientUIMixin
      * @override
      * @return {Promise} a promise that resolves to the (redacted)

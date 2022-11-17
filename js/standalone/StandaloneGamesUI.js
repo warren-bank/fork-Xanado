@@ -127,6 +127,58 @@ requirejs([
     }
 
     /**
+     * @implements UI
+     * @instance
+     * @implements browser/GameUIMixin
+     * @memberof standalone/StandaloneUIMixin
+     * @override
+     */
+    getHistory() {
+      /*
+       * * key: player key
+       * * name: player name
+       * * score: total cumulative score
+       * * wins: number of wins
+       * * games: number of games played
+       */
+      return this.db.keys()
+      .then(keys => Promise.all(
+        keys.map(key => this.db.get(key, Game)
+                 .then(game => game.onLoad(this.db)))))
+      .then(games => {
+        const results = {};
+        games
+        .filter(game => game.hasEnded())
+        .map(game => {
+          const winScore = game.winningScore();
+          game.getPlayers().forEach(
+            player => {
+              let result = results[player.key];
+              if (!result) {
+                results[player.key] =
+                result = {
+                  key: player.key,
+                  name: player.name,
+                  score: 0,
+                  wins: 0,
+                  games: 0
+                };
+              }
+              result.games++;
+              if (player.score === winScore)
+                result.wins++;
+              result.score += player.score;
+            });
+        });
+        const list = [];
+        for (let name in results)
+          list.push(results[name]);
+        return list.sort((a, b) => a.score < b.score ? 1
+                         : (a.score > b.score ? -1 : 0));
+      });
+    }
+
+    /**
      * Create the UI and start interacting
      */
     create() {
@@ -137,6 +189,7 @@ requirejs([
       .then(() => this.attachUIEventHandlers())
       .then(() => {
         this.refreshGames(true);
+        this.readyToListen();
         $(".loading").hide();
         $(".waiting").removeClass("waiting");
       });

@@ -298,6 +298,14 @@ define([
      * Get a list of games
      * @instance
      * @memberof browser/GamesUIMixin
+     * @param {string} what 'all' or 'active' (default)
+     * @return {Promise} resolves to a list of objects, one per
+     * unique player, each with keys as follows:
+     * * key: player key
+     * * name: player name
+     * * score: total cumulative score
+     * * wins: number of wins
+     * * games: number of games played
      */
     getHistory(what) {
       assert.fail("GamesUIMixin.getHistory");

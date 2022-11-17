@@ -96,6 +96,25 @@ define([
      * @memberof browser/GameUIMixin
      * @override
      */
+    getSession() {
+      return Promise.resolve(this.session);
+    }
+
+    /**
+     * @implements UI
+     * @instance
+     * @memberof browser/GameUIMixin
+     * @override
+     */
+    getHistory() {
+    }
+
+    /**
+     * @implements UI
+     * @instance
+     * @memberof browser/GameUIMixin
+     * @override
+     */
     getGameDefaults() {
       return Promise.resolve(this.constructor.DEFAULTS);
     }

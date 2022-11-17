@@ -269,6 +269,17 @@ define([
     }
 
     /**
+     * Identify the logged-in user. Override in subclasses.
+     * @return {Promise} a promise that resolves to an simple
+     * session object if someone is logged in, or undefined otherwise.
+     * The object is expected to define `key`, the logged-in player, and
+     * can set provider to `xanado`.
+     */
+    getSession() {
+      assert.fail("UI.getSession");
+    }
+
+    /**
      * Get the available locales.
      * @return {Promise} promise resolves to list of available locale names
      */
