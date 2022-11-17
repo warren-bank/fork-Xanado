@@ -30,12 +30,12 @@ describe("BrowserGame", () => {
 			noPlayerShuffle: true
 		};
 
-		const robot1 = new Game.Player(Game, 
-			{name:"Robot 1", key:"robot1", isRobot: true});
-		const human1 = new Game.Player(Game, 
-			{name:"Human 1", key:"human1", isRobot: false});
-		const human2 = new Game.Player(Game, 
-			{name:"Human 2", key:"human2", isRobot: false});
+		const robot1 = new Game.Player(
+			{name:"Robot 1", key:"robot1", isRobot: true}, Game);
+		const human1 = new Game.Player(
+			{name:"Human 1", key:"human1", isRobot: false}, Game);
+		const human2 = new Game.Player(
+			{name:"Human 2", key:"human2", isRobot: false}, Game);
 
 		const game = new Game(p);
 
@@ -106,10 +106,10 @@ describe("BrowserGame", () => {
 	  };
 
     const p = {
-	    THEM: new Game.Player(Game, 
-		    {name:"PlayerThem", key:"THEM", isRobot: true}),
-	    YOU: new Game.Player(Game, 
-		    {name:"PlayerYou", key:"YOU", isRobot: false}),
+	    THEM: new Game.Player(
+		    {name:"PlayerThem", key:"THEM", isRobot: true}, Game),
+	    YOU: new Game.Player(
+		    {name:"PlayerYou", key:"YOU", isRobot: false}, Game),
       W: new Game.Tile({letter:"W", score:1, col: 7, row: 7}),
       O: new Game.Tile({letter:"O", score:1, col: 8, row: 7}),
       R: new Game.Tile({letter:"R", score:1, col: 9, row: 7}),

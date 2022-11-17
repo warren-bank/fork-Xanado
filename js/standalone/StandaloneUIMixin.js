@@ -185,15 +185,17 @@ define([
       .then(edition => new BackendGame(setup).create())
       .then(game => game.onLoad(this.db))
       .then(game => {
-        const robot = new Player(BackendGame, {
+        const robot = new Player({
           name: $.i18n("Robot"),
           key: this.constructor.ROBOT_KEY,
-          isRobot: true});
+          isRobot: true
+        }, BackendGame);
 
-        const human = new Player(BackendGame, {
+        const human = new Player({
           name: $.i18n("You"),
           key: this.constructor.HUMAN_KEY,
-          isRobot: false});
+          isRobot: false
+        }, BackendGame);
         game.addPlayer(robot, true);
         game.addPlayer(human, true);
 

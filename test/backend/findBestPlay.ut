@@ -19,8 +19,8 @@ describe("findBestPlay - no workers", () => {
       dictionary:"Oxford_5000"
     }).create()
     .then(game => {
-      game.addPlayer(new Game.Player(Game, {
-        name:"test", key:"creep", isRobot:true}), true);
+      game.addPlayer(new Game.Player({
+        name:"test", key:"creep", isRobot:true}, Game), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
@@ -83,8 +83,8 @@ describe("findBestPlay - no workers", () => {
     })
     .create()
     .then(game => {
-      game.addPlayer(new Game.Player(Game, {
-        name:"test", key:"toast", isRobot:true}), true);
+      game.addPlayer(new Game.Player({
+        name:"test", key:"toast", isRobot:true}, Game), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
@@ -161,7 +161,7 @@ describe("findBestPlay - no workers", () => {
       dictionary:"SOWPODS_English"
     }).create()
     .then(game => {
-      game.addPlayer(new Game.Player(Game, {name:"test", key:"slime", isRobot:true}), true);
+      game.addPlayer(new Game.Player({name:"test", key:"slime", isRobot:true}, Game), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
@@ -225,8 +225,8 @@ describe("findBestPlay - no workers", () => {
       dictionary:"Oxford_5000"
     }).create()
     .then(game => {
-      game.addPlayer(new Game.Player(Game, {
-        name:"test", key:"crisp", isRobot:true}), true);
+      game.addPlayer(new Game.Player({
+        name:"test", key:"crisp", isRobot:true}, Game), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
@@ -268,8 +268,8 @@ describe("findBestPlay - no workers", () => {
       dictionary:"British_English"
     }).create()
     .then(game => {
-      game.addPlayer(new Game.Player(Game, {
-        name:"test", key:"turntable", isRobot:true}), true);
+      game.addPlayer(new Game.Player({
+        name:"test", key:"turntable", isRobot:true}, Game), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +

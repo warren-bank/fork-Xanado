@@ -866,8 +866,8 @@ define([
           prom = game.playIfReady();
         } else {
           this._debug("Player", playerKey, "joining", gameKey);
-          player = new Game.Player(Game,
-            { name: req.user.name, key: playerKey });
+          player = new Game.Player(
+            { name: req.user.name, key: playerKey }, Game);
           game.addPlayer(player, true);
           prom = game.save()
           .then(game => game.playIfReady());
@@ -903,14 +903,13 @@ define([
 
         this._debug("Robot joining", gameKey, "with", dic);
         // Robot always has the same player key
-        const robot = new Game.Player(Game,
-          {
-            name: "Robot",
-            key: UserManager.ROBOT_KEY,
-            isRobot: true,
-            canChallenge: req.body.canChallenge,
-            delayBeforePlay: parseInt(req.body.delayBeforePlay || "0")
-          });
+        const robot = new Game.Player({
+          name: "Robot",
+          key: UserManager.ROBOT_KEY,
+          isRobot: true,
+          canChallenge: req.body.canChallenge,
+          delayBeforePlay: parseInt(req.body.delayBeforePlay || "0")
+        }, Game);
         if (dic && dic !== "none")
           /* istanbul ignore next */
           robot.dictionary = dic;

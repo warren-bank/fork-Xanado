@@ -28,10 +28,10 @@ describe("BackendGame", () => {
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true
 		});
-		const human1 = new Game.Player(Game, {
-			name:"Human 1", key:"human1", isRobot: false});
-		const human2 = new Game.Player(Game, {
-			name:"Human 2", key:"human2", isRobot: false});
+		const human1 = new Game.Player({
+			name:"Human 1", key:"human1", isRobot: false}, Game);
+		const human2 = new Game.Player({
+			name:"Human 2", key:"human2", isRobot: false}, Game);
 		const move = new Game.Move({
 			placements: [
 				new Game.Tile({letter:"X", isBlank:false, score:1, col: 6, row: 7}),
@@ -44,31 +44,18 @@ describe("BackendGame", () => {
 			score: 99
 		});
 		const socket = new TestSocket();
-		let turns = [
-			{
-				event: Game.Notify.TURN,
-				data: {
-					type: Game.Turns.PLAYED,
-					playerKey: human1.key,
-					nextToGoKey: human2.key,
-					score: move.score,
-					words: move.words,
-					placements: move.placements
-				}
-			}
-		];
 		socket.on(
       Game.Notify.TURN,
-		  (data, event) => {
-			  const turn = turns.shift();
-			  TS.sparseEqual(
-				  { event: event, data: data.data}, turn);
-			  if (turns.length === 0) {
-				  // Last play should have no replacements, so player rack
-				  // will now be empty.
-				  assert.equal(data.data.replacements, 0);
-				  socket.done();
-			  }
+		  (data, event, order) => {
+			  TS.sparseEqual(data, {
+					  type: Game.Turns.PLAYED,
+					  playerKey: human1.key,
+					  nextToGoKey: human2.key,
+					  score: move.score,
+					  words: move.words,
+					  placements: move.placements
+				  });
+				socket.done();
 		  });
 		socket.on(Game.Notify.CONNECTIONS, () => {});
 		socket.on("*", (data, event) => {
@@ -111,17 +98,17 @@ describe("BackendGame", () => {
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true
 		});
-		const human1 = new Game.Player(Game, {
-			name: "Human 1", key: "human1", isRobot: false});
-		const human2 = new Game.Player(Game, {
-			name: "Human 2", key: "human2", isRobot: false});
-		const human3 = new Game.Player(Game, {
-			name:"Human 3", key:"human3", isRobot: false});
+		const human1 = new Game.Player({
+			name: "Human 1", key: "human1", isRobot: false}, Game);
+		const human2 = new Game.Player({
+			name: "Human 2", key: "human2", isRobot: false}, Game);
+		const human3 = new Game.Player({
+			name:"Human 3", key:"human3", isRobot: false}, Game);
 		const socket = new TestSocket();
 		socket.on(Game.Notify.CONNECTIONS, () => {});
 		socket.on("*", (data, event) => {
 			if (event === Game.Notify.TURN) {
-				assert.equal(data.data.type, Game.Turns.PASSED);
+				assert.equal(data.type, Game.Turns.PASSED);
 				socket.done();
 				return;
 			}
@@ -156,10 +143,10 @@ describe("BackendGame", () => {
 			noPlayerShuffle: true,
 			wordCheck: Game.WordCheck.REJECT
 		});
-		const human1 = new Game.Player(Game, {
-			name:"Human 1", key:"human1", isRobot: false});
-		const human2 = new Game.Player(Game, {
-			name:"Human 2", key:"human2", isRobot: false});
+		const human1 = new Game.Player({
+			name:"Human 1", key:"human1", isRobot: false}, Game);
+		const human2 = new Game.Player({
+			name:"Human 2", key:"human2", isRobot: false}, Game);
 		const move = new Game.Move({
 			placements: [
 				new Game.Tile({letter:"X", isBlank:false, score:1, col: 6, row: 7}),
@@ -171,7 +158,7 @@ describe("BackendGame", () => {
 		});
 		const socket1 = new TestSocket();
 		socket1.on(Game.Notify.REJECT, (data, event) => {
-			assert.deepEqual(data.data, {
+			assert.deepEqual(data, {
 				playerKey: human1.key,
 				words: [ "XYZ" ] });
 			socket1.done();
@@ -230,8 +217,8 @@ describe("BackendGame", () => {
       assert.equal(game.state, Game.State.PLAYING);
       assert.equal(game.whosTurnKey, "human");
       // add a new robot player to stop state reverting to WAITING
-      game.addPlayer(new Game.Player(Game, {
-        name:"Anne Droid", key:"android"}), true);
+      game.addPlayer(new Game.Player({
+        name:"Anne Droid", key:"android"}, Game), true);
       // Remove robot as last player so they
       // don't get auto-played when human and android time out
       const robot = game.getPlayerWithKey("robot");
@@ -302,19 +289,19 @@ describe("BackendGame", () => {
 
 	it("hint", () => {
 		let game;
-		const socket1 = new TestSocket();
-		const socket2 = new TestSocket();
+		const socket1 = new TestSocket("one");
+		const socket2 = new TestSocket("two");
 		socket1.on(Game.Notify.MESSAGE, mess => {
-      if (mess.data.text === "hinted")
+      if (mess.text === "hinted")
         return;
-      assert.equal(mess.data.args[0], "TRAWL");
+      assert.equal(mess.args[0], "TRAWL");
       socket1.done();
 		})
     .on("*", () => {});
 		socket2.on(Game.Notify.MESSAGE, mess => {
-      if (mess.data.text === "hinted")
+      if (mess.text === "hinted")
         return;
-      assert.equal(mess.data.text, "log-no-play");
+      assert.equal(mess.text, "log-no-play");
       socket2.done();
 		})
     .on("*", () => {});
@@ -330,6 +317,8 @@ describe("BackendGame", () => {
       // Empty the rack and wait for the hint
 			const p = game.nextPlayer();
 			p.rack.empty();
+      // Hack the test socket so it will accept another CONNECTIONS
+      socket1.finished = false;
 			return game.connect(socket2, p.key);
     })
     .then(() => game.hint(game.nextPlayer()))
@@ -351,7 +340,7 @@ describe("BackendGame", () => {
 		let game;
     const players = [];
     for (let i = 0; i < 8; i++)
-      players.push(new Game.Player(Game, {key: i}));
+      players.push(new Game.Player( {key: i}, Game));
 		const db = new FileDatabase({dir: "test/data", ext: "game"});
 		return db.get("unfinished_game", Game)
 		.then(g => game = g)

@@ -13,6 +13,7 @@ describe("TimedGame", function() {
   after(() => TS.after());
   before(required => TS.before({
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
+    Utils: "common/Utils", /* global Utils */
     TestSocket: 'test/TestSocket', /* global TestSocket */
     Game: "backend/BackendGame"
   }, required));
@@ -22,10 +23,10 @@ describe("TimedGame", function() {
   function UNit() {}
 
   it('timeout and end game', () => {
-    const human1 = new Game.Player(Game, {
-      name: 'Human 1', key: "human1", isRobot: false});
-    const human2 = new Game.Player(Game, {
-      name: 'Human 2', key: "human2", isRobot: false});
+    const human1 = new Game.Player({
+      name: 'Human 1', key: "human1", isRobot: false}, Game);
+    const human2 = new Game.Player({
+      name: 'Human 2', key: "human2", isRobot: false}, Game);
 
     const game = new Game({
       edition:"Test",
@@ -38,16 +39,30 @@ describe("TimedGame", function() {
     let nextTurn = 0;
     const socket = new TestSocket();
     // Expected turns
-    const handle = (turn, event, messageID) => {
-      switch (messageID) {
-      case 3:
+    const handle = (turn, event, seqNo) => {
+      switch (seqNo) {
+      case 2:
         assert.equal(turn.score, 0);
         assert.equal(turn.type, Game.Turns.TIMED_OUT);
         assert.equal(turn.playerKey, human1.key);
         assert.equal(turn.nextToGoKey, human2.key);
         assert.equal(turn.gameKey, game.key);
         break;
-      case 7:
+      case 4:
+        assert.equal(turn.score, 0);
+        assert.equal(turn.type, Game.Turns.TIMED_OUT);
+        assert.equal(turn.playerKey, human2.key);
+        assert.equal(turn.nextToGoKey, human1.key);
+        assert.equal(turn.gameKey, game.key);
+        break;
+      case 6:
+        assert.equal(turn.score, 0);
+        assert.equal(turn.type, Game.Turns.TIMED_OUT);
+        assert.equal(turn.playerKey, human1.key);
+        assert.equal(turn.nextToGoKey, human2.key);
+        assert.equal(turn.gameKey, game.key);
+        break;
+      case 8:
         assert.equal(turn.score, 0);
         assert.equal(turn.type, Game.Turns.TIMED_OUT);
         assert.equal(turn.playerKey, human2.key);
@@ -55,20 +70,6 @@ describe("TimedGame", function() {
         assert.equal(turn.gameKey, game.key);
         break;
       case 9:
-        assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.TIMED_OUT);
-        assert.equal(turn.playerKey, human1.key);
-        assert.equal(turn.nextToGoKey, human2.key);
-        assert.equal(turn.gameKey, game.key);
-        break;
-      case 13:
-        assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.TIMED_OUT);
-        assert.equal(turn.playerKey, human2.key);
-        assert.equal(turn.nextToGoKey, human1.key);
-        assert.equal(turn.gameKey, game.key);
-        break;
-      case 14:
         assert.deepEqual(turn.score, {
           human1: { tiles: -1, tilesRemaining: "A" },
           human2: { tiles: -1, tilesRemaining: "A" }});
@@ -79,17 +80,14 @@ describe("TimedGame", function() {
         socket.done();
         break;
       default:
-        console.error("UNEXPECTED TURN", turn);
-        assert.fail("UNEXPECTED TURN");
-        socket.done();
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(turn)}`);
       }
     };
     socket.on(Game.Notify.TURN, handle);
     socket.on(Game.Notify.CONNECTIONS, () => {});
     socket.on(Game.Notify.TICK, () => {});
-    socket.on('*', (data, event) => {
-      console.error("UNEXPECTED EVENT", event);
-      assert.fail(event);
+    socket.on('*', (data, event, seqNo) => {
+      assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(data)}`);
     });
 
     return game.create()
@@ -109,10 +107,10 @@ describe("TimedGame", function() {
   });
 
   it('pass and overtime', () => {
-    const human1 = new Game.Player(Game, {
-      name: 'Human 1', key: "human1", isRobot: false});
-    const human2 = new Game.Player(Game, {
-      name: 'Human 2', key: "human2", isRobot: false});
+    const human1 = new Game.Player({
+      name: 'Human 1', key: "human1", isRobot: false}, Game);
+    const human2 = new Game.Player({
+      name: 'Human 2', key: "human2", isRobot: false}, Game);
 
     const game = new Game({
       edition:"Test",
@@ -127,9 +125,23 @@ describe("TimedGame", function() {
 
     const socket = new TestSocket();
     // Expected turns
-    const handle = (turn, event, messageID) => {
-      switch (messageID) {
+    const handle = (turn, event, seqNo) => {
+      switch (seqNo) {
+      case 2:
+        assert.equal(turn.score, 0);
+        assert.equal(turn.type, Game.Turns.PASSED);
+        assert.equal(turn.playerKey, human1.key);
+        assert.equal(turn.nextToGoKey, human2.key);
+        assert.equal(turn.gameKey, game.key);
+        break;
       case 3:
+        assert.equal(turn.score, 0);
+        assert.equal(turn.type, Game.Turns.PASSED);
+        assert.equal(turn.playerKey, human2.key);
+        assert.equal(turn.nextToGoKey, human1.key);
+        assert.equal(turn.gameKey, game.key);
+        break;
+      case 5:
         assert.equal(turn.score, 0);
         assert.equal(turn.type, Game.Turns.PASSED);
         assert.equal(turn.playerKey, human1.key);
@@ -143,21 +155,7 @@ describe("TimedGame", function() {
         assert.equal(turn.nextToGoKey, human1.key);
         assert.equal(turn.gameKey, game.key);
         break;
-      case 8:
-        assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.PASSED);
-        assert.equal(turn.playerKey, human1.key);
-        assert.equal(turn.nextToGoKey, human2.key);
-        assert.equal(turn.gameKey, game.key);
-        break;
-      case 11:
-        assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.PASSED);
-        assert.equal(turn.playerKey, human2.key);
-        assert.equal(turn.nextToGoKey, human1.key);
-        assert.equal(turn.gameKey, game.key);
-        break;
-      case 12:
+      case 7:
         assert.equal(turn.type, Game.Turns.GAME_ENDED);
         assert.equal(turn.endState, Game.State.TWO_PASSES);
         assert.equal(turn.score.human1.tiles, -1);
@@ -172,9 +170,7 @@ describe("TimedGame", function() {
         socket.done();
         break;
       default:
-        console.error("UNEXPECTED TURN", turn);
-        assert.fail("UNEXPECTED TURN");
-        socket.done();
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(turn)}`);
       }
     };
     socket.on(Game.Notify.TURN, handle);
@@ -191,9 +187,8 @@ describe("TimedGame", function() {
       if (onTick)
         onTick();
     });
-    socket.on('*', (data, event) => {
-      console.error("UNEXPECTED EVENT", event);
-      assert.fail(event);
+    socket.on('*', (data, event, seqNo) => {
+      assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(data)}`);
     });
 
     // Players don't time out in a chess clock game, so we have to

@@ -61,7 +61,7 @@ define([
 
       // Copy players and their racks.
       for (const p of this.playedGame.players) {
-        const np = new Player(Game, p);
+        const np = new Player(p, Game);
         np.isRobot = false;
         np.rack = new Rack(Game, p.rack);
         np.passes = p.passes;

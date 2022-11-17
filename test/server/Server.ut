@@ -331,8 +331,8 @@ describe("Server", () => {
     };
     let server = new Server(config), cookie, gamekey, playerkey;
     
-    const serverSock = new TestSocket();
-    const clientSock = new TestSocket();
+    const serverSock = new TestSocket("server");
+    const clientSock = new TestSocket("client");
     server.attachSocketHandlers(serverSock);
 
     serverSock.connect(clientSock);
@@ -341,32 +341,30 @@ describe("Server", () => {
       serverSock.done();
     });
     let sawTurn = false;
-    clientSock.on(Game.Notify.MESSAGE, data => {
-      const params = data.data;
+    clientSock.on(Game.Notify.MESSAGE, (data, event, seqNo) => {
       //assert(sawTurn); not if human ends up first player
-      //console.log("INCOMING message",params);
-      if (params.sender === "Advisor") {
-        switch (params.text) {
+      //console.log("INCOMING message",data);
+      if (data.sender === "Advisor") {
+        switch (data.text) {
         case "log-word-added":
-          assert.deepEqual(params.args, [
+          assert.deepEqual(data.args, [
             "test_user", "FROBNOZZ", "Oxford_5000" ]);
           return;
           
         case "word-there":
-          assert.deepEqual(params.args, [ "ABSTRACT", "Oxford_5000" ]);
+          assert.deepEqual(data.args, [ "ABSTRACT", "Oxford_5000" ]);
           return;
           
         case "_hint_":
-          assert(params.args.length === 4);
+          assert(data.args.length === 4);
           clientSock.done();
           return;
         }
       }
-      assert(false, params);
+      assert(false, data);
     });
 
-    clientSock.on(Game.Notify.TURN, params => {
-      const turn = params.data;
+    clientSock.on(Game.Notify.TURN, (turn, event, seqNo) => {
       //console.log("INCOMING turn");
       assert.equal(turn.playerKey, UserManager.ROBOT_KEY);
       assert.equal(turn.gameKey, gamekey);
@@ -494,7 +492,7 @@ describe("Server", () => {
 
   it("monitors", () => new Promise(resolve => {
     const s = new Server(config);
-    const serverSock = new TestSocket();
+    const serverSock = new TestSocket("monitor");
     s.attachSocketHandlers(serverSock);
     serverSock.emit("connect");
     serverSock.emit("disconnect");

@@ -9,7 +9,7 @@ describe("Player browser mixin", () => {
   before(required => {
     requirejs.isBrowser = true;
     TS.before({
-      Game: "browser/BrowserGame"
+      Game: "browser/BrowserGame" /*global Game*/
     }, required);
   });
 
@@ -23,7 +23,7 @@ describe("Player browser mixin", () => {
       //_debug: console.debug,
       dictionary: "NoDic"
     };
-    const player = new Game.Player(Game, p);
+    const player = new Game.Player(p, Game);
 
     const $tr = $(document.createElement("tr")).addClass("player-row");
     $tr[0].id = `player${p.key}`;
@@ -56,7 +56,7 @@ describe("Player browser mixin", () => {
       //_debug: console.debug,
       dictionary: "NoDic"
     };
-    const player = new Game.Player(Game, p);
+    const player = new Game.Player(p, Game);
     player.score = 20;
     player.online(false);
 

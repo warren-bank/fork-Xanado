@@ -20,14 +20,14 @@ describe("Player class", () => {
       missNextTurn: true,
       dictionary: "NoDic"
     };
-    let player = new Player(Game, p);
+    let player = new Player(p, Game);
     for (const f in p)
       assert.equal(player[f], p[f], f);
     // Check fields that must be zeroed
     p.score = 999;
     p.passes = 999;
     p.clock = 999;
-    player = new Player(Game, p);
+    player = new Player(p, Game);
     assert.equal(player.score, 0);
     assert.equal(player.passes, 0);
     assert.equal(player.clock, 0);
@@ -43,7 +43,7 @@ describe("Player class", () => {
       //_debug: console.debug,
       dictionary: "NoDic"
     };
-    const player = new Player(Game, p);
+    const player = new Player(p, Game);
     player.isRobot = true;
     player.score = 20;
 
@@ -56,7 +56,7 @@ describe("Player class", () => {
         key: 'playerkey',
         score: 20
       });
-      const pp = Player.fromSerialisable(Game, d);
+      const pp = Player.fromSerialisable(d, Game);
       pp._debug = player._debug;
       delete player.rack;
       delete pp.rack;

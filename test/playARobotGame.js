@@ -43,11 +43,11 @@ requirejs([
   game.create()
   .then(() => game.onLoad(new MemoryDatabase()))
   .then(game => {
-    let player1 = new Player(Game, {
-      name: "player one", key: "flay", isRobot: true});
+    let player1 = new Player({
+      name: "player one", key: "flay", isRobot: true}, Game);
     game.addPlayer(player1, true);
-    let player2 = new Player(Game, {name: "player two", key: "swelter",
-                              isRobot: true });
+    let player2 = new Player({name: "player two", key: "swelter",
+                              isRobot: true }, Game);
     game.addPlayer(player2, true);
     game.whosTurnKey = player1.key;
     return game.onLoad(db);

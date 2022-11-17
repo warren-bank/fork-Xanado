@@ -37,16 +37,16 @@ describe("Commands", () => {
       //_debug: console.debug,
       noPlayerShuffle: true
     });
-    const human1 = new Player(Game, {
-      name: "Human 1", key: "human1", isRobot: false});
-    const human2 = new Player(Game, {
-      name: "Human 2", key: "human2", isRobot: false});
+    const human1 = new Player({
+      name: "Human 1", key: "human1", isRobot: false}, Game);
+    const human2 = new Player({
+      name: "Human 2", key: "human2", isRobot: false}, Game);
     const socket1 = new TestSocket();
     let turns1 = 0;
     socket1
-    .on(Game.Notify.TURN, (turn, event, messageID) => {
-      switch (messageID) {
-      case 3:
+    .on(Game.Notify.TURN, (turn, event, seqNo) => {
+      switch (seqNo) {
+      case 2:
         assert.equal(turn.type, Game.Turns.SWAPPED);
         assert(!turn.words);
         assert.deepEqual(turn.placements.map(t=>t.letter).sort(),
@@ -59,18 +59,16 @@ describe("Commands", () => {
         socket1.done();
         break;
       default:
-        assert.fail("UNEXPECTED TURN " + Utils.stringify(data));
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
       }
     })
     .on(Game.Notify.CONNECTIONS, () => {})
-    .on("*", (data, event) => {
-      console.error("UNEXPECTED EVENT", event);
-      assert.fail(event);
+    .on("*", (data, event, seqNo) => {
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
     });
 
     const socket2 = new TestSocket();
-    socket2.on(Game.Notify.TURN, (data, event) => {
-      const turn = data.data;
+    socket2.on(Game.Notify.TURN, (turn, event) => {
       // human2 should see a redacted version of the SWAPPED turn
       assert.equal(turn.type, Game.Turns.SWAPPED);
       assert(!turn.words);
@@ -84,9 +82,8 @@ describe("Commands", () => {
       socket2.done();
     })
     .on(Game.Notify.CONNECTIONS, () => {})
-    .on("*", (data, event) => {
-      console.error("UNEXPECTED EVENT", event);
-      assert.fail(event);
+    .on("*", (data, event, seqNo) => {
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
     });
 
     return game.create()
@@ -130,10 +127,10 @@ describe("Commands", () => {
   });
 
   it("anotherGame", () => {
-    const human1 = new Player(Game, {
-      name: "Human 1", key: "human1", isRobot: false});
-    const human2 = new Player(Game, {
-      name: "Human 2", key: "human2", isRobot: false});
+    const human1 = new Player({
+      name: "Human 1", key: "human1", isRobot: false}, Game);
+    const human2 = new Player({
+      name: "Human 2", key: "human2", isRobot: false}, Game);
 
     const game = new Game({
       edition:"Test",
@@ -144,13 +141,12 @@ describe("Commands", () => {
     const socket = new TestSocket();
     socket.on(Game.Notify.NEXT_GAME, (data, event) => {
       //console.debug("anotherGame", info);
-      assert.equal(data.data.gameKey, game.nextGameKey);
+      assert.equal(data.gameKey, game.nextGameKey);
       socket.done();
     });
     socket.on(Game.Notify.CONNECTIONS, () => {});
-    socket.on("*", (data, event) => {
-      console.error("UNEXPECTED EVENT", event);
-      assert.fail(event);
+    socket.on("*", (data, event, seqNo) => {
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -181,10 +177,10 @@ describe("Commands", () => {
   });
 
   it("pass", () => {
-    const human1 = new Player(Game, {
-      name: "Human 1", key: "human1", isRobot: false});
-    const human2 = new Player(Game, {
-      name: "Human 2", key: "human2", isRobot: false});
+    const human1 = new Player({
+      name: "Human 1", key: "human1", isRobot: false}, Game);
+    const human2 = new Player({
+      name: "Human 2", key: "human2", isRobot: false}, Game);
 
     const game = new Game({
       edition:"Test",
@@ -193,9 +189,9 @@ describe("Commands", () => {
       noPlayerShuffle: true
     });
     const socket = new TestSocket();
-    const handle = (turn, event, messageID) => {
-      switch (messageID) {
-      case 2:
+    const handle = (turn, event, seqNo) => {
+      switch (seqNo) {
+      case 1:
         assert.equal(turn.type, Game.Turns.PASSED);
         assert(!turn.words);
         assert(!turn.placements);
@@ -208,14 +204,13 @@ describe("Commands", () => {
         break;
       default:
         console.error("UNEXPECTED TURN", event, turn);
-        assert.fail("UNEXPECTED TURN");        
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
       }
     };
     socket.on(Game.Notify.TURN, handle);
     socket.on(Game.Notify.CONNECTIONS, () => {});
-    socket.on("*", (data, event) => {
-      console.error("UNEXPECTED EVENT", event);
-      assert.fail(event);
+    socket.on("*", (data, event, seqNo) => {
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -244,10 +239,10 @@ describe("Commands", () => {
       words: [ { word: "WORD", score: 10 }],
       score: 20
     });
-    const human1 = new Player(Game, {
-      name: "Human 1", key: "human1", isRobot: false});
-    const human2 = new Player(Game, {
-      name: "Human 2", key: "human2", isRobot: false});
+    const human1 = new Player({
+      name: "Human 1", key: "human1", isRobot: false}, Game);
+    const human2 = new Player({
+      name: "Human 2", key: "human2", isRobot: false}, Game);
     const aTile = new Tile({letter:"A", score:1 });
 
     const game = new Game({
@@ -256,12 +251,10 @@ describe("Commands", () => {
       //_debug: console.debug,
       noPlayerShuffle: true
     });
-    const socket1 = new TestSocket();
-    let turns1 = 0;
-    let messages1 = 0;
-    socket1.on(Game.Notify.TURN, (turn, event, messageID) => {
-      switch (messageID) {
-      case 7:
+    const socket1 = new TestSocket("play 1");
+    socket1.on(Game.Notify.TURN, (turn, event, seqNo) => {
+      switch (seqNo) {
+      case 5:
         assert.equal(turn.type, Game.Turns.PLAYED);
         assert.equal(turn.playerKey, human1.key);
         assert.equal(turn.nextToGoKey, human2.key);
@@ -269,72 +262,77 @@ describe("Commands", () => {
         assert.deepEqual(turn.words, move.words);
         assert.deepEqual(turn.placements, move.placements);
         TS.sparseEqual(turn.replacements, [ aTile ]);
+        socket1.done();
         break;
       default:
-        console.error(data);
-        assert.fail("UNEXPECTED TURN " + turn);
-      }
-      if (messageID === 7)
         socket1.done();
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
+      }
     });
-    socket1.on(Game.Notify.MESSAGE, (m, e, messageID) => {
-      switch (messageID) {
-      case 2:
+    socket1.on(Game.Notify.MESSAGE, (m, event, seqNo) => {
+      switch (seqNo) {
+      case 1:
         assert.equal(m.sender, 'Advisor');
         assert.equal(m.text, 'Enabled');
         break;
-      case 3:
+      case 2:
         assert.equal(m.sender, 'Advisor');
         assert.equal(m.text, "advised");
         assert.equal(m.args[0], human1.name);
         break;
-      case 5:
+      case 4:
         assert.equal(m.sender, 'Advisor');
         assert.equal(m.text, "possible-score");
         break;
       default:
-      console.error("UNEXPECTED MESSAGE ", data);
-        assert.fail("UNEXPECTED MESSAGE" + data);
-      }
-      if (messageID === 5)
         socket1.done();
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(m)}`);
+      }
     });
-    socket1.on(Game.Notify.CONNECTIONS, () => {});
-    socket1.on("*", (data, event) => {
-      console.error("UNEXPECTED EVENT ", event);
-      assert.fail("UNEXPECTED EVENT " + event);
+    socket1.on(Game.Notify.CONNECTIONS, (data, event, seqNo) => {
+      //console.log(`conn ${seqNo}`);
+    });
+    socket1.on("*", (data, event, seqNo) => {
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
     });
 
-    const socket2 = new TestSocket();
-    socket2.on(Game.Notify.TURN, (data, event) => {
-      const turn = data.data;
-      //console.debug(turn, event);
-      assert.equal(turn.type, Game.Turns.PLAYED);
-      assert.equal(turn.playerKey, human1.key);
-      assert.equal(turn.nextToGoKey, human2.key);
-      assert.equal(turn.score, move.score);
-      assert.deepEqual(turn.words, move.words);
-      assert.deepEqual(turn.placements, move.placements);
-      TS.sparseEqual(turn.replacements, [ new Tile({letter:"#", score:1 }) ]);
-      socket2.done();
-    });
-    socket2.on(Game.Notify.MESSAGE, (m, e, messageID) => {
-      switch (messageID) {
+    const socket2 = new TestSocket("play 2");
+    socket2.on(Game.Notify.TURN, (turn, event, seqNo) => {
+      switch(seqNo) {
+      case 1:
+        assert.equal(turn.type, Game.Turns.PLAYED);
+        assert.equal(turn.playerKey, human1.key);
+        assert.equal(turn.nextToGoKey, human2.key);
+        assert.equal(turn.score, move.score);
+        assert.deepEqual(turn.words, move.words);
+        assert.deepEqual(turn.placements, move.placements);
+        TS.sparseEqual(turn.replacements, [ new Tile({letter:"#", score:1 }) ]);
+        break;
       case 3:
+        // TODO: check console.log(turn);
+        socket2.done();
+        break;
+      default:
+        socket1.done();
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
+      }
+    });
+    socket2.on(Game.Notify.MESSAGE, (m, e, seqNo) => {
+      switch (seqNo) {
+      case 0:
         assert.equal(m.sender, 'Advisor');
         assert.equal(m.text, "advised");
         assert.equal(m.args[0], human1.name);
         break;
-      case 6:
+      case 2:
         assert.equal(m.sender, 'Advisor');
         assert.equal(m.text, "was-advised");
         assert.equal(m.args[0], human1.name);
         break;
       default:
-        assert.fail("UNEXPECTED MESSAGE" + m);
-      }
-      if (messageID === 6)
         socket2.done();
+        assert.fail(`UNEXPECTED MESSAGE ${seqNo} ${Utils.stringify(m)}`);
+      }
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -378,10 +376,10 @@ describe("Commands", () => {
       words: [ { word: "WORD", score: 10 }],
       score: 20
     });
-    const human1 = new Player(Game, {
-      name: "Human 1", key: "human1", isRobot: false});
-    const human2 = new Player(Game, {
-      name: "Human 2", key: "human2", isRobot: false});
+    const human1 = new Player({
+      name: "Human 1", key: "human1", isRobot: false}, Game);
+    const human2 = new Player({
+      name: "Human 2", key: "human2", isRobot: false}, Game);
     const aTile = new Tile({letter:"A", score:1 });
 
     const game = new Game({
@@ -391,8 +389,7 @@ describe("Commands", () => {
       noPlayerShuffle: true
     });
     const socket = new TestSocket();
-    socket.on(Game.Notify.TURN, (data, event) => {
-      const turn = data.data;
+    socket.on(Game.Notify.TURN, (turn, event) => {
       //console.debug(turn, event);
       assert.equal(turn.type, Game.Turns.PLAYED);
       assert.equal(turn.playerKey, human1.key);
@@ -434,13 +431,12 @@ describe("Commands", () => {
       noPlayerShuffle: true
     });
     let remains = 0;
-    const human1 = new Player(Game, {
-      name:"Human1", key:"human1", isRobot: false});
-    const human2 = new Player(Game, {
-      name:"Human2", key:"human2", isRobot: false});
+    const human1 = new Player({
+      name:"Human1", key:"human1", isRobot: false}, Game);
+    const human2 = new Player({
+      name:"Human2", key:"human2", isRobot: false}, Game);
     const socket = new TestSocket();
-    socket.on(Game.Notify.TURN, (data, event) => {
-      const turn = data.data;
+    socket.on(Game.Notify.TURN, (turn, event) => {
       assert.equal(event, Game.Notify.TURN);
       assert.equal(turn.type, Game.Turns.GAME_ENDED);
       assert.deepEqual(
@@ -454,9 +450,8 @@ describe("Commands", () => {
       socket.done();
     });
     socket.on(Game.Notify.CONNECTIONS, () => {});
-    socket.on("*", (data, event) => {
-      console.error("UNEXPECTED EVENT", event);
-      assert.fail(event);
+    socket.on("*", (data, event, seqNo) => {
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -489,10 +484,10 @@ describe("Commands", () => {
       //_debug: console.debug,
       noPlayerShuffle: true
     });
-    const human1 = new Player(Game, {
-      name: "Human 1", key: "human1", isRobot: false});
-    const human2 = new Player(Game, {
-      name: "Human 2", key: "human2", isRobot: false});
+    const human1 = new Player({
+      name: "Human 1", key: "human1", isRobot: false}, Game);
+    const human2 = new Player({
+      name: "Human 2", key: "human2", isRobot: false}, Game);
     const move = new Move({
       placements: [
         new Tile({letter:"X", score:1, col: 7, row: 7}),
@@ -505,13 +500,13 @@ describe("Commands", () => {
     const socket = new TestSocket();
     socket.on(Game.Notify.CONNECTIONS, () => {});
     let turns = 0;
-    socket.on(Game.Notify.TURN, (turn, event, messageID) => {
-      switch (messageID) {
-      case 2:
+    socket.on(Game.Notify.TURN, (turn, event, seqNo) => {
+      switch (seqNo) {
+      case 1:
         assert.equal(turn.type, Game.Turns.PLAYED);
         TS.sparseEqual(turn, move);
         break;
-      case 4:
+      case 2:
         assert.equal(turn.type, Game.Turns.TOOK_BACK);
         assert.equal(turn.playerKey, human1.key);
         assert.equal(turn.nextToGoKey, human1.key);
@@ -519,13 +514,12 @@ describe("Commands", () => {
         socket.done();
         break;
       default:
-        console.error("UNEXPECTED TURN", event, turn);
-        assert.fail(turn.type);
+        socket.done();
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
       }
     });
-    socket.on("*", (turn, event) => {
-      console.error("UNEXPECTED EVENT", event);
-      assert.fail(event);
+    socket.on("*", (data, event, seqNo) => {
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -581,19 +575,18 @@ describe("Commands", () => {
       //_debug: console.debug,
       noPlayerShuffle: true
     });
-    const human1 = new Player(Game, {
-      name: "Human 1", key: "human1", isRobot: false});
-    const human2 = new Player(Game, {
-      name: "Human 2", key: "human2", isRobot: false});
+    const human1 = new Player({
+      name: "Human 1", key: "human1", isRobot: false}, Game);
+    const human2 = new Player({
+      name: "Human 2", key: "human2", isRobot: false}, Game);
     const socket = new TestSocket();
     socket.on(Game.Notify.CONNECTIONS, () => {});
-    socket.on("*", (data, event) => {
-      if (event === Game.Notify.TURN) {
-        socket.done();
-        return;
-      }
-      console.error("UNEXPECTED EVENT", event);
-      assert.fail(event);
+    socket.on(Game.Notify.Turn, (data, event, seqNo) => {
+      // TODO: check it
+      socket.done();
+    });
+    socket.on("*", (data, event, seqNo) => {
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -619,28 +612,27 @@ describe("Commands", () => {
       //_debug: console.debug,
       noPlayerShuffle: true
     });
-    const human1 = new Player(Game, {
-      name: "Human 1", key: "human1", isRobot: false});
-    const human2 = new Player(Game, {
-      name: "Human 2", key: "human2", isRobot: false});
+    const human1 = new Player({
+      name: "Human 1", key: "human1", isRobot: false}, Game);
+    const human2 = new Player({
+      name: "Human 2", key: "human2", isRobot: false}, Game);
     const socket = new TestSocket();
     socket.on(Game.Notify.CONNECTIONS, () => {});
-    socket.on("*", (data, event, messageID) => {
-      switch (messageID) {
-      case 2:
+    socket.on("*", (data, event, seqNo) => {
+      switch (seqNo) {
+      case 1:
         assert.equal(event, Game.Notify.PAUSE);
-        assert.equal(data.data.key, game.key);
-        assert.equal(data.data.name, human1.name);
+        assert.equal(data.key, game.key);
+        assert.equal(data.name, human1.name);
         break;
-      case 3:
+      case 2:
         assert.equal(event, Game.Notify.UNPAUSE);
-        assert.equal(data.data.key, game.key);
-        assert.equal(data.data.name, human2.name);
+        assert.equal(data.key, game.key);
+        assert.equal(data.name, human2.name);
         socket.done();
         break;
       default:
-        console.error(data);
-        assert.fail("UNEXPECTED EVENT", event);
+        assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
       }
     });
     return game.create()

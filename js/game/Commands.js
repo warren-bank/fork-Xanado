@@ -544,7 +544,7 @@ define([
 
         // copy the players
         for (const p of this.players) {
-          const np = new this.constructor.Player(this.constructor, p);
+          const np = new this.constructor.Player(p, this.constructor);
           newGame.addPlayer(np, true);
         }
 

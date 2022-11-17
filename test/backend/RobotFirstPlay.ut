@@ -25,9 +25,9 @@ describe("RobotFirstPlay", () => {
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
     .then(() => {
-      game.addPlayer(new Game.Player(Game, {
+      game.addPlayer(new Game.Player({
         name:"test", key:"anonymous", isRobot:false
-      }), true);
+      }, Game), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
@@ -81,7 +81,7 @@ describe("RobotFirstPlay", () => {
     .then(() => game.onLoad(new MemoryDatabase()))
     .then(game => {
       game.addPlayer(
-        new Game.Player(Game, {name:"test", key:"slight", isRobot:false}), true);
+        new Game.Player({name:"test", key:"slight", isRobot:false}, Game), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +

@@ -73,7 +73,7 @@ describe("Game", () => {
       assert.equal(s.nextGameKey, game.nextGameKey);
       assert.equal(s.lastActivity, game.lastActivity());
       assert.equal(s.players.length, 0);
-      game = Game.fromSerialisable(Game, s);
+      game = Game.fromSerialisable(s, Game);
       assert(game instanceof Game, TS.tracePrototypeChain(game));
       assert.equal(s.key, game.key);
       assert.equal(s.creationTimestamp, game.creationTimestamp);
@@ -114,18 +114,18 @@ describe("Game", () => {
     };
 
     const game = new Game(p);
-    const robot1 = new Player(Game, {
-      name:"Robot 1", key:"robot1", isRobot: true});
-    assert.equal(robot1._factory, Game);
-    const human2 = new Player(Game, {
-      name:"human2", key:"human2", isRobot: false});
-    const human3 = new Player(Game, {
-      name:"human3", key:"human3", isRobot: false});
+    const robot1 = new Player({
+      name:"Robot 1", key:"robot1", isRobot: true}, Game);
+    assert.equal(Game, robot1._factory);
+    const human2 = new Player({
+      name:"human2", key:"human2", isRobot: false}, Game);
+    const human3 = new Player({
+      name:"human3", key:"human3", isRobot: false}, Game);
 
-    const human4 = new Player(Game, {
-      name:"human4", key:"human4", isRobot: false});
-    const robot2 = new Player(Game, {
-      name:"Robot 2", key:"robot2", isRobot: true});
+    const human4 = new Player({
+      name:"human4", key:"human4", isRobot: false}, Game);
+    const robot2 = new Player({
+      name:"Robot 2", key:"robot2", isRobot: true}, Game);
 
     const um = { // UserManager fixture
       getUser: k => Promise.resolve({ email: k.key + "@players.com" })

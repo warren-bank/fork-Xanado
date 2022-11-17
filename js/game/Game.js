@@ -913,7 +913,7 @@ define([
     static fromSerialisable(simple, factory) {
       const game = new factory.Game(simple);
       game.players = simple.players.map(
-        p => factory.Player.fromSerialisable(factory, p));
+        p => factory.Player.fromSerialisable(p, factory));
       game.turns = simple.turns.map(t => Turn.fromSerialisable(t, factory));
       return game;
     }

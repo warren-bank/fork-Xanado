@@ -8,9 +8,9 @@ if (typeof requirejs === "undefined") {
 }
 
 define([
-  "common/Channel"
+  "common/Channel", "common/Utils"
 ], (
-  Channel
+  Channel, Utils
 ) => {
 
   const assert = require("assert");
@@ -19,16 +19,20 @@ define([
    * Simulator for socket.io, replaces the socket functionality with a
    * simple callback that can be used in tests to monitor expected
    * events. Pattern:
+   * ```
    * tr.addTest("example", () => {
-   *   const socket = new TestSocket();
+   *   const socket = new TestSocket("a socket");
    *   socket.on("event", (data, event) => {
-   *     // handle expected events. When last event seen, call socket.done()
+   *     // Handle expected events.
+   *     // When last event seen, call socket.done()
    *   }
    *   return new Promise((resolve, reject) => {
    *     ... code that generates events ...
    *   })
    *   .then(() => socket.wait());
    * });
+   * ```
+   * Once `done` has been called the socket will accept no more emits.
    */
 
   class TestSocket extends Channel {
@@ -36,19 +40,27 @@ define([
     reject;
     finished;
     sawError;
-    idNum = 0;
+    id;
+    seqNo = 0;
+
+    constructor(id) {
+      super();
+      this.id = id || "anonymous";
+    }
 
     // @override
     emit(event, data, nomore) {
+      if (this.finished)
+        throw Error(`${this.id} is finished; ${this.seqNo} ${event} ${Utils.stringify(data)}`);
       if (this.connection && !nomore) // connection to another socket?
         this.connection.emit(event, data, true);
       else {
         try {
           if (this.handlers[event] && this.handlers[event].length > 0)
-            this.handlers[event].forEach(l => l(data, event, this.idNum));
+            this.handlers[event].forEach(l => l(data, event, this.seqNo));
           else if (this.handlers["*"] && this.handlers['*'].length > 0)
-            this.handlers["*"].forEach(l => l(data, event, this.idNum));
-          this.idNum++;
+            this.handlers["*"].forEach(l => l(data, event, this.seqNo));
+          this.seqNo++;
         } catch (e) {
           //console.error("ERROR", e);
           this.sawError = e;
@@ -87,6 +99,7 @@ define([
     done() {
       if (this.finished)
         return;
+      //console.log(`${this.id} is done`);
       this.finished = true;
       if (this.connection)
         this.connection.done();
