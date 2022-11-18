@@ -20,7 +20,8 @@ define([
      * Format of rows in the games table.
      * See {@linkcode browser/BrowserGame#headline}
      */
-    static GAME_TABLE_ROW = '<tr class="game" id="%i">'
+    static GAME_TABLE_ROW = '<tr class="game" id="%k">'
+    + '<td class="h-key">%k</td>'
     + '<td class="h-edition">%e</td>'
     + '<td class="h-created">%c</td>'
     + '<td class="h-players">%p</td>'

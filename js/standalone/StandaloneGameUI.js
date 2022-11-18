@@ -136,7 +136,7 @@ define([
         }
       })
       .then(() => {
-        this.attachNotificationHandlers();
+        this.attachChannelHandlers();
 
         // Make a browser copy of the game
         this.frontEndGame =

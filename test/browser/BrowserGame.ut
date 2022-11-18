@@ -49,28 +49,28 @@ describe("BrowserGame", () => {
       
       game.state = Game.State.PLAYING;
       assert.equal(
-        game.headline("%e"),
+        game.tableRow("%e"),
         `<span class="h-edition">English_Scrabble${e}`);
       assert.equal(
-        game.headline("%p"),
-        `<span class="h-players">players Human 1 and Robot 1${e}`);
+        game.tableRow("%p"),
+        `<span class="h-players">Human 1 and Robot 1${e}`);
       assert.equal(
-        game.headline("%c"),
-        `<span class="h-created">created Thu Jan 01 1970${e}`);
+        game.tableRow("%c"),
+        `<span class="h-created">Thu Jan 01 1970${e}`);
       assert.equal(
-        game.headline("%s"),
+        game.tableRow("%s"),
         `<span class="h-state">Playing${e}`);
       assert.equal(
-        game.headline("%w"), `<span class="h-won">${e}`);
+        game.tableRow("%w"), `<span class="h-won">${e}`);
       game.state = Game.State.GAME_OVER;
       assert.equal(
-        game.headline("%s"),
+        game.tableRow("%s"),
         `<span class="h-state">Game over${e}`);
       assert.equal(
-        game.headline("%w"),
+        game.tableRow("%w"),
         `<span class="h-won">Human 1 won${e}`);
       assert.equal(
-        game.headline("%k"),
+        game.tableRow("%k"),
         `<span class="h-key">${game.key}${e}`);
     });
   });

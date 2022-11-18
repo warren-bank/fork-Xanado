@@ -96,11 +96,11 @@ define([
       .then(() => this.initLocale()) // need the session to do this
       .then(() => this.processArguments(args))
       .then(() => this.channel = Sockets.connect())
-      .then(() => this.attachNotificationHandlers())
+      .then(() => this.attachChannelHandlers())
       .then(() => this.attachUIEventHandlers())
       .then(() => {
         $(".loading").hide();
-        $(".waiting").removeClass("waiting");
+        $(".waiting").removeClass("waiting").show();
       });
     }
 
@@ -109,7 +109,7 @@ define([
      * @instance
      * @memberof client/ClientUIMixin
      */
-    attachNotificationHandlers() {
+    attachChannelHandlers() {
 
       let $reconnectDialog = null;
 
@@ -151,7 +151,7 @@ define([
         }, 3000);
       });
 
-      super.attachNotificationHandlers();
+      super.attachChannelHandlers();
     }
 
     /**

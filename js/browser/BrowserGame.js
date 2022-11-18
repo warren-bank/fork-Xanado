@@ -47,8 +47,9 @@ define([
      * table, false for the dialog.
      * @param {string} format format to use for the headline. The following
      * escapes can be used:
-     * * %e - the edition being players e.g. "English_Scrabble"
      * * %c - the creation date e.g. "Thu Jan 01 1970"
+     * * %e - the edition being players e.g. "English_Scrabble"
+     * * %k - the key of the game
      * * %p - list of players in the game e.g "Player 1 and Player 2"
      * * %s - final game state e.g. "Game over"
      * * %w - who won
@@ -63,7 +64,7 @@ define([
             "h-created", new Date(this.creationTimestamp).toDateString()));
         case "e":
           return wrap("h-edition", $.i18n("h-edition", this.edition));
-        case "i":
+        case "k":
           return wrap("h-key", $.i18n("h-key", this.key));
         case "p":
           return wrap("h-players", $.i18n(
@@ -72,7 +73,6 @@ define([
         case "s": return wrap("h-state", $.i18n("h-state", this.state));
         case "w": return wrap("h-won", this.hasEnded() ? $.i18n(
           "h-won", this.getWinner().name) : "");
-        case "k": return wrap("h-key", $.i18n("h-key", this.key));
         default:
           assert.fail(`Bad ${p1}`);
         }

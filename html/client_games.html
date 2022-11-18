@@ -33,7 +33,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <div class="loading">
       <img src="../images/loading.gif" />
     </div>
-    <div class="waiting user-interface">
+    <div class="waiting user-interface" style="display:none">
       <img src="../images/logo.svg" class="logo" />
       <div id="loginState">
         <span class="not-logged-in">
@@ -61,11 +61,12 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
         <table id="gamesList">
           <thead>
             <tr>
+              <th data-i18n="ID"></th>
               <th data-i18n="Edition"></th>
               <th data-i18n="Created"></th>
-              <th data-i18n="Players">%s</th>
-              <th data-i18n="State">%s</th>
-              <th data-i18n="Outcome">%w</th>
+              <th data-i18n="Players"></th>
+              <th data-i18n="State"></th>
+              <th data-i18n="Outcome"></th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -76,18 +77,18 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
         <button id="create-game" class="hidden" data-i18n="label-create-game"></button>
         <button id="reminder-button" class="hidden" data-i18n="Send turn reminders" data-i18n-tooltip="tt-send-rems"></button>
       </div>
-    </div>
 
-    <div id="alertDialog" class="dialog">
-    </div>
-
-    <div id="observeDialog" class="dialog">
-      <div class="dialog-row">
-        <label for="observerName" data-i18n="Your name"></label>
-        <input id="observerName" type="text" data-i18n-tooltip="tt-observer-name">
+      <div id="alertDialog" class="dialog">
       </div>
-      <div class="dialog-row">
-        <button type="submit" id="observerClose" data-i18n="Observe game">
+
+      <div id="observeDialog" class="dialog">
+        <div class="dialog-row">
+          <label for="observerName" data-i18n="Your name"></label>
+          <input id="observerName" type="text" data-i18n-tooltip="tt-observer-name">
+        </div>
+        <div class="dialog-row">
+          <button type="submit" id="observerClose" data-i18n="Observe game">
+        </div>
       </div>
     </div>
   </body>

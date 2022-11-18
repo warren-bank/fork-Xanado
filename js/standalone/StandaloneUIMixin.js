@@ -5,7 +5,6 @@
 /* global pluralRuleParser */
 
 define([
-  "socket.io-client",
   "platform",
   "common/Utils", "common/Fridge",
   "game/Player", "game/Edition",
@@ -15,7 +14,6 @@ define([
 
   "jquery", "jqueryui"
 ], (
-  Sockets,
   Platform,
   Utils, Fridge,
   Player, Edition,
@@ -34,9 +32,11 @@ define([
 
     /**
      * Format of entries in the games table.
+     * @override
      * See {@linkcode browser/BrowserGame#headline}
      */
-    static GAME_TABLE_ROW = '<tr class="game" id="%i">'
+    static GAME_TABLE_ROW = '<tr class="game" id="%k">'
+    + '<td class="h-key">%k</td>'
     + '<td class="h-edition">%e</td>'
     + '<td class="h-created">%c</td>'
     + '<td class="h-state">%s</td>'

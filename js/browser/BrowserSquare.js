@@ -116,6 +116,7 @@ define([
       assert(!this.tile, "Can't $unplace a placed tile");
 
       if (!$td) $td = $(`#${this.id}`);
+
       // There may be no TD if the tile is being unplaced from
       // another player's rack.
       if ($td.length === 0)

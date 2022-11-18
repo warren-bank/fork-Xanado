@@ -83,8 +83,11 @@
 			"amd": true
 		},
 		"globals": {
-			"requirejs": "writable",
-			"Mocha": "writable"
+		  "requirejs": "writable",
+		  "Mocha": "writable",
+          "assert": "writable",
+          "WeakRef": "readonly",
+          "document": "readonly"
 		},
 		"rules": {
 			"camelcase": 0,

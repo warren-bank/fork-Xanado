@@ -24,7 +24,7 @@ requirejs([
    * Management interface for a database of games stored in localStorage.
    * @mixes standalone/StandaloneUIMixin
    * @mixes browser/GamesUIMixin
-   * @extends UI 
+   * @extends UI
    */
   class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
 
@@ -51,7 +51,7 @@ requirejs([
         error: this.constructor.report
       }));
     }
-    
+
     /**
      * @implements browser/GamesUIMixin#gameOptions
      * @override

@@ -468,6 +468,10 @@ define([
         this.updateWhosTurn();
       }
       this.updateGameStatus();
+
+      // Send out a notification, in case anyone else wants to
+      // handle the turn (e.g. a player simulator)
+      Platform.trigger("TURN", turn);
     }
 
     /**
@@ -902,7 +906,7 @@ define([
       // Confirm to the server that we're ready to listen
       console.debug("f<b join");
       // This will throw if there is no server on the other end
-      this.notifyBackend(Game.Game.Notify.JOIN, {
+      this.notifyBackend(Game.Notify.JOIN, {
         gameKey: this.game.key,
         playerKey: playerKey
       });
@@ -916,49 +920,49 @@ define([
      * @memberof browser/GameUIMixin
      * @instance
      */
-    attachNotificationHandlers() {
+    attachChannelHandlers() {
 
       assert(this.channel, "No channel");
 
       this.channel
 
-      .on(Game.Game.Notify.CONNECTIONS, observers =>
+      .on(Game.Notify.CONNECTIONS, observers =>
           this.handle_CONNECTIONS(observers))
 
       // A turn has been taken. turn is a Turn
-      .on(Game.Game.Notify.TURN,
+      .on(Game.Notify.TURN,
           turn => this.handle_TURN(
             new this.game.constructor.Turn(turn)))
 
       // Backend clock tick.
-      .on(Game.Game.Notify.TICK,
+      .on(Game.Notify.TICK,
           params => this.handle_TICK(params))
 
       // A follow-on game is available
-      .on(Game.Game.Notify.NEXT_GAME,
+      .on(Game.Notify.NEXT_GAME,
           params => this.handle_NEXT_GAME(params))
 
       // A message has been sent
-      .on(Game.Game.Notify.MESSAGE,
+      .on(Game.Notify.MESSAGE,
           message => this.handle_MESSAGE(message))
 
       // Attempted play has been rejected
-      .on(Game.Game.Notify.REJECT,
+      .on(Game.Notify.REJECT,
           params => this.handle_REJECT(params))
 
       // Game has been paused
-      .on(Game.Game.Notify.PAUSE,
+      .on(Game.Notify.PAUSE,
           params => this.handle_PAUSE(params))
 
       // Game has been unpaused
-      .on(Game.Game.Notify.UNPAUSE,
+      .on(Game.Notify.UNPAUSE,
           params => this.handle_UNPAUSE(params))
 
       // An UNDO has been serviced
-      .on(Game.Game.Notify.UNDONE,
+      .on(Game.Notify.UNDONE,
           message => this.handle_UNDONE(message))
 
-      .on(Game.Game.Notify.JOIN, () => console.debug("f<b join"));
+      .on(Game.Notify.JOIN, () => console.debug("f<b join"));
 
       return Promise.resolve();
     }
@@ -1021,7 +1025,7 @@ define([
       .on("change", function() {
         // Send chat
         console.debug("f>b message");
-        ui.notifyBackend(Game.Game.Notify.MESSAGE, {
+        ui.notifyBackend(Game.Notify.MESSAGE, {
           sender: ui.player ? ui.player.name : "Observer",
           text: $(this).val()
         });

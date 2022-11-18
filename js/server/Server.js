@@ -325,8 +325,8 @@ define([
      * @private
      */
     socket_connect(sk) {
-        this._debug("f>s connect");
-        this.updateMonitors();
+      this._debug("f>s connect");
+      this.updateMonitors();
     }
 
     /**

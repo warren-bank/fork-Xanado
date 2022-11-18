@@ -30,11 +30,11 @@ requirejs.config({
 });
 
 requirejs([
+  "node-getopt", "fs", "socket.io", "http", "https", "nodemailer",
   "server/Server",
-  "node-getopt", "fs", "socket.io", "http", "https", "nodemailer"
 ], (
-  Server,
-  Getopt, fs, socket_io, Http, Https, NodeMailer
+  Getopt, fs, socket_io, Http, Https, NodeMailer,
+  Server
 ) => {
 
   const Fs = fs.promises;
@@ -148,8 +148,11 @@ requirejs([
       http.listen(config.port);
 
       const io = new socket_io.Server(http);
+      // Each time a player connects, the server will receive
+      // a 'connection' event.
       io.sockets.on(
-        "connection", socket => server.attachSocketHandlers(socket));
+        "connection",
+        socket => server.attachSocketHandlers(socket));
     });
   });
 });

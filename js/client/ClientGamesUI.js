@@ -85,7 +85,7 @@ requirejs([
     /**
      * Attach handlers to receive notifications from the server
      */
-    attachNotificationHandlers() {
+    attachChannelHandlers() {
 
       this.channel
 
@@ -325,7 +325,7 @@ requirejs([
      * @implements browser/GamesUIMixin#getGame
      */
     getGame(key) {
-      $.get(`/games/${key}`);
+      return $.get(`/games/${key}`);
     }
 
     /**
@@ -333,6 +333,11 @@ requirejs([
      */
     getGames(what) {
       return $.get(`/games/${what}`);
+    }
+
+    create() {
+      return super.create()
+      .then(() => this.refreshGames());
     }
   }
 
