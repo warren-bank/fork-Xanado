@@ -27,15 +27,19 @@ define([
    */
   class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
 
-    /**
-     * Game on the "server" side
-     */
-    backEndGame = undefined;
+    constructor() {
+      super();
 
-    /**
-     * Game on the "client" side
-     */
-    frontEndGame = undefined;
+      /**
+       * Game on the "server" side
+       */
+      this.backEndGame = undefined;
+
+      /**
+       * Game on the "client" side
+       */
+      this.frontEndGame = undefined;
+    }
 
     /**
      * @implements browser/GameUIMixin#sendCommand

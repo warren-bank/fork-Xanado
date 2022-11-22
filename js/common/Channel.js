@@ -28,13 +28,13 @@ define(() => {
        * @member {Channel}
        */
       this._receiver = new WeakRef(this);
-    }
 
-    /**
-     * Handlers for events
-     * @member {Object<string,function>}
-     */
-    handlers = {};
+      /**
+       * Handlers for events
+       * @member {Object<string,function>}
+       */
+      this.handlers = {};
+    }
 
     /**
      * Register a handler for an event.

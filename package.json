@@ -49,16 +49,18 @@
 	"devDependencies": {
 		"chai": ">=4.3.7",
 		"chai-http": "^4.3.0",
-		"docdash": "^1.2.0",
-		"eslint": ">=8.27.0",
+		"docdash": "^2.0.0",
+		"eslint": ">=8.28.0",
+		"esprima": "^4.0.1",
 		"istanbul": "^0.4.5",
 		"jsdoc": "^4.0.0",
-		"marked": "^4.2.2",
+		"marked": "^4.2.3",
 		"mocha": ">=10.1.0",
 		"nyc": "^15.1.0",
 		"why-is-node-running": "^2.2.2"
 	},
 	"scripts": {
+		"dist": "node bin/build-dist.js",
 		"server": "node server.js",
 		"start": "node server.js --debug_game --debug_server",
 		"debug": "node server.js --debug_game --debug_server",
@@ -83,11 +85,11 @@
 			"amd": true
 		},
 		"globals": {
-		  "requirejs": "writable",
-		  "Mocha": "writable",
-          "assert": "writable",
-          "WeakRef": "readonly",
-          "document": "readonly"
+			"requirejs": "writable",
+			"Mocha": "writable",
+			"assert": "writable",
+			"WeakRef": "readonly",
+			"document": "readonly"
 		},
 		"rules": {
 			"camelcase": 0,

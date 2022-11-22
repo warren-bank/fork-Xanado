@@ -1,4 +1,12 @@
-// requiresjs configuration shared between all HTML
+/**
+ * requiresjs configuration. This is used by the development HTML
+ * modules as follows:
+ *    <script>
+ *      const rjs_main = "module required as last step";
+ *    </script>
+ *    <script data-main="../rjs_config.js" src="../node_modules/requirejs/require.js"></script>
+ */
+
 /*global rjs_main*/
 
 requirejs.config({
@@ -6,8 +14,8 @@ requirejs.config({
   baseUrl: "..",
 
   // suppress browser cache when ?debug
-  urlArgs: /[?;&]debug([=;&]|$)/.test(document.URL)
-  ? `nocache=${Date.now()}` : "",
+  //urlArgs: /[?;&]debug([=;&]|$)/.test(document.URL)
+  //? `nocache=${Date.now()}` : "",
 
   waitSeconds: 60,
   paths: {

@@ -6,7 +6,7 @@
 /**
  * Browser app for client_games.html; populate the list of live games
  */
-requirejs([
+define([
   "platform",
   "common/Utils",
   "game/Player", "game/Game",

@@ -28,26 +28,26 @@ define([
     static cache = [];
 
     /**
-     * First node in the dictionary.
-     * @member {LetterNode?}
-     */
-    root;
-
-    /**
-     * List of valid start points, such that at least one
-     * start point must match() for any sequence of chars, or
-     * there can't possibly be a word. Map from letter to a
-     * LetterNode or a list of LetterNode.
-     * @private
-     */
-    sequenceRoots;
-
-    /**
      * @param {string} name name of the dictionary
      * It's actually an array of little-endian 4-byte integers.
      * Note that this constructor is private.
      */
     constructor(name) {
+      /**
+       * First node in the dictionary.
+       * @member {LetterNode?}
+       */
+      this.root = undefined;
+
+      /**
+       * List of valid start points, such that at least one
+       * start point must match() for any sequence of chars, or
+       * there can't possibly be a word. Map from letter to a
+       * LetterNode or a list of LetterNode.
+       * @private
+       */
+      this.sequenceRoots = undefined;
+
       /**
        * List of valid start points, such that at least one
        * start point must match() for any sequence of chars,

@@ -10,12 +10,12 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
  * @module
  */
 
-const requirejs = require("requirejs");
+if (!requirejs) requirejs = require("requirejs");
 
 requirejs.config({
   baseUrl: __dirname,
-  nodeRequire: require,
   paths: {
+    "node-getopt" : "node_modules/node-getopt/index",
     jquery: "node_modules/jquery/dist/jquery",
     "jquery-i18n": "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n",
 
