@@ -10,7 +10,7 @@ define([
   "game/Player", "game/Edition",
   "backend/BackendGame",
   "dawg/Dictionary",
-  "browser/BrowserDatabase", "browser/Dialog",
+  "browser/BrowserDatabase",
 
   "jquery", "jqueryui"
 ], (
@@ -19,7 +19,7 @@ define([
   Player, Edition,
   BackendGame,
   Dictionary,
-  BrowserDatabase, Dialog
+  BrowserDatabase
 ) => {
 
   /**

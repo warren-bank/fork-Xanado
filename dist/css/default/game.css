@@ -1,0 +1,358 @@
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information. Author Crawford Currie http://c-dot.co.uk*/
+
+/**
+ * Styling for the "client_game" interface
+ */
+
+/* Wraps UI components */
+.user-interface {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/*------------ GENERIC ------------*/
+
+/* Override jquery-ui for shuffle and take-back buttons */
+.fat-button {
+  width: 2em;
+  height: 2em;
+}
+
+.rack {
+  border-width: 0.2em;
+  padding: 0.2em;
+}
+
+/*------------ BLOCKS ------------*/
+
+/* All divs within the controls area */
+.block {
+  min-width: 25vw;
+  max-width: 100vw;
+  background-color: #F7F7E3;
+  border-color: #DCDCC6;
+
+  border-style: solid;
+  
+  -webkit-border-radius: 0.4em;
+  -moz-border-radius: 0.4em;
+  -ms-border-radius: 0.4em;
+  -o-border-radius: 0.4em;
+  border-radius: 0.4em;
+
+  margin: 2px;
+  padding: 2px;
+}
+
+/* Generic */
+.player-name {
+  font-weight: bold;
+}
+
+/* Title in one of the blocks */
+.block-title {
+  font-size: 120%;
+  font-weight: bold;
+  color: brown;
+}
+
+.toolbox {
+  float: right;
+}
+
+/*------------ LOGIN BLOCK ------------*/
+
+/* Settings and signout div */
+#undoButton {
+  display: none;
+}
+
+#redoButton {
+  display: none;
+}
+
+/*------------ "Scores" block ------------*/
+
+/* The #controls > div with the scores and letter bag state */
+#scoresBlock {
+  min-height: 4vw;
+}
+
+#scoresBlock > .observerCount {
+  font-size: smaller;
+}
+
+/* The #scoresBlock > div that has the letter bag status */
+#scoresBlock .letterbag {
+  margin: 0.2vw;
+}
+
+/* Clock in timed games */
+#scoresBlock .player-clock {
+  visibility: none;
+  color: #080;
+}
+
+/* Clock highlights */
+#scoresBlock .tick-alert-low {
+  color: #cc5801 !important;
+}
+
+#scoresBlock .tick-alert-medium {
+  color:#fcae1e !important;
+}
+
+#scoresBlock .tick-alert-high {
+  color: red !important;
+}
+
+/*------------ PLAY BLOCK ------------*/
+
+#playBlock {
+}
+
+/* #yourPlayBlock > div showing the proposed move */
+#playBlock .your-move {
+  margin-bottom: 0.2vw;
+}
+
+/* Button for making a play */
+#playBlock .turn-button {
+  font-size: 130%;
+}
+
+/*------------ CHAT BLOCK ------------*/
+
+#chatBlock {
+  max-height: 8em;
+}
+
+#chatInput {
+  margin-top: 0.25em;
+  width: 95%;
+}
+
+/* Who sent a chat message */
+#chatBlock .chat-sender {
+  font-weight: bold;
+}
+
+#chatBlock .chat-message.warning {
+  color: #B00;
+}
+
+/*------------ LOG BLOCK ------------*/
+
+/* The div with the game events log */
+#logBlock {
+}
+
+/* container around all messages */
+.messages {
+  font-size: 80%;
+  overflow: auto;
+  max-height: 14em;
+}
+
+/* Wrapper around each individual entry in the log */
+.message {
+}
+
+.game-state {
+  margin-top: 0.5em;
+  font-weight: bold;
+}
+
+/* The player who just had a turn */
+.turn-player {
+  margin-top: 0.4em;
+  padding-left: 0.5em;
+}
+
+/* Details about the turn */
+.turn-detail {
+  margin-left: 2em;
+}
+
+.word-score, .turn-total {
+  margin-left: 0.2em;
+  margin-right: 0.25em;
+}
+
+/* Narrative generated when a player rack is empty */
+.turn-narrative {
+  font-size: 110%;
+  margin-top: 0.5em;
+  color: #950000
+}
+
+/* Description of points gained and lost from final racks */
+.game-end-adjustments .rack-adjust {}
+
+/* Description of points lost due to overtime */
+.game-end-adjustments .time-adjust {}
+
+/* A control placed in the log */
+.turn-control {
+  margin: 0.3em 0 0.3em 0;
+}
+
+/* Button in the log area; challenge, take back */
+.turn-control button {
+  font-size: 120%;
+}
+
+/* an individual word in a list of words in the log */
+.word {
+  font-style: italic;
+  margin-left: 0.25em;
+}
+
+/* an individual word score in a list of words in the log */
+.word-score {
+  font-size: 0.75em;
+}
+
+/*------------ BOARD ------------*/
+
+/* Highlight for the last played word */
+#board .last-placement {
+  background-color: #E2E298!important;
+}
+
+/* Highlight for a hint placement */
+#board .hint-placement {
+  background-color: #E2FF98!important;
+}
+
+/* typing cursor (there can be only one) */
+#typingCursor {
+  display: none;
+  font-family: symbol;
+  font-size: 180%;
+  font-weight: bold;
+  color: green;
+  background-color: #D0F2D0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  position: relative;
+  z-index: 2000;
+ -webkit-border-radius: 10%;
+ -moz-border-radius: 10%;
+ -o-border-radius: 10%;
+ -ms-border-radius: 10%;
+ -khtml-border-radius: 10%;
+ border-radius: 10%;
+}
+
+/* Right-facing arrow */
+#typingCursor:before {
+  content: "\261E";
+}
+
+/* Down-facing arrow */
+#typingCursor.down:before {
+  content: "\261F";
+}
+
+/*------------ PLAY RACK ------------*/
+
+#playRack {
+  margin-top: 0.5em;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+}
+
+#playRack .distributionButton {
+  font-weight: bold;
+}
+
+#playRack .rack{
+}
+
+#playRack .controls {
+}
+
+/* rack control buttons - shuffle, unplace */
+#playRack .shuffle-button {
+  font-size: 1.2em;
+}
+
+#playRack .unplace-button {
+  font-size: 1.2em;
+  visibility: hidden;
+}
+
+/*------------ SWAP RACK ------------*/
+
+#swapRack {
+  margin-bottom: 0.3em;
+}
+
+/* Background letters behind the swap rack */
+#swapRack .underlay {
+  padding-top: 7%; /* looks nicer */
+  font-size: 3em;
+  color: rgba(60, 60, 80, 0.3);
+}
+
+/*------------ DIALOGS ------------*/
+
+/* Blank letter requester dialog */
+#blankDialog .letterTable td {
+  font-size: 1.5em;
+  text-align: center;
+  border-color: #DCDCC6;
+  border-style: solid;
+  
+  -webkit-border-radius: 0.4em;
+  -moz-border-radius: 0.4em;
+  -ms-border-radius: 0.4em;
+  -o-border-radius: 0.4em;
+
+  border-radius: 0.4em;
+  border-collapse: separate;
+  border-spacing: 0 0;
+
+  border-width: 0.1em;
+}
+
+/*------------ LANDSCAPE SCREEN ------------*/
+@media screen and (min-aspect-ratio: 1/1) {
+}
+
+/*------------ PORTRAIT SCREEN ------------*/
+
+@media screen and (max-aspect-ratio: 1/1) {
+  /* Position the login block above the board */
+  #loginBlock {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin-top: 3px;
+  }
+
+  /* Override Surface - Board is full width */
+  #board {
+    margin-top: 30px;
+    margin-left: 0;
+    width: 100vw;
+    aspect-ratio: 1/1;
+    height: auto;
+    padding: 2px;
+  }
+
+  /* Blocks are full width. flex layout deals with it. */
+  #blocks {
+    width: 100%;
+    margin: 0;
+  }
+}
+

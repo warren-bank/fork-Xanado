@@ -35,6 +35,8 @@ define([
      * @memberof browser/GamesUIMixin
      */
     attachUIEventHandlers() {
+      super.attachUIEventHandlers();
+
       $("#showAllGames")
       .on("change", () => this.refreshGames());
     }

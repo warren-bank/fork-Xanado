@@ -693,7 +693,7 @@ define([
     GET_themes(req, res) {
       const dir = Platform.getFilePath("css");
       return Fs.readdir(dir)
-      .then(list => res.status(200).send(list));
+      .then(list => res.status(200).send(list.filter(f => f !== "index.json")));
     }
 
     /**

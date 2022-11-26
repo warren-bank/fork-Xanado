@@ -1,0 +1,25 @@
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
+
+/* Shuffle and unplace fat icon buttons */
+
+.fat-icon {
+  margin: 2px;
+  background-size: 100% 100%;
+  background-position: center;
+  margin-top: -15px !important;
+  margin-left: -15px !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+/* shuffle fat button icon */
+.shuffle-icon {
+  background-image: url('../../images/shuffle.png') !important;
+}
+
+/* unplace button icon */
+.unplace-icon {
+  background-image: url('../../images/take-back.png') !important;
+}

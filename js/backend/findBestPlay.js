@@ -4,11 +4,9 @@
 /* eslint-env amd */
 
 define([
-  "platform",
   "game/Edition", "game/Tile", "game/Move",
   "dawg/Dictionary"
 ], (
-  Platform,
   Edition, Tile, Move,
   Dictionary
 ) => {

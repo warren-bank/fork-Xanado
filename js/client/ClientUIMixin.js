@@ -65,6 +65,16 @@ define([
     }
 
     /**
+     * @implements UI
+     * @instance
+     * @memberof CientUIMixin
+     * @override
+     */
+    getThemes() {
+      return $.get("/themes");
+    }
+
+    /**
      * Process arguments to the URL. For example, a game passed by key.
      * Subclasses may override.
      * @instance

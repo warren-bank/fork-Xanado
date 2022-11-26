@@ -2,22 +2,19 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
-/* global pluralRuleParser */
 
 define([
   "platform",
   "common/Utils",
-  "cldrpluralruleparser", // requirejs shim pulls in jquery.i18n
-  "jquery", "jqueryui"
+  "browser/Dialog",
+  "jquery", "jqueryui", "jquery.i18n",
+  "i18n.language", "i18n.messagestore", "i18n.parser",
+  "i18n.fallbacks", "i18n.emitter"
 ], (
   Platform,
   Utils,
-  cldrpluralruleparser
+  Dialog
 ) => {
-
-  // Importing the AMD module for cldrpluralruleparser is not enough;
-  // we have to set the global symbol too.
-  pluralRuleParser = cldrpluralruleparser;
 
   /**
    * Base class of functionality shared between all browser UIs.
@@ -319,6 +316,26 @@ define([
      */
     getEditions() {
       assert.fail("UI.getEditions");
+    }
+
+    /**
+     * Attach handlers to document objects. Override in sub-mixin or final
+     * class, calling super in the overriding method.
+     */
+    attachUIEventHandlers() {
+      // gear button
+      $("#settingsButton")
+      .on("click", () => {
+        Dialog.open("browser/SettingsDialog", {
+          ui: this,
+          onSubmit: (dlg, vals) => {
+            this.setSettings(vals);
+            window.location.reload();
+          },
+          error: this.constructor.report
+        });
+      });
+
     }
   }
 

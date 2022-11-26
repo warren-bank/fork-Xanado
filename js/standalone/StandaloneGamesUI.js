@@ -34,8 +34,7 @@ define([
      */
     attachUIEventHandlers() {
 
-      $("#showAllGames")
-      .on("change", () => this.refreshGames(true));
+      super.attachUIEventHandlers();
 
       $("#create-game")
       .on("click", () => Dialog.open("browser/GameSetupDialog", {
@@ -46,7 +45,7 @@ define([
           this.ui.createGame(vals)
           .then(game => game.save())
           .then(game => alert(`Created ${game.key}`))
-          .then(() => this.ui.refreshGames(true));
+          .then(() => this.ui.refreshGames());
         },
         error: this.constructor.report
       }));
@@ -92,7 +91,7 @@ define([
      */
     deleteGame(game) {
       return this.db.rm(game.key)
-      .then(() => this.refreshGames(true));
+      .then(() => this.refreshGames());
     }
 
     /**
@@ -188,7 +187,7 @@ define([
       .then(() => this.initLocale())
       .then(() => this.attachUIEventHandlers())
       .then(() => {
-        this.refreshGames(true);
+        this.refreshGames();
         this.readyToListen();
         $(".loading").hide();
         $(".waiting").removeClass("waiting");

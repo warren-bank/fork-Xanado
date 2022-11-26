@@ -1004,12 +1004,14 @@ define([
     }
 
     /**
-     * Attach handlers to document objects. Override in sub-mixin or final
-     * class, calling super at the start of the overriding method.
+     * Implements UI
+     * @override
      * @memberof browser/GameUIMixin
      * @instance
      */
     attachUIEventHandlers() {
+
+      super.attachUIEventHandlers();
 
       // Configure chat input
       const ui = this;
@@ -1051,19 +1053,6 @@ define([
 
       // Keydown anywhere in the document
       .on("keydown", event => this.keyDown(event));
-
-      // gear button
-      $("#settingsButton")
-      .on("click", () => {
-        Dialog.open("browser/SettingsDialog", {
-          ui: this,
-          onSubmit: (dlg, vals) => {
-            this.setSettings(vals);
-            window.location.reload();
-          },
-          error: this.constructor.report
-        });
-      });
 
       $(window).on("resize", () => this.handle_resize());
     }

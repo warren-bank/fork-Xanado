@@ -74,8 +74,8 @@ define(() => {
 
       if (this.$dlg.length === 0) {
         // HTML is not already present; load it asynchronously.
-        // standalone, / is /html. client it's /. How?
-        pre_dialog = $.get(requirejs.toUrl(`html/${options.html || id}.html`))
+        pre_dialog = $.get(requirejs.toUrl(
+          `html/${options.html || id}.html`))
         .then(html_code => {
           $("body").append(
             $(document.createElement("div"))

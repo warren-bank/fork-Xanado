@@ -10,12 +10,13 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
  * @module
  */
 
-if (!requirejs) requirejs = require("requirejs");
+if (typeof requirejs === "undefined") requirejs = require("requirejs");
 
 requirejs.config({
   baseUrl: __dirname,
+  nodeRequire: require,
   paths: {
-    "node-getopt" : "node_modules/node-getopt/index",
+    "node-getopt" : "node_modules/node-getopt/lib/getopt",
     jquery: "node_modules/jquery/dist/jquery",
     "jquery-i18n": "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n",
 
@@ -29,15 +30,14 @@ requirejs.config({
   }
 });
 
-requirejs([
-  "node-getopt", "fs", "socket.io", "http", "https", "nodemailer",
-  "server/Server",
-], (
-  Getopt, fs, socket_io, Http, Https, NodeMailer,
-  Server
-) => {
+const Getopt = require("node-getopt");
+const Fs = require("fs").promises;
+const socket_io = require("socket.io");
+const Http = require("http");
+const Https = require("https");
+const nodemailer = require("nodemailer");
 
-  const Fs = fs.promises;
+requirejs([ "server/Server" ], Server => {
 
   // Default configuration.
   const DEFAULT_CONFIG = {

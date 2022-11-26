@@ -9,7 +9,8 @@ define([
   "backend/BackendGame",
   "browser/BrowserGame",
   "browser/UI", "browser/GameUIMixin", "browser/Dialog",
-  "standalone/StandaloneUIMixin"
+  "standalone/StandaloneUIMixin",
+  "touch-punch"
 ], (
   Utils, Fridge, Channel,
   Dictionary,
@@ -174,6 +175,7 @@ define([
       // notifications
       .then(() => this.backEndGame.connect(be, player_key))
       .catch(e => {
+        debugger;
         alert("Error: " + e);
       })
       .then(() => {
@@ -183,5 +185,5 @@ define([
     }
   }
 
-  requirejs(["touch-punch"], () => new StandaloneGameUI().create());
+  new StandaloneGameUI().create();
 });
