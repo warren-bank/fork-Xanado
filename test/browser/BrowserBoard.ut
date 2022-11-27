@@ -214,7 +214,7 @@ describe("BrowserBoard", () => {
       b.at(mr, mc+4).placeTile(D);
 
       let move = b.analysePlay();
-      assert.equal(move, "centre-required");
+      assert.equal(move, "warn-uncentred");
     });
   });
 

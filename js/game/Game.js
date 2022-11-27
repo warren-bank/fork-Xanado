@@ -79,12 +79,13 @@ define([
      * @typedef {WAITING|PLAYING|GAME_OVER|TWO_PASSES|FAILED_CHALLENGE|TIMED_OUT} Game.State
      */
     static State = {
-      WAITING:          /*i18n*/"Waiting for players",
-      PLAYING:          /*i18n*/"Playing",
-      GAME_OVER:        /*i18n*/"Game over",
-      TWO_PASSES:       /*i18n*/"All players passed twice",
-      FAILED_CHALLENGE: /*i18n*/"Challenge failed",
-      TIMED_OUT:        /*i18n*/"Timed out"
+      WAITING:          "Waiting for players",
+      PLAYING:          "Playing",
+      FAILED_CHALLENGE: "Challenge failed",
+
+      GAME_OVER:        "Game over",
+      TWO_PASSES:       "All players passed twice",
+      TIMED_OUT:        "Timed out"
     };
 
     /**

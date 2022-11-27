@@ -101,7 +101,7 @@ define([
     analysePlay() {
       // Check that the start field is occupied
       if (!this.at(this.midcol, this.midrow).tile)
-        return /*i18n*/"centre-required";
+        return $.i18n("warn-uncentred");
 
       // Determine that the placement of the Tile(s) is legal
 
@@ -149,7 +149,7 @@ define([
       }
 
       if (!isTouchingOld && !legalPlacements[this.midcol][this.midrow])
-        return /*i18n*/"warn-disco";
+        return $.i18n("warn-disco");
 
       // Check whether there are any unconnected placements
       let totalTiles = 0;
@@ -160,10 +160,10 @@ define([
       });
 
       if (disco)
-        return /*i18n*/"warn-disco";
+        return $.i18n("warn-disco");
 
       if (totalTiles < 2)
-        return /*i18n*/"warn-2-tiles";
+        return $.i18n("warn-2-tiles");
 
       const placements = [];
       this.forEachTiledSquare(square => {

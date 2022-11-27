@@ -26,7 +26,6 @@ define([
     + '<td class="h-created">%c</td>'
     + '<td class="h-players">%p</td>'
     + '<td class="h-state">%s</td>'
-    + '<td class="h-won">%w</td>'
     + '</tr>';
 
     /**

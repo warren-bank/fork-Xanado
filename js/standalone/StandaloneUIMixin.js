@@ -40,7 +40,6 @@ define([
     + '<td class="h-edition">%e</td>'
     + '<td class="h-created">%c</td>'
     + '<td class="h-state">%s</td>'
-    + '<td class="h-won">%w</td>'
     + '</tr>';
 
     /**
@@ -252,7 +251,7 @@ define([
      */
     redirectToGame(key) {
       const parts = Utils.parseURLArguments(window.location.toString());
-      parts._URL = parts._URL.replace(/standalone_games/, "standalone_game");
+      parts._URL = parts._URL.replace(/standalone_games./, "standalone_game.");
       parts.game = key;
       window.location = Utils.makeURL(parts);
     }

@@ -323,8 +323,7 @@ define([
      * class, calling super in the overriding method.
      */
     attachUIEventHandlers() {
-      // gear button
-      $("#settingsButton")
+      $("#personaliseButton")
       .on("click", () => {
         Dialog.open("browser/SettingsDialog", {
           ui: this,

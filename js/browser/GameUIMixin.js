@@ -350,18 +350,18 @@ define([
             if (this.getSetting("warnings"))
               this.playAudio("oops");
             this.notify(
-              /*i18n*/"not-chall-ok",
-              /*i18n*/"not-chall-won",
-              this.game.getPlayerWithKey(turn.playerKey).name,
-              -turn.score);
+              $.i18n("nfy-chall-wonH"),
+              $.i18n("nfy-chall-wonB",
+                     this.game.getPlayerWithKey(turn.playerKey).name,
+                     -turn.score));
           }
         }
 
         if (turn.type == Game.Turns.TOOK_BACK) {
           this.notify(
-            /*i18n*/"Move retracted!",
-            /*i18n*/"took-back-turn",
-            this.game.getPlayerWithKey(turn.playerKey).name);
+            $.i18n("nfy-took-backH"),
+            $.i18n("nfy-took-backB",
+                   this.game.getPlayerWithKey(turn.playerKey).name));
         }
         break;
 
@@ -370,12 +370,11 @@ define([
           this.playAudio("oops");
         if (challenger === this.player) {
           // Our challenge failed
-          this.notify(/*i18n*/"not-you-failed",
-            /*i18n*/"not-you-failed");
+          this.notify($.i18n("nfy-you-failedH"),
+                      $.i18n("nfy-you-failedB"));
         } else {
-          this.notify(/*.i18n*/"Failed challenge!",
-            /*i18n*/"log-play-ok",
-            player.name);
+          this.notify($.i18n("nfy-they-failedH"),
+                      $.i18n("nfy-they-failedB", player.name));
         }
 
         break;
@@ -417,11 +416,10 @@ define([
         if (wasUs)
           this.takeBackTiles();
         this.game.state = Game.State.GAME_OVER;
-        this.setAction("action_anotherGame", /*i18n*/"Another game?");
+        this.setAction("action_anotherGame", $.i18n("Another game?"));
         this.enableTurnButton(true);
-        this.notify(
-          /*i18n*/"Game over",
-          /*i18n*/"Your game is over...");
+        this.notify($.i18n("nfy-game-overH"),
+                    $.i18n("nfy-game-overB"));
 
         if (this.player === this.game.getWinner()) {
             if (this.getSetting("cheers"))
@@ -460,9 +458,9 @@ define([
         if (this.isThisPlayer(turn.nextToGoKey)
             && turn.type !== Game.Turns.TOOK_BACK) {
           // It's our turn next, and we didn't just take back
-          this.notify(/*i18n*/"Your turn",
-            /*i18n*/"now-your-turn",
-            this.game.getPlayerWithKey(turn.playerKey).name);
+          this.notify($.i18n("nfy-your-turnH"),
+                      $.i18n("nfy-your-turnB",
+                             this.game.getPlayerWithKey(turn.playerKey).name));
         }
         this.game.whosTurnKey = turn.nextToGoKey;
         this.updateWhosTurn();
@@ -485,7 +483,7 @@ define([
     handle_NEXT_GAME(info) {
       console.debug("f<b nextGame", info.gameKey);
       this.game.nextGameKey = info.gameKey;
-      this.setAction("action_nextGame", /*i18n*/"Next game");
+      this.setAction("action_nextGame", $.i18n("Next game"));
     }
 
     /**
@@ -813,9 +811,9 @@ define([
 
       if (game.hasEnded()) {
         if (game.nextGameKey)
-          this.setAction("action_nextGame", /*i18n*/"Next game");
+          this.setAction("action_nextGame", $.i18n("Next game"));
         else
-          this.setAction("action_anotherGame", /*i18n*/"Another game?");
+          this.setAction("action_anotherGame", $.i18n("Another game?"));
       }
 
       $(".pauseButton")
@@ -1086,7 +1084,7 @@ define([
         else
           this.moveTypingCursor(1, 0);
       } else
-        this.$log($.i18n("not-on-rack", letter));
+        this.$log($.i18n("nfy-on-rack", letter));
     }
 
     /**
@@ -1402,7 +1400,7 @@ define([
         this.lockBoard(true);
         if (this.player.key === this.game.whosTurnKey)
           this.setAction("action_confirmGameOver",
-                         /*i18n*/"Accept last move");
+                         $.i18n("Accept last move"));
         else
           $(".turn-button").hide();
         return;
@@ -1411,13 +1409,13 @@ define([
       if (this.placedCount > 0) {
         // Player has dropped some tiles on the board
         // move action is to make the move
-        this.setAction("action_commitMove", /*i18n*/"Finished Turn");
+        this.setAction("action_commitMove", $.i18n("Finished Turn"));
         // Check that the play is legal
         const move = this.game.board.analysePlay();
         const $move = $("#playBlock > .your-move");
         if (typeof move === "string") {
-          // Play is bad
-          $move.append($.i18n(move));
+          // Play is bad (move will be an i18n string)
+          $move.append(move);
           this.enableTurnButton(false);
         } else {
           // Play is legal, calculate bonus if any
@@ -1436,7 +1434,7 @@ define([
 
       if (this.swapRack.squaresUsed() > 0) {
         // Swaprack has tiles on it, change the move action to swap
-        this.setAction("action_swap", /*i18n*/"Swap");
+        this.setAction("action_swap", $.i18n("Swap"));
         $("#board .ui-droppable").droppable("disable");
         this.enableTurnButton(true);
         $(".unplace-button").css("visibility", "inherit");
@@ -1444,7 +1442,7 @@ define([
       }
 
       // Otherwise nothing has been placed, turn action is a pass
-      this.setAction("action_pass", /*i18n*/"Pass");
+      this.setAction("action_pass", $.i18n("Pass"));
       $("#board .ui-droppable").droppable("enable");
       this.enableTurnButton(true);
       $(".unplace-button").css("visibility", "hidden");
@@ -1488,7 +1486,7 @@ define([
       const text = $.i18n(
         "button-challenge", player.name);
       const $button =
-            $(`<button name="challenge">${text}</button>`)
+            $(`<button>${text}</button>`)
             .addClass("moveAction")
             .button()
             .on("click", () => this.challenge(player.key));
@@ -1634,7 +1632,7 @@ define([
         $(".turn-button")
         .data("action", action)
         .empty()
-        .append($.i18n(title))
+        .append(title)
         .show();
       }
     }
@@ -1764,14 +1762,10 @@ define([
      * Generate a notification using the HTML5 notifications API
      * @instance
      * @memberof client/ClientUIMixin
-     * @param {string} title i18n notification title id
-     * @param {string} body i18n notification body id
-     * @param [...] arguments to i18n body id
+     * @param {string} title notification title
+     * @param {string} body notification body
      */
-    notify() {
-      const args = Array.from(arguments);
-      const title = $.i18n(args.shift());
-      const body = $.i18n.call(args);
+    notify(title, body) {
       this.canNotify()
       .then(() => {
         this.cancelNotification();

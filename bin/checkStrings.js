@@ -95,7 +95,7 @@ requirejs([
       output: process.stdout
     });
     console.log(strings[lang][string]);
-    const q = `Change ID "${string}"${probably ? (' to "'+probably+'"') : ""} in ${lang}? `;
+    const q = `Change ID "${string}"${probably ? (' to "'+probably+'"') : ""} in ${lang} [yNq]? `;
     return rl.question(q)
     .then(answer => {
       rl.close();

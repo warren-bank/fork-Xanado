@@ -279,7 +279,7 @@ requirejs([
             console.debug("Send reminder");
             $.post(`/sendReminder/${game.key}`)
             .then(names => $("#alertDialog")
-                  .text($.i18n(/*i18n*/"player-reminded", names.join(", ")))
+                  .text($.i18n("player-reminded", names.join(", ")))
                   .dialog({
                     title: $.i18n("player-reminded", player.name),
                     modal: true

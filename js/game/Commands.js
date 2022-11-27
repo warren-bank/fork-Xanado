@@ -783,7 +783,7 @@ define([
             player, this.getPlayerWithKey(args.challengedKey));
 
         case Game.Command.CONFIRM_GAME_OVER:
-          return this.confirmGameOver(player);
+        return this.confirmGameOver(player, Game.State.GAME_OVER);
 
         case Game.Command.PASS:
           return this.pass(player, Game.Turns.PASSED);

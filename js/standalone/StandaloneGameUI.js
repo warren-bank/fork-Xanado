@@ -59,7 +59,7 @@ define([
       .then(nextGame => {
         this.backEndGame.nextGameKey =
         this.frontEndGame.nextGameKey = nextGame.key;
-        this.setAction("action_nextGame", /*i18n*/"Next game");
+        this.setAction("action_nextGame", $.i18n("Next game"));
         this.enableTurnButton(true);
       })
       .catch(assert.fail);
@@ -168,6 +168,13 @@ define([
             },
             error: this.constructor.report
           });
+        });
+        $("#libraryButton")
+        .on("click", () => {
+          const parts = Utils.parseURLArguments(window.location.toString());
+          parts._URL = parts._URL.replace(
+            /standalone_game\./, "standalone_games.");
+          window.location = Utils.makeURL(parts);
         });
       })
       .then(() => this.attachUIEventHandlers())

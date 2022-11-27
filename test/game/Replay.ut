@@ -219,7 +219,7 @@ describe("Replay", () => {
         tiles: -8
       }
     },
-    endState: "All players passed twice"
+    endState: Game.State.TWO_PASSES
   }
 ]
 */

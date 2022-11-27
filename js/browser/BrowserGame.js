@@ -52,7 +52,6 @@ define([
      * * %k - the key of the game
      * * %p - list of players in the game e.g "Player 1 and Player 2"
      * * %s - final game state e.g. "Game over"
-     * * %w - who won
      * @return {string} html string
      */
     tableRow(format) {
@@ -60,19 +59,21 @@ define([
       const repl = (m, p1) => {
         switch (p1) {
         case "c":
-          return wrap("h-created", $.i18n(
-            "h-created", new Date(this.creationTimestamp).toDateString()));
+          return wrap("h-created",
+                      new Date(this.creationTimestamp).toDateString());
         case "e":
-          return wrap("h-edition", $.i18n("h-edition", this.edition));
+          return wrap("h-edition", this.edition);
         case "k":
-          return wrap("h-key", $.i18n("h-key", this.key));
+          return wrap("h-key", this.key);
         case "p":
-          return wrap("h-players", $.i18n(
-            "h-players",
-            Utils.andList(this.getPlayers().map(p => p.name))));
-        case "s": return wrap("h-state", $.i18n("h-state", this.state));
-        case "w": return wrap("h-won", this.hasEnded() ? $.i18n(
-          "h-won", this.getWinner().name) : "");
+          return wrap("h-players",
+            Utils.andList(this.getPlayers().map(p => p.name)));
+        case "s":
+          return wrap("h-state", this.hasEnded() ? $.i18n(
+            "h-won", this.getWinner().name) :
+                      this.state === Game.State.WAITING
+                      ? $.i18n("state-waiting")
+                      : $.i18n("state-playing"));
         default:
           assert.fail(`Bad ${p1}`);
         }
@@ -177,17 +178,17 @@ define([
 
       let what, who;
       if (turn.type === Game.Turns.CHALLENGE_LOST) {
-        what = $.i18n("challenge");
+        what = $.i18n("log-challenge");
         if (challenger === uiPlayer)
           who = $.i18n("Your");
         else
-          who = $.i18n("player-s", challenger.name);
+          who = $.i18n("log-player-s", challenger.name);
       } else {
-        what = $.i18n("turn");
+        what = $.i18n("log-turn");
         if (wasMe)
           who = $.i18n("Your");
         else
-          who = $.i18n("player-s", player.name);
+          who = $.i18n("log-player-s", player.name);
       }
       $player.append(
         $.i18n("player-name", who, what));
@@ -204,7 +205,7 @@ define([
         playerPossessive = $.i18n("your");
         playerIndicative = $.i18n("You");
       } else {
-        playerPossessive = $.i18n("player-s", player.name);
+        playerPossessive = $.i18n("log-player-s", player.name);
         playerIndicative = player.name;
       }
 
@@ -214,7 +215,7 @@ define([
         challengerPossessive = $.i18n("Your");
         challengerIndicative = $.i18n("You");
       } else if (challenger) {
-        challengerPossessive = $.i18n("player-s", challenger.name);
+        challengerPossessive = $.i18n("log-player-s", challenger.name);
         challengerIndicative = challenger.name;
       }
 
@@ -243,20 +244,20 @@ define([
 
       case Game.Turns.SWAPPED:
         $action.append($.i18n(
-          "swapped",
+          "log-swapped",
           turn.replacements.length));
         break;
 
       case Game.Turns.TIMED_OUT:
-        $action.append($.i18n("Timed out"));
+        $action.append($.i18n("log-timed-out"));
         break;
 
       case Game.Turns.PASSED:
-        $action.append($.i18n("Passed"));
+        $action.append($.i18n("log-passed"));
         break;
 
       case Game.Turns.TOOK_BACK:
-        $action.append($.i18n("Took back their turn"));
+        $action.append($.i18n("log-took-back"));
         break;
 
       case Game.Turns.CHALLENGE_WON:
@@ -265,7 +266,7 @@ define([
           challengerIndicative, playerPossessive)
         + " "
         + $.i18n(
-          "lost-to-challenge",
+          "log-lost-to-chall",
           playerIndicative, turn.score));
         break;
 
@@ -277,12 +278,12 @@ define([
         case Game.Penalty.PER_WORD:
         case Game.Penalty.PER_TURN:
           $action.append(" " + $.i18n(
-            "lost-to-challenge",
+            "log-lost-to-chall",
             challengerIndicative, -turn.score));
           break;
         case Game.Penalty.MISS:
           $action.append(
-            " " + $.i18n("miss-turn", challengerIndicative));
+            " " + $.i18n("log-miss-turn", challengerIndicative));
           break;
         }
         break;
@@ -310,8 +311,19 @@ define([
       const $description = $(document.createElement("div"))
             .addClass("turn-description");
 
-      const $state = $(document.createElement("div")).addClass("game-state")
-      .append($.i18n(turn.endState || Game.State.GAME_OVER));
+      const $state = $(document.createElement("div")).addClass("game-state");
+
+      switch(turn.endState) {
+      case Game.State.TWO_PASSES:
+        $state.text($.i18n("log-two-passes")); break;
+      case Game.State.TIMED_OUT:
+        $state.text($.i18n("log-timed-out")); break;
+      case Game.State.FAILED_CHALLENGE:
+        $state.text($.i18n("log-challenge-failed")); break;
+      case Game.State.GAME_OVER:
+      default:
+        $state.text($.i18n("log-game-over")); break;
+      }
 
       $description.append($state);
 
@@ -335,11 +347,11 @@ define([
         let rackAdjust;
         if (adjust.tiles > 0) {
           rackAdjust = $.i18n(
-            "gained-from-racks", name, adjust.tiles);
+            "log-got-from-racks", name, adjust.tiles);
         } else if (adjust.tiles < 0) {
           // Lost sum of unplayed letters
           rackAdjust = $.i18n(
-            "lost-from-rack", name, -adjust.tiles, adjust.tilesRemaining);
+            "log-lost-from-rack", name, -adjust.tiles, adjust.tilesRemaining);
         }
 
         if (rackAdjust)
@@ -352,7 +364,7 @@ define([
           const $timeAdjust = $(document.createElement("div"))
                 .addClass("time-adjust");
           $timeAdjust.text($.i18n(
-            "lost-to-clock", name, -timePenalty));
+            "log-lost-to-clock", name, -timePenalty));
           $narrative.append($timeAdjust);
         }
 
