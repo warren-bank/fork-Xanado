@@ -59,16 +59,11 @@ describe("BrowserGame", () => {
         `<span class="h-created">Thu Jan 01 1970${e}`);
       assert.equal(
         game.tableRow("%s"),
-        `<span class="h-state">Playing${e}`);
-      assert.equal(
-        game.tableRow("%w"), `<span class="h-won">${e}`);
+        `<span class="h-state">${$.i18n("state-playing")}${e}`);
       game.state = Game.State.GAME_OVER;
       assert.equal(
         game.tableRow("%s"),
-        `<span class="h-state">Game over${e}`);
-      assert.equal(
-        game.tableRow("%w"),
-        `<span class="h-won">Human 1 won${e}`);
+        `<span class="h-state">Human 1 won${e}`);
       assert.equal(
         game.tableRow("%k"),
         `<span class="h-key">${game.key}${e}`);

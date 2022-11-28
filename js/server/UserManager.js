@@ -2,7 +2,7 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
-
+debugger;
 define([
   "fs", "proper-lockfile", "async-lock", "bcrypt",
   "express-session", "session-file-store",
@@ -131,7 +131,9 @@ define([
         name: "XANADO.sid",
         secret: (config.auth ? config.auth.session_secret : undefined)
         || Utils.genKey(),
-        store: new FileStore(),
+        store: new FileStore({
+          reapInterval: -1
+        }),
         resave: false,
         saveUninitialized: false
       }));

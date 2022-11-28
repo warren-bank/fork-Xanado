@@ -164,7 +164,7 @@ describe("BrowserBoard", () => {
       delete S._$tile;
 
       move = b.analysePlay();
-      assert.equal(move, "warn-disco");
+      assert.equal(move, $.i18n("warn-disco"));
     });
   });
 
@@ -189,7 +189,7 @@ describe("BrowserBoard", () => {
       b.at(mr, mc+3).placeTile(D);
 
       let move = b.analysePlay();
-      assert.equal(move, "warn-disco");
+      assert.equal(move, $.i18n("warn-disco"));
     });
   });
 
@@ -214,7 +214,7 @@ describe("BrowserBoard", () => {
       b.at(mr, mc+4).placeTile(D);
 
       let move = b.analysePlay();
-      assert.equal(move, "warn-uncentred");
+      assert.equal(move, $.i18n("warn-uncentred"));
     });
   });
 
@@ -236,7 +236,7 @@ describe("BrowserBoard", () => {
       b.at(mr, mc).placeTile(W);
 
       let move = b.analysePlay();
-      assert.equal(move, "warn-2-tiles");
+      assert.equal(move, $.i18n("warn-2-tiles"));
     });
   });
 
