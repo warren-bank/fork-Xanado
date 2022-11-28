@@ -101,6 +101,8 @@ You can also run [eslint](https://eslint.org/) on the code using `npm run lint`.
 
 There's a `npm run debug` script to run the server with debug options enabled (very verbose).
 
+The client UI supports a mechanical turk for UI testing. This can be enabled by passing `autoplay` in the URL parameters to an open game. Once a first manual play has been played, all subsequent plays in that UI will be decided automatically.
+
 ## Internationalisation
 Xanado uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English, (une très mauvaise traduction en) French, and (eine schlechte Übersetzung ins) German. To generate your own translation, copy `/i18n/en.json` to a file using your language code (e.g. `it` for Italian) and edit the new file to provide the translation. You can use `npm run tx` to check the completeness of your translations.
 

@@ -396,14 +396,10 @@ define([
           this.takeBackTiles();
         // Take the placed tiles out of the player's rack and
         // lock them onto the board.
-//        if (wasUs)
-//          this.game.rackToBoard(turn.placements, player);
-//        else {
-          this.game.rackToBoard(
-            turn.placements, player,
-            tile => // Highlight the tile as "just placed"
-            tile._$tile.addClass("last-placement"));
-//        }
+        this.game.rackToBoard(
+          turn.placements, player,
+          tile => // Highlight the tile as "just placed"
+          tile._$tile.addClass("last-placement"));
 
         // Remove the new tiles from our copy of the bag and put them
         // on the rack.
@@ -479,8 +475,9 @@ define([
       }
       this.updateGameStatus();
 
+      // Trigger an event to wake the mechanical turk (if there is one)
       if (this.isThisPlayer(this.game.whosTurnKey))
-          Platform.trigger("MY_TURN");
+        Platform.trigger("MY_TURN");
     }
 
     /**
@@ -522,6 +519,8 @@ define([
         rejection.words.length,
         rejection.words.join(", ")), "turn-narrative");
 
+      // Trigger the mechanical turk (if there is one). DO NOT
+      // reject autoplays, as that will result in an infinite loop.
       Platform.trigger("MY_TURN");
     }
 
@@ -602,6 +601,10 @@ define([
       $("#undoButton")
       .toggle(this.game.allowUndo
               && this.game.turns.length > 0);
+
+      // Trigger an event to wake the mechanical turk (if there is one)
+      if (isMyGo)
+        Platform.trigger("MY_TURN");
     }
 
     /**

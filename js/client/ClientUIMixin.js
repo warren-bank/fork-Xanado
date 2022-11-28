@@ -8,7 +8,7 @@ define([
   "socket.io-client",
   "platform",
   "common/Utils", "common/Fridge",
-  "game/Game",
+  "game/Game", "game/Tile",
   "dawg/Dictionary",
   "browser/Dialog",
 
@@ -17,7 +17,7 @@ define([
   Sockets,
   Platform,
   Utils, Fridge,
-  Game,
+  Game, Tile,
   Dictionary,
   Dialog
 ) => {
@@ -75,6 +75,65 @@ define([
     }
 
     /**
+     * Make a mechanical play.
+     */
+    mechanicalTurk() {
+      console.debug("Mechanical Turk is playing");
+
+      // call swap 1 turn in 10
+      // call challenge 1 turn in 10
+      // pass 1 turn in turn
+      // autoplay the other 7
+      const prob = Math.random();
+      if (prob < 0.1) {
+        const tiles = [];
+        this.player.rack.forEachTiledSquare(
+          square => tiles.push(square.tile));
+        if (tiles.length === this.game.rackSize) {
+          const nTiles = Math.floor(Math.random() * this.game.rackSize);
+          if (nTiles > 0) {
+            while (tiles.length > nTiles)
+              tiles.shift();
+            this.sendCommand(Game.Command.SWAP, tiles.map(t => new Tile(t)));
+            return;
+          }
+        }
+      }
+
+      if (prob < 0.2) {
+        // See if there's a turn we can challenge
+        let challengeable = {};
+        challengeable[this.player.key] = false;
+        this.game.turns.forEach(t => {
+          challengeable[t.playerKey] = (t.type === Game.Turns.PLAYED);
+        });
+        challengeable = Object.keys(challengeable).filter(
+          p => p !== this.player.key && challengeable[p]);
+
+        if (challengeable.length > 0) {
+          challengeable = challengeable[
+            Math.floor(Math.random() * challengeable.length)];
+          this.sendCommand(Game.Command.CHALLENGE, {
+            challengedKey: challengeable
+          });
+          return;
+          // otherwise drop through
+        }
+      }
+
+      if (prob >= 0.2 && prob < 0.3) {
+        this.sendCommand(Game.Command.PASS);
+        return;
+      }
+
+      // autoplay
+      this.notifyBackend(Game.Notify.MESSAGE, {
+        sender: this.player.name,
+        text: "autoplay"
+      });
+    }
+
+    /**
      * Process arguments to the URL. For example, a game passed by key.
      * Subclasses may override.
      * @instance
@@ -112,18 +171,7 @@ define([
         $(".loading").hide();
         $(".waiting").removeClass("waiting").show();
         if (args.autoplay)
-          $(document).on("MY_TURN", () => {
-
-            console.log("MY TURN");
-
-            // Pause 5 seconds then send one of
-            // autoplay, swap, pass, challenge, confirmGameOver
-            this.notifyBackend(Game.Notify.MESSAGE, {
-              sender: this.player.name,
-              text: "autoplay"
-            });
-
-          });
+          $(document).on("MY_TURN", () => this.mechanicalTurk());
       });
     }
 
