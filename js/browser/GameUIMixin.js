@@ -171,6 +171,18 @@ define([
      */
     handle_CONNECTIONS(observers) {
       console.debug("f<b connections", Utils.stringify(observers));
+      if (!(this.game.allowUndo || this.game.syncRacks)) {
+        // Make racks of other players wild to mask their contents
+        for (const p of this.game.getPlayers()) {
+          if (p !== this.player) {
+            console.debug(p.name, "is rack wild");
+            p.rack.isWild = true;
+          }
+        }
+        // Make the bag wild, so it serves wild tiles
+        this.game.letterBag.isWild = true;
+      }
+
       this.game.updatePlayerList(
         observers.filter(o => !o.isObserver));
       this.updateObservers(observers.filter(o => o.isObserver));
@@ -384,14 +396,14 @@ define([
           this.takeBackTiles();
         // Take the placed tiles out of the player's rack and
         // lock them onto the board.
-        if (wasUs)
-          this.game.rackToBoard(turn.placements, player);
-        else {
+//        if (wasUs)
+//          this.game.rackToBoard(turn.placements, player);
+//        else {
           this.game.rackToBoard(
             turn.placements, player,
             tile => // Highlight the tile as "just placed"
             tile._$tile.addClass("last-placement"));
-        }
+//        }
 
         // Remove the new tiles from our copy of the bag and put them
         // on the rack.
@@ -766,16 +778,6 @@ define([
 
       game._debug = console.debug;
       this.game = game;
-
-      if (!game.allowUndo && !game.syncRacks) {
-        // Make racks of other players wild to mask their contents
-        game.getPlayers().filter(p => p != this.player).forEach(plyer => {
-          console.log("Making", plyer.name, "'s rack wild");
-          plyer.rack.isWild = true;
-        });
-        // Make the bag wild, so it serves wild tiles
-        game.letterBag.isWild = true;
-      }
 
       // Number of tiles placed on the board since the last turn
       this.placedCount = 0;
