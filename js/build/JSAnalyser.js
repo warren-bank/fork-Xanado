@@ -21,20 +21,20 @@ class JSAnalyser {
 
   /**
    * Map of modules that have been studied so far.
-   * @member {object<string,boolean>}
+   * @member {object.<string,boolean>}
    */
   studied = {};
 
   /**
    * Map from requirejs module name to a physical path.
-   * @member {object<string,string>}
+   * @member {object.<string,string>}
    */
   modules = {};
 
   /**
    * Map from requirejs module name to a list of
    * requirejs module names that it depends on.
-   * @member {object<string,[]>}
+   * @member {object.<string,Array>}
    */
   depends_on = {};
 

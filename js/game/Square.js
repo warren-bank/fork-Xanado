@@ -59,7 +59,7 @@ define([
         /**
          * Flag indicating if this square is at a 2D position and
          * therefore on the game board.
-         * @member {boolean??}
+         * @member {boolean?}
          */
         this.isOnBoard = true;
       }

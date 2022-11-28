@@ -32,8 +32,8 @@ define([
 
     /**
      * Format of entries in the games table.
-     * @override
      * See {@linkcode browser/BrowserGame#headline}
+     * @override
      */
     static GAME_TABLE_ROW = '<tr class="game" id="%k">'
     + '<td class="h-key">%k</td>'
