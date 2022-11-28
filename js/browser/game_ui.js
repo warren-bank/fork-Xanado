@@ -203,6 +203,17 @@ define([
      */
     handle_CONNECTIONS(observers) {
       console.debug("--> connections", Utils.stringify(observers));
+      if (!(this.game.allowUndo || this.game.syncRacks)) {
+        // Make racks of other players wild to mask their contents
+        for (const p of this.game.getPlayers()) {
+          if (p !== this.player) {
+            console.debug(p.name, "is rack wild");
+            p.rack.isWild = true;
+          }
+        }
+        // Make the bag wild, so it serves wild tiles
+        this.game.letterBag.isWild = true;
+      }
       this.game.updatePlayerList(
         observers.filter(o => !o.isObserver));
       this.updateObservers(observers.filter(o => o.isObserver));
@@ -798,14 +809,6 @@ define([
 
       game._debug = console.debug;
       this.game = game;
-
-      // Make racks of other players wild to mask their contents
-      if (!game.allowUndo) {
-        for (const plyer of game.players)
-          if (plyer !== this.player)
-            plyer.rack.isWild = true;
-        game.letterBag.isWild = true;
-      }
 
       // Number of tiles placed on the board since the last turn
       this.placedCount = 0;
