@@ -129,7 +129,7 @@ define([
             .catch(() => {
               // Probably no interaction yet
             });
-          }, true);
+          });
       });
     }
 

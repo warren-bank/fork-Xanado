@@ -737,15 +737,16 @@ define([
 
     /**
      * Remove and return the last turn in the game
-     * @param {Turn} the turn to add
+     * @return {Turn} the turn popped
      */
-    popTurn(turn) {
+    popTurn() {
       assert(this.turns.length > 0, "No turns");
       return this.turns.pop();
     }
 
     /**
-     * Iterate over turns calling cb on each.
+     * Iterate over turns calling cb on each, flagging when the
+     * last (most recent) turn is reached.
      * @param {function} cb (turn, isLastTurn)
      */
     forEachTurn(cb) {

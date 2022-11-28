@@ -111,6 +111,19 @@ define([
       .then(() => {
         $(".loading").hide();
         $(".waiting").removeClass("waiting").show();
+        if (args.autoplay)
+          $(document).on("MY_TURN", () => {
+
+            console.log("MY TURN");
+
+            // Pause 5 seconds then send one of
+            // autoplay, swap, pass, challenge, confirmGameOver
+            this.notifyBackend(Game.Notify.MESSAGE, {
+              sender: this.player.name,
+              text: "autoplay"
+            });
+
+          });
       });
     }
 

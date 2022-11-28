@@ -8,6 +8,7 @@ define([ "common/Platform" ], Platform => {
   assert = (cond, mess) => {
     if (!cond) {
       alert("Assertion failure: " + mess);
+      debugger;
       throw Error(mess);
     }
   };

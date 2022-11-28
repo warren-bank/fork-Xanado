@@ -467,9 +467,8 @@ define([
       }
       this.updateGameStatus();
 
-      // Send out a notification, in case anyone else wants to
-      // handle the turn (e.g. a player simulator)
-      Platform.trigger("TURN", turn);
+      if (this.isThisPlayer(this.game.whosTurnKey))
+          Platform.trigger("MY_TURN");
     }
 
     /**
@@ -489,7 +488,8 @@ define([
     /**
      * Incoming rejection of the last play.
      * In a game where words are checked before the play is accepted,
-     * the backend may reject a bad word with a 'reject' message.
+     * the backend may reject a bad word with a 'reject' message. The
+     * message is only sent to the rejected player.
      * @memberof browser/GameUIMixin
      * @instance
      * @param {object} rejection the rejection object
@@ -509,6 +509,8 @@ define([
         "word-rejected",
         rejection.words.length,
         rejection.words.join(", ")), "turn-narrative");
+
+      Platform.trigger("MY_TURN");
     }
 
     /**
@@ -765,11 +767,13 @@ define([
       game._debug = console.debug;
       this.game = game;
 
-      // Make racks of other players wild to mask their contents
       if (!game.allowUndo && !game.syncRacks) {
-        for (const plyer of game.players)
-          if (plyer !== this.player)
-            plyer.rack.isWild = true;
+        // Make racks of other players wild to mask their contents
+        game.getPlayers().filter(p => p != this.player).forEach(plyer => {
+          console.log("Making", plyer.name, "'s rack wild");
+          plyer.rack.isWild = true;
+        });
+        // Make the bag wild, so it serves wild tiles
         game.letterBag.isWild = true;
       }
 
