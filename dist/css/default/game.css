@@ -259,18 +259,6 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
   content: "\261F";
 }
 
-#gameSetupButton::before {
-  content: "\1F0AD";
-}
-
-#libraryButton::before {
-  content: "\1F0CF";
-}
-
-#personaliseButton::before {
-  content: "\2699";
-}
-
 /*------------ PLAY RACK ------------*/
 
 #playRack {
