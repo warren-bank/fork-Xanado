@@ -50,7 +50,7 @@ class JSAnalyser {
   addDependency(path, on) {
     if (!this.depends_on[path])
       this.depends_on[path] = [];
-    
+
     if (this.depends_on[path].indexOf(on) < 0) {
       this.depends_on[path].push(on);
       console.debug(path, "depends on", on);

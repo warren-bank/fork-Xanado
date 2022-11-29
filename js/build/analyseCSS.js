@@ -1,3 +1,4 @@
+/* eslint-env node */
 const assert = require("assert");
 const Fs = require("fs").promises;
 const Path = require("path");

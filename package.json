@@ -26,7 +26,6 @@
 		"express-basic-auth": ">=1.2.1",
 		"express-session": "^1.17.3",
 		"get-user-locale": ">=2.0.0",
-		"html-minifier": "^4.0.0",
 		"https": ">=1.0.0",
 		"jquery": "^3.6.1",
 		"jquery-ui-dist": "^1.13.2",
@@ -78,13 +77,14 @@
 		"parserOptions": {
 			"ecmaVersion": 13
 		},
-		"env": {
-			"shared-node-browser": true,
-			"jquery": true,
-			"es6": true,
-			"amd": true
-		},
-		"globals": {
+	  "env": {
+		"shared-node-browser": true,
+		"jquery": true,
+		"es6": true
+	  },
+	  "globals": {
+        "assert": "writable",
+        "define": "writable",
 			"requirejs": "writable",
 			"Mocha": "writable",
 			"assert": "writable",

@@ -1,3 +1,4 @@
+/* eslint-env browser */
 // Header code that goes at the top of a combined code block.  Most of
 // our modules are anonymous AMD modules, so the file name is the
 // module name for the purposes of dependencies. We have to be able to
@@ -13,7 +14,8 @@
 // the module. This is then cached in `_modules` to optimise future
 // calls to _get_module.
 //
-// const _outBase; is defined by JSAnalyser.
+/* global _inBase */ // is defined by JSAnalyser.
+/* global _outBase */ // is defined by JSAnalyser.
 const _modules = {};
 const _module_defs = {};
 let _definition;
@@ -51,6 +53,8 @@ function _get_module(name) {
   }
   return _modules[name];
 }
+
+/* eslint no-redeclare: "off" */
 
 /**
  * Implementation of requirejs `define`. Loads dependencies and calls
