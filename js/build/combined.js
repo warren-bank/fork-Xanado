@@ -92,7 +92,14 @@ function _require_js(name) {
   // const _inBase; is defined by JSAnalyser, and gives the path to
   // js modules.
   return $.get(`${_inBase}${name}.js`)
-  .then(js => (_modules[name] = eval(js)));
+  .then(js => {
+    _definition = null;
+    eval(js);
+    // WON'T WORK with CommonJS modules, would need to define exports
+    assert(_definition, `Included non-AMD module ${name}`);
+    _modules[name] = _definition;
+    return _modules[name];
+  });
 }
 
 /**
@@ -107,7 +114,9 @@ function requirejs(deps, fun) {
     deps = [];
   }
   return Promise.all(deps.map(d => _require_js(d)))
-  .then(args => fun.apply(null, args));
+  .then(args => {
+    return fun.apply(null, args);
+  });
 }
 
 /**

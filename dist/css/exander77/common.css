@@ -146,3 +146,31 @@ button.hide-password {
   /* Allow the tooltip to expand beyond the borders of a containing dialog */
   width: 100%;
 }
+
+/* "glow" type animation - used for dragging tiles */
+@-webkit-keyframes glow {
+  0% {
+    border: 2px solid #FFFFFF;
+  }
+  100% {
+    border: 2px solid #000000;
+  }
+}
+
+@-moz-keyframes glow {
+  0% {
+    border: 2px solid #FFFFFF;
+  }
+  100% {
+    border: 2px solid #000000;
+  }
+}
+
+@keyframes glow {
+  0% {
+    border: 2px solid #FFFFFF;
+  }
+  100% {
+    border: 2px solid #000000;
+  }
+}

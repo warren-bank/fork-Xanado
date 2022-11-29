@@ -117,9 +117,8 @@ class JSAnalyser {
         m[1].split(/\s*,\s*/)
         // We can only analyse dependencies for simple strings
         .filter(d => /^(['"]).*\1/.test(d))
-        .map(mod => mod.replace(/^(["'])(.*?)\1/, "$2"))
+        .map(mod => mod.replace(/^(["'])(.*?)\1$/, "$2"))
         .forEach(mod => {
-          if (/\s/.test(mod))
           // Add a dependency to the root to ensure the requirejs'ed
           // module gets loaded.
           this.addDependency("root", mod);

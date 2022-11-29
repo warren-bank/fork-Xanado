@@ -62,3 +62,7 @@
 .player-table td.remaining-tiles {}
 
 .player-table td.score {}
+
+.h-edition {
+  font-weight: bold;
+}
