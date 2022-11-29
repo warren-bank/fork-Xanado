@@ -415,7 +415,8 @@ define([
           // over. It is the last play if there were no
           // replacements.
           if ((!previousMove.replacements
-               || previousMove.replacements.length === 0))
+               || previousMove.replacements.length === 0)
+             && challenged.rack.isEmpty())
             return this.confirmGameOver(
               this.getPlayer(), State.FAILED_CHALLENGE);
           // Otherwise issue turn type=Turns.CHALLENGE_LOST
