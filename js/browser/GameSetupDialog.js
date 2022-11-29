@@ -3,18 +3,31 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-/**
- * Dialog for game creation. Demand loads the HTML.
- */
 define([
-  "browser/Dialog", "common/Types", "game/Game"
-], (Dialog, Types, Game) => {
+  "browser/Dialog", "game/Game"
+], (
+  Dialog, Game
+) => {
 
-  const Timer = Types.Timer;
-  const Penalty = Types.Penalty;
-  const WordCheck = Types.WordCheck;
-
+  /**
+   * Dialog for modifying game options.
+   * @extends Dialog
+   */
   class GameSetupDialog extends Dialog {
+
+    // ordered types for <select>s in UI
+    static Penalty_types = [
+      Game.Penalty.PER_WORD, Game.Penalty.PER_TURN,
+      Game.Penalty.MISS, Game.Penalty.NONE
+    ];
+
+    static Timer_types = [
+      Game.Timer.NONE, Game.Timer.TURN, Game.Timer.GAME
+    ];
+
+    static WordCheck_types = [
+      Game.WordCheck.NONE, Game.WordCheck.AFTER, Game.WordCheck.REJECT
+    ];
 
     /**
      * @override
@@ -40,13 +53,13 @@ define([
         this.$dlg.find("[name=timePenalty]")
         .parent().hide();
         break;
-      case Timer.TURN:
+      case Game.Timer.TURN:
         this.$dlg.find("[name=timeAllowed]")
         .parent().show();
         this.$dlg.find("[name=timePenalty]")
         .parent().hide();
         break;
-      case Timer.GAME:
+      case Game.Timer.GAME:
         this.$dlg.find("[name=timeAllowed]")
         .parent().show();
         this.$dlg.find("[name=timePenalty]")
@@ -62,8 +75,8 @@ define([
         this.$dlg.find("[name=penaltyPoints]")
         .parent().hide();
         break;
-      case Penalty.PER_TURN:
-      case Penalty.PER_WORD:
+      case Game.Penalty.PER_TURN:
+      case Game.Penalty.PER_WORD:
         this.$dlg.find("[name=penaltyPoints]")
         .parent().show();
         break;
@@ -83,34 +96,35 @@ define([
             `<option value="${p ? p : 'none'}">${p ? $.i18n(p) : $.i18n("None")}</option>`);
       }
       const $pen = this.$dlg.find("[name=challengePenalty]");
-      makeOptions(Penalty._types, $pen);
+      makeOptions(GameSetupDialog.Penalty_types, $pen);
       $pen.on("selectmenuchange", () => this.showPenaltyFields());
       this.showPenaltyFields();
 
       const $tim = this.$dlg.find("[name=timerType]");
-      makeOptions(Timer._types, $tim);
+      makeOptions(GameSetupDialog.Timer_types, $tim);
       $tim.on("selectmenuchange", () => this.showTimerFields());
       this.showTimerFields();
 
       const $wc = this.$dlg.find("[name=wordCheck]");
-      makeOptions(WordCheck._types, $wc);
+      makeOptions(GameSetupDialog.WordCheck_types, $wc);
 
+      const ui = this.options.ui;
       let promise;
       return Promise.all([
-        $.get("/editions")
+        ui.getEditions()
         .then(editions => {
           const $eds = this.$dlg.find('[name=edition]');
           editions.forEach(e => $eds.append(`<option>${e}</option>`));
-          if (this.options.ui.getSetting('edition'))
-            $eds.val(this.options.ui.getSetting('edition'));
+          if (ui.getSetting('edition'))
+            $eds.val(ui.getSetting('edition'));
         }),
-        $.get("/dictionaries")
+        ui.getDictionaries()
         .then(dictionaries => {
           const $dics = this.$dlg.find('[name=dictionary]');
           dictionaries
           .forEach(d => $dics.append(`<option>${d}</option>`));
-          if (this.options.ui.getSetting('dictionary'))
-            $dics.val((this.options.ui.getSetting('dictionary')));
+          if (ui.getSetting('dictionary'))
+            $dics.val((ui.getSetting('dictionary')));
           $dics.on("selectmenuchange", () => this.showFeedbackFields());
           this.showFeedbackFields();
         })
@@ -123,23 +137,27 @@ define([
       .then(() => {
         this.$dlg.find(".dialog-row").show();
         const game = this.options.game;
-       if (game) {
+        if (game) {
           // Some game options are only tweakable if there are no turns
           // logged in the game. This is controlled by a "noturns" class on
           // the dialog-row
           if (game.turns.length > 0)
             this.$dlg.find(".noturns").hide();
 
-         const $fields = this.$dlg.find('[name]');
+          const $fields = this.$dlg.find('[name]');
           $fields.each((i, el) => {
             const field = $(el).attr("name");
-            if (game.hasOwnProperty(field)) {
-              console.debug("SET",field,"=",game[field]);
+            const val = game[field];
+            //console.debug("SET",field,"=",game[field]);
+            if (el.tagName === "INPUT" && el.type === "checkbox") {
+              if (val)
+                $(el).attr("checked", "checked");
+              else
+                $(el).removeAttr("checked");
+            } else {
               $(el).val(game[field]);
               if (el.tagName === "SELECT")
                 $(el).selectmenu("refresh");
-              else if (el.tagName === "INPUT" && el.type === "checkbox")
-                $(el).attr("checked", game[field] ? "checked" : undefined);
             }
             return true;
           });

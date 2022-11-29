@@ -4,21 +4,22 @@
 /* eslint-env amd, jquery */
 
 define([
-  "platform",
-  "common/Types",
-  requirejs.isBrowser ? "browser/Square" : "common/EmptyBase"
-], (Platform, Types, PlatformBase) => {
-
-  const UIEvents = Types.UIEvents;
+  "platform"
+], (
+  Platform
+) => {
 
   /**
    * A square on the game board or rack. A Tile holder with some
    * underlying attributes; a position, an owner type, and a type that
    * dictates the score multipliers that apply. The owner will be a
    * subclass of {@linkcode Surface} (a {@linkcode Rack} or a {@linkcode Board})
-   * @mixes BrowserSquare
    */
-  class Square extends PlatformBase {
+  class Square {
+
+    // Note that we do NOT use the field syntax for the fields that
+    // are serialised. If we do that, then the constructor blows the
+    // field away when loading using Freeze.
 
     /**
      * @param {object} spec Specification
@@ -29,7 +30,6 @@ define([
      * (undefined on a rack)
      */
     constructor(spec) {
-      super();
 
       /**
        * /^[QqTtSs_]$/ see {@linkcode Board}
@@ -76,7 +76,7 @@ define([
         /**
          * Underlay character to put in the background of the square when
          * there is no tile present.
-         * @member {string}
+         * @member {string?}
          */
         this.underlay = spec.underlay;
 
@@ -85,7 +85,7 @@ define([
       case "d":
         /**
          * Multiplier for letters using this square. Defaults to 1 if undefined.
-         * @member {number}
+         * @member {number?}
          */
         this.letterScoreMultiplier = 2;
         break;
@@ -95,7 +95,7 @@ define([
       case "D":
         /**
          * Multiplier for words using this square. Defaults to 1 if undefined.
-         * @member {number}
+         * @member {number?}
          */
         this.wordScoreMultiplier = 2;
         break;
@@ -125,20 +125,21 @@ define([
      * @param {Tile} tile the tile to place
      * @param {boolean} [lock] whether the tile is to be locked to
      * the square (fixed on the board).
+     * @return true if the tile is placed, false otherwise.
      */
     placeTile(tile, lock) {
-      Platform.assert(
-        !this.tile || tile !== this.tile, "Square already occupied");
+      assert(
+        !this.tile || this.tile !== tile,
+        "Square already occupied");
 
       tile.col = this.col;
       if (typeof this.row !== "undefined")
         tile.row = this.row;
       tile.isLocked = lock;
       if (tile === this.tile)
-        return; // Tile hasn't changed
+        return false; // Tile hasn't changed
       this.tile = tile;
-      // Signal to get the Tile UI attached to the Square UI
-      Platform.trigger(UIEvents.PLACE_TILE, [ this ]);
+      return true;
     }
 
     /**
@@ -153,8 +154,6 @@ define([
       if (unplaced) {
         unplaced.reset(); // clear letter and lock
         delete this.tile;
-
-        Platform.trigger(UIEvents.UNPLACE_TILE, [ this, unplaced ]);
         return unplaced;
       }
       return undefined;

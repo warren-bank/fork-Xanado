@@ -18,6 +18,7 @@ requirejs.config({
     game: "js/game",
     dawg: "js/dawg",
     server: "js/server",
+    backend: "js/backend",
     browser: "js/browser",
     platform: "js/server/Platform"
   }
@@ -38,9 +39,10 @@ exports.sparseEqual = (actual, expected, path) => {
   if (!path) path = "";
   for (let f in expected) {
     const spath = `${path}->${f}`;
-    if (typeof expected[f] === "object")
+    if (typeof expected[f] === "object") {
+      assert(typeof actual[f] === "object", `actual ${spath} missing`);
       exports.sparseEqual(actual[f], expected[f], spath);
-    else
+    } else
       assert.equal(actual[f], expected[f], spath);
   }
 };
@@ -63,14 +65,10 @@ exports.before = (deps, required) => {
     const jQuery = require('jquery');
     global.jQuery = jQuery;
     global.$ = jQuery;
+
     deps.I18N = "server/I18N";
   }
-  if (!deps.Platform)
-    deps.Platform = 'platform';
-  if (!deps.testSocket)
-    deps.TestSocket = 'test/TestSocket';
-  if (!deps.Types)
-    deps.Types = 'common/Types';
+  deps.Platform = "platform";
   const modnames = Object.keys(deps);
   exports.debug("Loading", deps);
   const modules = modnames.map(m => new Promise(
@@ -86,9 +84,6 @@ exports.before = (deps, required) => {
       eval(`${name}=mods[${i++}]`);
     }
     exports.debug("Modules loaded");
-    for (let t of Object.keys(Types)) {
-      eval(`${t}=Types.${t}`);
-    }
     if (requirejs.isBrowser) {
       // Why? No idea, except without it, it won't work in npm run
       global.document = window.document;

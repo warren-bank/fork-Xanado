@@ -7,11 +7,17 @@
  * AMD module defining the body of the 'explore' command-line program
  */
 define([
-  "fs", "node-getopt", "platform", "dawg/Dictionary"
+  "platform",
+  "dawg/Dictionary"
 ], (
-  fs, Getopt, Platform, Dictionary
+  Platform,
+  Dictionary
 ) => {
 
+  /**
+   *
+   * The body of the `explore` command-line program
+   */
   class Explorer {
 
     /**
@@ -24,7 +30,7 @@ define([
      * @param {function} report reporter function, same signature as console.log
      */
     static sequences(dictionary, words, report) {
-      Platform.assert(dictionary instanceof Dictionary);
+      assert(dictionary instanceof Dictionary, "Not a Dictionary");
       const valid = [];
       report(`Valid sequences:`);
       for (let w of words) {

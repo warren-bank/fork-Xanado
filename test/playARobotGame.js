@@ -25,14 +25,14 @@ requirejs([
   "game/Edition", "game/Tile", "game/Rack",
   "game/Square", "game/Player", "game/Game", "game/LetterBag",
   "game/Board", "game/Move",
-  "server/FileDatabase"
+  "test/MemoryDatabase"
 ], (
   Edition, Tile, Rack,
   Square, Player, Game, LetterBag,
-  Board, Move, FileDatabase
+  Board, Move, MemoryDatabase
 ) => {
 
-  let db = new FileDatabase("test/temp", "testgame");
+  let db = new MemoryDatabase();
   let game = new Game({
     //_debug: console.debug,
     edition: "Test",
@@ -40,15 +40,14 @@ requirejs([
   });
   let gameKey = game.key;
   let player = 0;
-
   game.create()
-  .then(() => game.onLoad(new FileDatabase("test/temp", "game")))
+  .then(() => game.onLoad(new MemoryDatabase()))
   .then(game => {
     let player1 = new Player({
-      name: "player one", key: "flay", isRobot: true});
+      name: "player one", key: "flay", isRobot: true}, Game);
     game.addPlayer(player1, true);
     let player2 = new Player({name: "player two", key: "swelter",
-                              isRobot: true });
+                              isRobot: true }, Game);
     game.addPlayer(player2, true);
     game.whosTurnKey = player1.key;
     return game.onLoad(db);
@@ -57,7 +56,7 @@ requirejs([
   .then(async game => {
     let finished = false;
     while (!finished) {
-      await db.get(gameKey, Game.classes)
+      await db.get(gameKey, Game)
       .then(game => game.onLoad(db))
       .then(game => {
         return game.autoplay()

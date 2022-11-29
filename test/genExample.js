@@ -12,38 +12,46 @@ requirejs.config({
   }
 });
 
+/**
+ * Create a simple example game for the splash screen. The example is created
+ * in the 'games' directory.
+ */
 requirejs([
-  "game/Edition", "game/Game", "game/Player", "server/FileDatabase"
+  "game/Edition", "game/Game", "game/Player", "common/FileDatabase"
 ], (
   Edition, Game, Player, FileDatabase
 ) => {
 
-  const db = new FileDatabase("test/temp", "game");
+  const db = new FileDatabase({
+    dir: "games",
+    ext: "game"
+  });
   Edition.load("English_Scrabble")
   .then(edition => {
-    return new Game({edition: edition.name, dictionary: "Oxford_5000"})
-    .create();
-  })
-  .then(game => game.onLoad(db))
-  .then(game => {
-    game.addPlayer(new Player({name:"Player", key: "shuggie"}), true);
-    return game.loadBoard("| | | | | | | | | | | | | | |\n" +
-                          "|W|O|R|D|S| | | | |C| | | | |\n" +
-                          "|I| | | |C| | | | |U| | | | |\n" +
-                          "|T| | |F|R|I|E|N|D|S| | | | |\n" +
-                          "|H| | | |A| | | | |T| | | | |\n" +
-                          "| | | | |B| | | |B|O|A|R|D| |\n" +
-                          "| | | | |B| | | | |M| | |I| |\n" +
-                          "|L|E|X|U|L|O|U|S| | | | |C| |\n" +
-                          "| | |A| |E| | | | | | | |T| |\n" +
-                          "| | |N| | | | | | | | | |I| |\n" +
-                          "| | |A| | | | | | | | | | | |\n" +
-                          "| | |D| | | | | | | | | |N| |\n" +
-                          "| | |O| | | | | | | | | |A| |\n" +
-                          "| | | | | | | |S|E|R|V|E|R| |\n" +
-                          "| | | | | | | | | | | | |Y| |\n");
-  })
-  .then(game => game.save())
-  .then(game => console.log(`Saved test/temp/${game.key}.game`));
+    new Game({key:"example", edition: edition.name, debug: console.debug})
+    .create()
+    .then(game => game.onLoad(db))
+    .then(game => {
+      game.board.parse(
+        Game, edition,
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | |D| | | | | | |\n" +
+        "| | | | | | | | |I| | | | | | |\n" +
+        "| | | | |S| | | |C| | | | | | |\n" +
+        "| | | | |C| | | |T| | | | | | |\n" +
+        "| | | | |R| | | |I| | | | |W| |\n" +
+        "| | | |X|A|N|A|D|O| | | | |O| |\n" +
+        "| | | | |B| | | |N| |F| | |R| |\n" +
+        "| | | | |B| | | |A| |R| | |D| |\n" +
+        "| | | | |L| | |F|R|I|E|N|D|S| |\n" +
+        "| | | | |E| | | |I| |E| | | | |\n" +
+        "| | | | | | | | |E| | | | | | |\n" +
+        "| |L|E|X|U|L|O|U|S| | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n" +
+        "| | | | | | | | | | | | | | | |\n");
+      game.save()
+      .then(() => console.log(`Saved ${game.key}.game`));
+    });
+  });
 });
 

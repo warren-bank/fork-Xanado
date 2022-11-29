@@ -4,67 +4,68 @@
 /* eslint-env amd, node, jquery */
 
 define([
-  "game/Square",
-  requirejs.isBrowser ? "browser/Surface" : "common/EmptyBase"
+  "game/Square"
 ], (
-  Square, PlatformBase
+  Square,
+  Mixin
 ) => {
 
   /**
    * Abstract base class of a 2D grid of {@linkcode Sqaure} (a Rack or a Board)
    */
-  class Surface extends PlatformBase {
+  class Surface {
+
+    // Note that we do NOT use the field syntax for the fields that
+    // are serialised. If we do that, then the constructor blows the
+    // field away when loading using Freeze.
 
     /**
-     * Unique id for the surface. This is used in the construction
-     * of HTML id attributes for the Squares it contains.
-     * @member {string}
+     * @param {object} factory class object mapping class name to a class
+     * @param {object} spec specification of the surface
+     * @param {string} spec.id unique id for the surface
+     * @param {number} spec.cols number of columns
+     * @param {number} spec.rows number of rows (1 for a rack)
+     * @param {function} spec.type function(col, row) returning the square type
      */
-    id;
+    constructor(factory, spec) {
 
-    /**
-     * Number of columns on the surface.
-     * @member {number}
-     */
-    cols;
+      /**
+       * Unique id for the surface. This is used in the construction
+       * of HTML id attributes for the Squares it contains.
+       * @member {string}
+       */
+      this.id = spec.id;
 
-    /**
-     * Number of rows on the surface. This will be 0 for a Rack.
-     * @member {number}
-     */
-    rows;
+      /**
+       * Number of columns on the surface.
+       * @member {number}
+       */
+      this.cols = spec.cols;
 
-    /**
-     * rows X cols array of Square
-     * @member {Square[][]}
-     * @private
-     */
-    squares = [];
+      /**
+       * Number of rows on the surface. This will be 0 for a Rack.
+       * @member {number}
+       */
+      this.rows = spec.rows;
 
-    /**
-     * @param {string} id unique id for the surface
-     * @param {number} cols number of columns
-     * @param {number} rows number of rows (1 for a rack)
-     * @param {function} type function(col, row) returning the square type
-     */
-    constructor(id, cols, rows, type) {
-      super();
+      /**
+       * rows X cols array of squares
+       * @member {Square[][]}
+       * @private
+       */
+      this.squares = [];
 
-      this.id = id;
-      this.cols = cols;
-      this.rows = rows;
-
-      for (let i = 0; i < cols; i++) {
+      for (let i = 0; i < this.cols; i++) {
         const row = [];
-        for (let j = 0; j < rows; j++) {
-          const spec = {
-            type: type(i, j),
-            base: id,
+        for (let j = 0; j < this.rows; j++) {
+          const sq = {
+            type: spec.type(i, j),
+            base: this.id,
             col: i
           };
-          if (rows > 1)
-            spec.row = j;
-          row.push(new Square(spec));
+          if (spec.rows > 1)
+            sq.row = j;
+          row.push(new factory.Square(sq));
         }
         this.squares.push(row);
       }

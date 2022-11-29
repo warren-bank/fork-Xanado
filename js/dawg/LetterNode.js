@@ -3,7 +3,11 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
-define([ "platform" ], Platform => {
+define([
+  "platform"
+], (
+  Platform
+) => {
 
   /**
    * Letter node in a Dictionary. Each node has multiple links and helpers
@@ -231,7 +235,7 @@ define([ "platform" ], Platform => {
         }
       }
       /* istanbul ignore next */
-      return Platform.fail(`Unreachable '${word}`);
+      return assert.fail(`Unreachable '${word}`);
     }
 
     /**

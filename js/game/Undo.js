@@ -4,33 +4,38 @@
 /* eslint-env amd */
 
 define([
-  "platform", "common/Utils", "common/Types", "game/Tile"
+  "platform",
+  "common/Utils",
+  "game/Tile", "game/Game"
 ], (
-  Platform, Utils, Types, Tile
+  Platform,
+  Utils,
+  Tile, Game
 ) => {
-
-  const Turns  = Types.Turns;
-  const State  = Types.State;
-  const Notify = Types.Notify;
 
   /**
    * Methods that provide undo/redo functionality for
-   * {@linkcode Game}
-   * @mixin Undo
+   * {@linkcode Game}. Requires {@linkcode game/Commands} to be mixed in.
+   * @mixin game/Undo
    */
   return superclass => class Undo extends superclass {
 
     /**
+     * @see Fridge
+     * @memberof game/Undo
+     */
+    static UNFREEZABLE = true;
+
+    /**
      * Undo a swap. Resets the game state as if it had never happened.
-     * @function
      * @instance
-     * @memberof Undo
+     * @memberof game/Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} quiet if true, don't perform any saves
      * or notifications.
      */
     unswap(turn, quiet) {
-      this.state = State.PLAYING;
+      this.state = Game.State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
       this.rackToBag(turn.replacements, player);
       this.bagToRack(turn.placements, player);
@@ -40,18 +45,19 @@ define([
 
     /**
      * Undo a play. Resets the game state as if it had never happened.
-     * @function
      * @instance
-     * @memberof Undo
+     * @memberof game/Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} quiet if true, don't perform any saves
      * or notifications.
      */
     unplay(turn, quiet) {
-      this.state = State.PLAYING;
+      this.state = Game.State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
-      this.rackToBag(turn.replacements, player);
-      this.boardToRack(turn.placements, player);
+      if (turn.replacements)
+        this.rackToBag(turn.replacements, player);
+      if (turn.placements)
+        this.boardToRack(turn.placements, player);
       player.score -= turn.score;
       player.passes = turn.prepasses || 0;
       this.whosTurnKey = player.key;
@@ -60,9 +66,8 @@ define([
     /**
      * Undo a game over confirmation.
      * Resets the game state as if it had never happened.
-     * @function
      * @instance
-     * @memberof Undo
+     * @memberof game/Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} quiet if true, don't perform any saves
      * or notifications.
@@ -72,10 +77,10 @@ define([
       for (const key in turn.score) {
         const delta = turn.score[key];
         const player = this.getPlayerWithKey(key);
-        Platform.assert(player, key);
+        assert(player, key);
         player.score -= (delta.time || 0) + (delta.tiles || 0);
       }
-      this.state = State.PLAYING;
+      this.state = Game.State.PLAYING;
       // TODO: Notify
       // TODO: reset the clock
     }
@@ -83,18 +88,19 @@ define([
     /**
      * Undo a TOOK_BACK or CHALLENGE_WON.
      * Resets the game state as if it had never happened.
-     * @function
      * @instance
-     * @memberof Undo
+     * @memberof game/Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} quiet if true, don't perform any saves
      * or notifications.
      */
     untakeBack(turn, quiet) {
-      this.state = State.PLAYING;
+      this.state = Game.State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
-      this.rackToBoard(turn.placements, player);
-      this.bagToRack(turn.replacements, player);
+      if (turn.placements)
+        this.rackToBoard(turn.placements, player);
+      if (turn.replacements)
+        this.bagToRack(turn.replacements, player);
       player.score -= turn.score;
       this.whosTurnKey = this.nextPlayer(player).key;
       this._debug(`\tplayer now ${this.whosTurnKey}`,turn);
@@ -102,15 +108,14 @@ define([
 
     /**
      * Undo a pass. Resets the game stat as if it had never happened.
-     * @function
      * @instance
-     * @memberof Undo
+     * @memberof game/Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} quiet if true, don't perform any saves
      * or notifications.
      */
     unpass(turn, quiet) {
-      this.state = State.PLAYING;
+      this.state = Game.State.PLAYING;
       const player = this.getPlayerWithKey(turn.playerKey);
       player.passes--;
       this.whosTurnKey = player.key;
@@ -120,9 +125,8 @@ define([
     /**
      * Unplay a LOST challenge (won challenges are handled in untakeBack).
      * Resets the game state as if it had never happened.
-     * @function
      * @instance
-     * @memberof Undo
+     * @memberof game/Undo
      * @param {Turn} turn the Turn to unplay
      * @param {boolean?} quiet if true, don't perform any saves
      * or notifications.
@@ -136,11 +140,10 @@ define([
 
     /**
      * Undo the most recent turn. Resets the play state as if the turn
-     * had never happened. Sends a Notify.UNDONE to all listeners,
+     * had never happened. Sends a Game.Notify.UNDONE to all listeners,
      * passing the Turn that was unplayed.
-     * @function
      * @instance
-     * @memberof Undo
+     * @memberof game/Undo
      * @param {Turn} turn the turn to undo
      * @param {boolean?} quiet if true, don't perform any saves
      * or notifications.
@@ -148,45 +151,44 @@ define([
      * @return {Promise} promise resolving to undefined
      */
     undo(turn, quiet) {
-      Platform.assert(this.allowUndo);
+      assert(this.allowUndo, "Cannot Undo");
       this._debug(`un-${turn.type}`);
       switch (turn.type) {
-      case Turns.SWAPPED:
+      case Game.Turns.SWAPPED:
         this.unswap(turn, quiet);
         break;
-      case Turns.PASSED:
-      case Turns.TIMED_OUT:
+      case Game.Turns.PASSED:
+      case Game.Turns.TIMED_OUT:
         this.unpass(turn, quiet);
         break;
-      case Turns.PLAYED:
+      case Game.Turns.PLAYED:
         this.unplay(turn, quiet);
         break;
-      case Turns.TOOK_BACK:
-      case Turns.CHALLENGE_WON:
+      case Game.Turns.TOOK_BACK:
+      case Game.Turns.CHALLENGE_WON:
         this.untakeBack(turn, quiet);
         break;
-      case Turns.GAME_ENDED:
+      case Game.Turns.GAME_ENDED:
         this.unconfirmGameOver(turn, quiet);
         break;
-      case Turns.CHALLENGE_LOST:
+      case Game.Turns.CHALLENGE_LOST:
         this.unchallenge(turn, quiet);
         break;
       default:
-        Platform.fail(`Unknown turn type '${turn.type}'`);
+        assert.fail(`Unknown turn type '${turn.type}'`);
       }
 
       if (quiet)
         return Promise.resolve();
 
       return this.save()
-      .then(() => this.notifyAll(Notify.UNDONE, turn));
+      .then(() => this.notifyAll(Game.Notify.UNDONE, turn));
     }
 
     /**
      * Replay the given turn back into the game
-     * @function
      * @instance
-     * @memberof Undo
+     * @memberof game/Undo
      * param {Turn} trun turn to redo
      * @return {Promise} promise resolving to undefined
      */
@@ -194,7 +196,7 @@ define([
       const player = this.getPlayerWithKey(turn.playerKey);
       this._debug("REDO", turn.type, turn);
       switch (turn.type) {
-      case Turns.SWAPPED:
+      case Game.Turns.SWAPPED:
         // Remove and return the expected tiles to the the unshaken bag
         // to ensure replay order. We have to do this so the next play on the
         // undo stack is also redoable.
@@ -204,7 +206,7 @@ define([
         this._debug("\t-- swap");
         return this.swap(player, turn.placements)
         .then(() => delete this.letterBag.predictable);
-      case Turns.PLAYED:
+      case Game.Turns.PLAYED:
         this.letterBag.predictable = true;
         // Remove and return
         this.letterBag.removeTiles(turn.replacements);
@@ -212,24 +214,25 @@ define([
         this._debug("\t-- play");
         return this.play(player, turn)
         .then(() => delete this.letterBag.predictable);
-      case Turns.PASSED:
-      case Turns.TIMED_OUT:
+      case Game.Turns.PASSED:
+      case Game.Turns.TIMED_OUT:
         this._debug("\t-- pass");
         return this.pass(player, turn.type);
-      case Turns.TOOK_BACK:
+      case Game.Turns.TOOK_BACK:
         this._debug("\t-- takeBack");
         return this.takeBack(player, turn.type);
-      case Turns.CHALLENGE_WON:
-      case Turns.CHALLENGE_LOST:
+      case Game.Turns.CHALLENGE_WON:
+      case Game.Turns.CHALLENGE_LOST:
         this._debug("\t-- challenge");
         return this.challenge(
           this.getPlayerWithKey(turn.challengerKey), player);
-      case Turns.GAME_ENDED:
+      case Game.Turns.GAME_ENDED:
         this._debug("\t-- confirmGameOver");
         return this.confirmGameOver(player, turn.endState);
       }
       /* istanbul ignore next */
-      return Platform.assert(false, `Unrecognised turn type ${turn.type}`);
+      assert.fail(`Unrecognised turn type ${turn.type}`);
+      throw Error("Unrecognised turn type");
     }
   };
 });

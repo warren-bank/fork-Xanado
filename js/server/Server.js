@@ -5,22 +5,21 @@
 
 define([
   "fs", "path", "events", "cookie", "cors", "express", "errorhandler",
-  "platform",  "common/Fridge", "common/Utils",
-  "server/UserManager", "server/FileDatabase",
-  "common/Types",
-  "game/Game", "game/Player", "game/Turn", "game/Edition"
+  "platform",
+  "common/Fridge", "common/Utils", "common/FileDatabase",
+  "game/Player", "game/Turn", "game/Edition",
+  "backend/BackendGame",
+  "server/UserManager"
 ], (
   fs, Path, Events, Cookie, cors, Express, ErrorHandler,
-  Platform, Fridge, Utils,
-  UserManager, FileDatabase,
-  Types,
-  Game, Player, Turn, Edition
+  Platform,
+  Fridge, Utils, FileDatabase,
+  Player, Turn, Edition,
+  Game,
+  UserManager
 ) => {
 
   const Fs = fs.promises;
-  const Command = Types.Command;
-  const Notify = Types.Notify;
-  const Turns = Types.Turns;
 
   /**
    * Web server for crossword game. Errors will result in an
@@ -29,25 +28,25 @@ define([
    * * 500 internal server error e.g. an assert
    *
    * Routes supported:
-   * * `GET /` - Get the HTML for the main interface (the "games" page)
+   * * `GET /` - Get the HTML for the game management interface
+   * * {@linkcode Server#GET_defaults|`GET /defaults`}
+   * * {@linkcode Server#GET_dictionaries|GET /dictionaries}
+   * * {@linkcode Server#GET_editions|GET /editions}
+   * * {@linkcode Server#GET_game|GET /game/:gameKey}
    * * {@linkcode Server#GET_games|GET /games/:send}
    * * {@linkcode Server#GET_history|GET /history}
    * * {@linkcode Server#GET_locales|GET /locales}
-   * * {@linkcode Server#GET_editions|GET /editions}
-   * * {@linkcode Server#GET_dictionaries|GET /dictionaries}
-   * * {@linkcode Server#GET_themes|GET /themes}
    * * {@linkcode Server#GET_theme|GET /theme/:css
-   * * {@linkcode Server#GET_defaults|`GET /defaults`}
-   * * {@linkcode Server#GET_game|GET /game/:gameKey}
-   * * {@linkcode Server#POST_createGame|POST /createGame}
-   * * {@linkcode Server#POST_invitePlayers|POST /invitePlayers/:gameKey}
-   * * {@linkcode Server#POST_deleteGame|POST /deleteGame/:gameKey}
+   * * {@linkcode Server#GET_themes|GET /themes}
+   * * {@linkcode Server#POST_addRobot|POST /addRobot/:gameKey}
    * * {@linkcode Server#POST_anotherGame|POST /anotherGame/:gameKey}
-   * * {@linkcode Server#POST_sendReminder|POST /sendReminder/:gameKey}
+   * * {@linkcode Server#POST_createGame|POST /createGame}
+   * * {@linkcode Server#POST_deleteGame|POST /deleteGame/:gameKey}
+   * * {@linkcode Server#POST_invitePlayers|POST /invitePlayers/:gameKey}
    * * {@linkcode Server#POST_join|POST /join/:gameKey}
    * * {@linkcode Server#POST_leave|POST /leave/:gameKey}
-   * * {@linkcode Server#POST_addRobot|POST /addRobot/:gameKey}
    * * {@linkcode Server#POST_removeRobot|POST /removeRobot/:gameKey}
+   * * {@linkcode Server#POST_sendReminder|POST /sendReminder/:gameKey}
    *
    * See also {@link UserManager} for other user management routes.
    */
@@ -61,6 +60,7 @@ define([
       /**
        * Cache of configuration
        * @member {object}
+       * @private
        */
       this.config = config;
 
@@ -79,20 +79,23 @@ define([
       /**
        * Games database
        * @member {Database}
+       * @private
        */
-      this.db = new FileDatabase(config.games, "game");
+      this.db = new FileDatabase({dir: config.games, ext: "game"});
 
       /**
        * Map from game key to Game. Games in this map have been loaded
-       * from the DB (loadGame has been called for them)
+       * from the DB (loadGameFromDB has been called for them)
        * @member {object.<string,Game>}
+       * @private
        */
       this.games = {};
 
       /**
-       * Status-monitoring sockets (connections to games pages). Monitors
+       * Status-monitoring channels (connections to games pages). Monitors
        * watch a subset of activity in ALL games.
-       * @member {WebSocket[]}
+       * @member {Channel[]}
+       * @private
        */
       this.monitors = [];
 
@@ -104,6 +107,7 @@ define([
       /**
        * Express server
        * @member {Express}
+       * @private
        */
       this.express = new Express();
 
@@ -127,13 +131,14 @@ define([
 
       // Debug report incoming requests
       this.express.use((req, res, next) => {
-        this._debug("-->", req.method, req.url);
+        this._debug("f>s", req.method, req.url);
         next();
       });
 
       /**
        * User manager, handles logins etc.
        * @member {UserManager}
+       * @private
        */
       this.userManager = new UserManager(config, this.express);
 
@@ -143,7 +148,7 @@ define([
       cmdRouter.get(
         "/",
         (req, res) => res.sendFile(
-          Platform.getFilePath("html/games_ui.html")));
+          Platform.getFilePath("html/client_games.html")));
 
       cmdRouter.get(
         "/games/:send",
@@ -289,23 +294,20 @@ define([
      * Load the game from the DB, if not already in server memory
      * @param {string} key game key
      * @return {Promise} Promise that resolves to a {@linkcode Game}
+     * @private
      */
-    loadGame(key) {
+    loadGameFromDB(key) {
       /* istanbul ignore if */
       if (typeof key === "undefined")
         return Promise.reject("Game key is undefined");
       if (this.games[key])
         return Promise.resolve(this.games[key]);
 
-      return this.db.get(key, Game.classes)
+      return this.db.get(key, Game)
       .then(game => game.onLoad(this.db))
       .then(game => game.checkAge())
       .then(game => {
         Events.EventEmitter.call(game);
-
-        Object.defineProperty(
-          // makes connections non-persistent
-          game, "connections", { enumerable: false });
 
         this.games[key] = game;
         /* istanbul ignore if */
@@ -323,8 +325,8 @@ define([
      * @private
      */
     socket_connect(sk) {
-        this._debug("-S-> connect");
-        this.updateMonitors();
+      this._debug("f>s connect");
+      this.updateMonitors();
     }
 
     /**
@@ -336,7 +338,7 @@ define([
      * @private
      */
     socket_disconnect(socket) {
-      this._debug("-S-> disconnect");
+      this._debug("f>s disconnect");
 
       // Remove any monitor using this socket
       const i = this.monitors.indexOf(socket);
@@ -356,14 +358,14 @@ define([
      * @private
      */
     socket_monitor(socket) {
-      this._debug("-S-> monitor");
+      this._debug("f>s monitor");
       this.monitors.push(socket);
     }
 
     /**
      * Handle a player (or observer) joining (or re-joining).
      * When the game interface is opened in a browser, the
-     * interface initiates a socket connection. WebSockets then
+     * interface initiates a channel connection. The channel then
      * sends `connect` to the UI. `JOIN` is then sent by the UI,
      * which connects the UI to the game. The UI may subsequently
      * die; which is OK, the server just keeps telling them what
@@ -373,8 +375,8 @@ define([
      */
     socket_join(socket, params) {
       this._debug(
-        "-S-> join", params.playerKey, "joining", params.gameKey);
-      this.loadGame(params.gameKey)
+        "f>s join", params.playerKey, "joining", params.gameKey);
+      this.loadGameFromDB(params.gameKey)
       .then(game => {
         return game.connect(socket, params.playerKey)
         .then(() => {
@@ -407,7 +409,7 @@ define([
         return;
 
       // Chat message
-      this._debug("-S-> message", message);
+      this._debug("f>s message", message);
       const mess = message.text.split(/\s+/);
       const verb = mess[0];
 
@@ -415,7 +417,7 @@ define([
 
       case "autoplay":
         // Tell *everyone else* that they asked for a hint
-        socket.game.notifyOthers(socket.player, Notify.MESSAGE, {
+        socket.game.notifyOthers(socket.player, Game.Notify.MESSAGE, {
           sender: /*i18n*/"Advisor",
           text: /*i18n*/"played-for",
           classes: "warning",
@@ -438,7 +440,7 @@ define([
         break;
 
       default:
-        socket.game.notifyAll(Notify.MESSAGE, message);
+        socket.game.notifyAll(Game.Notify.MESSAGE, message);
       }
     }
 
@@ -451,9 +453,9 @@ define([
       socket
       .on("connect", () => this.socket_connect(socket))
       .on("disconnect", () => this.socket_disconnect(socket))
-      .on(Notify.MONITOR, () => this.socket_monitor(socket))
-      .on(Notify.JOIN, params => this.socket_join(socket, params))
-      .on(Notify.MESSAGE, message => this.socket_message(socket, message));
+      .on(Game.Notify.MONITOR, () => this.socket_monitor(socket))
+      .on(Game.Notify.JOIN, params => this.socket_join(socket, params))
+      .on(Game.Notify.MESSAGE, message => this.socket_message(socket, message));
     }
 
     /**
@@ -462,8 +464,8 @@ define([
      * @private
      */
     updateMonitors() {
-      this._debug("<-S- update *");
-      this.monitors.forEach(socket => socket.emit(Notify.UPDATE));
+      this._debug("b>f update *");
+      this.monitors.forEach(socket => socket.emit(Game.Notify.UPDATE));
     }
 
     /**
@@ -479,7 +481,7 @@ define([
      * @private
      */
     sendMail(to, req, res, gameKey, subject, text, html) {
-      Platform.assert(this.config.mail && this.config.mail.transport,
+      assert(this.config.mail && this.config.mail.transport,
                       "Mail is not configured");
       return this.userManager.getUser(
         {key: req.session.passport.user.key})
@@ -534,7 +536,6 @@ define([
      * {@linkcode Game#serialisable|Game.serialisabable()}
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     GET_games(req, res, next) {
       const server = this;
@@ -544,7 +545,7 @@ define([
               ? this.db.keys()
               : Promise.resolve([send]))
       // Load those games
-      .then(keys => Promise.all(keys.map(key => this.loadGame(key))))
+      .then(keys => Promise.all(keys.map(key => this.loadGameFromDB(key))))
       // Filter the list and generate simple data
       .then(games => Promise.all(
         games
@@ -574,13 +575,12 @@ define([
      * * games: number of games played
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     GET_history(req, res, next) {
       const server = this;
 
       return this.db.keys()
-      .then(keys => keys.map(key => this.loadGame(key)))
+      .then(keys => keys.map(key => this.loadGameFromDB(key)))
       .then(promises => Promise.all(promises))
       .then(games => {
         const results = {};
@@ -625,10 +625,9 @@ define([
      * will be a list of locale name strings.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     GET_locales(req, res, next) {
-      const db = new FileDatabase("i18n", "json");
+      const db = new FileDatabase({dir: "i18n", ext: "json"});
       return db.keys()
       .then(keys => res.status(200).send(keys));
     }
@@ -640,7 +639,6 @@ define([
      * will be a list of edition name strings.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     GET_editions(req, res) {
       return Fs.readdir(Platform.getFilePath("editions"))
@@ -657,7 +655,6 @@ define([
      * will be the JSON for the edition.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     GET_edition(req, res) {
       return Edition.load(req.params.edition)
@@ -674,7 +671,6 @@ define([
      * will be a list of available dictionary name strings.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     GET_dictionaries(req, res) {
       return Fs.readdir(Platform.getFilePath("dictionaries"))
@@ -693,12 +689,11 @@ define([
      * a list of theme name strings.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     GET_themes(req, res) {
       const dir = Platform.getFilePath("css");
       return Fs.readdir(dir)
-      .then(list => res.status(200).send(list));
+      .then(list => res.status(200).send(list.filter(f => f !== "index.json")));
     }
 
     /**
@@ -711,7 +706,6 @@ define([
      * generated CSS content.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     GET_theme(req, res) {
       let theme = "default";
@@ -742,7 +736,6 @@ define([
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent. The response is the game key of
      * the new game.
-     * @private
      */
     POST_createGame(req, res) {
       return Edition.load(req.body.edition)
@@ -768,15 +761,14 @@ define([
      * @param {Response} res the response object
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     POST_invitePlayers(req, res, next) {
-      Platform.assert(this.config.mail && this.config.mail.transport,
+      assert(this.config.mail && this.config.mail.transport,
                       "Mail is not configured");
-      Platform.assert(req.body.player, "Nobody to notify");
+      assert(req.body.player, "Nobody to notify");
       const gameKey = req.params.gameKey;
       const gameURL =
-            `${req.protocol}://${req.get("Host")}/html/games_ui.html?untwist=${gameKey}`;
+            `${req.protocol}://${req.get("Host")}/html/client_games.html?untwist=${gameKey}`;
       let textBody = (req.body.message || "") + "\n" + Platform.i18n(
         "email-invite-plain", gameURL);
       // Handle XSS risk posed by HTML in the textarea
@@ -804,7 +796,6 @@ define([
      * player name) of players who have been notified.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     POST_sendReminder(req, res, next) {
       const gameKey = req.params.gameKey;
@@ -819,7 +810,7 @@ define([
       .then(keys => Promise.all(keys.map(
         key => (this.games[key]
                 ? Promise.resolve(this.games[key])
-                : this.db.get(key, Game.classes))
+                : this.db.get(key, Game))
         .then(game => {
           const pr = game.checkAge();
           if (game.hasEnded())
@@ -861,11 +852,10 @@ define([
      * will be the player key.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     POST_join(req, res, next) {
       const gameKey = req.params.gameKey;
-      return this.loadGame(gameKey)
+      return this.loadGameFromDB(gameKey)
       .then(game => {
         // Player is either joining or connecting
         const playerKey = req.user.key;
@@ -873,16 +863,17 @@ define([
         let prom;
         if (player) {
           this._debug("Player", playerKey, "opening", gameKey);
-          prom = Promise.resolve(game);
+          prom = game.playIfReady();
         } else {
           this._debug("Player", playerKey, "joining", gameKey);
-          player = new Player(
-            { name: req.user.name, key: playerKey });
+          player = new Game.Player(
+            { name: req.user.name, key: playerKey }, Game);
           game.addPlayer(player, true);
-          prom = game.save();
+          prom = game.save()
+          .then(game => game.playIfReady());
         }
         // The game may now be ready to start
-        return prom.then(game => game.playIfReady())
+        return prom
         .then(() => res.status(200).send(player.key));
         // Don't need to send connections, that will be done
         // in the connect event handler
@@ -900,27 +891,25 @@ define([
      * be the robot player key.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     POST_addRobot(req, res, next) {
       const gameKey = req.params.gameKey;
       const dic = req.body.dictionary;
       let game;
-      return this.loadGame(gameKey)
+      return this.loadGameFromDB(gameKey)
       .then(g => game = g)
       .then(() => {
-        Platform.assert(!game.hasRobot(), "Game already has a robot");
+        assert(!game.hasRobot(), "Game already has a robot");
 
         this._debug("Robot joining", gameKey, "with", dic);
         // Robot always has the same player key
-        const robot = new Player(
-          {
-            name: "Robot",
-            key: UserManager.ROBOT_KEY,
-            isRobot: true,
-            canChallenge: req.body.canChallenge,
-            delayBeforePlay: parseInt(req.body.delayBeforePlay || "0")
-          });
+        const robot = new Game.Player({
+          name: "Robot",
+          key: UserManager.ROBOT_KEY,
+          isRobot: true,
+          canChallenge: req.body.canChallenge,
+          delayBeforePlay: parseInt(req.body.delayBeforePlay || "0")
+        }, Game);
         if (dic && dic !== "none")
           /* istanbul ignore next */
           robot.dictionary = dic;
@@ -945,14 +934,13 @@ define([
      * be the removed robot player key.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     POST_removeRobot(req, res, next) {
       const gameKey = req.params.gameKey;
-      return this.loadGame(gameKey)
+      return this.loadGameFromDB(gameKey)
       .then(game => {
         const robot = game.hasRobot();
-        Platform.assert(robot, "Game doesn't have a robot");
+        assert(robot, "Game doesn't have a robot");
         this._debug("Robot leaving", gameKey);
         game.removePlayer(robot);
         return game.save()
@@ -973,12 +961,11 @@ define([
      * @param {Response} res the response object
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     POST_leave(req, res, next) {
       const gameKey = req.params.gameKey;
       const playerKey = req.user.key;
-      return this.loadGame(gameKey)
+      return this.loadGameFromDB(gameKey)
       .then(game => {
         this._debug("Player", playerKey, "leaving", gameKey);
         const player = game.getPlayerWithKey(playerKey);
@@ -992,7 +979,7 @@ define([
           .then(() => this.updateMonitors());
         }
         /* istanbul ignore next */
-        return Platform.fail(
+        return assert.fail(
           `Player ${playerKey} is not in game ${gameKey}`);
       });
     }
@@ -1020,11 +1007,10 @@ define([
      * @param {Response} res the response object
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     GET_game(req, res, next) {
       const gameKey = req.params.gameKey;
-      return this.db.get(gameKey, Game.classes)
+      return this.db.get(gameKey, Game)
       .then(game => res.status(200).send(Fridge.freeze(game)));
     }
 
@@ -1036,12 +1022,11 @@ define([
      * will be the deleted game key.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     POST_deleteGame(req, res, next) {
       const gameKey = req.params.gameKey;
       this._debug("Delete game", gameKey);
-      return this.loadGame(gameKey)
+      return this.loadGameFromDB(gameKey)
       .then(game => game.stopTheClock()) // in case it's running
       .then(() => this.db.rm(gameKey))
       .then(() => res.status(200).send(gameKey))
@@ -1058,10 +1043,9 @@ define([
      * will be the follow-on game key.
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     POST_anotherGame(req, res, next) {
-      return this.loadGame(req.params.gameKey)
+      return this.loadGameFromDB(req.params.gameKey)
       .then(game => game.anotherGame())
       .then(newGame => res.status(200).send(newGame.key));
     }
@@ -1076,21 +1060,20 @@ define([
      * @param {Response} res the response object
      * @return {Promise} promise that resolves to undefined
      * when the response has been sent.
-     * @private
      */
     POST_command(req, res, next) {
       const command = req.params.command;
       const gameKey = req.params.gameKey;
       const playerKey = req.user.key;
       //this._debug("Handling", command, gameKey, playerKey);
-      return this.loadGame(gameKey)
+      return this.loadGameFromDB(gameKey)
       .then(game => {
-        if (game.hasEnded() && command !== Command.UNDO)
+        if (game.hasEnded() && command !== Game.Command.UNDO)
           // Ignore the command
           return Promise.resolve();
 
         const player = game.getPlayerWithKey(playerKey);
-        Platform.assert(player,
+        assert(player,
             `Player ${playerKey} is not in game ${gameKey}`);
 
         // The command name and arguments
@@ -1100,49 +1083,7 @@ define([
         if (typeof req.body.timestamp === "undefined")
           req.body.timestamp = Date.now();
 
-        this._debug("COMMAND", command,
-                    "player", player.name,
-                    "game", game.key);
-
-        // Istanbul can ignore next because it's just routing
-        /* istanbul ignore next */
-        switch (command) {
-
-        case Command.CHALLENGE:
-          return game.challenge(
-            player, game.getPlayerWithKey(args.challengedKey));
-
-        case Command.CONFIRM_GAME_OVER:
-          return game.confirmGameOver(player);
-
-        case Command.PASS:
-          return game.pass(player, Turns.PASSED);
-
-        case Command.PAUSE:
-          return game.pause(player);
-
-        case Command.PLAY:
-          return game.play(player, args);
-
-        case Command.REDO:
-          return game.redo(args);
-
-        case Command.SWAP:
-          return game.swap(player, args);
-
-        case Command.TAKE_BACK:
-          return game.takeBack(player, Turns.TOOK_BACK);
-
-        case Command.UNDO:
-          game.undo(game.popTurn());
-          break;
-
-        case Command.UNPAUSE:
-          return game.unpause(player);
-
-        default:
-          return Platform.fail(`unrecognized command: ${command}`);
-        }
+        return game.dispatchCommand(command, player, args);
       })
       .then(() => {
         //this._debug(command, "handled`);

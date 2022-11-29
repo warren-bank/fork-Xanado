@@ -37,10 +37,20 @@ This fork has some major differences:
 * The UI has been massaged to make it more mobile device friendly, and translated to several languages.
 * Lots of bug fixes and small improvements.
 * Tile sets for many different languages.
+* Single-player version runs entirely in the browser.
 
 # Installation
 
-## Using Docker
+## Single-player (runs in the browser)
+If you want to play the single-player version against the computer, then all
+you have to do is to open the code from a server where it has been installed.
+Nothing is saved back to the server.
+
+You can run it [here](https://cdot.github.io/dist/html/standalone_games.html).
+
+## Multi-player (client-server)
+
+### Using Docker
 The simplest way to install the game is to use the latest Docker
 image, which you can find on [github](https://github.com/cdot/Xanado/pkgs/container/xanado).
 The Docker image takes care of all dependencies etc. for you. Download the image and:
@@ -49,7 +59,7 @@ $ docker run -p 9093:9093 xanado
 ```
 to run the server on port 9093 of the host machine.
 
-## The Hard Way
+### The Hard Way
 First use `git clone` to clone the repository to your local machine. Then in
 the root directory of the distribution
 ```
@@ -63,7 +73,7 @@ and placing it in the root directory, or by passing your own file using `--confi
 
 Once you are happy wih the configuration, run the server using:
 ```
-$ node server.js
+$ node bin/server.js
 ```
 or
 ```
@@ -71,7 +81,7 @@ $ npm run server
 ```
 You can then visit the games page at `http://localhost:9093`.
 
-## Playing with other people
+### Playing with other people
 
 If you want other internet users to access your game server, they have
 to be able to access a port on the server. If your server is already
@@ -84,6 +94,10 @@ done properly.
 If you want the server to send out email invitations, you should refer to the `nodemailer` documentation for information on how to configure it.
 
 # Usage
+
+The instructions are pretty much the same for both the single-player and
+the multi-player versions, except that you are always "signed in" on the
+single-player version.
 
 Players start on the games page. This shows a leader board and a list
 of games. You can select "Show finished games" to view games that have
@@ -108,7 +122,7 @@ there is to be a time limit. You can also set a minimum number of
 players, or a maximum number of players who can join, and enable or
 disable some gameplay features.
 
-Anyone signed in can add or remove a
+Anyone signed in to a multi-player game can add or remove a
 robot player, or even delete the game, even if they are not a player.
 You can only have one robot in any one game, and you need at least one
 human player (otherwise, what's the point?)
@@ -117,6 +131,8 @@ When you add a robot to a game, you can optionally select a different
 dictionary that the robot will search to find plays. Limiting the
 robot to a smaller dictionary will give less challenging gameplay, but
 may be more suitable for less experienced players.
+
+Single-player games always have a robot.
 
 The installation comes with a number of 'editions' that emulate some
 commercially available games - SCRABBLE®, Super SCRABBLE®, Lexulous,
@@ -177,17 +193,17 @@ dictionaries. Included with the installation are a number of pre-built dictionar
 - `German` - 404k word list from the [germandict project on Sourceforge](https://sourceforge.net/projects/germandict/files/).
 - `British_English` - a custom 68k word British English dictionary, designed for casual players, to reflect the average vocabulary of a university-educated Briton. Note that many American spellings are also included, to reflect the flexible nature of our shared language.
 - `ODS8_French` - 411k word French SCRABBLE® competition dictionary.
-- `Oxford_5000` - 29K words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
-- `DISC_Catalan` - 580k words.
+- `Oxford_5000` - 29K English words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
+- `DISC_Catalan` - 580k word Catalan.
 Other dictionaries may be added over time.
 
 ## Whitelists
 Regenerating a docitionary can be time consuming, so dictionaries can be
 extended "on the fly" using a simple list of words in a file alongside the dictionary file, with the same name but the extension `.white`. For example, `Oxford_5000.white`. The file will be read each time the server is restarted.
 
-# Security
-The assumption is that you will be running the game on a private
-server with a limited, trustworthy audience.
+# Server Security
+The assumption is that you will be running the multi-player game server
+on a private server with a limited, trustworthy audience.
 
 The server can be configured to use HTTPS, see the example config.json
 for how. HTTPS is required for social media logins and notifications
@@ -198,14 +214,14 @@ https://linuxize.com/post/creating-a-self-signed-ssl-certificate/
 for instructions.
 
 # Development
-The server code is written in Javascript ES6 and tested using `node.js` version 12.0.0. It may work in earlier versions of `node.js`, but is untested. The client is also written in Javascript and works in all the browsers I tested (Chrome, Firefox, Android, Opera.) Apple products - iOS, Safari, MacOS - are NOT tested and are known to exhibit problems.
+The server code is written in Javascript ES6 and tested using `node.js` version 12.0.0. It may work in earlier versions of `node.js`, but is untested. The client is also written in Javascript and works in all the browsers I tested (Chrome, Firefox, Android, Opera.) Apple products - iOS, Safari, MacOS - are NOT tested.
 
 Further development is welcome, especially:
 - User interface translations
 - Security
 - Dictionaries and tile sets for new languages
 - Keeping dependencies up to date
-See [DEVELOPER](doc/README.md) for more.
+See [DEVELOPING](DEVELOPING.md) for more.
 
 # IMPORTANT NOTICES
 

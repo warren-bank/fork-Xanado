@@ -21,6 +21,9 @@ requirejs([
   fs, Path
 ) => {
 
+  // Maximum length for a string identifier
+  const MAX_ID_LENGTH = 20;
+  
   const Fs = fs.promises;
 
   const basePath = Path.normalize(Path.join(__dirname, ".."));
@@ -40,8 +43,8 @@ requirejs([
 
   // Recursively load all files with given extension into fileContents
   // return a promise that resolves to a flat list of files loaded
-  function load(file, ext) {
-    if (ext.test(file)) {
+  function load(file, ext, exclude) {
+    if (ext.test(file) && (!exclude || !exclude.test(file))) {
       return Fs.readFile(file)
       .then(buff => fileContents[file] = buff.toString())
       .then(() => [ file ]);
@@ -49,7 +52,7 @@ requirejs([
     return Fs.readdir(file)
     .then(files => Promise.all(
       files.map(
-        f => load(Path.join(file, f), ext)))
+        f => load(Path.join(file, f), ext, exclude)))
           .then(files => files.flat()))
     .catch(e => []);
   }
@@ -92,7 +95,7 @@ requirejs([
       output: process.stdout
     });
     console.log(strings[lang][string]);
-    const q = `Change ID "${string}"${probably ? (' to "'+probably+'"') : ""} in ${lang}? `;
+    const q = `Change ID "${string}"${probably ? (' to "'+probably+'"') : ""} in ${lang} [yNq]? `;
     return rl.question(q)
     .then(answer => {
       rl.close();
@@ -144,7 +147,7 @@ requirejs([
 
   async function shortenIDs() {
     for (const string in strings.qqq) {
-      if (string.length > 20 && !/^Types\./.test(strings.qqq[string])) {
+      if (string.length > MAX_ID_LENGTH && !/^Types\./.test(strings.qqq[string])) {
         console.error(`"${string}" is too long for a label`);
         let go = -1;
         while (go === -1) {
@@ -170,10 +173,10 @@ requirejs([
     .then(files => scan(files, /\/\*i18n\*\/\s*(["'])(.*?)\1/g)),
     // just to get fileContents
     load("test", /\.ut$/),
-    load("i18n", /\.json$/),
+    load("i18n", /\.json$/, /^index\.json$/),
     Fs.readdir(Path.join(basePath, "i18n"))
     .then(lingos => Promise.all(
-      lingos.filter(f => /\.json$/.test(f))
+      lingos.filter(f => /\.json$/.test(f) && !/^index\.json$/.test(f))
       .map(lingo => Fs.readFile(Path.join(basePath, "i18n", lingo))
            .then(json => {
              const lang = lingo.replace(/\.json$/, "");

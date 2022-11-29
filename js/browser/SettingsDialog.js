@@ -26,7 +26,9 @@ define([ "browser/Dialog" ], Dialog => {
       //console.log("Curlan",curlan);
       const $theme = this.$dlg.find('[name=theme]');
       const $locale = this.$dlg.find('[name=language]');
-      return Promise.all([ $.get("/themes"), $.get("/locales") ])
+      this.$dlg.find('input[type=checkbox]').checkboxradio();
+      const ui = this.options.ui;
+      return Promise.all([ ui.getThemes(), ui.getLocales() ])
       .then(all => {
         all[0].forEach(d => $theme.append(`<option>${d}</option>`));
         all[1]
@@ -49,9 +51,10 @@ define([ "browser/Dialog" ], Dialog => {
         this.$dlg.find('[name=theme]')
         .val(ui.getSetting('theme'))
         .selectmenu("refresh");
-        this.$dlg.find('[type=checkbox]')
+        this.$dlg.find('input[type=checkbox]')
         .each(function() {
-          $(this).prop('checked', ui.getSetting(this.name));
+          $(this).prop('checked', ui.getSetting(this.name) === "true")
+          .checkboxradio("refresh");
         });
         // Notification requires https
         this.$dlg.find(".require-https").toggle(ui.usingHttps === true);

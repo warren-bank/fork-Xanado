@@ -6,14 +6,17 @@
 /**
  * Dialog for game display. Demand loads the HTML.
  */
-define(["browser/Dialog", "common/Types"], (Dialog, Types) => {
-
-  const State = Types.State;
+define([
+  "browser/Dialog"
+], (
+  Dialog
+) => {
 
   /**
    * Dialog for opening / editing a game
+   * @extends Dialog
    */
-  class GameDialog  extends Dialog {
+  class GameDialog extends Dialog {
 
     constructor(options) {
       super("GameDialog", $.extend({
@@ -102,7 +105,7 @@ define(["browser/Dialog", "common/Types"], (Dialog, Types) => {
 
       this.$dlg.find("div[name=headline]")
       .empty()
-      .append(game.$headline());
+      .append(`${game.edition} ${game.key}`);
 
       const $table = this.$dlg.find(".player-table")
             .empty()
@@ -129,7 +132,6 @@ define(["browser/Dialog", "common/Types"], (Dialog, Types) => {
               && ((game.maxPlayers || 0) === 0
                   || game.getPlayers().length < game.maxPlayers))
             $join.show().button("option", { label: $.i18n("Join game") });
-          // "Open game" is handled in the player table
           if (this.options.ui.getSetting("canEmail"))
             $invite.show();
           if (!game.getPlayers().find(p => p.isRobot))

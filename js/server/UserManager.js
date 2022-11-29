@@ -2,7 +2,7 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
-
+debugger;
 define([
   "fs", "proper-lockfile", "async-lock", "bcrypt",
   "express-session", "session-file-store",
@@ -64,7 +64,7 @@ define([
         promise = this._checkToken(req.params.token);
       return promise.then(uo => this.success(uo))
       .catch (e => {
-        //console.debug(user, e.message);
+        //console.assert(false, `${user}: ${e.message}`);
         this.fail(e.message);
       });
     }
@@ -131,7 +131,9 @@ define([
         name: "XANADO.sid",
         secret: (config.auth ? config.auth.session_secret : undefined)
         || Utils.genKey(),
-        store: new FileStore(),
+        store: new FileStore({
+          reapInterval: -1
+        }),
         resave: false,
         saveUninitialized: false
       }));
@@ -406,7 +408,7 @@ define([
      * @private
      */
     setUpOAuth2Strategy(strategy, provider, cfg, app) {
-      Platform.assert(cfg.clientID && cfg.clientSecret && cfg.callbackURL,
+      assert(cfg.clientID && cfg.clientSecret && cfg.callbackURL,
                       `Misconfiguration ${cfg}`);
       Passport.use(new strategy(
         cfg,
@@ -414,7 +416,7 @@ define([
           //this._debug("Logging in", profile.displayName);
           if (profile.emails && profile.emails.length > 0)
             profile.email = profile.emails[0].value;
-          Platform.assert(profile.id && profile.displayName,
+          assert(profile.id && profile.displayName,
                           `Misconfiguration ${profile}`);
           const key = `${provider}-${profile.id}`;
           this.getUser({ key: key })
@@ -432,7 +434,7 @@ define([
             if (!profile.email || uo.email === profile.email)
               return uo;
             uo.email = profile.email;
-            Platform.assert(uo.provider,
+            assert(uo.provider,
                             "Provider expected in user object");
             return this.writeDB();
           })
@@ -665,7 +667,7 @@ define([
      * @private
      */
     POST_reset_password(req, res) {
-      Platform.assert(this.config.mail && this.config.mail.transport,
+      assert(this.config.mail && this.config.mail.transport,
                       "Mail is not configured");
       const email = req.body.reset_email;
       this._debug("/reset-password for", email);

@@ -4,9 +4,10 @@
 /* eslint-env amd */
 
 define([
-  "game/Tile",
-  requirejs.isBrowser ? "browser/Move" : "common/EmptyBase"
-], (Tile, PlatformBase) => {
+  "game/Tile"
+], (
+  Tile
+) => {
 
   /**
    * A Move is a collection of tile placements, and the delta score
@@ -14,7 +15,7 @@ define([
    * move. It is used to send a human player's play to the server,
    * which then sends a matching {@linkcode Turn} to every player.
    */
-  class Move extends PlatformBase {
+  class Move {
 
     /**
      * Score for the play.
@@ -32,7 +33,6 @@ define([
      * params.
      */
     constructor(params) {
-      super();
 
       if (params.words)
         /**
@@ -50,8 +50,12 @@ define([
          * List of tiles placed in this move. Tiles are required
          * to carry col, row positions where they were placed.  In
          * a Turn, for type=`move` it indicates the move. For
-         * `Turns.TOOK_BACK` and `Turns.CHALLENGE_WON` it is
+         * `Game.Turns.TOOK_BACK` and `Game.Turns.CHALLENGE_WON` it is
          * the move just taken back/challenged.
+         * Note that we instatiate game Tiles, without taking account
+         * of the context of the call; Move is used for comms
+         * between front and ack ends, and the tiles therein don't
+         * need customised functionality.
          * @member {Tile[]?}
          */
         this.placements = params.placements.map(
@@ -73,8 +77,12 @@ define([
      * String representation for debugging
      */
     stringify() {
-      const pl = this.placements.map(t => t.stringify(true));
-      const w = this.words.map(w => `${w.word}(${w.score})`);
+      const pl = this.placements ?
+            this.placements.map(t => t.stringify(true))
+            : "<no placements>";
+      const w = this.words ?
+            this.words.map(w => `${w.word}(${w.score})`)
+            : "<no words>";
       return `Move ${pl} words ${w} for ${this.score}`;
     }
   }
