@@ -283,10 +283,9 @@ define([
      */
     takeBack(player, type) {
       const previousMove = this.lastTurn();
-      if (!previousMove)
-        return Promise.reject("No previous move to take back");
-      if (previousMove.type !== Game.Turns.PLAYED)
-        return Promise.reject(`Cannot challenge a ${previousMove.type}`);
+      assert(previousMove, "No previous move to take back");
+      assert(previousMove.type == Game.Turns.PLAYED,
+             `Cannot challenge a ${previousMove.type}`);
 
       const prevPlayer = this.getPlayerWithKey(previousMove.playerKey);
 
@@ -365,21 +364,17 @@ define([
      */
     challenge(challenger, challenged) {
 
-      if (challenger.key === challenged.key)
-        return Promise.reject("Cannot challenge your own play");
-
-      if (this.turns.length === 0)
-        return Promise.reject("No previous move to challenge");
+      assert(challenger.key !== challenged.key,
+             "Cannot challenge your own play");
+      assert(this.turns.length > 0,
+             "No previous move to challenge");
 
       let previousMove = this.lastTurn();
 
-      if (!previousMove)
-        return Promise.reject("No previous move to challenge");
-      if (previousMove.type !== Game.Turns.PLAYED)
-        return Promise.reject(`Cannot challenge a ${previousMove.type}`);
-
-      if (challenged.key !== previousMove.playerKey)
-        return Promise.reject("Last player challenge mismatch");
+      assert(previousMove.type === Game.Turns.PLAYED,
+             `Cannot challenge a ${previousMove.type}`);
+      assert(challenged.key === previousMove.playerKey,
+             "Last player challenge mismatch");
 
       return this.getDictionary()
       .catch(
@@ -414,13 +409,14 @@ define([
           // Current player issued the challenge, they lose the
           // rest of this turn
 
-          // Special case; if the challenged play would be the
-          // last play (challenged player has no more tiles) and
+          // Special case; if the challenged play would be the last
+          // play (challenged player has no more tiles) and
           // challenging player is the next player, then it is game
-          // over. It is the last play if there were no
-          // replacements.
+          // over. The bag is empty if there were no replacements, and
+          // the game is over if the challenged player has no tiles.
           if ((!previousMove.replacements
-               || previousMove.replacements.length === 0))
+               || previousMove.replacements.length === 0)
+              && challenged.rack.isEmpty())
             return this.confirmGameOver(
               this.getPlayer(), Game.State.FAILED_CHALLENGE);
           // Otherwise issue turn type=Game.Turns.CHALLENGE_LOST
@@ -652,8 +648,8 @@ define([
         } else
           this._debug(`No better plays found for ${player.name}`);
       })
+      /* istanbul ignore next */
       .catch(e => {
-        /* istanbul ignore next */
         console.error("Error", e);
       });
     }
