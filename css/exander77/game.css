@@ -130,7 +130,6 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
   max-height: 8em;
 }
 
-/* div that wraps message capture */
 #chatInput {
   margin-top: 0.25em;
   width: 95%;
@@ -208,7 +207,8 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /* an individual word in a list of words in the log */
 .word {
-  font-style: italic
+  font-style: italic;
+  margin-left: 0.25em;
 }
 
 /* an individual word score in a list of words in the log */
