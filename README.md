@@ -46,7 +46,7 @@ If you want to play the single-player version against the computer, then all
 you have to do is to open the code from a server where it has been installed.
 Nothing is saved back to the server.
 
-You can run it [here](https://cdot.github.io/dist/html/standalone_games.html).
+You can run it [here](https://cdot.github.io/Xanado/dist/html/standalone_games.html).
 
 ## Multi-player (client-server)
 
