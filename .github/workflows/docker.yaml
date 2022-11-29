@@ -49,6 +49,7 @@ jobs:
           recurse: true
           config_file: ./js/build/jsdoc_config.json
           output_dir: ./doc
+          front_page: ./DEVELOPING.md
 
       - name: Deploy to Github Pages
         uses: peaceiris/actions-gh-pages@v3
