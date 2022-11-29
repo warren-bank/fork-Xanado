@@ -3,7 +3,7 @@
  * development tree that contains packed and compressed versions of the
  * Xanado browser scripts.
  */
-const getopt = require("node-getopt");
+const getopt = require("posix-getopt");
 const Path = require("path");
 const assert = require("assert");
 const { JSDOM } = require('jsdom');
@@ -13,7 +13,7 @@ const JSAnalyser = require("../js/build/JSAnalyser.js");
 const analyseCSS = require("../js/build/analyseCSS.js");
 const updateIndexes = require("../js/build/updateIndexes.js");
 
-const inBase = Path.relative(process.cwd(), `${__dirname}/..`);
+const inBase = Path.relative(".", `${__dirname}/..`);
 
 /**
  * Process an HTML that has rjs_main and a requirejs include.
@@ -106,21 +106,30 @@ function analyseHTMLs(config) {
     f => analyseHTML(f, config)));
 }
 
-const DESCRIPTION =
-      `USAGE\n node ${process.argv[1]} [options] <root JS file> <out file>`;
- 
-const OPTIONS = [
-  [ "d", "debug", "Enable debug trace" ],
-  [ "P", "nopack", "Disable packing JS into a single file for each HTML" ],
-  [ "C", "nocompress", "Disable compressing JS" ],
-];
+const DESCRIPTION = [
+  "USAGE",
+  `\tnode ${Path.relative(".", process.argv[1])} [options]`,
+  "\nDESCRIPTION",
+  "\tBuild compressed files for fast loading into browsers, in",
+  "\ta 'dist' directory under the repository root.",
+  "\nOPTIONS",
+  "\t-d, --debug - Enable debug trace",
+  "\t-h, --help - Help info",
+  "\t-P, --nopack - Disable packing JS into a single file for each HTML",
+  "\t-C, --nocompress - Disable compressing JS" ].join("\n");
 
-const go = getopt.create(OPTIONS)
-      .bindHelp()
-      .setHelp(`${DESCRIPTION}\nOPTIONS\n[[OPTIONS]]`)
-      .parseSystem();
-
-const options = go.options;
+const go_parser = new getopt.BasicParser(
+  'd(debug)P(nopack)C(nocompress)', process.argv);
+const options = {};
+let option;
+while ((option = go_parser.getopt())) {
+  switch (option.option) {
+  default: console.error(DESCRIPTION); process.exit();
+  case 'd': options.debug = true; break;
+  case 'P': options.nopack = true; break;
+  case 'C': options.nocompress = true; break;
+  }
+}
 
 if (!options.debug) {
   console.debug = () => {};
@@ -128,7 +137,7 @@ if (!options.debug) {
 
 const cfg = new Configurator(inBase, options);
 
-updateIndexes(`${__dirname}/..`)
+updateIndexes(inBase)
 .then(() => cfg.copyDir("audio", f => /\.mp3$/.test(f)))
 .then(() => cfg.copyDir("css", f => f === "index.json" || /\.css$/.test(f), true))
 .then(() => cfg.copyDir("dictionaries", f => f === "index.json" || /\.dict$/.test(f)))

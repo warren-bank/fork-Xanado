@@ -25,6 +25,7 @@ let _definition;
  * @param {string} name module name
  * @param {function} definition anonymous function that runs the code
  * for the module
+ * @private
  */
 function _define_module(name, definition) {
   if (name === "root")
@@ -36,6 +37,7 @@ function _define_module(name, definition) {
 /**
  * Get the result of the define() call in the named module.
  * @param {string} name module name
+ * @private
  */
 function _get_module(name) {
   if (!_modules[name]) {
@@ -54,6 +56,7 @@ function _get_module(name) {
  * Implementation of requirejs `define`. Loads dependencies and calls
  * the provided anonymous function (callback).
  * See the requirejs documentation for parameter information.
+ * @private
  */
 function define(name, deps, callback) {
   if (typeof name !== 'string') {
@@ -75,6 +78,7 @@ define.amd = true;
 /**
  * If the named module isn't in the cached, load it using `$.get()`
  * @param {string} name module name
+ * @private
  */
 function _require_js(name) {
   // Check AMD modules first
@@ -91,6 +95,7 @@ function _require_js(name) {
  * `requirejs` is used to "demand-load" a module, the name of which may
  * not be known at build time.
  * See the requirejs documentation for parameter information.
+ * @private
  */
 function requirejs(deps, fun) {
   if (typeof deps === "function") {

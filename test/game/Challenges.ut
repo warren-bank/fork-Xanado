@@ -29,7 +29,7 @@ describe("Challenges", () => {
 
   function UNit() {};
   
-  it("bad challenge by next player - miss turn", () => {
+  UNit("bad challenge by next player - miss turn", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -105,7 +105,7 @@ describe("Challenges", () => {
     });
   });
 
-  it("bad challenge by next player - points penalty", () => {
+  UNit("bad challenge by next player - points penalty", () => {
     // Implicitly tests pass
     const game = new Game({
       edition:"Test",
@@ -183,7 +183,7 @@ describe("Challenges", () => {
     });
   });
 
-  it("bad challenge by not-next player - points penalty", () => {
+  UNit("bad challenge by not-next player - points penalty", () => {
     // Implicitly tests pass
     const game = new Game({
       edition:"Test",
@@ -256,7 +256,7 @@ describe("Challenges", () => {
     });
   });
 
-  it("bad challenge by not-next player - miss turn", () => {
+  UNit("bad challenge by not-next player - miss turn", () => {
     // Implicitly tests pass
     const game = new Game({
       edition:"Test",
@@ -324,7 +324,7 @@ describe("Challenges", () => {
     });
   });
 
-  it("good challenge by next player", () => {
+  UNit("good challenge by next player", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -393,7 +393,7 @@ describe("Challenges", () => {
     });
   });
 
-  it("good challenge by not-next player", () => {
+  UNit("good challenge by not-next player", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -472,7 +472,7 @@ describe("Challenges", () => {
     });
   });
 
-  it("challenge by same player", () => {
+  UNit("challenge by same player", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -524,7 +524,7 @@ describe("Challenges", () => {
     });
   });
 
-  it("good challenge of final play by next player", () => {
+  UNit("good challenge of final play by next player", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -586,7 +586,7 @@ describe("Challenges", () => {
     .then(() => socket.wait());
   });
 
-  it("good challenge of final play by not-next player", () => {
+  UNit("good challenge of final play by not-next player", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -741,7 +741,7 @@ describe("Challenges", () => {
 
   // If the bad challenge is from a not-next player,
   // it should generate a turn{type=Game.Turns.CHALLENGE_LOST}.
-  it("bad challenge of final play by not-next player - miss turn", () => {
+  UNit("bad challenge of final play by not-next player - miss turn", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -822,7 +822,7 @@ describe("Challenges", () => {
    * player 2 passed
    * player 1 tried to make a play - blew up with "Cannot find on Rack"
    */
-  it("play, challenge, swap", () => {
+  UNit("play, challenge, swap", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -910,5 +910,103 @@ describe("Challenges", () => {
       assert(!human1.missNextTurn);
       assert(!human2.missNextTurn);
     });
+  });
+
+  it("issue 66", () => {
+    const game = new Game({
+      edition:"Test",
+      dictionary:"Oxford_5000",
+      noPlayerShuffle: true,
+      //_debug: console.debug,
+      challengePenalty: Game.Penalty.MISS
+    });
+    const john = new Player({
+      name: "John", key: "john", isRobot: false}, Game);
+    const paul = new Player({
+      name: "Paul", key: "paul", isRobot: false}, Game);
+
+    // John has just played. Their rack isn't empty, but the letter bag
+    // is. Paul challenges, a challenge that fails. Game should NOT be over.
+
+    // Move that leaves "D" in John's rack. Bag is emty, so replacements
+    // should be empty in the Turn.
+    const move = new Move({
+      placements: [
+        new Tile({letter:"W", score:1, col: 7, row: 7}),
+        new Tile({letter:"A", score:1, col: 8, row: 7}),
+        new Tile({letter:"R", score:1, col: 9, row: 7}),
+      ],
+      words: [ { word: "WAR", score: 12 } ],
+      score: 12
+    });
+
+    const js = new TestSocket("John");
+    js.on("*", (data, event, seqNo) => {
+      switch (seqNo) {
+      case 0:
+        assert.equal(event, Game.Notify.CONNECTIONS); break;
+      case 1:
+        assert.equal(event, Game.Notify.CONNECTIONS); break;
+      case 2:
+        // John still has a tile ('D') but there should be no replacements
+        // as the bag is empty
+        assert.equal(event, Game.Notify.TURN);
+        assert.equal(data.type, Game.Turns.PLAYED);
+        assert.deepEqual(data.replacements, []);
+        break;
+      case 3:
+        assert.equal(event, Game.Notify.TURN);
+        // Paul's challenge failed
+        assert.equal(data.type, Game.Turns.CHALLENGE_LOST);
+        js.done();
+        break;
+      default:
+        assert.fail(`UNEXPECTED John ${seqNo}, ${event}` + data);
+      }
+    });
+
+    const ps = new TestSocket("Paul");
+    ps.on("*", (data, event, seqNo) => {
+      switch (seqNo) {
+      case 0:
+        assert.equal(event, Game.Notify.CONNECTIONS); break;
+      case 1:
+        assert.equal(event, Game.Notify.TURN);
+        assert.equal(data.type, Game.Turns.PLAYED);
+        assert.deepEqual(data.replacements, []);
+        break;
+      case 2:
+        assert.equal(event, Game.Notify.TURN);
+        // Paul's challenge failed
+        assert.equal(data.type, Game.Turns.CHALLENGE_LOST);
+        js.done();
+        break;
+      default:
+        assert.fail(`UNEXPECTED John ${seqNo}, ${event}` + data);
+      }
+    });
+
+    return game.create()
+    .then(() => game.onLoad(new MemoryDatabase()))
+    .then(game => {
+      game.addPlayer(john);
+      john.rack.addTile(game.letterBag.removeTile({letter:"W"}));
+      john.rack.addTile(game.letterBag.removeTile({letter:"A"}));
+      john.rack.addTile(game.letterBag.removeTile({letter:"R"}));
+      john.rack.addTile(game.letterBag.removeTile({letter:"D"}));
+      
+      game.addPlayer(paul);
+      paul.rack.addTile(game.letterBag.removeTile({letter:"U"}));
+      game.whosTurnKey = john.key;
+
+      // Empty the bag
+      game.letterBag.getRandomTiles(
+        game.letterBag.remainingTileCount());
+    })
+    .then(() => game.connect(js, john.key))
+    .then(() => game.connect(ps, paul.key))
+    .then(() => game.play(john, move))
+    .then(() => game.challenge(paul, john))
+    .then(() => console.debug(game.state));
   });
 });

@@ -10,13 +10,19 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
  * @module
  */
 
-if (typeof requirejs === "undefined") requirejs = require("requirejs");
+const requirejs = require("requirejs");
+const getopt = require("posix-getopt");
+const Fs = require("fs").promises;
+const Path = require("path");
+const socket_io = require("socket.io");
+const Http = require("http");
+const Https = require("https");
+const nodemailer = require("nodemailer");
 
 requirejs.config({
-  baseUrl: __dirname,
+  baseUrl: `${__dirname}/..`,
   nodeRequire: require,
   paths: {
-    "node-getopt" : "node_modules/node-getopt/lib/getopt",
     jquery: "node_modules/jquery/dist/jquery",
     "jquery-i18n": "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n",
 
@@ -29,13 +35,6 @@ requirejs.config({
     platform: "js/server/Platform"
   }
 });
-
-const Getopt = require("node-getopt");
-const Fs = require("fs").promises;
-const socket_io = require("socket.io");
-const Http = require("http");
-const Https = require("https");
-const nodemailer = require("nodemailer");
 
 requirejs([ "server/Server" ], Server => {
 
@@ -70,34 +69,55 @@ requirejs([ "server/Server" ], Server => {
     return config;
   }
 
-  // Command-line arguments
-  const cliopt = Getopt.create([
-    ["h", "help", "Show this help"],
-    ["S", "debug_server", "output server debug messages"],
-    ["G", "debug_game", "output game logic messages"],
-    ["c", "config=ARG", "Path to config file"]
-  ])
-        .bindHelp()
-        .setHelp("Xanado server\n[[OPTIONS]]")
-        .parseSystem()
-        .options;
+  const DESCRIPTION = [
+    "USAGE",
+    `\tnode ${Path.relative(".", process.argv[1])} [options]`,
+    "\nDESCRIPTION",
+    "\tRun a XANADO server\n",
+    "\nOPTIONS",
+    "\t-c, --config=ARG - Path to config file",
+    "\t-s, --debug_server - output server debug messages",
+    "\t-g, --debug_game - output game logic messages"
+  ].join("\n");
 
-  if (!cliopt.config)
-    cliopt.config = "config.json";
+  const go_parser = new getopt.BasicParser(
+    "h(help)s(debug_server)g(debug_game)c:(config)",
+    process.argv);
 
-  Fs.readFile(cliopt.config)
-  .then(json => addDefaults(JSON.parse(json), DEFAULT_CONFIG))
-  .catch(e => {
-    console.error(e);
-    console.warn(`Using default configuration`);
-    return DEFAULT_CONFIG;
-  })
+  const options = {};
+  let option;
+  while ((option = go_parser.getopt())) {
+    switch (option.option) {
+    default: console.debug(DESCRIPTION); process.exit();
+    case 's': options.debug_server = true; break;
+    case 'g': options.debug_game = true; break;
+    case 'c': options.config = option.optarg ; break;
+    }
+  }
+
+  let p;
+  if (options.config) {
+    p = Fs.readFile(options.config)
+    .catch(e => {
+      console.error(e);
+      console.warn(`Using default configuration`);
+      return "{}";
+    });
+  } else {
+    p = Fs.readFile(`${__dirname}/../config.json`)
+    .catch(e => {
+      console.warn(`Using default configuration`);
+      return "{}";
+    });
+  }
+
+  p.then(json => addDefaults(JSON.parse(json), DEFAULT_CONFIG))
 
   .then(config => {
 
-    if (cliopt.debug_server)
+    if (options.debug_server)
       config.debug_server = true;
-    if (cliopt.debug_game)
+    if (options.debug_game)
       config.debug_game = true;
     if (config.debug_server)
       console.debug(config);

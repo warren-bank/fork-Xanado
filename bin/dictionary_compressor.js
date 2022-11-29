@@ -14,9 +14,10 @@
  */
 
 const requirejs = require("requirejs");
+const Path = require("path");
 
 requirejs.config({
-  baseUrl: `${__dirname}/../..`,
+  baseUrl: `${__dirname}/..`,
   paths: {
     dawg: `js/dawg`,
     common: "js/common",
@@ -26,23 +27,23 @@ requirejs.config({
   }
 });
 
-requirejs(["dawg/Compressor"], (Compressor) => {
+requirejs(["dawg/Compressor"], Compressor => {
 
   const DESCRIPTION = [
     "USAGE",
-    `node ${process.argv[1].replace(/.*\//, "")} <lexicon> <outfile>`,
-    "Create a directed acyclic word graph (DAWG) from a list of words.",
-    "<lexicon> is a text file containing a list of words, and <outfile>",
-    "is the binary file containing the compressed DAWG, as used by the",
-    "Dictionary.js module.\n",
-    "The lexicon is a simple list of case-insensitive words, one per line",
-    "Anything after a space character on a line is ignored."
-  ];
+    `\tnode ${Path.relative(".", process.argv[1])} <lexicon> <outfile>`,
+    "\nDESCRIPTION",
+    "\tCreate a directed acyclic word graph (DAWG) from a list of words.",
+    "\t<lexicon> is a text file containing a list of words, and <outfile>",
+    "\tis the binary file containing the compressed DAWG.",
+    "\tThe lexicon is a simple list of case-insensitive words, one per line.",
+    "\tAnything after a space character on a line is ignored."
+  ].join("\n");
 
   if (process.argv.length === 4) {
     const infile = process.argv[2];
     const outfile = process.argv[3];
     Compressor.compress(infile, outfile, console.log);
   } else
-    console.log(DESCRIPTION.join("\n"));
+    console.error(DESCRIPTION);
 });

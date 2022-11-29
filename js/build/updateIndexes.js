@@ -14,6 +14,7 @@ const Path = require("path");
  * @param {RegExp?} rip optional regular expression that rips off any
  * unwanted part of the filename (e.g. extension)
  * @return {Promise} promise that resolves to undefined
+ * @private
  */
 function index(dir, filt, rip) {
   return Fs.readdir(dir)

@@ -259,6 +259,9 @@ define([
     /**
      * Start the process of constructing the UI. Subclasses should
      * continue this process in their own create() methods.
+     * @implements browser/GameUIMixin
+     * @instance
+     * @memberof StandaloneUIMixin
      */
     create() {
       this.args = Utils.parseURLArguments(document.URL);

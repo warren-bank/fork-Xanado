@@ -62,7 +62,7 @@ define([
             this.handlers["*"].forEach(l => l(data, event, this.seqNo));
           this.seqNo++;
         } catch (e) {
-          //console.error("ERROR", e);
+          console.error("ERROR", e);
           this.sawError = e;
           this.done();
           throw e;
@@ -99,7 +99,7 @@ define([
     done() {
       if (this.finished)
         return;
-      //console.log(`${this.id} is done`);
+      //console.log(`Socket ${this.id} is done`);
       this.finished = true;
       if (this.connection)
         this.connection.done();

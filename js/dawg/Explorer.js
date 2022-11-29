@@ -7,11 +7,9 @@
  * AMD module defining the body of the 'explore' command-line program
  */
 define([
-  "fs", "node-getopt",
   "platform",
   "dawg/Dictionary"
 ], (
-  fs, Getopt,
   Platform,
   Dictionary
 ) => {

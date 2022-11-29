@@ -111,12 +111,15 @@ class JSAnalyser {
       while ((m = dre.exec(js)))
         this.addDependency(mod_id, m[2]);
 
-      // requirejs calls
-      const qre = /\Wrequirejs\s*\(\s*\[\s*(.*?)\]/g;
+      // requirejs calls.
+      const qre = /\Wrequirejs\s*\(\s*\[\s*(.*?)\s*\]/g;
       while ((m = qre.exec(js))) {
         m[1].split(/\s*,\s*/)
-        .map(mod => mod.replace(/^\s*["']/, "").replace(/["']\s*$/, ""))
+        // We can only analyse dependencies for simple strings
+        .filter(d => /^(['"]).*\1/.test(d))
+        .map(mod => mod.replace(/^(["'])(.*?)\1/, "$2"))
         .forEach(mod => {
+          if (/\s/.test(mod))
           // Add a dependency to the root to ensure the requirejs'ed
           // module gets loaded.
           this.addDependency("root", mod);
@@ -140,7 +143,7 @@ class JSAnalyser {
         eval(js);
         if (module.exports) {
           // commonJS module
-          console.error("COMMONJS", mod_id);
+          console.debug("COMMONJS", mod_id);
         }
       } catch (e) {
         e.stack = e.stack.replace(/<anonymous>/g, js_path);
@@ -149,13 +152,12 @@ class JSAnalyser {
       //console.debug(`Studied ${js_path} for ${module}`);
       if (!this.depends_on[mod_id])
         this.depends_on[mod_id] = [];
-
       return Promise.all(extras.map(d => this.studyModule(d)))
       .then(() => this.depends_on[mod_id]);
     })
     .then(deps => Promise.all(deps.map(d => this.studyModule(d))))
     .catch(e => {
-      console.error("Unable to analyse", js_path, e.message);
+      console.error(`Unable to analyse "${mod_id}" ${js_path} ${e.message}`);
     });
   }
 

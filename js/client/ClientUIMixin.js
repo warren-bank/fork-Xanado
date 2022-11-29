@@ -76,6 +76,8 @@ define([
 
     /**
      * Make a mechanical play.
+     * @instance
+     * @memberof CientUIMixin
      */
     mechanicalTurk() {
       console.debug("Mechanical Turk is playing");
