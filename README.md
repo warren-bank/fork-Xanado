@@ -46,7 +46,7 @@ If you want to play the single-player version against the computer, then all
 you have to do is to open the code from a server where it has been installed.
 Nothing is saved back to the server.
 
-You can run it [here]((https://cdot.github.io/dist/html/standalone_games.html).
+You can run it [here](https://cdot.github.io/dist/html/standalone_games.html).
 
 ## Multi-player (client-server)
 
@@ -73,7 +73,7 @@ and placing it in the root directory, or by passing your own file using `--confi
 
 Once you are happy wih the configuration, run the server using:
 ```
-$ node server.js
+$ node bin/server.js
 ```
 or
 ```
@@ -221,7 +221,7 @@ Further development is welcome, especially:
 - Security
 - Dictionaries and tile sets for new languages
 - Keeping dependencies up to date
-See [DEVELOPER](doc/README.md) for more.
+See [DEVELOPING](DEVELOPING.md) for more.
 
 # IMPORTANT NOTICES
 
