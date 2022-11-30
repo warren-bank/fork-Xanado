@@ -219,8 +219,7 @@
            "id": "Rack_robot_7",
            "letterScoreMultiplier": 1,
            "wordScoreMultiplier": 1,
-           "tile": null,
-           "tileLocked": false
+           "tile": null
           }
          }
         ]
@@ -442,8 +441,7 @@
            "id": "Rack_one_7",
            "letterScoreMultiplier": 1,
            "wordScoreMultiplier": 1,
-           "tile": null,
-           "tileLocked": false
+           "tile": null
           }
          }
         ]
@@ -1031,8 +1029,7 @@
         "id": "Board_0x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 3,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1048,8 +1045,7 @@
         "id": "Board_0x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1065,8 +1061,7 @@
         "id": "Board_0x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1082,8 +1077,7 @@
         "id": "Board_0x3",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1099,8 +1093,7 @@
         "id": "Board_0x4",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1116,8 +1109,7 @@
         "id": "Board_0x5",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1133,8 +1125,7 @@
         "id": "Board_0x6",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1150,8 +1141,7 @@
         "id": "Board_0x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 3,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1167,8 +1157,7 @@
         "id": "Board_0x8",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1184,8 +1173,7 @@
         "id": "Board_0x9",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1201,8 +1189,7 @@
         "id": "Board_0x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1218,8 +1205,7 @@
         "id": "Board_0x11",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1235,8 +1221,7 @@
         "id": "Board_0x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1252,8 +1237,7 @@
         "id": "Board_0x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1269,8 +1253,7 @@
         "id": "Board_0x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 3,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -1288,8 +1271,7 @@
         "id": "Board_1x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1305,8 +1287,7 @@
         "id": "Board_1x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1322,8 +1303,7 @@
         "id": "Board_1x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1339,8 +1319,7 @@
         "id": "Board_1x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1356,8 +1335,7 @@
         "id": "Board_1x4",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1373,8 +1351,7 @@
         "id": "Board_1x5",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1390,8 +1367,7 @@
         "id": "Board_1x6",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1407,8 +1383,7 @@
         "id": "Board_1x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1424,8 +1399,7 @@
         "id": "Board_1x8",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1441,8 +1415,7 @@
         "id": "Board_1x9",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1458,8 +1431,7 @@
         "id": "Board_1x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1475,8 +1447,7 @@
         "id": "Board_1x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1492,8 +1463,7 @@
         "id": "Board_1x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1509,8 +1479,7 @@
         "id": "Board_1x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1526,8 +1495,7 @@
         "id": "Board_1x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -1545,8 +1513,7 @@
         "id": "Board_2x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1562,8 +1529,7 @@
         "id": "Board_2x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1579,8 +1545,7 @@
         "id": "Board_2x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1596,8 +1561,7 @@
         "id": "Board_2x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1613,8 +1577,7 @@
         "id": "Board_2x4",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1630,8 +1593,7 @@
         "id": "Board_2x5",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1647,8 +1609,7 @@
         "id": "Board_2x6",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1664,8 +1625,7 @@
         "id": "Board_2x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1681,8 +1641,7 @@
         "id": "Board_2x8",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1698,8 +1657,7 @@
         "id": "Board_2x9",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1715,8 +1673,7 @@
         "id": "Board_2x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1732,8 +1689,7 @@
         "id": "Board_2x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1749,8 +1705,7 @@
         "id": "Board_2x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1766,8 +1721,7 @@
         "id": "Board_2x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1783,8 +1737,7 @@
         "id": "Board_2x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -1802,8 +1755,7 @@
         "id": "Board_3x0",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1819,8 +1771,7 @@
         "id": "Board_3x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1836,8 +1787,7 @@
         "id": "Board_3x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1853,8 +1803,7 @@
         "id": "Board_3x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1870,8 +1819,7 @@
         "id": "Board_3x4",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1887,8 +1835,7 @@
         "id": "Board_3x5",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1904,8 +1851,7 @@
         "id": "Board_3x6",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1921,8 +1867,7 @@
         "id": "Board_3x7",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1938,8 +1883,7 @@
         "id": "Board_3x8",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1955,8 +1899,7 @@
         "id": "Board_3x9",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1972,8 +1915,7 @@
         "id": "Board_3x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -1989,8 +1931,7 @@
         "id": "Board_3x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2006,8 +1947,7 @@
         "id": "Board_3x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2023,8 +1963,7 @@
         "id": "Board_3x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2040,8 +1979,7 @@
         "id": "Board_3x14",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -2059,8 +1997,7 @@
         "id": "Board_4x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2076,8 +2013,7 @@
         "id": "Board_4x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2093,8 +2029,7 @@
         "id": "Board_4x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2110,8 +2045,7 @@
         "id": "Board_4x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2135,10 +2069,10 @@
           "score": 1,
           "isBlank": false,
           "col": 4,
-          "row": 4
+          "row": 4,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -2154,8 +2088,7 @@
         "id": "Board_4x5",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2171,8 +2104,7 @@
         "id": "Board_4x6",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2188,8 +2120,7 @@
         "id": "Board_4x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2205,8 +2136,7 @@
         "id": "Board_4x8",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2222,8 +2152,7 @@
         "id": "Board_4x9",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2239,8 +2168,7 @@
         "id": "Board_4x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2256,8 +2184,7 @@
         "id": "Board_4x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2273,8 +2200,7 @@
         "id": "Board_4x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2290,8 +2216,7 @@
         "id": "Board_4x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2307,8 +2232,7 @@
         "id": "Board_4x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -2326,8 +2250,7 @@
         "id": "Board_5x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2343,8 +2266,7 @@
         "id": "Board_5x1",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2360,8 +2282,7 @@
         "id": "Board_5x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2377,8 +2298,7 @@
         "id": "Board_5x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2402,10 +2322,10 @@
           "score": 4,
           "isBlank": false,
           "col": 5,
-          "row": 4
+          "row": 4,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -2421,8 +2341,7 @@
         "id": "Board_5x5",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2438,8 +2357,7 @@
         "id": "Board_5x6",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2455,8 +2373,7 @@
         "id": "Board_5x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2472,8 +2389,7 @@
         "id": "Board_5x8",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2489,8 +2405,7 @@
         "id": "Board_5x9",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2506,8 +2421,7 @@
         "id": "Board_5x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2523,8 +2437,7 @@
         "id": "Board_5x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2540,8 +2453,7 @@
         "id": "Board_5x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2557,8 +2469,7 @@
         "id": "Board_5x13",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2574,8 +2485,7 @@
         "id": "Board_5x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -2593,8 +2503,7 @@
         "id": "Board_6x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2610,8 +2519,7 @@
         "id": "Board_6x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2627,8 +2535,7 @@
         "id": "Board_6x2",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2644,8 +2551,7 @@
         "id": "Board_6x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2661,7 +2567,6 @@
         "id": "Board_6x4",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tileLocked": true,
         "tile": {
          "_Í": 183,
          "_Ć": "Tile",
@@ -2670,7 +2575,8 @@
           "score": 1,
           "isBlank": false,
           "col": 6,
-          "row": 4
+          "row": 4,
+          "isLocked": true
          }
         }
        }
@@ -2688,8 +2594,7 @@
         "id": "Board_6x5",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2705,8 +2610,7 @@
         "id": "Board_6x6",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2722,8 +2626,7 @@
         "id": "Board_6x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2739,8 +2642,7 @@
         "id": "Board_6x8",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2756,8 +2658,7 @@
         "id": "Board_6x9",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2773,8 +2674,7 @@
         "id": "Board_6x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2790,8 +2690,7 @@
         "id": "Board_6x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2807,8 +2706,7 @@
         "id": "Board_6x12",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2824,8 +2722,7 @@
         "id": "Board_6x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2841,8 +2738,7 @@
         "id": "Board_6x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -2860,8 +2756,7 @@
         "id": "Board_7x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 3,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2877,8 +2772,7 @@
         "id": "Board_7x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2894,8 +2788,7 @@
         "id": "Board_7x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -2919,10 +2812,10 @@
           "score": 2,
           "isBlank": false,
           "col": 7,
-          "row": 3
+          "row": 3,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -2946,10 +2839,10 @@
           "score": 1,
           "isBlank": false,
           "col": 7,
-          "row": 4
+          "row": 4,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -2973,10 +2866,10 @@
           "score": 1,
           "isBlank": false,
           "col": 7,
-          "row": 5
+          "row": 5,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -3000,10 +2893,10 @@
           "score": 1,
           "isBlank": false,
           "col": 7,
-          "row": 6
+          "row": 6,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -3027,10 +2920,10 @@
           "score": 2,
           "isBlank": false,
           "col": 7,
-          "row": 7
+          "row": 7,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -3054,10 +2947,10 @@
           "score": 1,
           "isBlank": false,
           "col": 7,
-          "row": 8
+          "row": 8,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -3081,10 +2974,10 @@
           "score": 1,
           "isBlank": false,
           "col": 7,
-          "row": 9
+          "row": 9,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -3100,8 +2993,7 @@
         "id": "Board_7x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3117,8 +3009,7 @@
         "id": "Board_7x11",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3134,8 +3025,7 @@
         "id": "Board_7x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3151,8 +3041,7 @@
         "id": "Board_7x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3168,8 +3057,7 @@
         "id": "Board_7x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 3,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -3187,8 +3075,7 @@
         "id": "Board_8x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3204,8 +3091,7 @@
         "id": "Board_8x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3221,8 +3107,7 @@
         "id": "Board_8x2",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3238,8 +3123,7 @@
         "id": "Board_8x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3255,7 +3139,6 @@
         "id": "Board_8x4",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tileLocked": true,
         "tile": {
          "_Í": 221,
          "_Ć": "Tile",
@@ -3264,7 +3147,8 @@
           "score": 2,
           "isBlank": false,
           "col": 8,
-          "row": 4
+          "row": 4,
+          "isLocked": true
          }
         }
        }
@@ -3282,8 +3166,7 @@
         "id": "Board_8x5",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3299,8 +3182,7 @@
         "id": "Board_8x6",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3316,8 +3198,7 @@
         "id": "Board_8x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3333,8 +3214,7 @@
         "id": "Board_8x8",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3350,8 +3230,7 @@
         "id": "Board_8x9",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3367,8 +3246,7 @@
         "id": "Board_8x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3384,8 +3262,7 @@
         "id": "Board_8x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3401,8 +3278,7 @@
         "id": "Board_8x12",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3418,8 +3294,7 @@
         "id": "Board_8x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3435,8 +3310,7 @@
         "id": "Board_8x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -3454,8 +3328,7 @@
         "id": "Board_9x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3471,8 +3344,7 @@
         "id": "Board_9x1",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3488,8 +3360,7 @@
         "id": "Board_9x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3505,8 +3376,7 @@
         "id": "Board_9x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3521,8 +3391,7 @@
         "row": 4,
         "id": "Board_9x4",
         "letterScoreMultiplier": 1,
-        "wordScoreMultiplier": 1,
-        "tileLocked": true
+        "wordScoreMultiplier": 1
        }
       },
       {
@@ -3538,8 +3407,7 @@
         "id": "Board_9x5",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3555,8 +3423,7 @@
         "id": "Board_9x6",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3572,8 +3439,7 @@
         "id": "Board_9x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3589,8 +3455,7 @@
         "id": "Board_9x8",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3606,8 +3471,7 @@
         "id": "Board_9x9",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3623,8 +3487,7 @@
         "id": "Board_9x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3640,8 +3503,7 @@
         "id": "Board_9x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3657,8 +3519,7 @@
         "id": "Board_9x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3674,8 +3535,7 @@
         "id": "Board_9x13",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3691,8 +3551,7 @@
         "id": "Board_9x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -3710,8 +3569,7 @@
         "id": "Board_10x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3727,8 +3585,7 @@
         "id": "Board_10x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3744,8 +3601,7 @@
         "id": "Board_10x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3761,8 +3617,7 @@
         "id": "Board_10x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3777,8 +3632,7 @@
         "row": 4,
         "id": "Board_10x4",
         "letterScoreMultiplier": 1,
-        "wordScoreMultiplier": 2,
-        "tileLocked": true
+        "wordScoreMultiplier": 2
        }
       },
       {
@@ -3794,8 +3648,7 @@
         "id": "Board_10x5",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3811,8 +3664,7 @@
         "id": "Board_10x6",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3828,8 +3680,7 @@
         "id": "Board_10x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3845,8 +3696,7 @@
         "id": "Board_10x8",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3862,8 +3712,7 @@
         "id": "Board_10x9",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3879,8 +3728,7 @@
         "id": "Board_10x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3896,8 +3744,7 @@
         "id": "Board_10x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3913,8 +3760,7 @@
         "id": "Board_10x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3930,8 +3776,7 @@
         "id": "Board_10x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3947,8 +3792,7 @@
         "id": "Board_10x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -3966,8 +3810,7 @@
         "id": "Board_11x0",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -3983,8 +3826,7 @@
         "id": "Board_11x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4000,8 +3842,7 @@
         "id": "Board_11x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4017,8 +3858,7 @@
         "id": "Board_11x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4034,8 +3874,7 @@
         "id": "Board_11x4",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4051,8 +3890,7 @@
         "id": "Board_11x5",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4068,8 +3906,7 @@
         "id": "Board_11x6",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4085,8 +3922,7 @@
         "id": "Board_11x7",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4102,8 +3938,7 @@
         "id": "Board_11x8",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4119,8 +3954,7 @@
         "id": "Board_11x9",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4136,8 +3970,7 @@
         "id": "Board_11x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4153,8 +3986,7 @@
         "id": "Board_11x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4170,8 +4002,7 @@
         "id": "Board_11x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4187,8 +4018,7 @@
         "id": "Board_11x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4204,8 +4034,7 @@
         "id": "Board_11x14",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -4223,8 +4052,7 @@
         "id": "Board_12x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4240,8 +4068,7 @@
         "id": "Board_12x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4257,8 +4084,7 @@
         "id": "Board_12x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4274,8 +4100,7 @@
         "id": "Board_12x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4291,8 +4116,7 @@
         "id": "Board_12x4",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4308,8 +4132,7 @@
         "id": "Board_12x5",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4325,8 +4148,7 @@
         "id": "Board_12x6",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4342,8 +4164,7 @@
         "id": "Board_12x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4359,8 +4180,7 @@
         "id": "Board_12x8",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4376,8 +4196,7 @@
         "id": "Board_12x9",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4393,8 +4212,7 @@
         "id": "Board_12x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4410,8 +4228,7 @@
         "id": "Board_12x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4427,8 +4244,7 @@
         "id": "Board_12x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4444,8 +4260,7 @@
         "id": "Board_12x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4461,8 +4276,7 @@
         "id": "Board_12x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -4480,8 +4294,7 @@
         "id": "Board_13x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4497,8 +4310,7 @@
         "id": "Board_13x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4514,8 +4326,7 @@
         "id": "Board_13x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4531,8 +4342,7 @@
         "id": "Board_13x3",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4548,8 +4358,7 @@
         "id": "Board_13x4",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4565,8 +4374,7 @@
         "id": "Board_13x5",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4582,8 +4390,7 @@
         "id": "Board_13x6",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4599,8 +4406,7 @@
         "id": "Board_13x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4616,8 +4422,7 @@
         "id": "Board_13x8",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4633,8 +4438,7 @@
         "id": "Board_13x9",
         "letterScoreMultiplier": 3,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4650,8 +4454,7 @@
         "id": "Board_13x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4667,8 +4470,7 @@
         "id": "Board_13x11",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4684,8 +4486,7 @@
         "id": "Board_13x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4701,8 +4502,7 @@
         "id": "Board_13x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 2,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4718,8 +4518,7 @@
         "id": "Board_13x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ],
@@ -4737,8 +4536,7 @@
         "id": "Board_14x0",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 3,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4754,8 +4552,7 @@
         "id": "Board_14x1",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4771,8 +4568,7 @@
         "id": "Board_14x2",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4788,8 +4584,7 @@
         "id": "Board_14x3",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4805,8 +4600,7 @@
         "id": "Board_14x4",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4822,8 +4616,7 @@
         "id": "Board_14x5",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4839,8 +4632,7 @@
         "id": "Board_14x6",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4856,8 +4648,7 @@
         "id": "Board_14x7",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 3,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4873,8 +4664,7 @@
         "id": "Board_14x8",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4890,8 +4680,7 @@
         "id": "Board_14x9",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4907,8 +4696,7 @@
         "id": "Board_14x10",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4924,8 +4712,7 @@
         "id": "Board_14x11",
         "letterScoreMultiplier": 2,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4941,8 +4728,7 @@
         "id": "Board_14x12",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4958,8 +4744,7 @@
         "id": "Board_14x13",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 1,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       },
       {
@@ -4975,8 +4760,7 @@
         "id": "Board_14x14",
         "letterScoreMultiplier": 1,
         "wordScoreMultiplier": 3,
-        "tile": null,
-        "tileLocked": false
+        "tile": null
        }
       }
      ]
