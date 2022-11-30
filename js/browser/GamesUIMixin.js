@@ -23,8 +23,8 @@ define([
     static GAME_TABLE_ROW = '<tr class="game" id="%k">'
     + '<td class="h-key">%k</td>'
     + '<td class="h-edition">%e</td>'
-    + '<td class="h-created">%c</td>'
     + '<td class="h-players">%p</td>'
+    + '<td class="h-last-play">%l</td>'
     + '<td class="h-state">%s</td>'
     + '</tr>';
 

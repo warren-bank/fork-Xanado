@@ -12,6 +12,7 @@ describe("BrowserGame", () => {
     requirejs.isBrowser = true;
     TS.before({
 		  Game: "browser/BrowserGame", /* global Game */
+		  Turn: "game/Turn", /* global Turn */
       jQueryUI: "jquery-ui" /* global jQueryUI */
     }, required);
   });
@@ -44,29 +45,31 @@ describe("BrowserGame", () => {
 			game.addPlayer(human1, true);
 			game.addPlayer(robot1, true);
 			game.whosTurnKey = human1.key;
-      
+      const ts = new Date("2000-04-01T01:02:03.04Z");
+      game.turns.push(new Turn({
+        type: Game.Turns.PLAYED,
+        timestamp: ts.getTime()
+      }));
       game.creationTimestamp = 0;
-      
+
       game.state = Game.State.PLAYING;
       assert.equal(
         game.tableRow("%e"),
-        `<span class="h-edition">English_Scrabble${e}`);
+        `English_Scrabble`);
       assert.equal(
-        game.tableRow("%p"),
-        `<span class="h-players">Human 1 and Robot 1${e}`);
+        game.tableRow("%p"), "Human 1 and Robot 1");
       assert.equal(
-        game.tableRow("%c"),
-        `<span class="h-created">Thu Jan 01 1970${e}`);
+        game.tableRow("%c"), "Thu Jan 01 1970");
       assert.equal(
-        game.tableRow("%s"),
-        `<span class="h-state">${$.i18n("state-playing")}${e}`);
+        game.tableRow("%l"),
+        `${ts.toLocaleDateString()} ${ts.toLocaleTimeString()}`);
+      assert.equal(
+        game.tableRow("%s"), $.i18n("state-playing"));
       game.state = Game.State.GAME_OVER;
       assert.equal(
-        game.tableRow("%s"),
-        `<span class="h-state">Human 1 won${e}`);
+        game.tableRow("%s"), "Human 1 won");
       assert.equal(
-        game.tableRow("%k"),
-        `<span class="h-key">${game.key}${e}`);
+        game.tableRow("%k"), game.key);
     });
   });
   

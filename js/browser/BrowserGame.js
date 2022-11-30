@@ -50,36 +50,40 @@ define([
      * * %c - the creation date e.g. "Thu Jan 01 1970"
      * * %e - the edition being players e.g. "English_Scrabble"
      * * %k - the key of the game
+     * * %l - date the game was last played (or was created if not played yet)
      * * %p - list of players in the game e.g "Player 1 and Player 2"
      * * %s - final game state e.g. "Game over"
      * @return {string} html string
      */
     tableRow(format) {
-      const wrap = (cls, v) => `<span class="${cls}">${v}</span>`;
       const repl = (m, p1) => {
         switch (p1) {
         case "c":
-          return wrap("h-created",
-                      new Date(this.creationTimestamp).toDateString());
+          return new Date(this.creationTimestamp).toDateString();
         case "e":
-          return wrap("h-edition", this.edition);
+          return this.edition;
         case "k":
-          return wrap("h-key", this.key);
+          return this.key;
+        case "l":
+          {
+            const t = this.lastTurn();
+            const d = new Date(t ? t.timestamp : this.creationTimestamp);
+            return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+          }
         case "p":
-          return wrap("h-players",
-            Utils.andList(this.getPlayers().map(p => p.name)));
+          return Utils.andList(this.getPlayers().map(p => p.name));
         case "s":
-          return wrap("h-state", this.hasEnded() ? $.i18n(
-            "h-won", this.getWinner().name) :
-                      this.state === Game.State.WAITING
-                      ? $.i18n("state-waiting")
-                      : $.i18n("state-playing"));
+          return this.hasEnded() ? $.i18n(
+            "h-won", this.getWinner().name)
+          : this.state === Game.State.WAITING
+          ? $.i18n("state-waiting")
+          : $.i18n("state-playing");
         default:
           assert.fail(`Bad ${p1}`);
         }
         return p1;
       };
-      return format.replace(/%([ceikpsw])/g, repl);
+      return format.replace(/%([ceklps])/g, repl);
     }
 
     /**
@@ -190,8 +194,7 @@ define([
         else
           who = $.i18n("log-player-s", player.name);
       }
-      $player.append(
-        $.i18n("player-name", who, what));
+      $player.append(`<span class="player-name">${who}</span> ${what}`);
 
       $description.append($player);
 

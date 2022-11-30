@@ -62,6 +62,11 @@ define([
       this.nextToGoKey = params.nextToGoKey;
       this.timestamp = params.timestamp;
 
+      if (!this.timestamp) {
+        debugger;
+        this.timestamp = Date.now();
+      }
+
       if (params.replacements)
         /**
          * List of tiles drawn from the bag to replace the tiles played
@@ -107,7 +112,8 @@ define([
       return {
         // Fields that are not used by the `games` interface are not
         // sent
-        type: this.type
+        type: this.type,
+        timestamp: this.timestamp
       };
     }
 

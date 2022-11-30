@@ -44,7 +44,7 @@ define([
         onSubmit(dialog, vals) {
           this.ui.createGame(vals)
           .then(game => game.save())
-          .then(game => alert(`Created ${game.key}`))
+          .then(game => alert($.i18n("Created", game.key)))
           .then(() => this.ui.refreshGames());
         },
         error: this.constructor.report
