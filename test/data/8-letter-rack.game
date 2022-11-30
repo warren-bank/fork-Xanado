@@ -3647,10 +3647,10 @@
           "letter": "N",
           "score": 1,
           "col": 0,
-          "row": 0
+          "row": 0,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -3885,10 +3885,10 @@
           "letter": "O",
           "score": 1,
           "col": 1,
-          "row": 0
+          "row": 0,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -3911,10 +3911,10 @@
           "letter": "R",
           "score": 1,
           "col": 1,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4087,10 +4087,10 @@
           "letter": "V",
           "score": 4,
           "col": 1,
-          "row": 12
+          "row": 12,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4160,10 +4160,10 @@
           "letter": "E",
           "score": 1,
           "col": 2,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4186,10 +4186,10 @@
           "letter": "M",
           "score": 3,
           "col": 2,
-          "row": 2
+          "row": 2,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4212,10 +4212,10 @@
           "letter": "U",
           "score": 1,
           "col": 2,
-          "row": 3
+          "row": 3,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4343,10 +4343,10 @@
           "letter": "Z",
           "score": 10,
           "col": 2,
-          "row": 11
+          "row": 11,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4369,10 +4369,10 @@
           "letter": "A",
           "score": 1,
           "col": 2,
-          "row": 12
+          "row": 12,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4442,10 +4442,10 @@
           "letter": "N",
           "score": 1,
           "col": 3,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4468,10 +4468,10 @@
           "letter": "O",
           "score": 1,
           "col": 3,
-          "row": 2
+          "row": 2,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4494,10 +4494,10 @@
           "letter": "N",
           "score": 1,
           "col": 3,
-          "row": 3
+          "row": 3,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4610,10 +4610,10 @@
           "letter": "G",
           "score": 2,
           "col": 3,
-          "row": 10
+          "row": 10,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4636,10 +4636,10 @@
           "letter": "E",
           "score": 1,
           "col": 3,
-          "row": 11
+          "row": 11,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4662,10 +4662,10 @@
           "letter": "T",
           "score": 1,
           "col": 3,
-          "row": 12
+          "row": 12,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4720,10 +4720,10 @@
           "letter": "D",
           "score": 2,
           "col": 4,
-          "row": 0
+          "row": 0,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4746,10 +4746,10 @@
           "letter": "E",
           "score": 1,
           "col": 4,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4787,10 +4787,10 @@
           "letter": "P",
           "score": 3,
           "col": 4,
-          "row": 3
+          "row": 3,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4813,10 +4813,10 @@
           "letter": "R",
           "score": 1,
           "col": 4,
-          "row": 4
+          "row": 4,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4839,10 +4839,10 @@
           "letter": "O",
           "score": 1,
           "col": 4,
-          "row": 5
+          "row": 5,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4865,10 +4865,10 @@
           "letter": "D",
           "score": 2,
           "col": 4,
-          "row": 6
+          "row": 6,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4921,10 +4921,10 @@
           "letter": "P",
           "score": 3,
           "col": 4,
-          "row": 9
+          "row": 9,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4947,10 +4947,10 @@
           "letter": "I",
           "score": 1,
           "col": 4,
-          "row": 10
+          "row": 10,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -4974,10 +4974,10 @@
           "score": 0,
           "isBlank": true,
           "col": 4,
-          "row": 11
+          "row": 11,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5030,10 +5030,10 @@
           "letter": "B",
           "score": 3,
           "col": 4,
-          "row": 14
+          "row": 14,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       }
      ],
@@ -5058,10 +5058,10 @@
           "letter": "E",
           "score": 1,
           "col": 5,
-          "row": 0
+          "row": 0,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5084,10 +5084,10 @@
           "letter": "W",
           "score": 4,
           "col": 5,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5125,10 +5125,10 @@
           "letter": "I",
           "score": 1,
           "col": 5,
-          "row": 3
+          "row": 3,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5166,10 +5166,10 @@
           "letter": "K",
           "score": 5,
           "col": 5,
-          "row": 5
+          "row": 5,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5192,10 +5192,10 @@
           "letter": "O",
           "score": 1,
           "col": 5,
-          "row": 6
+          "row": 6,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5218,10 +5218,10 @@
           "letter": "I",
           "score": 1,
           "col": 5,
-          "row": 7
+          "row": 7,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5259,10 +5259,10 @@
           "letter": "O",
           "score": 1,
           "col": 5,
-          "row": 9
+          "row": 9,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5330,10 +5330,10 @@
           "letter": "R",
           "score": 1,
           "col": 5,
-          "row": 13
+          "row": 13,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5356,10 +5356,10 @@
           "letter": "E",
           "score": 1,
           "col": 5,
-          "row": 14
+          "row": 14,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       }
      ],
@@ -5414,10 +5414,10 @@
           "letter": "I",
           "score": 1,
           "col": 6,
-          "row": 2
+          "row": 2,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5440,10 +5440,10 @@
           "letter": "N",
           "score": 1,
           "col": 6,
-          "row": 3
+          "row": 3,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5481,10 +5481,10 @@
           "letter": "A",
           "score": 1,
           "col": 6,
-          "row": 5
+          "row": 5,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5522,10 +5522,10 @@
           "letter": "C",
           "score": 3,
           "col": 6,
-          "row": 7
+          "row": 7,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5563,10 +5563,10 @@
           "letter": "T",
           "score": 1,
           "col": 6,
-          "row": 9
+          "row": 9,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5604,10 +5604,10 @@
           "letter": "H",
           "score": 4,
           "col": 6,
-          "row": 11
+          "row": 11,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5645,10 +5645,10 @@
           "letter": "U",
           "score": 1,
           "col": 6,
-          "row": 13
+          "row": 13,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5688,10 +5688,10 @@
           "letter": "H",
           "score": 4,
           "col": 7,
-          "row": 0
+          "row": 0,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5714,10 +5714,10 @@
           "letter": "U",
           "score": 1,
           "col": 7,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5740,10 +5740,10 @@
           "letter": "T",
           "score": 1,
           "col": 7,
-          "row": 2
+          "row": 2,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5766,10 +5766,10 @@
           "letter": "S",
           "score": 1,
           "col": 7,
-          "row": 3
+          "row": 3,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5822,10 +5822,10 @@
           "letter": "J",
           "score": 8,
           "col": 7,
-          "row": 6
+          "row": 6,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5848,10 +5848,10 @@
           "letter": "O",
           "score": 1,
           "col": 7,
-          "row": 7
+          "row": 7,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5874,10 +5874,10 @@
           "letter": "Y",
           "score": 4,
           "col": 7,
-          "row": 8
+          "row": 8,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5900,10 +5900,10 @@
           "letter": "S",
           "score": 1,
           "col": 7,
-          "row": 9
+          "row": 9,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5941,10 +5941,10 @@
           "letter": "A",
           "score": 1,
           "col": 7,
-          "row": 11
+          "row": 11,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5967,10 +5967,10 @@
           "letter": "L",
           "score": 1,
           "col": 7,
-          "row": 12
+          "row": 12,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -5993,10 +5993,10 @@
           "letter": "G",
           "score": 2,
           "col": 7,
-          "row": 13
+          "row": 13,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6019,10 +6019,10 @@
           "letter": "A",
           "score": 1,
           "col": 7,
-          "row": 14
+          "row": 14,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       }
      ],
@@ -6047,10 +6047,10 @@
           "letter": "E",
           "score": 1,
           "col": 8,
-          "row": 0
+          "row": 0,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6118,10 +6118,10 @@
           "letter": "T",
           "score": 1,
           "col": 8,
-          "row": 4
+          "row": 4,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6144,10 +6144,10 @@
           "letter": "W",
           "score": 4,
           "col": 8,
-          "row": 5
+          "row": 5,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6170,10 +6170,10 @@
           "letter": "I",
           "score": 1,
           "col": 8,
-          "row": 6
+          "row": 6,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6196,10 +6196,10 @@
           "letter": "N",
           "score": 1,
           "col": 8,
-          "row": 7
+          "row": 7,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6222,10 +6222,10 @@
           "letter": "E",
           "score": 1,
           "col": 8,
-          "row": 8
+          "row": 8,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6263,10 +6263,10 @@
           "letter": "R",
           "score": 1,
           "col": 8,
-          "row": 10
+          "row": 10,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6289,10 +6289,10 @@
           "letter": "E",
           "score": 1,
           "col": 8,
-          "row": 11
+          "row": 11,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6362,10 +6362,10 @@
           "letter": "R",
           "score": 1,
           "col": 9,
-          "row": 0
+          "row": 0,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6388,10 +6388,10 @@
           "letter": "E",
           "score": 1,
           "col": 9,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6414,10 +6414,10 @@
           "letter": "F",
           "score": 4,
           "col": 9,
-          "row": 2
+          "row": 2,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6470,10 +6470,10 @@
           "letter": "A",
           "score": 1,
           "col": 9,
-          "row": 5
+          "row": 5,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6496,10 +6496,10 @@
           "letter": "G",
           "score": 2,
           "col": 9,
-          "row": 6
+          "row": 6,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6537,10 +6537,10 @@
           "letter": "A",
           "score": 1,
           "col": 9,
-          "row": 8
+          "row": 8,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6563,10 +6563,10 @@
           "letter": "Y",
           "score": 4,
           "col": 9,
-          "row": 9
+          "row": 9,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6589,10 +6589,10 @@
           "letter": "E",
           "score": 1,
           "col": 9,
-          "row": 10
+          "row": 10,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6692,10 +6692,10 @@
           "letter": "L",
           "score": 1,
           "col": 10,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6718,10 +6718,10 @@
           "letter": "I",
           "score": 1,
           "col": 10,
-          "row": 2
+          "row": 2,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6759,10 +6759,10 @@
           "letter": "X",
           "score": 8,
           "col": 10,
-          "row": 4
+          "row": 4,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6785,10 +6785,10 @@
           "letter": "I",
           "score": 1,
           "col": 10,
-          "row": 5
+          "row": 5,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6811,10 +6811,10 @@
           "letter": "S",
           "score": 1,
           "col": 10,
-          "row": 6
+          "row": 6,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6852,10 +6852,10 @@
           "letter": "R",
           "score": 1,
           "col": 10,
-          "row": 8
+          "row": 8,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6878,10 +6878,10 @@
           "letter": "E",
           "score": 1,
           "col": 10,
-          "row": 9
+          "row": 9,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -6904,10 +6904,10 @@
           "letter": "V",
           "score": 4,
           "col": 10,
-          "row": 10
+          "row": 10,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7022,10 +7022,10 @@
           "letter": "F",
           "score": 4,
           "col": 11,
-          "row": 2
+          "row": 2,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7048,10 +7048,10 @@
           "letter": "O",
           "score": 1,
           "col": 11,
-          "row": 3
+          "row": 3,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7074,10 +7074,10 @@
           "letter": "I",
           "score": 1,
           "col": 11,
-          "row": 4
+          "row": 4,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7100,10 +7100,10 @@
           "letter": "L",
           "score": 1,
           "col": 11,
-          "row": 5
+          "row": 5,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7171,10 +7171,10 @@
           "letter": "A",
           "score": 1,
           "col": 11,
-          "row": 9
+          "row": 9,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7289,10 +7289,10 @@
           "letter": "D",
           "score": 2,
           "col": 12,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7315,10 +7315,10 @@
           "letter": "E",
           "score": 1,
           "col": 12,
-          "row": 2
+          "row": 2,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7341,10 +7341,10 @@
           "letter": "M",
           "score": 3,
           "col": 12,
-          "row": 3
+          "row": 3,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7367,10 +7367,10 @@
           "letter": "S",
           "score": 1,
           "col": 12,
-          "row": 4
+          "row": 4,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7454,10 +7454,10 @@
           "score": 0,
           "isBlank": true,
           "col": 12,
-          "row": 9
+          "row": 9,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7480,10 +7480,10 @@
           "letter": "A",
           "score": 1,
           "col": 12,
-          "row": 10
+          "row": 10,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7506,10 +7506,10 @@
           "letter": "L",
           "score": 1,
           "col": 12,
-          "row": 11
+          "row": 11,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7532,10 +7532,10 @@
           "letter": "T",
           "score": 1,
           "col": 12,
-          "row": 12
+          "row": 12,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7590,10 +7590,10 @@
           "letter": "D",
           "score": 2,
           "col": 13,
-          "row": 0
+          "row": 0,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7616,10 +7616,10 @@
           "letter": "O",
           "score": 1,
           "col": 13,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7839,10 +7839,10 @@
           "letter": "A",
           "score": 1,
           "col": 14,
-          "row": 0
+          "row": 0,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7865,10 +7865,10 @@
           "letter": "C",
           "score": 3,
           "col": 14,
-          "row": 1
+          "row": 1,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
@@ -7891,10 +7891,10 @@
           "letter": "T",
           "score": 1,
           "col": 14,
-          "row": 2
+          "row": 2,
+          "isLocked": true
          }
-        },
-        "tileLocked": true
+        }
        }
       },
       {
