@@ -23,25 +23,25 @@ describe("Square class", () => {
     assert.equal(sq.letterScoreMultiplier, 4);
     assert.equal(typeof sq.wordScoreMultiplier, "undefined");
     assert(!sq.tile);
-    assert(!sq.isLocked());
+    assert(!sq.hasLockedTile());
     assert(sq.isEmpty());
     let tile = new Tile({
       letter:'S', isBlank:false, score:1, col: 7, row: 7});
     sq.placeTile(tile);
     assert.strictEqual(sq.tile, tile);
-    assert(!sq.isLocked());
+    assert(!sq.hasLockedTile());
     assert(!sq.isEmpty());
     assert.equal(tile.col, sq.col);
     assert.equal(tile.row, sq.row);
 
     sq.unplaceTile();
     assert(!sq.tile);
-    assert(!sq.isLocked());
+    assert(!sq.hasLockedTile());
     assert(sq.isEmpty());
 
     sq.placeTile(tile, true);
     assert.strictEqual(sq.tile, tile);
-    assert(sq.isLocked());
+    assert(sq.hasLockedTile());
     assert(!sq.isEmpty());
     assert.equal(tile.col, sq.col);
     assert.equal(tile.row, sq.row);

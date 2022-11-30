@@ -625,40 +625,40 @@ define([
 
       case "ArrowUp": case "Up":
         this.moveTypingCursor(0, -1);
-        break;
+        return;
 
       case "ArrowDown": case "Down":
         this.moveTypingCursor(0, 1);
-        break;
+        return;
 
       case "ArrowLeft": case "Left":
         this.moveTypingCursor(-1, 0);
-        break;
+        return;
 
       case "ArrowRight": case "Right":
         this.moveTypingCursor(1, 0);
-        break;
+        return;
 
       case "Backspace":
       case "Delete": // Remove placement behind typing cursor
         this.unplaceLastTyped();
-        break;
+        return;
 
       case "Home": // Take back letters onto the rack
         this.takeBackTiles();
-        break;
+        return;
 
-      case "End": // Commit to move
+      case "Enter": case "End": // Commit to move
         this.action_commitMove();
-        break;
+        return;
 
-      case "@": // Shuffle rack
+      case "#": case "@": // Shuffle rack
         this.shuffleRack();
-        break;
+        return;
 
       case "?": // Pass
         this.action_pass();
-        break;
+        return;
 
       case "!": // Challenge / take back
         {
@@ -672,15 +672,14 @@ define([
               this.takeBackMove();
           }
         }
-        break;
+        return;
 
       case "*": // to place typing cursor in centre
         // (or first empty square, scanning rows from
         // the top left, if the centre is occupied)
         {
-          const mr = Math.floor(this.game.board.rows / 2);
-          const mc = Math.floor(this.game.board.cols / 2);
-          let sq = this.game.board.at(mc, mr);
+          let sq = this.game.board.at(
+            this.game.board.midcol, this.game.board.midrow);
           if (!sq.isEmpty()) {
             this.game.board.forEachSquare(
               boardSquare => {
@@ -693,15 +692,14 @@ define([
           }
           this.selectSquare(sq);
         }
-        break;
+        return;
 
       case " ":
         this.rotateTypingCursor();
-        break;
+        return;
 
       default:
         this.manuallyPlaceLetter(event.key.toUpperCase());
-        break;
       }
     }
 
@@ -781,9 +779,6 @@ define([
 
       game._debug = console.debug;
       this.game = game;
-
-      // Number of tiles placed on the board since the last turn
-      this.placedCount = 0;
 
       // Can swap up to swapCount tiles
       this.swapRack = new game.constructor.Rack(
@@ -1108,6 +1103,8 @@ define([
     moveTypingCursor(col, row) {
       if (!this.selectedSquare)
         return;
+
+      const old = this.selectedSquare;
       do {
         try {
           const nusq = this.game.board.at(
@@ -1115,12 +1112,19 @@ define([
             this.selectedSquare.row + row);
           this.selectedSquare = nusq;
         } catch (e) {
-          // off the board
-          this.selectedSquare = undefined;
+          // off the board.
+          Utils.beep();
+          return;
         }
       } while (this.selectedSquare && !this.selectedSquare.isEmpty());
-      if (this.selectedSquare)
+
+      if (this.selectedSquare) {
+        old.select(false);
         this.selectedSquare.select(true);
+      } else if (old) {
+        this.selectedSquare = old;
+        Utils.beep();
+      }
     }
 
     /**
@@ -1135,7 +1139,7 @@ define([
       console.debug(`select ${square.id}`);
 
       // Is the target square on the board and occupied by a locked tile?
-      const isLocked = square.isOnBoard && square.isLocked();
+      const isLocked = square.isOnBoard && square.hasLockedTile();
 
       // Is the target square an empty square on a rack?
       const isRackVoid = !square.isOnBoard && square.isEmpty();
@@ -1156,9 +1160,8 @@ define([
 
           if (square && square.isEmpty()) {
             // It's empty, so this is a move
-            this.selectedSquare.select(false);
             this.moveTile(this.selectedSquare, square);
-            this.selectedSquare = undefined;
+            this.clearSelect();
             return;
           }
 
@@ -1170,8 +1173,7 @@ define([
           // Selecting a different square
         }
         // Switch off the selection on the old square
-        this.selectedSquare.select(false);
-        this.selectedSquare = undefined;
+        this.clearSelect();
       }
 
       // No pre-selection, or prior selection cancelled.
@@ -1235,7 +1237,7 @@ define([
           // off the board
           sq = undefined;
         }
-      } while (sq && sq.isLocked());
+      } while (sq && sq.hasLockedTile());
       if (sq && !sq.isEmpty()) {
         // Unplace the tile, returning it to the rack
         this.takeBackTile(sq);
@@ -1345,16 +1347,8 @@ define([
 
       const tile = fromSquare.tile;
 
-      if (fromSquare.isOnBoard) {
-        if (this.boardLocked)
-          return; // can't move from board
-        if (!(toSquare.isOnBoard))
-          this.placedCount--;
-      } else if (toSquare.isOnBoard) {
-        if (this.boardLocked)
-          return; // can't move to board
-        this.placedCount++;
-      }
+      if (this.boardLocked && (fromSquare.isOnBoard || toSquare.isOnBoard))
+          return; // can't move to/from locked board
 
       fromSquare.unplaceTile();
       if (tile.isBlank) {
@@ -1415,8 +1409,8 @@ define([
         return;
       }
 
-      if (this.placedCount > 0) {
-        // Player has dropped some tiles on the board
+      // Check if player has placed any tiles
+      if (this.game.board.hasUnlockedTiles()) {
         // move action is to make the move
         this.setAction("action_commitMove", $.i18n("Finished Turn"));
         // Check that the play is legal
@@ -1551,7 +1545,7 @@ define([
       $(".hint-placement").removeClass("hint-placement");
 
       const move = this.game.board.analysePlay();
-      assert(typeof move !== "string", "Bad move");
+      assert(typeof move !== "string", `Bad move: ${move}`);
 
       const bonus = this.game.calculateBonus(move.placements.length);
       move.score += bonus;
@@ -1676,8 +1670,7 @@ define([
     takeBackTiles(noswap) {
       this.game.board.forEachSquare(
         boardSquare => {
-          if (this.takeBackTile(boardSquare))
-            this.placedCount--;
+          this.takeBackTile(boardSquare);
           return false;
         });
       if (!noswap)
@@ -1686,6 +1679,7 @@ define([
             this.takeBackTile(swapSquare);
             return false;
           });
+
       this.updateGameStatus();
     }
 
@@ -1697,7 +1691,7 @@ define([
      * @return {boolean} true if a tile was returned
      */
     takeBackTile(square) {
-      if (square.isLocked())
+      if (square.hasLockedTile())
         return false;
 
       const tile = square.unplaceTile();

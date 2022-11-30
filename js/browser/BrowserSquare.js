@@ -88,10 +88,6 @@ define([
       if ($td.hasClass("ui-droppable"))
         $td.droppable("destroy");
 
-      // Compatability hack
-      /* istanbul ignore next */
-      if (this.tileLocked) this.tile.isLocked = true;
-
       const $tile = this.tile.$ui(this);
       $td.append($tile);
     }

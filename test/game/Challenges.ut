@@ -29,7 +29,7 @@ describe("Challenges", () => {
 
   function UNit() {};
   
-  UNit("bad challenge by next player - miss turn", () => {
+  it("bad challenge by next player - miss turn", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -105,7 +105,7 @@ describe("Challenges", () => {
     });
   });
 
-  UNit("bad challenge by next player - points penalty", () => {
+  it("bad challenge by next player - points penalty", () => {
     // Implicitly tests pass
     const game = new Game({
       edition:"Test",
@@ -183,7 +183,7 @@ describe("Challenges", () => {
     });
   });
 
-  UNit("bad challenge by not-next player - points penalty", () => {
+  it("bad challenge by not-next player - points penalty", () => {
     // Implicitly tests pass
     const game = new Game({
       edition:"Test",
@@ -256,7 +256,7 @@ describe("Challenges", () => {
     });
   });
 
-  UNit("bad challenge by not-next player - miss turn", () => {
+  it("bad challenge by not-next player - miss turn", () => {
     // Implicitly tests pass
     const game = new Game({
       edition:"Test",
@@ -324,7 +324,7 @@ describe("Challenges", () => {
     });
   });
 
-  UNit("good challenge by next player", () => {
+  it("good challenge by next player", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -393,7 +393,7 @@ describe("Challenges", () => {
     });
   });
 
-  UNit("good challenge by not-next player", () => {
+  it("good challenge by not-next player", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -472,7 +472,8 @@ describe("Challenges", () => {
     });
   });
 
-  UNit("challenge by same player", () => {
+  /* This is now an assert failure
+  it("challenge by same player", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -523,8 +524,9 @@ describe("Challenges", () => {
       assert.equal(e, "Cannot challenge your own play");
     });
   });
+  */
 
-  UNit("good challenge of final play by next player", () => {
+  it("good challenge of final play by next player", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -586,7 +588,7 @@ describe("Challenges", () => {
     .then(() => socket.wait());
   });
 
-  UNit("good challenge of final play by not-next player", () => {
+  it("good challenge of final play by not-next player", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -741,7 +743,7 @@ describe("Challenges", () => {
 
   // If the bad challenge is from a not-next player,
   // it should generate a turn{type=Game.Turns.CHALLENGE_LOST}.
-  UNit("bad challenge of final play by not-next player - miss turn", () => {
+  it("bad challenge of final play by not-next player - miss turn", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -822,7 +824,7 @@ describe("Challenges", () => {
    * player 2 passed
    * player 1 tried to make a play - blew up with "Cannot find on Rack"
    */
-  UNit("play, challenge, swap", () => {
+  it("play, challenge, swap", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
@@ -1007,6 +1009,6 @@ describe("Challenges", () => {
     .then(() => game.connect(ps, paul.key))
     .then(() => game.play(john, move))
     .then(() => game.challenge(paul, john))
-    .then(() => console.debug(game.state));
+    .then(() => assert.equal(game.state, Game.State.PLAYING));
   });
 });

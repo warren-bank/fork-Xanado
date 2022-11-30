@@ -284,7 +284,7 @@ describe("Replay", () => {
       .then(() => assert.fail("Unexpected"))
       .catch(e => {
         game.stopTheClock();
-        assert.equal(e, "Cannot challenge a challenge-won");
+        assert.equal(e.message, "Cannot challenge a challenge-won");
       });
     });
   });

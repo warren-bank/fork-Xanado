@@ -19,7 +19,7 @@ define(["browser/Dialog"], Dialog => {
     createDialog() {
       const ui = this.options.ui;
       return Promise.all([
-        ui.getDictionary()
+        ui.getDictionaries()
         .then(dictionaries => {
           const $dic = this.$dlg.find('[name=dictionary]');
           dictionaries

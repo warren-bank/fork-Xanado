@@ -667,6 +667,7 @@ describe("Commands", () => {
     });
   });
 
+  /** Challenges are tested in detail in Challenges.ut
   it("challenge", () => {
     // more tests are in Challenges.ut
     const game = new Game({
@@ -704,7 +705,8 @@ describe("Commands", () => {
       assert.equal(e, "Cannot challenge your own play");
     });
   });
-  
+  */
+
   it("pause", () => {
     const game = new Game({
       edition:"Test",

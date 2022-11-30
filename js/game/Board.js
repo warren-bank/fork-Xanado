@@ -51,6 +51,14 @@ define([
     }
 
     /**
+     * Determine if any any unlocked tiles are placed on the board.
+     * @return {boolean} true if there are placed but unlocked tiles
+     */
+    hasUnlockedTiles() {
+      return this.forEachTiledSquare(sq => (!sq.tile.isLocked));
+    }
+
+    /**
      * Populate the board from a string output by
      * {@linkcode Board#toString|toString}. This is for use in tests.
      * @param {object} factory object giving Game classes to instantiate
@@ -93,13 +101,13 @@ define([
     touchingOld(col, row) {
       return (
         (col > 0 && this.at(col - 1, row).tile
-         && this.at(col - 1, row).isLocked())
+         && this.at(col - 1, row).hasLockedTile())
         || (col < this.cols - 1 && this.at(col + 1, row).tile
-            && this.at(col + 1, row).isLocked())
+            && this.at(col + 1, row).hasLockedTile())
         || (row > 0 && this.at(col, row - 1).tile
-            && this.at(col, row - 1).isLocked())
+            && this.at(col, row - 1).hasLockedTile())
         || (row < this.rows - 1 && this.at(col, row + 1).tile
-            && this.at(col, row + 1).isLocked()));
+            && this.at(col, row + 1).hasLockedTile()));
     }
 
     /* istanbul ignore next */

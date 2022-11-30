@@ -156,9 +156,9 @@ You can also use the keyboard for rapid word entry.
 * You can still use the mouse while the typing cursor is visible.
 
 There are also a number of other keyboard shortcuts for the various buttons:
-* The `End` key will make the current move.
+* The `End` or `Enter` keys will make the current move.
 * The `Home` key will take back placed tiles.
-* `@` will shuffle the rack.
+* `#` will shuffle the rack.
 * `?` will pass the current turn.
 * `!` will take back your last move, or challenge the last player's move, depending on what the log says.
 

@@ -48,8 +48,8 @@ define([
                && this.at(col, row).tile) {
           const square = this.at(col, row);
           let letterScore = square.tile.score;
-          isNewWord = isNewWord || !square.isLocked();
-          if (!square.isLocked()) {
+          isNewWord = isNewWord || !square.hasLockedTile();
+          if (!square.hasLockedTile()) {
             letterScore *= (square.letterScoreMultiplier || 1);
             wordMultiplier *= (square.wordScoreMultiplier || 1);
           }
@@ -108,13 +108,14 @@ define([
       // Find top-leftmost placed tile
       let topLeftX, topLeftY, tile;
       this.forEachTiledSquare((square, col, row) => {
-        if (square.isLocked())
+        if (square.tile.isLocked)
           return false;
         tile = square.tile;
         topLeftX = col;
         topLeftY = row;
         return true;
       });
+      assert(typeof topLeftX !== "undefined", "Nothing placed");
 
       // Remember which newly placed tile positions are legal
       const legalPlacements = new Array(this.cols);
@@ -128,7 +129,7 @@ define([
       for (let col = topLeftX + 1; col < this.cols; col++) {
         if (this.at(col, topLeftY).isEmpty())
           break;
-        if (!this.at(col, topLeftY).isLocked()) {
+        if (!this.at(col, topLeftY).hasLockedTile()) {
           legalPlacements[col][topLeftY] = true;
           horizontal = true;
           isTouchingOld =
@@ -140,7 +141,7 @@ define([
         for (let row = topLeftY + 1; row < this.rows; row++) {
           if (!this.at(topLeftX, row).tile) {
             break;
-          } else if (!this.at(topLeftX, row).isLocked()) {
+          } else if (!this.at(topLeftX, row).hasLockedTile()) {
             legalPlacements[topLeftX][row] = true;
             isTouchingOld =
             isTouchingOld || this.touchingOld(topLeftX, row);
@@ -156,7 +157,8 @@ define([
       let disco = false;
       this.forEachTiledSquare((square, col, row) => {
         totalTiles++;
-        disco = disco || (!square.isLocked() && !legalPlacements[col][row]);
+        disco = disco
+        || !(square.hasLockedTile() || legalPlacements[col][row]);
       });
 
       if (disco)
@@ -167,7 +169,7 @@ define([
 
       const placements = [];
       this.forEachTiledSquare(square => {
-        if (!square.isLocked()) {
+        if (!square.tile.isLocked) {
           placements.push(square.tile);
         }
       });

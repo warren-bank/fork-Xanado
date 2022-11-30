@@ -192,6 +192,7 @@ requirejs([
      */
     observe(game) {
       const obs = $.i18n("Observe game");
+      const ui = this;
       $("#observeDialog")
       .dialog({
         create: function () {
@@ -204,12 +205,12 @@ requirejs([
         close: function() {
           const name = encodeURIComponent(
             $(this).find("#observerName").val());
-          console.debug("Observe game", this.game.key,
+          console.debug("Observe game", game.key,
                       "as", name);
           window.open(
-            `/html/client_game.html?game=${this.game.key};observer=${name}`,
+            `/html/client_game.html?game=${game.key};observer=${name}`,
             "_blank");
-          this.refreshGame(this.game.key);
+          ui.refreshGame(game.key);
         }
       });
     }

@@ -114,9 +114,9 @@ define([
     /**
      * @return {boolean} true if a tile is placed and it is locked
      */
-    isLocked() {
-      // this.tileLocked for old game compatibility
-      return this.tile && (this.tile.isLocked || this.tileLocked);
+    hasLockedTile() {
+      // tileLocked is used in very old games
+      return this.tile && (this.tileLocked || this.tile.isLocked);
     }
 
     /**

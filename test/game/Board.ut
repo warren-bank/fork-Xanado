@@ -19,7 +19,7 @@ describe("Board class", () => {
 
   function UNit() {}
   
-  it("construct", () => {
+  it("construct, parse, place, and unplace", () => {
     return Edition.load("Test")
     .then(edition => {
       let b = new Board(Game, edition);
@@ -51,6 +51,22 @@ describe("Board class", () => {
                    "| |4| | | | | | | |4| |\n" +
                    "|8| | | | | | | | | |8|\n");
       assert.equal(b.squaresUsed(), 22);
+      b.at(0, 8).placeTile(new Tile(
+        { letter: "S" }), false);
+      assert.equal(b.stringify(),
+                   "|Q| | | | | | | | | |8|\n" +
+                   "|U|4| | | | | | | |4| |\n" +
+                   "|E| |7| | | | | |7| | |\n" +
+                   "|S|C|I|E|N|C|E|3| | | |\n" +
+                   "|T| | | |2| |2| | | | |\n" +
+                   "|I| | | | |6| | | | | |\n" +
+                   "|O|P|I|N|I|O|n| | | | |\n" +
+                   "|N| | |3| | |O|M| | | |\n" +
+                   "|S| |7| | | | | |7| | |\n" +
+                   "| |4| | | | | | | |4| |\n" +
+                   "|8| | | | | | | | | |8|\n");
+      assert.equal(b.squaresUsed(), 23);
+      assert(b.hasUnlockedTiles());
     });
   });
 
@@ -68,7 +84,7 @@ describe("Board class", () => {
       sq.placeTile(t, true);
       assert.equal(t.row, mr);
       assert.equal(t.col, mc);
-      assert(sq.isLocked());
+      assert(sq.hasLockedTile());
 
       b.at(0, 0).placeTile(new Tile({letter: "t"}), true);
       b.at(0, b.rows-1).placeTile(new Tile({letter: "T"}), true);

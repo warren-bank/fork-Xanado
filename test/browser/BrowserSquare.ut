@@ -161,7 +161,7 @@ describe("browser/Square mixin", () => {
     assert($dact[0].isEqualNode($dexp[0]),
            "\n" + $dact.html() + "\n\n" + $dexp.html());
     assert(sq.isEmpty());
-    assert(!sq.isLocked());
+    assert(!sq.hasLockedTile());
     $("body").empty();
   });
 });

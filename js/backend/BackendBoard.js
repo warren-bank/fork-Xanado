@@ -58,7 +58,7 @@ define([
         const tile = tiles[i];
         let letterScore = tile.score;
         const square = this.at(c, r);
-        if (square.isLocked()) {
+        if (square.hasLockedTile()) {
           wordScore += letterScore;
           continue; // pre-existing tile, no bonuses
         }

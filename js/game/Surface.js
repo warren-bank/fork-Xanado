@@ -163,7 +163,7 @@ define([
 
     /**
      * Get the total of the scoring tiles placed on the
-     * surface. Does not apply square multipliers.
+     * surface. DOES NOT APPLY SQUARE MULTIPLIERS.
      * @return {number} total score
      */
     score() {

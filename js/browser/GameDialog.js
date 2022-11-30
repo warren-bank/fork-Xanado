@@ -125,9 +125,9 @@ define([
       const $another = this.$dlg.find("button[name=another]").hide();
       const $observe = this.$dlg.find("button[name=observe]").hide();
       const $delete = this.$dlg.find("button[name=delete]").hide();
-      if (isActive) {
-        if (this.options.ui.session) {
-          $delete.show();
+      if (this.options.ui.session) {
+        $delete.show();
+        if (isActive) {
           if (!game.getPlayerWithKey(this.options.ui.session.key)
               && ((game.maxPlayers || 0) === 0
                   || game.getPlayers().length < game.maxPlayers))
@@ -136,11 +136,15 @@ define([
             $invite.show();
           if (!game.getPlayers().find(p => p.isRobot))
             $robot.show();
-        } else
-          // Nobody logged in, offer to observe
+        } else {
+          // Game is over, offer to observe
           $observe.show();
-      } else if (this.options.ui.session && !game.nextGameKey)
-        $another.show();
+          if (!game.nextGameKey)
+            $another.show();
+        }
+      } else
+        // Nobody logged in, offer to observe
+        $observe.show();
     }
 
     openDialog() {
