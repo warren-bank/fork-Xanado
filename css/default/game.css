@@ -241,6 +241,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
   text-align: center;
   position: relative;
   z-index: 2000;
+  opacity: 0.8;
  -webkit-border-radius: 10%;
  -moz-border-radius: 10%;
  -o-border-radius: 10%;
