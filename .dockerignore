@@ -1,8 +1,11 @@
 .git
 .gitignore
-node_modules
+.github
+*~
+passwd.*
 npm-debug.log
 Dockerfile*
+.dockerignore
 docker-compose*
 README.md
 LICENSE
@@ -11,7 +14,8 @@ Makefile
 DEVELOPER.md
 games/*.game
 test
-bin
 doc
+sessions
+node_modules
 https.*
 config*.json
