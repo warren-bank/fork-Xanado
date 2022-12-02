@@ -4,12 +4,12 @@
 /* eslint-env browser, jquery */
 
 define([
-  "platform", "common/Fridge", "common/Utils",
+  "platform", "common/Utils",
   "game/Game", "game/Player", "game/Turn",
   "browser/Dialog", "browser/UIEvents",
   "jquery", "jqueryui", "cookie", "browser/icon_button"
 ], (
-  Platform, Fridge, Utils,
+  Platform, Utils,
   Game, Player, Turn,
   Dialog, UIEvents
 ) => {
@@ -1069,7 +1069,7 @@ define([
       if (!this.selectedSquare
           || !this.selectedSquare.isEmpty()
           // Make sure the selected square is on the board!
-          || !this.selectedSquare.isOnBoard)
+          || !this.selectedSquare.isBoard)
         return;
 
       // check it's supported
@@ -1136,13 +1136,13 @@ define([
      */
     selectSquare(square) {
       assert(square, "No square selected");
-      console.debug(`select ${square.id}`);
+      console.debug(`select ${square.squid}`);
 
       // Is the target square on the board and occupied by a locked tile?
-      const isLocked = square.isOnBoard && square.hasLockedTile();
+      const isLocked = square.isBoard && square.hasLockedTile();
 
       // Is the target square an empty square on a rack?
-      const isRackVoid = !square.isOnBoard && square.isEmpty();
+      const isRackVoid = !square.isBoard && square.isEmpty();
 
       // Is a square already selected?
       if (this.selectedSquare) {
@@ -1347,12 +1347,12 @@ define([
 
       const tile = fromSquare.tile;
 
-      if (this.boardLocked && (fromSquare.isOnBoard || toSquare.isOnBoard))
+      if (this.boardLocked && (fromSquare.isBoard || toSquare.isBoard))
           return; // can't move to/from locked board
 
       fromSquare.unplaceTile();
       if (tile.isBlank) {
-        if (!toSquare.isOnBoard) {
+        if (!toSquare.isBoard) {
           tile.reset();
         } else if (ifBlank) {
           tile.letter = ifBlank;

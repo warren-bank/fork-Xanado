@@ -20,7 +20,7 @@ define([
   class BrowserTile extends Tile {
 
     /**
-     * @see Fridge
+     * @see Tagger
      */
     static UNFREEZABLE = true;
 

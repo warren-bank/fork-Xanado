@@ -7,7 +7,7 @@
 define([
   "socket.io-client",
   "platform",
-  "common/Utils", "common/Fridge",
+  "common/Utils",
   "game/Game", "game/Tile",
   "dawg/Dictionary",
   "browser/Dialog",
@@ -16,7 +16,7 @@ define([
 ], (
   Sockets,
   Platform,
-  Utils, Fridge,
+  Utils,
   Game, Tile,
   Dictionary,
   Dialog

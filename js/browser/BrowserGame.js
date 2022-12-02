@@ -5,13 +5,13 @@
 
 define([
   "platform",
-  "common/Utils", "common/Fridge",
+  "common/Utils",
   "game/Undo", "game/Commands", "game/Game",
   "browser/BrowserSquare", "browser/BrowserTile", "browser/BrowserBoard",
   "browser/BrowserPlayer", "browser/BrowserRack"
 ], (
   Platform,
-  Utils, Fridge,
+  Utils,
   Undo, Commands, Game,
   BrowserSquare, BrowserTile, BrowserBoard,
   BrowserPlayer, BrowserRack
@@ -28,7 +28,7 @@ define([
   class BrowserGame extends Undo(Commands(Game)) {
 
     /**
-     * @see Fridge
+     * @see Tagger
      */
     static UNFREEZABLE = true;
 

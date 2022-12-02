@@ -21,7 +21,7 @@ define([
   return superclass => class Undo extends superclass {
 
     /**
-     * @see Fridge
+     * @see Tagger
      * @memberof game/Undo
      */
     static UNFREEZABLE = true;

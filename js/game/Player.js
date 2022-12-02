@@ -17,7 +17,7 @@ define([
 
     // Note that we do NOT use the field syntax for the fields that
     // are serialised. If we do that, then the constructor blows the
-    // field away when loading using Freeze.
+    // field away when loading CBOR.
 
     /**
      * @param {object} spec named parameters, or other Player

@@ -77,17 +77,16 @@
 		"parserOptions": {
 			"ecmaVersion": 13
 		},
-	  "env": {
-		"shared-node-browser": true,
-		"jquery": true,
-		"es6": true
-	  },
-	  "globals": {
-        "assert": "writable",
-        "define": "writable",
+		"env": {
+			"shared-node-browser": true,
+			"jquery": true,
+			"es6": true
+		},
+		"globals": {
+			"assert": "writable",
+			"define": "writable",
 			"requirejs": "writable",
 			"Mocha": "writable",
-			"assert": "writable",
 			"WeakRef": "readonly",
 			"document": "readonly"
 		},

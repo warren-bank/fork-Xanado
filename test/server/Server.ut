@@ -361,7 +361,7 @@ describe("Server", () => {
           return;
         }
       }
-      assert(false, data);
+      assert.fail(data);
     });
 
     clientSock.on(Game.Notify.TURN, (turn, event, seqNo) => {

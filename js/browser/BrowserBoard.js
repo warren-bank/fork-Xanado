@@ -19,7 +19,7 @@ define([
   class BrowserBoard extends SurfaceMixin(Board) {
 
     /**
-     * @see Fridge
+     * @see Tagger
      */
     static UNFREEZABLE = true;
 

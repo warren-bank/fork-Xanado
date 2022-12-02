@@ -23,7 +23,7 @@ define([
 
     // Note that we do NOT use the field syntax for the fields that
     // are serialised. If we do that, then the constructor blows the
-    // field away when loading using Freeze.
+    // field away when loading using CBOR.
 
     /**
      * @param {object} factory class object mapping class name to a class

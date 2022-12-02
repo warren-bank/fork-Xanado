@@ -8,12 +8,12 @@
 define([
   "worker_threads",
   "platform",
-  "common/Fridge",
+  "common/CBOREncoder", "common/CBORDecoder", "common/Tagger",
   "backend/BackendGame"
 ], (
   threads,
   Platform,
-  Fridge,
+  CBOREncoder, CBORDecoder, Tagger,
   Game
 ) => {
 
@@ -23,8 +23,11 @@ define([
    */
   function findBestPlayController(
     game, letters, listener, dictionary) {
+    const tagger = new Tagger(Game);
+    const encoder = new CBOREncoder(tagger);
+    const decoder = new CBORDecoder(tagger);
     const ice = {
-      workerData: Fridge.freeze({
+      workerData: encoder.encode({
         game: game,
         rack: letters,
         dictionary: dictionary
@@ -46,7 +49,10 @@ define([
 
       // Pass worker messages on to listener
       worker.on("message", data => {
-        listener(Fridge.thaw(data, Game));
+        if (typeof data === "string")
+          listener(data);
+        else
+          listener(decoder.decode(data));
       });
 
       /* istanbul ignore next */

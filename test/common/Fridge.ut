@@ -8,7 +8,6 @@ describe("Fridge class", () => {
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Utils: "common/Utils",
     Fridge: 'common/Fridge'
   }, required));
 
@@ -40,10 +39,11 @@ describe("Fridge class", () => {
     assert.equal(thawed.number, simple.number);
     assert.equal(thawed.string, simple.string);
     assert.equal(thawed.date.toISOString(), simple.date.toISOString());
-    assert.equal(Utils.stringify(thawed.array), Utils.stringify(simple.array));
-    assert.equal(JSON.stringify(thawed.object), JSON.stringify(simple.object));
+    assert.deepEqual(thawed.array, simple.array);
+    assert.deepEqual(thawed.object, simple.object);
     assert(thawed.classObject instanceof Wibble);
-    assert.equal(thawed.classObject.stringify(),simple.classObject.stringify());
+    delete simple.classObject._ignore;
+    assert.deepEqual(thawed.classObject,simple.classObject);
   });
 
   it('date', () => {

@@ -6,14 +6,14 @@
 define([
   "fs", "path", "events", "cookie", "cors", "express", "errorhandler",
   "platform",
-  "common/Fridge", "common/Utils", "common/FileDatabase",
+  "common/CBOREncoder", "common/Tagger", "common/Utils", "common/FileDatabase",
   "game/Player", "game/Turn", "game/Edition",
   "backend/BackendGame",
   "server/UserManager"
 ], (
   fs, Path, Events, Cookie, cors, Express, ErrorHandler,
   Platform,
-  Fridge, Utils, FileDatabase,
+  CBOREncoder, Tagger, Utils, FileDatabase,
   Player, Turn, Edition,
   Game,
   UserManager
@@ -996,7 +996,7 @@ define([
 
     /**
      * This is designed for use when opening the `game` interface.
-     * The game is frozen using {@linkcode Fridge} before sending to fully
+     * The game is frozen using {@linkcode CBOREncoder} before sending to fully
      * encode the entire {@linkcode Game} object, including the
      * {@linkcode Player}s, {@linkcode Turn} history, and the {@linkcode Board}
      * so they can be recreated client-side. Subsequent commands and
@@ -1010,8 +1010,10 @@ define([
      */
     GET_game(req, res, next) {
       const gameKey = req.params.gameKey;
+      const tagger = new Tagger();
       return this.db.get(gameKey, Game)
-      .then(game => res.status(200).send(Fridge.freeze(game)));
+      .then(game => res.status(200)
+            .send(new CBOREncoder(tagger).encode(game)));
     }
 
     /**

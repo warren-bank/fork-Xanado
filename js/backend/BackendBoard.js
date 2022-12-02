@@ -14,7 +14,7 @@ define([
   class BackendBoard extends Board {
 
     /**
-     * @see Fridge
+     * @see Tagger
      */
     static UNFREEZABLE = true;
 

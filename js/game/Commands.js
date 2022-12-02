@@ -21,7 +21,7 @@ define([
   return superclass => class Commands extends superclass {
 
     /**
-     * @see Fridge
+     * @see Tagger
      * @memberof game/Commands
      */
     static UNFREEZABLE = true;

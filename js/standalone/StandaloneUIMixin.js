@@ -6,7 +6,7 @@
 
 define([
   "platform",
-  "common/Utils", "common/Fridge",
+  "common/Utils",
   "game/Player", "game/Edition",
   "backend/BackendGame",
   "dawg/Dictionary",
@@ -15,7 +15,7 @@ define([
   "jquery", "jqueryui"
 ], (
   Platform,
-  Utils, Fridge,
+  Utils,
   Player, Edition,
   BackendGame,
   Dictionary,

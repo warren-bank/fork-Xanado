@@ -1,0 +1,780 @@
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+License MIT. See README.md at the root of this distribution for full copyright
+and license information. Author Crawford Currie http://c-dot.co.uk*/
+/* eslint-env node, mocha */
+
+describe("CBOR", () => {
+
+  const TS = require("../TestSupport.js");
+  after(() => TS.after());
+  before(required => TS.before({
+    Utils: "common/Utils", /* global Utils */
+    Tagger: 'common/Tagger', /* global Tagger */
+    CBOREncoder: 'common/CBOREncoder', /* global CBOREncoder */
+    CBORDecoder: 'common/CBORDecoder' /* global CBORDecoder */
+  }, required));
+
+  class Wibble {
+    constructor(wib) {
+      this._ignore = 666;
+      this.wibble = wib;
+    }
+
+    stringify() {
+      return this.wibble;
+    }
+  }
+
+  function UNit() {}
+  
+  const testcases = function() {
+    function generateArrayBuffer(data) {
+      var ret = new ArrayBuffer(data.length);
+      var uintArray = new Uint8Array(ret);
+      for (var i = 0; i < data.length; ++i) {
+        uintArray[i] = data[i];
+      }
+      return new Uint8Array(data);  
+    }
+
+    return [
+      {
+        name: "PositiveIntegerFix 0",
+        data: "00",
+        expect: 0
+      },
+      {
+        name: "PositiveIntegerFix 1",
+        data: "01",
+        expect: 1
+      },
+      {
+        name: "PositiveIntegerFix 10",
+        data: "0a",
+        expect: 10
+      },
+      {
+        name: "PositiveIntegerFix 23",
+        data: "17",
+        expect: 23
+      },
+      {
+        name: "PositiveIntegerFix 24",
+        data: "1818",
+        expect: 24
+      },
+      {
+        name: "PositiveInteger8 25",
+        data: "1819",
+        expect: 25
+      },
+      {
+        name: "PositiveInteger8 100",
+        data: "1864",
+        expect: 100
+      },
+      {
+        name: "PositiveInteger16 1000",
+        data: "1903e8",
+        expect: 1000
+      },
+      {
+        name: "PositiveInteger32 1000000",
+        data: "1a000f4240",
+        expect: 1000000
+      },
+      {
+        name: "PositiveInteger64 1000000000000",
+        data: "1b000000e8d4a51000",
+        expect: 1000000000000
+      },
+      {
+        name: "PositiveInteger64 9007199254740991",
+        data: "1b001fffffffffffff",
+        expect: 9007199254740991
+      },
+      {
+        name: "PositiveInteger64 9007199254740992",
+        data: "1b0020000000000000",
+        expect: 9007199254740992
+      },
+      {
+        name: "PositiveInteger64 18446744073709551615",
+        data: "1bffffffffffffffff",
+        expect: 18446744073709551615,
+        binDiff: true
+      },
+      {
+        name: "NegativeIntegerFix -1",
+        data: "20",
+        expect: -1
+      },
+      {
+        name: "NegativeIntegerFix -10",
+        data: "29",
+        expect: -10
+      },
+      {
+        name: "NegativeIntegerFix -24",
+        data: "37",
+        expect: -24
+      },
+      {
+        name: "NegativeInteger8 -25",
+        data: "3818",
+        expect: -25
+      },
+      {
+        name: "NegativeInteger8 -26",
+        data: "3819",
+        expect: -26
+      },
+      {
+        name: "NegativeInteger8 -100",
+        data: "3863",
+        expect: -100
+      },
+      {
+        name: "NegativeInteger16 -1000",
+        data: "3903e7",
+        expect: -1000
+      },
+      {
+        name: "NegativeInteger32 -1000000",
+        data: "3a000f423f",
+        expect: -1000000
+      },
+      {
+        name: "NegativeInteger64 -1000000000000",
+        data: "3b000000e8d4a50fff",
+        expect: -1000000000000
+      },
+      {
+        name: "NegativeInteger64 -9007199254740992",
+        data: "3b001fffffffffffff",
+        expect: -9007199254740992
+      },
+      {
+        name: "NegativeInteger64 -18446744073709551616",
+        data: "3bffffffffffffffff",
+        expect: -18446744073709551616,
+        binDiff: true
+      },
+      {
+        name: "ByteString []",
+        data: "40",
+        expect: generateArrayBuffer([])
+      },
+      {
+        name: "Bytestring [1,2,3,4]",
+        data: "4401020304",
+        expect: generateArrayBuffer([1,2,3,4])
+      },
+      {
+        name: "Bytestring [1,2,3,4,5]",
+        data: "5f42010243030405ff",
+        expect: generateArrayBuffer([1,2,3,4,5]),
+        binDiff: true
+      },
+      {
+        name: "String ''",
+        data: "60",
+        expect: ""
+      },
+      {
+        name: "String 'a'",
+        data: "6161",
+        expect: "a"
+      },
+      {
+        name: "String 'IETF'",
+        data: "6449455446",
+        expect: "IETF"
+      },
+      {
+        name: "String '\"\\'",
+        data: "62225c",
+        expect: "\"\\"
+      },
+      {
+        name: "String '\u00fc' (U+00FC)",
+        data: "62c3bc",
+        expect: "\u00fc"
+      },
+      {
+        name: "String '\u6c34' (U+6C34)",
+        data: "63e6b0b4",
+        expect: "\u6c34"
+      },
+      {
+        name: "String '\ud800\udd51' (U+10151)",
+        data: "64f0908591",
+        expect: "\ud800\udd51"
+      },
+      {
+        name: "String 'streaming'",
+        data: "7f657374726561646d696e67ff",
+        expect: "streaming",
+        binDiff: true
+      },
+      {
+        name: "Array []",
+        data: "80",
+        expect: []
+      },
+      {
+        name: "Array ['a', {'b': 'c'}]",
+        data: "826161a161626163",
+        expect: ["a", {"b": "c"}]
+      },
+      {
+        name: "Array ['a, {_ 'b': 'c'}]",
+        data: "826161bf61626163ff",
+        expect: ["a", {"b": "c"}],
+        binDiff: true
+      },
+      {
+        name: "Array [1,2,3]",
+        data: "83010203",
+        expect: [1, 2, 3]
+      },
+      {
+        name: "Array [1, [2, 3], [4, 5]]",
+        data: "8301820203820405",
+        expect: [1, [2, 3], [4, 5]]
+      },
+      {
+        name: "Array [1, [2, 3], [_ 4, 5]]",
+        data: "83018202039f0405ff",
+        expect: [1, [2, 3], [4, 5]],
+        binDiff: true
+      },
+      {
+        name: "Array [1, [_ 2, 3], [4, 5]]",
+        data: "83019f0203ff820405",
+        expect: [1, [2, 3], [4, 5]],
+        binDiff: true
+      },
+      {
+        name: "Array [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]",
+        data: "98190102030405060708090a0b0c0d0e0f101112131415161718181819",
+        expect: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+      },
+      {
+        name: "Array [_ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]",
+        data: "9f0102030405060708090a0b0c0d0e0f101112131415161718181819ff",
+        expect: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
+        binDiff: true
+      },
+      {
+        name: "Array [_ 1, [2, 3], [4, 5]]",
+        data: "9f01820203820405ff",
+        expect: [1, [2, 3], [4, 5]],
+        binDiff: true
+      },
+      {
+        name: "Array [_ 1, [2, 3], [_ 4, 5]]",
+        data: "9f018202039f0405ffff",
+        expect: [1, [2, 3], [4, 5]],
+        binDiff: true
+      },
+      {
+        name: "Array [_ ]",
+        data: "9fff",
+        expect: [],
+        binDiff: true
+      },
+      {
+        name: "Object {}",
+        data: "a0",
+        expect: {}
+      },
+      {
+        name: "Object {1: 2, 3: 4}",
+        data: "a201020304",
+        expect: {1: 2, 3: 4},
+        binDiff: true
+      },
+      {
+        name: "Object {'a': 1, 'b': [2, 3]}",
+        data: "a26161016162820203",
+        expect: {"a": 1, "b": [2, 3]},
+        binDiff: true
+      },
+      {
+        name: "Object {'a': 'A', 'b': 'B', 'c': 'C', 'd': 'D', 'e': 'E'}",
+        data: "a56161614161626142616361436164614461656145",
+        expect: {"a": "A", "b": "B", "c": "C", "d": "D", "e": "E"},
+        binDiff: true
+      },
+      {
+        name: "Object {_ 'a': 1, 'b': [_ 2, 3]}",
+        data: "bf61610161629f0203ffff",
+        expect: {"a": 1, "b": [2, 3]},
+        binDiff:true
+      },
+      {
+        name: "Object {_ 'Fun': true, 'Amt': -2}",
+        data: "bf6346756ef563416d7421ff",
+        expect: {"Fun": true, "Amt": -2},
+        binDiff: true
+      },
+      {
+        name: "Tag Self-describe CBOR 0",
+        data: "d9d9f700",
+        expect: 0,
+        binDiff: true
+      },
+      {
+        name: "false",
+        data: "f4",
+        expect: false
+      },
+      {
+        name: "true",
+        data: "f5",
+        expect: true
+      },
+      {
+        name: "null",
+        data: "f6",
+        expect: null
+      },
+      {
+        name: "undefined",
+        data: "f7",
+        expect: undefined
+      },
+      {
+        name: "UnassignedSimpleValue 255",
+        data: "f8ff",
+        expect: 255,
+        binDiff: true
+      },
+      {
+        name: "Float16 0.0",
+        data: "f90000",
+        expect: 0.0,
+        binDiff: true
+      },
+      {
+        name: "Float16 -0.0",
+        data: "f98000",
+        expect: -0.0,
+        binDiff: true
+      },
+      {
+        name: "Float16 1.0",
+        data: "f93c00",
+        expect: 1.0,
+        binDiff: true
+      },
+      {
+        name: "Float16 1.5",
+        data: "f93e00",
+        expect: 1.5,
+        binDiff: true
+      },
+      {
+        name: "Float16 65504.0",
+        data: "f97bff",
+        expect: 65504.0,
+        binDiff: true
+      },
+      {
+        name: "Float16 5.960464477539063e-8",
+        data: "f90001",
+        expect: 5.960464477539063e-8,
+        binDiff: true
+      },
+      {
+        name: "Float16 0.00006103515625",
+        data: "f90400",
+        expect: 0.00006103515625,
+        binDiff: true
+      },
+      {
+        name: "Float16 -5.960464477539063e-8",
+        data: "f98001",
+        expect: -5.960464477539063e-8,
+        binDiff: true
+      },
+      {
+        name: "Float16 -4.0",
+        data: "f9c400",
+        expect: -4.0,
+        binDiff: true
+      },
+      {
+        name: "Float16 +Infinity",
+        data: "f97c00",
+        expect: Infinity,
+        binDiff: true
+      },
+      {
+        name: "Float16 NaN",
+        data: "f97e00",
+        expect: NaN,
+        binDiff: true
+      },
+      {
+        name: "Float16 -Infinity",
+        data: "f9fc00",
+        expect: -Infinity,
+        binDiff: true
+      },
+      {
+        name: "Float32 100000.0",
+        data: "fa47c35000",
+        expect: 100000.0,
+        binDiff: true
+      },
+      {
+        name: "Float32 3.4028234663852886e+38",
+        data: "fa7f7fffff",
+        expect: 3.4028234663852886e+38,
+        binDiff: true
+      },
+      {
+        name: "Float32 +Infinity",
+        data: "fa7f800000",
+        expect: Infinity,
+        binDiff: true
+      },
+      {
+        name: "Float32 NaN",
+        data: "fa7fc00000",
+        expect: NaN,
+        binDiff: true
+      },
+      {
+        name: "Float32 -Infinity",
+        data: "faff800000",
+        expect: -Infinity,
+        binDiff: true
+      },
+      {
+        name: "Float64 1.1",
+        data: "fb3ff199999999999a",
+        expect: 1.1
+      },
+      {
+        name: "Float64 9007199254740994",
+        data: "fb4340000000000001",
+        expect: 9007199254740994
+      },
+      {
+        name: "Float64 1.0e+300",
+        data: "fb7e37e43c8800759c",
+        expect: 1.0e+300
+      },
+      {
+        name: "Float64 -4.1",
+        data: "fbc010666666666666",
+        expect: -4.1
+      },
+      {
+        name: "Float64 -9007199254740994",
+        data: "fbc340000000000001",
+        expect: -9007199254740994
+      },
+      {
+        name: "Float64 +Infinity",
+        data: "fb7ff0000000000000",
+        expect: Infinity
+      },
+      {
+        name: "Float64 NaN",
+        data: "fb7ff8000000000000",
+        expect: NaN,
+        binDiff: true
+      },
+      {
+        name: "Float64 -Infinity",
+        data: "fbfff0000000000000",
+        expect: -Infinity
+      }
+    ];
+  }();
+
+  function hex2arrayBuffer(data) {
+    var length = data.length / 2;
+    var ret = new Uint8Array(length);
+    for (var i = 0; i < length; ++i) {
+      ret[i] = parseInt(data.substr(i * 2, 2), 16);
+    }
+    return ret.buffer;
+  }
+
+  testcases.forEach(function(testcase) {
+    var name = testcase.name;
+    var data = testcase.data;
+    var expected = testcase.expect;
+    var binaryDifference = testcase.binDiff;
+
+    it("basic " + name, function() {
+      const tagger = new Tagger();
+      assert.deepEqual(
+        new CBORDecoder().decode(hex2arrayBuffer(data)), expected, "Decoding");
+      var encoded = new CBOREncoder().encode(expected);
+      const actual = new CBORDecoder(tagger).decode(encoded);
+      assert.deepEqual(actual, expected, "Encoding (deepEqual)");
+      if (!binaryDifference) {
+        var hex = "";
+        var uint8Array = new Uint8Array(encoded);
+        for (var i = 0; i < uint8Array.length; ++i)
+          hex += (uint8Array[i] < 0x10 ? "0" : "") + uint8Array[i].toString(16);
+        assert.equal(hex, data, "Encoding (byteMatch)");
+      }
+    });
+  });
+
+  it("Big Array", function() {
+    const tagger = new Tagger();
+    var value = new Array(0x10001);
+    for (var i = 0; i < value.length; ++i)
+      value[i] = i;
+    assert.deepEqual(
+      new CBORDecoder(tagger).decode(
+        new CBOREncoder(tagger).encode(value)), value, 'deepEqual');
+  });
+
+  it("Remaining Bytes", function() {
+    const tagger = new Tagger();
+    var threw = false;
+    try {
+      var arrayBuffer = new ArrayBuffer(2);
+      new CBORDecoder(tagger).decode(arrayBuffer);
+    } catch (e) {
+      threw = e;
+    }
+
+    assert(threw, "Thrown exception");
+  });
+
+  it("Invalid length encoding", function() {
+    const tagger = new Tagger({ Wibble: Wibble });
+    var threw = false;
+    try {
+      new CBORDecoder(tagger).decode(hex2arrayBuffer("1e"));
+    } catch (e) {
+      threw = e;
+    }
+
+    assert(threw, "Thrown exception");
+  });
+
+  it("Invalid length", function() {
+    const tagger = new Tagger({ Wibble: Wibble });
+    var threw = false;
+    try {
+      new CBORDecoder(tagger).decode(hex2arrayBuffer("1f"));
+    } catch (e) {
+      threw = e;
+    }
+
+    assert(threw, "Thrown exception");
+  });
+
+  it("Invalid indefinite length element type", function() {
+    const tagger = new Tagger({ Wibble: Wibble });
+    var threw = false;
+    try {
+      new CBORDecoder(tagger).decode(hex2arrayBuffer("5f00"));
+    } catch (e) {
+      threw = e;
+    }
+
+    assert(threw, "Thrown exception");
+  });
+
+  it("Invalid indefinite length element length", function() {
+    const tagger = new Tagger({ Wibble: Wibble });
+    var threw = false;
+    try {
+      const encoded = hex2arrayBuffer("5f5f");
+      // This encodes a zero-length chunk, which is permitted by the spec
+      new CBORDecoder(tagger).decode(encoded);
+    } catch (e) {
+      threw = e;
+    }
+
+    assert(!threw, "Thrown exception");
+  });
+
+  it("simple-object", () => {
+
+    let simple = {
+      number: 10,
+      string: 'String',
+      _ignore: 'ignore',
+      date: new Date(1234567890123),
+      array: [ 1, 2, 3 ],
+      classObject: new Wibble('wibble'),
+      object: { data: 'lorem ipsum' }
+    };
+    const tagger = new Tagger({ Wibble: Wibble });
+    let frozen = new CBOREncoder(tagger).encode(simple);
+    let thawed = new CBORDecoder(tagger).decode(frozen);
+    assert(!thawed._ignore);
+    assert.equal(thawed.number, simple.number);
+    assert.equal(thawed.string, simple.string);
+    assert.equal(thawed.date.toISOString(), simple.date.toISOString());
+    assert.equal(Utils.stringify(thawed.array), Utils.stringify(simple.array));
+    assert.equal(JSON.stringify(thawed.object), JSON.stringify(simple.object));
+    assert(thawed.classObject instanceof Wibble);
+    delete simple.classObject["_ignore"]; // should be filtered
+    assert.deepEqual(simple.classObject, thawed.classObject);
+  });
+
+  it("date", () => {
+
+    let frood = new Date();
+    const tagger = new Tagger({ Wibble: Wibble });
+    let frozen = new CBOREncoder(tagger).encode(frood);
+    //console.log(frozen);
+    let thawed = new CBORDecoder(tagger).decode(frozen);
+    assert(thawed instanceof Date);
+    assert.deepEqual(frood, thawed);
+  });
+
+  it("instance-ref", () => {
+
+    let frood = new Wibble('frood1');
+    let simple = {
+      obj1: frood,
+      obj2: frood,
+      obj3: new Wibble('not frood')
+    };
+    const tagger = new Tagger({ Wibble: Wibble });
+    let frozen = new CBOREncoder(tagger).encode(simple);
+    let thawed = new CBORDecoder(tagger).decode(frozen);
+    assert(thawed.obj1 instanceof Wibble);
+    assert(thawed.obj2 instanceof Wibble);
+    assert.deepEqual(thawed.obj1, thawed.obj2);
+  });
+
+  it("array", () => {
+
+    let frood = [ 1, 2, 3, 4];
+    const tagger = new Tagger({ Wibble: Wibble });
+    let frozen = new CBOREncoder(tagger).encode(frood);
+    //console.log(frozen);
+    let thawed = new CBORDecoder(tagger).decode(frozen);
+    //console.log(JSON.stringify(thawed));
+    assert.deepEqual(frood, thawed);
+  });
+
+  it("array-ref", () => {
+
+    let frood = [ 1, 2, 3, 4];
+    let simple = {
+      obj1: frood,
+      obj2: frood
+    };
+    const tagger = new Tagger();
+    let frozen = new CBOREncoder(tagger).encode(simple);
+    //console.log(frozen);
+    let thawed = new CBORDecoder(tagger).decode(frozen);
+    //console.log(JSON.stringify(thawed));
+    assert.deepEqual(thawed.obj1, thawed.obj2);
+  });
+
+  it("array-of", () => {
+
+    let frood = [ { 1: 2, 3: 4} ];
+    const tagger = new Tagger({ Wibble: Wibble });
+    let frozen = new CBOREncoder(tagger).encode(frood);
+    //console.log(frozen);
+    let thawed = new CBORDecoder(tagger).decode(frozen);
+    //console.log(JSON.stringify(thawed));
+    assert.deepEqual(frood, thawed);
+  });
+
+  it("two refs to same simple object", () => {
+
+    let frood = { 1: 2, 3: 4 };
+    let simple = {
+      obj1: frood,
+      obj2: frood
+    };
+    const tagger = new Tagger({});
+    let frozen = new CBOREncoder(tagger).encode(simple);
+    //console.log(frozen);
+    let thawed = new CBORDecoder(tagger).decode(frozen);
+    //console.log(JSON.stringify(thawed));
+    assert.deepEqual(thawed.obj1, thawed.obj2);
+  });
+
+  it("self-referential", () => {
+
+    let frood = new Wibble();
+    frood.wibble = frood;
+    const tagger = new Tagger({ Wibble: Wibble });
+    let frozen = new CBOREncoder(tagger).encode(frood);
+    //console.log(frozen);
+    let thawed = new CBORDecoder(tagger).decode(frozen);
+    //console.log(JSON.stringify(thawed));
+    assert.deepEqual(thawed.obj1, thawed.obj2);
+  });
+
+  it("simple mixins", () => {
+    class Gibber {
+      constructor() {}
+      obj() { return true; }
+    }
+    // add a mixin
+    const mix = {
+      mixin() { return true; }
+    };
+    Object.assign(Gibber.prototype, mix);
+
+    const tagger = new Tagger({ Gibber: Gibber });
+    let mixedup = new Gibber();
+    assert(mixedup.obj());
+    assert(mixedup.mixin());
+    let frozen = new CBOREncoder(tagger).encode(mixedup);
+    let thawed = new CBORDecoder(tagger).decode(frozen);
+    assert(thawed.obj());
+    assert(thawed.mixin());
+  });
+
+  it("wrapping mixins", () => {
+    class A {
+      a = "A";
+      A() { return "A"; }
+    }
+
+    const mixin = superclass => class B extends superclass {
+      b = "B";
+      B() { return "B"; }
+    };
+
+    class C extends mixin(A) {
+      static UNFREEZABLE = true;
+      c = "C";
+      C() { return "C"; }
+    }
+
+    let mixedup = new C();
+    assert.equal(mixedup.A(), "A");
+    assert.equal(mixedup.B(), "B");
+    assert.equal(mixedup.C(), "C");
+
+    // Because C is UNFREEZABLE, mixedup will be serialised with the class
+    // "B". To fully deserialise we have to map serialised object of class
+    // B to the original class C
+
+    let frozen = new CBOREncoder(new Tagger()).encode(mixedup);
+    let thawed = new CBORDecoder(new Tagger({ B: C })).decode(frozen);
+    assert(thawed instanceof A);
+    // B is not defined, it's a mixin
+    assert(thawed instanceof C);
+    assert.equal(thawed.a, "A");
+    assert.equal(thawed.A(), "A");
+    assert.equal(thawed.b, "B");
+    assert.equal(thawed.B(), "B");
+    assert.equal(thawed.c, "C");
+    assert.equal(thawed.C(), "C");
+  });
+});

@@ -217,7 +217,7 @@ define([
 
     // Note that we do NOT use the field syntax for the fields that
     // are serialised. If we do that, then the constructor blows the
-    // field away when loading using Freeze.
+    // field away when loading using CBOR.
 
     /**
      * A new game is constructed from scratch by
@@ -1061,7 +1061,6 @@ define([
       turn = new Turn(turn);
       turn.gameKey = this.key;
       turn.playerKey = player.key;
-      turn.timestamp = Date.now();
 
       // store turn (server side)
       this.pushTurn(turn);

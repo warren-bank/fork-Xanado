@@ -11,6 +11,9 @@ define(() => {
   const IB_REF = "_\u0154";
 
   /**
+   * OLD CODE, now maintained just for compatibility.
+   * Use {@linkcode CBOR} instead.
+   *
    * Simple serialisation/deserialisation of a JS object
    * graph to stand-alone JSON. Does not handle function
    * references. Full restoration of objects requires classes
@@ -38,6 +41,7 @@ define(() => {
    * If the class of an object has the UNFREEZABLE attribute, then
    * the name of that class won't be frozen. Instead the identifier of
    * the superclass will be used (ultimately, Object).
+   * @deprecated since version 3.1.0
    */
   class Fridge {
 
@@ -45,6 +49,7 @@ define(() => {
      * Convert an object graph to stand-alone JSON.
      * @param {object} object - object to freeze
      * @return {object} the frozen version of the object
+     * @deprecated since version 3.1.0
      */
     static freeze(object) {
       const objectsFrozen = [];
@@ -128,12 +133,12 @@ define(() => {
         return frozen;
       }
 
-      // Clean out temporary fields used in freezing
       const frozen = _freeze(object);
+      // Clean out temporary fields used in freezing
       for (let uf of objectsFrozen)
         delete uf[IB_ID];
 
-      return frozen;
+      return JSON.stringify(frozen, null, 1);
     }
 
     /**
@@ -142,12 +147,14 @@ define(() => {
      * thawing, that constructor name has to be mapped to a
      * prototype. If a useable constructor is not found, a
      * warning will be printed to the console.
-     * @param {object} frozen object to thaw
+     * @param {string|buffer} json JSON of object to thaw
      * @param {object.<string,object>} typeMap optional map from class name
      * to class for objects expected within frozen data.
+     * @deprecated since version 3.1.0
      */
-    static thaw(object, typeMap) {
+    static thaw(json, typeMap) {
       const objectsThawed = [];
+
       function _thaw(object) {
         if (!object || typeof object !== "object")
           return object;
@@ -198,6 +205,7 @@ define(() => {
         return thawed;
       }
 
+      const object = JSON.parse(json);
       return _thaw(object);
     }
   }

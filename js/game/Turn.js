@@ -60,12 +60,7 @@ define([
       this.type = params.type;
       this.playerKey = params.playerKey;
       this.nextToGoKey = params.nextToGoKey;
-      this.timestamp = params.timestamp;
-
-      if (!this.timestamp) {
-        debugger;
-        this.timestamp = Date.now();
-      }
+      this.timestamp = params.timestamp || Date.now();
 
       if (params.replacements)
         /**

@@ -18,7 +18,7 @@ define([
    */
   class BrowserRack extends SurfaceMixin(Rack) {
     /**
-     * @see Fridge
+     * @see Tagger
      */
     static UNFREEZABLE = true;
   }

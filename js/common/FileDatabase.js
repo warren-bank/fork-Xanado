@@ -4,13 +4,14 @@
 /* eslint-env node */
 
 define([
-  "fs", "path", "proper-lockfile",
-  "common/Fridge", "common/Database"
+  "common/CBOREncoder", "common/CBORDecoder", "common/Tagger", "common/Database"
 ], (
-  fs, Path, Lock,
-  Fridge, Database
+  CBOREncoder, CBORDecoder, Tagger, Database
 ) => {
-  const Fs = fs.promises;
+
+  const Fs = require("fs").promises;
+  const Path = require("path");
+  const Lock = require("proper-lockfile");
 
   /**
    * Simple file database implementing {@linkcode Database} for use
@@ -47,7 +48,7 @@ define([
     set(key, data) {
       assert(!/^\./.test(key));
       const fn = Path.join(this.directory, `${key}.${this.ext}`);
-      const s = JSON.stringify(Fridge.freeze(data), null, 1);
+      const s = new CBOREncoder(new Tagger()).encode(data);
       //console.log("Writing", fn);
       return Fs.access(fn)
       .then(acc => { // file exists
@@ -72,7 +73,17 @@ define([
         .then(data => {
           if (typeof release === "function")
             release();
-          return Fridge.thaw(JSON.parse(data.toString()), classes);
+          try {
+            return new CBORDecoder(new Tagger(classes)).decode(data);
+          } catch (e) {
+            // Compatibility; try using Fridge, versions of FileDatabase
+            // prior to 3.1.0 used it.
+            return new Promise(resolve => {
+              requirejs([ "common/Fridge" ], Fridge => {
+                resolve(Fridge.thaw(data.toString(), classes));
+              });
+            });
+          }
         })
         .catch(e => {
           if (typeof release === "function")

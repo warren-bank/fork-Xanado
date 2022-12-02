@@ -5,14 +5,14 @@
 
 define([
   "platform",
-  "common/Fridge", "common/Utils",
+  "common/CBORDecoder", "common/Tagger", "common/Utils",
   "browser/BrowserGame",
   "browser/UI", "browser/GameUIMixin", "browser/Dialog",
   "client/ClientUIMixin",
   "jquery", "jqueryui", "cookie", "browser/icon_button"
 ], (
   Platform,
-  Fridge, Utils,
+  CBORDecoder, Tagger, Utils,
   Game,
   UI, GameUIMixin, Dialog,
   ClientUIMixin
@@ -74,7 +74,7 @@ define([
         return $.get(`/game/${gameKey}`)
         .then(frozen => {
           this.debug(`--> Game ${gameKey}`);
-          return Fridge.thaw(frozen, Game);
+          return new CBORDecoder(new Tagger(Game)).decode(frozen);
         })
         .then(game => {
           return this.identifyPlayer(game)

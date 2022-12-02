@@ -22,7 +22,7 @@ define([
   return superclass => class Replay extends superclass {
 
     /**
-     * @see Fridge
+     * @see Tagger
      * @memberof game/Replay
      */
     static UNFREEZABLE = true;

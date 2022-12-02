@@ -37,7 +37,7 @@ define(() => {
      * Promise to get a key value
      * @param {string} key the entry key
      * @param {Object[]} classes list of classes that may occur in the
-     * data, as passed to {@linkcode Fridge#thaw|Fridge.thaw}
+     * data, as passed to {@linkcode Tagger}
      * @return {Promise} resolves to the key value
      */
     get(key, classes) {}

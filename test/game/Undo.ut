@@ -10,10 +10,12 @@ describe("Undo", () => {
   before(required => TS.before({
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
     TestSocket: 'test/TestSocket', /* global TestSocket */
-    Fridge: "common/Fridge", /* global Fridge */
     Utils: "common/Utils", /* global Utils */
     FileDatabase: "common/FileDatabase", /* global FileDatabase */
-
+    CBOREncoder: "common/CBOREncoder", /* global CBOREncoder */
+    CBORDecoder: "common/CBORDecoder", /* global CBORDecoder */
+    Tagger: "common/Tagger", /* global Tagger */
+    
     Tile: "game/Tile", /* global Tile */
     LetterBag: "game/LetterBag", /* global LetterBag */
     Player: "game/Player", /* global Player */
@@ -92,6 +94,9 @@ describe("Undo", () => {
     })
     .on("*", (data, event) => {});
 
+    const tagger = new Tagger(Game);
+    const encoder = new CBOREncoder(tagger);
+    const decoder = new CBORDecoder(tagger);
     let A, B, C, D, E, preswap;
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -105,16 +110,16 @@ describe("Undo", () => {
       game.addPlayer(human2, true);
     })
     .then(() => game.connect(frontend, human1.key))
-    .then(() => preswap = Fridge.thaw(Fridge.freeze(game), Game))
+    .then(() => preswap = decoder.decode(encoder.encode(game, tagger), tagger))
     .then(() => game.swap(human1, [ A, C, E ]))
     .then(() => frontend.wait())
     .then(() => {
-      const postswap = Fridge.thaw(Fridge.freeze(game), Game);
+      const postswap = decoder.decode(encoder.encode(game));
       assert.deepEqual(postswap.board, preswap.board);
     })
     .then(() => game.undo(game.popTurn(), true))
     .then(() => {
-      const postundo = Fridge.thaw(Fridge.freeze(game), Game);
+      const postundo = decoder.decode(encoder.encode(game));
       assert.deepEqual(postundo.board, preswap.board);
       assertGameEqual(postundo, preswap);
     });
@@ -151,6 +156,9 @@ describe("Undo", () => {
       assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
     });
     let A, B, C, D, E, prepass;
+    const tagger = new Tagger(Game);
+    const encoder = new CBOREncoder(tagger);
+    const decoder = new CBORDecoder(tagger);
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
     .then(game => {
@@ -164,12 +172,12 @@ describe("Undo", () => {
       game.whosTurnKey = human1.key;
     })
     .then(() => game.connect(socket, human1.key))
-    .then(() => prepass = Fridge.thaw(Fridge.freeze(game), Game))
+    .then(() => prepass = decoder.decode(encoder.encode(game)))
     .then(() => game.pass(human1, Game.Turns.PASSED))
     .then(() => game.undo(game.popTurn()))
     .then(() => socket.wait())
     .then(() => {
-      const postundo = Fridge.thaw(Fridge.freeze(game), Game);
+      const postundo = decoder.decode(encoder.encode(game));
       assertGameEqual(postundo, prepass);
     });
   });
@@ -214,6 +222,9 @@ describe("Undo", () => {
     });
 
     let preplay;
+    const tagger = new Tagger(Game);
+    const encoder = new CBOREncoder(tagger);
+    const decoder = new CBORDecoder(tagger);
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
     .then(game => {
@@ -227,12 +238,12 @@ describe("Undo", () => {
       game.whosTurnKey = human1.key;
     })
     .then(() => game.connect(socket, human1.key))
-    .then(() => preplay = Fridge.thaw(Fridge.freeze(game), Game))
+    .then(() => preplay = decoder.decode(encoder.encode(game)))
     .then(() => game.play(human1, move))
     .then(() => game.undo(game.popTurn()))
     .then(() => socket.wait())
     .then(() => {
-      const postundo = Fridge.thaw(Fridge.freeze(game), Game);
+      const postundo = decoder.decode(encoder.encode(game));
       assertGameEqual(postundo, preplay);
     });
   });
@@ -281,6 +292,9 @@ describe("Undo", () => {
     socket.on("*", (turn, event) => {
     });
     let preplay, pretakeback, posttakeback;
+    const tagger = new Tagger(Game);
+    const encoder = new CBOREncoder(tagger);
+    const decoder = new CBORDecoder(tagger);
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
     .then(() => {
@@ -292,16 +306,16 @@ describe("Undo", () => {
       game.addPlayer(human2, true);
     })
     .then(() => game.connect(socket, human1.key))
-    .then(() => preplay = Fridge.thaw(Fridge.freeze(game), Game))
+    .then(() => preplay = decoder.decode(encoder.encode(game)))
     .then(() => game.play(human1, move))
-    .then(() => pretakeback = Fridge.thaw(Fridge.freeze(game), Game))
+    .then(() => pretakeback = decoder.decode(encoder.encode(game)))
     .then(() => game.takeBack(human1, Game.Turns.TOOK_BACK))
-    .then(() => posttakeback = Fridge.thaw(Fridge.freeze(game), Game))
+    .then(() => posttakeback = decoder.decode(encoder.encode(game)))
     .then(() => assertGameEqual(posttakeback, preplay, true))
     .then(() => game.undo(game.popTurn()))
     .then(() => socket.wait())
     .then(() => {
-      const postundo = Fridge.thaw(Fridge.freeze(game), Game);
+      const postundo = decoder.decode(encoder.encode(game));
       assertGameEqual(postundo, pretakeback);
     });
   });

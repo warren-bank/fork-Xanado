@@ -4,7 +4,8 @@
 /* eslint-env browser, jquery */
 
 define([
-  "common/Utils", "common/Fridge", "common/Channel",
+  "common/Utils", "common/Channel",
+  "common/CBOREncoder", "common/CBORDecoder", "common/Tagger",
   "dawg/Dictionary",
   "backend/BackendGame",
   "browser/BrowserGame",
@@ -12,7 +13,8 @@ define([
   "standalone/StandaloneUIMixin",
   "touch-punch"
 ], (
-  Utils, Fridge, Channel,
+  Utils, Channel,
+  CBOREncoder, CBORDecoder, Tagger,
   Dictionary,
   BackendGame,
   BrowserGame,
@@ -144,8 +146,10 @@ define([
         this.attachChannelHandlers();
 
         // Make a browser copy of the game
+        const tagger = new Tagger(BrowserGame);
         this.frontEndGame =
-        Fridge.thaw(Fridge.freeze(this.backEndGame), BrowserGame);
+        new CBORDecoder(tagger).decode(
+          new CBOREncoder(tagger).encode(this.backEndGame, tagger), tagger);
 
         // Fix the player
         this.player

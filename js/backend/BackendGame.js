@@ -25,7 +25,7 @@ define([
   class BackendGame extends Undo(Replay(Commands(Game))) {
 
     /**
-     * @see Fridge
+     * @see Tagger
      */
     static UNFREEZABLE = true;
 

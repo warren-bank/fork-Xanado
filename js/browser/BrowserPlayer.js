@@ -21,7 +21,7 @@ define([
   class BrowserPlayer extends Player {
 
     /**
-     * @see Fridge
+     * @see Tagger
      */
     static UNFREEZABLE = true;
 

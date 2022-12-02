@@ -12,7 +12,7 @@ define([ "jquery" ], () => {
   return superclass => class SurfaceMixin extends superclass {
 
     /**
-     * @see Fridge
+     * @see Tagger
      */
     static UNFREEZABLE = true;
 

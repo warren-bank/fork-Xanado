@@ -51,8 +51,9 @@ requirejs.config({
     "touch-punch":
     "node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch",
 
-    "socket.io-client":
-    "node_modules/socket.io/client-dist/socket.io",
+    "socket.io-client": "node_modules/socket.io/client-dist/socket.io",
+
+    "cbor": "node_modules/cbor-x/dist/index",
 
     cookie:
     "node_modules/jquery.cookie/jquery.cookie",

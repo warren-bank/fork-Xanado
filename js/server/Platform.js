@@ -5,11 +5,11 @@
 
 define([
   "assert", "fs", "path", "proper-lockfile", "get-user-locale",
-  "common/Fridge", "common/Platform",
+  "common/Platform",
   "server/I18N"
 ], (
   Assert, fs, Path, Lock, Locale,
-  Fridge, Platform,
+  Platform,
   I18N
 ) => {
   const Fs = fs.promises;

@@ -15,6 +15,7 @@ describe("Game", () => {
     Player: "game/Player", /* global Player */
     Game: "game/Game", /* global Game */
     Move: "game/Move", /* global Move */
+    Square: "game/Square", /* global Square */
     Turn: "game/Turn" /* global Turn */
   }, required));
 
@@ -269,7 +270,7 @@ describe("Game", () => {
       });
       assert.equal(i, 2);
 
-      assert.equal(game.at(0, 0).id, "Board_0x0");
+      assert(game.at(0, 0) instanceof Square);
 
       return game.serialisable();
     })

@@ -12,7 +12,7 @@ define(() => {
 
     // Note that we do NOT use the field syntax for the fields that
     // are serialised. If we do that, then the constructor blows the
-    // field away when loading using Freeze.
+    // field away when loading using CBOR.
 
     /**
      * @param {Tile|object} spec optional Tile to copy or spec of tile

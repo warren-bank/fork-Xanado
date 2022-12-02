@@ -19,12 +19,12 @@ define([
 
     // Note that we do NOT use the field syntax for the fields that
     // are serialised. If we do that, then the constructor blows the
-    // field away when loading using Freeze.
+    // field away when loading using CBOR.
 
     /**
      * @param {object} spec Specification
      * @param {string} spec.type /^[QqTtSs_]$/ see {@linkcode Board}
-     * @param {string} spec.base base of #tag e.g. "Board_"
+     * @param {Surface} spec.surface Surface the square is on
      * @param {number} spec.col 0-based column where the square is
      * @param {number?} spec.row 0-based row where the square is
      * (undefined on a rack)
@@ -36,18 +36,21 @@ define([
        * @member {string}
        */
       this.type = spec.type;
+      assert(this.type);
+
+      /**
+       * Surface the square is on
+       * @member {Surface}
+       */
+      this.surface = spec.surface;
+      assert(this.surface);
 
       /**
        * 0-based column where the square is.
        * @member {number}
        */
       this.col = spec.col;
-
-      /**
-       * Unique id for this square
-       * @member {string}
-       */
-      this.id = `${spec.base}_${this.col}`;
+      assert(typeof this.col === "number");
 
       if (typeof spec.row !== "undefined") {
         /**
@@ -55,13 +58,6 @@ define([
          * @member {number?}
          */
         this.row = spec.row;
-        this.id += `x${this.row}`;
-        /**
-         * Flag indicating if this square is at a 2D position and
-         * therefore on the game board.
-         * @member {boolean?}
-         */
-        this.isOnBoard = true;
       }
 
       if (spec.tile) {
@@ -102,6 +98,17 @@ define([
       case "T": this.wordScoreMultiplier = 3; break;
       case "Q": this.wordScoreMultiplier = 4; break;
       }
+    }
+
+    /**
+     * Flag indicating if this square is at a 2D position and
+     * therefore on the game board.
+     * @return {boolean}
+     */
+    get isBoard() {
+      if (this.isOnBoard) // Compatibility - old game file format
+        return true;
+      return typeof this.row !== "undefined";
     }
 
     /**
@@ -165,13 +172,13 @@ define([
      */
     stringify() {
       // All squares have a col
-      let string = `${this.type} square @ ${this.col}`;
+      let string = `#${this.type}@${this.col}`;
       // Squares on the board have a row too
       if (this.row >= 0)
         string += "," + this.row;
 
       if (this.tile)
-        string += ` => ${this.tile}`;
+        string += `<=${this.tile.stringify()}`;
       return string;
     }
   }

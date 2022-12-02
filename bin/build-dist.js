@@ -137,15 +137,32 @@ if (!options.debug) {
 
 const cfg = new Configurator(inBase, options);
 
-updateIndexes(inBase)
-.then(() => cfg.copyDir("audio", f => /\.mp3$/.test(f)))
-.then(() => cfg.copyDir("css", f => f === "index.json" || /\.css$/.test(f), true))
-.then(() => cfg.copyDir("dictionaries", f => f === "index.json" || /\.dict$/.test(f)))
-.then(() => cfg.copyDir("editions", f => f === "index.json" || /\.js$/.test(f)))
-.then(() => cfg.copyDir("i18n", f => f === "index.json" || /\.json$/.test(f)))
-.then(() => cfg.copyDir("images", f => /\.(jpg|svg|gif|png|ico)$/.test(f)))
-.then(() => cfg.mkPathTo(Path.join("games", "README")))
-.then(() => cfg.mkPathTo(Path.join("sessions", "README")))
-.then(() => analyseHTMLs(cfg));
+Promise.all([
+  cfg.copyDir("audio", f => /\.mp3$/.test(f)),
+  cfg.copyDir("images", f => /\.(jpg|svg|gif|png|ico)$/.test(f)),
+  cfg.mkPathTo(Path.join("games", "README")),
+  cfg.mkPathTo(Path.join("sessions", "README")),
+  updateIndexes(inBase)
+  .then(() => Promise.all([
+    cfg.copyDir("css", f => f === "index.json" || /\.css$/.test(f), true),
+    cfg.copyDir("dictionaries", f => f === "index.json" || /\.dict$/.test(f)),
+    cfg.copyDir("editions", f => f === "index.json" || /\.js$/.test(f)),
+    cfg.copyDir("i18n", f => f === "index.json" || /\.json$/.test(f))
+  ])),
+  analyseHTMLs(cfg)
+])
+.then(() => {
+  const exec = require("child_process").exec;
+  const script = exec("npm run docker");
+  script.stdout.on('data', data => {
+    console.log(data.toString());
+  });
+  script.stderr.on('data', data => {
+    console.error(data.toString());
+  });
+  script.on('exit', code => {
+    console.log('Build finished ' + code);
+  });
+});
 
 

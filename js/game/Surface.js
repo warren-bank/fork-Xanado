@@ -17,7 +17,7 @@ define([
 
     // Note that we do NOT use the field syntax for the fields that
     // are serialised. If we do that, then the constructor blows the
-    // field away when loading using Freeze.
+    // field away when loading using CBOR.
 
     /**
      * @param {object} factory class object mapping class name to a class
@@ -60,7 +60,7 @@ define([
         for (let j = 0; j < this.rows; j++) {
           const sq = {
             type: spec.type(i, j),
-            base: this.id,
+            surface: this,
             col: i
           };
           if (spec.rows > 1)

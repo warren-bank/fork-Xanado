@@ -30,9 +30,23 @@ define([
   class BrowserSquare extends Square {
 
     /**
-     * @see Fridge
+     * @see Tagger
      */
     static UNFREEZABLE = true;
+
+    /**
+     * Get the unique id for this square, for use in DOM id attributes.
+     * @return {string}
+     */
+    get squid() {
+      if (this.id)
+        // compatibility with old games, which have id but not surface
+        return this.id;
+      let id = `${this.surface.id}_${this.col}`;
+      if (typeof this.row !== "undefined")
+        id += `x${this.row}`;
+      return id;
+    }
 
     /**
      * Create the jquery representation of the square.
@@ -41,7 +55,7 @@ define([
     $populate($td) {
       $td
       .addClass(`square-${this.type}`)
-      .attr("id", this.id)
+      .attr("id", this.squid)
       .on("click",
           () => Platform.trigger(UIEvents.SELECT_SQUARE, [ this ]));
 
@@ -80,7 +94,7 @@ define([
      * undefined, the TD will be found from the id.
      */
     $placeTile($td) {
-      if (!$td) $td = $(`#${this.id}`);
+      if (!$td) $td = $(`#${this.squid}`);
 
       assert(this.tile, "No tile");
 
@@ -111,7 +125,7 @@ define([
 
       assert(!this.tile, "Can't $unplace a placed tile");
 
-      if (!$td) $td = $(`#${this.id}`);
+      if (!$td) $td = $(`#${this.squid}`);
 
       // There may be no TD if the tile is being unplaced from
       // another player's rack.
@@ -165,7 +179,7 @@ define([
       if (this.tile)
         this.tile.showSelected(sel);
       else if (sel)
-        $(`#${this.id}`).prepend($tc.show());
+        $(`#${this.squid}`).prepend($tc.show());
     }
   }
 

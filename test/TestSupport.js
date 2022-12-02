@@ -14,6 +14,7 @@ requirejs.config({
   nodeRequire: require,
   paths: {
     "jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
+    bson: "node_modules/bson/lib/bson",
     common: "js/common",
     game: "js/game",
     dawg: "js/dawg",
