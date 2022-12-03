@@ -3,14 +3,14 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 
 /**
- * Abstract base class for tagger objects passed to CBOR for encode/decode.
+ * Interface for tagger objects passed to CBOR for encode/decode.
  * During encoding, the tagger `encode()` method is called on every
  * key-value object. The tagger function can decide whether to generate
  * a tag to indicate special semantics for the object, or even replace
  * it completely.
  *
  * See the CBOR specification for information about tagging.
- * @abstract
+ * @interface
  */
 class CBORTagger {
 

@@ -71,7 +71,7 @@ define(() => {
           this.tagger.cleanUp();
 
         if (this.offset !== data.byteLength)
-          throw Error(`Remaining bytes: ${this.offset} is not ${data.byteLength}`);
+          throw Error(`CBOR excess data: read ${this.offset} of ${data.byteLength}`);
 
         return ret;
       }
@@ -79,13 +79,13 @@ define(() => {
       if (data instanceof ArrayBuffer)
         return this.decode(new DataView(data, 0, data.length));
 
-      if (!data.buffer
-          || typeof data.byteLength === "undefined"
-          || typeof data.byteOffset === "undefined")
-        throw Error("Bad parameter to constructor");
+      // TypedArray, but node.js doesn't define it so can't use instanceof
+      assert(data.buffer
+             && typeof data.byteLength === "number"
+             && typeof data.byteOffset == "number");
 
-      // TypedArray, but node.js doesn't define it
-      return this.decode(new DataView(data.buffer, data.byteOffset, data.byteLength));
+      return this.decode(
+        new DataView(data.buffer, data.byteOffset, data.byteLength));
     }
 
     /**

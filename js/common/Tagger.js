@@ -14,8 +14,18 @@ define(() => {
   const CBOR_ID  = 25444;
 
   /**
-   * Implementation of tagger for CBOR of Xanado objects.
-   * @extends CBORTagger
+   * CBOR tagger for Xanado. This implementation adds three CBOR tags:
+   * * 25442 - reference to a previously serialised object
+   * * 25444 - tag an object that might be referenced
+   * * 25443 - tag the class name of an object, respecting the
+   * UNFREEZABLE static attribute on classes.
+   * If the class of an object has the UNFREEZABLE attribute, then
+   * the name of that class won't be serialised. Instead the identifier of
+   * the superclass will be used (ultimately, Object).
+   *
+   * In addition the `skip` function causes the CBOREncoder to ignore
+   * keys starting with `_` (underscore)
+   * @implements CBORTagger
    */
   class Tagger {
 

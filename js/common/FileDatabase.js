@@ -62,6 +62,8 @@ define([
     /** See {@linkcode Database#get|Database.get} for documentation */
     get(key, classes) {
       const fn = Path.join(this.directory, `${key}.${this.ext}`);
+      const tagger = new Tagger(classes);
+      const decoder = new CBORDecoder(tagger);
 
       return Lock.lock(fn)
       .catch(e => {
@@ -71,16 +73,28 @@ define([
       .then(release => {
         return Fs.readFile(fn)
         .then(data => {
-          if (typeof release === "function")
+          if (typeof release === "function") {
             release();
+            release = undefined;
+          }
+
           try {
-            return new CBORDecoder(new Tagger(classes)).decode(data);
+            return decoder.decode(data);
           } catch (e) {
+            const error = Error(`CBOR decoding ${fn}:\n${e}`);
+            console.error(error);
+
             // Compatibility; try using Fridge, versions of FileDatabase
             // prior to 3.1.0 used it.
-            return new Promise(resolve => {
+            return new Promise((resolve, reject) => {
               requirejs([ "common/Fridge" ], Fridge => {
-                resolve(Fridge.thaw(data.toString(), classes));
+                try {
+                  resolve(Fridge.thaw(data.toString(), classes));
+                } catch (e) {
+                  const error = Error(`Thawing ${fn}:\n${e}`);
+                  console.error(error);
+                  reject(e);
+                }
               });
             });
           }
@@ -88,7 +102,7 @@ define([
         .catch(e => {
           if (typeof release === "function")
             release();
-          throw Error(`Error reading ${fn}: ${e}`);
+          throw e;
         });
       });
     }
