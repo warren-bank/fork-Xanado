@@ -24,6 +24,10 @@ body {
   margin-top: 1em;
 }
 
+#login-button {
+  margin-bottom: 0.5em;
+}
+
 /* wrap around the sign out button */
 .logged-in {
 }
