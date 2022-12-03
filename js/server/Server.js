@@ -3,15 +3,20 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
 
+const Fs = require("fs").promises;
+const Path = require("path");
+const Events = require("events");
+const Cookie = require("cookie");
+const cors = require("cors");
+const Express = require("express");
+
 define([
-  "fs", "path", "events", "cookie", "cors", "express", "errorhandler",
   "platform",
   "common/CBOREncoder", "common/Tagger", "common/Utils", "common/FileDatabase",
   "game/Player", "game/Turn", "game/Edition",
   "backend/BackendGame",
   "server/UserManager"
 ], (
-  fs, Path, Events, Cookie, cors, Express, ErrorHandler,
   Platform,
   CBOREncoder, Tagger, Utils, FileDatabase,
   Player, Turn, Edition,
@@ -19,7 +24,32 @@ define([
   UserManager
 ) => {
 
-  const Fs = fs.promises;
+  /**
+   * In the event of an error in a promise chain handling a request,
+   * generate an appropriate response for the client and throw
+   * an error that is marked as "isHandled". The unhandledRejection
+   * below will recognise this.
+   * @param {Response} res the response object
+   * @param {number} status HTTP status code
+   * @param {string} essage error message
+   * @param {Error?} error optional existing error
+   */
+  function replyAndThrow(res, status, message, error) {
+    res.status(status).send(message);
+    if (!error)
+      error = new Error(message);
+    error.isHandled = true;
+    throw error;
+  }
+
+  /**
+   * Send a 200 reply
+   * @param {object} data data to send
+   */
+  function reply(res, data) {
+    res.status(200).send(data);
+    return undefined;
+  }
 
   /**
    * Web server for crossword game. Errors will result in an
@@ -99,9 +129,20 @@ define([
        */
       this.monitors = [];
 
+      // The unhandledrejection event is sent to the global scope of
+      // a script when a Promise that has no catch is rejected, and
+      // we want to detect that case.
+
+      /* istanbul ignore next */
       process.on("unhandledRejection", reason => {
-        /* istanbul ignore next */
-        console.error("Command rejected", reason, reason ? reason.stack : "");
+        // Our Express handlers have some long promise chains, and we want
+        // to be able to abort those chains on an error. To do this we
+        // `throw` an `Error` that has `isHandled` set. That error will
+        // cause an unhandledRejection, but that's OK, we can just ignore it.
+        if (reason && reason.isHandled)
+          return;
+
+        console.error("unhandledRejection", reason, reason ? reason.stack : "");
       });
 
       /**
@@ -152,43 +193,35 @@ define([
 
       cmdRouter.get(
         "/games/:send",
-        (req, res, next) => this.GET_games(req, res)
-        .catch(next));
+        (req, res, next) => this.GET_games(req, res));
 
       cmdRouter.get(
         "/history",
-        (req, res, next) => this.GET_history(req, res)
-        .catch(next));
+        (req, res, next) => this.GET_history(req, res));
 
       cmdRouter.get(
         "/locales",
-        (req, res, next) => this.GET_locales(req, res)
-        .catch(next));
+        (req, res, next) => this.GET_locales(req, res));
 
       cmdRouter.get(
         "/editions",
-        (req, res, next) => this.GET_editions(req, res)
-        .catch(next));
+        (req, res, next) => this.GET_editions(req, res));
 
       cmdRouter.get(
         "/edition/:edition",
-        (req, res, next) => this.GET_edition(req, res)
-        .catch(next));
+        (req, res, next) => this.GET_edition(req, res));
 
       cmdRouter.get(
         "/dictionaries",
-        (req, res, next) => this.GET_dictionaries(req, res)
-        .catch(next));
+        (req, res, next) => this.GET_dictionaries(req, res));
 
       cmdRouter.get(
         "/themes",
-        (req, res, next) => this.GET_themes(req, res)
-        .catch(next));
+        (req, res, next) => this.GET_themes(req, res));
 
       cmdRouter.get(
         "/theme/:css",
-        (req, res, next) => this.GET_theme(req, res)
-        .catch(next));
+        (req, res, next) => this.GET_theme(req, res));
 
       cmdRouter.get(
         "/defaults",
@@ -202,98 +235,78 @@ define([
         "/createGame",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.POST_createGame(req, res)
-        .catch(next));
+        (req, res, next) => this.POST_createGame(req, res));
 
       cmdRouter.post(
         "/invitePlayers/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.POST_invitePlayers(req, res)
-        .catch(next));
+        (req, res, next) => this.POST_invitePlayers(req, res));
 
       cmdRouter.post(
         "/deleteGame/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.POST_deleteGame(req, res)
-        .catch(next));
+        (req, res, next) => this.POST_deleteGame(req, res));
 
       cmdRouter.post(
         "/anotherGame/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.POST_anotherGame(req, res)
-        .catch(next));
+        (req, res, next) => this.POST_anotherGame(req, res));
 
       cmdRouter.post(
         "/sendReminder/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.POST_sendReminder(req, res)
-        .catch(next));
+        (req, res, next) => this.POST_sendReminder(req, res));
 
       cmdRouter.post(
         "/join/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.POST_join(req, res)
-        .catch(next));
+        (req, res, next) => this.POST_join(req, res));
 
       cmdRouter.post(
         "/leave/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.POST_leave(req, res)
-        .catch(next));
+        (req, res, next) => this.POST_leave(req, res));
 
       cmdRouter.post(
         "/addRobot/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.POST_addRobot(req, res)
-        .catch(next));
+        (req, res, next) => this.POST_addRobot(req, res));
 
       cmdRouter.post(
         "/removeRobot/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.POST_removeRobot(req, res)
-        .catch(next));
+        (req, res, next) => this.POST_removeRobot(req, res));
 
       cmdRouter.post(
         "/command/:command/:gameKey",
         (req, res, next) =>
         this.userManager.checkLoggedIn(req, res, next),
-        (req, res, next) => this.POST_command(req, res)
-        .catch(next));
+        (req, res, next) => this.POST_command(req, res));
 
       this.express.use(cmdRouter);
 
-      // Install error handler
+      // Install default error handler. err.message will appear as
+      // responseText in the ajax error function.
       this.express.use((err, req, res, next) => {
-        if (typeof err === "object" && err.code === "ENOENT") {
-          // Special case of a database file load failure
-          this._debug("<-- 404", req.url, Utils.stringify(err));
-          res.status(404).send([
-            "Database file load failed", req.url, err]);
-        } else {
-          this._debug("<-- 500", err);
-          res.status(500).send(err);
-        }
+        this._debug("<-- 500", err);
+        res.status(500).send(err.message);
+        return true;
       });
-
-      // Finally handle otherwise unhandled errors
-      this.express.use(ErrorHandler({
-        dumpExceptions: true,
-        showStack: true
-      }));
     }
 
     /**
      * Load the game from the DB, if not already in server memory
      * @param {string} key game key
      * @return {Promise} Promise that resolves to a {@linkcode Game}
+     * @throws Error on a load failure
      * @private
      */
     loadGameFromDB(key) {
@@ -545,21 +558,20 @@ define([
               ? this.db.keys()
               : Promise.resolve([send]))
       // Load those games
-      .then(keys => Promise.all(keys.map(key => this.loadGameFromDB(key))))
+      .then(keys => Promise.all(
+        keys.map(key => this.loadGameFromDB(key)
+                 .catch(e => undefined))))
       // Filter the list and generate simple data
+      .then(games => games.filter(game => game
+                                  && !(send === "active" && game.hasEnded())))
       .then(games => Promise.all(
-        games
-        .filter(game => (send !== "active" || !game.hasEnded()))
-        .map(game => game.serialisable(this.userManager))))
+        games.map(game => game.serialisable(this.userManager))))
       // Sort the resulting list by last activity, so the most
       // recently active game bubbles to the top
       .then(gs => gs.sort((a, b) => a.lastActivity < b.lastActivity ? 1
                           : a.lastActivity > b.lastActivity ? -1 : 0))
       // Finally send the result
-      .then(data => {
-        this._debug("<-- 200 simple", send);
-        return res.status(200).send(data);
-      });
+      .then(data => reply(res, data));
     }
 
     /**
@@ -580,12 +592,13 @@ define([
       const server = this;
 
       return this.db.keys()
-      .then(keys => keys.map(key => this.loadGameFromDB(key)))
+      .then(keys => keys.map(key => this.loadGameFromDB(key)
+                             .catch(e => undefined)))
       .then(promises => Promise.all(promises))
+      .then(games => games.filter(game => game && game.hasEnded()))
       .then(games => {
         const results = {};
         games
-        .filter(game => game.hasEnded())
         .map(game => {
           const winScore = game.winningScore();
           game.getPlayers().forEach(
@@ -614,7 +627,7 @@ define([
       })
       .then(list => list.sort((a, b) => a.score < b.score ? 1
                               : (a.score > b.score ? -1 : 0)))
-      .then(list => res.status(200).send(list));
+      .then(list => reply(res, list));
     }
 
     /**
@@ -629,7 +642,7 @@ define([
     GET_locales(req, res, next) {
       const db = new FileDatabase({dir: "i18n", ext: "json"});
       return db.keys()
-      .then(keys => res.status(200).send(keys));
+      .then(keys => reply(res, keys));
     }
 
     /**
@@ -642,8 +655,7 @@ define([
      */
     GET_editions(req, res) {
       return Fs.readdir(Platform.getFilePath("editions"))
-      .then(list => res.status(200).send(
-        list.filter(f => /^[^_].*\.js$/.test(f))
+      .then(list => reply(res, list.filter(f => /^[^_].*\.js$/.test(f))
         .map(fn => fn.replace(/\.js$/, ""))));
     }
 
@@ -658,10 +670,7 @@ define([
      */
     GET_edition(req, res) {
       return Edition.load(req.params.edition)
-      .then(edition => {
-        console.log(edition);
-        res.status(200).send(edition);
-      });
+      .then(edition => reply(res, edition));
     }
 
     /**
@@ -674,7 +683,7 @@ define([
      */
     GET_dictionaries(req, res) {
       return Fs.readdir(Platform.getFilePath("dictionaries"))
-      .then(list => res.status(200).send(
+      .then(list => reply(res,
         list.filter(f => /\.dict$/.test(f))
         .map(fn => fn.replace(/\.dict$/, ""))));
     }
@@ -693,7 +702,7 @@ define([
     GET_themes(req, res) {
       const dir = Platform.getFilePath("css");
       return Fs.readdir(dir)
-      .then(list => res.status(200).send(list.filter(f => f !== "index.json")));
+      .then(list => reply(res, list.filter(f => f !== "index.json")));
     }
 
     /**
@@ -712,20 +721,12 @@ define([
       if (req.user && req.user.settings && req.user.settings.theme)
         theme = req.user.settings.theme;
       this._debug("Send theme", theme, req.params.css);
-      let promises = [];
-      promises.push(
-        Fs.readFile(Platform.getFilePath(`css/default/${req.params.css}`))
-        .then(data => data.toString()));
-      if (theme !== "default")
-        promises.push(
-          Fs.readFile(Platform.getFilePath(`css/${theme}/${req.params.css}`))
-          .catch(e => `/*Could not load css/${theme}/${req.params.css}`)
-          .then(data => data.toString()));
-      return Promise.all(promises)
-      .then(parts => res
-            .header('Content-Type', 'text/css')
+      return Fs.readFile(Platform.getFilePath(`css/${theme}/${req.params.css}`))
+      .catch(e => replyAndThrow(
+        res, 404, `Could not load css/${theme}/${req.params.css}`, e))
+      .then(data => res.header('Content-Type', 'text/css')
             .status(200)
-            .send(parts.join("")));
+            .send(data.toString()));
     }
 
     /**
@@ -748,7 +749,7 @@ define([
         this._debug("Created game", game.stringify());
         return game.save();
       })
-      .then(game => res.status(200).send(game.key))
+      .then(game => reply(res, game.key))
       .then(() => this.updateMonitors());
     }
 
@@ -780,11 +781,7 @@ define([
         to => this.sendMail(
           to, req, res, req.body.gameKey,
           subject, textBody, htmlBody)))
-      .then(list => {
-        const names = list.filter(uo => uo);
-        this._debug("<-- 200 ", names);
-        return res.status(200).send(names);
-      });
+      .then(list => reply(res, list.filter(uo => uo)));
     }
 
     /**
@@ -835,10 +832,7 @@ define([
             subject, textBody, htmlBody);
         }))))
       .then(reminders => reminders.filter(e => typeof e !== "undefined"))
-      .then(names => {
-        this._debug("<-- 200", names);
-        return res.status(200).send(names);
-      });
+      .then(names => reply(res, names));
     }
 
     /**
@@ -856,6 +850,7 @@ define([
     POST_join(req, res, next) {
       const gameKey = req.params.gameKey;
       return this.loadGameFromDB(gameKey)
+      .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
       .then(game => {
         // Player is either joining or connecting
         const playerKey = req.user.key;
@@ -874,7 +869,7 @@ define([
         }
         // The game may now be ready to start
         return prom
-        .then(() => res.status(200).send(player.key));
+        .then(() => reply(res, player.key));
         // Don't need to send connections, that will be done
         // in the connect event handler
       });
@@ -895,11 +890,11 @@ define([
     POST_addRobot(req, res, next) {
       const gameKey = req.params.gameKey;
       const dic = req.body.dictionary;
-      let game;
       return this.loadGameFromDB(gameKey)
-      .then(g => game = g)
-      .then(() => {
-        assert(!game.hasRobot(), "Game already has a robot");
+      .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
+      .then(game => {
+        if (game.hasRobot())
+          replyAndThrow(res, 400, `Game ${gameKey} already has a robot`);
 
         this._debug("Robot joining", gameKey, "with", dic);
         // Robot always has the same player key
@@ -921,7 +916,7 @@ define([
           this.updateMonitors();
           game.sendCONNECTIONS();
         })
-        .then(() => res.status(200).send(robot.key));
+        .then(() => reply(res, robot.key));
       });
     }
 
@@ -938,9 +933,11 @@ define([
     POST_removeRobot(req, res, next) {
       const gameKey = req.params.gameKey;
       return this.loadGameFromDB(gameKey)
+      .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
       .then(game => {
         const robot = game.hasRobot();
-        assert(robot, "Game doesn't have a robot");
+        if (!robot)
+          replyAndThrow(res, 400, `Game ${gameKey} doesn't have a robot`);
         this._debug("Robot leaving", gameKey);
         game.removePlayer(robot);
         return game.save()
@@ -950,7 +947,7 @@ define([
           game.sendCONNECTIONS();
           this.updateMonitors();
         })
-        .then(() => res.status(200).send(robot.key));
+        .then(() => reply(res, robot.key));
       });
     }
 
@@ -966,21 +963,19 @@ define([
       const gameKey = req.params.gameKey;
       const playerKey = req.user.key;
       return this.loadGameFromDB(gameKey)
+      .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
       .then(game => {
-        this._debug("Player", playerKey, "leaving", gameKey);
         const player = game.getPlayerWithKey(playerKey);
-        if (player) {
-          // Note that if the player leaving dips the number
-          // of players below minPlayers for the game, the
-          // game state is reset to WAITING
-          game.removePlayer(player);
-          return game.save()
-          .then(() => res.status(200).send("OK"))
-          .then(() => this.updateMonitors());
-        }
-        /* istanbul ignore next */
-        return assert.fail(
-          `Player ${playerKey} is not in game ${gameKey}`);
+        if (!player)
+          replyAndThrow(res, 400, `Player ${playerKey} is not in game ${gameKey}`);
+        this._debug("Player", playerKey, "leaving", gameKey);
+        // Note that if the player leaving dips the number
+        // of players below minPlayers for the game, the
+        // game state is reset to WAITING
+        game.removePlayer(player);
+        return game.save()
+        .then(() => reply(res, `${playerKey} removed`))
+        .then(() => this.updateMonitors());
       });
     }
 
@@ -991,7 +986,7 @@ define([
      * the defaults object from the server configuration file.
      */
     GET_defaults(req, res) {
-      res.status(200).send(this.config.defaults);
+      reply(res, this.config.defaults);
     }
 
     /**
@@ -1012,6 +1007,7 @@ define([
       const gameKey = req.params.gameKey;
       const tagger = new Tagger();
       return this.db.get(gameKey, Game)
+      .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
       .then(game => res.status(200)
             .send(new CBOREncoder(tagger).encode(game)));
     }
@@ -1027,12 +1023,15 @@ define([
      */
     POST_deleteGame(req, res, next) {
       const gameKey = req.params.gameKey;
-      this._debug("Delete game", gameKey);
       return this.loadGameFromDB(gameKey)
-      .then(game => game.stopTheClock()) // in case it's running
-      .then(() => this.db.rm(gameKey))
-      .then(() => res.status(200).send(gameKey))
-      .then(() => this.updateMonitors());
+      .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
+      .then(game => {
+        this._debug("Delete game", gameKey);
+        game.stopTheClock(); // in case it's running
+        return this.db.rm(gameKey)
+        .then(() => reply(res, gameKey))
+        .then(() => this.updateMonitors());
+      });
     }
 
     /**
@@ -1047,9 +1046,11 @@ define([
      * when the response has been sent.
      */
     POST_anotherGame(req, res, next) {
-      return this.loadGameFromDB(req.params.gameKey)
+      const gameKey = req.params.gameKey;
+      return this.loadGameFromDB(gameKey)
+      .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
       .then(game => game.anotherGame())
-      .then(newGame => res.status(200).send(newGame.key));
+      .then(newGame => reply(res, newGame.key));
     }
 
     /**
@@ -1069,14 +1070,15 @@ define([
       const playerKey = req.user.key;
       //this._debug("Handling", command, gameKey, playerKey);
       return this.loadGameFromDB(gameKey)
+      .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
       .then(game => {
         if (game.hasEnded() && command !== Game.Command.UNDO)
-          // Ignore the command
-          return Promise.resolve();
+          replyAndThrow(res, 400, `Game ${gameKey} has ended`);
 
         const player = game.getPlayerWithKey(playerKey);
-        assert(player,
-            `Player ${playerKey} is not in game ${gameKey}`);
+        if (!player)
+          replyAndThrow(res, 
+            400, `Player ${playerKey} is not in game ${gameKey}`);
 
         // The command name and arguments
         const args = req.body;
@@ -1088,10 +1090,9 @@ define([
         return game.dispatchCommand(command, player, args);
       })
       .then(() => {
-        //this._debug(command, "handled`);
         // Notify games pages
         this.updateMonitors();
-        return res.status(200).send("OK");
+        reply(res, `/command/${command}/${gameKey}/${playerKey} handled`);
       });
     }
   }

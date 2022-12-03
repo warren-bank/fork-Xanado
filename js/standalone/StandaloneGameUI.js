@@ -170,7 +170,7 @@ define([
               this.backEndGame.save();
               this.redirectToGame(this.backEndGame.key);
             },
-            error: this.constructor.report
+            error: e => this.alert(e, $.i18n("failed", $.i18n("Game setup")))
           });
         });
         $("#libraryButton")

@@ -12,13 +12,6 @@ define([
   class ChangePasswordDialog extends PasswordMixin(Dialog) {
 
     constructor(options) {
-      /*options.done = (data) => {
-        // Not an error, a statement
-        $("#alertDialog")
-        .text($.i18n.apply(null, data))
-        .dialog({ modal: true });
-      };*/
-
       super("ChangePasswordDialog", $.extend({
         title: $.i18n("Change password")
       }, options));

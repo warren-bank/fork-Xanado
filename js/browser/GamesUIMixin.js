@@ -187,7 +187,8 @@ define([
     }
 
     /**
-     * Refresh the display of a single game
+     * Refresh the display of a single game. The game must already
+     * be present in the DOM games list.
      * @instance
      * @memberof browser/GamesUIMixin
      * @param {Game|object} game a Game or Game.simple
@@ -197,7 +198,7 @@ define([
       // Update the games list and dialog headlines as appropriate
       $(`#${game.key}`).replaceWith(
         game.tableRow(this.constructor.GAME_TABLE_ROW));
-      // Update the dialog if appropriate
+      // Update the open game dialog if appropriate
       $(`#GameDialog[name=${game.key}]`)
       .data("this")
       .populate(game);
@@ -238,12 +239,12 @@ define([
       const what = $("#showAllGames").is(":checked") ? "all" : "active";
       return this.getGames(what)
       .then(games => this.showGames(games))
-      .catch(this.constructor.report);
+      .catch(e => this.alert(e));
     }
 
     /**
-     * Request an update for a single game (which must exist in the
-     * games table)
+     * Refresh a single game (which must already exist in the
+     * DOM games table)
      * @instance
      * @memberof browser/GamesUIMixin
      * @param {string} key Game key
@@ -252,30 +253,20 @@ define([
       return this.getGame(key)
       .then(simple => this.showGame(
         Game.fromSerialisable(simple[0], Game)))
-      .catch(this.constructor.report);
+      .catch(e => this.alert(e));
     }
 
     /**
-     * Request an update for session status and all games lists
+     * Refresh the UI state to reflect login state. Refreshes the
+     * history and the games list.
      * @instance
      * @memberof browser/GamesUIMixin
      * @return {Promise} promise that resolves when all AJAX calls
      * have completed
      */
     refresh() {
-      console.debug("refresh");
+      //console.debug("refresh");
       return Promise.all([
-        this.getSession()
-        .then(session => {
-          if (session) {
-            $("#create-game").show();
-            $("#chpw_button").toggle(session.provider === "xanado");
-          } else {
-            $("#create-game").hide();
-          }
-        })
-        .then(() => this.refreshGames()),
-
         this.getHistory()
         .then(data => {
           if (data.length === 0) {
@@ -293,11 +284,13 @@ define([
             $gt.append(`<div class="player-cumulative">${s}</div>`);
           });
         })
+        .catch(e => this.alert(e)),
+        this.refreshGames()
       ]);
     }
 
     /**
-     * Get a list of games
+     * Get a list of past player successes and failures.
      * @instance
      * @memberof browser/GamesUIMixin
      * @param {string} what 'all' or 'active' (default)

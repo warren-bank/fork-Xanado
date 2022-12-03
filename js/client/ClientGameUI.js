@@ -39,20 +39,23 @@ define([
       $(".bad-user").hide();
       return this.getSession()
       .then(session => {
-        if (session) {
-          // Find if they are a player
-          this.player = game.getPlayerWithKey(session.key);
-          if (this.player)
-            return this.player.key;
-          $(".bad-user")
-          .show()
-          .find("button")
-          .on("click", () => {
-            $.post("/logout")
-            .then(() => window.location.reload());
-          });
-          this.observer = this.session.name;
-        }
+        // Find if they are a player
+        this.player = game.getPlayerWithKey(session.key);
+        if (this.player)
+          return this.player.key;
+
+        $(".bad-user")
+        .show()
+        .find("button")
+        .on("click", () => {
+          $.post("/logout")
+          .then(() => window.location.reload());
+        });
+        throw Error("Not a player");
+      })
+      .catch(e => {
+        // May arise if there is no session, or the session is for a non-player
+        this.observer = this.session.name;
         $(".notPlaying").show();
         return undefined;
       });

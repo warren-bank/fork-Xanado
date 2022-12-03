@@ -47,7 +47,7 @@ define([
           .then(game => alert($.i18n("Created", game.key)))
           .then(() => this.ui.refreshGames());
         },
-        error: this.constructor.report
+        error: e => this.alert(e, "Create game failed")
       }));
     }
 
@@ -67,7 +67,7 @@ define([
           this.refreshGame(game.key, true);
         },
         ui: this,
-        error: this.constructor.report
+        error: e => this.alert(e, $.i18n("failed", $.i18n("Game setup")))
       });
     }
 

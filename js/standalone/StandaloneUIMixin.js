@@ -96,7 +96,9 @@ define([
      * @override
      */
     getSession() {
-      return Promise.resolve(this.session);
+      if (this.session)
+        return Promise.resolve(this.session);
+      return Promise.reject();
     }
 
     /**

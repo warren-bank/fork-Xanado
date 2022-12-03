@@ -307,7 +307,6 @@ describe("Server", () => {
       .get("/theme/doesnotexist.css")
       .set('Cookie', cookie)
       .end((err, res) => {
-        //console.log(res.body);
         assert.equal(res.status, 404);
         resolve();
       });

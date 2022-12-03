@@ -43,20 +43,24 @@ define([
     channel = undefined;
 
     /**
-     * Report an error.  Access in mixins using this.constructor.report.
+     * Report an error.
      * @param {string|Error|array|jqXHR} args This will either be a
      * simple i18n string ID, or an array containing an i18n ID and a
      * series of arguments, or a jqXHR.
+     * @param {string?} title title for the error dialog
+     * @return {jQuery} the dialog
      */
-    static report(args) {
+    alert(args, title) {
       console.error("REPORT", args);
 
       // Handle a jqXHR
       if (typeof args === "object") {
         if (args.responseJSON)
           args = args.responseJSON;
+        else if (args.responseText)
+          args = args.responseText;
         else if (args.statusText)
-          args = `Network error: ${args.statusText}`;
+          args = args.statusText;
       }
 
       let message;
@@ -69,10 +73,10 @@ define([
       } else // something else
         message = Utils.stringify(args);
 
-      $("#alertDialog")
+      return $("#alertDialog")
       .dialog({
         modal: true,
-        title: $.i18n("XANADO problem")
+        title: title || $.i18n("XANADO problem")
       })
       .html(`<p>${message}</p>`);
     }
@@ -252,25 +256,30 @@ define([
      * Set a user setting
      * @param {string} key setting to set
      * @param {string} value value to set
+     * @return {Promise} resolves when setting is complete
      */
     setSetting(key, value) {
+      assert.fail("UI.setSetting");
     }
 
     /**
      * Set a groups of user setting
      * @param {object<string,object>} settings set of settings
+     * @return {Promise} resolves when all settings are complete
      */
     setSettings(settings) {
-      for (const f of Object.keys(settings))
-        this.setSetting(f, settings[f]);
+      return Promise.all([
+        Object.keys(settings).map(k => this.setSetting(k, settings[k]))
+      ]);
     }
 
     /**
      * Identify the logged-in user. Override in subclasses.
      * @return {Promise} a promise that resolves to an simple
-     * session object if someone is logged in, or undefined otherwise.
+     * session object if someone is logged in, or throws otherwise.
      * The object is expected to define `key`, the logged-in player, and
-     * can set provider to `xanado`.
+     * may set `provider`.
+     * @throws Error if there is no session active
      */
     getSession() {
       assert.fail("UI.getSession");
@@ -328,10 +337,10 @@ define([
         Dialog.open("browser/SettingsDialog", {
           ui: this,
           onSubmit: (dlg, vals) => {
-            this.setSettings(vals);
-            window.location.reload();
+            this.setSettings(vals)
+            .then(() => window.location.reload());
           },
-          error: this.constructor.report
+          error: console.error
         });
       });
 

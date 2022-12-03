@@ -41,44 +41,22 @@ requirejs([
         ui: this,
         postAction: "/createGame",
         postResult: () => this.refreshGames(),
-        error: this.constructor.report
+        error: e => this.alert(e, $.i18n("failed", $.i18n("Create game")))
       }));
 
-      $("#reminder-button")
+      $("#reminders-button")
       .on("click", () => {
         $.post("/sendReminder/*")
-        .then(info => $("#alertDialog")
-              .text($.i18n.apply(null, info))
-              .dialog({
-                title: $.i18n("label-send-rem"),
-                modal: true
-              }))
-        .catch(this.constructor.report);
-      });
-
-      $("#login-button")
-      .on("click", () => Dialog.open("client/LoginDialog", {
-        // postAction is dynamic, depends which tab is open
-        postResult: () => this.refresh().catch(this.constructor.report),
-        error: this.constructor.report
-      }));
-
-      $("#logout-button")
-      .on("click", () => {
-        $.post("/logout")
-        .then(result => {
-          console.debug("Logged out", result);
-          this.session = undefined;
-          this.refresh().catch(this.constructor.report);
-        })
-        .catch(this.constructor.report);
+        .then(info => this.alert(
+          $.i18n.apply(null, info), $.i18n("label-send-rems")))
+        .catch(e => this.alert(e, $.i18n("failed", $.i18n("tt-send-rems"))));
       });
 
       $("#chpw_button")
       .on("click", () => Dialog.open("client/ChangePasswordDialog", {
         postAction: "/change-password",
-        postResult: () => this.refresh().catch(this.constructor.report),
-        error: this.constructor.report
+        postResult: () => this.refresh(),
+        error: e => this.alert(e, $.i18n("failed", $.i18n("Change password")))
       }));
     }
 
@@ -92,13 +70,39 @@ requirejs([
       .on(Game.Notify.UPDATE, () => {
         console.debug("b>f update");
         // Can be smarter than this!
-        this.refresh().catch(this.constructor.report);
+        this.refresh();
       });
 
       // Tell the backend we want to receive monitor messages
       this.notifyBackend(Game.Notify.MONITOR);
 
       return Promise.resolve();
+    }
+
+    /**
+     * @override
+     */
+    getSession() {
+      return super.getSession()
+      .then(session => {
+        $("#create-game").show();
+        $("#chpw_button").toggle(session.provider === "xanado");
+        return session;
+      })
+      .catch(e => {
+        $("#create-game").hide();
+        return undefined;
+      });
+    }
+
+    /**
+     * @override
+     */
+    refresh() {
+      return Promise.all([
+        super.refresh(),
+        this.getSession()
+      ]);
     }
 
     /**
@@ -113,11 +117,11 @@ requirejs([
           for (const key of Object.keys(desc))
             game[key] = desc[key];
           $.post("/gameSetup/${game.key}", desc)
-          .catch(this.constructor.report);
+          .catch(e => this.alert(e, $.i18n("failed", $.i18n("Game setup"))));
           this.refreshGame(game.key);
         },
         ui: this,
-        error: this.constructor.report
+        error: e => this.alert(e, $.i18n("failed", $.i18n("Game setup")))
       });
     }
 
@@ -135,7 +139,7 @@ requirejs([
           this.refreshGame(game.key);
         }
       })
-      .catch(this.constructor.report);
+      .catch(e => this.alert(e, $.i18n("failed", $.i18n("Open game"))));
     }
 
     /**
@@ -147,7 +151,7 @@ requirejs([
         ui: this,
         postAction: `/addRobot/${game.key}`,
         postResult: () => this.refreshGame(game.key),
-        error: this.constructor.report
+        error: e => this.alert(e, $.i18n("failed", $.i18n("Add robot")))
       });
     }
 
@@ -157,15 +161,11 @@ requirejs([
     invitePlayers(game) {
       Dialog.open("client/InvitePlayersDialog", {
         postAction: `/invitePlayers/${game.key}`,
-        postResult: names => {
-          $("#alertDialog")
-          .text($.i18n("sent-invite", names.join(", ")))
-          .dialog({
-            title: $.i18n("Invitations"),
-            modal: true
-          });
-        },
-        error: this.constructor.report
+        postResult: names => this.alert(
+          $.i18n("sent-invite", names.join(", ")),
+          $.i18n("Invitations")
+        ),
+        error: e => this.alert(e, $.i18n("failed", $.i18n("Invite players")))
       });
     }
 
@@ -175,7 +175,7 @@ requirejs([
     anotherGame(game) {
       $.post(`/anotherGame/${game.key}`)
       .then(() => this.refreshGames())
-      .catch(this.constructor.report);
+      .catch(e => this.alert(e, $.i18n("failed", $.i18n("Another game?"))));
     }
 
     /**
@@ -184,7 +184,10 @@ requirejs([
     deleteGame(game) {
       $.post(`/deleteGame/${game.key}`)
       .then(() => this.refreshGames())
-      .catch(this.constructor.report);
+      .catch(e => {
+        debugger;
+        this.alert(e, 'Delete failed');
+      });
     }
 
     /**
@@ -244,7 +247,7 @@ requirejs([
             console.debug(`Leave game ${game.key}`);
             $.post(`/leave/${game.key}`)
             .then(() => this.refreshGame(game.key))
-            .catch(this.constructor.report);
+            .catch(e => this.alert(e, $.i18n("failed", $.i18n("Leave game"))));
           }));
 
         return $tr;
@@ -261,7 +264,7 @@ requirejs([
             console.debug(`Remove robot from ${game.key}`);
             $.post(`/removeRobot/${game.key}`)
             .then(() => this.refreshGame(game.key))
-            .catch(this.constructor.report);
+            .catch(e => this.alert(e, $.i18n("failed", $.i18n("Remove robot"))));
           }));
       }
 
@@ -285,7 +288,7 @@ requirejs([
                     title: $.i18n("player-reminded", player.name),
                     modal: true
                   }))
-            .catch(this.constructor.report);
+            .catch(e => this.alert(e, $.i18n("failed", $.i18n("Send reminder"))));
           }));
       }
 
@@ -299,7 +302,7 @@ requirejs([
     showGames(simples) {
       super.showGames(simples);
 
-      $("#reminder-button").hide();
+      $("#reminders-button").hide();
 
       if (this.session && this.getSetting("canEmail") && simples.length > 0) {
         const games = simples.map(simple => Game.fromSerialisable(simple, Game));
@@ -311,7 +314,7 @@ requirejs([
           return em || game.getPlayerWithKey(game.whosTurnKey)
           .email;
         }, false))
-          $("#reminder-button").show();
+          $("#reminders-button").show();
       }
     }
 
@@ -338,6 +341,7 @@ requirejs([
 
     create() {
       return super.create()
+      .then(() => this.getSession())
       .then(() => this.refreshGames());
     }
   }

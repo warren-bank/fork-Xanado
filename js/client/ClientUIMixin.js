@@ -170,8 +170,31 @@ define([
       .then(() => this.attachChannelHandlers())
       .then(() => this.attachUIEventHandlers())
       .then(() => {
+
+        $("#login-button")
+        .on("click", () => Dialog.open("client/LoginDialog", {
+          // postAction is set in code
+          postResult: () => window.location.reload(),
+          error: args => this.alert(args, $.i18n("Login failed"))
+        }));
+
+        $("#logout-button")
+        .on("click", () => {
+          $.post("/logout")
+          .then(() => console.debug("Logged out"))
+          .catch(e => console.error(e))
+          .then(result => {
+            this.session = undefined;
+            this.refresh();
+          });
+        });
+
         $(".loading").hide();
         $(".waiting").removeClass("waiting").show();
+
+        // `autoplay` is a debug device. If it appears in the URL args
+        // then once the first play has been made by the human, remaining
+        // plays will be automated. See `mechanicalTurk` for details.
         if (args.autoplay)
           $(document).on("MY_TURN", () => this.mechanicalTurk());
       });
@@ -207,19 +230,14 @@ define([
         // (server died, maybe?) Back off and try to reconnect.
         console.debug(`--> disconnect`);
         const mess = $.i18n("text-disconnected");
-        $reconnectDialog = $("#alertDialog")
-        .text(mess)
-        .dialog({
-          title: $.i18n("XANADO problem"),
-          modal: true
-        });
+        $reconnectDialog = this.alert(mess, $.i18n("Server disconnected"));
         setTimeout(() => {
           // Try and rejoin after a 3s timeout
           this.readyToListen()
           .catch(e => {
             console.debug(e);
             if (!$reconnectDialog)
-              this.constructor.report(mess);
+              this.alert(e, $.i18n("Reconnect failed"));
           });
         }, 3000);
       });
@@ -275,6 +293,7 @@ define([
      * @override
      * @return {Promise} a promise that resolves to the (redacted)
      * session object if someone is logged in, or undefined otherwise.
+     * @throws Error if there is no active session
      */
     getSession() {
       $(".logged-in,.not-logged-in").hide();
@@ -296,13 +315,7 @@ define([
         if (typeof this.observer === "string")
           $(".observer").show().text($.i18n(
             "observer", this.observer));
-        $(".not-logged-in>button")
-        .on("click", () => Dialog.open("client/LoginDialog", {
-          // postAction is set in code
-          postResult: () => window.location.reload(),
-          error: this.constructor.report
-        }));
-        return undefined;
+        throw Error("Not logged in");
       });
     }
 
@@ -363,18 +376,18 @@ define([
     setSetting(key, value) {
       const vals = {};
       vals[key] = value;
-      this.setSettings(vals);
+      return this.setSettings(vals);
     }
 
     /**
      * Send a set of settings to the server
      * @memberof client/ClientUIMixin
      * @instance
-     * @implements browser/GameUIMixin
+     * @implements browser/UI
      * @override
      */
     setSettings(vals) {
-      $.ajax({
+      return $.ajax({
         url: "/session-settings",
         type: "POST",
         contentType: "application/json",
