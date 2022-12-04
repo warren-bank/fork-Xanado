@@ -45,8 +45,12 @@ define([
       if (data === null)
         return Promise.reject(`"${key}" was not found`);
       const tagger = new Tagger(typeMap);
-      return Promise.resolve(new CBORDecoder(tagger).decode(
-        Utils.Base64ToUint8Array(data)));
+      try {
+        return Promise.resolve(
+          new CBORDecoder(tagger).decode(Utils.Base64ToUint8Array(data)));
+      } catch (e) {
+        return Promise.reject(e);
+      }
     }
 
     rm(key) {
