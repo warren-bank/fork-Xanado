@@ -24,6 +24,7 @@
   "Edition": "Column heading in games table",
   "Email": "label: LoginDialog: input",
   "Enabled": "Log message when advice is enabled",
+  "Enjoy your game!": "dialog body when a game is created",
   "Finished Turn": "Button text to commit a play",
   "Game setup": "label: button in game dialog",
   "Game started": "log: message",
