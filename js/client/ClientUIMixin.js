@@ -186,7 +186,7 @@ define([
           .then(result => {
             this.session = undefined;
             this.refresh();
-          });
+          })));
         });
 
         $(".loading").hide();

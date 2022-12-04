@@ -185,10 +185,7 @@ define([
       // Tell the backend what channel to use to send and receive
       // notifications
       .then(() => this.backEndGame.connect(be, player_key))
-      .catch(e => {
-        debugger;
-        alert("Error: " + e);
-      })
+      .catch(e => this.alert(e))
       .then(() => {
         $(".loading").hide();
         $(".waiting").removeClass("waiting");

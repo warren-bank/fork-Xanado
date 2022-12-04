@@ -16,11 +16,6 @@ define(() => {
   const POW_2_24 = 5.960464477539063e-8;
   const POW_2_32 = 2 ** 32;
 
-  function pad(v, n) {
-    const s = `0000${v}`;
-    return s.substring(s.length - (n || 2));
-  }
-
   /**
    * Decoder for objects encoded according to the CBOR specification.
    * A tagger object must be provded to handle extensions to basic
@@ -393,6 +388,7 @@ define(() => {
         return ai;
       }
 
+      /* istanbul ignore next */
       throw Error(`Unrecognised major type ${majorType}`);
     }
   }

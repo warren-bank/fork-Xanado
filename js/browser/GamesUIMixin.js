@@ -239,7 +239,7 @@ define([
       const what = $("#showAllGames").is(":checked") ? "all" : "active";
       return this.getGames(what)
       .then(games => this.showGames(games))
-      .catch(e => this.alert(e));
+      .catch(e => console.error(e));
     }
 
     /**
@@ -284,7 +284,7 @@ define([
             $gt.append(`<div class="player-cumulative">${s}</div>`);
           });
         })
-        .catch(e => this.alert(e)),
+        .catch(e => console.error(e)),
         this.refreshGames()
       ]);
     }

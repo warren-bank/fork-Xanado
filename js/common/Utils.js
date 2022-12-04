@@ -106,6 +106,10 @@ define([ "platform" ], Platform => {
                            list[list.length - 1]);
     }
 
+    /* istanbul ignore next*/
+    /**
+     * Make a quiet noise.
+     */
     static beep() {
       try {
         if (!BEEP)

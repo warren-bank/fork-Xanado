@@ -64,11 +64,11 @@ define(() => {
      * @private
      * @param {number} value number to write
      */
-    writeFloat32(value) {
+    /*writeFloat32(value) {
       this.makeSpaceFor(4);
       this.view.setFloat32(this.offset, value);
       this.offset += 4;
-    }
+    }*/
 
     /**
      * Write a long float.
@@ -219,9 +219,7 @@ define(() => {
             this.writeTypeAndArgument(1, -(value + 1));
             return;
           }
-          this.writeTypeAndArgument(0, value);
-        }
-        if (value === NaN) {
+          // bigints handled as floats
         }
 
         // Note: this is Javascript, all floats are double-precision.

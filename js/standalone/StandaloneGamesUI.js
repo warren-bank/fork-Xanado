@@ -44,7 +44,8 @@ define([
         onSubmit(dialog, vals) {
           this.ui.createGame(vals)
           .then(game => game.save())
-          .then(game => alert($.i18n("Created", game.key)))
+          .then(game => this.ui.alert($.i18n("Enjoy your game!"),
+                                      $.i18n("Created", game.key)))
           .then(() => this.ui.refreshGames());
         },
         error: e => this.alert(e, "Create game failed")
@@ -105,14 +106,16 @@ define([
       // Load those games
       .then(keys => Promise.all(
         keys.map(key => this.db.get(key, Game)
-                 .then(game => game.onLoad(this.db)))))
-
+                 .catch(e => { console.error(e.message); return undefined; }))))
+      .then(games => games.filter(
+        g => g && (send !== "active" || !g.hasEnded())))
+      .then(games => Promise.all(games.map(game => game.onLoad(this.db))))
       .then(games => Promise.all(
         games
-        .filter(game => (send !== "active" || !game.hasEnded()))
         .map(game => game.serialisable(this.userManager))))
       // Sort the resulting list by last activity, so the most
       // recently active game bubbles to the top
+                 .catch(e => this.alert(e))
       .then(gs => gs.sort((a, b) => a.lastActivity < b.lastActivity ? 1
                           : a.lastActivity > b.lastActivity ? -1 : 0));
     }
@@ -143,11 +146,12 @@ define([
       return this.db.keys()
       .then(keys => Promise.all(
         keys.map(key => this.db.get(key, Game)
-                 .then(game => game.onLoad(this.db)))))
+                 .catch(e => undefined))))
+      .then(games => games.filter(g => g && g.hasEnded()))
+      .then(games => Promise.all(games.map(game => game.onLoad(this.db))))
       .then(games => {
         const results = {};
         games
-        .filter(game => game.hasEnded())
         .map(game => {
           const winScore = game.winningScore();
           game.getPlayers().forEach(

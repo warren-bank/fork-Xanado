@@ -184,10 +184,7 @@ requirejs([
     deleteGame(game) {
       $.post(`/deleteGame/${game.key}`)
       .then(() => this.refreshGames())
-      .catch(e => {
-        debugger;
-        this.alert(e, 'Delete failed');
-      });
+      .catch(e => this.alert(e, $.i18n("failed", $.i18n("Delete"))));
     }
 
     /**

@@ -74,10 +74,17 @@ define([
         assert(args.game, `No game found in ${args}`);
         const gameKey = args.game;
         this.debug(`GET /game/${gameKey}`);
-        return $.get(`/game/${gameKey}`)
-        .then(frozen => {
+        return $.ajax({
+          url: `/game/${gameKey}`,
+          type: "GET",
+          dataType: "binary",
+          processData: "false",
+          responseType: "arraybuffer"
+        })
+        .then(data => {
           this.debug(`--> Game ${gameKey}`);
-          return new CBORDecoder(new Tagger(Game)).decode(frozen);
+          data = new Uint8Array(data);
+          return new CBORDecoder(new Tagger(Game)).decode(data);
         })
         .then(game => {
           return this.identifyPlayer(game)
