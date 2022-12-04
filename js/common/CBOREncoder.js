@@ -60,6 +60,17 @@ define(() => {
     }
 
     /**
+     * Write a float.
+     * @private
+     * @param {number} value number to write
+     */
+    writeFloat32(value) {
+      this.makeSpaceFor(4);
+      this.view.setFloat32(this.offset, value);
+      this.offset += 4;
+    }
+
+    /**
      * Write a long float.
      * @private
      * @param {number} value number to write
@@ -136,18 +147,18 @@ define(() => {
      */
     writeTypeAndArgument(type, arg) {
       if (arg < 24) {
-        this.writeUint8(type << 5 | arg);
+        this.writeUint8((type << 5) | arg);
       } else if (arg < 0x100) {
-        this.writeUint8(type << 5 | 24);
+        this.writeUint8((type << 5) | 24);
         this.writeUint8(arg);
       } else if (arg < 0x10000) {
-        this.writeUint8(type << 5 | 25);
+        this.writeUint8((type << 5) | 25);
         this.writeUint16(arg);
       } else if (arg < 0x100000000) {
-        this.writeUint8(type << 5 | 26);
+        this.writeUint8((type << 5) | 26);
         this.writeUint32(arg);
       } else {
-        this.writeUint8(type << 5 | 27);
+        this.writeUint8((type << 5) | 27);
         this.writeUint64(arg);
       }
     }
@@ -171,25 +182,25 @@ define(() => {
 
       if (value === false) {
         // CBOR Appendix B Jump Table - false
-        this.writeUint8(0xf4);
+        this.writeUint8((7 << 5) | 20);
         return;
       }
 
       if (value === true) {
         // CBOR Appendix B Jump Table - true
-        this.writeUint8(0xf5);
+        this.writeUint8((7 << 5) | 21);
         return;
       }
 
       if (value === null) {
         // CBOR Appendix B Jump Table - null
-        this.writeUint8(0xf6);
+        this.writeUint8((7 << 5) | 22);
         return;
       }
 
       if (value === undefined) {
         // CBOR Appendix B Jump Table - undefined
-        this.writeUint8(0xf7);
+        this.writeUint8((7 << 5) | 23);
         return;
       }
 
@@ -208,9 +219,14 @@ define(() => {
             this.writeTypeAndArgument(1, -(value + 1));
             return;
           }
+          this.writeTypeAndArgument(0, value);
         }
+        if (value === NaN) {
+        }
+
+        // Note: this is Javascript, all floats are double-precision.
         // CBOR Appendix B Jump Table - double-precision float
-        this.writeUint8(0xfb);
+        this.writeUint8((7 << 5) | 27);
         this.writeFloat64(value);
         return;
 
