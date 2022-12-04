@@ -39,7 +39,6 @@
   "Leader Board": "Title of the leader board block",
   "Leave game": "button title",
   "Log": "Title of the Log block",
-  "Login failed": "error dialog title",
   "Lose points per word": "Types.Penalty.PER_WORD: failed challenge penalty",
   "Lose points": "Types.Penalty.PER_TURN: failed challenge penalty, lose a fixed number of points",
   "Maximum players": "Input title",

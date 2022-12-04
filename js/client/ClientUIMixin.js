@@ -175,14 +175,14 @@ define([
         .on("click", () => Dialog.open("client/LoginDialog", {
           // postAction is set in code
           postResult: () => window.location.reload(),
-          error: args => this.alert(args, $.i18n("Login failed"))
+          error: e => this.alert(e, $.i18n("failed", $.i18n("Sign in")))
         }));
 
         $("#logout-button")
         .on("click", () => {
           $.post("/logout")
           .then(() => console.debug("Logged out"))
-          .catch(e => console.error(e))
+          .catch(e => this.alert(e, $.i18n("failed", $.i18n("Sign out"))
           .then(result => {
             this.session = undefined;
             this.refresh();
