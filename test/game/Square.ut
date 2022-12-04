@@ -34,6 +34,8 @@ describe("Square class", () => {
     assert.equal(tile.col, sq.col);
     assert.equal(tile.row, sq.row);
     assert.equal(sq.stringify(), "#q@56,42<=[S@56,42]");
+    // make sure we can place the same tile again
+    sq.placeTile(tile);
 
     sq.unplaceTile();
     assert(!sq.tile);
@@ -63,9 +65,11 @@ describe("Square class", () => {
     const t = new Square({
       type: 't',
       surface: { id: "base" },
+      underlay: "T",
       col: 0
     });
     assert.equal(t.letterScoreMultiplier, 3);
+    assert.equal(t.underlay, "T");
     assert.equal(typeof t.wordScoreMultiplier, "undefined");
     const T = new Square({
       type: 'T',
@@ -77,9 +81,11 @@ describe("Square class", () => {
     const d = new Square({
       type: 'd',
       surface: { id: "base" },
+      tile: "dummy",
       col: 0
     });
     assert.equal(d.letterScoreMultiplier, 2);
+    assert.equal(d.tile, "dummy");
     assert.equal(typeof d.wordScoreMultiplier, "undefined");
     const D = new Square({
       type: 'D',
