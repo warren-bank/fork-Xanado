@@ -136,7 +136,7 @@ define([
      */
     placeTile(tile, lock) {
       assert(
-        !this.tile || this.tile !== tile,
+        !this.tile || this.tile === tile,
         "Square already occupied");
 
       tile.col = this.col;
