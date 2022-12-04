@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-define([ "common/Platform" ], Platform => {
+define([ "common/Platform", "jquery" ], Platform => {
 
   assert = (cond, mess) => {
     if (!cond) {
@@ -13,6 +13,45 @@ define([ "common/Platform" ], Platform => {
     }
   };
   assert.fail = mess => assert(false, mess);
+
+  // Set up an ajax transport to read binary data
+  $.ajaxTransport("+binary", function (options, originalOptions, jqXHR) {
+    return {
+      // create new XMLHttpRequest
+      send: function (headers, callback) {
+        // setup all variables
+        var xhr = new XMLHttpRequest(),
+            url = options.url,
+            type = options.type,
+            async = options.async || true,
+            // blob or arraybuffer. Default is blob
+            dataType = options.responseType || "blob",
+            data = options.data || null,
+            username = options.username || null,
+            password = options.password || null;
+
+        xhr.addEventListener('load', function () {
+          var data = {};
+          data[options.dataType] = xhr.response;
+          // make callback and send data
+          callback(xhr.status, xhr.statusText, data, xhr.getAllResponseHeaders());
+        });
+
+        xhr.open(type, url, async, username, password);
+
+        // setup custom headers
+        for (var i in headers) {
+          xhr.setRequestHeader(i, headers[i]);
+        }
+
+        xhr.responseType = dataType;
+        xhr.send(data);
+      },
+      abort: function () {
+        jqXHR.abort();
+      }
+    };
+  });
 
   /**
    * Browser implementation of {@linkcode Platform}.
@@ -47,80 +86,16 @@ define([ "common/Platform" ], Platform => {
     }
 
     /**
-     * Like jQuery $.get.  We would like to use the features of
-     * jQuery.ajax, but by default it doesn't handle binary files. We
-     * could add a jQuery transport, as described in
-     * https://stackoverflow.com/questions/33902299/using-jquery-ajax-to-download-a-binary-file
-     * but that's more work than simply using XMLHttpRequest
-     *
-     * So this static method performs a HTTP request, and returns a
-     * Promise. Note that the response is handled as an Uint8Array, it
-     * is up to the caller to transform that to any other type.
-     * @param {string} method HTTP method e.g. GET
-     * @param {string} url Relative or absolute url
-     * @param {Object} headers HTTP headers
-     * @param {string|Uint8Array} body request body
-     * @return {Promise} a promise which will be resolved with
-     * {status:, xhr:, body:}
-		 * @private
-     */
-    static request(method, url, headers, body) {
-
-      headers = headers || {};
-
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-
-        // for binary data
-        xhr.responseType = "arraybuffer";
-        xhr.open(method, url, true);
-
-        for (let ii in headers) {
-          xhr.setRequestHeader(ii, headers[ii]);
-        }
-
-        // Workaround for Edge
-        try {
-          if (body === undefined)
-            xhr.send();
-          else {
-            xhr.send(body);
-          }
-        } catch (e) {
-          reject(`xhr.send error: ${e}`);
-        }
-
-        xhr.onload = () => {
-          if (xhr.status === 401) {
-            throw new Error("http no 401 handler");
-          }
-          resolve({
-            body: new Uint8Array(xhr.response),
-            status: xhr.status,
-            xhr: xhr
-          });
-        };
-
-        xhr.onerror = e => {
-          reject(new Error(400, `http error: ${e}`));
-        };
-
-        xhr.ontimeout = function() {
-          reject(new Error(408, 'Timeout exceeded'));
-        };
-      });
-    }
-
-    /**
      * @implements Platform
      */
     static readBinaryFile(path) {
-      return BrowserPlatform.request("GET", path)
-      .then(res => {
-        if (200 <= res.status && res.status < 300)
-          return res.body;
-        throw new Error(res.status, `${path} ${res.status} read failed`);
-      });
+      return $.ajax({
+        type: "GET",
+        url: path,
+        dataType: "binary",
+        processData: "false"
+      })
+      .then(res => new Uint8Array(res));
     }
 
     /**

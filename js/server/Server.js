@@ -724,7 +724,8 @@ define([
       return Fs.readFile(Platform.getFilePath(`css/${theme}/${req.params.css}`))
       .catch(e => replyAndThrow(
         res, 404, `Could not load css/${theme}/${req.params.css}`, e))
-      .then(data => res.header('Content-Type', 'text/css')
+      .then(data => res
+            .header('Content-Type', 'text/css')
             .status(200)
             .send(data.toString()));
     }
@@ -1008,8 +1009,11 @@ define([
       const tagger = new Tagger();
       return this.db.get(gameKey, Game)
       .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
-      .then(game => res.status(200)
-            .send(new CBOREncoder(tagger).encode(game)));
+      .then(game => {
+        res.status(200);
+        res.write(new CBOREncoder(tagger).encode(game), "binary");
+        res.end(null, "binary");
+      });
     }
 
     /**
@@ -1077,7 +1081,7 @@ define([
 
         const player = game.getPlayerWithKey(playerKey);
         if (!player)
-          replyAndThrow(res, 
+          replyAndThrow(res,
             400, `Player ${playerKey} is not in game ${gameKey}`);
 
         // The command name and arguments
