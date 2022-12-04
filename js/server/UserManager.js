@@ -2,20 +2,22 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node */
-debugger;
+
+const Fs = require("fs").promises;
+const Lockfile = require("proper-lockfile");
+const AsyncLock = require("async-lock");
+const BCrypt = require("bcrypt");
+const ExpressSession = require("express-session");
+const SessionFileStore = require("session-file-store");
+const Passport = require("passport");
+const Strategy = require("passport-strategy");
+
 define([
-  "fs", "proper-lockfile", "async-lock", "bcrypt",
-  "express-session", "session-file-store",
-  "passport", "passport-strategy",
   "platform", "common/Utils"
 ], (
-  fs, Lockfile, AsyncLock, BCrypt,
-  ExpressSession, SessionFileStore,
-  Passport, Strategy,
   Platform, Utils
 ) => {
 
-  const Fs = fs.promises;
   const dbLock = new AsyncLock();
 
   function pw_hash(pw) {
@@ -132,7 +134,7 @@ define([
         secret: (config.auth ? config.auth.session_secret : undefined)
         || Utils.genKey(),
         store: new FileStore({
-          reapInterval: -1
+          ttl: 24 * 60 * 60 // keep sessions around for 24h
         }),
         resave: false,
         saveUninitialized: false
