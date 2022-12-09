@@ -104,8 +104,7 @@ define([
           args,
           (key, value) => {
             // Don't stringify fields used by the UI.
-            // These all start with "$"
-            if (key.charAt(0) === "$")
+            if (/^[_$]/.test(key))
               return undefined;
             return value;
           })
