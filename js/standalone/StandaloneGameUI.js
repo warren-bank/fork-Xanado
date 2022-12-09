@@ -136,7 +136,7 @@ define([
 
         } else {
           console.debug("Constructing new game");
-          const setup = $.extend({}, StandaloneUIMixin.DEFAULTS);
+          const setup = $.extend({}, StandaloneGameUI.DEFAULTS);
           setup._debug = this.args.debug ? console.debug : () => {};
           return this.createGame(setup)
           .then(game => this.backEndGame = game);
