@@ -982,9 +982,9 @@ define([
       // Board is always square, so only need one axis
       const sz = this.game.board.cols;
       const landscape = ww > wh;
-      // Constrain board to 80% of screen height in landscape, and the
-      // full screen width in portrait capped at 80% of the screen height
-      const available = landscape ? (wh * 0.8) : Math.max(ww, wh * 0.8);
+      // Constrain board to 90% of screen height in landscape, and the
+      // full screen width in portrait capped at 90% of the screen height
+      const available = landscape ? (wh * 0.9) : Math.min(ww, wh * 0.9);
       // A .Surface td has a 2px border-width
       const tdSize = available / sz - 4;
       this.editCSSRule(".Surface td", {
