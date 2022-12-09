@@ -65,9 +65,6 @@ define([
       // Attach the tile to the DOM so it is available for clicks
       this._$tile.data("Tile", this);
 
-      if (this.isBlank)
-        this._$tile.addClass("blank-letter");
-
       if (this.isLocked) {
         if (this._$tile.hasClass("ui-draggable"))
           this._$tile.draggable("destroy");

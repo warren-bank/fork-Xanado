@@ -221,12 +221,6 @@
   padding-left: 2px;
 }
 
-/* Tile for a blank gets a special highlight */
-.Tile.blank-letter .glyph {
-  border-left: 2px solid #ADFF2F;
-  border-right: 2px solid #ADFF2F;
-}
-
 /* A tile that is locked (cannot be dragged) */
 .Tile.locked-tile {
   cursor: not-allowed;
