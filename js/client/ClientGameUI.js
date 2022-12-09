@@ -5,18 +5,22 @@
 
 define([
   "platform",
-  "common/CBORDecoder", "common/Tagger", "common/Utils",
+  "common/CBORDecoder", "common/CBOREncoder", "common/Tagger", "common/Utils",
   "browser/BrowserGame",
   "browser/UI", "browser/GameUIMixin", "browser/Dialog",
   "client/ClientUIMixin",
   "jquery", "jqueryui", "cookie", "browser/icon_button"
 ], (
   Platform,
-  CBORDecoder, Tagger, Utils,
+  CBORDecoder, CBOREncoder, Tagger, Utils,
   Game,
   UI, GameUIMixin, Dialog,
   ClientUIMixin
 ) => {
+
+  const tagger = new Tagger(Game);
+  const encoder = new CBOREncoder(tagger);
+  const decoder = new CBORDecoder(tagger);
 
   /**
    * User interface to a game in a browser. The Ui reflects the game state as
@@ -84,7 +88,7 @@ define([
         .then(data => {
           this.debug(`--> Game ${gameKey}`);
           data = new Uint8Array(data);
-          return new CBORDecoder(new Tagger(Game)).decode(data);
+          return decoder.decode(data);
         })
         .then(game => {
           return this.identifyPlayer(game)
@@ -111,14 +115,7 @@ define([
         type: "POST",
         contentType: "application/json",
         data: JSON.stringify(
-          args,
-          (key, value) => {
-            // Don't stringify fields used by the UI.
-            // These all start with "$"
-            if (key.charAt(0) === "$")
-              return undefined;
-            return value;
-          })
+          args, (key, value) => tagger.skip(key) ? undefined : value)
       })
       .then(r => console.debug(`command '${command}'`, r))
       .catch(console.error);
