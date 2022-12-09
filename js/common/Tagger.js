@@ -51,7 +51,7 @@ define(() => {
      * @override
      */
     skip(key) {
-      return /^#?_/.test(key);
+      return /^_/.test(key);
     }
 
     /**
