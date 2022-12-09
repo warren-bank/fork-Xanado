@@ -95,7 +95,8 @@ define([ "common/Platform", "jquery" ], Platform => {
         dataType: "binary",
         processData: "false"
       })
-      .then(res => new Uint8Array(res));
+      .then(blob => new Response(blob).arrayBuffer())
+      .then(ab => new Uint8Array(ab));
     }
 
     /**
