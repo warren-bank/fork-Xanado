@@ -3,9 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-define([
-], (
-) => {
+define(() => {
 
   /**
    * Interface isolating platform details from the rest of

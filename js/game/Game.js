@@ -6,15 +6,13 @@
 define([
   "cbor",
   "platform",
-  "common/Utils", "common/Fridge",
-  "dawg/Dictionary",
+  "common/Utils", "common/Fridge", "common/Dictionaries",
   "game/Board", "game/Edition", "game/LetterBag", "game/Move",
   "game/Player", "game/Rack", "game/Square", "game/Tile", "game/Turn",
 ], (
   CBOR,
   Platform,
-  Utils, Fridge,
-  Dictionary,
+  Utils, Fridge, Dictionaries,
   Board, Edition, LetterBag, Move,
   Player, Rack, Square, Tile, Turn
 ) => {
@@ -1257,7 +1255,7 @@ define([
     getDictionary() {
       /* istanbul ignore next */
       assert(this.dictionary, "Game has no dictionary");
-      return Dictionary.load(this.dictionary);
+      return Dictionaries.load(this.dictionary);
     }
 
     /**

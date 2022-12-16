@@ -6,19 +6,15 @@
 
 define([
   "socket.io-client",
-  "platform",
-  "common/Utils",
+  "common/Utils", "common/Dictionaries",
   "game/Game", "game/Tile",
-  "dawg/Dictionary",
   "browser/Dialog",
 
   "jquery", "jqueryui"
 ], (
   Sockets,
-  Platform,
-  Utils,
+  Utils, Dictionaries,
   Game, Tile,
-  Dictionary,
   Dialog
 ) => {
 
@@ -282,7 +278,7 @@ define([
      * @override
      */
     getDictionary(name) {
-      return Dictionary.load(name);
+      return Dictionaries.load(name);
     }
 
     /**

@@ -1071,7 +1071,7 @@ define([
      * in Turn objects.
      * @param {Request} req the request object
      * @param {string} req.params.command the command, one of
-     * {@linkcode Types}.Command
+     * Game.Command
      * @param {string} req.params.gameKey the game key
      * @param {Response} res the response object
      * @return {Promise} promise that resolves to undefined

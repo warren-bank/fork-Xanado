@@ -25,12 +25,13 @@ requirejs.config({
   paths: {
     jquery: "node_modules/jquery/dist/jquery",
     "jquery-i18n": "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n",
+    cbor: "node_modules/@cdot/cbor/dist/index",
+    dictionary: "node_modules/@cdot/dictionary/dist/index",
 
     common: "js/common",
     server: "js/server",
     backend: "js/backend",
     game: "js/game",
-    dawg: "js/dawg",
 
     platform: "js/server/Platform"
   }

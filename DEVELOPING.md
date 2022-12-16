@@ -13,7 +13,6 @@ The installation has subdirectories as follows:
 * `images` contains images used by the game
 * `js` has all the source code
     * `js/common` has generic code
-	* `js/dawg` is generation and management of DAWGs
 	* `js/design` is the Valett program
 	* `js/game` has basic game code shared between frontend and backend
     * `js/backend` has game code specific to the backend
@@ -34,11 +33,11 @@ lexicon (list of words) using a processor based on [Daniel Weck's
 DAWG_Compressor program](https://github.com/danielweck/scrabble-html-ui). To build a new dictionary, follow the
 instructions given when you run:
 ```
-$ node bin/dictionary_compressor.js
+$ node node_modules/@cdot/dictionary/bin/compress.js
 ```
-`bin/explore.js` can be used to explore the generated DAWG(s) e.g.
+`node_modules/@cdot/dictionary/bin/explore.js` can be used to explore the generated DAWG(s) e.g.
 ```
-$ node bin/explore.js SOWPODS_English --anagrams scrabble
+$ node node_modules/@cdot/dictionary/bin/explore.js SOWPODS_English --anagrams scrabble
 ```
 Run it with no parameters for help.
 

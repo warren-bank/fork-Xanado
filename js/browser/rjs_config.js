@@ -55,6 +55,8 @@ requirejs.config({
 
     "cbor": "node_modules/@cdot/cbor/dist/index",
 
+    "dictionary": "node_modules/@cdot/dictionary/dist/index",
+
     cookie:
     "node_modules/jquery.cookie/jquery.cookie",
 

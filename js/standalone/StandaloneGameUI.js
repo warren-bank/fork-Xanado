@@ -5,7 +5,6 @@
 
 define([
   "common/Utils", "common/Channel",
-  "dawg/Dictionary",
   "game/Game",
   "backend/BackendGame",
   "browser/BrowserGame",
@@ -14,7 +13,6 @@ define([
   "touch-punch"
 ], (
   Utils, Channel,
-  Dictionary,
   Game,
   BackendGame,
   BrowserGame,

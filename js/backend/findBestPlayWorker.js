@@ -9,9 +9,9 @@ requirejs.config({
   nodeRequire: require,
   paths: {
     cbor: "node_modules/@cdot/cbor/dist/index",
+    dictionary: "node_modules/@cdot/dictionary/dist/index",
     common: "js/common",
     game: "js/game",
-    dawg: "js/dawg",
     backend: "js/backend",
     // TODO: normalise the platform, we shouldn't be depending on server.
     // Dictionary depends on it, for parsing paths.

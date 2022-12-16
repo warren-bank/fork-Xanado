@@ -4,11 +4,11 @@
 /* eslint-env amd */
 
 define([
-  "game/Edition", "game/Tile", "game/Move",
-  "dawg/Dictionary"
+  "common/Dictionaries",
+  "game/Edition", "game/Tile", "game/Move"
 ], (
-  Edition, Tile, Move,
-  Dictionary
+  Dictionaries,
+  Edition, Tile, Move
 ) => {
 
   /**
@@ -478,7 +478,7 @@ define([
       // We really ought to copy the board.
       this.board = game.board;
       return Promise.all([
-        Dictionary.load(dictname)
+        Dictionaries.load(dictname)
         .then(dic => this.dictionary = dic),
 
         Edition.load(game.edition)
@@ -508,7 +508,7 @@ define([
       this.report(`in edition ${this.edition.name}`);
       this.report("on\n" + this.board.stringify());
 
-      assert(this.dictionary instanceof Dictionary, "Setup failure");
+      //assert(this.dictionary instanceof Dictionary, "Setup failure");
       assert(this.edition instanceof Edition, "Setup failure");
 
       this.report("Starting findBestPlay computation for "

@@ -5,20 +5,16 @@
 /* global pluralRuleParser */
 
 define([
-  "platform",
-  "common/Utils",
+  "common/Utils", "common/Dictionaries",
   "game/Player", "game/Edition",
   "backend/BackendGame",
-  "dawg/Dictionary",
   "browser/BrowserDatabase",
 
   "jquery", "jqueryui"
 ], (
-  Platform,
-  Utils,
+  Utils, Dictionaries,
   Player, Edition,
   BackendGame,
-  Dictionary,
   BrowserDatabase
 ) => {
 
@@ -188,7 +184,7 @@ define([
      * @override
      */
     getDictionary(dict) {
-      return Dictionary.load(dict);
+      return Dictionaries.load(dict);
     }
 
     /**

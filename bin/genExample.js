@@ -4,9 +4,10 @@ requirejs.config({
   baseUrl: `${__dirname}/..`,
   nodeRequire: require,
   paths: {
+    cbor: "node_modules/@cdot/cbor/dist/index",
+    dictionary: "node_modules/@cdot/dictionary/dist/index",
     common: "js/common",
     game: "js/game",
-    dawg: "js/dawg",
     server: "js/server",
     platform: "js/server/Platform"
   }

@@ -13,10 +13,11 @@ requirejs.config({
   baseUrl: "..",
   nodeRequire: require,
   paths: {
+    cbor: "node_modules/@cdot/cbor/dist/index",
+    dictionary: "node_modules/@cdot/dictionary/dist/index",
     common: "js/common",
     game: "js/game",
     server: "js/server",
-    dawg: "js/dawg",
     platform: "js/server/Platform"
   }
 });
