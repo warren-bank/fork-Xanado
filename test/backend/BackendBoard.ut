@@ -12,9 +12,9 @@ describe("backend/BackendBoard", () => {
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({   
-      Edition: "game/Edition", /* global Edition */
-      Tile: "game/Tile", /* global Tile */
-      BackendGame: "backend/BackendGame" /* global BackendGame */
+      Edition: "js/game/Edition", /* global Edition */
+      Tile: "js/game/Tile", /* global Tile */
+      BackendGame: "js/backend/BackendGame" /* global BackendGame */
   }, () => {
     Square = BackendGame.CLASSES.Square;
     Tile = BackendGame.CLASSES.Tile;

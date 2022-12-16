@@ -3,7 +3,10 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-define([ "common/Platform", "jquery" ], Platform => {
+define([
+  "js/common/Platform",
+  "jquery"
+], Platform => {
 
   assert = (cond, mess) => {
     if (!cond) {
@@ -106,7 +109,7 @@ define([ "common/Platform", "jquery" ], Platform => {
       // backend/findBestPlay to block
       // backend/findBestPlayController to use a worker thread
       return new Promise(
-        resolve => requirejs([ "backend/findBestPlay" ],
+        resolve => requirejs([ "js/backend/findBestPlay" ],
                              fn => resolve(fn.apply(null, arguments))));
     }
 

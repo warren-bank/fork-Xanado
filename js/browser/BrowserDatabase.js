@@ -7,7 +7,7 @@
  * This is the browser implementation of common/Database.
  */
 define([
-  "common/Database", "common/Utils"
+  "js/common/Database", "js/common/Utils"
 ], (
   Database, Utils
 ) => {

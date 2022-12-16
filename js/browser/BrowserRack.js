@@ -4,8 +4,8 @@
 /* eslint-env amd, node, jquery */
 
 define([
-  "game/Rack",
-  "browser/SurfaceMixin"
+  "js/game/Rack",
+  "js/browser/SurfaceMixin"
 ], (
   Rack,
   SurfaceMixin

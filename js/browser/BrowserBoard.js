@@ -4,8 +4,8 @@
 /* eslint-env amd, node, jquery */
 
 define([
-  "game/Board", "game/Move",
-  "browser/SurfaceMixin"
+  "js/game/Board", "js/game/Move",
+  "js/browser/SurfaceMixin"
 ], (
   Board, Move,
   SurfaceMixin

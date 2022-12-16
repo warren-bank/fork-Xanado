@@ -10,8 +10,8 @@ describe("browser/BrowserBoard", () => {
   before(required => {
     requirejs.isBrowser = true;
     TS.before({
-      Edition: "game/Edition", /* global Edition */
-      BrowserGame: "browser/BrowserGame", /* global BrowserGame */
+      Edition: "js/game/Edition", /* global Edition */
+      BrowserGame: "js/browser/BrowserGame", /* global BrowserGame */
       jQueryUI: "jquery-ui" /* global jQueryUI */
     }, () => {
       Tile = BrowserGame.CLASSES.Tile;

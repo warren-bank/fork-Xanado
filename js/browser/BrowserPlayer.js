@@ -4,7 +4,7 @@
 /* eslint-env amd, browser, jquery */
 
 define([
-  "game/Player",
+  "js/game/Player",
 
   "jquery"
 ], (

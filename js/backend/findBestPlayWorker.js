@@ -10,12 +10,7 @@ requirejs.config({
   paths: {
     cbor: "node_modules/@cdot/cbor/dist/index",
     dictionary: "node_modules/@cdot/dictionary/dist/index",
-    common: "js/common",
-    game: "js/game",
-    backend: "js/backend",
-    // TODO: normalise the platform, we shouldn't be depending on server.
-    // Dictionary depends on it, for parsing paths.
-    server: "js/server", // server/Platform needs I18N
+    // js/common/Dictionaries depends on it, for parsing paths.
     platform: "js/server/Platform"
   }
 });
@@ -27,7 +22,7 @@ requirejs.config({
  */
 requirejs([
   "worker_threads",
-  "backend/BackendGame", "backend/findBestPlay"
+  "js/backend/BackendGame", "js/backend/findBestPlay"
 ], (
   threads,
   BackendGame, findBestPlay

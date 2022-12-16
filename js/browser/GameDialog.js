@@ -7,7 +7,7 @@
  * Dialog for game display. Demand loads the HTML.
  */
 define([
-  "browser/Dialog"
+  "js/browser/Dialog"
 ], (
   Dialog
 ) => {

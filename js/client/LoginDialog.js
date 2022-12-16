@@ -4,7 +4,7 @@
 /* eslint-env browser, jquery */
 
 define([
-  "browser/Dialog", "client/PasswordMixin"
+  "js/browser/Dialog", "js/client/PasswordMixin"
 ], (
   Dialog, PasswordMixin
 ) => {

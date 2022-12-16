@@ -12,10 +12,10 @@ const Express = require("express");
 
 define([
   "platform",
-  "common/Utils",
-  "game/Edition",
-  "backend/BackendGame",
-  "server/FileDatabase", "server/UserManager"
+  "js/common/Utils",
+  "js/game/Edition",
+  "js/backend/BackendGame",
+  "js/server/FileDatabase", "js/server/UserManager"
 ], (
   Platform,
   Utils,

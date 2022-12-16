@@ -6,9 +6,6 @@ requirejs.config({
   paths: {
     cbor: "node_modules/@cdot/cbor/dist/index",
     dictionary: "node_modules/@cdot/dictionary/dist/index",
-    common: "js/common",
-    game: "js/game",
-    server: "js/server",
     platform: "js/server/Platform"
   }
 });
@@ -17,7 +14,7 @@ requirejs.config({
  * Create a simple example game for the splash screen
  */
 requirejs([
-  "game/Edition", "game/Game", "game/Player", "server/FileDatabase"
+  "js/game/Edition", "js/game/Game", "js/game/Player", "js/server/FileDatabase"
 ], (
   Edition, Game, Player, FileDatabase
 ) => {

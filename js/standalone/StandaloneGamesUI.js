@@ -8,10 +8,10 @@
  */
 define([
   "platform",
-  "common/Utils",
-  "game/Player", "game/Game",
-  "browser/UI", "browser/Dialog", "browser/GamesUIMixin",
-  "standalone/StandaloneUIMixin"
+  "js/common/Utils",
+  "js/game/Player", "js/game/Game",
+  "js/browser/UI", "js/browser/Dialog", "js/browser/GamesUIMixin",
+  "js/standalone/StandaloneUIMixin"
 ], (
   Platform,
   Utils,
@@ -37,7 +37,7 @@ define([
       super.attachUIEventHandlers();
 
       $("#create-game")
-      .on("click", () => Dialog.open("browser/GameSetupDialog", {
+      .on("click", () => Dialog.open("js/browser/GameSetupDialog", {
         html: "standalone_GameSetupDialog",
         title: $.i18n("Create game"),
         ui: this,
@@ -57,7 +57,7 @@ define([
      * @override
      */
     gameOptions(game) {
-      Dialog.open("browser/GameSetupDialog", {
+      Dialog.open("js/browser/GameSetupDialog", {
         html: "standalone_GameSetupDialog",
         title: $.i18n("Game setup"),
         game: game,

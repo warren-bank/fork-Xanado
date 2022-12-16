@@ -14,8 +14,8 @@ describe("browser/BrowserSquare", () => {
   before(required => {
     requirejs.isBrowser = true; // muddy boots
     return TS.before({
-        Square: "browser/BrowserSquare",
-        Tile: "browser/BrowserTile",
+        Square: "js/browser/BrowserSquare",
+        Tile: "js/browser/BrowserTile",
         jQueryUI: "jquery-ui"
       }, required);
   });

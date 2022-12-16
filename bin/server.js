@@ -27,17 +27,11 @@ requirejs.config({
     "jquery-i18n": "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n",
     cbor: "node_modules/@cdot/cbor/dist/index",
     dictionary: "node_modules/@cdot/dictionary/dist/index",
-
-    common: "js/common",
-    server: "js/server",
-    backend: "js/backend",
-    game: "js/game",
-
     platform: "js/server/Platform"
   }
 });
 
-requirejs([ "server/Server" ], Server => {
+requirejs([ "js/server/Server" ], Server => {
 
   // Default configuration.
   const DEFAULT_CONFIG = {

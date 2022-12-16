@@ -4,7 +4,7 @@
 /* eslint-env amd, node, jquery */
 
 define([
-  "game/Square"
+  "js/game/Square"
 ], (
   Square,
   Mixin

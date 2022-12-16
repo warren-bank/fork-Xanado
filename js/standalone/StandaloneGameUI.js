@@ -4,12 +4,12 @@
 /* eslint-env browser, jquery */
 
 define([
-  "common/Utils", "common/Channel",
-  "game/Game",
-  "backend/BackendGame",
-  "browser/BrowserGame",
-  "browser/UI", "browser/GameUIMixin", "browser/Dialog",
-  "standalone/StandaloneUIMixin",
+  "js/common/Utils", "js/common/Channel",
+  "js/game/Game",
+  "js/backend/BackendGame",
+  "js/browser/BrowserGame",
+  "js/browser/UI", "js/browser/GameUIMixin", "js/browser/Dialog",
+  "js/standalone/StandaloneUIMixin",
   "touch-punch"
 ], (
   Utils, Channel,
@@ -158,7 +158,7 @@ define([
       .then(() => {
         $("#gameSetupButton")
         .on("click", () => {
-          Dialog.open("browser/GameSetupDialog", {
+          Dialog.open("js/browser/GameSetupDialog", {
             html: "standalone_GameSetupDialog",
             ui: this,
             game: this.backEndGame,

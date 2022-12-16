@@ -8,7 +8,7 @@ if (typeof requirejs === "undefined") {
 }
 
 define([
-  "common/Channel", "common/Utils"
+  "js/common/Channel", "js/common/Utils"
 ], (
   Channel, Utils
 ) => {

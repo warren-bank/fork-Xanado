@@ -12,7 +12,7 @@ describe("game/Game", () => {
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Game: "game/Game" /* global Game */
+    Game: "js/game/Game" /* global Game */
   }, () => {
     Tile = Game.CLASSES.Tile;
     Move = Game.CLASSES.Move;

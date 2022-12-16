@@ -4,8 +4,8 @@
 /* eslint-env amd */
 
 define([
-  "common/Dictionaries",
-  "game/Edition", "game/Tile", "game/Move"
+  "js/common/Dictionaries",
+  "js/game/Edition", "js/game/Tile", "js/game/Move"
 ], (
   Dictionaries,
   Edition, Tile, Move

@@ -8,9 +8,9 @@ describe("backend/findBestPlay", () => {
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    BackendGame: "backend/BackendGame", /* global BackendGame */
-    findBestPlayRaw: "backend/findBestPlay", /* global findBestPlayRaw */
-    findBestPlayWorker: "backend/findBestPlayController" /* global findBestPlayWorker */
+    BackendGame: "js/backend/BackendGame", /* global BackendGame */
+    findBestPlayRaw: "js/backend/findBestPlay", /* global findBestPlayRaw */
+    findBestPlayWorker: "js/backend/findBestPlayController" /* global findBestPlayWorker */
   }, () => {
     Player = BackendGame.CLASSES.Player;
     Tile = BackendGame.CLASSES.Tile;

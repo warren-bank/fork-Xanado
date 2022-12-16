@@ -4,10 +4,12 @@
 /* eslint-env amd, node, jquery */
 
 define([
-  "platform", "common/Utils",
-  "game/Board"
+  "platform",
+  "js/common/Utils",
+  "js/game/Board"
 ], (
-  Platform, Utils,
+  Platform,
+  Utils,
   Board
 ) => {
 

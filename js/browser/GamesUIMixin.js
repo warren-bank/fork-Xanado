@@ -4,7 +4,7 @@
 /* eslint-env browser, jquery */
 
 define([
-  "browser/BrowserPlayer", "browser/BrowserGame", "browser/Dialog"
+  "js/browser/BrowserPlayer", "js/browser/BrowserGame", "js/browser/Dialog"
 ], (
   Player, Game, Dialog
 ) => {
@@ -179,7 +179,7 @@ define([
       assert(game instanceof Game, "Not a game");
       return $(game.tableRow(this.constructor.GAME_TABLE_ROW))
       .on("click", () => {
-        Dialog.open("browser/GameDialog", {
+        Dialog.open("js/browser/GameDialog", {
           game: game,
           ui: this
         });

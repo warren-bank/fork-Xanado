@@ -5,8 +5,8 @@
 
 define([
   "platform",
-  "game/Tile",
-  "browser/UIEvents"
+  "js/game/Tile",
+  "js/browser/UIEvents"
 ], (
   Platform,
   Tile,

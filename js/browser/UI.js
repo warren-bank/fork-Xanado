@@ -5,8 +5,8 @@
 
 define([
   "platform",
-  "common/Utils",
-  "browser/Dialog",
+  "js/common/Utils",
+  "js/browser/Dialog",
   "jquery", "jqueryui", "jquery.i18n",
   "i18n.language", "i18n.messagestore", "i18n.parser",
   "i18n.fallbacks", "i18n.emitter"
@@ -334,7 +334,7 @@ define([
     attachUIEventHandlers() {
       $("#personaliseButton")
       .on("click", () => {
-        Dialog.open("browser/SettingsDialog", {
+        Dialog.open("js/browser/SettingsDialog", {
           ui: this,
           onSubmit: (dlg, vals) => {
             this.setSettings(vals)

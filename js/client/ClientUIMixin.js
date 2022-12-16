@@ -6,9 +6,9 @@
 
 define([
   "socket.io-client",
-  "common/Utils", "common/Dictionaries",
-  "game/Game", "game/Tile",
-  "browser/Dialog",
+  "js/common/Utils", "js/common/Dictionaries",
+  "js/game/Game", "js/game/Tile",
+  "js/browser/Dialog",
 
   "jquery", "jqueryui"
 ], (
@@ -168,7 +168,7 @@ define([
       .then(() => {
 
         $("#login-button")
-        .on("click", () => Dialog.open("client/LoginDialog", {
+        .on("click", () => Dialog.open("js/client/LoginDialog", {
           // postAction is set in code
           postResult: () => window.location.reload(),
           error: e => this.alert(e, $.i18n("failed", $.i18n("Sign in")))

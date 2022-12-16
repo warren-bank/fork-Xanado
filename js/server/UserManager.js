@@ -13,7 +13,8 @@ const Passport = require("passport");
 const Strategy = require("passport-strategy");
 
 define([
-  "platform", "common/Utils"
+  "platform",
+  "js/common/Utils"
 ], (
   Platform, Utils
 ) => {

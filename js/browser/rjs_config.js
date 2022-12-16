@@ -64,16 +64,7 @@ requirejs.config({
     "node_modules/@wikimedia/jquery.i18n/libs/CLDRPluralRuleParser/src/CLDRPluralRuleParser",
 
     editions: "editions",
-
-    browser: "js/browser",
-    backend: "js/backend",
-    server: "js/server",
-    client: "js/client",
-    common: "js/common",
-    dawg: "js/dawg",
-    game: "js/game",
-    platform: "js/browser/Platform",
-    standalone: "js/standalone"
+    platform: "js/browser/Platform"
   },
 
   // shim specifies additional dependencies between modules
@@ -83,7 +74,7 @@ requirejs.config({
     "jquery.i18n":       [ "jquery" ],
     "i18n.emitter":      [ "jquery.i18n" ],
     "i18n.fallbacks":    [ "jquery.i18n" ],
-    "i18n.language":     [ "jquery.i18n", "common/pluralRuleParser" ],
+    "i18n.language":     [ "jquery.i18n", "js/common/pluralRuleParser" ],
     "i18n.messagestore": [ "jquery.i18n" ],
     "i18n.parser":       [ "jquery.i18n" ]
   }

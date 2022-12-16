@@ -14,10 +14,10 @@ describe("game/Challenges", () => {
   after(() => TS.after());
   before(required => TS.before({
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
-    Utils: "common/Utils", /* global Utils */
+    Utils: "js/common/Utils", /* global Utils */
     TestSocket: 'test/TestSocket', /* global TestSocket */
-    _Game: "game/Game", /* global _Game */
-    Commands: "game/Commands" /* global Commands */
+    _Game: "js/game/Game", /* global _Game */
+    Commands: "js/game/Commands" /* global Commands */
   }, () => {
     Game = Commands(_Game);
     Tile = Game.CLASSES.Tile;

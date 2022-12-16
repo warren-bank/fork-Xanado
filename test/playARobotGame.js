@@ -23,10 +23,10 @@ requirejs.config({
 });
 
 requirejs([
-  "game/Edition", "game/Tile", "game/Rack",
-  "game/Square", "game/Player", "game/Game", "game/LetterBag",
-  "game/Board", "game/Move",
-  "test/MemoryDatabase"
+  "js/game/Edition", "js/game/Tile", "js/game/Rack",
+  "js/game/Square", "js/game/Player", "js/game/Game", "js/game/LetterBag",
+  "js/game/Board", "js/game/Move",
+  "js/test/MemoryDatabase"
 ], (
   Edition, Tile, Rack,
   Square, Player, Game, LetterBag,

@@ -4,7 +4,7 @@
 /* eslint-env browser, jquery */
 
 define([
-  "browser/Dialog", "game/Game"
+  "js/browser/Dialog", "js/game/Game"
 ], (
   Dialog, Game
 ) => {

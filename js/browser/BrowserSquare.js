@@ -5,8 +5,8 @@
 
 define([
   "platform",
-  "game/Square",
-  "browser/UIEvents"
+  "js/game/Square",
+  "js/browser/UIEvents"
 ], (
   Platform,
   Square,

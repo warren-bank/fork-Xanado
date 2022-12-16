@@ -4,7 +4,7 @@
 /* eslint-env node */
 
 define([
-  "common/Database"
+  "js/common/Database"
 ], (
   Database
 ) => {

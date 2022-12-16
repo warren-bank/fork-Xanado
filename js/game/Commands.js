@@ -5,8 +5,8 @@
 
 define([
   "platform",
-  "common/Utils",
-  "game/Game"
+  "js/common/Utils",
+  "js/game/Game"
 ], (
   Platform,
   Utils,

@@ -4,7 +4,7 @@
 /* eslint-env amd */
 
 define([
-  "game/Tile", "game/Move"
+  "js/game/Tile", "js/game/Move"
 ], (Tile, Move) => {
 
   /**

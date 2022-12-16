@@ -8,7 +8,7 @@ describe("game/Player", () => {
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Game: "game/Game" /* global Game */
+    Game: "js/game/Game" /* global Game */
   }, () => {
     Player = Game.CLASSES.Player;
     required();

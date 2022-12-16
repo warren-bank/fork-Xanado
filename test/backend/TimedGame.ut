@@ -12,9 +12,9 @@ describe("backend/TimedGame", function() {
   after(() => TS.after());
   before(required => TS.before({
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
-    Utils: "common/Utils", /* global Utils */
+    Utils: "js/common/Utils", /* global Utils */
     TestSocket: 'test/TestSocket', /* global TestSocket */
-    BackendGame: "backend/BackendGame" /* global BackendGame */
+    BackendGame: "js/backend/BackendGame" /* global BackendGame */
   }, () => {
     Player = BackendGame.CLASSES.Player;
     required();

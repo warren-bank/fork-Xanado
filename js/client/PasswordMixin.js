@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-define(["browser/Dialog"], Dialog => {
+define([ "js/browser/Dialog" ], Dialog => {
 
   /**
    * Mixin for dialogs that contain password fields. For info on using

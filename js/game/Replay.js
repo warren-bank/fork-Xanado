@@ -4,9 +4,10 @@
 /* eslint-env amd */
 
 define([
-  "platform", "common/Utils",
-  "game/LetterBag", "game/Board", "game/Game",
-  "game/Player", "game/Tile", "game/Rack", "game/Turn", "game/Undo"
+  "platform",
+  "js/common/Utils",
+  "js/game/LetterBag", "js/game/Board", "js/game/Game",
+  "js/game/Player", "js/game/Tile", "js/game/Rack", "js/game/Turn", "js/game/Undo"
 ], (
   Platform, Utils,
   LetterBag, Board, Game,

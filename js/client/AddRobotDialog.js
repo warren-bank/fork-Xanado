@@ -6,7 +6,7 @@
 /**
  * Dialog for robot creation. Demand loads the HTML.
  */
-define(["browser/Dialog"], Dialog => {
+define(["js/browser/Dialog"], Dialog => {
 
   class AddRobotDialog extends Dialog {
 

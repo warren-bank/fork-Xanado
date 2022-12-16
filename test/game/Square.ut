@@ -13,8 +13,8 @@ describe("game/Square", () => {
   after(() => TS.after());
   before(required => {
     TS.before({      
-      Square: "game/Square", /* global Square */
-      Tile: "game/Tile" /* global Tile */
+      Square: "js/game/Square", /* global Square */
+      Tile: "js/game/Tile" /* global Tile */
     }, required);
   });
 

@@ -13,12 +13,12 @@ describe("game/Replay", () => {
   after(() => TS.after());
   before(required => TS.before({
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
-    FileDatabase: "server/FileDatabase", /* global FileDatabase */
+    FileDatabase: "js/server/FileDatabase", /* global FileDatabase */
 
-    _Game: "game/Game", /* global _Game */
-    Undo: "game/Undo", /* global Undo */
-    Commands: "game/Commands", /* global Commands */
-    Replay: "game/Replay" /* global Replay */
+    _Game: "js/game/Game", /* global _Game */
+    Undo: "js/game/Undo", /* global Undo */
+    Commands: "js/game/Commands", /* global Commands */
+    Replay: "js/game/Replay" /* global Replay */
   }, () => {
     Game = Undo(Replay(Commands(_Game)));
     Tile = Game.CLASSES.Tile;

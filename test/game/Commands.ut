@@ -15,10 +15,10 @@ describe("game/Commands", () => {
   before(required => TS.before({
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
     TestSocket: 'test/TestSocket', /* global TestSocket */
-    Utils: "common/Utils", /* global Utils */
-    FileDatabase: "server/FileDatabase", /* global FileDatabase */
-    Commands: "game/Commands", /* global Commands */
-    _Game: "game/Game" /* global _Game */
+    Utils: "js/common/Utils", /* global Utils */
+    FileDatabase: "js/server/FileDatabase", /* global FileDatabase */
+    Commands: "js/game/Commands", /* global Commands */
+    _Game: "js/game/Game" /* global _Game */
   }, () => {
     Game = Commands(_Game);
     Player = Game.CLASSES.Player;

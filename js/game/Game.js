@@ -6,9 +6,9 @@
 define([
   "cbor",
   "platform",
-  "common/Utils", "common/Fridge", "common/Dictionaries",
-  "game/Board", "game/Edition", "game/LetterBag", "game/Move",
-  "game/Player", "game/Rack", "game/Square", "game/Tile", "game/Turn",
+  "js/common/Utils", "js/common/Fridge", "js/common/Dictionaries",
+  "js/game/Board", "js/game/Edition", "js/game/LetterBag", "js/game/Move",
+  "js/game/Player", "js/game/Rack", "js/game/Square", "js/game/Tile", "js/game/Turn",
 ], (
   CBOR,
   Platform,

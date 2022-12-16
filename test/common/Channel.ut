@@ -9,7 +9,7 @@ describe("common/Channel", () => {
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Channel: "common/Channel" /* global Channel */
+    Channel: "js/common/Channel" /* global Channel */
   }, required));
 
   it("talk to myself", () => {

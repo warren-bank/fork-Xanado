@@ -5,9 +5,10 @@
 
 define([
   "cbor",
-  "platform", "common/Utils",
-  "game/Game", "game/Undo", "game/Replay", "game/Commands",
-  "backend/BackendBoard"
+  "platform",
+  "js/common/Utils",
+  "js/game/Game", "js/game/Undo", "js/game/Replay", "js/game/Commands",
+  "js/backend/BackendBoard"
 ], (
   CBOR,
   Platform, Utils,

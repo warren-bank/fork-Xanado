@@ -12,8 +12,8 @@ describe("backend/RobotFirstPlay", () => {
   after(() => TS.after());
   before(required => TS.before({
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
-    BackendGame: "backend/BackendGame", /* global BackendGame */
-    findBestPlay: "backend/findBestPlay" /* global findBestPlay */
+    BackendGame: "js/backend/BackendGame", /* global BackendGame */
+    findBestPlay: "js/backend/findBestPlay" /* global findBestPlay */
   }, () => {
     Player = BackendGame.CLASSES.Player;
     Tile = BackendGame.CLASSES.Tile;

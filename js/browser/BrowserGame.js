@@ -6,10 +6,10 @@
 define([
   "cbor",
   "platform",
-  "common/Utils",
-  "game/Undo", "game/Commands", "game/Game",
-  "browser/BrowserSquare", "browser/BrowserTile", "browser/BrowserBoard",
-  "browser/BrowserPlayer", "browser/BrowserRack"
+  "js/common/Utils",
+  "js/game/Undo", "js/game/Commands", "js/game/Game",
+  "js/browser/BrowserSquare", "js/browser/BrowserTile", "js/browser/BrowserBoard",
+  "js/browser/BrowserPlayer", "js/browser/BrowserRack"
 ], (
   CBOR,
   Platform,

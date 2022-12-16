@@ -1,8 +1,10 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
 License MIT. See README.md at the root of this distribution for full copyright
 and license information. Author Crawford Currie http://c-dot.co.uk*/
-define(["fs", "path"], (fs, Path) => {
-  const Fs = fs.promises;
+const Fs = require("fs").promises;
+const Path = require("path");
+
+define(() => {
   let TX = {};
 
   /**

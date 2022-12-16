@@ -4,12 +4,14 @@
 /* eslint-env browser, jquery */
 
 define([
-  "platform", "common/Utils",
-  "game/Game", "game/Player", "game/Turn",
-  "browser/Dialog", "browser/UIEvents",
-  "jquery", "jqueryui", "cookie", "browser/icon_button"
+  "platform",
+  "js/common/Utils",
+  "js/game/Game", "js/game/Player", "js/game/Turn",
+  "js/browser/Dialog", "js/browser/UIEvents",
+  "jquery", "jqueryui", "cookie", "js/browser/icon_button"
 ], (
-  Platform, Utils,
+  Platform,
+  Utils,
   Game, Player, Turn,
   Dialog, UIEvents
 ) => {

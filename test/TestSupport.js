@@ -67,7 +67,7 @@ exports.before = (deps, required) => {
     global.jQuery = jQuery;
     global.$ = jQuery;
 
-    deps.I18N = "server/I18N";
+    deps.I18N = "js/server/I18N";
   }
   if (!deps.Platform)
     deps.Platform = "platform";

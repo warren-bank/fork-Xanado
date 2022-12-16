@@ -9,9 +9,9 @@ describe("game/LetterBag", () => {
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Edition: "game/Edition", /* global Edition */
-    Tile: "game/Tile", /* global Tile */
-    LetterBag: "game/LetterBag" /* global LetterBag */
+    Edition: "js/game/Edition", /* global Edition */
+    Tile: "js/game/Tile", /* global Tile */
+    LetterBag: "js/game/LetterBag" /* global LetterBag */
   }, required));
 
   function UNit() {}

@@ -4,8 +4,9 @@
 /* eslint-env amd, node, jquery */
 
 define([
-  "platform", "common/Utils",
-  "game/Surface", "game/Tile", "game/Move", "game/Edition"
+  "platform",
+  "js/common/Utils",
+  "js/game/Surface", "js/game/Tile", "js/game/Move", "js/game/Edition"
 ], (
   Platform, Utils,
   Surface, Tile, Move, Edition,

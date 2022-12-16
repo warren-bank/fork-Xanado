@@ -16,7 +16,7 @@ describe("server/UserManager", () => {
   after(() => TS.after());
   before(required => TS.before({
     Platform: "platform", /* global Platform */
-    Server: "server/Server" /* global Server */
+    Server: "js/server/Server" /* global Server */
   }, required));
 
   const assert = chai.assert;

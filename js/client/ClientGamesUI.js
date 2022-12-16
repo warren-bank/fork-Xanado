@@ -8,10 +8,10 @@
  */
 requirejs([
   "platform",
-  "common/Utils",
-  "game/Player", "game/Game",
-  "browser/UI", "browser/Dialog", "browser/GamesUIMixin",
-  "client/ClientUIMixin"
+  "js/common/Utils",
+  "js/game/Player", "js/game/Game",
+  "js/browser/UI", "js/browser/Dialog", "js/browser/GamesUIMixin",
+  "js/client/ClientUIMixin"
 ], (
   Platform,
   Utils,
@@ -36,7 +36,7 @@ requirejs([
       super.attachUIEventHandlers();
 
       $("#create-game")
-      .on("click", () => Dialog.open("browser/GameSetupDialog", {
+      .on("click", () => Dialog.open("js/browser/GameSetupDialog", {
         title: $.i18n("Create game"),
         ui: this,
         postAction: "/createGame",
@@ -53,7 +53,7 @@ requirejs([
       });
 
       $("#chpw_button")
-      .on("click", () => Dialog.open("client/ChangePasswordDialog", {
+      .on("click", () => Dialog.open("js/client/ChangePasswordDialog", {
         postAction: "/change-password",
         postResult: () => this.refresh(),
         error: e => this.alert(e, $.i18n("failed", $.i18n("Change password")))
@@ -109,7 +109,7 @@ requirejs([
      * @implements browser/GamesUIMixin#gameOptions
      */
     gameOptions(game) {
-      Dialog.open("browser/GameSetupDialog", {
+      Dialog.open("js/browser/GameSetupDialog", {
         // use the generic html
         title: $.i18n("Game setup"),
         game: game,
@@ -147,7 +147,7 @@ requirejs([
      * @inheritdoc
      */
     addRobot(game) {
-      Dialog.open("client/AddRobotDialog", {
+      Dialog.open("js/client/AddRobotDialog", {
         ui: this,
         postAction: `/addRobot/${game.key}`,
         postResult: () => this.refreshGame(game.key),
@@ -159,7 +159,7 @@ requirejs([
      * @implements browser/GamesUIMixin#invitePlayers
      */
     invitePlayers(game) {
-      Dialog.open("client/InvitePlayersDialog", {
+      Dialog.open("js/client/InvitePlayersDialog", {
         postAction: `/invitePlayers/${game.key}`,
         postResult: names => this.alert(
           $.i18n("sent-invite", names.join(", ")),

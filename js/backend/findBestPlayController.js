@@ -8,7 +8,7 @@
 define([
   "worker_threads",
   "platform",
-  "backend/BackendGame"
+  "js/backend/BackendGame"
 ], (
   threads,
   Platform,

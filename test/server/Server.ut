@@ -20,9 +20,9 @@ describe("server/Server", () => {
   before(required => TS.before({
     Platform: "platform", /* global Platform */
     TestSocket: 'test/TestSocket', /* global TestSocket */
-    Server: "server/Server", /* global Server */
-    Game: "game/Game", /* global Game */
-    UserManager: "server/UserManager" /* global UserManager */
+    Server: "js/server/Server", /* global Server */
+    Game: "js/game/Game", /* global Game */
+    UserManager: "js/server/UserManager" /* global UserManager */
   }, required));
   beforeEach(done => {
     const cmd = `rm -f ${__dirname}/../temp/*.game ${USER_DB_FILE}`;

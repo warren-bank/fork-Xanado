@@ -18,7 +18,7 @@ requirejs.config({
  * in the 'games' directory.
  */
 requirejs([
-  "game/Edition", "game/Game", "game/Player", "server/FileDatabase"
+  "js/game/Edition", "js/game/Game", "js/game/Player", "js/server/FileDatabase"
 ], (
   Edition, Game, Player, FileDatabase
 ) => {

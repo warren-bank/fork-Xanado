@@ -5,10 +5,10 @@
 /* global pluralRuleParser */
 
 define([
-  "common/Utils", "common/Dictionaries",
-  "game/Player", "game/Edition",
-  "backend/BackendGame",
-  "browser/BrowserDatabase",
+  "js/common/Utils", "js/common/Dictionaries",
+  "js/game/Player", "js/game/Edition",
+  "js/backend/BackendGame",
+  "js/browser/BrowserDatabase",
 
   "jquery", "jqueryui"
 ], (

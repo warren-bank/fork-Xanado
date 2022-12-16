@@ -3,21 +3,18 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node */
 
+global.assert = require("assert");
+const Fs = require("fs").promises;
+const Path = require("path");
+const Lock = require("proper-lockfile");
+
 define([
-  "assert", "fs", "path", "proper-lockfile",
-  "common/Platform",
-  "server/I18N"
+  "js/common/Platform",
+  "js/server/I18N"
 ], (
-  Assert, fs, Path, Lock,
   Platform,
   I18N
 ) => {
-  const Fs = fs.promises;
-
-  /**
-   * Map global assert to node:assert
-   */
-  global.assert = Assert;
 
   /**
    * Implementation of {@linkcode common/Platform} for use in node.js.
@@ -40,7 +37,7 @@ define([
       // backend/findBestPlay to block
       // backend/findBestPlayController to use a worker thread
       return new Promise(
-        resolve => requirejs([ "backend/findBestPlayController" ],
+        resolve => requirejs([ "js/backend/findBestPlayController" ],
                              fn => resolve(fn.apply(null, arguments))));
     }
 

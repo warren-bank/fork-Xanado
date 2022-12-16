@@ -5,11 +5,11 @@
 
 define([
   "platform",
-  "common/Utils",
-  "browser/BrowserGame",
-  "browser/UI", "browser/GameUIMixin", "browser/Dialog",
-  "client/ClientUIMixin",
-  "jquery", "jqueryui", "cookie", "browser/icon_button"
+  "js/common/Utils",
+  "js/browser/BrowserGame",
+  "js/browser/UI", "js/browser/GameUIMixin", "js/browser/Dialog",
+  "js/client/ClientUIMixin",
+  "jquery", "jqueryui", "cookie", "js/browser/icon_button"
 ], (
   Platform,
   Tagger, Utils,

@@ -12,8 +12,8 @@ describe("game/Board", () => {
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Edition: "game/Edition", /* global Edition */
-    Game: "game/Game" /* global Game */
+    Edition: "js/game/Edition", /* global Edition */
+    Game: "js/game/Game" /* global Game */
   }, () => {
     Board = Game.CLASSES.Board;
     Tile = Game.CLASSES.Tile;

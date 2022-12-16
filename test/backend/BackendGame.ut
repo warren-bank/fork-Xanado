@@ -14,11 +14,11 @@ describe("backend/BackendGame", () => {
     TS.before({
       TestSocket: 'test/TestSocket', /* global TestSocket */
       MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
-      Game: "backend/BackendGame", /* global Game */
-      Player: "game/Player", /* global Player */
-      Move: "game/Move", /* global Move */
-      Tile: "game/Tile", /* global Tile */
-      FileDatabase: "server/FileDatabase" /* global FileDatabase */
+      Game: "js/backend/BackendGame", /* global Game */
+      Player: "js/game/Player", /* global Player */
+      Move: "js/game/Move", /* global Move */
+      Tile: "js/game/Tile", /* global Tile */
+      FileDatabase: "js/server/FileDatabase" /* global FileDatabase */
     }, required);
   });
 

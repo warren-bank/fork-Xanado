@@ -12,7 +12,7 @@ describe("browser/BrowserGame", () => {
 	before(required => {
     requirejs.isBrowser = true;
     TS.before({
-		  BrowserGame: "browser/BrowserGame", /* global BrowserGame */
+		  BrowserGame: "js/browser/BrowserGame", /* global BrowserGame */
       jQueryUI: "jquery-ui" /* global jQueryUI */
     }, () => {
       Player = BrowserGame.CLASSES.Player;

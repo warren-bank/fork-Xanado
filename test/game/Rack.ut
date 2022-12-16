@@ -11,7 +11,7 @@ describe("game/Rack", () => {
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Game: "game/Game" /* global Game */
+    Game: "js/game/Game" /* global Game */
   }, () => {
     Rack = Game.CLASSES.Rack;
     Tile = Game.CLASSES.Tile;

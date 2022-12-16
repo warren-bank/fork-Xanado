@@ -4,7 +4,7 @@
 /* eslint-env amd, jquery */
 
 define([
-  "game/Rack"
+  "js/game/Rack"
 ], (
   Rack
 ) => {
