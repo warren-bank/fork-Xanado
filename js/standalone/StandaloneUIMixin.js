@@ -194,10 +194,7 @@ define([
      * @override
      */
     getEdition(ed) {
-      return new Promise((resolve, reject) => {
-        requirejs([`editions/${ed}`],
-                  edition => resolve(edition));
-      });
+      return Edition.load(ed);
     }
 
     /**

@@ -3,7 +3,12 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-define(() => {
+define([
+  "platform"
+], (
+  Platform
+) => {
+
   // Static DB of loaded Editions, indexed by name
   const editions = {};
 
@@ -137,13 +142,13 @@ define(() => {
 
       // Use requirejs to support dependencies in the edition
       // files
-      return new Promise(resolve => {
-        requirejs([ `editions/${name}` ], spec => {
-          spec.name = name;
-          editions[name] = new Edition(spec);
-          //console.log(`Loaded edition ${name}`);
-          resolve(editions[name]);
-        });
+      return Platform.readFile(`editions/${name}.json`)
+      .then(json => {
+        const spec = JSON.parse(json);
+        spec.name = name;
+        editions[name] = new Edition(spec);
+        //console.log(`Loaded edition ${name}`);
+        return editions[name];
       });
     }
 

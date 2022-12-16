@@ -663,8 +663,8 @@ define([
     GET_editions(req, res) {
       return Fs.readdir(Platform.getFilePath("editions"))
       .then(list => reply(
-        res, list.filter(f => /^.*\.js$/.test(f))
-        .map(fn => fn.replace(/\.js$/, ""))));
+        res, list.filter(f => f !== "index.json" && /^.*\.json$/.test(f))
+        .map(fn => fn.replace(/\.json$/, ""))));
     }
 
     /**
