@@ -14,11 +14,6 @@ define([
   class BackendBoard extends Board {
 
     /**
-     * @see Tagger
-     */
-    static UNFREEZABLE = true;
-
-    /**
      * Given a play at col, row, compute it's score. Used in
      * findBestPlay, and must perform as well as possible. Read
      * the description of {@linkcode Board#analysePlay|analysePlay}

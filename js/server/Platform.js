@@ -4,11 +4,11 @@
 /* eslint-env node */
 
 define([
-  "assert", "fs", "path", "proper-lockfile", "get-user-locale",
+  "assert", "fs", "path", "proper-lockfile",
   "common/Platform",
   "server/I18N"
 ], (
-  Assert, fs, Path, Lock, Locale,
+  Assert, fs, Path, Lock,
   Platform,
   I18N
 ) => {

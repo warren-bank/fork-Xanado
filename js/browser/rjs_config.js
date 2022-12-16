@@ -5,7 +5,7 @@
  * <script>
  *  const rjs_main = "module required as last step";
  * </script>
- * <script data-main="../rjs_config.js" src="../node_modules/requirejs/require.js"></script>
+ * <script data-main="../js/browser/rjs_config.js" src="../node_modules/requirejs/require.js"></script>
  *
  * See the requirejs documentation for explanation of data-main
  */
@@ -53,7 +53,7 @@ requirejs.config({
 
     "socket.io-client": "node_modules/socket.io/client-dist/socket.io",
 
-    "cbor": "node_modules/cbor-x/dist/index",
+    "cbor": "node_modules/@cdot/cbor/dist/index",
 
     cookie:
     "node_modules/jquery.cookie/jquery.cookie",

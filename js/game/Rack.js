@@ -26,7 +26,7 @@ define([
     // field away when loading using CBOR.
 
     /**
-     * @param {object} factory class object mapping class name to a class
+     * @param {object.<string,class>} factory object mapping class name to a class
      * @param {Rack|object} spec specification of the rack, or a rack to copy
      * @param {string|Rack} spec.id unique id for this rack, or a rack to copy.
      * The squares and the tiles they carry will be copied as well.

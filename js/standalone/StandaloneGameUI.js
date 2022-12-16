@@ -5,8 +5,8 @@
 
 define([
   "common/Utils", "common/Channel",
-  "common/CBOREncoder", "common/CBORDecoder", "common/Tagger",
   "dawg/Dictionary",
+  "game/Game",
   "backend/BackendGame",
   "browser/BrowserGame",
   "browser/UI", "browser/GameUIMixin", "browser/Dialog",
@@ -14,8 +14,8 @@ define([
   "touch-punch"
 ], (
   Utils, Channel,
-  CBOREncoder, CBORDecoder, Tagger,
   Dictionary,
+  Game,
   BackendGame,
   BrowserGame,
   UI, GameUIMixin, Dialog,
@@ -90,7 +90,7 @@ define([
       be.receiver = fe;
 
       be.on(
-        BackendGame.Notify.MESSAGE,
+        Game.Notify.MESSAGE,
         message => {
           // Chat message
           const mess = message.text.split(/\s+/);
@@ -111,7 +111,7 @@ define([
             be.game.allow(be.player, mess[1]);
             break;
           default:
-            be.game.notifyAll(BackendGame.Notify.MESSAGE, message);
+            be.game.notifyAll(Game.Notify.MESSAGE, message);
           }
         });
 
@@ -126,7 +126,8 @@ define([
         // game from defaults if there isn't one there.
         if (this.args.game) {
           console.debug(`Loading game ${this.args.game} from local storage`);
-          return this.db.get(this.args.game, BackendGame)
+          return this.db.get(this.args.game)
+          .then(d => Game.fromCBOR(d, BackendGame.CLASSES))
           .then(game => {
             this.backEndGame = game;
             this.backEndGame._debug = this.args.debug
@@ -146,10 +147,9 @@ define([
         this.attachChannelHandlers();
 
         // Make a browser copy of the game
-        const tagger = new Tagger(BrowserGame);
         this.frontEndGame =
-        new CBORDecoder(tagger).decode(
-          new CBOREncoder(tagger).encode(this.backEndGame, tagger), tagger);
+        BrowserGame.fromCBOR(
+          Game.toCBOR(this.backendGame), BrowserGame.CLASSES);
 
         // Fix the player
         this.player

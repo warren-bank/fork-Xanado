@@ -75,7 +75,7 @@ define([
      * The database that will be used for saving and reading games
      * @member {BrowserDatabase}
      */
-    db = new BrowserDatabase();
+    db = new BrowserDatabase(BackendGame);
 
     /**
      * There can be only one (player)
@@ -220,13 +220,13 @@ define([
           name: $.i18n("Robot"),
           key: this.constructor.ROBOT_KEY,
           isRobot: true
-        }, BackendGame);
+        }, BackendGame.CLASSES);
 
         const human = new Player({
           name: $.i18n("You"),
           key: this.constructor.HUMAN_KEY,
           isRobot: false
-        }, BackendGame);
+        }, BackendGame.CLASSES);
 
         game.addPlayer(robot, true);
         game.addPlayer(human, true);

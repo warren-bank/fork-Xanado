@@ -20,11 +20,6 @@ define([
   class BrowserTile extends Tile {
 
     /**
-     * @see Tagger
-     */
-    static UNFREEZABLE = true;
-
-    /**
      * jQuery element for the tile
      * @private
      */

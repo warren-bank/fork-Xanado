@@ -5,16 +5,21 @@
 /**
  * Unit tests for Game browser mixin
  */
-describe("BrowserGame", () => {
+describe("browser/BrowserGame", () => {
 
+  let Player, Tile, Turn;
 	const TS = require("../TestSupport.js");
 	before(required => {
     requirejs.isBrowser = true;
     TS.before({
-		  Game: "browser/BrowserGame", /* global Game */
-		  Turn: "game/Turn", /* global Turn */
+		  BrowserGame: "browser/BrowserGame", /* global BrowserGame */
       jQueryUI: "jquery-ui" /* global jQueryUI */
-    }, required);
+    }, () => {
+      Player = BrowserGame.CLASSES.Player;
+      Tile = BrowserGame.CLASSES.Tile;
+      Turn = BrowserGame.CLASSES.Turn;
+      required();
+    });
   });
   after(() => TS.after());
 
@@ -31,14 +36,14 @@ describe("BrowserGame", () => {
 			noPlayerShuffle: true
 		};
 
-		const robot1 = new Game.Player(
-			{name:"Robot 1", key:"robot1", isRobot: true}, Game);
-		const human1 = new Game.Player(
-			{name:"Human 1", key:"human1", isRobot: false}, Game);
-		const human2 = new Game.Player(
-			{name:"Human 2", key:"human2", isRobot: false}, Game);
+		const robot1 = new Player(
+			{name:"Robot 1", key:"robot1", isRobot: true}, BrowserGame.CLASSES);
+		const human1 = new Player(
+			{name:"Human 1", key:"human1", isRobot: false}, BrowserGame.CLASSES);
+		const human2 = new Player(
+			{name:"Human 2", key:"human2", isRobot: false}, BrowserGame.CLASSES);
 
-		const game = new Game(p);
+		const game = new BrowserGame(p);
     const e = "</span>";
     return game.create()
 		.then(() => {
@@ -47,12 +52,12 @@ describe("BrowserGame", () => {
 			game.whosTurnKey = human1.key;
       const ts = new Date("2000-04-01T01:02:03.04Z");
       game.turns.push(new Turn({
-        type: Game.Turns.PLAYED,
+        type: BrowserGame.Turns.PLAYED,
         timestamp: ts.getTime()
       }));
       game.creationTimestamp = 0;
 
-      game.state = Game.State.PLAYING;
+      game.state = BrowserGame.State.PLAYING;
       assert.equal(
         game.tableRow("%e"),
         `English_Scrabble`);
@@ -65,7 +70,7 @@ describe("BrowserGame", () => {
         `${ts.toLocaleDateString()} ${ts.toLocaleTimeString()}`);
       assert.equal(
         game.tableRow("%s"), $.i18n("state-playing"));
-      game.state = Game.State.GAME_OVER;
+      game.state = BrowserGame.State.GAME_OVER;
       assert.equal(
         game.tableRow("%s"), "Human 1 won");
       assert.equal(
@@ -84,14 +89,14 @@ describe("BrowserGame", () => {
 			noPlayerShuffle: true
 		};
 
-		const robot1 = new Game.Player(
-			{name:"Robot 1", key:"robot1", isRobot: true}, Game);
-		const human1 = new Game.Player(
-			{name:"Human 1", key:"human1", isRobot: false}, Game);
-		const human2 = new Game.Player(
-			{name:"Human 2", key:"human2", isRobot: false}, Game);
+		const robot1 = new Player(
+			{name:"Robot 1", key:"robot1", isRobot: true}, BrowserGame.CLASSES);
+		const human1 = new Player(
+			{name:"Human 1", key:"human1", isRobot: false}, BrowserGame.CLASSES);
+		const human2 = new Player(
+			{name:"Human 2", key:"human2", isRobot: false}, BrowserGame.CLASSES);
 
-		const game = new Game(p);
+		const game = new BrowserGame(p);
 
     return game.create()
 		.then(() => {
@@ -156,19 +161,19 @@ describe("BrowserGame", () => {
 		  predictScore: false,
 		  allowTakeBack: false,
 		  noPlayerShuffle: true,
-      challengePenalty: Game.Penalty.PER_WORD
+      challengePenalty: BrowserGame.Penalty.PER_WORD
 	  };
 
     const p = {
-	    THEM: new Game.Player(
-		    {name:"PlayerThem", key:"THEM", isRobot: true}, Game),
-	    YOU: new Game.Player(
-		    {name:"PlayerYou", key:"YOU", isRobot: false}, Game),
-      W: new Game.Tile({letter:"W", score:1, col: 7, row: 7}),
-      O: new Game.Tile({letter:"O", score:1, col: 8, row: 7}),
-      R: new Game.Tile({letter:"R", score:1, col: 9, row: 7}),
-      D: new Game.Tile({letter:"D", score:1, col: 10, row: 7}),
-		  game: new Game(params)
+	    THEM: new Player(
+		    {name:"PlayerThem", key:"THEM", isRobot: true}, BrowserGame.CLASSES),
+	    YOU: new Player(
+		    {name:"PlayerYou", key:"YOU", isRobot: false}, BrowserGame.CLASSES),
+      W: new Tile({letter:"W", score:1, col: 7, row: 7}),
+      O: new Tile({letter:"O", score:1, col: 8, row: 7}),
+      R: new Tile({letter:"R", score:1, col: 9, row: 7}),
+      D: new Tile({letter:"D", score:1, col: 10, row: 7}),
+		  game: new BrowserGame(params)
     };
     return p.game.create()
     .then(() => {
@@ -182,11 +187,10 @@ describe("BrowserGame", () => {
 	it("describeTurn tiles played and have replacements", () => {
     return make_p()
 		.then(p => {
-
       // Tiles played and have replacements
-      let turn = new Game.Turn({
+      let turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.PLAYED,
+        type: BrowserGame.Turns.PLAYED,
         playerKey: p.THEM.key,
         placements: [ p.W, p.O, p.R, p.D ],
         replacements: [ p.W, p.O, p.R, p.D ],
@@ -215,9 +219,9 @@ describe("BrowserGame", () => {
     return make_p()
 		.then(p => {
       // Tiles played and have replacements
-      const turn = new Game.Turn({
+      const turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.PLAYED,
+        type: BrowserGame.Turns.PLAYED,
         playerKey: p.YOU.key,
         placements: [ p.W, p.O, p.R, p.D ],
         replacements: [ p.W, p.O, p.R, p.D ],
@@ -245,9 +249,9 @@ describe("BrowserGame", () => {
     return make_p()
 		.then(p => {
       // Tiles played and have replacements
-      const turn = new Game.Turn({
+      const turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.PLAYED,
+        type: BrowserGame.Turns.PLAYED,
         playerKey: p.YOU.key,
         placements: [ p.W, p.O, p.R, p.D ],
         replacements: [],
@@ -267,9 +271,9 @@ describe("BrowserGame", () => {
     return make_p()
 		.then(p => {
       // Tiles played but no replacements
-      const turn = new Game.Turn({
+      const turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.PLAYED,
+        type: BrowserGame.Turns.PLAYED,
         playerKey: p.THEM.key,
         placements: [ p.W, p.O, p.R, p.D ],
         replacements: [],
@@ -316,9 +320,9 @@ describe("BrowserGame", () => {
 	it("describeTurn you lost a challenge", () => {
     return make_p()
 		.then(p => {
-      const turn = new Game.Turn({
+      const turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.CHALLENGE_LOST,
+        type: BrowserGame.Turns.CHALLENGE_LOST,
         playerKey: p.THEM.key,
         challengerKey: p.YOU.key,
         placements: [ p.W, p.O, p.R, p.D ],
@@ -351,9 +355,9 @@ describe("BrowserGame", () => {
 	it("describeTurn other lost a challenge", () => {
     return make_p()
 		.then(p => {
-      const turn = new Game.Turn({
+      const turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.CHALLENGE_LOST,
+        type: BrowserGame.Turns.CHALLENGE_LOST,
         playerKey: p.YOU.key,
         challengerKey: p.THEM.key,
         placements: [ p.W, p.O, p.R, p.D ],
@@ -375,9 +379,9 @@ describe("BrowserGame", () => {
 	it("describeTurn you won a challenge", () => {
     return make_p()
 		.then(p => {
-      const turn = new Game.Turn({
+      const turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.CHALLENGE_WON,
+        type: BrowserGame.Turns.CHALLENGE_WON,
         playerKey: p.THEM.key,
         challengerKey: p.YOU.key,
         placements: [ p.W, p.O, p.R, p.D ],
@@ -399,9 +403,9 @@ describe("BrowserGame", () => {
 	it("describeTurn you swapped", () => {
     return make_p()
 		.then(p => {
-      const turn = new Game.Turn({
+      const turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.SWAPPED,
+        type: BrowserGame.Turns.SWAPPED,
         playerKey: p.YOU.key,
         placements: [ p.W, p.O, p.R, p.D ],
         replacements: [ p.W, p.O, p.R, p.D ],
@@ -425,15 +429,15 @@ describe("BrowserGame", () => {
 		.then(p => {
       p.YOU.score = 99;
       // rack on the client side (should be ignored)
-      p.THEM.rack.addTile(new Game.Tile({letter: "A", score: 1}));
+      p.THEM.rack.addTile(new Tile({letter: "A", score: 1}));
       const endScore = {};
       // You gained 10 points
       endScore[p.YOU.key] = { tiles: 10 };
       // They lost 10 points
       endScore[p.THEM.key] = {tiles: -10, tilesRemaining: "Q", time: 0};
-      const turn = new Game.Turn({
+      const turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.GAME_ENDED,
+        type: BrowserGame.Turns.GAME_ENDED,
         playerKey: p.YOU.key,
         score: endScore
       });
@@ -460,13 +464,13 @@ describe("BrowserGame", () => {
       p.YOU.score = -99;
       p.THEM.score = 99;
       // rack on the client side
-      p.YOU.rack.addTile(new Game.Tile({letter: "A", score: 1}));
+      p.YOU.rack.addTile(new Tile({letter: "A", score: 1}));
       const endScore = {};
       endScore[p.YOU.key] = {tiles: -10, tilesRemaining: "Z", time: -1};
       endScore[p.THEM.key] = {tiles: 10, time: 0};
-      const turn = new Game.Turn({
+      const turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.GAME_ENDED,
+        type: BrowserGame.Turns.GAME_ENDED,
         playerKey: p.YOU.key,
         score: endScore
       });
@@ -496,16 +500,16 @@ describe("BrowserGame", () => {
 		.then(p => {
       p.THEM.score = 100;
       p.YOU.score = 100;
-      p.YOU.rack.addTile(new Game.Tile({letter: "R", score: 1}));
-      p.YOU.rack.addTile(new Game.Tile({letter: "S", score: 1}));
-      p.YOU.rack.addTile(new Game.Tile({letter: "T", score: 1}));
-      p.THEM.rack.addTile(new Game.Tile({letter: "A", score: 1}));
+      p.YOU.rack.addTile(new Tile({letter: "R", score: 1}));
+      p.YOU.rack.addTile(new Tile({letter: "S", score: 1}));
+      p.YOU.rack.addTile(new Tile({letter: "T", score: 1}));
+      p.THEM.rack.addTile(new Tile({letter: "A", score: 1}));
       const endScore = {};
       endScore[p.YOU.key] = {tiles: -3, tilesRemaining: "A,E,I", time: 0};
       endScore[p.THEM.key] = {tiles: -7, tilesRemaining: "Q", time: -10};
-      const turn = new Game.Turn({
+      const turn = new Turn({
         gameKey: p.game.key,
-        type: Game.Turns.GAME_ENDED,
+        type: BrowserGame.Turns.GAME_ENDED,
         playerKey: p.YOU.key,
         score: endScore
       });

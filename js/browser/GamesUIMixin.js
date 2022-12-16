@@ -219,7 +219,8 @@ define([
       const $gt = $("#gamesList > tbody");
       $gt.empty();
 
-      const games = simples.map(simple => Game.fromSerialisable(simple, Game))
+      const games = simples.map(simple =>
+                                Game.fromSerialisable(simple, Game.CLASSES))
             .sort((a, b) => a.creationTimestamp < b.creationTimestamp ? -1 :
                   a.creationTimestamp > b.creationTimestamp ? 1 : 0);
 
@@ -252,7 +253,7 @@ define([
     refreshGame(key) {
       return this.getGame(key)
       .then(simple => this.showGame(
-        Game.fromSerialisable(simple[0], Game)))
+        Game.fromSerialisable(simple[0], Game.CLASSES)))
       .catch(e => this.alert(e));
     }
 

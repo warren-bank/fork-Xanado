@@ -5,7 +5,7 @@
 /**
  * Unit tests for Rack
  */
-describe("LetterBag", () => {
+describe("game/LetterBag", () => {
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({

@@ -4,10 +4,12 @@
 /* eslint-env amd */
 
 define([
+  "cbor",
   "platform", "common/Utils",
   "game/Game", "game/Undo", "game/Replay", "game/Commands",
   "backend/BackendBoard"
 ], (
+  CBOR,
   Platform, Utils,
   Game, Undo, Replay, Commands,
   BackendBoard
@@ -25,21 +27,22 @@ define([
   class BackendGame extends Undo(Replay(Commands(Game))) {
 
     /**
-     * @see Tagger
+     * Override factory classes from Game
      */
-    static UNFREEZABLE = true;
+    static CLASSES = {
+      Board: BackendBoard,
+      Game: BackendGame,
+
+      Square: Game.CLASSES.Square,
+      Tile: Game.CLASSES.Tile,
+      Player: Game.CLASSES.Player,
+      Rack: Game.CLASSES.Rack,
+      LetterBag: Game.CLASSES.LetterBag,
+      Move: Game.CLASSES.Move,
+      Turn: Game.CLASSES.Turn
+    };
 
     /**
-     * @override
-     */
-    static Board = BackendBoard;
-
-    /**
-     * @override
-     */
-    static Game = BackendGame;
-
-   /**
      * Used for testing only.
      * @function
      * @instance
@@ -49,7 +52,7 @@ define([
      */
     loadBoard(sboard) {
       return this.getEdition()
-      .then(ed => this.board.parse(this.constructor, ed, sboard))
+      .then(ed => this.board.parse(this.constructor.CLASSES, ed, sboard))
       .then(() => this);
     }
 

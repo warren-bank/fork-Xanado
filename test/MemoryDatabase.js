@@ -4,9 +4,9 @@
 /* eslint-env node */
 
 define([
-  "common/CBOREncoder", "common/CBORDecoder", "common/Tagger", "common/Database"
+  "common/Database"
 ], (
-  CBOREncoder, CBORDecoder, Tagger, Database
+  Database
 ) => {
 
   const database = {};
@@ -17,24 +17,18 @@ define([
    */
   class MemoryDatabase extends Database {
 
-    constructor() {
-      super();
-      const tagger = new Tagger();
-      this.encoder = new CBOREncoder(tagger);
-    }
 
     keys() {
       return Object.keys(database);
     }
 
     set(key, data) {
-      database[key] = this.encoder.encode(data);
+      database[key] = data;
       return Promise.resolve();
     }
 
-    get(key, classes) {
-      const decoder = new CBORDecoder(new Tagger(classes));
-      return Promise.resolve(decoder.decode(database[key]));
+    get(key) {
+      return Promise.resolve(database[key]);
     }
 
     rm(key) {

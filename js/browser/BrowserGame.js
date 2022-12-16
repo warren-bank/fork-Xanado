@@ -4,12 +4,14 @@
 /* eslint-env amd, browser */
 
 define([
+  "cbor",
   "platform",
   "common/Utils",
   "game/Undo", "game/Commands", "game/Game",
   "browser/BrowserSquare", "browser/BrowserTile", "browser/BrowserBoard",
   "browser/BrowserPlayer", "browser/BrowserRack"
 ], (
+  CBOR,
   Platform,
   Utils,
   Undo, Commands, Game,
@@ -28,17 +30,20 @@ define([
   class BrowserGame extends Undo(Commands(Game)) {
 
     /**
-     * @see Tagger
+     * Override factory classes from Game
      */
-    static UNFREEZABLE = true;
+    static CLASSES = {
+      Square: BrowserSquare,
+      Tile: BrowserTile,
+      Board: BrowserBoard,
+      Game: BrowserGame,
+      Player: BrowserPlayer,
+      Rack: BrowserRack,
 
-    // Factory classes
-    static Square = BrowserSquare;
-    static Tile = BrowserTile;
-    static Board = BrowserBoard;
-    static Game = BrowserGame;
-    static Player = BrowserPlayer;
-    static Rack = BrowserRack;
+      LetterBag: Game.CLASSES.LetterBag,
+      Move: Game.CLASSES.Move,
+      Turn: Game.CLASSES.Turn
+    };
 
     /**
      * Headline is the text shown in the game table and the head
@@ -112,7 +117,7 @@ define([
         let player = this.getPlayerWithKey(watcher.key);
         if (!player) {
           // New player in game
-          player = BrowserPlayer.fromSerialisable(watcher, BrowserGame);
+          player = BrowserPlayer.fromSerialisable(watcher, BrowserGame.CLASSES);
           this.addPlayer(player, true);
           player._debug = this._debug;
         }
@@ -390,7 +395,7 @@ define([
 
       return $description;
     }
-  }
+}
 
   return BrowserGame;
 });

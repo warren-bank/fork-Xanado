@@ -2,15 +2,19 @@
    license information */
 /* eslint-env node, mocha */
 
-describe("Player browser mixin", () => {
+describe("browser/BrowserPlayer", () => {
 
+  let Player;
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => {
     requirejs.isBrowser = true;
     TS.before({
-      Game: "browser/BrowserGame" /*global Game*/
-    }, required);
+      BrowserGame: "browser/BrowserGame" /*global BrowserGame*/
+    }, () => {
+    Player = BrowserGame.CLASSES.Player;
+    required();
+  });
   });
 
   it("$html-robot", () => {
@@ -23,7 +27,7 @@ describe("Player browser mixin", () => {
       //_debug: console.debug,
       dictionary: "NoDic"
     };
-    const player = new Game.Player(p, Game);
+    const player = new Player(p, BrowserGame.CLASSES);
 
     const $tr = $(document.createElement("tr")).addClass("player-row");
     $tr[0].id = `player${p.key}`;
@@ -56,7 +60,7 @@ describe("Player browser mixin", () => {
       //_debug: console.debug,
       dictionary: "NoDic"
     };
-    const player = new Game.Player(p, Game);
+    const player = new Player(p, BrowserGame.CLASSES);
     player.score = 20;
     player.online(false);
 

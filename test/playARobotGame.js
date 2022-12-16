@@ -44,10 +44,10 @@ requirejs([
   .then(() => game.onLoad(new MemoryDatabase()))
   .then(game => {
     let player1 = new Player({
-      name: "player one", key: "flay", isRobot: true}, Game);
+      name: "player one", key: "flay", isRobot: true}, Game.CLASSES);
     game.addPlayer(player1, true);
     let player2 = new Player({name: "player two", key: "swelter",
-                              isRobot: true }, Game);
+                              isRobot: true }, Game.CLASSES);
     game.addPlayer(player2, true);
     game.whosTurnKey = player1.key;
     return game.onLoad(db);
@@ -56,7 +56,8 @@ requirejs([
   .then(async game => {
     let finished = false;
     while (!finished) {
-      await db.get(gameKey, Game)
+      await db.get(gameKey)
+      .then(d => Game.fromCBOR(d, Game.CLASSES))
       .then(game => game.onLoad(db))
       .then(game => {
         return game.autoplay()

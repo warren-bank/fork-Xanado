@@ -3,14 +3,14 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node, mocha */
 
-describe("Trie", () => {
+describe("dawg/Trie", () => {
 
   /* global Trie, Dictionary */
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Trie: "dawg/Trie",
-    Dictionary: "dawg/Dictionary"
+    Trie: "dawg/Trie", /* global Trie */
+    Dictionary: "dawg/Dictionary" /* global Dictionary */
   }, required));
 
   function UNit() {}

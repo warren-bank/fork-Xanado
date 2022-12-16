@@ -19,11 +19,6 @@ define([
   class BrowserBoard extends SurfaceMixin(Board) {
 
     /**
-     * @see Tagger
-     */
-    static UNFREEZABLE = true;
-
-    /**
      * Calculate score for all words that involve new tiles.
      * This is used on the UI side, when the placement may be fragmented
      * and difficult to analyse.

@@ -2,31 +2,29 @@
    license information */
 /* eslint-env node, mocha */
 
-describe("Undo", () => {
+describe("game/Undo", () => {
 
   const TS = require("../TestSupport.js");
-  let Game;
+  let Game, Tile, LetterBag, Player, Move, Turn;
   after(() => TS.after());
   before(required => TS.before({
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
     TestSocket: 'test/TestSocket', /* global TestSocket */
     Utils: "common/Utils", /* global Utils */
-    FileDatabase: "common/FileDatabase", /* global FileDatabase */
-    CBOREncoder: "common/CBOREncoder", /* global CBOREncoder */
-    CBORDecoder: "common/CBORDecoder", /* global CBORDecoder */
-    Tagger: "common/Tagger", /* global Tagger */
+    FileDatabase: "server/FileDatabase", /* global FileDatabase */
     
-    Tile: "game/Tile", /* global Tile */
-    LetterBag: "game/LetterBag", /* global LetterBag */
     Player: "game/Player", /* global Player */
     _Game: "game/Game", /* global _Game */
     Undo: "game/Undo", /* global Undo */
-    Commands: "game/Commands", /* global Commands */
-    Move: "game/Move", /* global Move */
-    Turn: "game/Turn" /* global Turn */
+    Commands: "game/Commands" /* global Commands */
   }, () => {
     Game = Undo(Commands(_Game));
-    Game.Game = Game;
+    Game.CLASSES.Game = Game;
+    Tile = Game.CLASSES.Tile;
+    LetterBag = Game.CLASSES.LetterBag;
+    Player = Game.CLASSES.Player;
+    Move = Game.CLASSES.Move;
+    Turn = Game.CLASSES.Turn;
     required();
   }));
 
@@ -84,9 +82,9 @@ describe("Undo", () => {
       allowUndo: true
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const frontend = new TestSocket("front end");
     frontend.on(Game.Notify.TURN, (turn, event, seqNo) => {
       assert.equal(turn.type, "swap");
@@ -94,9 +92,6 @@ describe("Undo", () => {
     })
     .on("*", (data, event) => {});
 
-    const tagger = new Tagger(Game);
-    const encoder = new CBOREncoder(tagger);
-    const decoder = new CBORDecoder(tagger);
     let A, B, C, D, E, preswap;
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -110,16 +105,18 @@ describe("Undo", () => {
       game.addPlayer(human2, true);
     })
     .then(() => game.connect(frontend, human1.key))
-    .then(() => preswap = decoder.decode(encoder.encode(game, tagger), tagger))
+    .then(() => {
+      preswap = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES);
+    })
     .then(() => game.swap(human1, [ A, C, E ]))
     .then(() => frontend.wait())
     .then(() => {
-      const postswap = decoder.decode(encoder.encode(game));
+      const postswap = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES);
       assert.deepEqual(postswap.board, preswap.board);
     })
     .then(() => game.undo(game.popTurn(), true))
     .then(() => {
-      const postundo = decoder.decode(encoder.encode(game));
+      const postundo = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES);
       assert.deepEqual(postundo.board, preswap.board);
       assertGameEqual(postundo, preswap);
     });
@@ -127,9 +124,9 @@ describe("Undo", () => {
 
   it("unpass", () => {
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
 
     const game = new Game({
       edition:"Test",
@@ -156,9 +153,6 @@ describe("Undo", () => {
       assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
     });
     let A, B, C, D, E, prepass;
-    const tagger = new Tagger(Game);
-    const encoder = new CBOREncoder(tagger);
-    const decoder = new CBORDecoder(tagger);
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
     .then(game => {
@@ -172,12 +166,12 @@ describe("Undo", () => {
       game.whosTurnKey = human1.key;
     })
     .then(() => game.connect(socket, human1.key))
-    .then(() => prepass = decoder.decode(encoder.encode(game)))
+    .then(() => prepass = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES))
     .then(() => game.pass(human1, Game.Turns.PASSED))
     .then(() => game.undo(game.popTurn()))
     .then(() => socket.wait())
     .then(() => {
-      const postundo = decoder.decode(encoder.encode(game));
+      const postundo = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES);
       assertGameEqual(postundo, prepass);
     });
   });
@@ -194,9 +188,9 @@ describe("Undo", () => {
     });
 
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const aTile = new Tile({letter:"A", score:1 });
 
     const game = new Game({
@@ -222,9 +216,6 @@ describe("Undo", () => {
     });
 
     let preplay;
-    const tagger = new Tagger(Game);
-    const encoder = new CBOREncoder(tagger);
-    const decoder = new CBORDecoder(tagger);
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
     .then(game => {
@@ -238,12 +229,12 @@ describe("Undo", () => {
       game.whosTurnKey = human1.key;
     })
     .then(() => game.connect(socket, human1.key))
-    .then(() => preplay = decoder.decode(encoder.encode(game)))
+    .then(() => preplay = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES))
     .then(() => game.play(human1, move))
     .then(() => game.undo(game.popTurn()))
     .then(() => socket.wait())
     .then(() => {
-      const postundo = decoder.decode(encoder.encode(game));
+      const postundo = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES);
       assertGameEqual(postundo, preplay);
     });
   });
@@ -257,9 +248,9 @@ describe("Undo", () => {
       allowUndo: true
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     let W = new Tile({letter:"W", score:1, col: 7, row: 7});
     let O = new Tile({letter:"O", score:1, col: 8, row: 7});
     let R = new Tile({letter:"R", score:1, col: 9, row: 7});
@@ -292,9 +283,6 @@ describe("Undo", () => {
     socket.on("*", (turn, event) => {
     });
     let preplay, pretakeback, posttakeback;
-    const tagger = new Tagger(Game);
-    const encoder = new CBOREncoder(tagger);
-    const decoder = new CBORDecoder(tagger);
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
     .then(() => {
@@ -306,25 +294,28 @@ describe("Undo", () => {
       game.addPlayer(human2, true);
     })
     .then(() => game.connect(socket, human1.key))
-    .then(() => preplay = decoder.decode(encoder.encode(game)))
+    .then(() => preplay = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES))
     .then(() => game.play(human1, move))
-    .then(() => pretakeback = decoder.decode(encoder.encode(game)))
+    .then(() => pretakeback = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES))
     .then(() => game.takeBack(human1, Game.Turns.TOOK_BACK))
-    .then(() => posttakeback = decoder.decode(encoder.encode(game)))
+    .then(() => posttakeback = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES))
     .then(() => assertGameEqual(posttakeback, preplay, true))
     .then(() => game.undo(game.popTurn()))
     .then(() => socket.wait())
     .then(() => {
-      const postundo = decoder.decode(encoder.encode(game));
+      const postundo = Game.fromCBOR(Game.toCBOR(game), Game.CLASSES);
       assertGameEqual(postundo, pretakeback);
     });
   });
 
   // Unplay an entire game (including a challenge)
   it("undo", () => {
-    const db = new FileDatabase({dir: "test/data", ext: "game"});
+    const db = new FileDatabase({
+      dir: "test/data", ext: "game", typeMap: Game
+    });
     let game;
-    return db.get("finished_game", Game)
+    return db.get("finished_game")
+    .then(d => Game.fromCBOR(d, Game.CLASSES))
     .then(game => game.onLoad(new MemoryDatabase()))
     .then(game => {
       game.allowUndo = true;
@@ -348,9 +339,9 @@ describe("Undo", () => {
       allowUndo: true
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const socket = new TestSocket();
     socket.on(Game.Notify.CONNECTIONS, () => {});
     socket.on("*", (data, event) => {
@@ -376,9 +367,9 @@ describe("Undo", () => {
   /*
   it("anotherGame", () => {
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
 
     const game = new Game({
       edition:"Test",

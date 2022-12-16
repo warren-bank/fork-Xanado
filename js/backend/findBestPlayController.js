@@ -8,13 +8,11 @@
 define([
   "worker_threads",
   "platform",
-  "common/CBOREncoder", "common/CBORDecoder", "common/Tagger",
   "backend/BackendGame"
 ], (
   threads,
   Platform,
-  CBOREncoder, CBORDecoder, Tagger,
-  Game
+  BackendGame
 ) => {
 
   /**
@@ -23,11 +21,8 @@ define([
    */
   function findBestPlayController(
     game, letters, listener, dictionary) {
-    const tagger = new Tagger(Game);
-    const encoder = new CBOREncoder(tagger);
-    const decoder = new CBORDecoder(tagger);
     const ice = {
-      workerData: encoder.encode({
+      workerData: BackendGame.toCBOR({
         game: game,
         rack: letters,
         dictionary: dictionary
@@ -39,7 +34,7 @@ define([
 
       // Apply the game time limit
       let timer;
-      if (game.timerType === Game.Timer.TURN) {
+      if (game.timerType === BackendGame.Timer.TURN) {
         /* istanbul ignore next */
         timer = setTimeout(() => {
           console.error("findBestPlay timed out");
@@ -52,7 +47,7 @@ define([
         if (typeof data === "string")
           listener(data);
         else
-          listener(decoder.decode(data));
+          listener(BackendGame.fromCBOR(data, BackendGame.CLASSES));
       });
 
       /* istanbul ignore next */

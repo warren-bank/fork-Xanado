@@ -8,13 +8,14 @@ requirejs.config({
   baseUrl: `${__dirname}/../..`,
   nodeRequire: require,
   paths: {
-    common: `js/common`,
-    game: `js/game`,
-    dawg: `js/dawg`,
-    backend: `js/backend`,
+    cbor: "node_modules/@cdot/cbor/dist/index",
+    common: "js/common",
+    game: "js/game",
+    dawg: "js/dawg",
+    backend: "js/backend",
     // TODO: normalise the platform, we shouldn't be depending on server.
     // Dictionary depends on it, for parsing paths.
-    server: `js/server`, // server/Platform needs I18N
+    server: "js/server", // server/Platform needs I18N
     platform: "js/server/Platform"
   }
 });
@@ -26,21 +27,16 @@ requirejs.config({
  */
 requirejs([
   "worker_threads",
-  "common/CBOREncoder", "common/CBORDecoder", "common/Tagger",
   "backend/BackendGame", "backend/findBestPlay"
 ], (
   threads,
-  CBOREncoder, CBORDecoder, Tagger,
-  Game, findBestPlay
+  BackendGame, findBestPlay
 ) => {
-  const tagger = new Tagger(Game);
-  const decoder = new CBORDecoder(tagger);
-  const encoder = new CBOREncoder(tagger);
-  const info = decoder.decode(threads.workerData, tagger);
+  const info = BackendGame.fromCBOR(threads.workerData, BackendGame.CLASSES);
 
   findBestPlay(
     info.game, info.rack,
-    bestPlay => threads.parentPort.postMessage(encoder.encode(bestPlay)),
+    bestPlay => threads.parentPort.postMessage(BackendGame.toCBOR(bestPlay)),
     info.dictionary)
   .then(() => {
     threads.parentPort.postMessage("findBestPlayWorker is exiting");

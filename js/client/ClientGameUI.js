@@ -5,22 +5,18 @@
 
 define([
   "platform",
-  "common/CBORDecoder", "common/CBOREncoder", "common/Tagger", "common/Utils",
+  "common/Utils",
   "browser/BrowserGame",
   "browser/UI", "browser/GameUIMixin", "browser/Dialog",
   "client/ClientUIMixin",
   "jquery", "jqueryui", "cookie", "browser/icon_button"
 ], (
   Platform,
-  CBORDecoder, CBOREncoder, Tagger, Utils,
-  Game,
+  Tagger, Utils,
+  BrowserGame,
   UI, GameUIMixin, Dialog,
   ClientUIMixin
 ) => {
-
-  const tagger = new Tagger(Game);
-  const encoder = new CBOREncoder(tagger);
-  const decoder = new CBORDecoder(tagger);
 
   /**
    * User interface to a game in a browser. The Ui reflects the game state as
@@ -34,7 +30,7 @@ define([
     /**
      * Identify the logged-in user, and make sure they are playing
      * in this game.
-     * @param {Game} game the game
+     * @param {BrowserGame} game the game
      * @return {Promise} a promise that resolves to the player key
      * or undefined if the player is not logged in or is not in the game
      * @private
@@ -88,7 +84,7 @@ define([
         .then(data => {
           this.debug(`--> Game ${gameKey}`);
           data = new Uint8Array(data);
-          return decoder.decode(data);
+          return BrowserGame.fromCBOR(data, BrowserGame.CLASSES);
         })
         .then(game => {
           return this.identifyPlayer(game)
@@ -102,7 +98,7 @@ define([
      * @override
      */
     sendCommand(command, args) {
-      if (command !== Game.Command.REDO) {
+      if (command !== BrowserGame.Command.REDO) {
         this.undoStack = [];
         $("#redoButton").hide();
       }
@@ -115,7 +111,7 @@ define([
         type: "POST",
         contentType: "application/json",
         data: JSON.stringify(
-          args, (key, value) => tagger.skip(key) ? undefined : value)
+          args, (key, value) => /^_/.test(key) ? undefined : value)
       })
       .then(r => console.debug(`command '${command}'`, r))
       .catch(console.error);
@@ -131,7 +127,7 @@ define([
 
       $(".pauseButton")
       .show()
-      .on("click", () => this.sendCommand(Game.Command.PAUSE));
+      .on("click", () => this.sendCommand(BrowserGame.Command.PAUSE));
     }
   }
 

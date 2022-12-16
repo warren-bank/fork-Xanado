@@ -12,11 +12,6 @@ define([ "jquery" ], () => {
   return superclass => class SurfaceMixin extends superclass {
 
     /**
-     * @see Tagger
-     */
-    static UNFREEZABLE = true;
-
-    /**
      * Create the UI representation
      * @instance
      * @memberof browser/SurfaceMixin

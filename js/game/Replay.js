@@ -21,12 +21,6 @@ define([
    */
   return superclass => class Replay extends superclass {
 
-    /**
-     * @see Tagger
-     * @memberof game/Replay
-     */
-    static UNFREEZABLE = true;
-
     /*
      * Replay the turns in another game, to arrive at the same state.
      * The letter bag, players, and some other conditions
@@ -52,7 +46,7 @@ define([
       this.nextTurn = 0;
       // Override the bag and board (this is what create() would do)
       this.letterBag = new LetterBag(this.playedGame.letterBag);
-      this.board = new Board(Game, this.playedGame.board);
+      this.board = new Board(Game.CLASSES, this.playedGame.board);
       this.bonuses = this.playedGame.bonuses;
       this.rackSize = this.playedGame.rackCount;
       this.swapSize = this.playedGame.swapCount;
@@ -61,9 +55,9 @@ define([
 
       // Copy players and their racks.
       for (const p of this.playedGame.players) {
-        const np = new Player(p, Game);
+        const np = new Player(p, Game.CLASSES);
         np.isRobot = false;
-        np.rack = new Rack(Game, p.rack);
+        np.rack = new Rack(Game.CLASSES, p.rack);
         np.passes = p.passes;
         np.score = p.score;
         this.addPlayer(np);

@@ -21,11 +21,6 @@ define([
   class BrowserPlayer extends Player {
 
     /**
-     * @see Tagger
-     */
-    static UNFREEZABLE = true;
-
-    /**
      * Create score table row for the player.
      * @memberof browser/PlayerMixin
      * @instance

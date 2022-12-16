@@ -5,19 +5,23 @@
 /**
  * Unit tests for Rack
  */
-describe("browser/Rack mixin", () => {
+describe("browser/BrowserRack", () => {
 
+  let Player, Rack, Tile, Square;
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => {
     requirejs.isBrowser = true;
     TS.before({
-      Rack: "browser/BrowserRack",
-      Game: "browser/BrowserGame",
-      Tile: "browser/BrowserTile",
-      Square: "browser/BrowserSquare",
+      BrowserGame: "browser/BrowserGame", /* global BrowserGame */
       jQueryUI: "jquery-ui"
-    }, required);
+    }, () => {
+      Player = BrowserGame.CLASSES.Player;
+      Rack = BrowserGame.CLASSES.Rack;
+      Tile = BrowserGame.CLASSES.Tile;
+      Square = BrowserGame.CLASSES.Square;
+    required();
+  });
   });
 
   it("$ui empty", () => {
@@ -27,7 +31,7 @@ describe("browser/Rack mixin", () => {
     let $table = $("<table></table>");
     $dact.append($table);
 
-    let r = new Rack(Game, { id: "base", size: 2});
+    let r = new Rack(BrowserGame.CLASSES, { id: "base", size: 2});
     r.$populate($table);
 
     let $dexp = $("<div></div>");
@@ -49,7 +53,7 @@ describe("browser/Rack mixin", () => {
     let $table = $("<table></table>");
     $dact.append($table);
 
-    let r = new Rack(Game, { id: 'base', size: 2, underlay: "£"});
+    let r = new Rack(BrowserGame.CLASSES, { id: 'base', size: 2, underlay: "£"});
     r.$populate($table);
 
     let $dexp = $("<div></div>");
@@ -71,7 +75,7 @@ describe("browser/Rack mixin", () => {
     let $table = $("<table></table>");
     $dact.append($table);
 
-    let r = new Rack(Game, { id: 'base', size: 2});
+    let r = new Rack(BrowserGame.CLASSES, { id: 'base', size: 2});
     r.$populate($table);
 
     r.addTile(new Tile({letter:'S'}));

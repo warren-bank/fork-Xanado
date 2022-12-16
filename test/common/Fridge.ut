@@ -3,12 +3,12 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node, mocha */
 
-describe("Fridge class", () => {
+describe("common/Fridge", () => {
 
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Fridge: 'common/Fridge'
+    Fridge: 'common/Fridge' /* global Fridge */
   }, required));
 
   class Wibble {

@@ -6,7 +6,7 @@
  * Basic unit tests for BackendGame class. More tests for Game methods are
  * in Challenges, HumanCommands, RobotPlays and TimedGame.
  */
-describe("BackendGame", () => {
+describe("backend/BackendGame", () => {
 
 	const TS = require("../TestSupport.js");
   after(() => TS.after());
@@ -15,7 +15,10 @@ describe("BackendGame", () => {
       TestSocket: 'test/TestSocket', /* global TestSocket */
       MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
       Game: "backend/BackendGame", /* global Game */
-      FileDatabase: "common/FileDatabase" /* global FileDatabase */
+      Player: "game/Player", /* global Player */
+      Move: "game/Move", /* global Move */
+      Tile: "game/Tile", /* global Tile */
+      FileDatabase: "server/FileDatabase" /* global FileDatabase */
     }, required);
   });
 
@@ -28,17 +31,17 @@ describe("BackendGame", () => {
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true
 		});
-		const human1 = new Game.Player({
-			name:"Human 1", key:"human1", isRobot: false}, Game);
-		const human2 = new Game.Player({
-			name:"Human 2", key:"human2", isRobot: false}, Game);
-		const move = new Game.Move({
+		const human1 = new Player({
+			name:"Human 1", key:"human1", isRobot: false}, Game.CLASSES);
+		const human2 = new Player({
+			name:"Human 2", key:"human2", isRobot: false}, Game.CLASSES);
+		const move = new Move({
 			placements: [
-				new Game.Tile({letter:"X", isBlank:false, score:1, col: 6, row: 7}),
-				new Game.Tile({letter:"W", isBlank:false, score:1, col: 7, row: 7}),
-				new Game.Tile({letter:"O", isBlank:false, score:1, col: 8, row: 7}),
-				new Game.Tile({letter:"R", isBlank:false, score:1, col: 9, row: 7}),
-				new Game.Tile({letter:"D", isBlank:false, score:1, col: 10, row: 7})
+				new Tile({letter:"X", isBlank:false, score:1, col: 6, row: 7}),
+				new Tile({letter:"W", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"O", isBlank:false, score:1, col: 8, row: 7}),
+				new Tile({letter:"R", isBlank:false, score:1, col: 9, row: 7}),
+				new Tile({letter:"D", isBlank:false, score:1, col: 10, row: 7})
 			],
 			words: [ { word: "XWORD", score: 99 }],
 			score: 99
@@ -98,12 +101,12 @@ describe("BackendGame", () => {
 			dictionary:"Oxford_5000",
 			noPlayerShuffle: true
 		});
-		const human1 = new Game.Player({
-			name: "Human 1", key: "human1", isRobot: false}, Game);
-		const human2 = new Game.Player({
-			name: "Human 2", key: "human2", isRobot: false}, Game);
-		const human3 = new Game.Player({
-			name:"Human 3", key:"human3", isRobot: false}, Game);
+		const human1 = new Player({
+			name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
+		const human2 = new Player({
+			name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
+		const human3 = new Player({
+			name:"Human 3", key:"human3", isRobot: false}, Game.CLASSES);
 		const socket = new TestSocket();
 		socket.on(Game.Notify.CONNECTIONS, () => {});
 		socket.on("*", (data, event) => {
@@ -143,15 +146,15 @@ describe("BackendGame", () => {
 			noPlayerShuffle: true,
 			wordCheck: Game.WordCheck.REJECT
 		});
-		const human1 = new Game.Player({
-			name:"Human 1", key:"human1", isRobot: false}, Game);
-		const human2 = new Game.Player({
-			name:"Human 2", key:"human2", isRobot: false}, Game);
-		const move = new Game.Move({
+		const human1 = new Player({
+			name:"Human 1", key:"human1", isRobot: false}, Game.CLASSES);
+		const human2 = new Player({
+			name:"Human 2", key:"human2", isRobot: false}, Game.CLASSES);
+		const move = new Move({
 			placements: [
-				new Game.Tile({letter:"X", isBlank:false, score:1, col: 6, row: 7}),
-				new Game.Tile({letter:"Y", isBlank:false, score:1, col: 7, row: 7}),
-				new Game.Tile({letter:"Z", isBlank:false, score:1, col: 8, row: 7})
+				new Tile({letter:"X", isBlank:false, score:1, col: 6, row: 7}),
+				new Tile({letter:"Y", isBlank:false, score:1, col: 7, row: 7}),
+				new Tile({letter:"Z", isBlank:false, score:1, col: 8, row: 7})
 			],
 			words: [ { word: "XYZ", score: 99 }],
 			score: 99
@@ -193,8 +196,11 @@ describe("BackendGame", () => {
 	});
 
 	it("load from database", () => {
-		const db = new FileDatabase({dir: "test/data", ext: "game"});
-		return db.get("unfinished_game", Game)
+		const db = new FileDatabase({
+      dir: "test/data", ext: "game", typeMap: Game
+    });
+		return db.get("unfinished_game")
+    .then(d => Game.fromCBOR(d, Game.CLASSES))
     .then(game => game.onLoad(new MemoryDatabase()))
 		.then(game => {
       //game._debug = console.debug;
@@ -207,8 +213,11 @@ describe("BackendGame", () => {
 		let game, newgame, reload;
 		const db = new MemoryDatabase();
     // Load from the test dir, but save to memory
-		return new FileDatabase({dir: "test/data", ext: "game"})
-    .get("unfinished_game", Game)
+		return new FileDatabase({
+      dir: "test/data", ext: "game", typeMap: Game
+    })
+    .get("unfinished_game")
+    .then(d => Game.fromCBOR(d, Game.CLASSES))
 		.then(g => game = g)
 		.then(() => game.onLoad(db))
     .then(() => {
@@ -217,8 +226,8 @@ describe("BackendGame", () => {
       assert.equal(game.state, Game.State.PLAYING);
       assert.equal(game.whosTurnKey, "human");
       // add a new robot player to stop state reverting to WAITING
-      game.addPlayer(new Game.Player({
-        name:"Anne Droid", key:"android"}, Game), true);
+      game.addPlayer(new Player({
+        name:"Anne Droid", key:"android"}, Game.CLASSES), true);
       // Remove robot as last player so they
       // don't get auto-played when human and android time out
       const robot = game.getPlayerWithKey("robot");
@@ -256,7 +265,8 @@ describe("BackendGame", () => {
 		})
 
     // newgame should have been saved. Reload.
-    .then(() => db.get(game.nextGameKey, Game))
+    .then(() => db.get(game.nextGameKey))
+    .then(d => Game.fromCBOR(d, Game.CLASSES))
     .then(g => reload = g)
 		.then(() => reload.onLoad(db))
     .then(() => {
@@ -305,8 +315,11 @@ describe("BackendGame", () => {
       socket2.done();
 		})
     .on("*", () => {});
-		const db = new FileDatabase({dir: "test/data", ext: "game"});
-		return db.get("unfinished_game", Game)
+		const db = new FileDatabase({
+      dir: "test/data", ext: "game", typeMap: Game
+    });
+		return db.get("unfinished_game")
+    .then(d => Game.fromCBOR(d, Game.CLASSES))
 		.then(g => game = g)
     //.then(() => game._debug = console.debug)
 		.then(() => game.onLoad(this.db))
@@ -327,8 +340,11 @@ describe("BackendGame", () => {
 
 	it("advise", () => {
 		let game;
-		const db = new FileDatabase({dir: "test/data", ext: "game"});
-		return db.get("unfinished_game", Game)
+		const db = new FileDatabase({
+      dir: "test/data", ext: "game", typeMap: Game
+    });
+		return db.get("unfinished_game")
+    .then(d => Game.fromCBOR(d, Game.CLASSES))
 		.then(g => game = g)
     .then(() => game.onLoad(new MemoryDatabase()))
 		.then(() => game.anotherGame("human"))
@@ -340,9 +356,11 @@ describe("BackendGame", () => {
 		let game;
     const players = [];
     for (let i = 0; i < 8; i++)
-      players.push(new Game.Player( {key: i}, Game));
-		const db = new FileDatabase({dir: "test/data", ext: "game"});
-		return db.get("unfinished_game", Game)
+      players.push(new Player( {key: i}, Game.CLASSES));
+		const db = new FileDatabase({dir: "test/data", ext: "game",
+                                 typeMap: Game});
+		return db.get("unfinished_game")
+    .then(d => Game.fromCBOR(d, Game.CLASSES))
 		.then(g => game = g)
     .then(() => game.onLoad(new MemoryDatabase()))
     .then(() => {

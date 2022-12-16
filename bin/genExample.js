@@ -16,14 +16,15 @@ requirejs.config({
  * Create a simple example game for the splash screen
  */
 requirejs([
-  "game/Edition", "game/Game", "game/Player", "common/FileDatabase"
+  "game/Edition", "game/Game", "game/Player", "server/FileDatabase"
 ], (
   Edition, Game, Player, FileDatabase
 ) => {
 
   const db = new FileDatabase({
     dir: "games",
-    ext: "game"
+    ext: "game",
+    typeMap: Game
   });
   Edition.load("English_Scrabble")
   .then(edition => {

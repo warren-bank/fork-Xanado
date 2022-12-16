@@ -2,25 +2,32 @@
    license information */
 /* eslint-env node */
 
-describe("findBestPlay - no workers", () => {
+describe("backend/findBestPlay", () => {
 
+  let Player, Tile, Rack, Move;
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Game: "backend/BackendGame", /* global Game */
+    BackendGame: "backend/BackendGame", /* global BackendGame */
     findBestPlayRaw: "backend/findBestPlay", /* global findBestPlayRaw */
     findBestPlayWorker: "backend/findBestPlayController" /* global findBestPlayWorker */
-  }, required));
+  }, () => {
+    Player = BackendGame.CLASSES.Player;
+    Tile = BackendGame.CLASSES.Tile;
+    Rack = BackendGame.CLASSES.Rack;
+    Move = BackendGame.CLASSES.Move;
+    required();
+  }));
 
   function blanks(findBestPlay) {
     let bestMoves = [];
-    return new Game({
+    return new BackendGame({
       edition:"English_WWF",
       dictionary:"Oxford_5000"
     }).create()
     .then(game => {
-      game.addPlayer(new Game.Player({
-        name:"test", key:"creep", isRobot:true}, Game), true);
+      game.addPlayer(new Player({
+        name:"test", key:"creep", isRobot:true}, BackendGame.CLASSES), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
@@ -40,18 +47,18 @@ describe("findBestPlay - no workers", () => {
     })
     .then(game => findBestPlay(
       game, [
-        new Game.Tile({letter:"E", isBlank:false, score:1}),
-        new Game.Tile({letter:"I", isBlank:false, score:1}),
-        new Game.Tile({letter:"I", isBlank:false, score:1}),
-        new Game.Tile({letter:"Y", isBlank:false, score:1}),
-        new Game.Tile({letter:"A", isBlank:false, score:1}),
-        new Game.Tile({letter:"H", isBlank:false, score:1}),
-        new Game.Tile({letter:" ", isBlank:true, score:0}),
-        new Game.Tile({letter:" ", isBlank:true, score:0})
+        new Tile({letter:"E", isBlank:false, score:1}),
+        new Tile({letter:"I", isBlank:false, score:1}),
+        new Tile({letter:"I", isBlank:false, score:1}),
+        new Tile({letter:"Y", isBlank:false, score:1}),
+        new Tile({letter:"A", isBlank:false, score:1}),
+        new Tile({letter:"H", isBlank:false, score:1}),
+        new Tile({letter:" ", isBlank:true, score:0}),
+        new Tile({letter:" ", isBlank:true, score:0})
       ],
       move => {
         //console.log(move);
-        if (move instanceof Game.Move)
+        if (move instanceof Move)
           bestMoves.push(move);
       },
       game.dictionary))
@@ -73,18 +80,18 @@ describe("findBestPlay - no workers", () => {
 
   function actor(findBestPlay) {
     let bestMoves = [];
-    let rack = new Game.Rack(Game, { id: "base", size: 3 });
-    rack.addTile(new Game.Tile({letter:"A", isBlank:false, score:1}));
-    rack.addTile(new Game.Tile({letter:"C", isBlank:false, score:3}));
-    rack.addTile(new Game.Tile({letter:"R", isBlank:false, score:1}));
-    return new Game({
+    let rack = new Rack(BackendGame.CLASSES, { id: "base", size: 3 });
+    rack.addTile(new Tile({letter:"A", isBlank:false, score:1}));
+    rack.addTile(new Tile({letter:"C", isBlank:false, score:3}));
+    rack.addTile(new Tile({letter:"R", isBlank:false, score:1}));
+    return new BackendGame({
       edition:"English_WWF",
       dictionary:"SOWPODS_English"
     })
     .create()
     .then(game => {
-      game.addPlayer(new Game.Player({
-        name:"test", key:"toast", isRobot:true}, Game), true);
+      game.addPlayer(new Player({
+        name:"test", key:"toast", isRobot:true}, BackendGame.CLASSES), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
@@ -101,13 +108,13 @@ describe("findBestPlay - no workers", () => {
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n");
-      game.state = Game.State.PLAYING;
+      game.state = BackendGame.State.PLAYING;
     })
     .then(game => findBestPlay(
       game, rack.tiles(),
       move => {
         //console.log(move);
-        if (move instanceof Game.Move)
+        if (move instanceof Move)
           bestMoves.push(move);
       },
       game.dictionary))
@@ -122,7 +129,7 @@ describe("findBestPlay - no workers", () => {
       assert.equal(last.words[1].score, 8);
       assert.equal(last.score, 15);
       assert.equal(last.placements.length, 3);
-      assert(last.placements[0] instanceof Game.Tile);
+      assert(last.placements[0] instanceof Tile);
       assert.equal(last.placements[0].letter, "C");
       assert.equal(last.placements[0].score, 3);
       assert.equal(last.placements[0].col, 1);
@@ -148,20 +155,21 @@ describe("findBestPlay - no workers", () => {
 
   function noe(findBestPlay) {
     let bestMoves = [];
-    let rack = new Game.Rack(Game, { id: "best", size: 7 });
-    rack.addTile(new Game.Tile({letter:"L", isBlank:false, score:1}));
-    rack.addTile(new Game.Tile({letter:"I", isBlank:false, score:1}));
-    rack.addTile(new Game.Tile({letter:"G", isBlank:false, score:2}));
-    rack.addTile(new Game.Tile({letter:"E", isBlank:false, score:1}));
-    rack.addTile(new Game.Tile({letter:"B", isBlank:false, score:3}));
-    rack.addTile(new Game.Tile({letter:"A", isBlank:false, score:1}));
-    rack.addTile(new Game.Tile({letter:"A", isBlank:false, score:1}));
-    return new Game({
+    let rack = new Rack(BackendGame.CLASSES, { id: "best", size: 7 });
+    rack.addTile(new Tile({letter:"L", isBlank:false, score:1}));
+    rack.addTile(new Tile({letter:"I", isBlank:false, score:1}));
+    rack.addTile(new Tile({letter:"G", isBlank:false, score:2}));
+    rack.addTile(new Tile({letter:"E", isBlank:false, score:1}));
+    rack.addTile(new Tile({letter:"B", isBlank:false, score:3}));
+    rack.addTile(new Tile({letter:"A", isBlank:false, score:1}));
+    rack.addTile(new Tile({letter:"A", isBlank:false, score:1}));
+    return new BackendGame({
       edition:"English_Scrabble",
       dictionary:"SOWPODS_English"
     }).create()
     .then(game => {
-      game.addPlayer(new Game.Player({name:"test", key:"slime", isRobot:true}, Game), true);
+      game.addPlayer(new Player(
+        {name:"test", key:"slime", isRobot:true}, BackendGame.CLASSES), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
@@ -184,7 +192,7 @@ describe("findBestPlay - no workers", () => {
       game, rack.tiles(),
       move => {
         //console.log(move);
-        if (move instanceof Game.Move)
+        if (move instanceof Move)
           bestMoves.push(move);
       },
       game.dictionary))
@@ -212,21 +220,21 @@ describe("findBestPlay - no workers", () => {
   
   it("town", () => {
     let bestMoves = [];
-    const rack = new Game.Rack(Game, { id: "best", size: 7 });
-    rack.addTile(new Game.Tile({letter:"U", isBlank:false, score:1}));
-    rack.addTile(new Game.Tile({letter:"T", isBlank:false, score:1}));
-    rack.addTile(new Game.Tile({letter:"R", isBlank:false, score:1}));
-    rack.addTile(new Game.Tile({letter:"N", isBlank:false, score:1}));
-    rack.addTile(new Game.Tile({letter:"M", isBlank:false, score:3}));
-    rack.addTile(new Game.Tile({letter:"K", isBlank:false, score:5}));
-    rack.addTile(new Game.Tile({letter:"I", isBlank:false, score:1}));
-    return new Game({
+    const rack = new Rack(BackendGame.CLASSES, { id: "best", size: 7 });
+    rack.addTile(new Tile({letter:"U", isBlank:false, score:1}));
+    rack.addTile(new Tile({letter:"T", isBlank:false, score:1}));
+    rack.addTile(new Tile({letter:"R", isBlank:false, score:1}));
+    rack.addTile(new Tile({letter:"N", isBlank:false, score:1}));
+    rack.addTile(new Tile({letter:"M", isBlank:false, score:3}));
+    rack.addTile(new Tile({letter:"K", isBlank:false, score:5}));
+    rack.addTile(new Tile({letter:"I", isBlank:false, score:1}));
+    return new BackendGame({
       edition:"English_Scrabble",
       dictionary:"Oxford_5000"
     }).create()
     .then(game => {
-      game.addPlayer(new Game.Player({
-        name:"test", key:"crisp", isRobot:true}, Game), true);
+      game.addPlayer(new Player(
+        {name:"test", key:"crisp", isRobot:true}, BackendGame.CLASSES), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
@@ -249,7 +257,7 @@ describe("findBestPlay - no workers", () => {
       game, rack.tiles(),
       move => {
         //console.log(move);
-        if (move instanceof Game.Move)
+        if (move instanceof Move)
           bestMoves.push(move);
       },
       game.dictionary))
@@ -263,13 +271,14 @@ describe("findBestPlay - no workers", () => {
 
   it("obliques", () => {
     let bestMoves = [];
-    return new Game({
+    return new BackendGame({
       edition:"English_WWF",
       dictionary:"British_English"
     }).create()
     .then(game => {
-      game.addPlayer(new Game.Player({
-        name:"test", key:"turntable", isRobot:true}, Game), true);
+      game.addPlayer(new Player(
+        {name:"test", key:"turntable", isRobot:true},
+        BackendGame.CLASSES), true);
       return game.loadBoard(
         "| | | | | | | | | | | | | | | |\n" +
         "| | | | | | | | | | | | | | | |\n" +
@@ -289,17 +298,17 @@ describe("findBestPlay - no workers", () => {
     })
     .then(game => findBestPlayRaw(
       game, [
-        new Game.Tile({letter:"O", isBlank:false, score:1}),
-        new Game.Tile({letter:"I", isBlank:false, score:1}),
-        new Game.Tile({letter:"Q", isBlank:false, score:10}),
-        new Game.Tile({letter:"U", isBlank:false, score:2}),
-        new Game.Tile({letter:"E", isBlank:false, score:1}),
-        new Game.Tile({letter:"S", isBlank:false, score:1}),
-        new Game.Tile({letter:" ", isBlank:true, score:0})
+        new Tile({letter:"O", isBlank:false, score:1}),
+        new Tile({letter:"I", isBlank:false, score:1}),
+        new Tile({letter:"Q", isBlank:false, score:10}),
+        new Tile({letter:"U", isBlank:false, score:2}),
+        new Tile({letter:"E", isBlank:false, score:1}),
+        new Tile({letter:"S", isBlank:false, score:1}),
+        new Tile({letter:" ", isBlank:true, score:0})
       ],
       move => {
         //console.log(move);
-        if (move instanceof Game.Move)
+        if (move instanceof Move)
           bestMoves.push(move);
       },
       game.dictionary))

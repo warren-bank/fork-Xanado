@@ -105,8 +105,12 @@ define([
               : Promise.resolve([send]))
       // Load those games
       .then(keys => Promise.all(
-        keys.map(key => this.db.get(key, Game)
-                 .catch(e => { console.error(e.message); return undefined; }))))
+        keys.map(key => this.db.get(key)
+                 .then(d => Game.fromCBOR(d, Game.CLASSES))
+                 .catch(e => {
+                   console.error(e.message);
+                   return undefined;
+                 }))))
       .then(games => games.filter(
         g => g && (send !== "active" || !g.hasEnded())))
       .then(games => Promise.all(games.map(game => game.onLoad(this.db))))
@@ -124,7 +128,8 @@ define([
      * @implements browser/GamesUIMixin#getGame
      */
     getGame(key) {
-      return this.db.get(key, Game)
+      return this.db.get(key)
+      .then(d => Game.fromCBOR(d, Game.CLASSES))
       .then(game => game.onLoad(this.db));
     }
 
@@ -145,7 +150,8 @@ define([
        */
       return this.db.keys()
       .then(keys => Promise.all(
-        keys.map(key => this.db.get(key, Game)
+        keys.map(key => this.db.get(key)
+                 .then(d => Game.fromCBOR(d, Game.CLASSES))
                  .catch(e => undefined))))
       .then(games => games.filter(g => g && g.hasEnded()))
       .then(games => Promise.all(games.map(game => game.onLoad(this.db))))

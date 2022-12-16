@@ -6,9 +6,9 @@
  * Unit tests for Game commands that are issued during gameplay.
  */
 
-describe("Commands", () => {
+describe("game/Commands", () => {
 
-  let Game;
+  let Game, Player, Tile, Turn, Move;
   
   const TS = require("../TestSupport.js");
   after(() => TS.after());
@@ -16,15 +16,15 @@ describe("Commands", () => {
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
     TestSocket: 'test/TestSocket', /* global TestSocket */
     Utils: "common/Utils", /* global Utils */
-    FileDatabase: "common/FileDatabase", /* global FileDatabase */
-    Tile: "game/Tile", /* global Tile */
-    Player: "game/Player", /* global Player */
-    Move: "game/Move", /* global Move */
+    FileDatabase: "server/FileDatabase", /* global FileDatabase */
     Commands: "game/Commands", /* global Commands */
-    Turn: "game/Turn", /* global Turn */
     _Game: "game/Game" /* global _Game */
   }, () => {
     Game = Commands(_Game);
+    Player = Game.CLASSES.Player;
+    Tile = Game.CLASSES.Tile;
+    Turn = Game.CLASSES.Turn;
+    Move = Game.CLASSES.Move;
     required();
   }));
 
@@ -38,9 +38,9 @@ describe("Commands", () => {
       noPlayerShuffle: true
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const socket1 = new TestSocket();
     let turns1 = 0;
     socket1
@@ -128,9 +128,9 @@ describe("Commands", () => {
 
   it("anotherGame", () => {
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
 
     const game = new Game({
       edition:"Test",
@@ -178,9 +178,9 @@ describe("Commands", () => {
 
   it("pass", () => {
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
 
     const game = new Game({
       edition:"Test",
@@ -240,9 +240,9 @@ describe("Commands", () => {
       score: 20
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const aTile = new Tile({letter:"A", score:1 });
 
     const game = new Game({
@@ -377,9 +377,9 @@ describe("Commands", () => {
       score: 20
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const aTile = new Tile({letter:"A", score:1 });
 
     const game = new Game({
@@ -477,9 +477,9 @@ describe("Commands", () => {
       score: 20
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const aTile = new Tile({letter:"A", score:1 });
 
     const game = new Game({
@@ -532,9 +532,9 @@ describe("Commands", () => {
     });
     let remains = 0;
     const human1 = new Player({
-      name:"Human1", key:"human1", isRobot: false}, Game);
+      name:"Human1", key:"human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name:"Human2", key:"human2", isRobot: false}, Game);
+      name:"Human2", key:"human2", isRobot: false}, Game.CLASSES);
     const socket = new TestSocket();
     socket.on(Game.Notify.TURN, (turn, event) => {
       assert.equal(event, Game.Notify.TURN);
@@ -585,9 +585,9 @@ describe("Commands", () => {
       noPlayerShuffle: true
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const move = new Move({
       placements: [
         new Tile({letter:"X", score:1, col: 7, row: 7}),
@@ -677,9 +677,9 @@ describe("Commands", () => {
       noPlayerShuffle: true
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const socket = new TestSocket();
     socket.on(Game.Notify.CONNECTIONS, () => {});
     socket.on(Game.Notify.Turn, (data, event, seqNo) => {
@@ -715,9 +715,9 @@ describe("Commands", () => {
       noPlayerShuffle: true
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const socket = new TestSocket();
     socket.on(Game.Notify.CONNECTIONS, () => {});
     socket.on("*", (data, event, seqNo) => {

@@ -6,7 +6,7 @@
 /**
  * Unit tests for dictionary compressor
  */
-describe("Compressor", () => {
+describe("dawg/Compressor", () => {
 
   const TS = require("../TestSupport.js");
   before(required => {

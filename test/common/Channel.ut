@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node, mocha */
 
-describe("Channel", () => {
+describe("common/Channel", () => {
 
   /* global Utils */
   const TS = require("../TestSupport.js");

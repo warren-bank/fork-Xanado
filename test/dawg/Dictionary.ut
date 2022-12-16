@@ -6,7 +6,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 /**
  * Unit tests for Dictionary (and inherently, for LetterNode)
  */
-describe("Dictionary", () => {
+describe("dawg/Dictionary", () => {
 
   /* global fs, Platform, Dictionary */
   const TS = require("../TestSupport.js");

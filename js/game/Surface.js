@@ -20,7 +20,7 @@ define([
     // field away when loading using CBOR.
 
     /**
-     * @param {object} factory class object mapping class name to a class
+     * @param {object.<string,class>} factory maps class name to a class
      * @param {object} spec specification of the surface
      * @param {string} spec.id unique id for the surface
      * @param {number} spec.cols number of columns

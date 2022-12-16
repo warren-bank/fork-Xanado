@@ -3,16 +3,21 @@
 /* eslint-env node, mocha */
 /*global document:writable*/
 
-describe("BrowserBoard", () => {
+describe("browser/BrowserBoard", () => {
 
+  let Tile, Board;
   const TS = require("../TestSupport.js");
   before(required => {
     requirejs.isBrowser = true;
     TS.before({
       Edition: "game/Edition", /* global Edition */
-      Game: "browser/BrowserGame", /* global Game */
+      BrowserGame: "browser/BrowserGame", /* global BrowserGame */
       jQueryUI: "jquery-ui" /* global jQueryUI */
-    }, required);
+    }, () => {
+      Tile = BrowserGame.CLASSES.Tile;
+      Board = BrowserGame.CLASSES.Board;
+      required();
+    });
   });
 
   after(() => TS.after());
@@ -22,17 +27,17 @@ describe("BrowserBoard", () => {
   it("analysePlay", () => {
     return Edition.load("Test")
     .then(edition => {
-      let b = new Game.Board(Game, edition);
+      let b = new Board(BrowserGame.CLASSES, edition);
       for (let r = 0; r < b.rows; r++)
         for (let c = 0; c < b.cols; c++)
           assert(!b.touchingOld(r, c));
       const mr = Math.floor(b.rows / 2);
       const mc = Math.floor(b.cols / 2);
       
-      const W = new Game.Tile({letter: "W", score:4});
-      const O = new Game.Tile({letter: "O", score:1});
-      const R = new Game.Tile({letter: "R", score:2, isBlank:true});
-      const D = new Game.Tile({letter: "D", score:3});
+      const W = new Tile({letter: "W", score:4});
+      const O = new Tile({letter: "O", score:1});
+      const R = new Tile({letter: "R", score:2, isBlank:true});
+      const D = new Tile({letter: "D", score:3});
 
       b.at(mr, mc).placeTile(W);
       b.at(mr, mc+1).placeTile(O);
@@ -71,9 +76,9 @@ describe("BrowserBoard", () => {
       b.at(mr, mc+3).placeTile(D, true);
 
       // Score another play that extends the existing word
-      const S = new Game.Tile({letter: "S", score: 1});
-      const U = new Game.Tile({letter: "U", score: 1});
-      const N = new Game.Tile({letter: "N", isBlank:true, score: 2});
+      const S = new Tile({letter: "S", score: 1});
+      const U = new Tile({letter: "U", score: 1});
+      const N = new Tile({letter: "N", isBlank:true, score: 2});
 
       b.at(mr, mc-1).placeTile(S);
       b.at(mr+1, mc-1).placeTile(U);
@@ -116,17 +121,17 @@ describe("BrowserBoard", () => {
   it("analysePlay - disconnected", () => {
     return Edition.load("Test")
     .then(edition => {
-      let b = new Game.Board(Game, edition);
+      let b = new Board(BrowserGame.CLASSES, edition);
       for (let r = 0; r < b.rows; r++)
         for (let c = 0; c < b.cols; c++)
           assert(!b.touchingOld(r, c));
       const mr = Math.floor(b.rows / 2);
       const mc = Math.floor(b.cols / 2);
       
-      const W = new Game.Tile({letter: "W", score:4});
-      const O = new Game.Tile({letter: "O", score:1});
-      const R = new Game.Tile({letter: "R", score:2, isBlank:true});
-      const D = new Game.Tile({letter: "D", score:3});
+      const W = new Tile({letter: "W", score:4});
+      const O = new Tile({letter: "O", score:1});
+      const R = new Tile({letter: "R", score:2, isBlank:true});
+      const D = new Tile({letter: "D", score:3});
       
       b.at(mr, mc).placeTile(W);
       b.at(mr, mc+1).placeTile(O);
@@ -157,7 +162,7 @@ describe("BrowserBoard", () => {
       b.at(mr, mc+2).placeTile(R, true);
       b.at(mr, mc+3).placeTile(D, true);
 
-      const S = new Game.Tile({letter: "S", score: 1});
+      const S = new Tile({letter: "S", score: 1});
 
       b.at(1, 1).placeTile(S);
 
@@ -171,17 +176,17 @@ describe("BrowserBoard", () => {
   it("analyse first play - disconnected", () => {
     return Edition.load("Test")
     .then(edition => {
-      let b = new Game.Board(Game, edition);
+      let b = new Board(BrowserGame.CLASSES, edition);
       for (let r = 0; r < b.rows; r++)
         for (let c = 0; c < b.cols; c++)
           assert(!b.touchingOld(r, c));
       const mr = Math.floor(b.rows / 2);
       const mc = Math.floor(b.cols / 2);
       
-      const W = new Game.Tile({letter: "W", score:4});
-      const O = new Game.Tile({letter: "O", score:1});
-      const R = new Game.Tile({letter: "R", score:2, isBlank:true});
-      const D = new Game.Tile({letter: "D", score:3});
+      const W = new Tile({letter: "W", score:4});
+      const O = new Tile({letter: "O", score:1});
+      const R = new Tile({letter: "R", score:2, isBlank:true});
+      const D = new Tile({letter: "D", score:3});
       
       b.at(mr, mc).placeTile(W);
       b.at(mr, mc+1).placeTile(O);
@@ -196,17 +201,17 @@ describe("BrowserBoard", () => {
   it("analyse first play - centre missing", () => {
     return Edition.load("Test")
     .then(edition => {
-      let b = new Game.Board(Game, edition);
+      let b = new Board(BrowserGame.CLASSES, edition);
       for (let r = 0; r < b.rows; r++)
         for (let c = 0; c < b.cols; c++)
           assert(!b.touchingOld(r, c));
       const mr = Math.floor(b.rows / 2);
       const mc = Math.floor(b.cols / 2);
       
-      const W = new Game.Tile({letter: "W", score:4});
-      const O = new Game.Tile({letter: "O", score:1});
-      const R = new Game.Tile({letter: "R", score:2, isBlank:true});
-      const D = new Game.Tile({letter: "D", score:3});
+      const W = new Tile({letter: "W", score:4});
+      const O = new Tile({letter: "O", score:1});
+      const R = new Tile({letter: "R", score:2, isBlank:true});
+      const D = new Tile({letter: "D", score:3});
       
       b.at(mr, mc+1).placeTile(W);
       b.at(mr, mc+2).placeTile(O);
@@ -221,17 +226,17 @@ describe("BrowserBoard", () => {
   it("analyse first play - single tile", () => {
     return Edition.load("Test")
     .then(edition => {
-      let b = new Game.Board(Game, edition);
+      let b = new Board(BrowserGame.CLASSES, edition);
       for (let r = 0; r < b.rows; r++)
         for (let c = 0; c < b.cols; c++)
           assert(!b.touchingOld(r, c));
       const mr = Math.floor(b.rows / 2);
       const mc = Math.floor(b.cols / 2);
       
-      const W = new Game.Tile({letter: "W", score:4});
-      const O = new Game.Tile({letter: "O", score:1});
-      const R = new Game.Tile({letter: "R", score:2, isBlank:true});
-      const D = new Game.Tile({letter: " ", isBlank: true, score:3});
+      const W = new Tile({letter: "W", score:4});
+      const O = new Tile({letter: "O", score:1});
+      const R = new Tile({letter: "R", score:2, isBlank:true});
+      const D = new Tile({letter: " ", isBlank: true, score:3});
       
       b.at(mr, mc).placeTile(W);
 
@@ -268,17 +273,17 @@ describe("BrowserBoard", () => {
       bonuses: {}
     });
 
-    let b = new Game.Board(Game, edition);
+    let b = new Board(BrowserGame.CLASSES, edition);
 
     b.$populate($table);
 
-    const W = new Game.Tile({letter: "W", score:4});
-    const O = new Game.Tile({letter: "O", score:1});
-    const R = new Game.Tile({letter: "R", score:2, isBlank:true});
-    const D = new Game.Tile({letter: "D", score:3});
-    const A = new Game.Tile({letter: "A", score: 1});
-    const L = new Game.Tile({letter: "L", isBlank:true, score: 2});
-    const K = new Game.Tile({letter: "K", score: 5});
+    const W = new Tile({letter: "W", score:4});
+    const O = new Tile({letter: "O", score:1});
+    const R = new Tile({letter: "R", score:2, isBlank:true});
+    const D = new Tile({letter: "D", score:3});
+    const A = new Tile({letter: "A", score: 1});
+    const L = new Tile({letter: "L", isBlank:true, score: 2});
+    const K = new Tile({letter: "K", score: 5});
     
     // Lock down the play.
     b.at(0, 0).placeTile(W, true);

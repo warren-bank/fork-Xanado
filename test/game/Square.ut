@@ -6,7 +6,7 @@
 /**
  * Unit tests for Square class
  */
-describe("Square class", () => {
+describe("game/Square", () => {
 
   /* global Platform, Square, Tile */
   const TS = require("../TestSupport.js");

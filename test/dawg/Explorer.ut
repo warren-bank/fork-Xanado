@@ -3,7 +3,7 @@
 /* eslint-env node, mocha */
 /*global document:writable*/
 
-describe("Explore", () => {
+describe("dawg/Explorer", () => {
 
   const WORDS = [
     "ATOMIC", "INFINITESIMAL", "MICROSCOPIC", "MINIATURE",

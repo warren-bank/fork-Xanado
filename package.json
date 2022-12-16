@@ -1,7 +1,7 @@
 {
 	"name": "Xanado",
 	"description": "Multi user crossword game",
-	"version": "2.1.3",
+	"version": "3.1.0",
 	"author": {
 		"name": "Crawford Currie",
 		"url": "https://github.com/cdot"
@@ -16,6 +16,8 @@
 	},
 	"license": "MIT",
 	"dependencies": {
+		"@cdot/cbor": "github:cdot/CBOR",
+		"@rwap/jquery-ui-touch-punch": "github:RWAP/jquery-ui-touch-punch",
 		"@wikimedia/jquery.i18n": "^1.0.7",
 		"async-lock": "^1.4.0",
 		"bcrypt": "^5.1.0",
@@ -25,13 +27,10 @@
 		"express": ">=4.18.2",
 		"express-basic-auth": ">=1.2.1",
 		"express-session": "^1.17.3",
-		"get-user-locale": ">=2.0.0",
 		"https": ">=1.0.0",
-		"jquery": "^3.6.1",
+		"jquery": "^3.6.2",
 		"jquery-ui-dist": "^1.13.2",
-		"jquery-ui-touch-punch": "^0.2.3",
 		"jquery.cookie": "^1.4.1",
-		"node-gzip": ">=1.1.2",
 		"nodemailer": ">=6.8.0",
 		"normalize.css": "^8.0.1",
 		"passport": "^0.6.0",
@@ -53,8 +52,8 @@
 		"esprima": "^4.0.1",
 		"istanbul": "^0.4.5",
 		"jsdoc": "^4.0.0",
-		"marked": "^4.2.3",
-		"mocha": ">=10.1.0",
+		"marked": "^4.2.4",
+		"mocha": ">=10.2.0",
 		"nyc": "^15.1.0",
 		"uglify-js": "^3.17.4",
 		"why-is-node-running": "^2.2.2"

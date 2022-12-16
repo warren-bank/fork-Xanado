@@ -21,12 +21,6 @@ define([
   return superclass => class Undo extends superclass {
 
     /**
-     * @see Tagger
-     * @memberof game/Undo
-     */
-    static UNFREEZABLE = true;
-
-    /**
      * Undo a swap. Resets the game state as if it had never happened.
      * @instance
      * @memberof game/Undo

@@ -15,6 +15,7 @@ requirejs.config({
   paths: {
     "jquery-ui": "node_modules/jquery-ui-dist/jquery-ui",
     bson: "node_modules/bson/lib/bson",
+    cbor: "node_modules/@cdot/cbor/dist/index",
     common: "js/common",
     game: "js/game",
     dawg: "js/dawg",
@@ -34,7 +35,6 @@ requirejs.onResourceLoad = (context, map, depArray) => {
 };
 
 assert = require("assert");
-exports.why_is_node_running = require('why-is-node-running');
 
 exports.sparseEqual = (actual, expected, path) => {
   if (!path) path = "";
@@ -69,7 +69,8 @@ exports.before = (deps, required) => {
 
     deps.I18N = "server/I18N";
   }
-  deps.Platform = "platform";
+  if (!deps.Platform)
+    deps.Platform = "platform";
   const modnames = Object.keys(deps);
   exports.debug("Loading", deps);
   const modules = modnames.map(m => new Promise(

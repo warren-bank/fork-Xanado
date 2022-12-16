@@ -6,24 +6,28 @@
 /**
  * Unit tests for BackendBoard class
  */
-describe("BackendBoard", () => {
+describe("backend/BackendBoard", () => {
 
+  let Tile, Square, Board;
   const TS = require("../TestSupport.js");
   after(() => TS.after());
-  before(required => TS.before({
-    
-      Edition: "game/Edition",
-      Tile: "game/Tile",
-      Game: "backend/BackendGame",
-      Square: "game/Square"
-    }, required));
+  before(required => TS.before({   
+      Edition: "game/Edition", /* global Edition */
+      Tile: "game/Tile", /* global Tile */
+      BackendGame: "backend/BackendGame" /* global BackendGame */
+  }, () => {
+    Square = BackendGame.CLASSES.Square;
+    Tile = BackendGame.CLASSES.Tile;
+    Board = BackendGame.CLASSES.Board;
+    required();
+  }));
 
   function UNit() {}
   
   it("scorePlay", () => {
     return Edition.load("Test")
     .then(edition => {
-      let b = new Game.Board(Game, edition);
+      let b = new Board(BackendGame.CLASSES, edition);
       for (let r = 0; r < b.rows; r++)
         for (let c = 0; c < b.cols; c++)
           assert(!b.touchingOld(r, c));

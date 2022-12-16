@@ -5,19 +5,22 @@
 /**
  * Unit tests for Rack
  */
-describe("Rack", () => {
+describe("game/Rack", () => {
 
+  let Rack, Tile, Square;
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Rack: "game/Rack", /* global Rack */
-    Game: "game/Game", /* global Game */
-    Tile: "game/Tile", /* global Tile */
-    Square: "game/Square" /* global Square */
-  }, required));
+    Game: "game/Game" /* global Game */
+  }, () => {
+    Rack = Game.CLASSES.Rack;
+    Tile = Game.CLASSES.Tile;
+    Square = Game.CLASSES.Square;
+    required();
+  }));
 
   it("basics", () => {
-    let r = new Rack(Game, {id: "base", size: 10});
+    let r = new Rack(Game.CLASSES, {id: "base", size: 10});
     assert(r.isEmpty());
 
     // Add an "A" to the rack. Should go to position 0
@@ -56,7 +59,7 @@ describe("Rack", () => {
   });
   
   it("wild", () => {
-    let r = new Rack(Game, { id: "base", size: 10 });
+    let r = new Rack(Game.CLASSES, { id: "base", size: 10 });
     r.isWild = true;
 
     // Add an "A" to the rack. Should go to position 0

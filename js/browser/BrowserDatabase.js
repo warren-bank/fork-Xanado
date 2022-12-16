@@ -7,9 +7,9 @@
  * This is the browser implementation of common/Database.
  */
 define([
-  "common/CBOREncoder", "common/CBORDecoder", "common/Tagger", "common/Database", "common/Utils"
+  "common/Database", "common/Utils"
 ], (
-  CBOREncoder, CBORDecoder, Tagger, Database, Utils
+  Database, Utils
 ) => {
 
   /* global localStorage */
@@ -33,21 +33,18 @@ define([
     }
 
     set(key, data) {
-      const tagger = new Tagger();
       localStorage.setItem(
         `xanado_${key}`,
-        Utils.Uint8ArrayToBase64(new CBOREncoder(tagger).encode(data)));
+        Utils.Uint8ArrayToBase64(data));
       return Promise.resolve();
     }
 
-    get(key, typeMap) {
+    get(key) {
       const data = localStorage.getItem(`xanado_${key}`);
       if (data === null)
         return Promise.reject(`"${key}" was not found`);
-      const tagger = new Tagger(typeMap);
       try {
-        return Promise.resolve(
-          new CBORDecoder(tagger).decode(Utils.Base64ToUint8Array(data)));
+        return Promise.resolve(Utils.Base64ToUint8Array(data));
       } catch (e) {
         return Promise.reject(e);
       }

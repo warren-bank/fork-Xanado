@@ -6,23 +6,22 @@
  * Unit tests for replaying a game.
  */
 
-describe("Replay", () => {
-
+describe("game/Replay", () => {
   const TS = require("../TestSupport.js");
-  let Game;
+  let Game, Tile;
 
   after(() => TS.after());
   before(required => TS.before({
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
-    FileDatabase: "common/FileDatabase", /* global FileDatabase */
+    FileDatabase: "server/FileDatabase", /* global FileDatabase */
 
-    Tile: "game/Tile", /* global Tile */
     _Game: "game/Game", /* global _Game */
     Undo: "game/Undo", /* global Undo */
     Commands: "game/Commands", /* global Commands */
     Replay: "game/Replay" /* global Replay */
   }, () => {
     Game = Undo(Replay(Commands(_Game)));
+    Tile = Game.CLASSES.Tile;
     required();
   }));
 
@@ -226,8 +225,11 @@ describe("Replay", () => {
   it("replay", () => {
     let preGame, game, preBag;
     
-    const db = new FileDatabase({dir: "test/data", ext: "game"});
-    return db.get("good_game", Game)
+    const db = new FileDatabase({
+      dir: "test/data", ext: "game", typeMap: Game
+    });
+    return db.get("good_game")
+    .then(d => Game.fromCBOR(d, Game.CLASSES))
     .then(g => preGame = g)
     .then(() => preGame.onLoad(db))
     .then(() => getEditionBag(preGame))
@@ -257,8 +259,11 @@ describe("Replay", () => {
   it("issue 50", () => {
     let preGame, game, preBag = [];
 
-    const db = new FileDatabase({dir: "test/data", ext: "game"});
-    return db.get("kolano", Game)
+    const db = new FileDatabase({
+      dir: "test/data", ext: "game", typeMap: Game
+    });
+    return db.get("kolano")
+    .then(d => Game.fromCBOR(d, Game.CLASSES))
     .then(g => preGame = g)
     .then(() => preGame.onLoad(db))
     .then(() => getEditionBag(preGame))
@@ -292,8 +297,11 @@ describe("Replay", () => {
   it("issue 49", () => {
     let preGame, game, preBag;
 
-    const db = new FileDatabase({dir: "test/data", ext: "game"});
-    return db.get("8-letter-rack", Game)
+    const db = new FileDatabase({
+      dir: "test/data", ext: "game", typeMap: Game
+    });
+    return db.get("8-letter-rack")
+    .then(d => Game.fromCBOR(d, Game.CLASSES))
     .then(g => preGame = g)
     .then(() => preGame.onLoad(db))
     .then(() => getEditionBag(preGame))

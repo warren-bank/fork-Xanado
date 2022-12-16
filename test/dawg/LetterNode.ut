@@ -6,12 +6,12 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 /**
  * Unit tests for Dictionary (and inherently, for LetterNode)
  */
-describe("LetterNode class", () => {
+describe("dawg/LetterNode", () => {
   /* global fs, Platform, Dictionary */
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    LetterNode: "dawg/LetterNode"
+    LetterNode: "dawg/LetterNode" /* global LetterNode */
   }, required));
 
   it("eachWord", () => {

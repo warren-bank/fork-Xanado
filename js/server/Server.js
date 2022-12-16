@@ -12,17 +12,20 @@ const Express = require("express");
 
 define([
   "platform",
-  "common/CBOREncoder", "common/Tagger", "common/Utils", "common/FileDatabase",
-  "game/Player", "game/Turn", "game/Edition",
+  "common/Utils",
+  "game/Edition",
   "backend/BackendGame",
-  "server/UserManager"
+  "server/FileDatabase", "server/UserManager"
 ], (
   Platform,
-  CBOREncoder, Tagger, Utils, FileDatabase,
-  Player, Turn, Edition,
-  Game,
-  UserManager
+  Utils,
+  Edition,
+  BackendGame,
+  FileDatabase, UserManager
 ) => {
+
+  const Player = BackendGame.CLASSES.Player;
+  const Turn = BackendGame.CLASSES.Turn;
 
   /**
    * In the event of an error in a promise chain handling a request,
@@ -111,7 +114,9 @@ define([
        * @member {Database}
        * @private
        */
-      this.db = new FileDatabase({dir: config.games, ext: "game"});
+      this.db = new FileDatabase({
+        dir: config.games, ext: "game", typeMap: Game
+      });
 
       /**
        * Map from game key to Game. Games in this map have been loaded
@@ -316,7 +321,8 @@ define([
       if (this.games[key])
         return Promise.resolve(this.games[key]);
 
-      return this.db.get(key, Game)
+      return this.db.get(key)
+      .then(d => BackendGame.fromCBOR(d, BackendGame.CLASSES))
       .then(game => game.onLoad(this.db))
       .then(game => game.checkAge())
       .then(game => {
@@ -430,7 +436,7 @@ define([
 
       case "autoplay":
         // Tell *everyone else* that they asked for a hint
-        socket.game.notifyOthers(socket.player, Game.Notify.MESSAGE, {
+        socket.game.notifyOthers(socket.player, BackendGame.Notify.MESSAGE, {
           sender: /*i18n*/"Advisor",
           text: /*i18n*/"played-for",
           classes: "warning",
@@ -466,9 +472,9 @@ define([
       socket
       .on("connect", () => this.socket_connect(socket))
       .on("disconnect", () => this.socket_disconnect(socket))
-      .on(Game.Notify.MONITOR, () => this.socket_monitor(socket))
-      .on(Game.Notify.JOIN, params => this.socket_join(socket, params))
-      .on(Game.Notify.MESSAGE, message => this.socket_message(socket, message));
+      .on(BackendGame.Notify.MONITOR, () => this.socket_monitor(socket))
+      .on(BackendGame.Notify.JOIN, params => this.socket_join(socket, params))
+      .on(BackendGame.Notify.MESSAGE, message => this.socket_message(socket, message));
     }
 
     /**
@@ -478,7 +484,7 @@ define([
      */
     updateMonitors() {
       this._debug("b>f update *");
-      this.monitors.forEach(socket => socket.emit(Game.Notify.UPDATE));
+      this.monitors.forEach(socket => socket.emit(BackendGame.Notify.UPDATE));
     }
 
     /**
@@ -640,9 +646,10 @@ define([
      * when the response has been sent.
      */
     GET_locales(req, res, next) {
-      const db = new FileDatabase({dir: "i18n", ext: "json"});
-      return db.keys()
-      .then(keys => reply(res, keys));
+      return Fs.readdir(Platform.getFilePath("i18n"))
+      .then(list => reply(
+        res, list.filter(f => f !== "index.json" && /^.*\.json$/.test(f))
+        .map(fn => fn.replace(/\.json$/, ""))));
     }
 
     /**
@@ -655,7 +662,8 @@ define([
      */
     GET_editions(req, res) {
       return Fs.readdir(Platform.getFilePath("editions"))
-      .then(list => reply(res, list.filter(f => /^[^_].*\.js$/.test(f))
+      .then(list => reply(
+        res, list.filter(f => /^.*\.js$/.test(f))
         .map(fn => fn.replace(/\.js$/, ""))));
     }
 
@@ -808,7 +816,8 @@ define([
       .then(keys => Promise.all(keys.map(
         key => (this.games[key]
                 ? Promise.resolve(this.games[key])
-                : this.db.get(key, Game))
+                : this.db.get(key)
+                  .then(d => BackendGame.fromCBOR(d, BackendGame.CLASSES)))
         .then(game => {
           const pr = game.checkAge();
           if (game.hasEnded())
@@ -862,8 +871,8 @@ define([
           prom = game.playIfReady();
         } else {
           this._debug("Player", playerKey, "joining", gameKey);
-          player = new Game.Player(
-            { name: req.user.name, key: playerKey }, Game);
+          player = new Player(
+            { name: req.user.name, key: playerKey }, BackendGame.CLASSES);
           game.addPlayer(player, true);
           prom = game.save()
           .then(game => game.playIfReady());
@@ -899,13 +908,13 @@ define([
 
         this._debug("Robot joining", gameKey, "with", dic);
         // Robot always has the same player key
-        const robot = new Game.Player({
+        const robot = new Player({
           name: "Robot",
           key: UserManager.ROBOT_KEY,
           isRobot: true,
           canChallenge: req.body.canChallenge,
           delayBeforePlay: parseInt(req.body.delayBeforePlay || "0")
-        }, Game);
+        }, BackendGame.CLASSES);
         if (dic && dic !== "none")
           /* istanbul ignore next */
           robot.dictionary = dic;
@@ -992,7 +1001,7 @@ define([
 
     /**
      * This is designed for use when opening the `game` interface.
-     * The game is frozen using {@linkcode CBOREncoder} before sending to fully
+     * The game is encoded as {@linkcode CBOR} before sending to fully
      * encode the entire {@linkcode Game} object, including the
      * {@linkcode Player}s, {@linkcode Turn} history, and the {@linkcode Board}
      * so they can be recreated client-side. Subsequent commands and
@@ -1006,12 +1015,12 @@ define([
      */
     GET_game(req, res, next) {
       const gameKey = req.params.gameKey;
-      const tagger = new Tagger();
-      return this.db.get(gameKey, Game)
+      return this.db.get(gameKey)
+      .then(d => BackendGame.fromCBOR(d, BackendGame.CLASSES))
       .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
       .then(game => {
         res.status(200);
-        res.write(new CBOREncoder(tagger).encode(game), "binary");
+        res.write(BackendGame.toCBOR(game), "binary");
         res.end(null, "binary");
       });
     }
@@ -1076,7 +1085,7 @@ define([
       return this.loadGameFromDB(gameKey)
       .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
       .then(game => {
-        if (game.hasEnded() && command !== Game.Command.UNDO)
+        if (game.hasEnded() && command !== BackendGame.Command.UNDO)
           replyAndThrow(res, 400, `Game ${gameKey} has ended`);
 
         const player = game.getPlayerWithKey(playerKey);

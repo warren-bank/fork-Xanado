@@ -6,9 +6,9 @@
  * Unit tests for correct handling of challenges at various stages of
  * the game.
  */
-describe("Challenges", () => {
+describe("game/Challenges", () => {
 
-  let Game;
+  let Game, Tile, Player, Turn, Move;
 
   const TS = require("../TestSupport.js");
   after(() => TS.after());
@@ -16,14 +16,14 @@ describe("Challenges", () => {
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
     Utils: "common/Utils", /* global Utils */
     TestSocket: 'test/TestSocket', /* global TestSocket */
-    Tile: "game/Tile", /* global Tile */
-    Player: "game/Player", /* global Player */
     _Game: "game/Game", /* global _Game */
-    Move: "game/Move", /* global Move */
-    Commands: "game/Commands", /* global Commands */
-    Turn: "game/Turn" /* global Turn */
+    Commands: "game/Commands" /* global Commands */
   }, () => {
     Game = Commands(_Game);
+    Tile = Game.CLASSES.Tile;
+    Player = Game.CLASSES.Player;
+    Turn = Game.CLASSES.Turn;
+    Move = Game.CLASSES.Move;
     required();
   }));
 
@@ -38,9 +38,9 @@ describe("Challenges", () => {
       challengePenalty: Game.Penalty.MISS
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const move1 = new Move({
       words: [ { word: "SINK", score: 99 }],
       score: 99
@@ -116,9 +116,9 @@ describe("Challenges", () => {
       penaltyPoints: 5
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const move1 = new Move({
       placements: [
         new Tile({letter:"S", score:1, col: 7, row: 7}),
@@ -193,9 +193,9 @@ describe("Challenges", () => {
       challengePenalty: Game.Penalty.PER_WORD,
       penaltyPoints: 100
     });
-    const human1 = new Player({name: "Human 1", key: "human1"}, Game);
-    const human2 = new Player({name: "Human 2", key: "human2"}, Game);
-    const human3 = new Player({name:"Human 3", key:"human3"}, Game);
+    const human1 = new Player({name: "Human 1", key: "human1"}, Game.CLASSES);
+    const human2 = new Player({name: "Human 2", key: "human2"}, Game.CLASSES);
+    const human3 = new Player({name:"Human 3", key:"human3"}, Game.CLASSES);
     const move = new Move({
       placements: [
         new Tile({letter:"S", score:1, col: 7, row: 7}),
@@ -265,9 +265,9 @@ describe("Challenges", () => {
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
-    const human1 = new Player({name: "Human 1", key: "human1", isRobot: false}, Game);
-    const human2 = new Player({name: "Human 2", key: "human2", isRobot: false}, Game);
-    const human3 = new Player({name:"test3", key:"three", isRobot: false}, Game);
+    const human1 = new Player({name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
+    const human2 = new Player({name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
+    const human3 = new Player({name:"test3", key:"three", isRobot: false}, Game.CLASSES);
     const move = new Move({
       placements: [
         new Tile({letter:"S", isBlank:false, score:1, col: 7, row: 7}),
@@ -333,9 +333,9 @@ describe("Challenges", () => {
       challengePenalty: Game.Penalty.MISS
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const move = new Move({
       placements: [
         new Tile({letter:"X", isBlank:false, score:1, col: 7, row: 7}),
@@ -402,9 +402,9 @@ describe("Challenges", () => {
       challengePenalty: Game.Penalty.PER_WORD,
       penaltyPoints: 6
     });
-    const human1 = new Player({name: "Human 1", key: "human1"}, Game);
-    const human2 = new Player({name: "Human 2", key: "human2"}, Game);
-    const human3 = new Player({name:"Human 3", key:"human3"}, Game);
+    const human1 = new Player({name: "Human 1", key: "human1"}, Game.CLASSES);
+    const human2 = new Player({name: "Human 2", key: "human2"}, Game.CLASSES);
+    const human3 = new Player({name:"Human 3", key:"human3"}, Game.CLASSES);
     const move = new Move({
       placements: [
         new Tile({letter:"S", score:1, col: 7, row: 7}),
@@ -482,9 +482,9 @@ describe("Challenges", () => {
       challengePenalty: Game.Penalty.MISS
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const move = new Move({
       placements: [
         new Tile({letter:"X", isBlank:false, score:1, col: 7, row: 7}),
@@ -534,8 +534,8 @@ describe("Challenges", () => {
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
-    const human1 = new Player({name: "Human 1", key:"sheep", isRobot: false}, Game);
-    const human2 = new Player({name: "Human 2", key:"wolf", isRobot: false}, Game);
+    const human1 = new Player({name: "Human 1", key:"sheep", isRobot: false}, Game.CLASSES);
+    const human2 = new Player({name: "Human 2", key:"wolf", isRobot: false}, Game.CLASSES);
     const move = new Move({
       placements: [
         new Tile({letter:"X", isBlank:false, score:1, col: 6, row: 7}),
@@ -597,11 +597,11 @@ describe("Challenges", () => {
       challengePenalty: Game.Penalty.MISS
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const human3 = new Player({
-      name: "Human 3", key: "human3", isRobot: false}, Game);
+      name: "Human 3", key: "human3", isRobot: false}, Game.CLASSES);
     const move = new Move({
       placements: [
         new Tile({letter:"P", isBlank:false, score:1, col: 6, row: 7}),
@@ -679,9 +679,9 @@ describe("Challenges", () => {
       challengePenalty: Game.Penalty.MISS
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const move = new Move({
       placements: [
         new Tile({letter:"A", isBlank:false, score:1, col: 6, row: 7}),
@@ -752,11 +752,11 @@ describe("Challenges", () => {
       challengePenalty: Game.Penalty.MISS
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const human3 = new Player({
-      name: "Human 3", key: "human3", isRobot: false}, Game);
+      name: "Human 3", key: "human3", isRobot: false}, Game.CLASSES);
     const move = new Move({
       placements: [
         new Tile({letter:"A", isBlank:false, score:1, col: 6, row: 7}),
@@ -833,9 +833,9 @@ describe("Challenges", () => {
       challengePenalty: Game.Penalty.MISS
     });
     const human1 = new Player({
-      name: "Human 1", key: "human1", isRobot: false}, Game);
+      name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
     const human2 = new Player({
-      name: "Human 2", key: "human2", isRobot: false}, Game);
+      name: "Human 2", key: "human2", isRobot: false}, Game.CLASSES);
     const move1 = new Move({
       placements: [
         new Tile({letter:"Q", isBlank:false, score:1, col: 7, row: 7}),
@@ -923,9 +923,9 @@ describe("Challenges", () => {
       challengePenalty: Game.Penalty.MISS
     });
     const john = new Player({
-      name: "John", key: "john", isRobot: false}, Game);
+      name: "John", key: "john", isRobot: false}, Game.CLASSES);
     const paul = new Player({
-      name: "Paul", key: "paul", isRobot: false}, Game);
+      name: "Paul", key: "paul", isRobot: false}, Game.CLASSES);
 
     // John has just played. Their rack isn't empty, but the letter bag
     // is. Paul challenges, a challenge that fails. Game should NOT be over.

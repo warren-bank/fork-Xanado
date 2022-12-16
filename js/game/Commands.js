@@ -21,12 +21,6 @@ define([
   return superclass => class Commands extends superclass {
 
     /**
-     * @see Tagger
-     * @memberof game/Commands
-     */
-    static UNFREEZABLE = true;
-
-    /**
      * Place tiles on the board.
      * @instance
      * @memberof game/Commands
@@ -261,7 +255,7 @@ define([
         deltas[playerWithNoTiles.key].tiles = pointsRemainingOnRacks;
         this._debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
       }
-      return this.finishTurn(player, new this.constructor.Turn({
+      return this.finishTurn(player, new this.constructor.CLASSES.Turn({
         type: Game.Turns.GAME_ENDED,
         endState: endState,
         score: deltas
@@ -540,7 +534,8 @@ define([
 
         // copy the players
         for (const p of this.players) {
-          const np = new this.constructor.Player(p, this.constructor);
+          const np = new this.constructor.CLASSES.Player(
+            p, this.constructor.CLASSES);
           newGame.addPlayer(np, true);
         }
 

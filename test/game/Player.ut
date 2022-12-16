@@ -2,14 +2,17 @@
    license information */
 /* eslint-env node, mocha */
 
-describe("Player class", () => {
+describe("game/Player", () => {
 
+  let Player;
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
-    Game: "game/Game", /* global Game */
-    Player: "game/Player" /* global Player */
-  }, required));
+    Game: "game/Game" /* global Game */
+  }, () => {
+    Player = Game.CLASSES.Player;
+    required();
+  }));
 
   it("construct", () => {
     const p = {
@@ -20,14 +23,14 @@ describe("Player class", () => {
       missNextTurn: true,
       dictionary: "NoDic"
     };
-    let player = new Player(p, Game);
+    let player = new Player(p, Game.CLASSES);
     for (const f in p)
       assert.equal(player[f], p[f], f);
     // Check fields that must be zeroed
     p.score = 999;
     p.passes = 999;
     p.clock = 999;
-    player = new Player(p, Game);
+    player = new Player(p, Game.CLASSES);
     assert.equal(player.score, 0);
     assert.equal(player.passes, 0);
     assert.equal(player.clock, 0);
@@ -43,7 +46,7 @@ describe("Player class", () => {
       //_debug: console.debug,
       dictionary: "NoDic"
     };
-    const player = new Player(p, Game);
+    const player = new Player(p, Game.CLASSES);
     player.isRobot = true;
     player.score = 20;
 
@@ -56,7 +59,7 @@ describe("Player class", () => {
         key: 'playerkey',
         score: 20
       });
-      const pp = Player.fromSerialisable(d, Game);
+      const pp = Player.fromSerialisable(d, Game.CLASSES);
       pp._debug = player._debug;
       delete player.rack;
       delete pp.rack;

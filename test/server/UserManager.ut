@@ -10,11 +10,14 @@ const fs = require("fs").promises;
 /**
  * Basic unit tests for UserManager class. Only tests Xanado logins.
  */
-describe("UserManager class", () => {
+describe("server/UserManager", () => {
 
   const TS = require("../TestSupport.js");
   after(() => TS.after());
-  before(required => TS.before({ Server: "server/Server" }, required));
+  before(required => TS.before({
+    Platform: "platform", /* global Platform */
+    Server: "server/Server" /* global Server */
+  }, required));
 
   const assert = chai.assert;
 

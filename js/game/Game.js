@@ -4,14 +4,16 @@
 /* eslint-env amd */
 
 define([
+  "cbor",
   "platform",
-  "common/Utils",
+  "common/Utils", "common/Fridge",
   "dawg/Dictionary",
   "game/Board", "game/Edition", "game/LetterBag", "game/Move",
-  "game/Player", "game/Rack", "game/Square", "game/Tile", "game/Turn"
+  "game/Player", "game/Rack", "game/Square", "game/Tile", "game/Turn",
 ], (
+  CBOR,
   Platform,
-  Utils,
+  Utils, Fridge,
   Dictionary,
   Board, Edition, LetterBag, Move,
   Player, Rack, Square, Tile, Turn
@@ -23,49 +25,20 @@ define([
   class Game {
 
     /**
-     * Factory class. Subclasses may redefine this.
+     * Factory classes
+     * @private
      */
-    static Square = Square;
-
-    /**
-     * Factory class. Subclasses may redefine this.
-     */
-    static Tile = Tile;
-
-    /**
-     * Factory class. Subclasses may redefine this.
-     */
-    static Board = Board;
-
-    /**
-     * Factory class. Subclasses may redefine this.
-     */
-    static Game = Game;
-
-    /**
-     * Factory class. Subclasses may redefine this.
-     */
-    static LetterBag = LetterBag;
-
-    /**
-     * Factory class. Subclasses may redefine this.
-     */
-    static Move = Move;
-
-    /**
-     * Factory class. Subclasses may redefine this.
-     */
-    static Player = Player;
-
-    /**
-     * Factory class. Subclasses may redefine this.
-     */
-    static Rack = Rack;
-
-    /**
-     * Factory class. Subclasses may redefine this.
-     */
-    static Turn = Turn;
+    static CLASSES = {
+      Square: Square,
+      Tile: Tile,
+      Board: Board,
+      Game: Game,
+      LetterBag: LetterBag,
+      Move: Move,
+      Player: Player,
+      Rack: Rack,
+      Turn: Turn
+    };
 
     /**
      * Game states.
@@ -226,11 +199,10 @@ define([
      * ```
      * A game identified by key is loaded from a db by
      * ```
-     * db.get(key, <Game classes>).then(game => game.onLoad(db)...
+     * db.get(key)
+     * .then(d => Game.fromCBOR(d, Game.CLASSES))
+     * .then(game => game.onLoad(db)...
      * ```
-     * `<Game classes>` is an object mapping a class name to an
-     * implementation. The actual implementation used depends on
-     * the context.
      * @param {object} params Parameter object. This can be another
      * Game to copy game parameters, or a generic object with fields
      * the same name as Game fields.
@@ -516,7 +488,7 @@ define([
     create() {
       return this.getEdition()
       .then(edo => {
-        this.board = new this.constructor.Board(this.constructor, edo);
+        this.board = new this.constructor.CLASSES.Board(this.constructor.CLASSES, edo);
         this.letterBag = new LetterBag(edo);
         this.bonuses = edo.bonuses;
         this.rackSize = edo.rackCount;
@@ -1295,7 +1267,7 @@ define([
     save() {
       assert(this._db, "No _db for save()");
       this._debug("Saving game", this.key);
-      return this._db.set(this.key, this)
+      return this._db.set(this.key, Game.toCBOR(this))
       .then(() => this);
     }
 
@@ -1456,6 +1428,39 @@ define([
       });
 
       return this.playIfReady();
+    }
+
+    // The encoding only needs a list of class names, which are
+    // always the base classes. A decoding handler needs a map of
+    // class names to the actual class
+    static encodingHandler = new (CBOR.KeyDictionaryHandler(
+      CBOR.IDREFHandler(CBOR.TypeMapHandler(CBOR.TagHandler))))({
+        typeMap: Game.CLASSES
+      });
+
+    static toCBOR(data) {
+      return CBOR.Encoder.encode(data, Game.encodingHandler);
+    }
+
+    static fromCBOR(cbor, typeMap) {
+      const handler = new (CBOR.KeyDictionaryHandler(
+        CBOR.IDREFHandler(CBOR.TypeMapHandler(CBOR.TagHandler))))({
+          typeMap: typeMap
+        });
+      try {
+        return CBOR.Decoder.decode(cbor, handler);
+      } catch (e) {
+        // Maybe Fridge? Old format.
+        console.error(`CBOR error decoding:\n${e.message}`);
+        
+        // Compatibility; try using Fridge, versions of FileDatabase
+        // prior to 3.1.0 used it.
+        try {
+          return Fridge.thaw(cbor.toString(), typeMap);
+        } catch (e) {
+          throw Error(`Thawing error: ${e}`);
+        }
+      }
     }
   }
 

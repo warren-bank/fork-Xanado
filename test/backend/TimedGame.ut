@@ -5,35 +5,37 @@
 /**
  * Unit tests for behavious specific to timed games
  */
-describe("TimedGame", function() {
+describe("backend/TimedGame", function() {
 
-  /* global TestSocket, Platform */
-  /* global Edition, Tile, Rack, Player, Game, Move, Turn */
+  let Player;
   const TS = require("../TestSupport.js");
   after(() => TS.after());
   before(required => TS.before({
     MemoryDatabase: "test/MemoryDatabase", /* global MemoryDatabase */
     Utils: "common/Utils", /* global Utils */
     TestSocket: 'test/TestSocket', /* global TestSocket */
-    Game: "backend/BackendGame"
-  }, required));
+    BackendGame: "backend/BackendGame" /* global BackendGame */
+  }, () => {
+    Player = BackendGame.CLASSES.Player;
+    required();
+  }));
 
   this.timeout(10000);
   
   function UNit() {}
 
   it('timeout and end game', () => {
-    const human1 = new Game.Player({
-      name: 'Human 1', key: "human1", isRobot: false}, Game);
-    const human2 = new Game.Player({
-      name: 'Human 2', key: "human2", isRobot: false}, Game);
+    const human1 = new Player({
+      name: 'Human 1', key: "human1", isRobot: false}, BackendGame.CLASSES);
+    const human2 = new Player({
+      name: 'Human 2', key: "human2", isRobot: false}, BackendGame.CLASSES);
 
-    const game = new Game({
+    const game = new BackendGame({
       edition:"Test",
       dictionary:'Oxford_5000',
       //_debug: console.debug,
       noPlayerShuffle: true,
-      timerType: Game.Timer.TURN,
+      timerType: BackendGame.Timer.TURN,
       timeAllowed: 1 / 60
     });
     let nextTurn = 0;
@@ -43,28 +45,28 @@ describe("TimedGame", function() {
       switch (seqNo) {
       case 2:
         assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.TIMED_OUT);
+        assert.equal(turn.type, BackendGame.Turns.TIMED_OUT);
         assert.equal(turn.playerKey, human1.key);
         assert.equal(turn.nextToGoKey, human2.key);
         assert.equal(turn.gameKey, game.key);
         break;
       case 4:
         assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.TIMED_OUT);
+        assert.equal(turn.type, BackendGame.Turns.TIMED_OUT);
         assert.equal(turn.playerKey, human2.key);
         assert.equal(turn.nextToGoKey, human1.key);
         assert.equal(turn.gameKey, game.key);
         break;
       case 6:
         assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.TIMED_OUT);
+        assert.equal(turn.type, BackendGame.Turns.TIMED_OUT);
         assert.equal(turn.playerKey, human1.key);
         assert.equal(turn.nextToGoKey, human2.key);
         assert.equal(turn.gameKey, game.key);
         break;
       case 8:
         assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.TIMED_OUT);
+        assert.equal(turn.type, BackendGame.Turns.TIMED_OUT);
         assert.equal(turn.playerKey, human2.key);
         assert.equal(turn.nextToGoKey, human1.key);
         assert.equal(turn.gameKey, game.key);
@@ -73,8 +75,8 @@ describe("TimedGame", function() {
         assert.deepEqual(turn.score, {
           human1: { tiles: -1, tilesRemaining: "A" },
           human2: { tiles: -1, tilesRemaining: "A" }});
-        assert.equal(turn.type, Game.Turns.GAME_ENDED);
-        assert.equal(turn.endState, Game.State.TWO_PASSES);
+        assert.equal(turn.type, BackendGame.Turns.GAME_ENDED);
+        assert.equal(turn.endState, BackendGame.State.TWO_PASSES);
         assert.equal(turn.gameKey, game.key);
         assert(!turn.nextToGoKey);
         socket.done();
@@ -83,9 +85,9 @@ describe("TimedGame", function() {
         assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(turn)}`);
       }
     };
-    socket.on(Game.Notify.TURN, handle);
-    socket.on(Game.Notify.CONNECTIONS, () => {});
-    socket.on(Game.Notify.TICK, () => {});
+    socket.on(BackendGame.Notify.TURN, handle);
+    socket.on(BackendGame.Notify.CONNECTIONS, () => {});
+    socket.on(BackendGame.Notify.TICK, () => {});
     socket.on('*', (data, event, seqNo) => {
       assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(data)}`);
     });
@@ -107,17 +109,17 @@ describe("TimedGame", function() {
   });
 
   it('pass and overtime', () => {
-    const human1 = new Game.Player({
-      name: 'Human 1', key: "human1", isRobot: false}, Game);
-    const human2 = new Game.Player({
-      name: 'Human 2', key: "human2", isRobot: false}, Game);
+    const human1 = new Player({
+      name: 'Human 1', key: "human1", isRobot: false}, BackendGame.CLASSES);
+    const human2 = new Player({
+      name: 'Human 2', key: "human2", isRobot: false}, BackendGame.CLASSES);
 
-    const game = new Game({
+    const game = new BackendGame({
       edition:"Test",
       dictionary:'Oxford_5000',
       //_debug: console.debug,
       noPlayerShuffle: true,
-      timerType: Game.Timer.GAME,
+      timerType: BackendGame.Timer.GAME,
       timeAllowed: 1 / 60,
       timePenalty: 60
     });
@@ -129,35 +131,35 @@ describe("TimedGame", function() {
       switch (seqNo) {
       case 2:
         assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.PASSED);
+        assert.equal(turn.type, BackendGame.Turns.PASSED);
         assert.equal(turn.playerKey, human1.key);
         assert.equal(turn.nextToGoKey, human2.key);
         assert.equal(turn.gameKey, game.key);
         break;
       case 3:
         assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.PASSED);
+        assert.equal(turn.type, BackendGame.Turns.PASSED);
         assert.equal(turn.playerKey, human2.key);
         assert.equal(turn.nextToGoKey, human1.key);
         assert.equal(turn.gameKey, game.key);
         break;
       case 5:
         assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.PASSED);
+        assert.equal(turn.type, BackendGame.Turns.PASSED);
         assert.equal(turn.playerKey, human1.key);
         assert.equal(turn.nextToGoKey, human2.key);
         assert.equal(turn.gameKey, game.key);
         break;
       case 6:
         assert.equal(turn.score, 0);
-        assert.equal(turn.type, Game.Turns.PASSED);
+        assert.equal(turn.type, BackendGame.Turns.PASSED);
         assert.equal(turn.playerKey, human2.key);
         assert.equal(turn.nextToGoKey, human1.key);
         assert.equal(turn.gameKey, game.key);
         break;
       case 7:
-        assert.equal(turn.type, Game.Turns.GAME_ENDED);
-        assert.equal(turn.endState, Game.State.TWO_PASSES);
+        assert.equal(turn.type, BackendGame.Turns.GAME_ENDED);
+        assert.equal(turn.endState, BackendGame.State.TWO_PASSES);
         assert.equal(turn.score.human1.tiles, -1);
         assert.equal(turn.score.human2.tiles, -1);
         // Human 1 should be over-time by one clock tick, which
@@ -173,9 +175,9 @@ describe("TimedGame", function() {
         assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(turn)}`);
       }
     };
-    socket.on(Game.Notify.TURN, handle);
+    socket.on(BackendGame.Notify.TURN, handle);
 
-    socket.on(Game.Notify.CONNECTIONS, () => {});
+    socket.on(BackendGame.Notify.CONNECTIONS, () => {});
 
     let onTick;
     function awaitTick() {
@@ -183,7 +185,7 @@ describe("TimedGame", function() {
         onTick = resolve;
       });
     }
-    socket.on(Game.Notify.TICK, () => {
+    socket.on(BackendGame.Notify.TICK, () => {
       if (onTick)
         onTick();
     });
@@ -203,12 +205,12 @@ describe("TimedGame", function() {
     })
     .then(() => game.connect(socket, human1.key))
     .then(() => awaitTick())
-    .then(() => game.pass(human1, Game.Turns.PASSED))
+    .then(() => game.pass(human1, BackendGame.Turns.PASSED))
     // human 2 plays as soon as possible
-    .then(() => game.pass(human2, Game.Turns.PASSED))
+    .then(() => game.pass(human2, BackendGame.Turns.PASSED))
     .then(() => awaitTick())
-    .then(() => game.pass(human1, Game.Turns.PASSED))
-    .then(() => game.pass(human2, Game.Turns.PASSED))
+    .then(() => game.pass(human1, BackendGame.Turns.PASSED))
+    .then(() => game.pass(human2, BackendGame.Turns.PASSED))
     .then(() => socket.wait());
   });
 });

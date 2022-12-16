@@ -6,8 +6,8 @@
 
 /**
  * Command-line program to generate a DAWG (Directed Acyclic Word Graph) from a
- * word lexicon. Generates a somewhat optimised Trie, encodes it in
- * an integer array, which it then gzips.
+ * word lexicon. Generates a somewhat optimised Trie, and encodes it in
+ * an integer array.
  *
  * `node js/dawg/dictionary_compressor.js` will tell you how to use it.
  * @module

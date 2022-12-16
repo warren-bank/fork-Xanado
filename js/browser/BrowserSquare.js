@@ -30,11 +30,6 @@ define([
   class BrowserSquare extends Square {
 
     /**
-     * @see Tagger
-     */
-    static UNFREEZABLE = true;
-
-    /**
      * Get the unique id for this square, for use in DOM id attributes.
      * @return {string}
      */

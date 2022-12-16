@@ -4,9 +4,9 @@
 /* eslint-env node */
 
 define([
-  "common/CBOREncoder", "common/CBORDecoder", "common/Tagger", "common/Database"
+  "common/Database"
 ], (
-  CBOREncoder, CBORDecoder, Tagger, Database
+  Database
 ) => {
 
   const Fs = require("fs").promises;
@@ -48,22 +48,19 @@ define([
     set(key, data) {
       assert(!/^\./.test(key));
       const fn = Path.join(this.directory, `${key}.${this.ext}`);
-      const s = new CBOREncoder(new Tagger()).encode(data);
       //console.log("Writing", fn);
       return Fs.access(fn)
       .then(acc => { // file exists
         return Lock.lock(fn)
-        .then(release => Fs.writeFile(fn, s)
+        .then(release => Fs.writeFile(fn, data)
               .then(() => release()));
       })
-      .catch(e => Fs.writeFile(fn, s)); // file does not exist
+      .catch(e => Fs.writeFile(fn, data)); // file does not exist
     }
 
     /** See {@linkcode Database#get|Database.get} for documentation */
-    get(key, classes) {
+    get(key) {
       const fn = Path.join(this.directory, `${key}.${this.ext}`);
-      const tagger = new Tagger(classes);
-      const decoder = new CBORDecoder(tagger);
 
       return Lock.lock(fn)
       .catch(e => {
@@ -77,27 +74,7 @@ define([
             release();
             release = undefined;
           }
-
-          try {
-            return decoder.decode(data);
-          } catch (e) {
-            const error = Error(`CBOR decoding ${fn}:\n${e}`);
-            console.error(error);
-
-            // Compatibility; try using Fridge, versions of FileDatabase
-            // prior to 3.1.0 used it.
-            return new Promise((resolve, reject) => {
-              requirejs([ "common/Fridge" ], Fridge => {
-                try {
-                  resolve(Fridge.thaw(data.toString(), classes));
-                } catch (e) {
-                  const error = Error(`Thawing ${fn}:\n${e}`);
-                  console.error(error);
-                  reject(e);
-                }
-              });
-            });
-          }
+          return data;
         })
         .catch(e => {
           if (typeof release === "function")

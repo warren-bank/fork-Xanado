@@ -25,11 +25,9 @@ define([
      * `isRobot`, `canChallenge`, `wantsAdvice`,`dictionary` or
      * `missNextTurn` can be passed. The player will be initialised with
      * an empty rack (no squares).
-     * @param {object} factory class object mapping class name to a class
+     * @param {object.<string,class>} factory maps class name to a class
      */
     constructor(spec, factory) {
-
-      assert(factory.Game); // make sure it's a factory
 
       /**
        * Factory object used to create this object (not serialiable)
@@ -55,7 +53,8 @@ define([
        * it's only then we know how big it has to be.
        * @member {Rack}
        */
-      this.rack = new factory.Rack(factory, {id: `Rack_${this.key}`, size: 8 });
+      this.rack = new this._factory.Rack(
+        this._factory, {id: `Rack_${this.key}`, size: 8 });
 
       /**
        * Number of times this player has passed (or swapped)
