@@ -323,9 +323,17 @@ class Dialog {
    * @return {Promise} resolving to the Dialog object
    */
   static open(dlg, options) {
-    console.debug("Static open", dlg, options);
-    return $.getScript(dlg)
-    .then(Clas => {
+
+/*    return $.ajax({
+      url: `${dlg}.js`,
+      type: "GET",
+      dataType: "script",
+      scriptAttrs: { type: "module" },
+      success: function() { debugger; }
+      })
+*/
+    return import(`${dlg}.js`)
+    .then(mod => {
       let inst = Dialog.instances[dlg];
       if (inst) {
         if (options)
@@ -338,8 +346,10 @@ class Dialog {
           }
           inst.$dlg.dialog("open");
         }
-      } else
+      } else {
+        const Clas = mod[Object.keys(mod)[0]];
         inst = Dialog.instances[dlg] = new Clas(options);
+      }
       return inst;
     });
   }

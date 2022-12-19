@@ -511,9 +511,7 @@ const Commands = superclass => class extends superclass {
       return Promise.reject("Next game already exists");
 
     this._debug(`Create game to follow ${this.key}`);
-    // Can't require `Game` (circular reference during loading)
-    // so rather than mucking around with requirejs simply use
-    // this.constructor to get the class.
+    // Use this.constructor to get the class to pick up mixins.
     const newGame = new (this.constructor)(this);
     // Constructor will copy the old game key
     newGame.key = Utils.genKey();

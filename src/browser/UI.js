@@ -5,6 +5,7 @@
 
 import { BrowserPlatform } from "./BrowserPlatform.js";
 window.Platform = BrowserPlatform;
+/* global Platform*/
 
 import "jquery";
 import "jquery-ui-dist";
@@ -154,7 +155,7 @@ class UI {
     $("link.theme").remove();
     $("meta[name=theme]").each((idx, el) => {
       const css = el.content;
-      const href = requirejs.toUrl(`css/${theme}/${css}`);
+      const href = Platform.getFilePath(`css/${theme}/${css}`);
       $("head").append(`<link class="theme" href="${href}" rel="stylesheet" type="text/css">`);
     });
     return Promise.resolve();
@@ -336,7 +337,7 @@ class UI {
   attachUIEventHandlers() {
     $("#personaliseButton")
     .on("click", () => {
-      Dialog.open("src/browser/SettingsDialog", {
+      Dialog.open("../browser/SettingsDialog", {
         ui: this,
         onSubmit: (dlg, vals) => {
           this.setSettings(vals)

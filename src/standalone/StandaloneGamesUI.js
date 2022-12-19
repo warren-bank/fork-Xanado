@@ -51,7 +51,7 @@ class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
    * @override
    */
   gameOptions(game) {
-    Dialog.open("src/browser/GameSetupDialog", {
+    Dialog.open("../browser/GameSetupDialog", {
       html: "standalone_GameSetupDialog",
       title: $.i18n("Game setup"),
       game: game,

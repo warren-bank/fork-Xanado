@@ -179,7 +179,7 @@ const GamesUIMixin = superclass => class extends superclass {
     assert(game instanceof Game, "Not a game");
     return $(game.tableRow(this.constructor.GAME_TABLE_ROW))
     .on("click", () => {
-      Dialog.open("src/browser/GameDialog", {
+      Dialog.open("../browser/GameDialog", {
         game: game,
         ui: this
       });

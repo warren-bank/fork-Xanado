@@ -30,7 +30,7 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
     super.attachUIEventHandlers();
 
     $("#create-game")
-    .on("click", () => Dialog.open("src/browser/GameSetupDialog", {
+    .on("click", () => Dialog.open("../browser/GameSetupDialog", {
       title: $.i18n("Create game"),
       ui: this,
       postAction: "/createGame",
@@ -47,7 +47,7 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
     });
 
     $("#chpw_button")
-    .on("click", () => Dialog.open("src/client/ChangePasswordDialog", {
+    .on("click", () => Dialog.open("../client/ChangePasswordDialog", {
       postAction: "/change-password",
       postResult: () => this.refresh(),
       error: e => this.alert(e, $.i18n("failed", $.i18n("Change password")))
@@ -103,7 +103,7 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
    * @implements browser/GamesUIMixin#gameOptions
    */
   gameOptions(game) {
-    Dialog.open("src/browser/GameSetupDialog", {
+    Dialog.open("../browser/GameSetupDialog", {
       // use the generic html
       title: $.i18n("Game setup"),
       game: game,
@@ -141,7 +141,7 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
    * @inheritdoc
    */
   addRobot(game) {
-    Dialog.open("src/client/AddRobotDialog", {
+    Dialog.open("../client/AddRobotDialog", {
       ui: this,
       postAction: `/addRobot/${game.key}`,
       postResult: () => this.refreshGame(game.key),
@@ -153,7 +153,7 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
    * @implements browser/GamesUIMixin#invitePlayers
    */
   invitePlayers(game) {
-    Dialog.open("src/client/InvitePlayersDialog", {
+    Dialog.open("../client/InvitePlayersDialog", {
       postAction: `/invitePlayers/${game.key}`,
       postResult: names => this.alert(
         $.i18n("sent-invite", names.join(", ")),

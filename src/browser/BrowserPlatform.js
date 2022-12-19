@@ -80,7 +80,7 @@ class BrowserPlatform extends Platform {
    * @implements Platform
    */
   static getFilePath(p) {
-    return requirejs.toUrl(p || "");
+    return `../${p}`;
   }
 
   /**

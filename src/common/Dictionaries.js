@@ -2,8 +2,7 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 
-import dictionary from "@cdot/dictionary";
-const Dictionary = dictionary.Dictionary;
+import { Dictionary } from "@cdot/dictionary";
 const cache = {};
 /* global Platform */
 
@@ -94,5 +93,4 @@ class Dictionaries {
   }
 }
 
-export { Dictionaries };
-
+export { Dictionaries }

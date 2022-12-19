@@ -41,7 +41,6 @@
 		"posix-getopt": "^1.2.1",
 		"proper-lockfile": "^4.1.2",
 		"request": "^2.88.2",
-		"requirejs": ">=2.3.6",
 		"session-file-store": "^1.5.0",
 		"socket.io": ">=4.5.4"
 	},
@@ -75,10 +74,10 @@
 		"update": "ncu -u ",
 		"docker": "docker build . --tag xanado"
 	},
-  "eslintConfig": {
+	"eslintConfig": {
 		"extends": "eslint:recommended",
 		"parserOptions": {
-    "sourceType" : "module",
+			"sourceType": "module",
 			"ecmaVersion": 13
 		},
 		"env": {
@@ -88,13 +87,13 @@
 		},
 		"globals": {
 			"assert": "writable",
-		  "define": "writable",
-          "document": "readonly",
+			"define": "writable",
+			"document": "readonly",
 			"global": "readonly",
 			"Mocha": "writable",
 			"WeakRef": "readonly",
-          "describe" : "readonly",
-          "it" : "readonly"
+			"describe": "readonly",
+			"it": "readonly"
 		},
 		"rules": {
 			"camelcase": 0,

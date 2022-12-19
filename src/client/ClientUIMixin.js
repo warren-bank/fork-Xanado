@@ -164,7 +164,7 @@ const ClientUIMixin = superclass => class extends superclass {
     .then(() => {
 
       $("#login-button")
-      .on("click", () => Dialog.open("src/client/LoginDialog", {
+      .on("click", () => Dialog.open("../client/LoginDialog", {
         // postAction is set in code
         postResult: () => window.location.reload(),
         error: e => this.alert(e, $.i18n("failed", $.i18n("Sign in")))
