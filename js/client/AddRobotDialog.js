@@ -6,32 +6,31 @@
 /**
  * Dialog for robot creation. Demand loads the HTML.
  */
-define(["js/browser/Dialog"], Dialog => {
+import { Dialog } from "./Dialog.js";
 
-  class AddRobotDialog extends Dialog {
+class AddRobotDialog extends Dialog {
 
-    constructor(options) {
-      super("AddRobotDialog", $.extend({
-        title: $.i18n("Add robot")
-      }, options));
-    }
-
-    createDialog() {
-      const ui = this.options.ui;
-      return Promise.all([
-        ui.getDictionaries()
-        .then(dictionaries => {
-          const $dic = this.$dlg.find('[name=dictionary]');
-          dictionaries
-          .forEach(d => $dic.append(`<option>${d}</option>`));
-          if (ui.getSetting('dictionary'))
-            $dic.val(ui.getSetting('dictionary'));
-          this.enableSubmit();
-        })
-      ])
-      .then(() => super.createDialog());
-    }
+  constructor(options) {
+    super("AddRobotDialog", $.extend({
+      title: $.i18n("Add robot")
+    }, options));
   }
 
-  return AddRobotDialog;
-});
+  createDialog() {
+    const ui = this.options.ui;
+    return Promise.all([
+      ui.getDictionaries()
+      .then(dictionaries => {
+        const $dic = this.$dlg.find('[name=dictionary]');
+        dictionaries
+        .forEach(d => $dic.append(`<option>${d}</option>`));
+        if (ui.getSetting('dictionary'))
+          $dic.val(ui.getSetting('dictionary'));
+        this.enableSubmit();
+      })
+    ])
+    .then(() => super.createDialog());
+  }
+}
+
+export { AddRobotDialog }

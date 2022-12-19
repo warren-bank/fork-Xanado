@@ -3,30 +3,26 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-define([
-  "js/browser/Dialog", "js/client/PasswordMixin"
-], (
-  Dialog, PasswordMixin
-) => {
+import { Dialog } from "../browser/Dialog.js";
+import { PasswordMixin } from "./PasswordMixin.js";
 
-  class ChangePasswordDialog extends PasswordMixin(Dialog) {
+class ChangePasswordDialog extends PasswordMixin(Dialog) {
 
-    constructor(options) {
-      super("ChangePasswordDialog", $.extend({
-        title: $.i18n("Change password")
-      }, options));
-    }
-
-    createDialog() {
-      const $las = this.$dlg.find(".logged-in-as");
-      if ($las.length > 0) {
-        $.get("/session")
-        .then(user => $las.text(
-          $.i18n("logged-in-as", user.name)));
-      }
-      return super.createDialog();
-    }
+  constructor(options) {
+    super("ChangePasswordDialog", $.extend({
+      title: $.i18n("Change password")
+    }, options));
   }
 
-  return ChangePasswordDialog;
-});
+  createDialog() {
+    const $las = this.$dlg.find(".logged-in-as");
+    if ($las.length > 0) {
+      $.get("/session")
+      .then(user => $las.text(
+        $.i18n("logged-in-as", user.name)));
+    }
+    return super.createDialog();
+  }
+}
+
+export { ChangePasswordDialog }

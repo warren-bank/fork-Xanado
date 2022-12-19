@@ -3,39 +3,34 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node */
 
-define([
-  "js/common/Database"
-], (
-  Database
-) => {
+import { Database } from "../js/common/Database.js";
 
-  const database = {};
+const database = {};
 
-  /**
-   * Implementation of common/Database for use in tests. Data only persists
-   * in memory.
-   */
-  class MemoryDatabase extends Database {
+/**
+ * Implementation of common/Database for use in tests. Data only persists
+ * in memory.
+ */
+class MemoryDatabase extends Database {
 
-
-    keys() {
-      return Object.keys(database);
-    }
-
-    set(key, data) {
-      database[key] = data;
-      return Promise.resolve();
-    }
-
-    get(key) {
-      return Promise.resolve(database[key]);
-    }
-
-    rm(key) {
-      delete database[key];
-      return Promise.resolve();
-    }
+  
+  keys() {
+    return Object.keys(database);
   }
 
-  return MemoryDatabase;
-});
+  set(key, data) {
+    database[key] = data;
+    return Promise.resolve();
+  }
+
+  get(key) {
+    return Promise.resolve(database[key]);
+  }
+
+  rm(key) {
+    delete database[key];
+    return Promise.resolve();
+  }
+}
+
+export { MemoryDatabase }

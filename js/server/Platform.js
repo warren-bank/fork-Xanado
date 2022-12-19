@@ -3,80 +3,81 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node */
 
-global.assert = require("assert");
-const Fs = require("fs").promises;
-const Path = require("path");
-const Lock = require("proper-lockfile");
+import assert from "assert";
+global.assert = assert;
 
-define([
-  "js/common/Platform",
-  "js/server/I18N"
-], (
-  Platform,
-  I18N
-) => {
+import { promises as Fs } from "fs";
+import path from "path";
+import { Platform } from "../common/Platform.js";
+import { I18N } from "./I18N.js";
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Implementation of {@linkcode common/Platform} for use in node.js.
+ * @implements Platform
+ */
+class ServerPlatform extends Platform {
+  static i18n = I18N;
 
   /**
-   * Implementation of {@linkcode common/Platform} for use in node.js.
    * @implements Platform
    */
-  class ServerPlatform extends Platform {
-    static i18n = I18N;
-
-    /**
-     * @implements Platform
-     */
-    static trigger(e, args) {
-      assert.fail("ServerPlatform.trigger");
-    }
-
-    /**
-     * @implements Platform
-     */
-    static async findBestPlay() {
-      // backend/findBestPlay to block
-      // backend/findBestPlayController to use a worker thread
-      return new Promise(
-        resolve => requirejs([ "js/backend/findBestPlayController" ],
-                             fn => resolve(fn.apply(null, arguments))));
-    }
-
-    /**
-     * @implements Platform
-     */
-    static parsePath(p) {
-      return Path.parse(p);
-    }
-
-    /**
-     * @implements Platform
-     */
-    static formatPath(p) {
-      return Path.format(p);
-    }
-
-    /**
-     * @implements Platform
-     */
-    static getFilePath(p) {
-      return Path.normalize(requirejs.toUrl(p || ""));
-    }
-
-    /**
-     * @implements Platform
-     */
-    static readFile(p) {
-      return Fs.readFile(p);
-    }
-
-    /**
-     * @implements Platform
-     */
-    static readBinaryFile(p) {
-      return Fs.readFile(p);
-    }
+  static trigger(e, args) {
+    assert.fail("ServerPlatform.trigger");
   }
 
-  return ServerPlatform;
-});
+  static USE_WORKERS = true;
+
+  /**
+   * @implements Platform
+   */
+  static async findBestPlay() {
+    return import(ServerPlatform.getFilePath(
+      ServerPlatform.USE_WORKERS
+      ? `js/backend/findBestPlayController.js`
+      : `js/backend/findBestPlay.js`
+    ))
+    .then(mod => mod.findBestPlay.apply(null, arguments));
+  }
+
+  /**
+   * @implements Platform
+   */
+  static parsePath(p) {
+    return path.parse(p);
+  }
+
+  /**
+   * @implements Platform
+   */
+  static formatPath(p) {
+    return path.format(p);
+  }
+
+  /**
+   * @implements Platform
+   */
+  static getFilePath(p) {
+    return path.normalize(`${__dirname}/../../${p || ""}`);
+  }
+
+  /**
+   * @implements Platform
+   */
+  static readFile(p) {
+    return Fs.readFile(p);
+  }
+
+  /**
+   * @implements Platform
+   */
+  static readBinaryFile(p) {
+    return Fs.readFile(p);
+  }
+}
+
+export { ServerPlatform }
+
 
