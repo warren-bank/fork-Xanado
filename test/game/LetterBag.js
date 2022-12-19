@@ -2,10 +2,10 @@
    license information */
 /* eslint-env node, mocha */
 
-import { Edition } from "../../js/game/Edition.js";
-import { Tile } from "../../js/game/Tile.js";
-import { LetterBag } from "../../js/game/LetterBag.js";
-import { ServerPlatform } from "../../js/server/Platform.js";
+import { Edition } from "../../src/game/Edition.js";
+import { Tile } from "../../src/game/Tile.js";
+import { LetterBag } from "../../src/game/LetterBag.js";
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
 import { assert } from "chai";
 

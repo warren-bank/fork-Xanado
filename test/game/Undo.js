@@ -2,16 +2,16 @@
    license information */
 /* eslint-env node, mocha */
 
-import { ServerPlatform } from "../../js/server/Platform.js";
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
 
-import { Utils } from "../../js/common/Utils.js";
+import { Utils } from "../../src/common/Utils.js";
 import { MemoryDatabase } from "../MemoryDatabase.js";
 import { TestSocket } from "../TestSocket.js";
-import { FileDatabase } from "../../js/server/FileDatabase.js";
-import { Commands } from "../../js/game/Commands.js";
-import { Undo } from "../../js/game/Undo.js";
-import { Game as _Game } from "../../js/game/Game.js";
+import { FileDatabase } from "../../src/server/FileDatabase.js";
+import { Commands } from "../../src/game/Commands.js";
+import { Undo } from "../../src/game/Undo.js";
+import { Game as _Game } from "../../src/game/Game.js";
 const Game = Undo(Commands(_Game));
 Game.CLASSES.Game = Game;
 const Tile = Game.CLASSES.Tile;

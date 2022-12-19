@@ -3,7 +3,7 @@
 /* eslint-env node, mocha */
 
 import { assert } from "chai";
-import { Game } from "../../js/game/Game.js";
+import { Game } from "../../src/game/Game.js";
 const Player = Game.CLASSES.Player;
 
 describe("game/Player", () => {

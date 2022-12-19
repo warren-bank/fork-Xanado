@@ -3,8 +3,8 @@ License MIT. See README.md at the root of this distribution for full copyright
 and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node */
 
-import { Channel } from "../js/common/Channel.js";
-import { Utils } from "../js/common/Utils.js";
+import { Channel } from "../src/common/Channel.js";
+import { Utils } from "../src/common/Utils.js";
 
 /**
  * Simulator for socket.io, replaces the socket functionality with a

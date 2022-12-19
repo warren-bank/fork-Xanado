@@ -2,15 +2,14 @@
    license information */
 /* eslint-env node, mocha */
 
-/* global assert */
 import { TestSocket } from '../TestSocket.js';
 import { MemoryDatabase } from "../MemoryDatabase.js";
 
-import { ServerPlatform } from "../../js/server/Platform.js";
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
-import { Utils } from "../../js/common/Utils.js";
-import { BackendGame } from "../../js/backend/BackendGame.js";
-import { FileDatabase } from "../../js/server/FileDatabase.js";
+import { Utils } from "../../src/common/Utils.js";
+import { BackendGame } from "../../src/backend/BackendGame.js";
+import { FileDatabase } from "../../src/server/FileDatabase.js";
 const Player = BackendGame.CLASSES.Player;
 const Move = BackendGame.CLASSES.Move;
 const Tile = BackendGame.CLASSES.Tile;

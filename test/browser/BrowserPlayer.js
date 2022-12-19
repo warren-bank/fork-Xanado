@@ -2,10 +2,33 @@
    license information */
 /* eslint-env node, mocha */
 
-import { BrowserGame } from "../../js/browser/BrowserGame.js";
+import { JSDOM } from "jsdom";
+const { window } = new JSDOM(
+  '<!doctype html><html><body id="working"></body></html>');
+global.window = window;
+global.document = window.document;
+global.navigator = { userAgent: "node.js" };
+import jquery from "jquery";
+global.$ = global.jQuery = jquery(window);
+
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
+global.Platform = ServerPlatform;
+
+import { I18N } from "../../src/server/I18N.js";
+
+import { BrowserGame } from "../../src/browser/BrowserGame.js";
 const Player = BrowserGame.CLASSES.Player;
 
 describe("browser/BrowserPlayer", () => {
+
+  before(() => {
+    // Delayed imports to allow jQuery to be defined
+    $.i18n = I18N;
+    return Promise.all([
+      I18N().load("en"),
+      import("../../node_modules/jquery-ui-dist/jquery-ui.js")
+    ]);
+  });
 
   it("$html-robot", () => {
     const p = {

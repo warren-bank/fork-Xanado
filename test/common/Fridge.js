@@ -4,7 +4,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node, mocha */
 
 import { assert } from "chai";
-import { Fridge } from "../../js/common/Fridge.js";
+import { Fridge } from "../../src/common/Fridge.js";
 
 describe("common/Fridge", () => {
 

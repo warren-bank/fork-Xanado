@@ -2,18 +2,41 @@
    license information */
 /* eslint-env node, mocha */
 
-import { Square } from "../../js/browser/BrowserSquare";
-import { Tile } from "../../js/browser/BrowserTile",
+import { JSDOM } from "jsdom";
+const { window } = new JSDOM(
+  '<!doctype html><html><body id="working"></body></html>');
+global.window = window;
+global.document = window.document;
+global.navigator = { userAgent: "node.js" };
+import jquery from "jquery";
+global.$ = global.jQuery = jquery(window);
+
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
+global.Platform = ServerPlatform;
+
+import { I18N } from "../../src/server/I18N.js";
+
+import { BrowserSquare } from "../../src/browser/BrowserSquare.js";
+import { BrowserTile } from "../../src/browser/BrowserTile.js";
 
 /**
  * Unit tests for Square class
  */
 describe("browser/BrowserSquare", () => {
 
+  before(() => {
+    // Delayed imports to allow jQuery to be defined
+    $.i18n = I18N;
+    return Promise.all([
+      I18N().load("en"),
+      import("../../node_modules/jquery-ui-dist/jquery-ui.js")
+    ]);
+  });
+
   function UNit() {}
 
   it('$populate', () => {
-    let sq = new Square({type: 'q', surface: { id: "base" }, col: 56, row: 42});
+    let sq = new BrowserSquare({type: 'q', surface: { id: "base" }, col: 56, row: 42});
     let $dact = $("<div></div>");
     $("body").append($dact);
     let $td = $("<td></td>");
@@ -27,7 +50,7 @@ describe("browser/BrowserSquare", () => {
   });
 
   it("empty", () => {
-    let sq = new Square({type: 'q', surface: { id: "base" }, col: 56, row: 42});
+    let sq = new BrowserSquare({type: 'q', surface: { id: "base" }, col: 56, row: 42});
     sq.setUnderlay('T');
     let $dact = $("<div></div>");
     $("body").append($dact);
@@ -41,11 +64,11 @@ describe("browser/BrowserSquare", () => {
   });
 
   it("occupied unlocked", () => {
-    let sq = new Square({type: 'q', surface: { id: 'surface' }, col: 56, row: 42});
+    let sq = new BrowserSquare({type: 'q', surface: { id: 'surface' }, col: 56, row: 42});
     sq.setUnderlay('T');
     let $td = $("<td></td>");
     $("body").append($("<div id='act'></div>").append($td));
-    let tile = new Tile({ letter:'S', isBlank:false });
+    let tile = new BrowserTile({ letter:'S', isBlank:false });
     sq.placeTile(tile);
     sq.$populate($td);
     sq.select(false);
@@ -69,11 +92,11 @@ describe("browser/BrowserSquare", () => {
   });
 
   it("occupied unlocked selected", () => {
-    let sq = new Square({type: 'q', surface: {id: 'surface'}, col: 56, row: 42});
+    let sq = new BrowserSquare({type: 'q', surface: {id: 'surface'}, col: 56, row: 42});
     sq.setUnderlay('T');
     let $td = $("<td></td>");
     $("body").append($("<div id='act'></div>").append($td));
-    let tile = new Tile({ letter:'S', isBlank:false });
+    let tile = new BrowserTile({ letter:'S', isBlank:false });
     sq.placeTile(tile);
     sq.$populate($td);
     sq.select(true);
@@ -97,17 +120,17 @@ describe("browser/BrowserSquare", () => {
   });
 
   it("occupied locked", () => {
-    let sq = new Square({type:'_', surface: { id: 'surface'}, col:56, row:42});
+    let sq = new BrowserSquare({type:'_', surface: { id: 'surface'}, col:56, row:42});
     let $td = $("<td></td>");
     $("body").append($("<div id='act'></div>").append($td));
-    let tile = new Tile({ letter:'W', isBlank:false });
+    let tile = new BrowserTile({ letter:'W', isBlank:false });
     sq.placeTile(tile, true);
     sq.$populate($td);
 
     const $letter = $('<span class="letter">W</span>');
     const $score = $('<span class="score">0</span>');
     const $glyph = $('<div class="glyph"></div>')
-          .append($letter).append($score);;
+          .append($letter).append($score);
     const $tile = $('<div class="Tile locked-tile"></div>')
           .append($glyph);
     $td = $('<td class="square-_" id="surface_56x42"></td>').append($tile);
@@ -123,19 +146,19 @@ describe("browser/BrowserSquare", () => {
   // Checked dispatched events
   it("place-unplace", () => {
 
-    let sq = new Square({type:'_', surface: { id: 'surface'}, col:56, row:42});
+    let sq = new BrowserSquare({type:'_', surface: { id: 'surface'}, col:56, row:42});
     let $td = $("<td></td>");
     let $dact = $("<div></div>").append($td);
     $("body").append($dact);
     sq.$populate($td);
 
-    let tile = new Tile({ letter:'W', isBlank:false });
+    let tile = new BrowserTile({ letter:'W', isBlank:false });
     sq.placeTile(tile); // should $placeTile
 
     const $letter = $('<span class="letter">W</span>');
     const $score = $('<span class="score">0</span>');
     const $glyph = $('<div class="glyph"></div>')
-          .append($letter).append($score);;
+          .append($letter).append($score);
     const $tile = $('<div class="Tile ui-draggable ui-draggable-handle unlocked-tile"></div>')
           .append($glyph);
     $td = $('<td class="square-_" id="surface_56x42"></td>').append($tile);

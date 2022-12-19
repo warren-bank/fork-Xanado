@@ -1,15 +1,16 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 
-import { ServerPlatform } from "../../js/server/Platform.js";
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
-ServerPlatform.USER_WORKERS = false;
+// disable findBestPlay worker threads
+ServerPlatform.USE_WORKERS = false;
 import { MemoryDatabase } from "../MemoryDatabase.js";
 import { TestSocket } from "../TestSocket.js";
-import { Utils } from "../../js/common/Utils.js";
-import { FileDatabase } from "../../js/server/FileDatabase.js";
-import { Commands } from "../../js/game/Commands.js";
-import { Game as _Game } from "../../js/game/Game.js";
+import { Utils } from "../../src/common/Utils.js";
+import { FileDatabase } from "../../src/server/FileDatabase.js";
+import { Commands } from "../../src/game/Commands.js";
+import { Game as _Game } from "../../src/game/Game.js";
 
 const Game = Commands(_Game);
 Game.CLASSES.Game = Game;

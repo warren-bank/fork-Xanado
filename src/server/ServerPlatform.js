@@ -1,0 +1,84 @@
+/*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
+  License MIT. See README.md at the root of this distribution for full copyright
+  and license information. Author Crawford Currie http://c-dot.co.uk*/
+/* eslint-env node */
+
+import assert from "assert";
+global.assert = assert;
+
+import { promises as Fs } from "fs";
+import path from "path";
+import { Platform } from "../common/Platform.js";
+import { I18N } from "./I18N.js";
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Implementation of {@linkcode common/Platform} for use in node.js.
+ * @implements Platform
+ */
+class ServerPlatform extends Platform {
+  static i18n = I18N;
+
+  /**
+   * @implements Platform
+   */
+  static trigger(e, args) {
+    assert.fail("ServerPlatform.trigger");
+  }
+
+  /**
+   * Indicate if we are to use worker threads for move computation or not
+   * (default true)
+   */
+  static USE_WORKERS = true;
+
+  /**
+   * @implements Platform
+   */
+  static async findBestPlay() {
+    return import(ServerPlatform.getFilePath(
+      ServerPlatform.USE_WORKERS
+      ? `src/backend/findBestPlayController.js`
+      : `src/game/findBestPlay.js`
+    ))
+    .then(mod => mod.findBestPlay.apply(null, arguments));
+  }
+
+  /**
+   * @implements Platform
+   */
+  static parsePath(p) {
+    return path.parse(p);
+  }
+
+  /**
+   * @implements Platform
+   */
+  static formatPath(p) {
+    return path.format(p);
+  }
+
+  /**
+   * @implements Platform
+   */
+  static getFilePath(p) {
+    return path.normalize(`${__dirname}/../../${p || ""}`);
+  }
+
+  /**
+   * @implements Platform
+   */
+  static readFile(p) {
+    return Fs.readFile(p);
+  }
+
+  /**
+   * @implements Platform
+   */
+  static readBinaryFile(p) {
+    return Fs.readFile(p);
+  }
+}
+
+export { ServerPlatform }

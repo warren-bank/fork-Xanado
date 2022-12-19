@@ -1,12 +1,9 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env node, mocha */
-/*global document:writable*/
 
-import { assert } from "chai";
-
-import { Square } from "../../js/game/Square.js";
-import { Tile } from "../../js/game/Tile.js";
+import { Square } from "../../src/game/Square.js";
+import { Tile } from "../../src/game/Tile.js";
 
 /**
  * Unit tests for Square class

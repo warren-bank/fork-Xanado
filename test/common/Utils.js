@@ -3,11 +3,13 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node, mocha */
 
+/* global Platform */
+
 import { assert } from "chai";
-import { ServerPlatform } from "../../js/server/Platform.js";
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
 
-import { Utils } from "../../js/common/Utils.js";
+import { Utils } from "../../src/common/Utils.js";
 
 describe("common/Utils", () => {
 
@@ -30,10 +32,12 @@ describe("common/Utils", () => {
   });
 
   it("andList", () => {
-    assert.equal(Utils.andList([]), "");
-    assert.equal(Utils.andList(["A"]), "A");
-    assert.equal(Utils.andList(["A", "B"]), "A and B");
-    assert.equal(Utils.andList(["A", "B", "C"]), "A, B and C");
+    return Platform.i18n().load("en").then(() => {
+      assert.equal(Utils.andList([]), "");
+      assert.equal(Utils.andList(["A"]), "A");
+      assert.equal(Utils.andList(["A", "B"]), "A and B");
+      assert.equal(Utils.andList(["A", "B", "C"]), "A, B and C");
+    });
   });
 
   it("stringify", () => {

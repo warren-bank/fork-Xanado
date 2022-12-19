@@ -2,9 +2,9 @@
    license information */
 /* eslint-env node, mocha */
 
-import { ServerPlatform } from "../../js/server/Platform.js";
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
-import { Game } from "../../js/game/Game.js";
+import { Game } from "../../src/game/Game.js";
 const Tile = Game.CLASSES.Tile;
 const Move = Game.CLASSES.Move;
 const Square = Game.CLASSES.Square;
@@ -273,6 +273,28 @@ describe("game/Game", () => {
     })
     .then(s => {
       assert.equal(s.turns.length, 2);
+    });
+  });
+
+  it("CBOR", () => {
+    const p = {
+      edition:"English_Scrabble",
+      dictionary:"Oxford_5000",
+      timerType: Game.Timer.GAME,
+      timeAllowed: 60,
+      timePenalty: 100,
+      predictScore: true,
+      allowTakeBack: true,
+      wordCheck: Game.WordCheck.AFTER,
+      minPlayers: 5,
+      //_debug: console.debug,
+      maxPlayers: 10
+    };
+    let game;
+    return new Game(p)
+    .create()
+    .then(game => {
+      const frozen = Game.toCBOR(game);
     });
   });
 });

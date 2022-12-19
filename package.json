@@ -2,6 +2,7 @@
 	"name": "Xanado",
 	"description": "Multi user crossword game",
 	"version": "3.1.0",
+	"type": "module",
 	"author": {
 		"name": "Crawford Currie",
 		"url": "https://github.com/cdot"
@@ -53,6 +54,7 @@
 		"esprima": "^4.0.1",
 		"istanbul": "^0.4.5",
 		"jsdoc": "^4.0.0",
+		"jsdom": "^20.0.3",
 		"marked": "^4.2.4",
 		"mocha": ">=10.2.0",
 		"nyc": "^15.1.0",
@@ -66,16 +68,17 @@
 		"start": "node bin/server.js --debug_game --debug_server",
 		"debug": "node bin/server.js --debug_game --debug_server",
 		"doc": "jsdoc --verbose -c js/build/jsdoc_config.json -R DEVELOPING.md -r -d doc js",
-		"lint": "eslint js -f unix",
-		"test": "mocha --recursive --extension ut --timeout=5000",
+		"lint": "eslint src -f unix",
+		"test": "mocha --recursive --extension js --timeout=5000 test",
 		"coverage": "nyc --hook-run-in-context --hook-run-in-this-context --reporter=html --reporter text npm run test",
 		"tx": "node bin/checkStrings.js",
 		"update": "ncu -u ",
 		"docker": "docker build . --tag xanado"
 	},
-	"eslintConfig": {
+  "eslintConfig": {
 		"extends": "eslint:recommended",
 		"parserOptions": {
+    "sourceType" : "module",
 			"ecmaVersion": 13
 		},
 		"env": {
@@ -85,11 +88,13 @@
 		},
 		"globals": {
 			"assert": "writable",
-			"define": "writable",
-			"requirejs": "writable",
+		  "define": "writable",
+          "document": "readonly",
+			"global": "readonly",
 			"Mocha": "writable",
 			"WeakRef": "readonly",
-			"document": "readonly"
+          "describe" : "readonly",
+          "it" : "readonly"
 		},
 		"rules": {
 			"camelcase": 0,
@@ -112,7 +117,7 @@
 					"builtinGlobals": true
 				}
 			],
-			"no-trailing-spaces": 1,
+			"no-trailing-spaces": 0,
 			"no-underscore-dangle": 0,
 			"no-unused-vars": 0,
 			"no-useless-escape": 1,

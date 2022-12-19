@@ -4,7 +4,7 @@
 
 import { assert } from "chai";
 
-import { Game } from "../../js/game/Game.js";
+import { Game } from "../../src/game/Game.js";
 const Rack = Game.CLASSES.Rack;
 const Tile = Game.CLASSES.Tile;
 const Square = Game.CLASSES.Square;

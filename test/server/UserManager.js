@@ -1,17 +1,19 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 /* eslint-env node, mocha */
+/* global Platform */
 
 import chai from "chai";
 import http from "chai-http";
 chai.use(http);
-const expect = chai.expect;
 import { promises as Fs } from "fs";
-import { ServerPlatform } from "../../js/server/Platform.js";
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
+import tmp from "tmp-promise";
 
-import { Utils } from "../../js/common/Utils.js";
-import { Server } from "../../js/server/Server.js";
+import { Utils } from "../../src/common/Utils.js";
+import { Server } from "../../src/server/Server.js";
+import { UserManager } from "../../src/server/UserManager.js";
 
 /**
  * Basic unit tests for UserManager class. Only tests Xanado logins.
@@ -22,7 +24,7 @@ describe("server/UserManager", () => {
 
   const config = {
     auth: {
-      "db_file" : `${__dirname}/../temp/passwd.json`
+      "db_file" : "delayed"
     },
     defaults: {
       edition: "Test",
@@ -30,6 +32,17 @@ describe("server/UserManager", () => {
       theme: "default"
     }
   };
+
+  beforeEach(
+    () => {
+      return tmp.dir()
+      .then(d => UserManager.SESSIONS_DIR = d.path)
+      .then(() => tmp.file())
+      .then(o => config.auth.db_file = o.path)
+      .then(() => tmp.dir())
+      .then(o => config.games = o.path)      
+      .then(() => Platform.i18n().load("en-GB"));
+    });
 
   it("/session when not logged in", () => new Promise(resolve => {
     const s = new Server(config);
@@ -43,9 +56,7 @@ describe("server/UserManager", () => {
   }));
 
   it("/register - bad username", () => {
-    return fs.unlink(config.auth.db_file)
-    .catch(e => undefined)
-    .then(() => new Promise(resolve => {
+    return new Promise(resolve => {
       const s = new Server(config);
       chai.request(s.express)
       .post("/register")
@@ -56,7 +67,7 @@ describe("server/UserManager", () => {
         chai.assert.deepEqual(res.body, ["bad-user", null]);
         resolve();
       });
-    }));
+    });
   });
 
   it("/register - again", () => {
@@ -67,9 +78,7 @@ describe("server/UserManager", () => {
     };
 
     const server = new Server(config);
-    return fs.unlink(config.auth.db_file)
-    .catch(e => undefined)
-    .then(() => new Promise(resolve => {
+    return new Promise(resolve => {
       chai.request(server.express)
       .post("/register")
       .set('content-type', 'application/x-www-form-urlencoded')
@@ -85,30 +94,20 @@ describe("server/UserManager", () => {
         resolve();
       });
     })
-          .then(() => new Promise(resolve => {
-            chai.request(server.express)
-            .post("/register")
-            .set('content-type', 'application/x-www-form-urlencoded')
-            .send(details)
-            .end((err, res) => {
-              assert.equal(res.status, 403);
-              chai.assert.deepEqual(res.body, [
-                "already-registered", "test_user"]);
-              resolve();
-            });
-          })));
+    .then(() => new Promise(resolve => {
+      chai.request(server.express)
+      .post("/register")
+      .set('content-type', 'application/x-www-form-urlencoded')
+      .send(details)
+      .end((err, res) => {
+        assert.equal(res.status, 403);
+        chai.assert.deepEqual(res.body, [
+          "already-registered", "test_user"]);
+        resolve();
+      });
+    }));
   });
 
-  // Shortcuts for remaining tests.
-  // Promise to create a new server and reset DB, resolve to Server.express.
-  function reset() {
-    const server = new Server(config);
-    Platform.LANG_SEARCH_BASE = __dirname;
-    return fs.unlink(config.auth.db_file)
-    .catch(e => undefined)
-    .then(() => server);
-  }
-  
   // Promise to register user. Resolve to server.
   function register(server, user) {
     return new Promise(resolve => {
@@ -143,8 +142,8 @@ describe("server/UserManager", () => {
   }
 
   it("/register new username", () => {
-    return reset()
-    .then(server => new Promise(resolve => { 
+    const server = new Server(config);
+    return new Promise(resolve => { 
       chai.request(server.express)
       .post("/register")
       .set('content-type', 'application/x-www-form-urlencoded')
@@ -158,18 +157,17 @@ describe("server/UserManager", () => {
         assert(res.body.key.length > 1);
         resolve();
       });
-    }));
+    });
   });
 
   it("login / logout", () => {
-    let server, cookie;
-    return reset()
-    .then(s => server = s)
-    .then(() => register(server, {
+    let cookie;
+    const server = new Server(config);
+    return register(server, {
       register_username: "test_user",
       register_password: "test_pass",
       register_email: "test@email.com"
-    }))
+    })
 
     // Wrong password
     .then(() => new Promise(resolve => {
@@ -237,14 +235,13 @@ describe("server/UserManager", () => {
   });
 
   it("logged in /session-settings and /session", () => {
-    let server, cookie;
-    return reset()
-    .then(s => server = s)
-    .then(() => register(server, {
+    let  cookie;
+    const server = new Server(config);
+    return register(server, {
       register_username: "test_user",
       register_password: "test_pass",
       register_email: "test@email.com"
-    }))
+    })
     
     .then(() => login(server, {
       login_username: "test_user", login_password: "test_pass"
@@ -293,14 +290,13 @@ describe("server/UserManager", () => {
   });
   
   it("logged in /users", () => {
-    let server, cookie;
-    return reset()
-    .then(s => server = s)
-    .then(() => register(server, {
+    let cookie;
+    const server = new Server(config);
+    return register(server, {
       register_username: "test_user",
       register_password: "test_pass",
       register_email: "test@email.com"
-    }))
+    })
     .then(() => new Promise(resolve => {
       chai.request(server.express)
       .get("/users")
@@ -332,34 +328,31 @@ describe("server/UserManager", () => {
   });
 
   it("/reset-password", () => {
-    let server, cookie, token;
-    return reset()
-    .then(s => server = s)
-    .then(() => {
-      // server.mail.transport hasn't been configured yet
-      assert(!server.config.mail);
-      //server._debug = console.debug;
-      server.config.mail = {
-        sender: "unit tests",
-        transport: {
-          sendMail: function(email) {
-            //console.log("Email", email);
-            assert.equal(email.from, "unit tests");
-            assert.equal(email.to, "test@email.com");
-            assert.equal(email.subject, "Password reset");
-            assert(email.text);
-            token = email.text.replace(
-              /^.*\/password-reset\/(\w+).*$/, "$1");
-            return Promise.resolve();
-          }
+    let cookie, token;
+    const server = new Server(config);
+    // server.mail.transport hasn't been configured yet
+    assert(!server.config.mail);
+    //server._debug = console.debug;
+    server.config.mail = {
+      sender: "unit tests",
+      transport: {
+        sendMail: function(email) {
+          //console.log("Email", email);
+          assert.equal(email.from, "unit tests");
+          assert.equal(email.to, "test@email.com");
+          assert.equal(email.subject, "Password reset");
+          assert(email.text);
+          token = email.text.replace(
+            /^.*\/password-reset\/(\w+).*$/, "$1");
+          return Promise.resolve();
         }
-      };
-    })
-    .then(() => register(server, {
+      }
+    };
+    return register(server, {
       register_username: "test_user",
       register_password: "test_pass",
       register_email: "test@email.com"
-    }))
+    })
     .then(cookie => new Promise(resolve => {
       chai.request(server.express)
       .post("/reset-password")
@@ -404,15 +397,14 @@ describe("server/UserManager", () => {
   });
 
   it("/change-password", () => {
-    let server, cookie;
+    let cookie;
     //config.debug_server = true;
-    return reset()
-    .then(s => server = s)
-    .then(() => register(server, {
+    const server = new Server(config);
+    return register(server, {
       register_username: "test_user",
       register_password: "test_pass",
       register_email: "test@email.com"
-    }))
+    })
     .then(() => new Promise(resolve => {
       chai.request(server.express)
       .post("/change-password")

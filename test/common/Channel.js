@@ -4,7 +4,7 @@
 /* eslint-env node, mocha */
 
 import { assert } from "chai";
-import { Channel } from "../../js/common/Channel.js";
+import { Channel } from "../../src/common/Channel.js";
 
 describe("common/Channel", () => {
 

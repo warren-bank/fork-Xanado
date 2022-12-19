@@ -1,12 +1,15 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
+global.Platform = ServerPlatform;
+
 import { MemoryDatabase } from "../MemoryDatabase.js";
-import { FileDatabase } from "../../js/server/FileDatabase.js";
-import { Commands } from "../../js/game/Commands.js";
-import { Replay } from "../../js/game/Replay.js";
-import { Undo } from "../../js/game/Undo.js";
-import { Game as _Game } from "../../js/game/Game.js";
+import { FileDatabase } from "../../src/server/FileDatabase.js";
+import { Commands } from "../../src/game/Commands.js";
+import { Replay } from "../../src/game/Replay.js";
+import { Undo } from "../../src/game/Undo.js";
+import { Game as _Game } from "../../src/game/Game.js";
 const Game = Undo(Replay(Commands(_Game)));
 Game.CLASSES.Game = Game;
 const Tile = Game.CLASSES.Tile;
@@ -237,7 +240,7 @@ describe("game/Replay", () => {
 
     .then(() => {
       let promise = Promise.resolve();
-      for (const i in game.playedGame.turns)
+      for (const i in game.game.turns)
         promise = promise.then(() => {
           checkBag(game, preBag);
           return game.step()

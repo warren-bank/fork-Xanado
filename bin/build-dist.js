@@ -8,10 +8,10 @@ const Path = require("path");
 const assert = require("assert");
 const { JSDOM } = require('jsdom');
 
-const Configurator = require("../js/build/Configurator.js");
-const JSAnalyser = require("../js/build/JSAnalyser.js");
-const analyseCSS = require("../js/build/analyseCSS.js");
-const updateIndexes = require("../js/build/updateIndexes.js");
+const Configurator = require("../src/build/Configurator.js");
+const JSAnalyser = require("../src/build/JSAnalyser.js");
+const analyseCSS = require("../src/build/analyseCSS.js");
+const updateIndexes = require("../src/build/updateIndexes.js");
 
 const inBase = Path.relative(".", `${__dirname}/..`);
 

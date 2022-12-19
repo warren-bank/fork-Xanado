@@ -1,14 +1,14 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
 
-import { ServerPlatform } from "../../js/server/Platform.js";
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
 
-import { Utils } from "../../js/common/Utils.js";
+import { Utils } from "../../src/common/Utils.js";
 import { MemoryDatabase } from "../MemoryDatabase.js";
 import { TestSocket } from "../TestSocket.js";
-import { Commands } from "../../js/game/Commands.js";
-import { Game as _Game } from "../../js/game/Game.js";
+import { Commands } from "../../src/game/Commands.js";
+import { Game as _Game } from "../../src/game/Game.js";
 const Game = Commands(_Game);
 Game.CLASSES.Game = Game;
 const Tile = Game.CLASSES.Tile;
@@ -22,7 +22,7 @@ const Move = Game.CLASSES.Move;
  */
 describe("game/Challenges", () => {
 
-  function UNit() {};
+  function UNit() {}
   
   it("bad challenge by next player - miss turn", () => {
     const game = new Game({

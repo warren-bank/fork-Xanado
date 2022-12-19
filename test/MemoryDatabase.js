@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node */
 
-import { Database } from "../js/common/Database.js";
+import { Database } from "../src/common/Database.js";
 
 const database = {};
 

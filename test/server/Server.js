@@ -2,7 +2,6 @@
    license information */
 /* eslint-env node, mocha */
 
-/* global assert */
 /* global Platform */
 
 import chai from "chai";
@@ -10,16 +9,16 @@ import http from "chai-http";
 chai.use(http);
 const expect = chai.expect;
 import { promises as Fs } from "fs";
-import { ServerPlatform } from "../../js/server/Platform.js";
+import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
 import { exec } from "child_process";
 import tmp from "tmp-promise";
 
-import { Utils } from "../../js/common/Utils.js";
+import { Utils } from "../../src/common/Utils.js";
 import { TestSocket } from '../TestSocket.js';
-import { Server } from "../../js/server/Server.js";
-import { Game } from "../../js/game/Game.js";
-import { UserManager } from "../../js/server/UserManager.js";
+import { Server } from "../../src/server/Server.js";
+import { Game } from "../../src/game/Game.js";
+import { UserManager } from "../../src/server/UserManager.js";
 
 /**
  * Basic unit tests for Server class.
@@ -39,12 +38,17 @@ describe("server/Server.js", () => {
   };
 
   beforeEach(
-    done => tmp.file()
-    .then(o => config.auth.db_file = o.path)
-    .then(() => tmp.dir())
-    .then(o => config.games = o.path)      
-    .then(() => Platform.i18n().load("en-GB"))
-    .then(done));
+    () => {
+      return tmp.dir()
+      .then(d => UserManager.SESSIONS_DIR = d.path)
+      .then(() => tmp.file())
+      .then(o => config.auth.db_file = o.path)
+      .then(() => tmp.dir())
+      .then(o => {
+        config.games = o.path;
+      })
+      .then(() => Platform.i18n().load("en-GB"));
+    });
 
   afterEach(() => process.removeAllListeners("unhandledRejection"));
   
@@ -94,22 +98,24 @@ describe("server/Server.js", () => {
     });
   }));
   
-  it("/defaults", () => new Promise(resolve => {
+  it("/defaults", () => {
     const s = new Server(config);
-    chai.request(s.express)
-    .get("/defaults")
-    .end((err, res) => {
-      assert.equal(res.status, 200);
-      assert.deepEqual(res.body, {
-        edition: "Test",
-        dictionary: "Oxford_5000",
-        theme: "default",
-        canEmail: false
+    return new Promise(resolve => {
+      chai.request(s.express)
+      .get("/defaults")
+      .end((err, res) => {
+        assert.equal(res.status, 200);
+        assert.deepEqual(res.body, {
+          edition: "Test",
+          dictionary: "Oxford_5000",
+          theme: "default",
+          canEmail: false
+        });
+        delete(s.express);
+        resolve();
       });
-      delete(s.express);
-      resolve();
     });
-  }));
+  });
 
   it("/games/all", () => new Promise(resolve => {
     const s = new Server(config);
