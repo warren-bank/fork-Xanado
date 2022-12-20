@@ -95,8 +95,8 @@ class Platform {
 
   /* istanbul ignore next */
   /**
-   * Read a file
-   * @return {Promise} resolves to the file contents
+   * Read a file. This automatically parses .json files.
+   * @return {Promise} resolves to the file contents.
    * @abstract
    */
   static readFile(path) {

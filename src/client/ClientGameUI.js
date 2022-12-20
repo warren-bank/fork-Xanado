@@ -3,10 +3,6 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-import "jquery";
-import "jquery-ui-dist";
-import "touch-punch";
-
 import "../browser/icon_button.js";
 
 import { Utils } from "../common/Utils.js";

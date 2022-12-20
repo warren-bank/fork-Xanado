@@ -8,7 +8,7 @@ window.Platform = BrowserPlatform;
 /* global Platform*/
 
 import "jquery";
-import "jquery-ui-dist";
+import "jquery-ui";
 import "jquery.i18n";
 import "i18n.language";
 import "i18n.messagestore";

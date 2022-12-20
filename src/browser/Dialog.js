@@ -323,15 +323,6 @@ class Dialog {
    * @return {Promise} resolving to the Dialog object
    */
   static open(dlg, options) {
-
-/*    return $.ajax({
-      url: `${dlg}.js`,
-      type: "GET",
-      dataType: "script",
-      scriptAttrs: { type: "module" },
-      success: function() { debugger; }
-      })
-*/
     return import(`${dlg}.js`)
     .then(mod => {
       let inst = Dialog.instances[dlg];
@@ -351,7 +342,9 @@ class Dialog {
         inst = Dialog.instances[dlg] = new Clas(options);
       }
       return inst;
-    });
+    })
+    /* istanbul ignore next */
+    .catch(e => alert(`Internal error: could not import ${dlg} ${e}`));
   }
 }
 

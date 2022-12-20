@@ -6,7 +6,7 @@
 /**
  * Dialog for user settings.
  */
-import { Dialog } from "./Dialog";
+import { Dialog } from "./Dialog.js";
 
 class SettingsDialog extends Dialog {
 

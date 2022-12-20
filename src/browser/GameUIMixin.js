@@ -6,8 +6,9 @@
 /* global Platform */
 
 import "jquery";
-import "jquery-ui-dist";
+import "jquery-ui";
 import "cookie";
+import "touch-punch";
 
 import "./icon_button.js";
 
@@ -939,7 +940,7 @@ const GameUIMixin = superclass => class extends superclass {
     // A turn has been taken. turn is a Turn
     .on(Game.Notify.TURN,
         turn => this.handle_TURN(
-          new this.game.constructor.Turn(turn)))
+          new this.game.constructor.CLASSES.Turn(turn)))
 
     // Backend clock tick.
     .on(Game.Notify.TICK,

@@ -7,8 +7,7 @@
 import {
   Encoder, Decoder,
   IDREFHandler, TypeMapHandler, KeyDictionaryHandler, TagHandler }
-//from "@cdot/cbor";
-from "../../../CBOR/src/CBOR.js";
+from "@cdot/cbor";
 import { Utils } from "../common/Utils.js";
 import { Fridge } from "../common/Fridge.js";
 import { Dictionaries } from "../common/Dictionaries.js";

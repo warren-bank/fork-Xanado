@@ -155,6 +155,7 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
       .on("click", () => {
         Dialog.open("../browser/GameSetupDialog", {
           html: "standalone_GameSetupDialog",
+          title: $.i18n("Game setup"),
           ui: this,
           game: this.backendGame,
           onSubmit: (dlg, vals) => {

@@ -19,6 +19,7 @@
  * ```
  */
 import "jquery";
+import "jquery-ui";
 
 $.widget("jquery.icon_button", $.ui.button, {
   _create: function () {

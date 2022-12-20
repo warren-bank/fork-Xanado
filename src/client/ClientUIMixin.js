@@ -2,11 +2,11 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
-/* global pluralRuleParser */
 
-import { Socket } from "socket.io";
+/* global io */
+import "socket.io";
 import "jquery";
-import "jquery-ui-dist";
+import "jquery-ui";
 
 import { Utils } from "../common/Utils.js";
 import { Dictionaries } from "../common/Dictionaries.js";
@@ -158,7 +158,7 @@ const ClientUIMixin = superclass => class extends superclass {
     .then(() => this.initTheme())
     .then(() => this.initLocale()) // need the session to do this
     .then(() => this.processArguments(args))
-    .then(() => this.channel = Socket.connect())
+    .then(() => this.channel = io().connect())
     .then(() => this.attachChannelHandlers())
     .then(() => this.attachUIEventHandlers())
     .then(() => {

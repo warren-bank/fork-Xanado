@@ -108,11 +108,10 @@ class BrowserPlatform extends Platform {
    * @implements Platform
    */
   static findBestPlay() {
-    // backend/findBestPlay to block
-    // backend/findBestPlayController to use a worker thread (untested)
-    return new Promise(
-      resolve => $.getScript("src/backend/findBestPlay")
-      .then(fn => fn.apply(null, arguments)));
+    // game/findBestPlay.js to block
+    // backend/findBestPlayController.js to use a worker thread (untested)
+    return import("../game/findBestPlay.js")
+    .then(mod => mod.findBestPlay.apply(null, arguments));
   }
 
   /**

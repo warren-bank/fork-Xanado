@@ -5,7 +5,7 @@
 /* global pluralRuleParser */
 
 import "jquery";
-import "jquery-ui-dist";
+import "jquery-ui";
 
 import { Utils } from "../common/Utils.js";
 import { Dictionaries } from "../common/Dictionaries.js";

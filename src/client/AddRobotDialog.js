@@ -6,7 +6,7 @@
 /**
  * Dialog for robot creation. Demand loads the HTML.
  */
-import { Dialog } from "./Dialog.js";
+import { Dialog } from "../browser/Dialog.js";
 
 class AddRobotDialog extends Dialog {
 
