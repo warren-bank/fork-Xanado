@@ -250,7 +250,8 @@ const Commands = superclass => class extends superclass {
       deltas[playerWithNoTiles.key].tiles = pointsRemainingOnRacks;
       this._debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
     }
-    return this.finishTurn(player, new this.constructor.CLASSES.Turn({
+    const factory = this.constructor.CLASSES;
+    return this.finishTurn(player, new factory.Turn({
       type: Game.Turns.GAME_ENDED,
       endState: endState,
       score: deltas
@@ -526,9 +527,9 @@ const Commands = superclass => class extends superclass {
       newGame.turns = [];
 
       // copy the players
+      const factory = this.constructor.CLASSES;
       for (const p of this.players) {
-        const np = new this.constructor.CLASSES.Player(
-          p, this.constructor.CLASSES);
+        const np = new factory.Player(p, factory);
         newGame.addPlayer(np, true);
       }
 

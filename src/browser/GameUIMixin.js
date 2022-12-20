@@ -785,8 +785,9 @@ const GameUIMixin = superclass => class extends superclass {
     this.game = game;
 
     // Can swap up to swapCount tiles
-    this.swapRack = new game.constructor.Rack(
-      game.constructor,
+    const factory = game.constructor.CLASSES;
+    this.swapRack = new factory.Rack(
+      factory,
       {
         id: "Swap",
         size: game.swapSize,

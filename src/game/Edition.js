@@ -139,8 +139,7 @@ class Edition {
     // Use requirejs to support dependencies in the edition
     // files
     return Platform.readFile(Platform.getFilePath(`editions/${name}.json`))
-    .then(json => {
-      const spec = JSON.parse(json);
+    .then(spec => {
       spec.name = name;
       editions[name] = new Edition(spec);
       //console.log(`Loaded edition ${name}`);

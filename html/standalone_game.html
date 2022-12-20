@@ -24,12 +24,36 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <meta name="theme" content="game.css">
     <meta name="theme" content="standalone.css">
 
-    <script id="rjs_main">
-      // globals
-      const rjs_main = "src/standalone/StandaloneGameUI";
+    <script type="importmap">
+      {
+        "imports": {
+          "@cdot/cbor": "../node_modules/@cdot/cbor/dist/mjs/index.js",
+          "@cdot/dictionary": "../node_modules/@cdot/dictionary/dist/mjs/index.js",
+          "jquery": "../node_modules/jquery/dist/jquery.min.js",
+          "jquery-ui-dist": "../node_modules/jquery-ui-dist/jquery-ui.js",
+          "jquery.i18n": "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.js",
+          "i18n.emitter":
+          "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.emitter.js",
+          "i18n.fallbacks":
+          "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.fallbacks.js",
+          "i18n.language":
+          "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.language.js",
+          "i18n.messagestore":
+          "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.messagestore.js",
+          "i18n.parser":
+          "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.parser.js",
+          "touch-punch":
+          "../node_modules/@rwap/jquery-ui-touch-punch/jquery.ui.touch-punch.js",
+          "socket.io-client":
+          "../node_modules/socket.io/client-dist/socket.io.js",
+          "cookie":
+          "../node_modules/jquery.cookie/jquery.cookie.js",
+          "cldrpluralruleparser":
+          "../node_modules/@wikimedia/jquery.i18n/libs/CLDRPluralRuleParser/src/CLDRPluralRuleParser.js"
+        }
+      }
     </script>
-    <script data-main="../src/browser/rjs_config.js" src="../node_modules/requirejs/require.js"></script>
-
+    <script type="module" src="../src/standalone/StandaloneGameUI.js"></script>
   </head>
   <body id="body" tabindex="0">
     <div class="loading">

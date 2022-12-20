@@ -526,7 +526,8 @@ class Game {
   create() {
     return this.getEdition()
     .then(edo => {
-      this.board = new this.constructor.CLASSES.Board(this.constructor.CLASSES, edo);
+      const factory = this.constructor.CLASSES;
+      this.board = new factory.Board(factory, edo);
       this.letterBag = new LetterBag(edo);
       this.bonuses = edo.bonuses;
       this.rackSize = edo.rackCount;

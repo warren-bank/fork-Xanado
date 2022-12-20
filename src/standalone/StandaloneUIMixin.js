@@ -9,7 +9,8 @@ import "jquery-ui-dist";
 
 import { Utils } from "../common/Utils.js";
 import { Dictionaries } from "../common/Dictionaries.js";
-import { Player } from "../game/Player.js";
+import { Game } from "../game/Game.js";
+const Player = Game.CLASSES.Player;
 import { Edition } from "../game/Edition.js";
 import { BackendGame } from "../backend/BackendGame.js";
 import { BrowserDatabase } from "../browser/BrowserDatabase.js";
@@ -225,7 +226,7 @@ const StandaloneUIMixin = superclass => class extends superclass {
       else
         game.whosTurnKey = this.constructor.ROBOT_KEY;
 
-      game.state = game.constructor.State.PLAYING;
+      game.state = Game.State.PLAYING;
 
       return game;
     });

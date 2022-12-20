@@ -29,31 +29,31 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
     /**
      * Game on the "server" side
      */
-    this.backEndGame = undefined;
+    this.backendGame = undefined;
 
     /**
      * Game on the "client" side
      */
-    this.frontEndGame = undefined;
+    this.frontendGame = undefined;
   }
 
   /**
    * @implements browser/GameUIMixin#sendCommand
    */
   sendCommand(command, args) {
-    const bePlayer = this.backEndGame.getPlayerWithKey(
+    const bePlayer = this.backendGame.getPlayerWithKey(
       this.player.key);
-    this.backEndGame.dispatchCommand(command, bePlayer, args);
+    this.backendGame.dispatchCommand(command, bePlayer, args);
   }
 
   /**
    * @implements browser/GameUIMixin#action_anotherGame
    */
   action_anotherGame() {
-    this.backEndGame.anotherGame()
+    this.backendGame.anotherGame()
     .then(nextGame => {
-      this.backEndGame.nextGameKey =
-      this.frontEndGame.nextGameKey = nextGame.key;
+      this.backendGame.nextGameKey =
+      this.frontendGame.nextGameKey = nextGame.key;
       this.setAction("action_nextGame", $.i18n("Next game"));
       this.enableTurnButton(true);
     })
@@ -64,7 +64,7 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
    * @implements browser/GameUIMixin#action_nextGame
    */
   action_nextGame() {
-    this.redirectToGame(this.backEndGame.nextGameKey);
+    this.redirectToGame(this.backendGame.nextGameKey);
   }
 
   /**
@@ -122,8 +122,8 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
         return this.db.get(this.args.game)
         .then(d => Game.fromCBOR(d, BackendGame.CLASSES))
         .then(game => {
-          this.backEndGame = game;
-          this.backEndGame._debug = this.args.debug
+          this.backendGame = game;
+          this.backendGame._debug = this.args.debug
           ? console.debug : () => {};
           return game.onLoad(this.db);
         });
@@ -133,35 +133,35 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
         const setup = $.extend({}, StandaloneGameUI.DEFAULTS);
         setup._debug = this.args.debug ? console.debug : () => {};
         return this.createGame(setup)
-        .then(game => this.backEndGame = game);
+        .then(game => this.backendGame = game);
       }
     })
     .then(() => {
       this.attachChannelHandlers();
 
       // Make a browser copy of the game
-      this.frontEndGame =
+      this.frontendGame =
       BrowserGame.fromCBOR(
         Game.toCBOR(this.backendGame), BrowserGame.CLASSES);
 
       // Fix the player
       this.player
-      = this.frontEndGame.player
-      = this.frontEndGame.getPlayerWithKey(player_key);
+      = this.frontendGame.player
+      = this.frontendGame.getPlayerWithKey(player_key);
     })
-    .then(() => this.createUI(this.frontEndGame))
+    .then(() => this.createUI(this.frontendGame))
     .then(() => {
       $("#gameSetupButton")
       .on("click", () => {
         Dialog.open("../browser/GameSetupDialog", {
           html: "standalone_GameSetupDialog",
           ui: this,
-          game: this.backEndGame,
+          game: this.backendGame,
           onSubmit: (dlg, vals) => {
             for (const key of Object.keys(vals))
-              this.backEndGame[key] = vals[key];
-            this.backEndGame.save();
-            this.redirectToGame(this.backEndGame.key);
+              this.backendGame[key] = vals[key];
+            this.backendGame.save();
+            this.redirectToGame(this.backendGame.key);
           },
           error: e => this.alert(e, $.i18n("failed", $.i18n("Game setup")))
         });
@@ -177,7 +177,7 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
     .then(() => this.attachUIEventHandlers())
     // Tell the backend what channel to use to send and receive
     // notifications
-    .then(() => this.backEndGame.connect(be, player_key))
+    .then(() => this.backendGame.connect(be, player_key))
     .catch(e => this.alert(e))
     .then(() => {
       $(".loading").hide();
