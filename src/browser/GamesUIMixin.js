@@ -179,10 +179,11 @@ const GamesUIMixin = superclass => class extends superclass {
     assert(game instanceof Game, "Not a game");
     return $(game.tableRow(this.constructor.GAME_TABLE_ROW))
     .on("click", () => {
-      Dialog.open("../browser/GameDialog", {
+      import(/* webpackMode: "eager" */"../browser/GameDialog.js")
+      .then(mod => new mod[Object.keys(mod)[0]]({
         game: game,
         ui: this
-      });
+      }));
     });
   }
 

@@ -110,7 +110,7 @@ class BrowserPlatform extends Platform {
   static findBestPlay() {
     // game/findBestPlay.js to block
     // backend/findBestPlayController.js to use a worker thread (untested)
-    return import("../game/findBestPlay.js")
+    return import(/* webpackMode: "eager" */"../game/findBestPlay.js")
     .then(mod => mod.findBestPlay.apply(null, arguments));
   }
 

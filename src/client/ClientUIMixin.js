@@ -164,11 +164,13 @@ const ClientUIMixin = superclass => class extends superclass {
     .then(() => {
 
       $("#login-button")
-      .on("click", () => Dialog.open("../client/LoginDialog", {
-        // postAction is set in code
-        postResult: () => window.location.reload(),
-        error: e => this.alert(e, $.i18n("failed", $.i18n("Sign in")))
-      }));
+      .on("click", () =>
+          import(/* webpackMode: "eager" */"../client/LoginDialog.js")
+          .then(mod => new mod[Object.keys(mod)[0]]({
+            // postAction is set in code
+            postResult: () => window.location.reload(),
+            error: e => this.alert(e, $.i18n("failed", $.i18n("Sign in")))
+          })));
 
       $("#logout-button")
       .on("click", () => {

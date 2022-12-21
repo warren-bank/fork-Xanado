@@ -8,7 +8,6 @@ window.Platform = BrowserPlatform;
 /* global Platform*/
 
 import "jquery";
-import "jquery-ui";
 import "jquery.i18n";
 import "i18n.language";
 import "i18n.messagestore";
@@ -18,6 +17,8 @@ import "i18n.emitter";
 
 import { Utils } from "../common/Utils.js";
 import { Dialog } from "./Dialog.js";
+
+import "./styling_plugin.js";
 
 /**
  * Base class of functionality shared between all browser UIs.
@@ -148,8 +149,13 @@ class UI {
    * browsers.
    */
   initTheme() {
+    // Initialise jquery theme
+    $.styling.init({
+      theme: this.getSetting("jqTheme")
+    });
+
     // Note that themes must now define ALL CSS files from the
-    // default thme. Soft links will work in decent operating
+    // default theme. Soft links will work in decent operating
     // systems.
     const theme = this.getSetting("theme");
     $("link.theme").remove();
@@ -158,6 +164,7 @@ class UI {
       const href = Platform.getFilePath(`css/${theme}/${css}`);
       $("head").append(`<link class="theme" href="${href}" rel="stylesheet" type="text/css">`);
     });
+
     return Promise.resolve();
   }
 
@@ -337,14 +344,15 @@ class UI {
   attachUIEventHandlers() {
     $("#personaliseButton")
     .on("click", () => {
-      Dialog.open("../browser/SettingsDialog", {
+      import(/* webpackMode: "eager" */"../browser/SettingsDialog.js")
+      .then(mod => new mod[Object.keys(mod)[0]]({
         ui: this,
         onSubmit: (dlg, vals) => {
           this.setSettings(vals)
           .then(() => window.location.reload());
         },
         error: console.error
-      });
+      }));
     });
 
   }

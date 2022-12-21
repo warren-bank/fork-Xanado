@@ -30,13 +30,15 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
     super.attachUIEventHandlers();
 
     $("#create-game")
-    .on("click", () => Dialog.open("../browser/GameSetupDialog", {
-      title: $.i18n("Create game"),
-      ui: this,
-      postAction: "/createGame",
-      postResult: () => this.refreshGames(),
-      error: e => this.alert(e, $.i18n("failed", $.i18n("Create game")))
-    }));
+    .on("click", () =>
+        import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
+        .then(mod => new mod[Object.keys(mod)[0]]({
+          title: $.i18n("Create game"),
+          ui: this,
+          postAction: "/createGame",
+          postResult: () => this.refreshGames(),
+          error: e => this.alert(e, $.i18n("failed", $.i18n("Create game")))
+        })));
 
     $("#reminders-button")
     .on("click", () => {
@@ -47,11 +49,13 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
     });
 
     $("#chpw_button")
-    .on("click", () => Dialog.open("../client/ChangePasswordDialog", {
-      postAction: "/change-password",
-      postResult: () => this.refresh(),
-      error: e => this.alert(e, $.i18n("failed", $.i18n("Change password")))
-    }));
+    .on("click", () =>
+        import(/* webpackMode: "eager" */"../client/ChangePasswordDialog.js")
+        .then(mod => new mod[Object.keys(mod)[0]]({
+          postAction: "/change-password",
+          postResult: () => this.refresh(),
+          error: e => this.alert(e, $.i18n("failed", $.i18n("Change password")))
+        })));
   }
 
   /**
@@ -103,7 +107,8 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
    * @implements browser/GamesUIMixin#gameOptions
    */
   gameOptions(game) {
-    Dialog.open("../browser/GameSetupDialog", {
+    import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
+    .then(mod => new mod[Object.keys(mod)[0]]({
       // use the generic html
       title: $.i18n("Game setup"),
       game: game,
@@ -116,7 +121,7 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
       },
       ui: this,
       error: e => this.alert(e, $.i18n("failed", $.i18n("Game setup")))
-    });
+    }));
   }
 
   /**
@@ -141,26 +146,28 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
    * @inheritdoc
    */
   addRobot(game) {
-    Dialog.open("../client/AddRobotDialog", {
+    import(/* webpackMode: "eager" */"../client/AddRobotDialog.js")
+    .then(mod => new mod[Object.keys(mod)[0]]({
       ui: this,
       postAction: `/addRobot/${game.key}`,
       postResult: () => this.refreshGame(game.key),
       error: e => this.alert(e, $.i18n("failed", $.i18n("Add robot")))
-    });
+    }));
   }
 
   /**
    * @implements browser/GamesUIMixin#invitePlayers
    */
   invitePlayers(game) {
-    Dialog.open("../client/InvitePlayersDialog", {
+    import(/* webpackMode: "eager" */"../client/InvitePlayersDialog.js")
+    .then(mod => new mod[Object.keys(mod)[0]]({
       postAction: `/invitePlayers/${game.key}`,
       postResult: names => this.alert(
         $.i18n("sent-invite", names.join(", ")),
         $.i18n("Invitations")
       ),
       error: e => this.alert(e, $.i18n("failed", $.i18n("Invite players")))
-    });
+    }));
   }
 
   /**

@@ -37,11 +37,9 @@ class ServerPlatform extends Platform {
    * @implements Platform
    */
   static async findBestPlay() {
-    return import(ServerPlatform.getFilePath(
-      ServerPlatform.USE_WORKERS
-      ? `src/backend/findBestPlayController.js`
-      : `src/game/findBestPlay.js`
-    ))
+    (ServerPlatform.USE_WORKERS
+     ? import(/* webpackMode: "eager" */"..//backend/findBestPlayController.js")
+     : import(/* webpackMode: "eager" */"..//game/findBestPlay.js"))
     .then(mod => mod.findBestPlay.apply(null, arguments));
   }
 

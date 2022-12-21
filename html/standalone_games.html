@@ -13,7 +13,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <title>Create/Join Game</title>
 
     <link href="../node_modules/normalize.css/normalize.css" rel="stylesheet" type="text/css">
-    <link href="../node_modules/jquery-ui-dist/jquery-ui.min.css" rel="stylesheet" type="text/css">
+    <link id="jQueryTheme" href="../node_modules/jquery-ui/dist/themes/pepper-grinder/jquery-ui.css" rel="stylesheet" type="text/css">
 
     <!-- meta name="theme" elements will expand to <link> elements
          in browser/UI.js to reflect the selected user theme -->
@@ -23,13 +23,14 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <meta name="theme" content="surface.css">
     <meta name="theme" content="games.css">
 
+<!-- "@cdot/cbor": "../node_modules/@cdot/cbor/dist/mjs/index.js",-->
     <script type="importmap">
       {
         "imports": {
-          "@cdot/cbor": "../node_modules/@cdot/cbor/dist/mjs/index.js",
+          "@cdot/cbor": "../node_modules/@cdot/cbor/src/CBOR.js",
           "@cdot/dictionary": "../node_modules/@cdot/dictionary/dist/mjs/index.js",
           "jquery": "../node_modules/jquery/dist/jquery.min.js",
-          "jquery-ui": "../node_modules/jquery-ui-dist/jquery-ui.js",
+          "jquery-ui": "../node_modules/jquery-ui/dist/jquery-ui.js",
           "jquery.i18n": "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.js",
           "i18n.emitter":
           "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.emitter.js",
@@ -57,7 +58,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <div class="loading">
       <img src="../images/loading.gif" />
     </div>
-    <div class="waiting user-interface">
+    <div class="waiting user-interface ui-widget">
       <img src="../images/logo.svg" class="logo" />
       <div id="personaliseButton" style="float:right" data-i18n-tooltip="tt-personalise">&#9881;</div>
       <div id="gamesCumulative">

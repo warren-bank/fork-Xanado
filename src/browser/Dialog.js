@@ -29,12 +29,6 @@
 class Dialog {
 
   /**
-   * Index of dialog instances.
-   * @private
-   */
-  static instances = {};
-
-  /**
    * Construct the named dialog, demand-loading the HTML as
    * necessary. Do not use this - use {@linkcode Dialog#open|open()}
    * instead.
@@ -64,17 +58,16 @@ class Dialog {
     this.options = options;
 
     /**
-     * Cache of HTML.
+     * Cache of jQuery object
      * @member {jQuery}
      * @private
      */
     this.$dlg = $(`#${id}`);
 
-    let pre_dialog;
-
+    let promise;
     if (this.$dlg.length === 0) {
       // HTML is not already present; load it asynchronously.
-      pre_dialog = $.get(Platform.getFilePath(
+      promise = $.get(Platform.getFilePath(
         `html/${options.html || id}.html`))
       .then(html_code => {
         $("body").append(
@@ -83,34 +76,26 @@ class Dialog {
           .addClass("dialog")
           .html(html_code));
         this.$dlg = $(`#${id}`);
-      })
-      .catch(e => {
-        console.error("Dialog HTML load failed " + e);
       });
     } else
-      pre_dialog = Promise.resolve();
+      promise = Promise.resolve();
 
-    /**
-     * Flag set true when createDialog has been called
-     * @private
-     */
-    this._created = false;
-
-    pre_dialog.then(
-      () => this.$dlg.dialog({
-        title: options.title,
-        width: 'auto',
-        minWidth: 400,
-        modal: true,
-        open: () => {
-          if (this._created)
-            this.openDialog();
-          else {
-            this._created = true;
-            this.createDialog().then(() => this.openDialog());
-          }
+    promise
+    .then(() => this.$dlg.dialog({
+      title: options.title,
+      width: 'auto',
+      minWidth: 400,
+      modal: true,
+      open: () => {
+        if (this.$dlg.data("dialog_created"))
+          this.openDialog();
+        else {
+          this.$dlg.data("dialog_created", true);
+          this.createDialog()
+          .then(() => this.openDialog());
         }
-      }));
+      }
+    }));
   }
 
   /**
@@ -124,11 +109,6 @@ class Dialog {
    * @protected
    */
   createDialog() {
-    // createDialog is invoked on the dialog `create` event, but
-    // because selectmenus can take a long time to populate, we
-    // may see an `open` event before it is complete. So we use an
-    // internal `readyToOpen` promise that only resolves when
-    // the the last createDialog (this one) is called.
     this.$dlg
     .find("[data-i18n]")
     .i18n();
@@ -304,47 +284,6 @@ class Dialog {
       else
         console.error(jqXHR.responseText);
     });
-  }
-
-  /**
-   * Open the named dialog, demand-loading the JS and HTML as
-   * needed. Some day we may demand-load css as well, but there's
-   * no need right now.
-   * @param {string} dlg the dialog name
-   * @param {object} options options
-   * @param {string?} options.postAction AJAX call name. If defined,
-   * the dialog fields will be posted here on close.
-   * @param {function?} options.postResult passed result
-   * of postAction AJAX call. Does nothing unless `postAction` is also
-   * defined.
-   * @param {function?} options.onSubmit Passed this, can be used without
-   * postAction.
-   * @param {function} options.error error function, passed jqXHR
-   * @return {Promise} resolving to the Dialog object
-   */
-  static open(dlg, options) {
-    return import(`${dlg}.js`)
-    .then(mod => {
-      let inst = Dialog.instances[dlg];
-      if (inst) {
-        if (options)
-          Object.assign(inst.options, options);
-        if (!inst.$dlg.dialog("isOpen")) {
-          // Options for a particular showing of the dialog
-          for (const opt of ["height", "width", "title" ]) {
-            if (typeof options[opt] !== "undefined")
-              inst.$dlg.dialog("option", opt, options.title);
-          }
-          inst.$dlg.dialog("open");
-        }
-      } else {
-        const Clas = mod[Object.keys(mod)[0]];
-        inst = Dialog.instances[dlg] = new Clas(options);
-      }
-      return inst;
-    })
-    /* istanbul ignore next */
-    .catch(e => alert(`Internal error: could not import ${dlg} ${e}`));
   }
 }
 

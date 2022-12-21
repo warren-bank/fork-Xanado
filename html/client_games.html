@@ -13,7 +13,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <title>Create/Join Game</title>
 
     <link href="../node_modules/normalize.css/normalize.css" rel="stylesheet" type="text/css">
-    <link href="../node_modules/jquery-ui-dist/jquery-ui.min.css" rel="stylesheet" type="text/css">
+    <link id="jQueryTheme" href="../node_modules/jquery-ui/dist/themes/pepper-grinder/jquery-ui.min.css" rel="stylesheet" type="text/css">
 
     <!-- meta name="theme" elements will expand to <link> elements
          in browser/UI.js to reflect the selected user theme -->
@@ -27,8 +27,8 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
         "imports": {
           "@cdot/cbor": "../node_modules/@cdot/cbor/dist/mjs/index.js",
           "@cdot/dictionary": "../node_modules/@cdot/dictionary/dist/mjs/index.js",
-          "jquery": "../node_modules/jquery/dist/jquery.min.js",
-          "jquery-ui-dist": "../node_modules/jquery-ui-dist/jquery-ui.js",
+          "jquery": "../node_modules/jquery/dist/jquery.js",
+          "jquery-ui": "../node_modules/jquery-ui/dist/jquery-ui.js",
           "jquery.i18n": "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.js",
           "i18n.emitter":
           "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.emitter.js",
@@ -57,7 +57,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <div class="loading">
       <img src="../images/loading.gif" />
     </div>
-    <div class="waiting user-interface" style="display:none">
+    <div class="waiting user-interface ui-widget" style="display:none">
       <img src="../images/logo.svg" class="logo" />
       <div id="loginState">
         <span class="not-logged-in">

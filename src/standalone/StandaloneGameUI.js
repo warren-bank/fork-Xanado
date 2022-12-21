@@ -153,7 +153,8 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
     .then(() => {
       $("#gameSetupButton")
       .on("click", () => {
-        Dialog.open("../browser/GameSetupDialog", {
+        import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
+        .then(Dlg => new Dlg({
           html: "standalone_GameSetupDialog",
           title: $.i18n("Game setup"),
           ui: this,
@@ -165,7 +166,7 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
             this.redirectToGame(this.backendGame.key);
           },
           error: e => this.alert(e, $.i18n("failed", $.i18n("Game setup")))
-        });
+        }));
       });
       $("#libraryButton")
       .on("click", () => {

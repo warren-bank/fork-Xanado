@@ -8,6 +8,8 @@
  */
 import { Dialog } from "./Dialog.js";
 
+import "./styling_plugin.js";
+
 class SettingsDialog extends Dialog {
 
   constructor(options) {
@@ -25,9 +27,17 @@ class SettingsDialog extends Dialog {
     const curlan = $.i18n().locale;
     //console.log("Curlan",curlan);
     const $theme = this.$dlg.find('[name=theme]');
+
     const $locale = this.$dlg.find('[name=language]');
     this.$dlg.find('input[type=checkbox]').checkboxradio();
     const ui = this.options.ui;
+
+    this.$dlg.find("[name=jqTheme]")
+    .on("click", function () {
+      $.styling.theme($(this).val());
+    })
+    .selectmenu();
+
     return Promise.all([ ui.getThemes(), ui.getLocales() ])
     .then(all => {
       all[0].forEach(d => $theme.append(`<option>${d}</option>`));
@@ -48,9 +58,15 @@ class SettingsDialog extends Dialog {
     return super.openDialog()
     .then(() => {
       const ui = this.options.ui;
+
       this.$dlg.find('[name=theme]')
       .val(ui.getSetting('theme'))
       .selectmenu("refresh");
+
+      this.$dlg.find("[name=jqTheme]")
+      .val(ui.getSetting('jqTheme'))
+      .selectmenu("refresh");
+
       this.$dlg.find('input[type=checkbox]')
       .each(function() {
         $(this).prop('checked', ui.getSetting(this.name) === "true")

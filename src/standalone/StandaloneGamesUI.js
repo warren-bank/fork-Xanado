@@ -6,6 +6,9 @@
 /**
  * Browser app for client_games.html; populate the list of live games
  */
+import "jquery";
+import "jquery-ui";
+
 import { Utils } from "../common/Utils.js";
 import { Player } from "../game/Player.js";
 import { Game } from "../game/Game.js";
@@ -31,19 +34,21 @@ class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
     super.attachUIEventHandlers();
 
     $("#create-game")
-    .on("click", () => Dialog.open("../browser/GameSetupDialog", {
-      html: "standalone_GameSetupDialog",
-      title: $.i18n("Create game"),
-      ui: this,
-      onSubmit(dialog, vals) {
-        this.ui.createGame(vals)
-        .then(game => game.save())
-        .then(game => this.ui.alert($.i18n("Enjoy your game!"),
-                                    $.i18n("Created", game.key)))
-        .then(() => this.ui.refreshGames());
-      },
-      error: e => this.alert(e, "Create game failed")
-    }));
+    .on("click", () =>
+        import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
+        .then(mod => new mod[Object.keys(mod)[0]]({
+          html: "standalone_GameSetupDialog",
+          title: $.i18n("Create game"),
+          ui: this,
+          onSubmit(dialog, vals) {
+            this.ui.createGame(vals)
+            .then(game => game.save())
+            .then(game => this.ui.alert($.i18n("Enjoy your game!"),
+                                        $.i18n("Created", game.key)))
+            .then(() => this.ui.refreshGames());
+          },
+          error: e => this.alert(e, "Create game failed")
+        })));
   }
 
   /**
@@ -51,7 +56,8 @@ class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
    * @override
    */
   gameOptions(game) {
-    Dialog.open("../browser/GameSetupDialog", {
+    import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
+    .then(mod => new mod[Object.keys(mod)[0]]({
       html: "standalone_GameSetupDialog",
       title: $.i18n("Game setup"),
       game: game,
@@ -63,7 +69,7 @@ class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
       },
       ui: this,
       error: e => this.alert(e, $.i18n("failed", $.i18n("Game setup")))
-    });
+    }));
   }
 
   /**
@@ -106,7 +112,7 @@ class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
                  return undefined;
                }))))
     .then(games => games.filter(
-      g => g && (send !== "active" || !g.hasEnded())))
+      g => g && !(send === "active" && g.hasEnded())))
     .then(games => Promise.all(games.map(game => game.onLoad(this.db))))
     .then(games => Promise.all(
       games
