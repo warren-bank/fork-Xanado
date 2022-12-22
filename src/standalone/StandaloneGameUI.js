@@ -3,8 +3,8 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-import { BrowserPlatform } from "../browser/BrowserPlatform";
-global.Platform = BrowserPlatform;
+import { BrowserPlatform } from "../browser/BrowserPlatform.js";
+window.Platform = BrowserPlatform;
 
 import { Channel } from "../common/Channel.js";
 import { Game } from "../game/Game.js";

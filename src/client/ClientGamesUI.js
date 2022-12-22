@@ -6,6 +6,9 @@
 /**
  * Browser app for client_games.html; populate the list of live games
  */
+import { BrowserPlatform } from "../browser/BrowserPlatform.js";
+window.Platform = BrowserPlatform;
+
 import { UI } from "../browser/UI.js";
 import { Game } from "../game/Game.js";
 import { GamesUIMixin } from "../browser/GamesUIMixin.js";

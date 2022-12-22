@@ -6,13 +6,13 @@
 import "../../node_modules/jquery/dist/jquery.js";
 import "../../node_modules/jquery-ui/dist/jquery-ui.js";
 
-import { Dictionaries } from "../common/Dictionaries.js";
-import { UI } from "../browser/UI.js";
 import { Game } from "../game/Game.js";
+import { Dictionaries } from "../game/Dictionaries.js";
 const Player = Game.CLASSES.Player;
 import { Edition } from "../game/Edition.js";
 import { BackendGame } from "../backend/BackendGame.js";
 import { BrowserDatabase } from "../browser/BrowserDatabase.js";
+import { UI } from "../browser/UI.js";
 
 /**
  * Mixin with common code shared between client game and games interfaces

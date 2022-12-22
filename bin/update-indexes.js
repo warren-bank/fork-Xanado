@@ -26,6 +26,7 @@ import { promises as Fs } from "fs";
  * @private
  */
 function index(dir, filt, rip) {
+  //console.debug("Index", dir, filt, rip);
   return Fs.readdir(dir)
   .then(files => files.filter(f => filt(path.resolve(dir, f))))
   .then(list => rip ? list.map(f => f.replace(rip, "")) : list)
@@ -48,7 +49,7 @@ function updateIndexes(root) {
   console.debug("These files are used by the standalone version");
   return Promise.all([
     index(path.resolve(root, "css"),
-          f => /^\.css$/i.test(f),
+          f => /\.css$/i.test(f),
          /\.css$/),
     index(path.resolve(root, "i18n"),
           f => !/(^|\W)(index|qqq)\.json$/.test(f)

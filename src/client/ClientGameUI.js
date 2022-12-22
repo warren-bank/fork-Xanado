@@ -3,6 +3,9 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
+import { BrowserPlatform } from "../browser/BrowserPlatform.js";
+window.Platform = BrowserPlatform;
+
 import "../browser/icon_button.js";
 
 import { BrowserGame } from "../browser/BrowserGame.js";

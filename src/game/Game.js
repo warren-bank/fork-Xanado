@@ -7,10 +7,10 @@
 import {
   Encoder, Decoder,
   IDREFHandler, TypeMapHandler, KeyDictionaryHandler, TagHandler }
-from "@cdot/cbor";
+from "../../node_modules/@cdot/cbor/dist/mjs/index.js";
 import { genKey, stringify } from "../common/Utils.js";
 import { Fridge } from "../common/Fridge.js";
-import { Dictionaries } from "../common/Dictionaries.js";
+import { Dictionaries } from "./Dictionaries.js";
 import { Board } from "./Board.js";
 import { Edition } from "./Edition.js";
 import { LetterBag } from "./LetterBag.js";

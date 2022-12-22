@@ -8,7 +8,7 @@ import "../../node_modules/socket.io/client-dist/socket.io.js";
 import "../../node_modules/jquery/dist/jquery.js";
 import "../../node_modules/jquery-ui/dist/jquery-ui.js";
 
-import { Dictionaries } from "../common/Dictionaries.js";
+import { Dictionaries } from "../game/Dictionaries.js";
 import { Game } from "../game/Game.js";
 import { Tile } from "../game/Tile.js";
 import { UI } from "../browser/UI.js";

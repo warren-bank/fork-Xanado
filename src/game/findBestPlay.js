@@ -3,8 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-import { Dictionaries } from "../common/Dictionaries.js";
-
+import { Dictionaries } from "./Dictionaries.js";
 import { Edition } from "./Edition.js";
 import { Tile } from "./Tile.js";
 import { Move } from "./Move.js";
