@@ -8,7 +8,6 @@ node_modules
 *.iml
 *~
 doc
-dist
 games/*.game
 coverage/*
 .nyc_output
