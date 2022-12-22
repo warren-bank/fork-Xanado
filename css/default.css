@@ -8,7 +8,7 @@
 body {
   font-family: helvetica, arial, sans-serif;
   font-size: 100.01%; /* 100.01% good practice, but with 62.5% => 1em == 10px (factor of 10) GENERALLY: 1em = 12pt = 16px = 100% */
-
+  color: white;
   margin: 0;
 
   padding: 0;
@@ -23,6 +23,7 @@ body {
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+
   user-select: none;
 }
 

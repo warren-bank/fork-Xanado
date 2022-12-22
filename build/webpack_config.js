@@ -4,30 +4,30 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import TerserPlugin from "terser-webpack-plugin";
 import webpack from "webpack";
+import { promises as fs } from "fs";
 
-const node_modules = {
-  "@cdot/cbor": "@cdot/cbor/dist/mjs/index.js",
-  "@cdot/dictionary": "@cdot/dictionary/dist/mjs/index.js"
-};
+function makeConfig(html, js) {
 
-const importMap = {};
-for (const k of Object.keys(node_modules)) {
-  importMap[k] = path.resolve(
-    __dirname, "..", "node_modules", node_modules[k]);
-}
+  fs.readFile(`${__dirname}/../html/${html}`)
+  .then(content => {
+    content = content.toString().replace(
+      /(<script type="module" src=").*?"/,
+      `$1${js}"`);
+    return fs.writeFile(`${__dirname}/../dist/${html}`, content);
+  });
 
-function makeConfig(input, output) {
   return {
-    entry: `${__dirname}/../src/${input}`,
+    entry: {
+      app: `${__dirname}/../src/${js}`
+    },
     mode: "production",
     output: {
-      filename: output,
+      filename: js,
       path: `${__dirname}/../dist`,
       globalObject: "this"
     },
     resolve: {
-      extensions: [ '.js' ],
-      alias: importMap
+      extensions: [ '.js' ]
     },
     optimization: {
       minimizer: [

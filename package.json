@@ -48,6 +48,7 @@
 		"docdash": "latest",
 		"eslint": "latest",
 		"esprima": "latest",
+		"html-loader": "^4.2.0",
 		"istanbul": "latest",
 		"jsdoc": "latest",
 		"jsdom": "latest",
