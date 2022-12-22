@@ -3,22 +3,17 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-import { BrowserPlatform } from "./BrowserPlatform.js";
-window.Platform = BrowserPlatform;
 /* global Platform*/
 
-import "jquery";
-import "jquery.i18n";
-import "i18n.language";
-import "i18n.messagestore";
-import "i18n.parser";
-import "i18n.fallbacks";
-import "i18n.emitter";
+import "../../node_modules/jquery/dist/jquery.js";
+import "../../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.js";
+import "../../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.language.js";
+import "../../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.messagestore.js";
+import "../../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.parser.js";
+import "../../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.fallbacks.js";
+import "../../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.emitter.js";
 
-import { Utils } from "../common/Utils.js";
-import { Dialog } from "./Dialog.js";
-
-import "./styling_plugin.js";
+import { stringify } from "../common/Utils.js";
 
 /**
  * Base class of functionality shared between all browser UIs.
@@ -30,12 +25,6 @@ class UI {
    * @member {function}
    */
   debug = () => {};
-
-  /**
-   * Debug flag.
-   * @member {boolean}
-   */
-  debugging = false;
 
   /**
    * Communications channel which the backend will be sending and
@@ -55,7 +44,8 @@ class UI {
    * @return {jQuery} the dialog
    */
   alert(args, title) {
-    console.error("REPORT", args);
+    debugger;
+    console.error("REPORT", typeof args, args);
 
     // Handle a jqXHR
     if (typeof args === "object") {
@@ -71,11 +61,11 @@ class UI {
     if (typeof(args) === "string") // simple string
       message = $.i18n(args);
     else if (args instanceof Error) // Error object
-      message = Utils.stringify(args);
+      message = stringify(args);
     else if (args instanceof Array) { // First element i18n code
       message = $.i18n.apply($.i18n, args);
     } else // something else
-      message = Utils.stringify(args);
+      message = stringify(args);
 
     return $("#alertDialog")
     .dialog({
@@ -150,20 +140,17 @@ class UI {
    */
   initTheme() {
     // Initialise jquery theme
-    $.styling.init({
-      theme: this.getSetting("jqTheme")
-    });
+    const jqTheme = this.getSetting("jqTheme");
+    if (jqTheme)
+      $("#jQueryTheme").each(function() {
+        this.href = this.href.replace(/\/themes\/[^/.]+/, `/themes/${jqTheme}`);
+      });
 
-    // Note that themes must now define ALL CSS files from the
-    // default theme. Soft links will work in decent operating
-    // systems.
-    const theme = this.getSetting("theme");
-    $("link.theme").remove();
-    $("meta[name=theme]").each((idx, el) => {
-      const css = el.content;
-      const href = Platform.getFilePath(`css/${theme}/${css}`);
-      $("head").append(`<link class="theme" href="${href}" rel="stylesheet" type="text/css">`);
-    });
+    const css = this.getSetting("xanadoCSS");
+    if (css)
+      $("#xanadoCSS").each(function() {
+        this.href = this.href.replace(/\/css\/[^/.]+/, `/css/${css}`);
+      });
 
     return Promise.resolve();
   }
@@ -269,7 +256,7 @@ class UI {
    * @return {Promise} resolves when setting is complete
    */
   setSetting(key, value) {
-    assert.fail("UI.setSetting");
+    assert.fail(`UI.setSetting ${key}=${value}`);
   }
 
   /**
@@ -304,14 +291,12 @@ class UI {
   }
 
   /**
-   * Gets a list of the available themes. A theme is a set of CSS
-   * files`, each of which corresponds to a CSS file in `css/default`.
-   * The theme CS can override some or all of the default CSS.
+   * Gets a list of the available css.
    * @return {Promise} promise that resolves to
-   * a list of theme name strings.
+   * a list of css name strings.
    */
-  getThemes() {
-    assert.fail("UI.getThemes");
+  getCSS() {
+    assert.fail("UI.getCSS");
   }
 
   /**
@@ -354,7 +339,63 @@ class UI {
         error: console.error
       }));
     });
+  }
 
+  /**
+   * Parse the URL to extract parameters. Arguments are returned
+   * as keys in a map. Argument names are not decoded, but values
+   * are. The portion of the URL before `?` is returned in the
+   * argument map using the key `_URL`. Arguments in the URL that
+   * have no value are set to boolean `true`. Repeated arguments are
+   * not supported (the last value will be the one taken).
+   * @return {Object<string,string>} key-value map
+   */
+  static parseURLArguments(url) {
+    const bits = url.split("?");
+    const urlArgs = { _URL: bits.shift() };
+    const sargs = bits.join("?").split(/[;&]/);
+    for (const sarg of sargs) {
+      const kv = sarg.split("=");
+      const key = kv.shift();
+      urlArgs[decodeURIComponent(key)] =
+      (kv.length === 0) ? true : decodeURIComponent(kv.join("="));
+    }
+    return urlArgs;
+  }
+
+  /**
+   * Reassemble a URL that has been parsed into parts by parseURLArguments.
+   * Argument are output sorted alphabetically.
+   * @param {object} args broken down URL in the form created by
+   * parseURLArguments
+   * @return {string} a URL string
+   */
+  static makeURL(parts) {
+    const args = Object.keys(parts)
+          .filter(f => !/^_/.test(f)).sort()
+          .map(k => parts[k] && typeof parts[k] === "boolean" ?
+               k : `${k}=${encodeURIComponent(parts[k])}`);
+    return `${parts._URL}?${args.join(";")}`;
+  }
+
+  /**
+   * Format a time interval in seconds for display in a string e.g
+   * `formatTimeInterval(601)` -> `"10:01"`
+   * Maximum ordinal is days.
+   * @param {number} t time period in seconds
+   */
+  static formatTimeInterval(t) {
+    const neg = (t < 0) ? "-" : "";
+    t = Math.abs(t);
+    const s = `0${t % 60}`.slice(-2);
+    t = Math.floor(t / 60);
+    const m = `0${t % 60}`.slice(-2);
+    t = Math.floor(t / 60);
+    if (t === 0) return `${neg}${m}:${s}`;
+    const h = `0${t % 24}`.slice(-2);
+    t = Math.floor(t / 24);
+    if (t === 0) return `${neg}${h}:${m}:${s}`;
+    return `${neg}${t}:${h}:${m}:${s}`;
   }
 }
 

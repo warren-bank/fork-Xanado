@@ -4,15 +4,14 @@
 /* eslint-env browser, jquery */
 
 /* global io */
-import "socket.io";
-import "jquery";
-import "jquery-ui";
+import "../../node_modules/socket.io/client-dist/socket.io.js";
+import "../../node_modules/jquery/dist/jquery.js";
+import "../../node_modules/jquery-ui/dist/jquery-ui.js";
 
-import { Utils } from "../common/Utils.js";
 import { Dictionaries } from "../common/Dictionaries.js";
 import { Game } from "../game/Game.js";
 import { Tile } from "../game/Tile.js";
-import { Dialog } from "../browser/Dialog.js";
+import { UI } from "../browser/UI.js";
 
 /**
  * Mixin with common code shared between client game and games interfaces
@@ -62,8 +61,8 @@ const ClientUIMixin = superclass => class extends superclass {
    * @memberof CientUIMixin
    * @override
    */
-  getThemes() {
-    return $.get("/themes");
+  getCSS() {
+    return $.get("/css");
   }
 
   /**
@@ -134,7 +133,7 @@ const ClientUIMixin = superclass => class extends superclass {
    * @memberof client/ClientUIMixin
    * @return {Promise} a promise that resolves when arguments are processed.
    */
-  processArguments(args) {
+  processArguments() {
     return Promise.resolve();
   }
 
@@ -148,9 +147,8 @@ const ClientUIMixin = superclass => class extends superclass {
     let args;
     return this.getGameDefaults()
     .then(() => {
-      args = Utils.parseURLArguments(document.URL);
+      args = UI.parseURLArguments(document.URL);
       if (args.debug) {
-        this.debugging = true;
         this.debug = console.debug;
       }
     })
@@ -176,11 +174,11 @@ const ClientUIMixin = superclass => class extends superclass {
       .on("click", () => {
         $.post("/logout")
         .then(() => console.debug("Logged out"))
-        .catch(e => this.alert(e, $.i18n("failed", $.i18n("Sign out"))
-                               .then(result => {
-                                 this.session = undefined;
-                                 this.refresh();
-                               })));
+        .catch(e => this.alert(e, $.i18n("failed", $.i18n("Sign out"))))
+        .then(() => {
+          this.session = undefined;
+          this.refresh();
+        });
       });
 
       $(".loading").hide();
@@ -208,7 +206,7 @@ const ClientUIMixin = superclass => class extends superclass {
 
     this.channel
 
-    .on("connect", skt => {
+    .on("connect", () => {
       // Note: "connect" is synonymous with "connection"
       // Socket has connected to the server
       console.debug("b>f connect");
@@ -219,7 +217,7 @@ const ClientUIMixin = superclass => class extends superclass {
       this.readyToListen();
     })
 
-    .on("disconnect", skt => {
+    .on("disconnect", () => {
       // Socket has disconnected for some reason
       // (server died, maybe?) Back off and try to reconnect.
       console.debug(`--> disconnect`);
@@ -303,7 +301,7 @@ const ClientUIMixin = superclass => class extends superclass {
       this.session = session;
       return session;
     })
-    .catch(e => {
+    .catch(() => {
       $(".logged-in").hide();
       $(".not-logged-in").show();
       if (typeof this.observer === "string")
@@ -337,7 +335,7 @@ const ClientUIMixin = superclass => class extends superclass {
   action_nextGame() {
     const key = this.game.nextGameKey;
     $.post(`/join/${key}`)
-    .then(info => {
+    .then(() => {
       location.replace(
         `/html/client_game.html?game=${key}&player=${this.player.key}`);
     })

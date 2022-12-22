@@ -3,7 +3,6 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-import { Utils } from "../common/Utils.js";
 import { Game } from "../game/Game.js";
 import { Undo } from "../game/Undo.js";
 import { Replay } from "../game/Replay.js";

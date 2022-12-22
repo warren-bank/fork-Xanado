@@ -6,10 +6,7 @@
 /**
  * Browser app for client_games.html; populate the list of live games
  */
-import { Utils } from "../common/Utils.js";
-import { Player } from "../game/Player.js";
 import { UI } from "../browser/UI.js";
-import { Dialog } from "../browser/Dialog.js";
 import { Game } from "../game/Game.js";
 import { GamesUIMixin } from "../browser/GamesUIMixin.js";
 import { ClientUIMixin } from "./ClientUIMixin.js";
@@ -87,7 +84,7 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
       $("#chpw_button").toggle(session.provider === "xanado");
       return session;
     })
-    .catch(e => {
+    .catch(() => {
       $("#create-game").hide();
       return undefined;
     });
@@ -129,7 +126,7 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
    */
   joinGame(game) {
     $.post(`/join/${game.key}`)
-    .then(info => {
+    .then(() => {
       const url = `/html/client_game.html?game=${game.key}&player=${this.session.key}`;
       if (this.getSetting("one_window"))
         location.replace(url);

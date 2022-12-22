@@ -31,7 +31,7 @@ function I18N(s) {
       let langfile = Path.join(langdir, `${locale}.json`);
       // Try the full locale e.g. "en-US"
       return Fs.readFile(langfile)
-      .catch(e => {
+      .catch(() => {
         // Try the first part of the locale i.e. "en"
         // from "en-US"
         langfile = Path.join(langdir,
@@ -40,7 +40,7 @@ function I18N(s) {
       })
       .catch(
         /* istanbul ignore next */
-        e => {
+        () => {
           // Fall back to "en"
           langfile = Path.join(langdir, "en.json");
           return Fs.readFile(langfile);

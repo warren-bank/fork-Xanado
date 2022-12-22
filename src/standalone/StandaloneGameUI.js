@@ -3,17 +3,16 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-import { Utils } from "../common/Utils.js";
+import { BrowserPlatform } from "../browser/BrowserPlatform";
+global.Platform = BrowserPlatform;
+
 import { Channel } from "../common/Channel.js";
 import { Game } from "../game/Game.js";
 import { BackendGame } from "../backend/BackendGame.js";
 import { BrowserGame } from "../browser/BrowserGame.js";
 import { UI } from "../browser/UI.js";
 import { GameUIMixin } from "../browser/GameUIMixin.js";
-import { Dialog } from "../browser/Dialog.js";
 import { StandaloneUIMixin } from "./StandaloneUIMixin.js";
-
-import "touch-punch";
 
 /**
  * Game that runs solely in the browser (no server).
@@ -154,7 +153,7 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
       $("#gameSetupButton")
       .on("click", () => {
         import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
-        .then(Dlg => new Dlg({
+        .then(mod => new mod[Object.keys(mod)[0]]({
           html: "standalone_GameSetupDialog",
           title: $.i18n("Game setup"),
           ui: this,
@@ -170,10 +169,10 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
       });
       $("#libraryButton")
       .on("click", () => {
-        const parts = Utils.parseURLArguments(window.location.toString());
+        const parts = UI.parseURLArguments(window.location.toString());
         parts._URL = parts._URL.replace(
           /standalone_game\./, "standalone_games.");
-        window.location = Utils.makeURL(parts);
+        window.location = UI.makeURL(parts);
       });
     })
     .then(() => this.attachUIEventHandlers())

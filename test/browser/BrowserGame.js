@@ -37,6 +37,13 @@ describe("browser/BrowserGame", () => {
     ]);
   });
 
+  it("andList", () => {
+    assert.equal(BrowserGame.andList([]), "");
+    assert.equal(BrowserGame.andList(["A"]), "A");
+    assert.equal(BrowserGame.andList(["A", "B"]), "A and B");
+    assert.equal(BrowserGame.andList(["A", "B", "C"]), "A, B and C");
+  });
+
   it("headline", () => {
 		const p = {
 			//_debug: console.debug,

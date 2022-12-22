@@ -5,7 +5,7 @@
 
 /* global Platform */
 
-import { Utils } from "../common/Utils.js";
+import { genKey, stringify } from "../common/Utils.js";
 import { Game } from "./Game.js";
 
 /**
@@ -28,7 +28,7 @@ const Commands = superclass => class extends superclass {
     assert(player && player.key === this.whosTurnKey,
            `Not ${player.name}'s turn`);
 
-    this._debug("Playing", Utils.stringify(move));
+    this._debug("Playing", stringify(move));
     this._debug(`Player's rack is ${player.rack.stringify()}`);
 
     if (this.dictionary
@@ -71,8 +71,6 @@ const Commands = superclass => class extends superclass {
       // and passed to the findBestPlayWorker.
       await this.advise(player, move.score);
     }
-
-    const game = this;
 
     // Move tiles from the rack to the board
     assert(move.placements, "No placements");
@@ -515,7 +513,7 @@ const Commands = superclass => class extends superclass {
     // Use this.constructor to get the class to pick up mixins.
     const newGame = new (this.constructor)(this);
     // Constructor will copy the old game key
-    newGame.key = Utils.genKey();
+    newGame.key = genKey();
     return newGame.create()
     .then(() => newGame.onLoad(this._db))
     .then(() => this.nextGameKey = newGame.key)

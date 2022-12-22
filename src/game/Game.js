@@ -8,7 +8,7 @@ import {
   Encoder, Decoder,
   IDREFHandler, TypeMapHandler, KeyDictionaryHandler, TagHandler }
 from "@cdot/cbor";
-import { Utils } from "../common/Utils.js";
+import { genKey, stringify } from "../common/Utils.js";
 import { Fridge } from "../common/Fridge.js";
 import { Dictionaries } from "../common/Dictionaries.js";
 import { Board } from "./Board.js";
@@ -21,40 +21,45 @@ import { Square } from "./Square.js";
 import { Tile } from "./Tile.js";
 import { Turn } from "./Turn.js";
 
-// Keys used in serialising games
-const KEY_SET = [
-  // Square
-  "type", "surface", "col", "row", "tile", "underlay",
-  "letterScoreMultiplier", "wordScoreMultiplier",
-  // Tile
-  "letter", "score", "isBlank", "isLocked",
-  // Surface
-  "id", "cols", "rows", "squares", "midrow", "midcol",
-  // LetterBag
-  "tiles", "legalLetters", "isWild", "predictable",
-  // Game
-  "key", "state", "creationTimestamp", "players", "turns", "board",
-  "rackSize", "swapSize", "bonuses", "letterBag", "whosTurnKey",
-  "edition", "dictionary", "timerType", "timeAllowed", "timePenalty",
-  "challengePenalty", "penaltyPoints",
-  "wordCheck", "minPlayers", "maxPlayers", "predictScore",
-  "allowTakeBack", "allowUndo", "syncRacks", "nextGameKey", "pausedBy",
-  // Bonus levels
-  "3", "4", "5", "6", "7", "8", "9",
-  // Player
-  "name", "rack", "passes", "clock", "missNextTurn", "wantsAdvice",
-  "isRobot", "canChallenge", "delayBeforePlay",
-  // Turn
-  "gameKey", "playerKey", "nextToGoKey", "timestamp",
-  "placements", "replacements", "challengerKey", "endState",
-  "tilesRemaining",
-  // Move
-  "words", "word",
-  // findBestPlayController
-  "game",
-  // Replay
-  "nextTurn", "predictable",
-];
+// Use the same CBOR tag handler for encoding and decoding, switching the
+// typeMap as required. This is Javascript, strictly synchronous.
+const CBOR_tagHandler = new (KeyDictionaryHandler(
+  IDREFHandler(TypeMapHandler(TagHandler))))({
+    added: console.log,
+    keys: [
+      // Square
+      "type", "surface", "col", "row", "tile", "underlay",
+      "letterScoreMultiplier", "wordScoreMultiplier",
+      // Tile
+      "letter", "score", "isBlank", "isLocked",
+      // Surface
+      "id", "cols", "rows", "squares", "midrow", "midcol",
+      // LetterBag
+      "tiles", "legalLetters", "isWild", "predictable",
+      // Game
+      "key", "state", "creationTimestamp", "players", "turns", "board",
+      "rackSize", "swapSize", "bonuses", "letterBag", "whosTurnKey",
+      "edition", "dictionary", "timerType", "timeAllowed", "timePenalty",
+      "challengePenalty", "penaltyPoints",
+      "wordCheck", "minPlayers", "maxPlayers", "predictScore",
+      "allowTakeBack", "allowUndo", "syncRacks", "nextGameKey", "pausedBy",
+      // Bonus levels
+      "3", "4", "5", "6", "7", "8", "9",
+      // Player
+      "name", "rack", "passes", "clock", "missNextTurn", "wantsAdvice",
+      "isRobot", "canChallenge", "delayBeforePlay",
+      // Turn
+      "gameKey", "playerKey", "nextToGoKey", "timestamp",
+      "placements", "replacements", "challengerKey", "endState",
+      "tilesRemaining",
+      // Move
+      "words", "word",
+      // findBestPlayController
+      "game",
+      // Replay
+      "nextTurn", "predictable",
+    ]
+  });
 
 /**
  * Class of Game objects. Contains most of the game logic.
@@ -262,7 +267,7 @@ class Game {
      * Key that uniquely identifies this game.
      * @member {Key}
      */
-    this.key = params.key || Utils.genKey();
+    this.key = params.key || genKey();
 
     /**
      * An i18n message identifier indicating the game state.
@@ -942,7 +947,7 @@ class Game {
     for (const placement of tiles) {
       const square = this.at(placement.col, placement.row);
       const tile = square.unplaceTile();
-      assert(tile, `No tile at ${Utils.stringify(placement)}`);
+      assert(tile, `No tile at ${stringify(placement)}`);
       player.rack.addTile(tile);
     }
   }
@@ -958,7 +963,7 @@ class Game {
     for (const place of tiles) {
       const tile = player.rack.removeTile(place);
       assert(
-        tile, `Tile ${Utils.stringify(place)} not found on rack`);
+        tile, `Tile ${stringify(place)} not found on rack`);
       const square = this.at(place.col, place.row);
       square.placeTile(tile, true);
       if (cb)
@@ -975,7 +980,7 @@ class Game {
   bagToRack(tiles, player) {
     for (const tile of tiles) {
       const removed = this.letterBag.removeTile(tile);
-      assert(removed, `${Utils.stringify(tile)} missing from bag`);
+      assert(removed, `${stringify(tile)} missing from bag`);
       player.rack.addTile(removed);
     }
   }
@@ -988,7 +993,7 @@ class Game {
   rackToBag(tiles, player) {
     for (const tile of tiles) {
       const removed = player.rack.removeTile(tile);
-      assert(removed, `${Utils.stringify(tile)} missing from rack`);
+      assert(removed, `${stringify(tile)} missing from rack`);
       this.letterBag.returnTile(removed);
     }
   }
@@ -1319,7 +1324,7 @@ class Game {
    */
   notifyPlayer(player, message, data) {
     this._debug("b>f", player.key, message,
-                Utils.stringify(data));
+                stringify(data));
     // Player may be connected several times, or not at all
     this._channels.forEach(
       channel => {
@@ -1338,7 +1343,7 @@ class Game {
    */
   notifyAll(message, data) {
     if (message !== Game.Notify.TICK)
-      this._debug("b>f *", message, Utils.stringify(data));
+      this._debug("b>f *", message, stringify(data));
     this._channels.forEach(channel => channel.emit(message, data));
   }
 
@@ -1350,7 +1355,7 @@ class Game {
    * @param {Object} data to send with message
    */
   notifyOthers(player, message, data) {
-    this._debug("b>f !", player.key, message, Utils.stringify(data));
+    this._debug("b>f !", player.key, message, stringify(data));
     this._channels.forEach(
       channel => {
         // Player may be connected several times, so check key and not object
@@ -1401,7 +1406,7 @@ class Game {
       res = res.concat(
         this._channels
         .filter(channel => !channel.player)
-        .map(channel => {
+        .map(() => {
           return {
             isObserver: true
           };
@@ -1468,16 +1473,6 @@ class Game {
     return this.playIfReady();
   }
 
-  // The encoding only needs a list of class names, which are
-  // always the base classes. A decoding handler needs a map of
-  // class names to the actual class
-  static encodingHandler = new (KeyDictionaryHandler(
-    IDREFHandler(TypeMapHandler(TagHandler))))({
-      typeMap: Game.CLASSES,
-      added: console.log,
-      keys: KEY_SET
-    });
-
   /**
    * Encode the data using CBOR and the Game type map.
    * @param {object} data data to encode
@@ -1485,9 +1480,8 @@ class Game {
    * sig as console.debug.
    */
   static toCBOR(data, debug) {
-    // The handler doesn't have to reflect subclasses. because encode
-    // just uses the class name, not the value in the type map.
-    return Encoder.encode(data, Game.encodingHandler, debug);
+    CBOR_tagHandler.typeMap = Game.CLASSES;
+    return Encoder.encode(data, CBOR_tagHandler, debug);
   }
 
   /**
@@ -1498,13 +1492,9 @@ class Game {
    * sig as console.debug.
    */
   static fromCBOR(cbor, typeMap, debug) {
-    const handler = new (KeyDictionaryHandler(
-      IDREFHandler(TypeMapHandler(TagHandler))))({
-        typeMap: typeMap,
-        keys: KEY_SET
-      });
+    CBOR_tagHandler.typeMap = typeMap;
     try {
-      return Decoder.decode(cbor, handler, debug);
+      return Decoder.decode(cbor, CBOR_tagHandler, debug);
     } catch (e) {
       // Maybe Fridge? Old format.
       if (debug) debug(`CBOR error decoding:\n${e.message}`);

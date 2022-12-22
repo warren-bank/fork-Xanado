@@ -5,11 +5,9 @@
 
 import "../browser/icon_button.js";
 
-import { Utils } from "../common/Utils.js";
 import { BrowserGame } from "../browser/BrowserGame.js";
 import { UI } from "../browser/UI.js";
 import { GameUIMixin } from "../browser/GameUIMixin.js";
-import { Dialog } from "../browser/Dialog.js";
 import { ClientUIMixin } from "./ClientUIMixin.js";
 
 /**
@@ -47,7 +45,7 @@ class ClientGameUI extends ClientUIMixin(GameUIMixin(UI)) {
       });
       throw Error("Not a player");
     })
-    .catch(e => {
+    .catch(() => {
       // May arise if there is no session, or the session is for a non-player
       this.observer = this.session.name;
       $(".notPlaying").show();
@@ -82,7 +80,7 @@ class ClientGameUI extends ClientUIMixin(GameUIMixin(UI)) {
       })
       .then(game => {
         return this.identifyPlayer(game)
-        .then (playerKey => this.createUI(game));
+        .then (() => this.createUI(game));
       });
     });
   }

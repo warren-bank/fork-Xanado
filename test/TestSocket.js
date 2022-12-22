@@ -4,7 +4,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node */
 
 import { Channel } from "../src/common/Channel.js";
-import { Utils } from "../src/common/Utils.js";
+import { stringify } from "../src/common/Utils.js";
 
 /**
  * Simulator for socket.io, replaces the socket functionality with a
@@ -42,7 +42,7 @@ class TestSocket extends Channel {
   // @override
   emit(event, data, nomore) {
     if (this.finished)
-      throw Error(`'${this.id}' is done(), but received ${this.seqNo} ${event} ${Utils.stringify(data)}`);
+      throw Error(`'${this.id}' is done(), but received ${this.seqNo} ${event} ${stringify(data)}`);
     if (this.connection && !nomore) // connection to another socket?
       this.connection.emit(event, data, true);
     else {

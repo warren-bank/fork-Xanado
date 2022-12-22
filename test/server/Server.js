@@ -14,12 +14,11 @@ global.Platform = ServerPlatform;
 import { exec } from "child_process";
 import tmp from "tmp-promise";
 
-import { Utils } from "../../src/common/Utils.js";
 import { TestSocket } from '../TestSocket.js';
 import { Server } from "../../src/server/Server.js";
 import { Game } from "../../src/game/Game.js";
 import { UserManager } from "../../src/server/UserManager.js";
-
+import sparseEqual from "../sparseEqual.js";
 /**
  * Basic unit tests for Server class.
  */
@@ -61,7 +60,7 @@ describe("server/Server.js", () => {
       .send(user)
       .end((err, res) => {
         assert.equal(res.status, 200);
-        Utils.sparseEqual(res.body, {
+        sparseEqual(res.body, {
           name: user.register_username,
           provider: "xanado"
         });
@@ -222,86 +221,15 @@ describe("server/Server.js", () => {
     });
   }));
 
-  it("/themes", () => new Promise(resolve => {
+  it("/css", () => new Promise(resolve => {
     const s = new Server(config);
     chai.request(s.express)
-    .get("/themes")
+    .get("/css")
     .end((err, res) => {
       assert.equal(res.status, 200);
-      assert(res.body.indexOf('default') >= 0);
+      assert(res.body.indexOf('default.css') >= 0);
       resolve();
     });
-  }));
-
-  it("/theme", () => new Promise(resolve => {
-    let server = new Server(config), cookie, gamekey;
-    return register(server, {
-      register_username: "test_user",
-      register_password: "test_pass",
-      register_email: "test@email.com"
-    })
-    .then(() => login(server, {
-      login_username: "test_user",
-      login_password: "test_pass"
-    }))
-    .then(c => cookie = c)
-    .then(() => new Promise(resolve => {
-      chai.request(server.express)
-      .post("/session-settings")
-      .set('Cookie', cookie)
-      .send({theme: "exander77"})
-      .end((err, res) => {
-        assert.equal(res.status, 200);
-        resolve();
-      });
-    }))
-    .then(() => new Promise(resolve => {
-      chai.request(server.express)
-      .get("/theme/games.css")
-      .set('Cookie', cookie)
-      .end((err, res) => {
-        //console.log(res.headers);
-        assert.equal(
-          res.headers['content-type'].toLowerCase(), "text/css; charset=utf-8");
-        assert.equal(res.status, 200);
-        resolve();
-      });
-    }))
-    .then(() => resolve());
-  }));
-
-  it("bad /theme", () => new Promise(resolve => {
-    let server = new Server(config), cookie, gamekey;
-    return register(server, {
-      register_username: "test_user",
-      register_password: "test_pass",
-      register_email: "test@email.com"
-    })
-    .then(() => login(server, {
-      login_username: "test_user",
-      login_password: "test_pass"
-    }))
-    .then(c => cookie = c)
-    .then(() => new Promise(resolve => {
-      chai.request(server.express)
-      .post("/session-settings")
-      .set('Cookie', cookie)
-      .send({theme: "exander77"})
-      .end((err, res) => {
-        assert.equal(res.status, 200);
-        resolve();
-      });
-    }))
-    .then(() => new Promise(resolve => {
-      chai.request(server.express)
-      .get("/theme/doesnotexist.css")
-      .set('Cookie', cookie)
-      .end((err, res) => {
-        assert.equal(res.status, 404);
-        resolve();
-      });
-    }))
-    .then(() => resolve());
   }));
 
   it("/createGame - /join - /addRobot - /game - /leave - /removeRobot - /games / - /history - /deleteGame", () => {

@@ -2,13 +2,12 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
-/* global pluralRuleParser */
 
-import "jquery";
-import "jquery-ui";
+import "../../node_modules/jquery/dist/jquery.js";
+import "../../node_modules/jquery-ui/dist/jquery-ui.js";
 
-import { Utils } from "../common/Utils.js";
 import { Dictionaries } from "../common/Dictionaries.js";
+import { UI } from "../browser/UI.js";
 import { Game } from "../game/Game.js";
 const Player = Game.CLASSES.Player;
 import { Edition } from "../game/Edition.js";
@@ -77,7 +76,7 @@ const StandaloneUIMixin = superclass => class extends superclass {
 
   /**
    * Arguments passed in the URL and parsed out using
-   * {@linkcode Utils#parseURLArguments}
+   * {@linkcode UI#parseURLArguments}
    * @member {object}
    */
   args = undefined;
@@ -140,7 +139,7 @@ const StandaloneUIMixin = superclass => class extends superclass {
    * @memberof StandaloneUIMixin
    * @override
    */
-  getThemes() {
+  getCSS() {
     return $.get("../css/index.json");
   }
 
@@ -203,7 +202,7 @@ const StandaloneUIMixin = superclass => class extends superclass {
    */
   createGame(setup) {
     return Edition.load(setup.edition)
-    .then(edition => new BackendGame(setup).create())
+    .then(() => new BackendGame(setup).create())
     .then(game => game.onLoad(this.db))
     .then(game => {
       const robot = new Player({
@@ -242,10 +241,10 @@ const StandaloneUIMixin = superclass => class extends superclass {
    * @param {Key} key the key for the game to switch to
    */
   redirectToGame(key) {
-    const parts = Utils.parseURLArguments(window.location.toString());
+    const parts = UI.parseURLArguments(window.location.toString());
     parts._URL = parts._URL.replace(/standalone_games./, "standalone_game.");
     parts.game = key;
-    window.location = Utils.makeURL(parts);
+    window.location = UI.makeURL(parts);
   }
 
   /**
@@ -256,9 +255,8 @@ const StandaloneUIMixin = superclass => class extends superclass {
    * @memberof StandaloneUIMixin
    */
   create() {
-    this.args = Utils.parseURLArguments(document.URL);
+    this.args = UI.parseURLArguments(document.URL);
     if (this.args.debug) {
-      this.debugging = true;
       this.debug = console.debug;
     }
 

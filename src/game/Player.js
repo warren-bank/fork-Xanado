@@ -3,8 +3,6 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, jquery */
 
-import { Rack } from "./Rack.js";
-
 /**
  * A player in a {@linkcode Game}. Player objects are specific to
  * a single game, and are used on both browser and server sides.
@@ -154,7 +152,7 @@ class Player {
   serialisable(game, um) {
     return ((this.isRobot || !um)
             ? Promise.resolve(this)
-            : um.getUser({ key: this.key }).catch(e => this))
+            : um.getUser({ key: this.key }).catch(() => this))
     .then(ump => {
       const simple = {
         name: this.name,

@@ -4,10 +4,10 @@
 
 import { TestSocket } from '../TestSocket.js';
 import { MemoryDatabase } from "../MemoryDatabase.js";
+import sparseEqual from "../sparseEqual.js";
 
 import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
-import { Utils } from "../../src/common/Utils.js";
 import { BackendGame } from "../../src/backend/BackendGame.js";
 import { FileDatabase } from "../../src/server/FileDatabase.js";
 const Player = BackendGame.CLASSES.Player;
@@ -48,7 +48,7 @@ describe("backend/BackendGame", () => {
 		socket.on(
       BackendGame.Notify.TURN,
 		  (data, event, order) => {
-			  Utils.sparseEqual(data, {
+			  sparseEqual(data, {
 					  type: BackendGame.Turns.PLAYED,
 					  playerKey: human1.key,
 					  nextToGoKey: human2.key,
@@ -302,7 +302,7 @@ describe("backend/BackendGame", () => {
 		socket1.on(BackendGame.Notify.MESSAGE, mess => {
       if (mess.text === "hinted")
         return;
-      assert.equal(mess.args[0], "TRAWL");
+      assert.equal(mess.args[0], "TRAWL", mess);
       socket1.done();
 		})
     .on("*", () => {});

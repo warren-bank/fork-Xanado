@@ -273,7 +273,7 @@ class Dialog {
       if (typeof this.options.postResult === "function")
         this.options.postResult(data);
     })
-    .catch((jqXHR, textStatus, errorThrown) => {
+    .catch(jqXHR => {
       // Note that the console sees an XML parsing error on a 401
       // response to /login, due to the response body containing a
       // non-XML string ("Unauthorized"). It would be nice to catch

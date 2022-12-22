@@ -3,7 +3,6 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, browser */
 
-import { Utils } from "../common/Utils.js";
 import { Undo } from "../game/Undo.js";
 import { Commands } from "../game/Commands.js";
 import { Game } from "../game/Game.js";
@@ -12,8 +11,6 @@ import { BrowserTile } from "./BrowserTile.js";
 import { BrowserBoard } from "./BrowserBoard.js";
 import { BrowserPlayer } from "./BrowserPlayer.js";
 import { BrowserRack } from "./BrowserRack.js";
-
-let messageSequenceNumber = 0;
 
 /**
  * Browser-side mixin for {@linkcode Game}
@@ -37,7 +34,22 @@ class BrowserGame extends Undo(Commands(Game)) {
     LetterBag: Game.CLASSES.LetterBag,
     Move: Game.CLASSES.Move,
     Turn: Game.CLASSES.Turn
-  };
+  }
+
+  /**
+   * Construct a test string giving a friendly description of a list
+   * of "things" e.g. `andList(["A","B","C"])` will return `A, B and C`
+   */
+  static andList(list) {
+    if (list.length == 0)
+      return "";
+    if (list.length == 1)
+      return list[0];
+
+    return $.i18n("players-tail",
+                  list.slice(0, list.length - 1).join(", "),
+                  list[list.length - 1]);
+  }
 
   /**
    * Headline is the text shown in the game table and the head
@@ -70,7 +82,7 @@ class BrowserGame extends Undo(Commands(Game)) {
           return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
         }
       case "p":
-        return Utils.andList(this.getPlayers().map(p => p.name));
+        return BrowserGame.andList(this.getPlayers().map(p => p.name));
       case "s":
         return this.hasEnded() ? $.i18n(
           "h-won", this.getWinner().name)
@@ -306,7 +318,6 @@ class BrowserGame extends Undo(Commands(Game)) {
    * @return {jQuery} a jquery div
    */
   describeGameOver(turn, uiPlayer) {
-    const adjustments = [];
     const winningScore = this.winningScore();
     const winners = [];
 
@@ -379,7 +390,7 @@ class BrowserGame extends Undo(Commands(Game)) {
     if (this.getWinner() === uiPlayer && winners.length === 1)
       who = $.i18n("You");
     else {
-      who = Utils.andList(winners);
+      who = BrowserGame.andList(winners);
       nWinners = winners.length;
     }
     $whoWon.append($.i18n("log-winner", who, nWinners));

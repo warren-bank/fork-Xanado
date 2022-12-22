@@ -82,7 +82,7 @@ class BrowserTile extends Tile {
             .addClass("being-dragged");
           },
           drag: (event, jui) => $(jui.helper).addClass("being-dragged"),
-          stop: (event, jui) => this._$tile.css({ opacity: 1 })
+          stop: () => this._$tile.css({ opacity: 1 })
         });
       }
       this._$tile

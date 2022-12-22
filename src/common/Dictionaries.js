@@ -67,15 +67,10 @@ class Dictionaries {
               .map(w => w.replace(/\s.*$/, ""))
               .filter(line => line.length > 0)
               .sort();
-        let added = 0;
-        words.forEach(w => {
-          if (dict._addWord(w))
-            added++;
-          return false;
-        });
+        words.forEach(w => dict._addWord(w));
         //console.debug("Added", added, "whitelisted words");
       })
-      .catch(e => {
+      .catch(() => {
         // Mostly harmless, whitelist load failed, relying on .dict
         //console.debug("Failed to read", wp, e);
       });

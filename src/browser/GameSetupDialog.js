@@ -106,7 +106,6 @@ class GameSetupDialog extends Dialog {
     makeOptions(GameSetupDialog.WordCheck_types, $wc);
 
     const ui = this.options.ui;
-    let promise;
     return Promise.all([
       ui.getEditions()
       .then(editions => {

@@ -97,11 +97,10 @@ class BrowserBoard extends SurfaceMixin(Board) {
     // Determine that the placement of the Tile(s) is legal
 
     // Find top-leftmost placed tile
-    let topLeftX, topLeftY, tile;
+    let topLeftX, topLeftY;
     this.forEachTiledSquare((square, col, row) => {
       if (square.tile.isLocked)
         return false;
-      tile = square.tile;
       topLeftX = col;
       topLeftY = row;
       return true;

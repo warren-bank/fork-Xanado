@@ -7,20 +7,7 @@ import webpack from "webpack";
 
 const node_modules = {
   "@cdot/cbor": "@cdot/cbor/dist/mjs/index.js",
-//  "@cdot/cbor": "@cdot/cbor/src/CBOR.js",
-  "@cdot/dictionary": "@cdot/dictionary/dist/mjs/index.js",
-  "jquery": "jquery/dist/jquery.js",
-  "jquery-ui": "jquery-ui/dist/jquery-ui.js",
-  "jquery.i18n": "@wikimedia/jquery.i18n/src/jquery.i18n.js",
-  "i18n.emitter": "@wikimedia/jquery.i18n/src/jquery.i18n.emitter.js",
-  "i18n.fallbacks": "@wikimedia/jquery.i18n/src/jquery.i18n.fallbacks.js",
-  "i18n.language": "@wikimedia/jquery.i18n/src/jquery.i18n.language.js",
-  "i18n.messagestore": "@wikimedia/jquery.i18n/src/jquery.i18n.messagestore.js",
-  "i18n.parser": "@wikimedia/jquery.i18n/src/jquery.i18n.parser.js",
-  "touch-punch": "@rwap/jquery-ui-touch-punch/jquery.ui.touch-punch.js",
-  "socket.io": "socket.io/client-dist/socket.io.js",
-  "cookie": "jquery.cookie/jquery.cookie.js",
-  "cldrpluralruleparser": "@wikimedia/jquery.i18n/libs/CLDRPluralRuleParser/src/CLDRPluralRuleParser.js"
+  "@cdot/dictionary": "@cdot/dictionary/dist/mjs/index.js"
 };
 
 const importMap = {};

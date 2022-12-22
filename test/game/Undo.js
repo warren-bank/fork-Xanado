@@ -2,10 +2,14 @@
    license information */
 /* eslint-env node, mocha */
 
+import path from "path";
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
 
-import { Utils } from "../../src/common/Utils.js";
+import { stringify } from "../../src/common/Utils.js";
 import { MemoryDatabase } from "../MemoryDatabase.js";
 import { TestSocket } from "../TestSocket.js";
 import { FileDatabase } from "../../src/server/FileDatabase.js";
@@ -145,7 +149,7 @@ describe("game/Undo", () => {
     })
     .on("*", (data, event, seqNo) => {
       socket.done();
-      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
     });
     let A, B, C, D, E, prepass;
     return game.create()
@@ -207,7 +211,7 @@ describe("game/Undo", () => {
     })
     .on(Game.Notify.CONNECTIONS, () => {})
     .on("*", (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(data)}`);
     });
 
     let preplay;
@@ -266,7 +270,7 @@ describe("game/Undo", () => {
         assert.equal(turn.type, Game.Turns.TOOK_BACK);
         break;
       default:
-        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(turn)}`);
       }
     })
     .on(Game.Notify.UNDONE, (data, event, seqNo) => {
@@ -306,7 +310,7 @@ describe("game/Undo", () => {
   // Unplay an entire game (including a challenge)
   it("undo", () => {
     const db = new FileDatabase({
-      dir: "test/data", ext: "game", typeMap: Game
+      dir: `${__dirname}/../data`, ext: "game", typeMap: Game
     });
     let game;
     return db.get("finished_game")
@@ -381,7 +385,7 @@ describe("game/Undo", () => {
     });
     socket.on(Game.Notify.CONNECTIONS, () => {});
     socket.on("*", (data, event) => {
-    assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(turn)}`);
+    assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(turn)}`);
     });
     return game.create()
         .then(() => game.onLoad(new MemoryDatabase()))

@@ -28,17 +28,15 @@ class Database {
    * @param {object} data the data to store
    * @return {Promise} resolves to undefined
    */
-  set(key, data) {}
+  set(key, data) { assert.fail(`Database.set ${key} ${data}`); }
 
   /* istanbul ignore next */
   /**
    * Promise to get a key value
    * @param {string} key the entry key
-   * @param {Object[]} classes list of classes that may occur in the
-   * data, as passed to {@linkcode Tagger}
    * @return {Promise} resolves to the key value
    */
-  get(key, classes) {}
+  get(key) { assert.fail(`Database.get ${key}`); }
 
   /* istanbul ignore next */
   /**
@@ -46,7 +44,7 @@ class Database {
    * @param {string} key the entry key
    * @return {Promise} resolves to undefined
    */
-  rm(key) {}
+  rm(key) { assert.fail(`Database.rm ${key}`); }
 }
 
 export { Database }

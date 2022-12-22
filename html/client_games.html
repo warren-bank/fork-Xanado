@@ -7,58 +7,35 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta charset="utf-8" />
     <!-- base href=".." This breaks $.tabs(), hard, so don't do it /-->
-    <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
     <title>Create/Join Game</title>
 
     <link href="../node_modules/normalize.css/normalize.css" rel="stylesheet" type="text/css">
+
+    <!-- Rewritten to reflect the preferences -->
     <link id="jQueryTheme" href="../node_modules/jquery-ui/dist/themes/pepper-grinder/jquery-ui.min.css" rel="stylesheet" type="text/css">
 
-    <!-- meta name="theme" elements will expand to <link> elements
-         in browser/UI.js to reflect the selected user theme -->
-    <meta name="theme" content="common.css">
-    <meta name="theme" content="playerTable.css">
-    <meta name="theme" content="icons.css">
-    <meta name="theme" content="surface.css">
-    <meta name="theme" content="games.css">
+    <!-- Rewritten in browser/UI.js to reflect the preferences -->
+    <link id="xanadoCSS" href="../css/default.css" rel="stylesheet" type="text/css">
+
     <script type="importmap">
       {
         "imports": {
           "@cdot/cbor": "../node_modules/@cdot/cbor/dist/mjs/index.js",
-          "@cdot/dictionary": "../node_modules/@cdot/dictionary/dist/mjs/index.js",
-          "jquery": "../node_modules/jquery/dist/jquery.js",
-          "jquery-ui": "../node_modules/jquery-ui/dist/jquery-ui.js",
-          "jquery.i18n": "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.js",
-          "i18n.emitter":
-          "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.emitter.js",
-          "i18n.fallbacks":
-          "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.fallbacks.js",
-          "i18n.language":
-          "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.language.js",
-          "i18n.messagestore":
-          "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.messagestore.js",
-          "i18n.parser":
-          "../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.parser.js",
-          "touch-punch":
-          "../node_modules/@rwap/jquery-ui-touch-punch/jquery.ui.touch-punch.js",
-          "socket.io":
-          "../node_modules/socket.io/client-dist/socket.io.js",
-          "cookie":
-          "../node_modules/jquery.cookie/jquery.cookie.js",
-          "cldrpluralruleparser":
-          "../node_modules/@wikimedia/jquery.i18n/libs/CLDRPluralRuleParser/src/CLDRPluralRuleParser.js"
+          "@cdot/dictionary": "../node_modules/@cdot/dictionary/dist/mjs/index.js"
         }
       }
     </script>
     <script type="module" src="src/client/ClientGamesUI.js"></script>
   </head>
-  <body>
+  <body class="games-ui">
     <div class="loading">
       <img src="../images/loading.gif" />
     </div>
-    <div class="waiting user-interface ui-widget" style="display:none">
-      <img src="../images/logo.svg" class="logo" />
+    <div class="waiting ui-widget" style="display:none">
+      <img src="../images/logo.svg" class="xanado-logo" />
       <div id="loginState">
         <span class="not-logged-in">
           <div data-i18n="text-sign-in"></div>

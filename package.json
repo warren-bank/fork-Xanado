@@ -20,29 +20,24 @@
 		"@cdot/cbor": "github:cdot/CBOR",
 		"@cdot/dictionary": "github:cdot/dictionary",
 		"@rwap/jquery-ui-touch-punch": "github:RWAP/jquery-ui-touch-punch",
-		"@wikimedia/jquery.i18n": "^1.0.7",
-		"async-lock": "^1.4.0",
-		"bcrypt": "^5.1.0",
-		"clean-css": "^5.3.1",
-		"cookie-parser": ">=1.4.6",
-		"errorhandler": ">=1.5.1",
-		"express": ">=4.18.2",
-		"express-basic-auth": ">=1.2.1",
-		"express-session": "^1.17.3",
-		"https": ">=1.0.0",
-		"jquery": "^3.6.2",
-		"jquery-ui": "^1.13.2",
-		"jquery.cookie": "^1.4.1",
-		"nodemailer": ">=6.8.0",
-		"normalize.css": "^8.0.1",
-		"passport": "^0.6.0",
-		"passport-facebook": "^3.0.0",
-		"passport-google-oauth20": "^2.0.0",
-		"posix-getopt": "^1.2.1",
-		"proper-lockfile": "^4.1.2",
-		"request": "^2.88.2",
-		"session-file-store": "^1.5.0",
-		"socket.io": ">=4.5.4"
+		"@wikimedia/jquery.i18n": "latest",
+		"async-lock": "latest",
+		"bcrypt": "latest",
+		"express": "latest",
+		"express-session": "latest",
+		"https": "latest",
+		"jquery": "latest",
+		"jquery-ui": "latest",
+		"jquery.cookie": "latest",
+		"nodemailer": "latest",
+		"normalize.css": "latest",
+		"passport": "latest",
+		"passport-facebook": "latest",
+		"passport-google-oauth20": "latest",
+		"posix-getopt": "latest",
+		"proper-lockfile": "latest",
+		"session-file-store": "latest",
+		"socket.io": "latest"
 	},
 	"importmap": "./build/importmap.json",
 	"devDependencies": {
@@ -64,14 +59,14 @@
 		"webpack-cli": "latest"
 	},
 	"scripts": {
-		"build": "webpack -c build/wp_sa_games.js & webpack -c build/wp_sa_game.js & webpack -c build/wp_cl_games.js & webpack -c build/wp_cl_game.js",
+		"build": "node bin/update-indexes;(webpack -c build/wp_sa_games.js & webpack -c build/wp_sa_game.js & webpack -c build/wp_cl_games.js & webpack -c build/wp_cl_game.js)",
 		"server": "node bin/server.js",
 		"start": "node bin/server.js --debug_game --debug_server",
 		"debug": "node bin/server.js --debug_game --debug_server",
 		"doc": "jsdoc --verbose -c build/jsdoc_config.json -R DEVELOPING.md -r -d doc src",
 		"lint": "eslint src -f unix",
 		"test": "mocha --recursive --extension js --timeout=5000 test",
-		"coverage": "nyc --hook-run-in-context --hook-run-in-this-context --reporter=html --reporter text npm run test",
+		"coverage": "NODE_ENV=test c8 npm run test",
 		"tx": "node bin/checkStrings.js",
 		"update": "ncu -u ",
 		"docker": "docker build . --tag xanado"
@@ -79,23 +74,15 @@
 	"eslintConfig": {
 		"extends": "eslint:recommended",
 		"parserOptions": {
-			"sourceType": "module",
-			"ecmaVersion": 13
+			"sourceType": "module"
 		},
 		"env": {
 			"shared-node-browser": true,
 			"jquery": true,
-			"es6": true
+			"es2022": true
 		},
 		"globals": {
-			"assert": "writable",
-			"define": "writable",
-			"document": "readonly",
-			"global": "readonly",
-			"Mocha": "writable",
-			"WeakRef": "readonly",
-			"describe": "readonly",
-			"it": "readonly"
+			"assert": "writable"
 		},
 		"rules": {
 			"camelcase": 0,
@@ -115,12 +102,12 @@
 			"no-redeclare": [
 				"error",
 				{
-					"builtinGlobals": true
+					"builtinGlobals": false
 				}
 			],
-			"no-trailing-spaces": 0,
+			"no-trailing-spaces": 1,
 			"no-underscore-dangle": 0,
-			"no-unused-vars": 0,
+			"no-unused-vars": 1,
 			"no-useless-escape": 1,
 			"no-use-before-define": 0,
 			"quotes": 0,

@@ -3,9 +3,8 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env node, jquery */
 
-import { Utils } from "../common/Utils.js";
+import { stringify } from "../common/Utils.js";
 import { Surface } from "./Surface.js";
-import { Tile } from "./Tile.js";
 
 /**
  * A Rack is a set of tiles that a player can play from. It's
@@ -159,7 +158,7 @@ class Rack extends Surface {
     for (const tile of tiles) {
       const removed = this.removeTile(tile);
       if (!removed)
-        throw Error(`${Utils.stringify(tile)} missing from rack`);
+        throw Error(`${stringify(tile)} missing from rack`);
       racked.push(removed);
     }
     return racked;
@@ -202,7 +201,7 @@ class Rack extends Surface {
    * Debug
    */
   stringify() {
-    return `[${this.tiles().map(t => Utils.stringify(t)).join(",")}]`;
+    return `[${this.tiles().map(t => stringify(t)).join(",")}]`;
   }
 }
 

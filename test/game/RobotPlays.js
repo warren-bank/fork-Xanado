@@ -4,8 +4,9 @@
 
 import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
+
 import { MemoryDatabase } from "../../test/MemoryDatabase.js";
-import { Utils } from "../../src/common/Utils.js";
+import { stringify } from "../../src/common/Utils.js";
 import { TestSocket } from '../TestSocket.js';
 import { Game as _Game } from "../../src/game/Game.js";
 import { Commands } from "../../src/game/Commands.js";
@@ -13,6 +14,8 @@ const Game = Commands(_Game);
 const Player = Game.CLASSES.Player;
 const Tile = Game.CLASSES.Tile;
 const Move = Game.CLASSES.Move;
+
+ServerPlatform.USE_WORKERS = false;
 
 /**
  * Unit tests for robot.
@@ -215,7 +218,7 @@ describe("game/RobotPlays", () => {
         socket.done();
         break;
       default:
-        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(data)}`);
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(data)}`);
       }
     };
     socket.on(Game.Notify.TURN, handle);
@@ -288,7 +291,7 @@ describe("game/RobotPlays", () => {
         socket.done();
         break;
       default:
-        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(turn)}`);
       }
     };
     socket.on(Game.Notify.TURN, handle);
@@ -366,7 +369,7 @@ describe("game/RobotPlays", () => {
         socket.done();
         break;
       default:
-        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(turn)}`);
       }
     });
     socket.on("*", (turn, event) => {

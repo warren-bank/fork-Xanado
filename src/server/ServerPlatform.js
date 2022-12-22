@@ -24,7 +24,7 @@ class ServerPlatform extends Platform {
    * @implements Platform
    */
   static trigger(e, args) {
-    assert.fail("ServerPlatform.trigger");
+    assert.fail(`ServerPlatform.trigger ${e} ${args}`);
   }
 
   /**
@@ -37,9 +37,9 @@ class ServerPlatform extends Platform {
    * @implements Platform
    */
   static async findBestPlay() {
-    (ServerPlatform.USE_WORKERS
-     ? import(/* webpackMode: "eager" */"..//backend/findBestPlayController.js")
-     : import(/* webpackMode: "eager" */"..//game/findBestPlay.js"))
+    return (ServerPlatform.USE_WORKERS
+     ? import(/* webpackMode: "eager" */"../backend/findBestPlayController.js")
+     : import(/* webpackMode: "eager" */"../game/findBestPlay.js"))
     .then(mod => mod.findBestPlay.apply(null, arguments));
   }
 

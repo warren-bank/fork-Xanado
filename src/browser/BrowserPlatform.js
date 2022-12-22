@@ -5,8 +5,8 @@
 
 /* global assert */
 
-import "jquery";
-
+import "../../node_modules/jquery/dist/jquery.js";
+import "../../node_modules/@rwap/jquery-ui-touch-punch/jquery.ui.touch-punch.js";
 import { Platform } from "../common/Platform.js";
 
 window.assert = (cond, mess) => {

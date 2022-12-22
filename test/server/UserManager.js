@@ -10,8 +10,8 @@ import { promises as Fs } from "fs";
 import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
 import tmp from "tmp-promise";
+import sparseEqual from "../sparseEqual.js";
 
-import { Utils } from "../../src/common/Utils.js";
 import { Server } from "../../src/server/Server.js";
 import { UserManager } from "../../src/server/UserManager.js";
 
@@ -85,7 +85,7 @@ describe("server/UserManager", () => {
       .send(details)
       .end((err, res) => {
         assert.equal(res.status, 200);
-        Utils.sparseEqual(res.body, {
+        sparseEqual(res.body, {
           name: details.register_username,
           provider: "xanado"
         });
@@ -117,7 +117,7 @@ describe("server/UserManager", () => {
       .send(user)
       .end((err, res) => {
         assert.equal(res.status, 200);
-        Utils.sparseEqual(res.body, {
+        sparseEqual(res.body, {
           name: user.register_username,
           provider: "xanado"
         });
@@ -150,7 +150,7 @@ describe("server/UserManager", () => {
       .send({register_username: "test_user"})
       .end((err, res) => {
         assert.equal(res.status, 200);
-        Utils.sparseEqual(res.body, {
+        sparseEqual(res.body, {
           name: "test_user",
           provider: "xanado"
         });
@@ -254,7 +254,7 @@ describe("server/UserManager", () => {
       .set('Cookie', cookie)
       .end((err, res) => {
         assert.equal(res.status, 200);
-        Utils.sparseEqual(res.body, {
+        sparseEqual(res.body, {
           name: "test_user",
           provider: "xanado"
         });
@@ -278,7 +278,7 @@ describe("server/UserManager", () => {
       .set('Cookie', cookie)
       .end((err, res) => {
         assert.equal(res.status, 200);
-        Utils.sparseEqual(res.body, {
+        sparseEqual(res.body, {
           name: "test_user",
           provider: "xanado",
           settings: { sausages: "bratwurst" }
@@ -303,7 +303,7 @@ describe("server/UserManager", () => {
       .end((err, res) => {
         //console.log(res.body);
         assert.equal(res.status, 401);
-        Utils.sparseEqual(res.body, [ 'Not signed in']);
+        sparseEqual(res.body, [ 'Not signed in']);
         resolve();
       });
     })
@@ -318,7 +318,7 @@ describe("server/UserManager", () => {
             .end((err, res) => {
               //console.log(res.body);
               assert.equal(res.status, 200);
-              Utils.sparseEqual(res.body, [{
+              sparseEqual(res.body, [{
                 name: "test_user"
               }]);
               assert(res.body[0].key.length > 1);
@@ -360,7 +360,7 @@ describe("server/UserManager", () => {
       .end((err, res) => {
         //console.log(res.body);
         assert.equal(res.status, 403);
-        Utils.sparseEqual(res.body, [
+        sparseEqual(res.body, [
           "player-unknown",
           "unknown@email.com"
         ]);
@@ -374,7 +374,7 @@ describe("server/UserManager", () => {
       .end((err, res) => {
         //console.log(res.text, token);
         assert.equal(res.status, 200);
-        Utils.sparseEqual(res.body, [
+        sparseEqual(res.body, [
           "text-reset-sent",
           "test_user"
         ]);
@@ -411,7 +411,7 @@ describe("server/UserManager", () => {
       .send({password: "wtf"})
       .end((err, res) => {
         assert.equal(res.status, 401);
-        Utils.sparseEqual(res.body, ["Not signed in"]);
+        sparseEqual(res.body, ["Not signed in"]);
         resolve();
       });
     }))
@@ -427,7 +427,7 @@ describe("server/UserManager", () => {
       .set('Cookie', cookie)
       .end((err, res) => {
         assert.equal(res.status, 200);
-        Utils.sparseEqual(res.body, [
+        sparseEqual(res.body, [
           "pass-changed",
           "test_user"
         ]);

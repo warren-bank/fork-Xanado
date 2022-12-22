@@ -6,7 +6,6 @@ import { Database } from "../common/Database.js";
 import { promises as Fs } from "fs";
 import path from "path";
 import lock from "proper-lockfile";
-import { ServerPlatform } from "./ServerPlatform.js";
 
 /**
  * Simple file database implementing {@linkcode Database} for use
@@ -45,12 +44,12 @@ class FileDatabase extends Database {
     const fn = path.join(this.directory, `${key}.${this.ext}`);
     //console.log("Writing", fn);
     return Fs.access(fn)
-    .then(acc => { // file exists
+    .then(() => { // file exists
       return lock.lock(fn)
       .then(release => Fs.writeFile(fn, data)
             .then(() => release()));
     })
-    .catch(e => Fs.writeFile(fn, data)); // file does not exist
+    .catch(() => Fs.writeFile(fn, data)); // file does not exist
   }
 
   /** See {@linkcode Database#get|Database.get} for documentation */

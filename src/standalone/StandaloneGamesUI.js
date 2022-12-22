@@ -6,14 +6,11 @@
 /**
  * Browser app for client_games.html; populate the list of live games
  */
-import "jquery";
-import "jquery-ui";
+import "../../node_modules/jquery/dist/jquery.js";
+import "../../node_modules/jquery-ui/dist/jquery-ui.js";
 
-import { Utils } from "../common/Utils.js";
-import { Player } from "../game/Player.js";
 import { Game } from "../game/Game.js";
 import { UI } from "../browser/UI.js";
-import { Dialog } from "../browser/Dialog.js";
 import { GamesUIMixin } from "../browser/GamesUIMixin.js";
 import { StandaloneUIMixin } from "./StandaloneUIMixin.js";
 
@@ -84,7 +81,7 @@ class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
    * @implements browser/GamesUIMixin#anotherGame
    */
   anotherGame(game) {
-    assert.fail("TODO: StandaloneGamesUI.anotherGame");
+    assert.fail(`TODO: StandaloneGamesUI.anotherGame ${game}`);
   }
 
   /**
@@ -152,7 +149,7 @@ class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
     .then(keys => Promise.all(
       keys.map(key => this.db.get(key)
                .then(d => Game.fromCBOR(d, Game.CLASSES))
-               .catch(e => undefined))))
+               .catch(() => undefined))))
     .then(games => games.filter(g => g && g.hasEnded()))
     .then(games => Promise.all(games.map(game => game.onLoad(this.db))))
     .then(games => {

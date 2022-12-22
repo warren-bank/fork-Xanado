@@ -7,7 +7,7 @@ global.Platform = ServerPlatform;
 import { MemoryDatabase } from "../MemoryDatabase.js";
 import { TestSocket } from '../TestSocket.js';
 
-import { Utils } from "../../src/common/Utils.js";
+import { stringify } from "../../src/common/Utils.js";
 import { Game as _Game } from "../../src/game/Game.js";
 import { Commands } from "../../src/game/Commands.js";
 const Game = Commands(_Game);
@@ -80,14 +80,14 @@ describe("game/TimedGame", function() {
         socket.done();
         break;
       default:
-        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(turn)}`);
       }
     };
     socket.on(Game.Notify.TURN, handle);
     socket.on(Game.Notify.CONNECTIONS, () => {});
     socket.on(Game.Notify.TICK, () => {});
     socket.on('*', (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(data)}`);
     });
 
     return game.create()
@@ -170,7 +170,7 @@ describe("game/TimedGame", function() {
         socket.done();
         break;
       default:
-        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(turn)}`);
       }
     };
     socket.on(Game.Notify.TURN, handle);
@@ -188,7 +188,7 @@ describe("game/TimedGame", function() {
         onTick();
     });
     socket.on('*', (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(data)}`);
     });
 
     // Players don't time out in a chess clock game, so we have to

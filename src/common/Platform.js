@@ -18,7 +18,7 @@ class Platform {
    * @throws {Error}
    */
   static fail(descr) {
-    throw Error("Platform.fail");
+    throw Error(`Platform.fail ${descr}`);
   }
 
   /* istanbul ignore next */
@@ -30,7 +30,7 @@ class Platform {
    * @abstract
    */
   static trigger(event, args) {
-    throw Error("Platform.trigger");
+    throw Error(`Platform.trigger ${event} ${args}`);
   }
 
   /**
@@ -56,7 +56,7 @@ class Platform {
    * @abstract
    */
   static findBestPlay(game, rack, cb, dictionary) {
-    throw Error("Platform.findBestPlay");
+    throw Error(`Platform.findBestPlay ${game} ${rack} ${cb} ${dictionary}`);
   }
 
   /* istanbul ignore next */
@@ -67,7 +67,7 @@ class Platform {
    * @abstract
    */
   static parsePath(p) {
-    throw Error("Platform.parsePath");
+    throw Error(`Platform.parsePath ${p}`);
   }
 
   /* istanbul ignore next */
@@ -78,7 +78,7 @@ class Platform {
    * @abstract
    */
   static formatPath(p) {
-    throw Error("Platform.formatPath");
+    throw Error(`Platform.formatPath ${p}`);
   }
 
   /* istanbul ignore next */
@@ -90,7 +90,7 @@ class Platform {
    * @abstract
    */
   static getFilePath(p) {
-    throw Error("Platform.getFilePath");
+    throw Error(`Platform.getFilePath ${p}`);
   }
 
   /* istanbul ignore next */
@@ -100,7 +100,7 @@ class Platform {
    * @abstract
    */
   static readFile(path) {
-    throw Error("Platform.readFile");
+    throw Error(`Platform.readFile ${path}`);
   }
 
   /* istanbul ignore next */
@@ -110,7 +110,7 @@ class Platform {
    * @abstract
    */
   static readBinaryFile(path) {
-    throw Error("Platform.readBinaryFile");
+    throw Error(`Platform.readBinaryFile ${path}`);
   }
 }
 

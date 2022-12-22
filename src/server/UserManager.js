@@ -18,7 +18,7 @@ import Path from "path";
 import { fileURLToPath } from 'url';
 const __dirname = Path.dirname(fileURLToPath(import.meta.url));
 
-import { Utils } from "../common/Utils.js";
+import { genKey } from "../common/Utils.js";
 
 const dbLock = new AsyncLock();
 
@@ -60,7 +60,6 @@ class XanadoPass extends Strategy {
    */
   authenticate(req) {
     let promise;
-    const user = req.body.login_username;
     if (req.body.login_username)
       promise = this._checkUserPass(
         req.body.login_username, req.body.login_password);
@@ -140,7 +139,7 @@ class UserManager {
     app.use(Session({
       name: "XANADO.sid",
       secret: (config.auth ? config.auth.session_secret : undefined)
-      || Utils.genKey(),
+      || genKey(),
       store: new FileStore({
         path: UserManager.SESSIONS_DIR,
         ttl: 24 * 60 * 60 // keep sessions around for 24h
@@ -184,7 +183,9 @@ class UserManager {
           // needed because passport-google-oauth20 declares
           // strategy "google"
           const module = cfg.module || `passport-${provider}`;
-          requirejs([module], strategy => {
+          import(module)
+          .then(strategy => {
+            debugger;
             this.setUpOAuth2Strategy(strategy, provider, cfg, app);
             resolve();
           });
@@ -323,7 +324,7 @@ class UserManager {
          .then(release => Fs.readFile(this.pwfile)
                .then(buffer => release()
                      .then(() => this.db = JSON.parse(buffer))))
-         .catch(e => {
+         .catch(() => {
            // File is unreadable
            this.db = [];
          })
@@ -341,11 +342,11 @@ class UserManager {
     return dbLock.acquire(
       this.pwfile,
       () => Fs.access(this.pwfile)
-      .then(acc => lock(this.pwfile))
+      .then(() => lock(this.pwfile))
       .then(release => Fs.writeFile(
         this.pwfile, s)
             .then(() => release()))
-      .catch(e => Fs.writeFile(this.pwfile, s))); // file does not exist
+      .catch(() => Fs.writeFile(this.pwfile, s))); // file does not exist
   }
 
   /**
@@ -418,7 +419,7 @@ class UserManager {
    * Configure an OAuth2 Passport strategy
    * @private
    */
-  setUpOAuth2Strategy(strategy, provider, cfg, app) {
+  setUpOAuth2Strategy(strategy, provider, cfg) {
     assert(cfg.clientID && cfg.clientSecret && cfg.callbackURL,
            `Misconfiguration ${cfg}`);
     Passport.use(new strategy(
@@ -495,7 +496,7 @@ class UserManager {
    */
   GET_oauth2_callback(req, res) {
     // error will -> 401
-    //this._debug("OAuth2 user is", Utils.stringify(req.userObject));
+    //this._debug("OAuth2 user is", stringify(req.userObject));
     return req.login(req.userObject, () => {
       // Back to where we came from
       //this._debug("Redirect to",req.session.origin);
@@ -531,7 +532,7 @@ class UserManager {
     return this.getDB()
     .then(() => {
       if (!desc.key)
-        desc.key = Utils.genKey(this.db.map(f => f.key));
+        desc.key = genKey(this.db.map(f => f.key));
       return pw_hash(desc.pass);
     })
     .then(pw => {
@@ -561,7 +562,7 @@ class UserManager {
    * @param {Response} res
    * @private
    */
-  POST_register(req, res, next) {
+  POST_register(req, res) {
     const username = req.body.register_username;
     const email = req.body.register_email;
     const pass = req.body.register_password;

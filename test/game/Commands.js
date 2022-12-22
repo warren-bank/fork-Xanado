@@ -7,8 +7,9 @@ global.Platform = ServerPlatform;
 ServerPlatform.USE_WORKERS = false;
 import { MemoryDatabase } from "../MemoryDatabase.js";
 import { TestSocket } from "../TestSocket.js";
-import { Utils } from "../../src/common/Utils.js";
-import { FileDatabase } from "../../src/server/FileDatabase.js";
+import sparseEqual from "../sparseEqual.js";
+
+import { stringify } from "../../src/common/Utils.js";
 import { Commands } from "../../src/game/Commands.js";
 import { Game as _Game } from "../../src/game/Game.js";
 
@@ -57,12 +58,12 @@ describe("game/Commands.js", () => {
         socket1.done();
         break;
       default:
-        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${stringify(turn)}`);
       }
     })
     .on(Game.Notify.CONNECTIONS, () => {})
     .on("*", (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
     });
 
     const socket2 = new TestSocket();
@@ -81,7 +82,7 @@ describe("game/Commands.js", () => {
     })
     .on(Game.Notify.CONNECTIONS, () => {})
     .on("*", (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
     });
 
     return game.create()
@@ -144,7 +145,7 @@ describe("game/Commands.js", () => {
     });
     socket.on(Game.Notify.CONNECTIONS, () => {});
     socket.on("*", (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -202,13 +203,13 @@ describe("game/Commands.js", () => {
         break;
       default:
         console.error("UNEXPECTED TURN", event, turn);
-        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${stringify(turn)}`);
       }
     };
     socket.on(Game.Notify.TURN, handle);
     socket.on(Game.Notify.CONNECTIONS, () => {});
     socket.on("*", (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -259,12 +260,12 @@ describe("game/Commands.js", () => {
         assert.equal(turn.score, move.score);
         assert.deepEqual(turn.words, move.words);
         assert.deepEqual(turn.placements, move.placements);
-        Utils.sparseEqual(turn.replacements, [ aTile ]);
+        sparseEqual(turn.replacements, [ aTile ]);
         socket1.done();
         break;
       default:
         socket1.done();
-        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${stringify(turn)}`);
       }
     });
     socket1.on(Game.Notify.MESSAGE, (m, event, seqNo) => {
@@ -284,14 +285,14 @@ describe("game/Commands.js", () => {
         break;
       default:
         socket1.done();
-        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(m)}`);
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(m)}`);
       }
     });
     socket1.on(Game.Notify.CONNECTIONS, (data, event, seqNo) => {
       //console.log(`conn ${seqNo}`);
     });
     socket1.on("*", (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
     });
 
     const socket2 = new TestSocket("play 2");
@@ -304,7 +305,7 @@ describe("game/Commands.js", () => {
         assert.equal(turn.score, move.score);
         assert.deepEqual(turn.words, move.words);
         assert.deepEqual(turn.placements, move.placements);
-        Utils.sparseEqual(turn.replacements, [ new Tile({letter:"#", score:1 }) ]);
+        sparseEqual(turn.replacements, [ new Tile({letter:"#", score:1 }) ]);
         break;
       case 3:
         // TODO: check console.log(turn);
@@ -312,7 +313,7 @@ describe("game/Commands.js", () => {
         break;
       default:
         socket1.done();
-        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${stringify(turn)}`);
       }
     });
     socket2.on(Game.Notify.MESSAGE, (m, e, seqNo) => {
@@ -329,7 +330,7 @@ describe("game/Commands.js", () => {
         break;
       default:
         socket2.done();
-        assert.fail(`UNEXPECTED MESSAGE ${seqNo} ${Utils.stringify(m)}`);
+        assert.fail(`UNEXPECTED MESSAGE ${seqNo} ${stringify(m)}`);
       }
     });
     return game.create()
@@ -397,7 +398,7 @@ describe("game/Commands.js", () => {
         break;
       default:
         socket1.done();
-        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${stringify(turn)}`);
       }
     })
     .on(Game.Notify.MESSAGE, (m, event, seqNo) => {
@@ -412,14 +413,14 @@ describe("game/Commands.js", () => {
         break;
       default:
         socket1.done();
-        assert.fail(`UNEXPECTED ${event} ${seqNo} ${Utils.stringify(m)}`);
+        assert.fail(`UNEXPECTED ${event} ${seqNo} ${stringify(m)}`);
       }
     })
     .on(Game.Notify.CONNECTIONS, (data, event, seqNo) => {
       //console.log(`conn ${seqNo}`);
     })
     .on("*", (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
     });
 
     const socket2 = new TestSocket("player 2");
@@ -431,14 +432,14 @@ describe("game/Commands.js", () => {
         break;
       default:
         socket2.done();
-        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${stringify(turn)}`);
       }
     });
     socket2.on(Game.Notify.MESSAGE, (m, e, seqNo) => {
       switch (seqNo) {
       default:
         socket2.done();
-        assert.fail(`UNEXPECTED MESSAGE ${seqNo} ${Utils.stringify(m)}`);
+        assert.fail(`UNEXPECTED MESSAGE ${seqNo} ${stringify(m)}`);
       }
     });
 
@@ -554,7 +555,7 @@ describe("game/Commands.js", () => {
     });
     socket.on(Game.Notify.CONNECTIONS, () => {});
     socket.on("*", (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -607,7 +608,7 @@ describe("game/Commands.js", () => {
       switch (seqNo) {
       case 1:
         assert.equal(turn.type, Game.Turns.PLAYED);
-        Utils.sparseEqual(turn, move);
+        sparseEqual(turn, move);
         break;
       case 2:
         assert.equal(turn.type, Game.Turns.TOOK_BACK);
@@ -618,11 +619,11 @@ describe("game/Commands.js", () => {
         break;
       default:
         socket.done();
-        assert.fail(`UNEXPECTED TURN ${seqNo} ${Utils.stringify(turn)}`);
+        assert.fail(`UNEXPECTED TURN ${seqNo} ${stringify(turn)}`);
       }
     });
     socket.on("*", (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -690,7 +691,7 @@ describe("game/Commands.js", () => {
       socket.done();
     });
     socket.on("*", (data, event, seqNo) => {
-      assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+      assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
     });
     return game.create()
     .then(() => game.onLoad(new MemoryDatabase()))
@@ -737,7 +738,7 @@ describe("game/Commands.js", () => {
         socket.done();
         break;
       default:
-        assert.fail(`UNEXPECTED EVENT ${seqNo} ${Utils.stringify(data)}`);
+        assert.fail(`UNEXPECTED EVENT ${seqNo} ${stringify(data)}`);
       }
     });
     return game.create()

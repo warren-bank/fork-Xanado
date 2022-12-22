@@ -3,7 +3,7 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-import { Utils } from "../common/Utils.js";
+import { stringify } from "../common/Utils.js";
 import { Game } from "./Game.js";
 const Tile = Game.CLASSES.Tile;
 
@@ -19,10 +19,8 @@ const Undo = superclass => class extends superclass {
    * @instance
    * @memberof game/Undo
    * @param {Turn} turn the Turn to unplay
-   * @param {boolean?} quiet if true, don't perform any saves
-   * or notifications.
    */
-  unswap(turn, quiet) {
+  unswap(turn) {
     this.state = Game.State.PLAYING;
     const player = this.getPlayerWithKey(turn.playerKey);
     this.rackToBag(turn.replacements, player);
@@ -36,10 +34,8 @@ const Undo = superclass => class extends superclass {
    * @instance
    * @memberof game/Undo
    * @param {Turn} turn the Turn to unplay
-   * @param {boolean?} quiet if true, don't perform any saves
-   * or notifications.
    */
-  unplay(turn, quiet) {
+  unplay(turn) {
     this.state = Game.State.PLAYING;
     const player = this.getPlayerWithKey(turn.playerKey);
     if (turn.replacements)
@@ -57,10 +53,8 @@ const Undo = superclass => class extends superclass {
    * @instance
    * @memberof game/Undo
    * @param {Turn} turn the Turn to unplay
-   * @param {boolean?} quiet if true, don't perform any saves
-   * or notifications.
    */
-  unconfirmGameOver(turn, quiet) {
+  unconfirmGameOver(turn) {
     // Re-adjustscores from the delta
     for (const key in turn.score) {
       const delta = turn.score[key];
@@ -79,10 +73,8 @@ const Undo = superclass => class extends superclass {
    * @instance
    * @memberof game/Undo
    * @param {Turn} turn the Turn to unplay
-   * @param {boolean?} quiet if true, don't perform any saves
-   * or notifications.
    */
-  untakeBack(turn, quiet) {
+  untakeBack(turn) {
     this.state = Game.State.PLAYING;
     const player = this.getPlayerWithKey(turn.playerKey);
     if (turn.placements)
@@ -99,10 +91,8 @@ const Undo = superclass => class extends superclass {
    * @instance
    * @memberof game/Undo
    * @param {Turn} turn the Turn to unplay
-   * @param {boolean?} quiet if true, don't perform any saves
-   * or notifications.
    */
-  unpass(turn, quiet) {
+  unpass(turn) {
     this.state = Game.State.PLAYING;
     const player = this.getPlayerWithKey(turn.playerKey);
     player.passes--;
@@ -116,12 +106,10 @@ const Undo = superclass => class extends superclass {
    * @instance
    * @memberof game/Undo
    * @param {Turn} turn the Turn to unplay
-   * @param {boolean?} quiet if true, don't perform any saves
-   * or notifications.
    */
-  unchallenge(turn, quiet) {
+  unchallenge(turn) {
     const player = this.getPlayerWithKey(turn.challengerKey);
-    this._debug("\t", Utils.stringify(player), "regained", turn.score);
+    this._debug("\t", stringify(player), "regained", turn.score);
     player.score -= turn.score;
     // TODO: Notify
   }

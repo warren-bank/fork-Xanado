@@ -3,8 +3,6 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-import { Dialog } from "../browser/Dialog.js";
-
 /**
  * Mixin for dialogs that contain password fields. For info on using
  * this style of mixin, see {@link https://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/|here}

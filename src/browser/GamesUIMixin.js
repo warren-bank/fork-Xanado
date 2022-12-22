@@ -3,10 +3,8 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-import { BrowserPlayer } from "./BrowserPlayer.js";
 import { Game } from "../game/Game.js";
 import { BrowserGame } from "./BrowserGame.js";
-import { Dialog } from "./Dialog.js";
 const Player = BrowserGame.CLASSES.Player;
 
 /**
@@ -46,7 +44,7 @@ const GamesUIMixin = superclass => class extends superclass {
    * @memberof browser/GamesUIMixin
    */
   gameOptions(game) {
-    assert.fail("GamesUIMixin.gameOptions");
+    assert.fail(`GamesUIMixin.gameOptions ${game}`);
   }
 
   /**
@@ -55,7 +53,7 @@ const GamesUIMixin = superclass => class extends superclass {
    * @memberof browser/GamesUIMixin
    */
   joinGame(game) {
-    assert.fail("GamesUIMixin.joinGame");
+    assert.fail(`GamesUIMixin.joinGame ${game}`);
   }
 
   /**
@@ -64,7 +62,7 @@ const GamesUIMixin = superclass => class extends superclass {
    * @memberof browser/GamesUIMixin
    */
   addRobot(game) {
-    assert.fail("GamesUIMixin.addRobot");
+    assert.fail(`GamesUIMixin.addRobot ${game}`);
   }
 
   /**
@@ -73,7 +71,7 @@ const GamesUIMixin = superclass => class extends superclass {
    * @memberof browser/GamesUIMixin
    */
   invitePlayers(game) {
-    assert.fail("GamesUIMixin.invitePlayers");
+    assert.fail(`GamesUIMixin.invitePlayers ${game}`);
   }
 
   /**
@@ -82,7 +80,7 @@ const GamesUIMixin = superclass => class extends superclass {
    * @memberof browser/GamesUIMixin
    */
   anotherGame(game) {
-    assert.fail("GamesUIMixin.anotherGame");
+    assert.fail(`GamesUIMixin.anotherGame ${game}`);
   }
 
   /**
@@ -91,7 +89,7 @@ const GamesUIMixin = superclass => class extends superclass {
    * @memberof browser/GamesUIMixin
    */
   deleteGame(game) {
-    assert.fail("GamesUIMixin.deleteGame");
+    assert.fail(`GamesUIMixin.deleteGame ${game}`);
   }
 
   /**
@@ -100,7 +98,7 @@ const GamesUIMixin = superclass => class extends superclass {
    * @memberof browser/GamesUIMixin
    */
   observe(game) {
-    assert.fail("GamesUIMixin.observe");
+    assert.fail(`GamesUIMixin.observe ${game}`);
   }
 
   /**
@@ -305,7 +303,7 @@ const GamesUIMixin = superclass => class extends superclass {
    * * games: number of games played
    */
   getHistory(what) {
-    assert.fail("GamesUIMixin.getHistory");
+    assert.fail(`GamesUIMixin.getHistory ${what}`);
   }
 
   /**
@@ -316,7 +314,7 @@ const GamesUIMixin = superclass => class extends superclass {
    * @return {Promise} resolves to a list of Game.simple
    */
   getGames(what) {
-    assert.fail("GamesUIMixin.getGames");
+    assert.fail(`GamesUIMixin.getGames ${what}`);
   }
 
   /**
@@ -326,7 +324,7 @@ const GamesUIMixin = superclass => class extends superclass {
    * @return {Promise} promise that resolves to a Game or Game.simple
    */
   getGame(key) {
-    assert.fail("GamesUIMixin.getGame");
+    assert.fail(`GamesUIMixin.getGame ${key}`);
   }
 };
 

@@ -48,7 +48,8 @@ function updateIndexes(root) {
   console.debug("These files are used by the standalone version");
   return Promise.all([
     index(path.resolve(root, "css"),
-          f => /^[^.]+$/i.test(f)),
+          f => /^\.css$/i.test(f),
+         /\.css$/),
     index(path.resolve(root, "i18n"),
           f => !/(^|\W)(index|qqq)\.json$/.test(f)
           && /\.json$/.test(f),

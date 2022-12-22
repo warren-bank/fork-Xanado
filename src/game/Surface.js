@@ -3,8 +3,6 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd, node, jquery */
 
-import { Square } from "./Square.js";
-
 /**
  * Abstract base class of a 2D grid of {@linkcode Sqaure} (a Rack or a Board)
  */

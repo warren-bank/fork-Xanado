@@ -13,10 +13,10 @@ global.$ = global.jQuery = jquery(window);
 
 import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
+import sparseEqual from "../sparseEqual.js";
 
 import { I18N } from "../../src/server/I18N.js";
 
-import { Utils } from "../../src/common/Utils.js";
 import { Edition } from "../../src/game/Edition.js";
 import { BrowserGame } from "../../src/browser/BrowserGame.js";
 const Tile = BrowserGame.CLASSES.Tile;
@@ -63,7 +63,7 @@ describe("browser/BrowserBoard", () => {
       delete D._$tile;
 
       let move = b.analysePlay();
-      Utils.sparseEqual(move, {
+      sparseEqual(move, {
         words: [ {
           word: "WORD",
           score: 20
@@ -100,7 +100,7 @@ describe("browser/BrowserBoard", () => {
       delete N._$tile;
 
       move = b.analysePlay();
-      Utils.sparseEqual(move, {
+      sparseEqual(move, {
         words: [ { word: "SUN", score: 5 }, { word: "SWORD", score: 11 } ],
         score: 16,
         placements: [ S, U, N ]
@@ -120,7 +120,7 @@ describe("browser/BrowserBoard", () => {
       delete N._$tile;
 
       move = b.analysePlay();
-      Utils.sparseEqual(move, {
+      sparseEqual(move, {
         words: [ { word: "DUN", score: 6 } ],
         score: 6,
         placements: [ U, N ]
@@ -155,7 +155,7 @@ describe("browser/BrowserBoard", () => {
       delete D._$tile;
 
       let move = b.analysePlay();
-      Utils.sparseEqual(move, {
+      sparseEqual(move, {
         words: [ { word: "WORD", score: 20 } ],
         score: 20,
         placements: [ W, O, R, D ]

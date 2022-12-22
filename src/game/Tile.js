@@ -110,7 +110,7 @@ class Tile {
   /**
    * String representation for debugging
    */
-  stringify(showPos) {
+  stringify() {
     const letter = this.isBlank ? this.letter.toLowerCase() : this.letter;
     const brackets = this.isLocked ? "<>" : "[]";
     const pos = (typeof this.col === "number" ? `@${this.col}` : "")

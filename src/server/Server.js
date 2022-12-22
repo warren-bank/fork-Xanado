@@ -6,20 +6,21 @@
 /* global Platform */
 
 import { promises as Fs } from "fs";
-import Path from "path";
+import path from "path";
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const staticRoot = path.join(__dirname, "..", "..");
+
 import Events from "events";
-import Cookie from "cookie";
 import cors  from "cors";
 import Express from "express";
 
-import { Utils } from "../common/Utils.js";
 import { Edition } from "../game/Edition.js";
 import { BackendGame } from "../backend/BackendGame.js";
 import { FileDatabase } from "./FileDatabase.js";
 import { UserManager } from "./UserManager.js";
 
 const Player = BackendGame.CLASSES.Player;
-const Turn = BackendGame.CLASSES.Turn;
 
 /**
  * In the event of an error in a chain handling a request,
@@ -160,8 +161,6 @@ class Server {
     // Parse incoming requests with a JSON body
     this.express.use(Express.json());
 
-    // Can't use __dirname, only available in top level
-    const staticRoot = Platform.getFilePath();
     // Grab all static files relative to the project root
     // html, images, css etc. The Content-type should be set
     // based on the file mime type (extension) but Express doesn't
@@ -188,116 +187,113 @@ class Server {
     cmdRouter.get(
       "/",
       (req, res) => res.sendFile(
-        Platform.getFilePath("html/client_games.html")));
+        path.join(staticRoot, "html", "client_games.html")));
 
     cmdRouter.get(
       "/games/:send",
-      (req, res, next) => this.GET_games(req, res));
+      (req, res) => this.GET_games(req, res));
 
     cmdRouter.get(
       "/history",
-      (req, res, next) => this.GET_history(req, res));
+      (req, res) => this.GET_history(req, res));
 
     cmdRouter.get(
       "/locales",
-      (req, res, next) => this.GET_locales(req, res));
+      (req, res) => this.GET_locales(req, res));
 
     cmdRouter.get(
       "/editions",
-      (req, res, next) => this.GET_editions(req, res));
+      (req, res) => this.GET_editions(req, res));
 
     cmdRouter.get(
       "/edition/:edition",
-      (req, res, next) => this.GET_edition(req, res));
+      (req, res) => this.GET_edition(req, res));
 
     cmdRouter.get(
       "/dictionaries",
-      (req, res, next) => this.GET_dictionaries(req, res));
+      (req, res) => this.GET_dictionaries(req, res));
 
     cmdRouter.get(
-      "/themes",
-      (req, res, next) => this.GET_themes(req, res));
-
-    cmdRouter.get(
-      "/theme/:css",
-      (req, res, next) => this.GET_theme(req, res));
+      "/css",
+      (req, res) => this.GET_css(req, res));
 
     cmdRouter.get(
       "/defaults",
-      (req, res, next) => this.GET_defaults(req, res));
+      (req, res) => this.GET_defaults(req, res));
 
     cmdRouter.get(
       "/game/:gameKey",
-      (req, res, next) => this.GET_game(req, res));
+      (req, res) => this.GET_game(req, res));
 
     cmdRouter.post(
       "/createGame",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res, next) => this.POST_createGame(req, res));
+      (req, res) => this.POST_createGame(req, res));
 
     cmdRouter.post(
       "/invitePlayers/:gameKey",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res, next) => this.POST_invitePlayers(req, res));
+      (req, res) => this.POST_invitePlayers(req, res));
 
     cmdRouter.post(
       "/deleteGame/:gameKey",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res, next) => this.POST_deleteGame(req, res));
+      (req, res) => this.POST_deleteGame(req, res));
 
     cmdRouter.post(
       "/anotherGame/:gameKey",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res, next) => this.POST_anotherGame(req, res));
+      (req, res) => this.POST_anotherGame(req, res));
 
     cmdRouter.post(
       "/sendReminder/:gameKey",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res, next) => this.POST_sendReminder(req, res));
+      (req, res) => this.POST_sendReminder(req, res));
 
     cmdRouter.post(
       "/join/:gameKey",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res, next) => this.POST_join(req, res));
+      (req, res) => this.POST_join(req, res));
 
     cmdRouter.post(
       "/leave/:gameKey",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res, next) => this.POST_leave(req, res));
+      (req, res) => this.POST_leave(req, res));
 
     cmdRouter.post(
       "/addRobot/:gameKey",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res, next) => this.POST_addRobot(req, res));
+      (req, res) => this.POST_addRobot(req, res));
 
     cmdRouter.post(
       "/removeRobot/:gameKey",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res, next) => this.POST_removeRobot(req, res));
+      (req, res) => this.POST_removeRobot(req, res));
 
     cmdRouter.post(
       "/command/:command/:gameKey",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res, next) => this.POST_command(req, res));
+      (req, res) => this.POST_command(req, res));
 
     this.express.use(cmdRouter);
 
     // Install default error handler. err.message will appear as
     // responseText in the ajax error function.
     this.express.use((err, req, res, next) => {
+      if (res.headersSent)
+        return next(err);
       this._debug("<-- 500", err);
-      res.status(500).send(err.message);
-      return true;
+      return res.status(500).send(err.message);
     });
   }
 
@@ -337,7 +333,7 @@ class Server {
    * @param {socket.io} socket the socket
    * @private
    */
-  socket_connect(sk) {
+  socket_connect() {
     this._debug("f>s connect");
     this.updateMonitors();
   }
@@ -503,11 +499,11 @@ class Server {
       // should never happen so long as only logged-in
       // users can send mail
       /* istanbul ignore next */
-      e => this.config.mail.sender)
+      () => this.config.mail.sender)
     .then(sender =>
           new Promise(
             resolve => this.userManager.getUser(to, true)
-            .catch(e => {
+            .catch(() => {
               // Not a known user, rely on email in the
               // getUser query
               resolve({
@@ -550,8 +546,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  GET_games(req, res, next) {
-    const server = this;
+  GET_games(req, res) {
     const send = req.params.send;
     // Make list of keys we are interested in
     return ((send === "all" || send === "active")
@@ -560,7 +555,7 @@ class Server {
     // Load those games
     .then(keys => Promise.all(
       keys.map(key => this.loadGameFromDB(key)
-               .catch(e => undefined))))
+               .catch(() => undefined))))
     // Filter the list and generate simple data
     .then(games => games.filter(game => game
                                 && !(send === "active" && game.hasEnded())))
@@ -588,12 +583,10 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  GET_history(req, res, next) {
-    const server = this;
-
+  GET_history(req, res) {
     return this.db.keys()
     .then(keys => keys.map(key => this.loadGameFromDB(key)
-                           .catch(e => undefined)))
+                           .catch(() => undefined)))
     .then(promises => Promise.all(promises))
     .then(games => games.filter(game => game && game.hasEnded()))
     .then(games => {
@@ -639,8 +632,8 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  GET_locales(req, res, next) {
-    return Fs.readdir(Platform.getFilePath("i18n"))
+  GET_locales(req, res) {
+    return Fs.readdir(path.join(staticRoot, "i18n"))
     .then(list => reply(
       res, list.filter(f => f !== "index.json" && /^.*\.json$/.test(f))
       .map(fn => fn.replace(/\.json$/, ""))));
@@ -655,7 +648,7 @@ class Server {
    * when the response has been sent.
    */
   GET_editions(req, res) {
-    return Fs.readdir(Platform.getFilePath("editions"))
+    return Fs.readdir(path.join(staticRoot, "editions"))
     .then(list => reply(
       res, list.filter(f => f !== "index.json" && /^.*\.json$/.test(f))
       .map(fn => fn.replace(/\.json$/, ""))));
@@ -684,52 +677,23 @@ class Server {
    * when the response has been sent.
    */
   GET_dictionaries(req, res) {
-    return Fs.readdir(Platform.getFilePath("dictionaries"))
+    return Fs.readdir(path.join(staticRoot, "dictionaries"))
     .then(list => reply(res,
                         list.filter(f => /\.dict$/.test(f))
                         .map(fn => fn.replace(/\.dict$/, ""))));
   }
 
   /**
-   * Sends a list of the available themes. A theme is a set of CSS
-   * files in a subdirectory of `/css`, each of which corresponds to
-   * a CSS file in `css/default`. The theme CS can override some or
-   * all of the default CSS.
+   * Sends a list of the available css.
    * @param {Request} req the request object
    * @param {Response} res the response object. The response will be
-   * a list of theme name strings.
+   * a list of css files.
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  GET_themes(req, res) {
-    const dir = Platform.getFilePath("css");
-    return Fs.readdir(dir)
-    .then(list => reply(res, list.filter(f => f !== "index.json")));
-  }
-
-  /**
-   * Sends the css for current theme, if a user is logged in and
-   * they have selected a theme. The CSS sent is created by concatenating
-   * `/css/default/<file>` and `/css/<theme>/<file>`.
-   * @param {Request} req the request object
-   * @param {string} req.params.css name of the css file to send
-   * @param {Response} res the response object. The result will be the
-   * generated CSS content.
-   * @return {Promise} promise that resolves to undefined
-   * when the response has been sent.
-   */
-  GET_theme(req, res) {
-    let theme = "default";
-    if (req.user && req.user.settings && req.user.settings.theme)
-      theme = req.user.settings.theme;
-    this._debug("Send theme", theme, req.params.css);
-    return Fs.readFile(Platform.getFilePath(`css/${theme}/${req.params.css}`))
-    .catch(e => replyAndThrow(
-      res, 404, `Could not load css/${theme}/${req.params.css}`, e))
-    .then(data => res
-          .header('Content-Type', 'text/css')
-          .status(200)
-          .send(data.toString()));
+  GET_css(req, res) {
+    return Fs.readdir(path.join(staticRoot, "css"))
+    .then(list => reply(res, list.filter(f => /\.css$/.test(f))));
   }
 
   /**
@@ -743,7 +707,7 @@ class Server {
    */
   POST_createGame(req, res) {
     return Edition.load(req.body.edition)
-    .then(edition => new BackendGame(req.body).create())
+    .then(() => new BackendGame(req.body).create())
     .then(game => game.onLoad(this.db))
     .then(game => {
       /* istanbul ignore if */
@@ -766,7 +730,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  POST_invitePlayers(req, res, next) {
+  POST_invitePlayers(req, res) {
     assert(this.config.mail && this.config.mail.transport,
            "Mail is not configured");
     assert(req.body.player, "Nobody to notify");
@@ -797,7 +761,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  POST_sendReminder(req, res, next) {
+  POST_sendReminder(req, res) {
     const gameKey = req.params.gameKey;
     this._debug("Sending turn reminders to", gameKey);
     const gameURL =
@@ -813,7 +777,7 @@ class Server {
               : this.db.get(key)
               .then(d => BackendGame.fromCBOR(d, BackendGame.CLASSES)))
       .then(game => {
-        const pr = game.checkAge();
+        game.checkAge();
         if (game.hasEnded())
           return undefined;
 
@@ -851,7 +815,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  POST_join(req, res, next) {
+  POST_join(req, res) {
     const gameKey = req.params.gameKey;
     return this.loadGameFromDB(gameKey)
     .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
@@ -891,7 +855,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  POST_addRobot(req, res, next) {
+  POST_addRobot(req, res) {
     const gameKey = req.params.gameKey;
     const dic = req.body.dictionary;
     return this.loadGameFromDB(gameKey)
@@ -934,7 +898,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  POST_removeRobot(req, res, next) {
+  POST_removeRobot(req, res) {
     const gameKey = req.params.gameKey;
     return this.loadGameFromDB(gameKey)
     .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
@@ -963,7 +927,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  POST_leave(req, res, next) {
+  POST_leave(req, res) {
     const gameKey = req.params.gameKey;
     const playerKey = req.user.key;
     return this.loadGameFromDB(gameKey)
@@ -1007,7 +971,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  GET_game(req, res, next) {
+  GET_game(req, res) {
     const gameKey = req.params.gameKey;
     return this.db.get(gameKey)
     .then(d => BackendGame.fromCBOR(d, BackendGame.CLASSES))
@@ -1028,7 +992,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  POST_deleteGame(req, res, next) {
+  POST_deleteGame(req, res) {
     const gameKey = req.params.gameKey;
     return this.loadGameFromDB(gameKey)
     .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
@@ -1052,7 +1016,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  POST_anotherGame(req, res, next) {
+  POST_anotherGame(req, res) {
     const gameKey = req.params.gameKey;
     return this.loadGameFromDB(gameKey)
     .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
@@ -1071,7 +1035,7 @@ class Server {
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  POST_command(req, res, next) {
+  POST_command(req, res) {
     const command = req.params.command;
     const gameKey = req.params.gameKey;
     const playerKey = req.user.key;

@@ -5,7 +5,7 @@
 
 import { ServerPlatform } from "../server/ServerPlatform.js";
 global.Platform = ServerPlatform;
-import { Worker, workerData, parentPort } from "worker_threads";
+import { workerData, parentPort } from "worker_threads";
 import { BackendGame } from "./BackendGame.js";
 import { findBestPlay } from "../game/findBestPlay.js";
 

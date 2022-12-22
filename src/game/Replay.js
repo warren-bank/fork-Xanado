@@ -3,8 +3,6 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-import { Utils } from "../common/Utils.js";
-import { Undo } from "./Undo.js";
 import { Game } from "./Game.js";
 const LetterBag = Game.CLASSES.LetterBag;
 const Board = Game.CLASSES.Board;
@@ -72,7 +70,7 @@ const Replay = superclass => class extends superclass {
       });
 
     // Remember the initial bag tiles
-    const preUndoBag = new LetterBag(this.game.letterBag).tiles;
+    //const preUndoBag = new LetterBag(this.game.letterBag).tiles;
 
     // To get back to the initial game state we have to run through
     // the turn history backwards to reconstruct initial racks.

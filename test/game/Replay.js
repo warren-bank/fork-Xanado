@@ -1,5 +1,8 @@
 /* See README.md at the root of this distribution for copyright and
    license information */
+import path from "path";
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
@@ -221,7 +224,7 @@ describe("game/Replay", () => {
     let preGame, game, preBag;
     
     const db = new FileDatabase({
-      dir: "test/data", ext: "game", typeMap: Game
+      dir: `${__dirname}/../data`, ext: "game"
     });
     return db.get("good_game")
     .then(d => Game.fromCBOR(d, Game.CLASSES))
@@ -255,7 +258,7 @@ describe("game/Replay", () => {
     let preGame, game, preBag = [];
 
     const db = new FileDatabase({
-      dir: "test/data", ext: "game", typeMap: Game
+      dir: `${__dirname}/../data`, ext: "game"
     });
     return db.get("kolano")
     .then(d => Game.fromCBOR(d, Game.CLASSES))
@@ -293,7 +296,7 @@ describe("game/Replay", () => {
     let preGame, game, preBag;
 
     const db = new FileDatabase({
-      dir: "test/data", ext: "game", typeMap: Game
+      dir: `${__dirname}/../data`, ext: "game"
     });
     return db.get("8-letter-rack")
     .then(d => Game.fromCBOR(d, Game.CLASSES))
