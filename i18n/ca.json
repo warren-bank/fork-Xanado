@@ -267,5 +267,7 @@
   "word-rejected": "{{PLURAL:$1|La paraula|Les paraules}} $2 no {{PLURAL:$1|és|són}} en el diccionari",
   "word-there": "«$1» ja és en el diccionari $2",
   "wrong-pass": "La contrasenya per a «$1» no és correcta",
-  "your": "vostre"
+    "tt-jqTheme": "Trieu un tema de visualització",
+    "label-jqTheme": "Tema",
+    "your": "vostre"
 }
