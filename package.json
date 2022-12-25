@@ -1,5 +1,5 @@
 {
-	"name": "Xanado",
+	"name": "@warren-bank/scrabble",
 	"description": "Multi user crossword game",
 	"version": "2.1.3",
 	"author": {
@@ -70,6 +70,9 @@
 		"update": "ncu -u ",
 		"docker": "docker build . --tag xanado",
 		"build": "node build/build.js"
+	},
+	"bin": {
+		"scrabble": "./server.js"
 	},
 	"eslintConfig": {
 		"extends": "eslint:recommended",

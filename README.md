@@ -40,6 +40,16 @@ This fork has some major differences:
 
 # Installation
 
+## Using an [Unofficial Mirror](https://github.com/warren-bank/fork-node-multiplayer-scrabble-server)
+The simplest (unofficial) way to install the game is to use `npm`:
+```
+$ npm install --global @warren-bank/scrabble
+```
+Once installed, run the server on the default port (9093):
+```
+$ scrabble
+```
+
 ## Using Docker
 The simplest way to install the game is to use the latest Docker
 image, which you can find on [github](https://github.com/cdot/Xanado/pkgs/container/xanado).
