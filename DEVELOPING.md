@@ -91,6 +91,26 @@ There's a `npm run debug` script to run the server with debug options enabled (v
 
 The client UI supports a mechanical turk for UI testing. This can be enabled by passing `autoplay` in the URL parameters to an open game. Once a first manual play has been played, all subsequent plays in that UI will be decided automatically.
 
+## Publishing
+### Docker
+`Dockerfile` can be used for building local docker images (assuming you have
+a docker server running).
+```
+npm run docker
+```
+will build an image using `Dockerfile`
+```
+$ docker run -p9093:9093 xword
+```
+will run the image, mapping `localhost` port 9093 to port 9093 on the docker image. The docker image is automatically built when a new version is checked in
+to github.
+
+## npm
+Use `npm publish --dry-run` to test the configuration and make sure all
+required files are published. Publishing happens automatically when the
+code is pushed to github (it's published to the github npm repository, and
+can be installed using `npm install github:cdot.xanado`)
+
 ## Internationalisation
 Xanado uses the
 [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n)
@@ -122,19 +142,6 @@ For development, `npm run doc` will generate the documentation in the `doc`
 directory.
 You can read the doc in a browser by opening `file:///..../doc/index.html`
 or, if the game server is running, by loading `http://localhost:9093/doc/index.html` (adjust URL to suit your install)
-
-## Docker
-`Dockerfile` can be used for building local docker images (assuming you have
-a docker server running).
-```
-npm run docker
-```
-will build an image using `Dockerfile`
-```
-$ docker run -p9093:9093 xword
-```
-will run the image, mapping `localhost` port 9093 to port 9093 on the docker image. The docker image is automatically built when a new version is checked in
-to github.
 
 ## Ideas
 

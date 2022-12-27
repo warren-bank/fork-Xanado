@@ -11,6 +11,38 @@
 		"type": "git",
 		"url": "git://github.com/cdot/Xanado"
 	},
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com/",
+		"access": "public"
+	},
+	"files": [
+		"*.md",
+
+		"audio/*.mp3",
+
+		"bin/*.js",
+
+		"css/*.css",
+		"css/*.json",
+
+		"dist/*.html",
+		"dist/*/*.js",
+
+		"dictionaries/*.dict",
+		"dictionaries/index.json",
+
+		"editions/*.json",
+
+		"html/*.html",
+
+		"i18n/*.json",
+
+		"images/*",
+
+		"package.json",
+
+		"src/*/*.js"
+	],
 	"main": "server",
 	"engines": {
 		"node": ">=12.0.0"
