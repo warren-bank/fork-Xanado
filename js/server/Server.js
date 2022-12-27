@@ -37,6 +37,7 @@ define([
    * * {@linkcode Server#GET_dictionaries|GET /dictionaries}
    * * {@linkcode Server#GET_themes|GET /themes}
    * * {@linkcode Server#GET_theme|GET /theme/:css
+   * * {@linkcode Server#GET_npm_dependency|GET /node_modules/*
    * * {@linkcode Server#GET_defaults|`GET /defaults`}
    * * {@linkcode Server#GET_game|GET /game/:gameKey}
    * * {@linkcode Server#POST_createGame|POST /createGame}
@@ -183,6 +184,11 @@ define([
       cmdRouter.get(
         "/theme/:css",
         (req, res, next) => this.GET_theme(req, res)
+        .catch(next));
+
+      cmdRouter.get(
+        "/node_modules/*",
+        (req, res, next) => this.GET_npm_dependency(req, res)
         .catch(next));
 
       cmdRouter.get(
@@ -644,9 +650,15 @@ define([
      */
     GET_editions(req, res) {
       return Fs.readdir(Platform.getFilePath("editions"))
-      .then(list => res.status(200).send(
-        list.filter(f => /^[^_].*\.js$/.test(f))
-        .map(fn => fn.replace(/\.js$/, ""))));
+      .then(list => {
+        const regex = /^[^_].*\.js$/i
+        return list.filter(f => regex.test(f))
+      })
+      .then(list => {
+        const regex = /\.js$/i
+        return list.map(f => f.replace(regex, ''))
+      })
+      .then(list => res.status(200).send(list));
     }
 
     /**
@@ -732,6 +744,44 @@ define([
             .header('Content-Type', 'text/css')
             .status(200)
             .send(parts.join("")));
+    }
+
+    GET_npm_dependency(req, res) {
+      const param = req.params[0]
+
+      return (!param)
+        ? Promise.reject(new Error('invalid path to dependency'))
+        : Promise.resolve()
+          .then(() => requirejs.nodeRequire.resolve(param))
+          .catch((e) => {
+            if ((e.code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED') && (e.code !== 'ENOENT')) throw e
+
+            const index = param.indexOf('/')
+            if (index === -1) throw e
+
+            const dependency = {
+              name: param.substring(0, index),
+              path: param.substring(index + 1, param.length).replaceAll('[..]/', '../')
+            }
+
+            let resolved_path
+            resolved_path = requirejs.nodeRequire.resolve(dependency.name)
+            resolved_path = Path.dirname(resolved_path)
+            resolved_path = Path.resolve(resolved_path, dependency.path)
+            return resolved_path
+          })
+          .then(npm_dependency_path => Fs.readFile(npm_dependency_path))
+          .then(data => data.toString())
+          .then(data => {
+            const type = ((param.length >= 3) && (param.substring(param.length - 3, param.length).toLowerCase() === 'css'))
+              ? 'text/css'
+              : 'text/javascript'
+
+            res
+              .header('Content-Type', type)
+              .status(200)
+              .send(data)
+          })
     }
 
     /**

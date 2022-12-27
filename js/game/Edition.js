@@ -139,6 +139,8 @@ define(() => {
      * @return {Promise} resolves to the Edition
      */
     static load(name) {
+      name = name.replace(/\.js$/i, "")
+
       if (editions[name])
         return Promise.resolve(editions[name]);
 

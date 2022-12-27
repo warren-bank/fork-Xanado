@@ -9,43 +9,23 @@ requirejs.config({
   baseUrl: "../..",
   waitSeconds: 60,
   paths: {
-    jquery: "node_modules/jquery/dist/jquery.min",
+    jquery:               "/node_modules/jquery/dist/jquery.min",
+    jqueryui:             "/node_modules/jquery-ui-dist/jquery-ui.min",
+    "jquery.i18n":        "/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n",
+    i18n_emitter:         "/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.emitter",
+    i18n_fallbacks:       "/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.fallbacks",
+    i18n_language:        "/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.language",
+    i18n_messagestore:    "/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.messagestore",
+    i18n_parser:          "/node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.parser",
+    "touch-punch":        "/node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch.min",
+    "socket.io-client":   "/node_modules/socket.io/[..]/client-dist/socket.io",
+    cookie:               "/node_modules/jquery.cookie/jquery.cookie",
+    cldrpluralruleparser: "/node_modules/@wikimedia/jquery.i18n/libs/CLDRPluralRuleParser/src/CLDRPluralRuleParser",
 
-    jqueryui: "node_modules/jquery-ui-dist/jquery-ui.min",
-
-    "jquery.i18n": "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n",
-
-    i18n_emitter:
-    "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.emitter",
-
-    i18n_fallbacks:
-    "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.fallbacks",
-
-    i18n_language:
-    "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.language",
-
-    i18n_messagestore:
-    "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.messagestore",
-
-    i18n_parser:
-    "node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.parser",
-
-    "touch-punch":
-    "node_modules/jquery-ui-touch-punch/jquery.ui.touch-punch.min",
-
-    "socket.io-client":
-    "node_modules/socket.io/client-dist/socket.io",
-
-    cookie:
-    "node_modules/jquery.cookie/jquery.cookie",
-
-    cldrpluralruleparser:
-    "node_modules/@wikimedia/jquery.i18n/libs/CLDRPluralRuleParser/src/CLDRPluralRuleParser",
-
-    browser: "js/browser",
-    common: "js/common",
-    game: "js/game",
-    dawg: "js/dawg",
+    browser:  "js/browser",
+    common:   "js/common",
+    game:     "js/game",
+    dawg:     "js/dawg",
     platform: "js/browser/Platform"
   },
 

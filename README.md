@@ -40,7 +40,7 @@ This fork has some major differences:
 
 # Installation
 
-## Using an [Unofficial Mirror](https://github.com/warren-bank/fork-node-multiplayer-scrabble-server)
+## Using an [Unofficial Fork](https://github.com/warren-bank/fork-node-multiplayer-scrabble-server)
 The simplest (unofficial) way to install the game is to use `npm`:
 ```
 $ npm install --global @warren-bank/scrabble
