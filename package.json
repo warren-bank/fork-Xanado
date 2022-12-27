@@ -17,30 +17,19 @@
 	},
 	"files": [
 		"*.md",
-
 		"audio/*.mp3",
-
 		"bin/*.js",
-
 		"css/*.css",
 		"css/*.json",
-
 		"dist/*.html",
 		"dist/*/*.js",
-
 		"dictionaries/*.dict",
 		"dictionaries/index.json",
-
 		"editions/*.json",
-
 		"html/*.html",
-
 		"i18n/*.json",
-
 		"images/*",
-
 		"package.json",
-
 		"src/*/*.js"
 	],
 	"main": "server",
@@ -81,7 +70,6 @@
 		"eslint": "latest",
 		"esprima": "latest",
 		"html-loader": "^4.2.0",
-		"istanbul": "latest",
 		"jsdoc": "latest",
 		"jsdom": "latest",
 		"marked": "latest",
@@ -99,7 +87,7 @@
 		"doc": "jsdoc --verbose -c build/jsdoc_config.json -R DEVELOPING.md -r -d doc src",
 		"lint": "eslint src -f unix",
 		"test": "mocha --recursive --extension js --timeout=5000 test",
-		"coverage": "NODE_ENV=test c8 npm run test",
+		"coverage": "NODE_ENV=test c8 --reporter=html --reporter text npm run test",
 		"tx": "node bin/checkStrings.js",
 		"update": "ncu -u ",
 		"docker": "docker build . --tag xanado"

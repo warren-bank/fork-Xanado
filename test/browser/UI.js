@@ -4,7 +4,7 @@
 
 import { JSDOM } from "jsdom";
 const { window } = new JSDOM(
-  '<!doctype html><html><body id="working"></body></html>');
+  '<!doctype html><html><head><link id="jQueryTheme" href="this/themes/that.css"></head><body id="working"></body></html>');
 global.window = window;
 global.document = window.document;
 global.navigator = { userAgent: "node.js" };
@@ -48,5 +48,46 @@ describe("browser/UI", () => {
     assert.equal(UI.formatTimeInterval(2 * 24 * 60 * 60 + 1), "2:00:00:01");
     assert.equal(UI.formatTimeInterval(365 * 24 * 60 * 60 + 1), "365:00:00:01");
     assert.equal(UI.formatTimeInterval(-(60 * 60 + 1)), "-01:00:01");
+  });
+
+  it("jQuery theme", () => {
+    class NUI extends UI {
+      getSetting(t) {
+        switch (t) {
+        case "jqTheme": return "jquerytheme";
+        case "xanadoCSS": return "xanadocss";
+        default: assert.fail(t); return false;
+        }
+      }
+    };
+    (new NUI()).initTheme();
+    assert.equal($("#jQueryTheme").attr("href"), "this/themes/jquerytheme.css");
+  });
+
+  it("initLocale", () => {
+    class NUI extends UI {
+      getSetting(t) {
+        switch (t) {
+        case "language": return "farsi";
+        }
+        assert.fail(t); return false;
+      }
+      getLocales() { return Promise.resolve([ "farsi" ]); }
+    };
+    (new NUI()).initLocale();
+  });
+
+  it("setSettings", () => {
+    class NUI extends UI {
+      settings = {};
+      setSetting(t, v) { this.settings[t] = v; }
+      getSetting(t) {
+        return this.settings[t];
+      }
+    };
+    const ui = new NUI();
+    ui.setSettings({ a: "1", b: 2 });
+    assert.equal(ui.getSetting("a"), 1);
+    assert.equal(ui.getSetting("b"), 2);
   });
 });

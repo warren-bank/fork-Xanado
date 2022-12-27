@@ -246,6 +246,7 @@ class UI {
    * @param {string} key setting to get
    */
   getSetting(key) {
+    /* istanbul ignore next */
     return undefined;
   }
 
@@ -256,6 +257,7 @@ class UI {
    * @return {Promise} resolves when setting is complete
    */
   setSetting(key, value) {
+    /* istanbul ignore next */
     assert.fail(`UI.setSetting ${key}=${value}`);
   }
 
@@ -279,6 +281,7 @@ class UI {
    * @throws Error if there is no session active
    */
   getSession() {
+    /* istanbul ignore next */
     assert.fail("UI.getSession");
   }
 
@@ -287,6 +290,7 @@ class UI {
    * @return {Promise} promise resolves to list of available locale names
    */
   getLocales() {
+    /* istanbul ignore next */
     assert.fail("UI.getLocales");
   }
 
@@ -296,6 +300,7 @@ class UI {
    * a list of css name strings.
    */
   getCSS() {
+    /* istanbul ignore next */
     assert.fail("UI.getCSS");
   }
 
@@ -307,6 +312,7 @@ class UI {
    * name strings.
    */
   getDictionaries() {
+    /* istanbul ignore next */
     assert.fail("UI.getDictionaries");
   }
 
@@ -319,6 +325,7 @@ class UI {
    * name strings.
    */
   getEditions() {
+    /* istanbul ignore next */
     assert.fail("UI.getEditions");
   }
 
