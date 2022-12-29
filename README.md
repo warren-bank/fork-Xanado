@@ -243,6 +243,10 @@ registered trademark.
 This not-for-profit project is not associated with any of the owners
 of the aforementioned brands.
 
+## Privacy
+
+Xanado is hosted on your own server and doesn't store any information about you anywhere else. The standalone version hosted on github doesn't store any information either. If you suspect otherwise, please get in touch because that would be a bug!
+
 ## CODE COPYRIGHT AND LICENSE
 
 The current code was written by Crawford Currie and is
