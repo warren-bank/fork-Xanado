@@ -1,31 +1,26 @@
 /*Copyright (C) 2019-2022 The Xanado Project https://github.com/cdot/Xanado
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
-/**
- * This is the controller side of a best play thread. It provides
- * the same API as findBestPlay(). See also findBestPlayWorker.js
- */
 
 /* global Platform */
-import { Worker } from "worker_threads";
+
+import Worker from "web-worker";
 import { BackendGame } from "./BackendGame.js";
 
+/** @module */
+
 /**
+ * This is the controller side of a best play thread.
  * Interface is the same as for {@linkcode findBestPlay} so they
  * can be switched in and out.
  */
 function findBestPlay(
   game, letters, listener, dictionary) {
-  const ice = {
-    workerData: BackendGame.toCBOR({
-      game: game,
-      rack: letters,
-      dictionary: dictionary
-    })
-  };
+
   return new Promise((resolve, reject) => {
     const worker = new Worker(
-      Platform.getFilePath("src/backend/findBestPlayWorker.js"), ice);
+      new URL("./findBestPlayWorker.js", import.meta.url),
+      { type: "module" });
 
     // Apply the game time limit
     let timer;
@@ -38,29 +33,34 @@ function findBestPlay(
     }
 
     // Pass worker messages on to listener
-    worker.on("message", data => {
-      if (typeof data === "string")
-        listener(data);
-      else
-        listener(BackendGame.fromCBOR(data, BackendGame.CLASSES));
+    worker.addEventListener("message", data => {
+      const mess = BackendGame.fromCBOR(data.data, BackendGame.CLASSES);
+      switch (mess.type) {
+      case "play":
+        listener(mess.data);
+        break;
+      case "exit":
+        if (timer)
+          /* istanbul ignore next */
+          clearTimeout(timer);
+        resolve();
+        break;
+      }
     });
 
-    /* istanbul ignore next */
-    worker.on("error", e => {
+    worker.addEventListener("error", e => {
+      console.error("Worker:", e.message, e.filename, e.lineno);
       if (timer)
         clearTimeout(timer);
-      reject(e);
+      reject();
     });
 
-    worker.on("exit", (code) => {
-      if (timer)
-        /* istanbul ignore next */
-        clearTimeout(timer);
-      /* istanbul ignore if */
-      if (code !== 0)
-        console.error(`findBestPlayWorker reported code ${code}`);
-      resolve();
-    });
+    worker.postMessage(BackendGame.toCBOR({
+      Platform: Platform.name,
+      game: game,
+      rack: letters,
+      dictionary: dictionary
+    }));
   });
 }
 
