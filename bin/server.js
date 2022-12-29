@@ -144,7 +144,7 @@ requirejs([ "server/Server" ], Server => {
         transport = config.mail.transport;
       
       if (transport)
-        config.mail.transport = NodeMailer.createTransport(
+        config.mail.transport = nodemailer.createTransport(
           transport);
     }
 
