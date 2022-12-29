@@ -3,6 +3,8 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
+/** @module */
+
 /**
  * Generate a unique 16-character key using a-z0-9
  * @param {string[]?} miss optional array of pregenerated keys to miss

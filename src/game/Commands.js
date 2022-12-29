@@ -28,14 +28,19 @@ const Commands = superclass => class extends superclass {
     assert(player && player.key === this.whosTurnKey,
            `Not ${player.name}'s turn`);
 
-    this._debug("Playing", stringify(move));
-    this._debug(`Player's rack is ${player.rack.stringify()}`);
+    /* istanbul ignore if */
+    if (this._debug) {
+      this._debug("Playing", stringify(move));
+      this._debug(`Player's rack is ${player.rack.stringify()}`);
+    }
 
     if (this.dictionary
         && !this.isRobot
         && this.wordCheck === Game.WordCheck.REJECT) {
 
-      this._debug("Validating play");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("Validating play");
 
       // Check the play in the dictionary, and generate a
       // 'reject' if it's bad. This has to be done
@@ -50,7 +55,9 @@ const Commands = superclass => class extends superclass {
         }
       });
       if (badWords.length > 0) {
-        this._debug("\trejecting", badWords);
+        /* istanbul ignore if */
+        if (this._debug)
+          this._debug("\trejecting", badWords);
         // Reject the play. Nothing has been done to the
         // game state yet, so we can just ping the
         // player back and let the UI sort it out.
@@ -89,7 +96,9 @@ const Commands = superclass => class extends superclass {
       .then(dict => {
         if (move.words) {
           for (let w of move.words) {
-            this._debug("Checking ",w);
+            /* istanbul ignore if */
+            if (this._debug)
+              this._debug("Checking ",w);
             if (!dict.hasWord(w.word)) {
               // Only want to notify the player
               this.notifyPlayer(
@@ -146,7 +155,9 @@ const Commands = superclass => class extends superclass {
       return Promise.resolve(this); // already paused
     this.stopTheClock();
     this.pausedBy = player.name;
-    this._debug(`${this.pausedBy} has paused game`);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug(`${this.pausedBy} has paused game`);
     this.notifyAll(Game.Notify.PAUSE, {
       key: this.key,
       name: player.name,
@@ -167,7 +178,9 @@ const Commands = superclass => class extends superclass {
     /* istanbul ignore if */
     if (!this.pausedBy)
       return Promise.resolve(this); // not paused
-    this._debug(`${player.name} has unpaused game`);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug(`${player.name} has unpaused game`);
     this.notifyAll(Game.Notify.UNPAUSE, {
       key: this.key,
       name: player.name,
@@ -201,7 +214,9 @@ const Commands = superclass => class extends superclass {
 
     this.state = endState || Game.State.GAME_OVER;
 
-    this._debug(`Confirming game over because ${this.state}`);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug(`Confirming game over because ${this.state}`);
     this.stopTheClock();
 
     // When the game ends, each player's score is reduced by
@@ -212,7 +227,7 @@ const Commands = superclass => class extends superclass {
     let pointsRemainingOnRacks = 0;
     const deltas = {};
     this.players.forEach(player => {
-      const delta = { tiles: 0 };
+      const delta = { key: player.key, tiles: 0 };
       // Unless undo is enabled, the client receives redacted versions of
       // the rack tiles. We have to send the actual tiles remaining on racks
       // for the "game ended" message.
@@ -230,12 +245,16 @@ const Commands = superclass => class extends superclass {
         // Tiles remaining on this player's rack
         delta.tilesRemaining = player.rack.lettersLeft().join(",");
         pointsRemainingOnRacks += rackScore;
-        this._debug(`\t${player.name}: ${rackScore} points left ${delta.tilesRemaining}`);
+        /* istanbul ignore if */
+        if (this._debug)
+          this._debug(`\t${player.name}: ${rackScore} points left ${delta.tilesRemaining}`);
       }
       if (this.timerType === Game.Timer.GAME && player.clock < 0) {
         const points = Math.round(
           player.clock * this.timePenalty / 60);
-        this._debug(player.name, "over by", -player.clock,
+        /* istanbul ignore if */
+        if (this._debug)
+          this._debug(player.name, "over by", -player.clock,
                     "s, score", points, "points");
         if (points < 0)
           delta.time = points;
@@ -246,13 +265,15 @@ const Commands = superclass => class extends superclass {
     if (playerWithNoTiles) {
       playerWithNoTiles.score += pointsRemainingOnRacks;
       deltas[playerWithNoTiles.key].tiles = pointsRemainingOnRacks;
-      this._debug(`${playerWithNoTiles.name} gains ${pointsRemainingOnRacks}`);
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug(playerWithNoTiles.name, "gains", pointsRemainingOnRacks);
     }
     const factory = this.constructor.CLASSES;
     return this.finishTurn(player, new factory.Turn({
       type: Game.Turns.GAME_ENDED,
       endState: endState,
-      score: deltas
+      score: Object.keys(deltas).map(k => deltas[k])
     }));
   }
 
@@ -368,7 +389,9 @@ const Commands = superclass => class extends superclass {
     .catch(
       /* istanbul ignore next */
       () => {
-        this._debug("No dictionary, so challenge always succeeds");
+        /* istanbul ignore if */
+        if (this._debug)
+          this._debug("No dictionary, so challenge always succeeds");
         return this.takeBack(challenger, Game.Turns.CHALLENGE_WON);
       })
     .then(dict => {
@@ -377,7 +400,9 @@ const Commands = superclass => class extends superclass {
 
       if (bad.length > 0) {
         // Challenge succeeded
-        this._debug("Bad words: ", bad);
+        /* istanbul ignore if */
+        if (this._debug)
+          this._debug("Bad words: ", bad);
 
         // Take back the challenged play. Irrespective of
         // whether the challenger is the current player or
@@ -386,7 +411,9 @@ const Commands = superclass => class extends superclass {
         return this.takeBack(challenger, Game.Turns.CHALLENGE_WON);
       }
 
-      this._debug("Challenge failed,", this.challengePenalty);
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("Challenge failed,", this.challengePenalty);
 
       const currPlayerKey = this.getPlayer().key;
       const nextPlayer = this.nextPlayer();
@@ -509,7 +536,9 @@ const Commands = superclass => class extends superclass {
     if (this.nextGameKey)
       return Promise.reject("Next game already exists");
 
-    this._debug(`Create game to follow ${this.key}`);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("Create game to follow", this.key);
     // Use this.constructor to get the class to pick up mixins.
     const newGame = new (this.constructor)(this);
     // Constructor will copy the old game key
@@ -538,7 +567,9 @@ const Commands = superclass => class extends superclass {
       // for unit tests
       newGame._noPlayerShuffle = this._noPlayerShuffle;
 
-      this._debug(`Created follow-on game ${newGame.key}`);
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("Created follow-on game", newGame.key);
     })
     .then(() => newGame.save())
     .then(() => newGame.playIfReady())
@@ -599,20 +630,26 @@ const Commands = superclass => class extends superclass {
       return Promise.resolve();
     }
 
-    this._debug(`Computing advice for ${player.name} > ${theirScore}`,
-                player.rack.tiles().map(t => t.letter),
-                this.board.stringify());
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("Computing advice for", player.name, " > ", theirScore,
+                  player.rack.tiles().map(t => t.letter),
+                  this.board.stringify());
 
     let bestPlay = null;
     return Platform.findBestPlay(
       this, player.rack.tiles(), data => {
-        if (typeof data === "string")
-          this._debug(data);
-        else
+        if (typeof data === "string") {
+          /* istanbul ignore if */
+          if (this._debug)
+            this._debug(data);
+        } else
           bestPlay = data;
       }, this.dictionary)
     .then(() => {
-      //this._debug("Incoming",bestPlay);
+      ///* istanbul ignore if */
+      if (this._debug)
+        this._debug("Incoming",bestPlay);
       /* istanbul ignore else */
       if (bestPlay && bestPlay.score > theirScore) {
         this._debug(`Better play found for ${player.name}`);
@@ -632,8 +669,8 @@ const Commands = superclass => class extends superclass {
           args: [ player.name ],
           timestamp: Date.now()
         });
-      } else
-        this._debug(`No better plays found for ${player.name}`);
+      } else if (this._debug)
+        this._debug("No better plays found for", player.name);
     })
     /* istanbul ignore next */
     .catch(e => {
@@ -662,14 +699,18 @@ const Commands = superclass => class extends superclass {
       return;
     }
 
-    this._debug(`Player ${player.name} asked for a hint`);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("Player", player.name, "asked for a hint");
 
     let bestPlay = null;
     Platform.findBestPlay(
       this, player.rack.tiles(), data => {
-        if (typeof data === "string")
-          this._debug(data);
-        else
+        if (typeof data === "string") {
+          /* istanbul ignore if */
+          if (this._debug)
+            this._debug(data);
+        } else
           bestPlay = data;
       }, this.dictionary)
     .then(() => {
@@ -700,7 +741,9 @@ const Commands = superclass => class extends superclass {
       });
     })
     .catch(e => {
-      this._debug("Error:", e);
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("Error:", e);
       /* istanbul ignore next */
       this.notifyAll(Game.Notify.MESSAGE, {
         sender: /*i18n*/"Advisor",
@@ -753,9 +796,11 @@ const Commands = superclass => class extends superclass {
      * @param {Object} args arguments to the command
      */
     dispatchCommand(command, player, args) {
-      this._debug("COMMAND", command,
-                  "player", player.name,
-                  "game", this.key);
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("COMMAND", command,
+                    "player", player.name,
+                    "game", this.key);
 
       // Istanbul can ignore next because it's just routing
       /* istanbul ignore next */

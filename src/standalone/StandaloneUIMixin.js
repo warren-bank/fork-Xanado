@@ -7,7 +7,6 @@ import "../../node_modules/jquery/dist/jquery.js";
 import "../../node_modules/jquery-ui/dist/jquery-ui.js";
 
 import { Game } from "../game/Game.js";
-import { Dictionaries } from "../game/Dictionaries.js";
 const Player = Game.CLASSES.Player;
 import { Edition } from "../game/Edition.js";
 import { BackendGame } from "../backend/BackendGame.js";
@@ -82,9 +81,9 @@ const StandaloneUIMixin = superclass => class extends superclass {
   args = undefined;
 
   /**
-   * @implements UI
+   * @implements UI#getSession
    * @instance
-   * @memberof browser/GameUIMixin
+   * @memberof standalone/StandaloneUIMixin
    * @override
    */
   getSession() {
@@ -94,18 +93,18 @@ const StandaloneUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * @implements UI
+   * @implements UI#getHistory
    * @instance
-   * @memberof browser/GameUIMixin
+   * @memberof standalone/StandaloneUIMixin
    * @override
    */
   getHistory() {
   }
 
   /**
-   * @implements UI
+   * @implements UI#getGameDefaults
    * @instance
-   * @memberof browser/GameUIMixin
+   * @memberof standalone/StandaloneUIMixin
    * @override
    */
   getGameDefaults() {
@@ -113,9 +112,9 @@ const StandaloneUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * @implements UI
+   * @implements UI#getSetting
    * @instance
-   * @memberof StandaloneUIMixin
+   * @memberof standalone/StandaloneUIMixin
    * @override
    */
   getSetting(key) {
@@ -124,9 +123,9 @@ const StandaloneUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * @implements UI
+   * @implements UI#setSetting
    * @instance
-   * @memberof StandaloneUIMixin
+   * @memberof standalone/StandaloneUIMixin
    * @override
    */
   setSetting(key, value) {
@@ -134,9 +133,9 @@ const StandaloneUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * @implements UI
+   * @implements UI#getCSS
+   * @memberof standalone/StandaloneUIMixin
    * @instance
-   * @memberof StandaloneUIMixin
    * @override
    */
   getCSS() {
@@ -144,9 +143,9 @@ const StandaloneUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * @implements UI
+   * @implements UI#getLocales
    * @instance
-   * @memberof StandaloneUIMixin
+   * @memberof standalone/StandaloneUIMixin
    * @override
    */
   getLocales() {
@@ -154,9 +153,9 @@ const StandaloneUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * @implements UI
+   * @implements UI#getEditions
    * @instance
-   * @memberof StandaloneUIMixin
+   * @memberof standalone/StandaloneUIMixin
    * @override
    */
   getEditions() {
@@ -164,9 +163,9 @@ const StandaloneUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * @implements UI
+   * @implements UI#getDictionaries
    * @instance
-   * @memberof StandaloneUIMixin
+   * @memberof standalone/StandaloneUIMixin
    * @override
    */
   getDictionaries() {
@@ -174,19 +173,9 @@ const StandaloneUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * @implements browser/GameUIMixin
+   * @implements browser/GameUIMixin#getEdition
    * @instance
-   * @memberof StandaloneUIMixin
-   * @override
-   */
-  getDictionary(dict) {
-    return Dictionaries.load(dict);
-  }
-
-  /**
-   * @implements browser/GameUIMixin
-   * @instance
-   * @memberof StandaloneUIMixin
+   * @memberof standalone/StandaloneUIMixin
    * @override
    */
   getEdition(ed) {
@@ -196,7 +185,7 @@ const StandaloneUIMixin = superclass => class extends superclass {
   /**
    * Create a new game using the options passed.
    * @instance
-   * @memberof StandaloneUIMixin
+   * @memberof standalone/StandaloneUIMixin
    * @param {object} vals game setup options
    * @return {Promise} resolves to the created game
    */
@@ -234,10 +223,8 @@ const StandaloneUIMixin = superclass => class extends superclass {
   /**
    * Change the URL to a new URL calculated to open the game with the
    * given key (which must have been saved)
-   * implements browser/GameUIMixin
    * @instance
-   * @memberof StandaloneUIMixin
-   * @override
+   * @memberof standalone/StandaloneUIMixin
    * @param {Key} key the key for the game to switch to
    */
   redirectToGame(key) {
@@ -250,15 +237,13 @@ const StandaloneUIMixin = superclass => class extends superclass {
   /**
    * Start the process of constructing the UI. Subclasses should
    * continue this process in their own create() methods.
-   * @implements browser/GameUIMixin
    * @instance
-   * @memberof StandaloneUIMixin
+   * @memberof standalone/StandaloneUIMixin
    */
   create() {
     this.args = UI.parseURLArguments(document.URL);
-    if (this.args.debug) {
+    if (this.args.debug)
       this.debug = console.debug;
-    }
 
     this.session.key = this.constructor.HUMAN_KEY;
   }

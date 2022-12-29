@@ -8,7 +8,6 @@ import "../../node_modules/socket.io/client-dist/socket.io.js";
 import "../../node_modules/jquery/dist/jquery.js";
 import "../../node_modules/jquery-ui/dist/jquery-ui.js";
 
-import { Dictionaries } from "../game/Dictionaries.js";
 import { Game } from "../game/Game.js";
 import { Tile } from "../game/Tile.js";
 import { UI } from "../browser/UI.js";
@@ -148,9 +147,8 @@ const ClientUIMixin = superclass => class extends superclass {
     return this.getGameDefaults()
     .then(() => {
       args = UI.parseURLArguments(document.URL);
-      if (args.debug) {
+      if (args.debug)
         this.debug = console.debug;
-      }
     })
     .then(() => this.getSession())
     .then(() => this.initTheme())
@@ -163,7 +161,10 @@ const ClientUIMixin = superclass => class extends superclass {
 
       $("#login-button")
       .on("click", () =>
-          import(/* webpackMode: "eager" */"../client/LoginDialog.js")
+          import(
+            /* webpackMode: "lazy" */
+            /* webpackChunkName: "LoginDialog" */
+            "../client/LoginDialog.js")
           .then(mod => new mod[Object.keys(mod)[0]]({
             // postAction is set in code
             postResult: () => window.location.reload(),
@@ -265,16 +266,6 @@ const ClientUIMixin = superclass => class extends superclass {
    */
   getDictionaries() {
     return $.get(`/dictionaries`);
-  }
-
-  /**
-   * @implements browser/GameUIMixin
-   * @instance
-   * @memberof client/ClientUIMixin
-   * @override
-   */
-  getDictionary(name) {
-    return Dictionaries.load(name);
   }
 
   /**

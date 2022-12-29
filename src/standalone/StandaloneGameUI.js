@@ -19,6 +19,9 @@ import { StandaloneUIMixin } from "./StandaloneUIMixin.js";
  * To keep the codebase consistent with the client-server model, we
  * have two copies of the game; one is the "client side" (the front end)
  * version, while the other is the "server" version (the back end).
+ * @extends UI
+ * @mixes browser/GameUIMixin
+ * @mixes standalone/StandaloneUIMixin
  */
 class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
 
@@ -130,7 +133,7 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
       } else {
         console.debug("Constructing new game");
         const setup = $.extend({}, StandaloneGameUI.DEFAULTS);
-        setup._debug = this.args.debug ? console.debug : () => {};
+        setup.debug = this.args.debug ? console.debug : undefined;
         return this.createGame(setup)
         .then(game => this.backendGame = game);
       }
@@ -152,7 +155,10 @@ class StandaloneGameUI extends StandaloneUIMixin(GameUIMixin(UI)) {
     .then(() => {
       $("#gameSetupButton")
       .on("click", () => {
-        import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
+        import(
+          /* webpackChunkName: "GameSetupDialog" */
+          /* webpackMode: "lazy" */
+          "../browser/GameSetupDialog.js")
         .then(mod => new mod[Object.keys(mod)[0]]({
           html: "standalone_GameSetupDialog",
           title: $.i18n("Game setup"),

@@ -56,10 +56,9 @@ const Undo = superclass => class extends superclass {
    */
   unconfirmGameOver(turn) {
     // Re-adjustscores from the delta
-    for (const key in turn.score) {
-      const delta = turn.score[key];
-      const player = this.getPlayerWithKey(key);
-      assert(player, key);
+    for (const delta of turn.score) {
+      const player = this.getPlayerWithKey(delta.key);
+      assert(player, delta.key);
       player.score -= (delta.time || 0) + (delta.tiles || 0);
     }
     this.state = Game.State.PLAYING;
@@ -83,7 +82,9 @@ const Undo = superclass => class extends superclass {
       this.bagToRack(turn.replacements, player);
     player.score -= turn.score;
     this.whosTurnKey = this.nextPlayer(player).key;
-    this._debug(`\tplayer now ${this.whosTurnKey}`,turn);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("\tplayer now", this.whosTurnKey, turn);
   }
 
   /**
@@ -109,7 +110,9 @@ const Undo = superclass => class extends superclass {
    */
   unchallenge(turn) {
     const player = this.getPlayerWithKey(turn.challengerKey);
-    this._debug("\t", stringify(player), "regained", turn.score);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("\t", stringify(player), "regained", turn.score);
     player.score -= turn.score;
     // TODO: Notify
   }
@@ -128,7 +131,9 @@ const Undo = superclass => class extends superclass {
    */
   undo(turn, quiet) {
     assert(this.allowUndo, "Cannot Undo");
-    this._debug(`un-${turn.type}`);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("un-", turn.type);
     switch (turn.type) {
     case Game.Turns.SWAPPED:
       this.unswap(turn, quiet);
@@ -170,7 +175,9 @@ const Undo = superclass => class extends superclass {
    */
   redo(turn) {
     const player = this.getPlayerWithKey(turn.playerKey);
-    this._debug("REDO", turn.type, turn);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("REDO", turn.type, turn);
     switch (turn.type) {
     case Game.Turns.SWAPPED:
       // Remove and return the expected tiles to the the unshaken bag
@@ -179,7 +186,9 @@ const Undo = superclass => class extends superclass {
       this.letterBag.predictable = true;
       this.letterBag.removeTiles(turn.replacements);
       this.letterBag.returnTiles(turn.replacements.map(t => new Tile(t)));
-      this._debug("\t-- swap");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\t-- swap");
       return this.swap(player, turn.placements)
       .then(() => delete this.letterBag.predictable);
     case Game.Turns.PLAYED:
@@ -187,23 +196,33 @@ const Undo = superclass => class extends superclass {
       // Remove and return
       this.letterBag.removeTiles(turn.replacements);
       this.letterBag.returnTiles(turn.replacements.map(t => new Tile(t)));
-      this._debug("\t-- play");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\t-- play");
       return this.play(player, turn)
       .then(() => delete this.letterBag.predictable);
     case Game.Turns.PASSED:
     case Game.Turns.TIMED_OUT:
-      this._debug("\t-- pass");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\t-- pass");
       return this.pass(player, turn.type);
     case Game.Turns.TOOK_BACK:
-      this._debug("\t-- takeBack");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\t-- takeBack");
       return this.takeBack(player, turn.type);
     case Game.Turns.CHALLENGE_WON:
     case Game.Turns.CHALLENGE_LOST:
-      this._debug("\t-- challenge");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\t-- challenge");
       return this.challenge(
         this.getPlayerWithKey(turn.challengerKey), player);
     case Game.Turns.GAME_ENDED:
-      this._debug("\t-- confirmGameOver");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\t-- confirmGameOver");
       return this.confirmGameOver(player, turn.endState);
     }
     /* istanbul ignore next */

@@ -31,6 +31,7 @@ const Player = BackendGame.CLASSES.Player;
  * @param {number} status HTTP status code
  * @param {string} essage error message
  * @param {Error?} error optional existing error
+ * @private
  */
 function replyAndThrow(res, status, message, error) {
   res.status(status).send(message);
@@ -43,6 +44,7 @@ function replyAndThrow(res, status, message, error) {
 /**
  * Send a 200 reply
  * @param {object} data data to send
+ * @private
  */
 function reply(res, data) {
   res.status(200).send(data);
@@ -93,10 +95,8 @@ class Server {
     this.config = config;
 
     /* istanbul ignore if */
-    if (config.debug_server)
-      this._debug = console.debug;
-    else
-      this._debug = () => {};
+    if (/^(server|all)$/i.test(config.debug))
+      this.debug = console.debug;
 
     // Add a couple of dynamically computed defaults that need to
     // be sent with /defaults
@@ -165,12 +165,16 @@ class Server {
     // html, images, css etc. The Content-type should be set
     // based on the file mime type (extension) but Express doesn't
     // always get it right.....
-    this._debug("static files from", staticRoot);
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("static files from", staticRoot);
     this.express.use(Express.static(staticRoot));
 
     // Debug report incoming requests
     this.express.use((req, res, next) => {
-      this._debug("f>s", req.method, req.url);
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("f>s", req.method, req.url);
       next();
     });
 
@@ -292,7 +296,9 @@ class Server {
     this.express.use((err, req, res, next) => {
       if (res.headersSent)
         return next(err);
-      this._debug("<-- 500", err);
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("<-- 500", err);
       return res.status(500).send(err.message);
     });
   }
@@ -320,8 +326,8 @@ class Server {
 
       this.games[key] = game;
       /* istanbul ignore if */
-      if (this.config.debug_game)
-        game._debug = console.debug;
+      if (/^(game|all)$/i.test(this.config.debug))
+        game.debug = console.debug;
 
       return game.playIfReady();
     });
@@ -334,7 +340,9 @@ class Server {
    * @private
    */
   socket_connect() {
-    this._debug("f>s connect");
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("f>s connect");
     this.updateMonitors();
   }
 
@@ -347,16 +355,22 @@ class Server {
    * @private
    */
   socket_disconnect(socket) {
-    this._debug("f>s disconnect");
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("f>s disconnect");
 
     // Remove any monitor using this socket
     const i = this.monitors.indexOf(socket);
     if (i >= 0) {
       // Game monitor has disconnected
-      this._debug("\tmonitor disconnected");
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("\tmonitor disconnected");
       this.monitors.slice(i, 1);
     } else
-      this._debug("\tanonymous disconnect");
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("\tanonymous disconnect");
     this.updateMonitors();
   }
 
@@ -367,7 +381,9 @@ class Server {
    * @private
    */
   socket_monitor(socket) {
-    this._debug("f>s monitor");
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("f>s monitor");
     this.monitors.push(socket);
   }
 
@@ -383,7 +399,9 @@ class Server {
    * @private
    */
   socket_join(socket, params) {
-    this._debug(
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug(
       "f>s join", params.playerKey, "joining", params.gameKey);
     this.loadGameFromDB(params.gameKey)
     .then(game => {
@@ -418,7 +436,9 @@ class Server {
       return;
 
     // Chat message
-    this._debug("f>s message", message);
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("f>s message", message);
     const mess = message.text.split(/\s+/);
     const verb = mess[0];
 
@@ -473,7 +493,9 @@ class Server {
    * @private
    */
   updateMonitors() {
-    this._debug("b>f update *");
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("b>f update *");
     this.monitors.forEach(socket => socket.emit(BackendGame.Notify.UPDATE));
   }
 
@@ -515,10 +537,12 @@ class Server {
             if (!uo.email) // no email
               return Platform.i18n("no-email",
                                    uo.name || uo.key);
-            this._debug(
-              subject,
-              `${uo.name}<${uo.email}> from `,
-              sender);
+            /* istanbul ignore if */
+            if (this.debug)
+              this.debug(
+                subject,
+                `${uo.name}<${uo.email}> from `,
+                sender);
             return this.config.mail.transport.sendMail({
               from: sender,
               to: uo.email,
@@ -711,9 +735,11 @@ class Server {
     .then(game => game.onLoad(this.db))
     .then(game => {
       /* istanbul ignore if */
-      if (this.config.debug_game)
-        game._debug = console.debug;
-      this._debug("Created game", game.stringify());
+      if (/^(game|all)$/i.test(this.config.debug))
+        game.debug = console.debug;
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("Created game", game.stringify());
       return game.save();
     })
     .then(game => reply(res, game.key))
@@ -763,7 +789,9 @@ class Server {
    */
   POST_sendReminder(req, res) {
     const gameKey = req.params.gameKey;
-    this._debug("Sending turn reminders to", gameKey);
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("Sending turn reminders to", gameKey);
     const gameURL =
           `${req.protocol}://${req.get("Host")}/game/${gameKey}`;
 
@@ -784,8 +812,10 @@ class Server {
         const player = game.getPlayer();
         if (!player)
           return undefined;
-        this._debug("Sending reminder mail to",
-                    `${player.name}/${player.key}`);
+        /* istanbul ignore if */
+        if (this.debug)
+          this.debug("Sending reminder mail to",
+                     `${player.name}/${player.key}`);
 
         const subject = Platform.i18n(
           "email-remind");
@@ -825,10 +855,14 @@ class Server {
       let player = game.getPlayerWithKey(playerKey);
       let prom;
       if (player) {
-        this._debug("Player", playerKey, "opening", gameKey);
+        /* istanbul ignore if */
+        if (this.debug)
+          this.debug("Player", playerKey, "opening", gameKey);
         prom = game.playIfReady();
       } else {
-        this._debug("Player", playerKey, "joining", gameKey);
+        /* istanbul ignore if */
+        if (this.debug)
+          this.debug("Player", playerKey, "joining", gameKey);
         player = new Player(
           { name: req.user.name, key: playerKey }, BackendGame.CLASSES);
         game.addPlayer(player, true);
@@ -864,7 +898,9 @@ class Server {
       if (game.hasRobot())
         replyAndThrow(res, 400, `Game ${gameKey} already has a robot`);
 
-      this._debug("Robot joining", gameKey, "with", dic);
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("Robot joining", gameKey, "with", dic);
       // Robot always has the same player key
       const robot = new Player({
         name: "Robot",
@@ -906,7 +942,9 @@ class Server {
       const robot = game.hasRobot();
       if (!robot)
         replyAndThrow(res, 400, `Game ${gameKey} doesn't have a robot`);
-      this._debug("Robot leaving", gameKey);
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("Robot leaving", gameKey);
       game.removePlayer(robot);
       return game.save()
       // Game may now be ready to start
@@ -936,7 +974,9 @@ class Server {
       const player = game.getPlayerWithKey(playerKey);
       if (!player)
         replyAndThrow(res, 400, `Player ${playerKey} is not in game ${gameKey}`);
-      this._debug("Player", playerKey, "leaving", gameKey);
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("Player", playerKey, "leaving", gameKey);
       // Note that if the player leaving dips the number
       // of players below minPlayers for the game, the
       // game state is reset to WAITING
@@ -997,7 +1037,9 @@ class Server {
     return this.loadGameFromDB(gameKey)
     .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
     .then(game => {
-      this._debug("Delete game", gameKey);
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("Delete game", gameKey);
       game.stopTheClock(); // in case it's running
       return this.db.rm(gameKey)
       .then(() => reply(res, gameKey))
@@ -1039,7 +1081,9 @@ class Server {
     const command = req.params.command;
     const gameKey = req.params.gameKey;
     const playerKey = req.user.key;
-    //this._debug("Handling", command, gameKey, playerKey);
+    /* istanbul ignore if */
+    //if (this.debug)
+    //  this.debug("Handling", command, gameKey, playerKey);
     return this.loadGameFromDB(gameKey)
     .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
     .then(game => {

@@ -11,15 +11,18 @@ import "../../node_modules/jquery-ui/dist/jquery-ui.js";
 import "./icon_button.js";
 
 import { stringify } from "../common/Utils.js";
+import { loadDictionary } from "../game/loadDictionary.js";
 import { Game } from "../game/Game.js";
 import { UI } from "./UI.js";
 import { UIEvents } from "./UIEvents.js";
 
+let BEEP;
+
 /* istanbul ignore next*/
 /**
  * Make a quiet noise.
+ * @private
  */
-let BEEP;
 function beep() {
   try {
     if (!BEEP)
@@ -119,14 +122,13 @@ const GameUIMixin = superclass => class extends superclass {
 
   /**
    * Get the named dictionary.
-   * Must be implemented by a sub-mixin or final class.
    * @memberof browser/GameUIMixin
    * @instance
    * @param {string?} name dictionary name
    * @return {Promise} resolving to a {@linkcode Dictionary}
    */
   getDictionary(name) {
-    assert.fail(`GameUIMixin.getDictionary ${name}`);
+    return loadDictionary(name);
   }
 
   /**
@@ -264,7 +266,7 @@ const GameUIMixin = superclass => class extends superclass {
    * @param {string} clock seconds left for this player to play
    */
   handle_TICK(params) {
-    // this.debug("f<b tick");
+    // if (this.debug) this.debug("f<b tick");
     if (params.gameKey !== this.game.key)
       console.error(`key mismatch ${this.game.key}`);
     $(".player-clock")

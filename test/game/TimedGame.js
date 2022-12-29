@@ -32,7 +32,7 @@ describe("game/TimedGame", function() {
       edition:"Test",
       dictionary:'Oxford_5000',
       //_debug: console.debug,
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       timerType: Game.Timer.TURN,
       timeAllowed: 1 / 60
     });
@@ -70,9 +70,10 @@ describe("game/TimedGame", function() {
         assert.equal(turn.gameKey, game.key);
         break;
       case 9:
-        assert.deepEqual(turn.score, {
-          human1: { tiles: -1, tilesRemaining: "A" },
-          human2: { tiles: -1, tilesRemaining: "A" }});
+        assert.deepEqual(turn.score, [
+          { key: "human1", tiles: -1, tilesRemaining: "A" },
+          { key: "human2", tiles: -1, tilesRemaining: "A" }
+        ]);
         assert.equal(turn.type, Game.Turns.GAME_ENDED);
         assert.equal(turn.endState, Game.State.TWO_PASSES);
         assert.equal(turn.gameKey, game.key);
@@ -116,7 +117,7 @@ describe("game/TimedGame", function() {
       edition:"Test",
       dictionary:'Oxford_5000',
       //_debug: console.debug,
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       timerType: Game.Timer.GAME,
       timeAllowed: 1 / 60,
       timePenalty: 60
@@ -158,13 +159,13 @@ describe("game/TimedGame", function() {
       case 7:
         assert.equal(turn.type, Game.Turns.GAME_ENDED);
         assert.equal(turn.endState, Game.State.TWO_PASSES);
-        assert.equal(turn.score.human1.tiles, -1);
-        assert.equal(turn.score.human2.tiles, -1);
+        assert.equal(turn.score[0].tiles, -1);
+        assert.equal(turn.score[1].tiles, -1);
         // Human 1 should be over-time by one clock tick, which
         // is 1/60th of a minute.
-        assert.equal(turn.score.human1.time, -1);
+        assert.equal(turn.score[0].time, -1);
         // human2 has no time penalty
-        assert(!turn.score.human2.time);
+        assert(!turn.score[1].time);
         assert.equal(turn.gameKey, game.key);
         assert(!turn.nextToGoKey);
         socket.done();

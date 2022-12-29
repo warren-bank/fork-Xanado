@@ -130,8 +130,7 @@
       }
      },
      "passes": 2,
-     "score": -11,
-     "isConnected": true
+     "score": -11
     }
    },
    {
@@ -263,8 +262,7 @@
       }
      },
      "passes": 2,
-     "score": 17,
-     "isConnected": true
+     "score": 17
     }
    }
   ],
@@ -894,28 +892,27 @@
     "_Í": 87,
     "_Ć": "Turn",
     "_Ð": {
-     "score": {
-      "_Í": 88,
-      "_Ð": {
-       "2v5oyt5qpi": {
-        "_Í": 89,
-        "_Ð": {
-         "tiles": -6
-        }
-       },
-       "49dabe7iua": {
-        "_Í": 90,
-        "_Ð": {
-         "tiles": -8
-        }
+     "score": [
+      {
+       "_Í": 89,
+       "_Ð": {
+        "key": "2v5oyt5qpi",
+        "tiles": -6
+       }
+      },
+      {
+       "_Í": 90,
+       "_Ð": {
+        "key": "49dabe7iua",
+        "tiles": -8
        }
       }
-     },
+     ],
      "type": "game-over",
      "gameKey": "e6c65400618fd8aa",
      "playerKey": "2v5oyt5qpi",
      "endState": "All players passed twice",
-     "timestamp": 1657029985350
+      "timestamp": 1657029985350
     }
    }
   ],
@@ -936,7 +933,6 @@
         "col": 0,
         "id": "Board_0x0",
         "row": 0,
-        "isOnBoard": true,
         "wordScoreMultiplier": 4
        }
       },
@@ -947,8 +943,7 @@
         "type": "_",
         "col": 0,
         "id": "Board_0x1",
-        "row": 1,
-        "isOnBoard": true
+        "row": 1
        }
       },
       {
@@ -958,8 +953,7 @@
         "type": "_",
         "col": 0,
         "id": "Board_0x2",
-        "row": 2,
-        "isOnBoard": true
+        "row": 2
        }
       },
       {
@@ -969,8 +963,7 @@
         "type": "_",
         "col": 0,
         "id": "Board_0x3",
-        "row": 3,
-        "isOnBoard": true
+        "row": 3
        }
       },
       {
@@ -980,8 +973,7 @@
         "type": "_",
         "col": 0,
         "id": "Board_0x4",
-        "row": 4,
-        "isOnBoard": true
+        "row": 4
        }
       },
       {
@@ -991,8 +983,7 @@
         "type": "_",
         "col": 0,
         "id": "Board_0x5",
-        "row": 5,
-        "isOnBoard": true
+        "row": 5
        }
       },
       {
@@ -1002,8 +993,7 @@
         "type": "_",
         "col": 0,
         "id": "Board_0x6",
-        "row": 6,
-        "isOnBoard": true
+        "row": 6
        }
       },
       {
@@ -1013,8 +1003,7 @@
         "type": "_",
         "col": 0,
         "id": "Board_0x7",
-        "row": 7,
-        "isOnBoard": true
+        "row": 7
        }
       },
       {
@@ -1024,8 +1013,7 @@
         "type": "_",
         "col": 0,
         "id": "Board_0x8",
-        "row": 8,
-        "isOnBoard": true
+        "row": 8
        }
       },
       {
@@ -1035,8 +1023,7 @@
         "type": "_",
         "col": 0,
         "id": "Board_0x9",
-        "row": 9,
-        "isOnBoard": true
+        "row": 9
        }
       },
       {
@@ -1047,7 +1034,6 @@
         "col": 0,
         "id": "Board_0x10",
         "row": 10,
-        "isOnBoard": true,
         "wordScoreMultiplier": 4
        }
       }
@@ -1060,8 +1046,7 @@
         "type": "_",
         "col": 1,
         "id": "Board_1x0",
-        "row": 0,
-        "isOnBoard": true
+        "row": 0
        }
       },
       {
@@ -1072,7 +1057,6 @@
         "col": 1,
         "id": "Board_1x1",
         "row": 1,
-        "isOnBoard": true,
         "letterScoreMultiplier": 4
        }
       },
@@ -1083,8 +1067,7 @@
         "type": "_",
         "col": 1,
         "id": "Board_1x2",
-        "row": 2,
-        "isOnBoard": true
+        "row": 2
        }
       },
       {
@@ -1094,8 +1077,7 @@
         "type": "_",
         "col": 1,
         "id": "Board_1x3",
-        "row": 3,
-        "isOnBoard": true
+        "row": 3
        }
       },
       {
@@ -1105,8 +1087,7 @@
         "type": "_",
         "col": 1,
         "id": "Board_1x4",
-        "row": 4,
-        "isOnBoard": true
+        "row": 4
        }
       },
       {
@@ -1116,8 +1097,7 @@
         "type": "_",
         "col": 1,
         "id": "Board_1x5",
-        "row": 5,
-        "isOnBoard": true
+        "row": 5
        }
       },
       {
@@ -1127,8 +1107,7 @@
         "type": "_",
         "col": 1,
         "id": "Board_1x6",
-        "row": 6,
-        "isOnBoard": true
+        "row": 6
        }
       },
       {
@@ -1138,8 +1117,7 @@
         "type": "_",
         "col": 1,
         "id": "Board_1x7",
-        "row": 7,
-        "isOnBoard": true
+        "row": 7
        }
       },
       {
@@ -1149,8 +1127,7 @@
         "type": "_",
         "col": 1,
         "id": "Board_1x8",
-        "row": 8,
-        "isOnBoard": true
+        "row": 8
        }
       },
       {
@@ -1161,7 +1138,6 @@
         "col": 1,
         "id": "Board_1x9",
         "row": 9,
-        "isOnBoard": true,
         "letterScoreMultiplier": 4
        }
       },
@@ -1172,8 +1148,7 @@
         "type": "_",
         "col": 1,
         "id": "Board_1x10",
-        "row": 10,
-        "isOnBoard": true
+        "row": 10
        }
       }
      ],
@@ -1185,8 +1160,7 @@
         "type": "_",
         "col": 2,
         "id": "Board_2x0",
-        "row": 0,
-        "isOnBoard": true
+        "row": 0
        }
       },
       {
@@ -1196,8 +1170,7 @@
         "type": "_",
         "col": 2,
         "id": "Board_2x1",
-        "row": 1,
-        "isOnBoard": true
+        "row": 1
        }
       },
       {
@@ -1208,7 +1181,6 @@
         "col": 2,
         "id": "Board_2x2",
         "row": 2,
-        "isOnBoard": true,
         "wordScoreMultiplier": 3
        }
       },
@@ -1219,8 +1191,7 @@
         "type": "_",
         "col": 2,
         "id": "Board_2x3",
-        "row": 3,
-        "isOnBoard": true
+        "row": 3
        }
       },
       {
@@ -1230,8 +1201,7 @@
         "type": "_",
         "col": 2,
         "id": "Board_2x4",
-        "row": 4,
-        "isOnBoard": true
+        "row": 4
        }
       },
       {
@@ -1242,7 +1212,6 @@
         "col": 2,
         "id": "Board_2x5",
         "row": 5,
-        "isOnBoard": true,
         "tile": {
          "_Í": 120,
          "_Ć": "Tile",
@@ -1263,8 +1232,7 @@
         "type": "_",
         "col": 2,
         "id": "Board_2x6",
-        "row": 6,
-        "isOnBoard": true
+        "row": 6
        }
       },
       {
@@ -1274,8 +1242,7 @@
         "type": "_",
         "col": 2,
         "id": "Board_2x7",
-        "row": 7,
-        "isOnBoard": true
+        "row": 7
        }
       },
       {
@@ -1286,7 +1253,6 @@
         "col": 2,
         "id": "Board_2x8",
         "row": 8,
-        "isOnBoard": true,
         "wordScoreMultiplier": 3
        }
       },
@@ -1297,8 +1263,7 @@
         "type": "_",
         "col": 2,
         "id": "Board_2x9",
-        "row": 9,
-        "isOnBoard": true
+        "row": 9
        }
       },
       {
@@ -1308,8 +1273,7 @@
         "type": "_",
         "col": 2,
         "id": "Board_2x10",
-        "row": 10,
-        "isOnBoard": true
+        "row": 10
        }
       }
      ],
@@ -1321,8 +1285,7 @@
         "type": "_",
         "col": 3,
         "id": "Board_3x0",
-        "row": 0,
-        "isOnBoard": true
+        "row": 0
        }
       },
       {
@@ -1332,8 +1295,7 @@
         "type": "_",
         "col": 3,
         "id": "Board_3x1",
-        "row": 1,
-        "isOnBoard": true
+        "row": 1
        }
       },
       {
@@ -1343,8 +1305,7 @@
         "type": "_",
         "col": 3,
         "id": "Board_3x2",
-        "row": 2,
-        "isOnBoard": true
+        "row": 2
        }
       },
       {
@@ -1355,7 +1316,6 @@
         "col": 3,
         "id": "Board_3x3",
         "row": 3,
-        "isOnBoard": true,
         "letterScoreMultiplier": 3
        }
       },
@@ -1366,8 +1326,7 @@
         "type": "_",
         "col": 3,
         "id": "Board_3x4",
-        "row": 4,
-        "isOnBoard": true
+        "row": 4
        }
       },
       {
@@ -1378,7 +1337,6 @@
         "col": 3,
         "id": "Board_3x5",
         "row": 5,
-        "isOnBoard": true,
         "tile": {
          "_Í": 132,
          "_Ć": "Tile",
@@ -1399,8 +1357,7 @@
         "type": "_",
         "col": 3,
         "id": "Board_3x6",
-        "row": 6,
-        "isOnBoard": true
+        "row": 6
        }
       },
       {
@@ -1411,7 +1368,6 @@
         "col": 3,
         "id": "Board_3x7",
         "row": 7,
-        "isOnBoard": true,
         "letterScoreMultiplier": 3
        }
       },
@@ -1422,8 +1378,7 @@
         "type": "_",
         "col": 3,
         "id": "Board_3x8",
-        "row": 8,
-        "isOnBoard": true
+        "row": 8
        }
       },
       {
@@ -1433,8 +1388,7 @@
         "type": "_",
         "col": 3,
         "id": "Board_3x9",
-        "row": 9,
-        "isOnBoard": true
+        "row": 9
        }
       },
       {
@@ -1444,8 +1398,7 @@
         "type": "_",
         "col": 3,
         "id": "Board_3x10",
-        "row": 10,
-        "isOnBoard": true
+        "row": 10
        }
       }
      ],
@@ -1457,8 +1410,7 @@
         "type": "_",
         "col": 4,
         "id": "Board_4x0",
-        "row": 0,
-        "isOnBoard": true
+        "row": 0
        }
       },
       {
@@ -1468,8 +1420,7 @@
         "type": "_",
         "col": 4,
         "id": "Board_4x1",
-        "row": 1,
-        "isOnBoard": true
+        "row": 1
        }
       },
       {
@@ -1479,8 +1430,7 @@
         "type": "_",
         "col": 4,
         "id": "Board_4x2",
-        "row": 2,
-        "isOnBoard": true
+        "row": 2
        }
       },
       {
@@ -1490,8 +1440,7 @@
         "type": "_",
         "col": 4,
         "id": "Board_4x3",
-        "row": 3,
-        "isOnBoard": true
+        "row": 3
        }
       },
       {
@@ -1502,7 +1451,6 @@
         "col": 4,
         "id": "Board_4x4",
         "row": 4,
-        "isOnBoard": true,
         "letterScoreMultiplier": 2
        }
       },
@@ -1514,7 +1462,6 @@
         "col": 4,
         "id": "Board_4x5",
         "row": 5,
-        "isOnBoard": true,
         "tile": {
          "_Í": 144,
          "_Ć": "Tile",
@@ -1536,7 +1483,6 @@
         "col": 4,
         "id": "Board_4x6",
         "row": 6,
-        "isOnBoard": true,
         "letterScoreMultiplier": 2
        }
       },
@@ -1547,8 +1493,7 @@
         "type": "_",
         "col": 4,
         "id": "Board_4x7",
-        "row": 7,
-        "isOnBoard": true
+        "row": 7
        }
       },
       {
@@ -1558,8 +1503,7 @@
         "type": "_",
         "col": 4,
         "id": "Board_4x8",
-        "row": 8,
-        "isOnBoard": true
+        "row": 8
        }
       },
       {
@@ -1569,8 +1513,7 @@
         "type": "_",
         "col": 4,
         "id": "Board_4x9",
-        "row": 9,
-        "isOnBoard": true
+        "row": 9
        }
       },
       {
@@ -1580,8 +1523,7 @@
         "type": "_",
         "col": 4,
         "id": "Board_4x10",
-        "row": 10,
-        "isOnBoard": true
+        "row": 10
        }
       }
      ],
@@ -1593,8 +1535,7 @@
         "type": "_",
         "col": 5,
         "id": "Board_5x0",
-        "row": 0,
-        "isOnBoard": true
+        "row": 0
        }
       },
       {
@@ -1604,8 +1545,7 @@
         "type": "_",
         "col": 5,
         "id": "Board_5x1",
-        "row": 1,
-        "isOnBoard": true
+        "row": 1
        }
       },
       {
@@ -1615,8 +1555,7 @@
         "type": "_",
         "col": 5,
         "id": "Board_5x2",
-        "row": 2,
-        "isOnBoard": true
+        "row": 2
        }
       },
       {
@@ -1626,8 +1565,7 @@
         "type": "_",
         "col": 5,
         "id": "Board_5x3",
-        "row": 3,
-        "isOnBoard": true
+        "row": 3
        }
       },
       {
@@ -1637,8 +1575,7 @@
         "type": "_",
         "col": 5,
         "id": "Board_5x4",
-        "row": 4,
-        "isOnBoard": true
+        "row": 4
        }
       },
       {
@@ -1649,7 +1586,6 @@
         "col": 5,
         "id": "Board_5x5",
         "row": 5,
-        "isOnBoard": true,
         "wordScoreMultiplier": 2,
         "tile": {
          "_Í": 156,
@@ -1671,8 +1607,7 @@
         "type": "_",
         "col": 5,
         "id": "Board_5x6",
-        "row": 6,
-        "isOnBoard": true
+        "row": 6
        }
       },
       {
@@ -1682,8 +1617,7 @@
         "type": "_",
         "col": 5,
         "id": "Board_5x7",
-        "row": 7,
-        "isOnBoard": true
+        "row": 7
        }
       },
       {
@@ -1693,8 +1627,7 @@
         "type": "_",
         "col": 5,
         "id": "Board_5x8",
-        "row": 8,
-        "isOnBoard": true
+        "row": 8
        }
       },
       {
@@ -1704,8 +1637,7 @@
         "type": "_",
         "col": 5,
         "id": "Board_5x9",
-        "row": 9,
-        "isOnBoard": true
+        "row": 9
        }
       },
       {
@@ -1715,8 +1647,7 @@
         "type": "_",
         "col": 5,
         "id": "Board_5x10",
-        "row": 10,
-        "isOnBoard": true
+        "row": 10
        }
       }
      ],
@@ -1728,8 +1659,7 @@
         "type": "_",
         "col": 6,
         "id": "Board_6x0",
-        "row": 0,
-        "isOnBoard": true
+        "row": 0
        }
       },
       {
@@ -1739,8 +1669,7 @@
         "type": "_",
         "col": 6,
         "id": "Board_6x1",
-        "row": 1,
-        "isOnBoard": true
+        "row": 1
        }
       },
       {
@@ -1750,8 +1679,7 @@
         "type": "_",
         "col": 6,
         "id": "Board_6x2",
-        "row": 2,
-        "isOnBoard": true
+        "row": 2
        }
       },
       {
@@ -1761,8 +1689,7 @@
         "type": "_",
         "col": 6,
         "id": "Board_6x3",
-        "row": 3,
-        "isOnBoard": true
+        "row": 3
        }
       },
       {
@@ -1773,7 +1700,6 @@
         "col": 6,
         "id": "Board_6x4",
         "row": 4,
-        "isOnBoard": true,
         "letterScoreMultiplier": 2
        }
       },
@@ -1784,8 +1710,7 @@
         "type": "_",
         "col": 6,
         "id": "Board_6x5",
-        "row": 5,
-        "isOnBoard": true
+        "row": 5
        }
       },
       {
@@ -1796,7 +1721,6 @@
         "col": 6,
         "id": "Board_6x6",
         "row": 6,
-        "isOnBoard": true,
         "letterScoreMultiplier": 2
        }
       },
@@ -1807,8 +1731,7 @@
         "type": "_",
         "col": 6,
         "id": "Board_6x7",
-        "row": 7,
-        "isOnBoard": true
+        "row": 7
        }
       },
       {
@@ -1818,8 +1741,7 @@
         "type": "_",
         "col": 6,
         "id": "Board_6x8",
-        "row": 8,
-        "isOnBoard": true
+        "row": 8
        }
       },
       {
@@ -1829,8 +1751,7 @@
         "type": "_",
         "col": 6,
         "id": "Board_6x9",
-        "row": 9,
-        "isOnBoard": true
+        "row": 9
        }
       },
       {
@@ -1840,8 +1761,7 @@
         "type": "_",
         "col": 6,
         "id": "Board_6x10",
-        "row": 10,
-        "isOnBoard": true
+        "row": 10
        }
       }
      ],
@@ -1853,8 +1773,7 @@
         "type": "_",
         "col": 7,
         "id": "Board_7x0",
-        "row": 0,
-        "isOnBoard": true
+        "row": 0
        }
       },
       {
@@ -1864,8 +1783,7 @@
         "type": "_",
         "col": 7,
         "id": "Board_7x1",
-        "row": 1,
-        "isOnBoard": true
+        "row": 1
        }
       },
       {
@@ -1875,8 +1793,7 @@
         "type": "_",
         "col": 7,
         "id": "Board_7x2",
-        "row": 2,
-        "isOnBoard": true
+        "row": 2
        }
       },
       {
@@ -1887,7 +1804,6 @@
         "col": 7,
         "id": "Board_7x3",
         "row": 3,
-        "isOnBoard": true,
         "letterScoreMultiplier": 3
        }
       },
@@ -1898,8 +1814,7 @@
         "type": "_",
         "col": 7,
         "id": "Board_7x4",
-        "row": 4,
-        "isOnBoard": true
+        "row": 4
        }
       },
       {
@@ -1909,8 +1824,7 @@
         "type": "_",
         "col": 7,
         "id": "Board_7x5",
-        "row": 5,
-        "isOnBoard": true
+        "row": 5
        }
       },
       {
@@ -1920,8 +1834,7 @@
         "type": "_",
         "col": 7,
         "id": "Board_7x6",
-        "row": 6,
-        "isOnBoard": true
+        "row": 6
        }
       },
       {
@@ -1932,7 +1845,6 @@
         "col": 7,
         "id": "Board_7x7",
         "row": 7,
-        "isOnBoard": true,
         "letterScoreMultiplier": 3
        }
       },
@@ -1943,8 +1855,7 @@
         "type": "_",
         "col": 7,
         "id": "Board_7x8",
-        "row": 8,
-        "isOnBoard": true
+        "row": 8
        }
       },
       {
@@ -1954,8 +1865,7 @@
         "type": "_",
         "col": 7,
         "id": "Board_7x9",
-        "row": 9,
-        "isOnBoard": true
+        "row": 9
        }
       },
       {
@@ -1965,8 +1875,7 @@
         "type": "_",
         "col": 7,
         "id": "Board_7x10",
-        "row": 10,
-        "isOnBoard": true
+        "row": 10
        }
       }
      ],
@@ -1978,8 +1887,7 @@
         "type": "_",
         "col": 8,
         "id": "Board_8x0",
-        "row": 0,
-        "isOnBoard": true
+        "row": 0
        }
       },
       {
@@ -1989,8 +1897,7 @@
         "type": "_",
         "col": 8,
         "id": "Board_8x1",
-        "row": 1,
-        "isOnBoard": true
+        "row": 1
        }
       },
       {
@@ -2001,7 +1908,6 @@
         "col": 8,
         "id": "Board_8x2",
         "row": 2,
-        "isOnBoard": true,
         "wordScoreMultiplier": 3
        }
       },
@@ -2012,8 +1918,7 @@
         "type": "_",
         "col": 8,
         "id": "Board_8x3",
-        "row": 3,
-        "isOnBoard": true
+        "row": 3
        }
       },
       {
@@ -2023,8 +1928,7 @@
         "type": "_",
         "col": 8,
         "id": "Board_8x4",
-        "row": 4,
-        "isOnBoard": true
+        "row": 4
        }
       },
       {
@@ -2034,8 +1938,7 @@
         "type": "_",
         "col": 8,
         "id": "Board_8x5",
-        "row": 5,
-        "isOnBoard": true
+        "row": 5
        }
       },
       {
@@ -2045,8 +1948,7 @@
         "type": "_",
         "col": 8,
         "id": "Board_8x6",
-        "row": 6,
-        "isOnBoard": true
+        "row": 6
        }
       },
       {
@@ -2056,8 +1958,7 @@
         "type": "_",
         "col": 8,
         "id": "Board_8x7",
-        "row": 7,
-        "isOnBoard": true
+        "row": 7
        }
       },
       {
@@ -2068,7 +1969,6 @@
         "col": 8,
         "id": "Board_8x8",
         "row": 8,
-        "isOnBoard": true,
         "wordScoreMultiplier": 3
        }
       },
@@ -2079,8 +1979,7 @@
         "type": "_",
         "col": 8,
         "id": "Board_8x9",
-        "row": 9,
-        "isOnBoard": true
+        "row": 9
        }
       },
       {
@@ -2090,8 +1989,7 @@
         "type": "_",
         "col": 8,
         "id": "Board_8x10",
-        "row": 10,
-        "isOnBoard": true
+        "row": 10
        }
       }
      ],
@@ -2103,8 +2001,7 @@
         "type": "_",
         "col": 9,
         "id": "Board_9x0",
-        "row": 0,
-        "isOnBoard": true
+        "row": 0
        }
       },
       {
@@ -2115,7 +2012,6 @@
         "col": 9,
         "id": "Board_9x1",
         "row": 1,
-        "isOnBoard": true,
         "letterScoreMultiplier": 4
        }
       },
@@ -2126,8 +2022,7 @@
         "type": "_",
         "col": 9,
         "id": "Board_9x2",
-        "row": 2,
-        "isOnBoard": true
+        "row": 2
        }
       },
       {
@@ -2137,8 +2032,7 @@
         "type": "_",
         "col": 9,
         "id": "Board_9x3",
-        "row": 3,
-        "isOnBoard": true
+        "row": 3
        }
       },
       {
@@ -2148,8 +2042,7 @@
         "type": "_",
         "col": 9,
         "id": "Board_9x4",
-        "row": 4,
-        "isOnBoard": true
+        "row": 4
        }
       },
       {
@@ -2159,8 +2052,7 @@
         "type": "_",
         "col": 9,
         "id": "Board_9x5",
-        "row": 5,
-        "isOnBoard": true
+        "row": 5
        }
       },
       {
@@ -2170,8 +2062,7 @@
         "type": "_",
         "col": 9,
         "id": "Board_9x6",
-        "row": 6,
-        "isOnBoard": true
+        "row": 6
        }
       },
       {
@@ -2181,8 +2072,7 @@
         "type": "_",
         "col": 9,
         "id": "Board_9x7",
-        "row": 7,
-        "isOnBoard": true
+        "row": 7
        }
       },
       {
@@ -2192,8 +2082,7 @@
         "type": "_",
         "col": 9,
         "id": "Board_9x8",
-        "row": 8,
-        "isOnBoard": true
+        "row": 8
        }
       },
       {
@@ -2204,7 +2093,6 @@
         "col": 9,
         "id": "Board_9x9",
         "row": 9,
-        "isOnBoard": true,
         "letterScoreMultiplier": 4
        }
       },
@@ -2215,8 +2103,7 @@
         "type": "_",
         "col": 9,
         "id": "Board_9x10",
-        "row": 10,
-        "isOnBoard": true
+        "row": 10
        }
       }
      ],
@@ -2229,7 +2116,6 @@
         "col": 10,
         "id": "Board_10x0",
         "row": 0,
-        "isOnBoard": true,
         "wordScoreMultiplier": 4
        }
       },
@@ -2240,8 +2126,7 @@
         "type": "_",
         "col": 10,
         "id": "Board_10x1",
-        "row": 1,
-        "isOnBoard": true
+        "row": 1
        }
       },
       {
@@ -2251,8 +2136,7 @@
         "type": "_",
         "col": 10,
         "id": "Board_10x2",
-        "row": 2,
-        "isOnBoard": true
+        "row": 2
        }
       },
       {
@@ -2262,8 +2146,7 @@
         "type": "_",
         "col": 10,
         "id": "Board_10x3",
-        "row": 3,
-        "isOnBoard": true
+        "row": 3
        }
       },
       {
@@ -2273,8 +2156,7 @@
         "type": "_",
         "col": 10,
         "id": "Board_10x4",
-        "row": 4,
-        "isOnBoard": true
+        "row": 4
        }
       },
       {
@@ -2284,8 +2166,7 @@
         "type": "_",
         "col": 10,
         "id": "Board_10x5",
-        "row": 5,
-        "isOnBoard": true
+        "row": 5
        }
       },
       {
@@ -2295,8 +2176,7 @@
         "type": "_",
         "col": 10,
         "id": "Board_10x6",
-        "row": 6,
-        "isOnBoard": true
+        "row": 6
        }
       },
       {
@@ -2306,8 +2186,7 @@
         "type": "_",
         "col": 10,
         "id": "Board_10x7",
-        "row": 7,
-        "isOnBoard": true
+        "row": 7
        }
       },
       {
@@ -2317,8 +2196,7 @@
         "type": "_",
         "col": 10,
         "id": "Board_10x8",
-        "row": 8,
-        "isOnBoard": true
+        "row": 8
        }
       },
       {
@@ -2328,8 +2206,7 @@
         "type": "_",
         "col": 10,
         "id": "Board_10x9",
-        "row": 9,
-        "isOnBoard": true
+        "row": 9
        }
       },
       {
@@ -2340,7 +2217,6 @@
         "col": 10,
         "id": "Board_10x10",
         "row": 10,
-        "isOnBoard": true,
         "wordScoreMultiplier": 4
        }
       }

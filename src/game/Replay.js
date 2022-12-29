@@ -46,8 +46,8 @@ const Replay = superclass => class extends superclass {
     this.letterBag = new LetterBag(this.game.letterBag);
     this.board = new Board(Game.CLASSES, this.game.board);
     this.bonuses = this.game.bonuses;
-    this.rackSize = this.game.rackCount;
-    this.swapSize = this.game.swapCount;
+    this.rackSize = this.game.rackSize;
+    this.swapSize = this.game.swapSize;
     this.state = Game.State.PLAYING;
     this.whosTurnKey = this.game.turns[0].playerKey;
 
@@ -59,7 +59,9 @@ const Replay = superclass => class extends superclass {
       np.passes = p.passes;
       np.score = p.score;
       this.addPlayer(np);
-      this._debug("\tlast rack for", np.key, "was", np.rack.stringify());
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\tlast rack for", np.key, "was", np.rack.stringify());
     }
 
     // Copy the board
@@ -77,7 +79,9 @@ const Replay = superclass => class extends superclass {
     // Could use Undo to do this, but it's overkill as we don't need
     // (or want) to modify the board
     const turns = this.game.turns;
-    this._debug("unwrap", turns.length, "turns");
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("unwrap", turns.length, "turns");
     for (let i = this.game.turns.length - 1; i >= 0; i--) {
       const turn = this.game.turns[i];
       this.undo(turn, true);
@@ -97,10 +101,15 @@ const Replay = superclass => class extends superclass {
 
     for (const pl of this.players) {
       pl.missNextTurn = false;
-      this._debug("Start player", pl.stringify());
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("Start player", pl.stringify());
     }
-    this._debug("Start bag", this.letterBag.stringify());
-    this._debug("--------------------------------");
+    /* istanbul ignore if */
+    if (this._debug) {
+      this._debug("Start bag", this.letterBag.stringify());
+      this._debug("--------------------------------");
+    }
 
     return this;
   }
@@ -118,9 +127,12 @@ const Replay = superclass => class extends superclass {
     turn.gameKey = this.key;
     return this.redo(turn) // redo comes from Undo.js
     .then(() => {
-      for (const pl of this.players)
-        this._debug(pl.stringify());
-      this._debug("---------------------");
+      /* istanbul ignore if */
+      if (this._debug) {
+        for (const pl of this.players)
+          this._debug(pl.stringify());
+        this._debug("---------------------");
+      }
       return turn;
     });
   }

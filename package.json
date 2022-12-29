@@ -12,7 +12,7 @@
 		"url": "git://github.com/cdot/Xanado"
 	},
 	"publishConfig": {
-		"registry": "https://npm.pkg.github.com/",
+		"registry": "https://registry.npmjs.org/",
 		"access": "public"
 	},
 	"files": [
@@ -32,14 +32,10 @@
 		"package.json",
 		"src/*/*.js"
 	],
-	"main": "server",
-	"engines": {
-		"node": ">=12.0.0"
-	},
 	"license": "MIT",
 	"dependencies": {
-		"@cdot/cbor": "github:cdot/CBOR",
-		"@cdot/dictionary": "github:cdot/dictionary",
+		"@cdot/cbor": "latest",
+		"@cdot/dictionary": "latest",
 		"@rwap/jquery-ui-touch-punch": "github:RWAP/jquery-ui-touch-punch",
 		"@wikimedia/jquery.i18n": "latest",
 		"async-lock": "latest",
@@ -58,7 +54,8 @@
 		"posix-getopt": "latest",
 		"proper-lockfile": "latest",
 		"session-file-store": "latest",
-		"socket.io": "latest"
+		"socket.io": "latest",
+		"web-worker": "^1.2.0"
 	},
 	"importmap": "./build/importmap.json",
 	"devDependencies": {
@@ -68,8 +65,9 @@
 		"css": "latest",
 		"docdash": "latest",
 		"eslint": "latest",
+		"eslint-plugin-import": "^2.26.0",
 		"esprima": "latest",
-		"html-loader": "^4.2.0",
+		"html-loader": "latest",
 		"jsdoc": "latest",
 		"jsdom": "latest",
 		"marked": "latest",
@@ -82,15 +80,15 @@
 	"scripts": {
 		"build": "node bin/update-indexes;(webpack -c build/wp_sa_games.js & webpack -c build/wp_sa_game.js & webpack -c build/wp_cl_games.js & webpack -c build/wp_cl_game.js)",
 		"server": "node bin/server.js",
-		"start": "node bin/server.js --debug_game --debug_server",
-		"debug": "node bin/server.js --debug_game --debug_server",
-		"doc": "jsdoc --verbose -c build/jsdoc_config.json -R DEVELOPING.md -r -d doc src",
+		"start": "node bin/server.js",
+		"debug": "node bin/server.js --config config.json --debug all",
+		"doc": "jsdoc -c build/jsdoc_config.json src",
 		"lint": "eslint src -f unix",
 		"test": "mocha --recursive --extension js --timeout=5000 test",
 		"coverage": "NODE_ENV=test c8 --reporter=html --reporter text npm run test",
 		"tx": "node bin/checkStrings.js",
 		"update": "ncu -u ",
-		"docker": "docker build . --tag xanado"
+		"docker": "npm run build; docker build . --tag xanado --file build/Dockerfile"
 	},
 	"eslintConfig": {
 		"extends": "eslint:recommended",
@@ -105,10 +103,22 @@
 		"globals": {
 			"assert": "writable"
 		},
+		"plugins": [
+			"import"
+		],
 		"rules": {
 			"camelcase": 0,
 			"curly": 0,
 			"dot-notation": 1,
+			"import/no-unresolved": "error",
+			"import/named": "error",
+			"import/namespace": "error",
+			"import/default": "error",
+			"import/export": "error",
+			"import/no-named-as-default": "warn",
+			"import/no-named-as-default-member": "warn",
+			"import/no-duplicates": "warn",
+			"import/first": 0,
 			"new-cap": 0,
 			"no-alert": 0,
 			"no-console": 0,

@@ -2,7 +2,11 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 
-/* global Platform */
+/* global postMessage */
+/* global addEventListener */
+/* global close */
+/* global window */
+/* global global */
 
 import { BackendGame } from "./BackendGame.js";
 import { findBestPlay } from "../game/findBestPlay.js";

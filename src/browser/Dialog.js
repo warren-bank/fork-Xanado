@@ -21,10 +21,6 @@
  * Alternatively (or additionally), the `onSubmit` option can be set to
  * a function that will be called with `this` when the submit button
  * is pressed, *before* the `postAction` is sent.
- *
- * Note that each dialog id has a single Dialog instance associated
- * with it. You cannot have two of the same type of dialog visible
- * at once.
  */
 class Dialog {
 

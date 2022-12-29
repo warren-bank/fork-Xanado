@@ -3,8 +3,6 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-/* global Platform*/
-
 import "../../node_modules/jquery/dist/jquery.js";
 import "../../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.js";
 import "../../node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.language.js";
@@ -45,7 +43,7 @@ class UI {
    */
   alert(args, title) {
     debugger;
-    console.error("REPORT", typeof args, args);
+    console.error("ALERT", typeof args, args);
 
     // Handle a jqXHR
     if (typeof args === "object") {
@@ -247,7 +245,7 @@ class UI {
    */
   getSetting(key) {
     /* istanbul ignore next */
-    return undefined;
+    return key;
   }
 
   /**
@@ -336,7 +334,10 @@ class UI {
   attachUIEventHandlers() {
     $("#personaliseButton")
     .on("click", () => {
-      import(/* webpackMode: "eager" */"../browser/SettingsDialog.js")
+      import(
+        /* webpackMode: "lazy" */
+        /* webpackChunkName: "SettingsDialog" */
+        "../browser/SettingsDialog.js")
       .then(mod => new mod[Object.keys(mod)[0]]({
         ui: this,
         onSubmit: (dlg, vals) => {

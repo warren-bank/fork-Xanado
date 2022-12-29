@@ -6,7 +6,7 @@
 /**
  * This is the browser implementation of common/Database.
  */
-import { Database } from "../common/Database.js";
+//import { Database } from "../common/Database.js";
 
 /* global localStorage */
 
@@ -15,6 +15,7 @@ import { Database } from "../common/Database.js";
  * encoded string, suitable for use in a Data-URI
  * @param {Uint8Array} a8 the Uint8Array to convert
  * @return {string} Base64 bytes (using MIME encoding)
+ * @private
  */
 function Uint8ArrayToBase64(a8) {
   let nMod3 = 2;
@@ -60,6 +61,7 @@ function Uint8ArrayToBase64(a8) {
  * 8-bit data
  * @param {string} sB64Enc the String to convert
  * @return {Uint8Array}
+ * @private
  */
 function Base64ToUint8Array(sB64) {
   const sB64Enc = sB64.replace(/[^A-Za-z0-9+/]/g, ""); // == and =
@@ -101,7 +103,7 @@ function Base64ToUint8Array(sB64) {
  * in the browser, using localStorage.
  * @implements Database
  */
-class BrowserDatabase extends Database {
+class BrowserDatabase /* extends Database */ {
 
   keys() {
     const keys = [];

@@ -13,12 +13,11 @@ import Session from "express-session";
 import SessionFileStore from "session-file-store";
 import Passport from "passport";
 import { Strategy } from "passport-strategy";
-
 import Path from "path";
 import { fileURLToPath } from 'url';
 const __dirname = Path.dirname(fileURLToPath(import.meta.url));
 
-import { genKey } from "../common/Utils.js";
+import { genKey, stringify } from "../common/Utils.js";
 
 const dbLock = new AsyncLock();
 
@@ -130,10 +129,9 @@ class UserManager {
     this.db = undefined;
 
     /* istanbul ignore if */
-    if (config.debug_server)
-      this._debug = console.debug;
-    else
-      this._debug = () => {};
+    if (/^(users|all)$/i.test(config.debug))
+      this.debug = console.debug;
+
     // Passport requires express Session to be configured
     const FileStore = SessionFileStore(Session);
     app.use(Session({
@@ -141,6 +139,7 @@ class UserManager {
       secret: (config.auth ? config.auth.session_secret : undefined)
       || genKey(),
       store: new FileStore({
+        logFn: this.debug ? console.debug : () => {},
         path: UserManager.SESSIONS_DIR,
         ttl: 24 * 60 * 60 // keep sessions around for 24h
       }),
@@ -150,20 +149,20 @@ class UserManager {
 
     app.use(Passport.initialize());
 
-    // Same as app.use(passport.authenticate("session"));
+    // Connect Passport to the expression Session middleware.
     app.use(Passport.session());
 
     Passport.serializeUser((userObject, done) => {
       // Decide what info from the user object loaded from
       // the DB needs to be shadowed in the session as
       // req.user
-      //this._debug("serializeUser", userObject);
+      //this.debug("UserManager: serializeUser", userObject);
       done(null, userObject);
     });
 
     Passport.deserializeUser((userObject, done) => {
       // Session active, look it up to get user
-      //this._debug("deserializeUser",userObject);
+      //this.debug("UserManager: deserializeUser",userObject);
       // attach user object as req.user
       done(null, userObject);
     });
@@ -174,22 +173,17 @@ class UserManager {
 
     // Load and configure oauth2 strategies
     const strategies = [];
-    /* istanbul ignore if */
     if (this.config.auth && this.config.auth.oauth2) {
       for (let provider in this.config.auth.oauth2) {
-        strategies.push(new Promise(resolve => {
-          const cfg = this.config.auth.oauth2[provider];
-          // .module is used to override the strategy name
-          // needed because passport-google-oauth20 declares
-          // strategy "google"
-          const module = cfg.module || `passport-${provider}`;
+        const cfg = this.config.auth.oauth2[provider];
+        // .module is used to override the strategy name
+        // needed because passport-google-oauth20 declares
+        // strategy "google"
+        const module = cfg.module || `passport-${provider}`;
+        strategies.push(
           import(module)
-          .then(strategy => {
-            debugger;
-            this.setUpOAuth2Strategy(strategy, provider, cfg, app);
-            resolve();
-          });
-        }));
+          .then(mod =>
+                this.setUpOAuth2Strategy(mod.Strategy, provider, cfg, app)));
       }
     }
     Promise.all(strategies);
@@ -204,12 +198,15 @@ class UserManager {
       "/session-settings",
       (req, res) => this.POST_session_settings(req, res));
 
-    // Remember where we came from
+    // Remember where we came from. URLs used for logging in to oauth2
+    // providers have an origin, which is saved in the session so it
+    // can be recovered in the callback.
     app.use((req, res, next) => {
-      if (/(^|[?&;])origin=/.test(req.url))
+      if (/(^|[?&;])origin=/.test(req.url)) {
         req.session.origin = decodeURI(
           req.url.replace(/^.*[?&;]origin=([^&;]*).*$/,"$1"));
-      //this._debug("Remembering origin", req.session.origin);
+        //this.debug("UserManager: session.origin=", req.session.origin);
+      }
       next();
     });
 
@@ -293,12 +290,16 @@ class UserManager {
    * @private
    */
   passportLogin(req, res, uo) {
-    this._debug("passportLogin ", uo.name, uo.key);
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("UserManager: passportLogin ", uo.name, uo.key);
     return new Promise(resolve => {
       req.login(uo, e => {
         /* istanbul ignore if */
         if (e) throw e;
-        this._debug(uo.name, uo.key, "logged in");
+        /* istanbul ignore if */
+        if (this.debug)
+          this.debug("UserManager:", uo.name, uo.key, "logged in");
         resolve(uo);
       });
     });
@@ -398,8 +399,10 @@ class UserManager {
             throw new Error(/*i18n*/"wrong-pass");
           })
           .catch(e => {
-            this._debug("getUser", desc,
-                        "failed; bad pass", e);
+            /* istanbul ignore if */
+            if (this.debug)
+              this.debug("UserManager: getUser", desc,
+                         "failed; bad pass", e);
             throw new Error(/*i18n*/"wrong-pass");
           });
         }
@@ -408,8 +411,10 @@ class UserManager {
             && uo.email === desc.email)
           return uo;
       }
-      this._debug("getUser", desc, "failed; no such user in",
-                  db.map(uo=>uo.key).join(";"));
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("UserManager: getUser", desc, "failed; no such user in",
+                   db.map(uo=>uo.key).join(";"));
       throw new Error(/*i18n*/"player-unknown");
     });
   }
@@ -425,7 +430,9 @@ class UserManager {
     Passport.use(new strategy(
       cfg,
       (accessToken, refreshToken, profile, done) => {
-        //this._debug("Logging in", profile.displayName);
+        /* istanbul ignore if */
+        if (this.debug)
+          this.debug("UserManager: Logging in", profile.displayName);
         if (profile.emails && profile.emails.length > 0)
           profile.email = profile.emails[0].value;
         assert(profile.id && profile.displayName,
@@ -483,6 +490,9 @@ class UserManager {
    * @private
    */
   GET_oauth2_login(req, res) {
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("UserManager: oauth2 login", req.params.provider);
     return Passport.authenticate(req.params.provider)(req, res);
   }
 
@@ -496,11 +506,16 @@ class UserManager {
    */
   GET_oauth2_callback(req, res) {
     // error will -> 401
-    //this._debug("OAuth2 user is", stringify(req.userObject));
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("UserManager: oauth2 user is", stringify(req.userObject));
+    const origin = req.session.origin;
     return req.login(req.userObject, () => {
       // Back to where we came from
-      //this._debug("Redirect to",req.session.origin);
-      res.redirect(req.session.origin);
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("\tUserManager: redirect to", origin);
+      res.redirect(origin);
     });
   }
 
@@ -538,7 +553,9 @@ class UserManager {
     .then(pw => {
       if (typeof pw !== "undefined")
         desc.pass = pw;
-      this._debug("Add user", desc);
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("UserManager: add user", desc);
       this.db.push(desc);
       return this.writeDB()
       .then(() => desc);
@@ -550,7 +567,9 @@ class UserManager {
    * @private
    */
   sendResult(res, status, info) {
-    this._debug(`<-- ${status}`, info);
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("<--", status, info);
     res.status(status).send(info);
   }
 
@@ -597,7 +616,9 @@ class UserManager {
   POST_logout(req, res) {
     if (req.isAuthenticated()) {
       const departed = req.session.passport.user.name;
-      this._debug("Logging out", departed);
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("UserManager: logging out", departed);
       return new Promise(resolve => req.logout(resolve))
       .then(() => this.sendResult(res, 200, [
         /*i18n*/"signed-out", departed ]));
@@ -655,7 +676,10 @@ class UserManager {
         && req.session.passport.user) {
       const pass = req.body.password;
       const userObject = req.session.passport.user;
-      this._debug("Changing pw for", userObject.name, userObject.key);
+      /* istanbul ignore if */
+      if (this.debug)
+        this.debug("UserManager: changing pw for",
+                   userObject.name, userObject.key);
       return pw_hash(pass)
       .then(pass => userObject.pass = pass)
       .then(() => this.getUser(userObject))
@@ -682,14 +706,18 @@ class UserManager {
     assert(this.config.mail && this.config.mail.transport,
            "Mail is not configured");
     const email = req.body.reset_email;
-    this._debug("/reset-password for", email);
+    /* istanbul ignore if */
+    if (this.debug)
+      this.debug("UserManager: reset password for", email);
     const surly = `${req.protocol}://${req.get("Host")}`;
     return this.getUser({email: email})
     .then(user => {
       return this.setToken(user)
       .then(token => {
         const url = `${surly}/password-reset/${token}`;
-        this._debug(`Send password reset ${url} to ${user.email}`);
+        /* istanbul ignore if */
+        if (this.debug)
+          this.debug("\tSend password reset", url, "to", user.email);
         return this.config.mail.transport.sendMail({
           from: this.config.mail.sender,
           to:  user.email,
@@ -749,7 +777,9 @@ class UserManager {
       return this.getUser(req.user)
       .then(user => {
         user.settings = req.body;
-        this._debug("Session settings", user);
+        /* istanbul ignore if */
+        if (this.debug)
+          this.debug("UserManager: session settings", user);
         return this.writeDB()
         .then(() => this.sendResult(res, 200, req.user.settings));
       });

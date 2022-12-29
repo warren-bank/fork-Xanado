@@ -10,7 +10,7 @@ import {
 from "../../node_modules/@cdot/cbor/dist/mjs/index.js";
 import { genKey, stringify } from "../common/Utils.js";
 import { Fridge } from "../common/Fridge.js";
-import { Dictionaries } from "./Dictionaries.js";
+import { loadDictionary } from "./loadDictionary.js";
 import { Board } from "./Board.js";
 import { Edition } from "./Edition.js";
 import { LetterBag } from "./LetterBag.js";
@@ -25,7 +25,7 @@ import { Turn } from "./Turn.js";
 // typeMap as required. This is Javascript, strictly synchronous.
 const CBOR_tagHandler = new (KeyDictionaryHandler(
   IDREFHandler(TypeMapHandler(TagHandler))))({
-    added: console.log,
+    added: k => { throw Error(k) },
     keys: [
       // Square
       "type", "surface", "col", "row", "tile", "underlay",
@@ -51,11 +51,11 @@ const CBOR_tagHandler = new (KeyDictionaryHandler(
       // Turn
       "gameKey", "playerKey", "nextToGoKey", "timestamp",
       "placements", "replacements", "challengerKey", "endState",
-      "tilesRemaining",
+      "tilesRemaining", "time",
       // Move
       "words", "word",
       // findBestPlayController
-      "game",
+      "game", "Platform", "data",
       // Replay
       "nextTurn", "predictable",
     ]
@@ -252,16 +252,12 @@ class Game {
    */
   constructor(params) {
 
-    /* istanbul ignore if */
-    if (typeof params._debug === "function")
-      /**
-       * Debug function.
-       * @member {function}
-       * @private
-       */
-      this._debug = params._debug;
-    else
-      this._debug = () => {};
+    /**
+     * Debug function.
+     * @member {function}
+     * @private
+     */
+    this._debug = params._debug;
 
     /**
      * Key that uniquely identifies this game.
@@ -494,7 +490,7 @@ class Game {
        */
       this.syncRacks = true;
 
-    if (params.noPlayerShuffle || params._noPlayerShuffle)
+    if (params._noPlayerShuffle)
       /**
        * Internal, for debug only.
        * @member {boolean?}
@@ -566,7 +562,9 @@ class Game {
       player.clock = this.timeAllowed * 60;
     if (fillRack)
       player.fillRack(this.letterBag, this.rackSize);
-    this._debug(this.key, "added player", player.stringify());
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug(this.key, "added player", player.stringify());
     return this;
   }
 
@@ -581,7 +579,9 @@ class Game {
     assert(index >= 0,
            `No such player ${player.key} in ${this.key}`);
     this.players.splice(index, 1);
-    this._debug(player.key, "left", this.key);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug(player.key, "left", this.key);
     if (this.players.length < (this.minPlayers || 2)
         && this.state !== Game.State.GAME_OVER)
       this.state = Game.State.WAITING;
@@ -1003,18 +1003,24 @@ class Game {
    * @return {Promise} promise that resolves to the game
    */
   playIfReady() {
-    this._debug("playIfReady ", this.key,
-                this.whosTurnKey ? `player ${this.whosTurnKey}` : "",
-                "state", this.state);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("playIfReady ", this.key,
+                  this.whosTurnKey ? `player ${this.whosTurnKey}` : "",
+                  "state", this.state);
 
     if (this.hasEnded()) {
-      this._debug("\tgame is over");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\tgame is over");
       return Promise.resolve(this);
     }
 
     // Check preconditions for starting the game
     if (this.players.length < (this.minPlayers || 2)) {
-      this._debug("\tnot enough players");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\tnot enough players");
       // Result is not used
       return Promise.resolve(this);
     }
@@ -1023,10 +1029,14 @@ class Game {
     // shuffle the players, and pick a random tile from the bag.
     // The shuffle can be suppressed for unit testing.
     if (this.state === Game.State.WAITING) {
-      this._debug("\tpreconditions met");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\tpreconditions met");
 
       if (this.players.length > 1 && !this._noPlayerShuffle) {
-        this._debug("\tshuffling player order");
+        /* istanbul ignore if */
+        if (this._debug)
+          this._debug("\tshuffling player order");
         for (let i = this.players.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           // i = 1, j = 0,1
@@ -1043,7 +1053,9 @@ class Game {
 
       const player = this.players[0];
       this.whosTurnKey = player.key; // assign before save()
-      this._debug(`\t${player.key} to play`);
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\t", player.key, "to play");
       this.state = Game.State.PLAYING;
 
       return this.save()
@@ -1057,7 +1069,9 @@ class Game {
       if (nextPlayer.isRobot)
         return this.startTurn(nextPlayer);
 
-      this._debug("\twaiting for", nextPlayer.name, "to play");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\twaiting for", nextPlayer.name, "to play");
       this.startTheClock();
     }
     return Promise.resolve(this);
@@ -1119,7 +1133,9 @@ class Game {
        * @private
        */
       this._intervalTimer = setInterval(() => this.tick(), 1000);
-      this._debug(this.key, "started the clock");
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug(this.key, "started the clock");
       return true;
     }
     return false;
@@ -1133,7 +1149,9 @@ class Game {
   stopTheClock() {
     if (typeof this._intervalTimer == "undefined")
       return false;
-    this._debug(this.key, "stopped the clock");
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug(this.key, "stopped the clock");
     clearInterval(this._intervalTimer);
     delete(this._intervalTimer);
     return true;
@@ -1180,7 +1198,9 @@ class Game {
     if (!this.players.find(p => p.passes < 2))
       return this.confirmGameOver(player, Game.State.TWO_PASSES);
 
-    this._debug("startTurn", player.name, player.key);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("startTurn", player.name, player.key);
 
     this.whosTurnKey = player.key;
 
@@ -1195,13 +1215,17 @@ class Game {
     // start the player's timer.
 
     if (this.timerType) {
-      this._debug("\ttimed game,", player.name,
-                  "has", (timeout || this.timeAllowed), "left to play",this.timerType);
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\ttimed game,", player.name,
+                    "has", (timeout || this.timeAllowed),
+                    "left to play",this.timerType);
       this.startTheClock(); // does nothing if already started
     }
     else {
-      this._debug(
-        `\tuntimed game, wait for ${player.name} to play`);
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\tuntimed game, wait for", player.name, "to play");
       return Promise.resolve(this);
     }
 
@@ -1220,8 +1244,10 @@ class Game {
    */
   autoplay() {
     const player = this.getPlayer();
-    this._debug("Autoplaying", player.name,
-                "using", player.dictionary || this.dictionary);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("Autoplaying", player.name,
+                  "using", player.dictionary || this.dictionary);
 
     let pre = ((player.delayBeforePlay || 0) > 0)
         ? new Promise(
@@ -1251,8 +1277,12 @@ class Game {
                 .filter(word => !dict.hasWord(word.word));
           if (bad.length > 0) {
             // Challenge succeeded
-            this._debug(`Challenging ${lastPlayer.name}`);
-            this._debug(`Bad words: `, bad);
+            /* istanbul ignore if */
+            if (this._debug)
+              this._debug("Challenging", lastPlayer.name);
+            /* istanbul ignore if */
+            if (this._debug)
+              this._debug("Bad words:", bad);
             return this.takeBack(player, Game.Turns.CHALLENGE_WON)
             .then(() => true);
           }
@@ -1276,18 +1306,24 @@ class Game {
       return Platform.findBestPlay(
         this, player.rack.tiles(),
         data => {
-          if (typeof data === "string")
-            this._debug(data);
-          else {
+          if (typeof data === "string") {
+            /* istanbul ignore if */
+            if (this._debug)
+              this._debug(data);
+          } else {
             bestPlay = data;
-            this._debug("Best", bestPlay.stringify());
+            /* istanbul ignore if */
+            if (this._debug)
+              this._debug("Best", bestPlay.stringify());
           }
         }, player.dictionary || this.dictionary)
       .then(() => {
         if (bestPlay)
           return mid.then(() => this.play(player, bestPlay));
 
-        this._debug(`${player.name} can't play, passing`);
+        /* istanbul ignore if */
+        if (this._debug)
+          this._debug(player.name, "can't play, passing");
         return this.pass(player, Game.Turns.PASSED);
       });
     });
@@ -1300,7 +1336,7 @@ class Game {
   getDictionary() {
     /* istanbul ignore next */
     assert(this.dictionary, "Game has no dictionary");
-    return Dictionaries.load(this.dictionary);
+    return loadDictionary(this.dictionary);
   }
 
   /**
@@ -1309,7 +1345,9 @@ class Game {
    */
   save() {
     assert(this._db, "No _db for save()");
-    this._debug("Saving game", this.key);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("Saving game", this.key);
     return this._db.set(this.key, Game.toCBOR(this))
     .then(() => this);
   }
@@ -1323,7 +1361,9 @@ class Game {
    * @param {Object} data to send with message.
    */
   notifyPlayer(player, message, data) {
-    this._debug("b>f", player.key, message,
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("b>f", player.key, message,
                 stringify(data));
     // Player may be connected several times, or not at all
     this._channels.forEach(
@@ -1343,7 +1383,9 @@ class Game {
    */
   notifyAll(message, data) {
     if (message !== Game.Notify.TICK)
-      this._debug("b>f *", message, stringify(data));
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("b>f *", message, stringify(data));
     this._channels.forEach(channel => channel.emit(message, data));
   }
 
@@ -1355,7 +1397,9 @@ class Game {
    * @param {Object} data to send with message
    */
   notifyOthers(player, message, data) {
-    this._debug("b>f !", player.key, message, stringify(data));
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("b>f !", player.key, message, stringify(data));
     this._channels.forEach(
       channel => {
         // Player may be connected several times, so check key and not object
@@ -1389,7 +1433,6 @@ class Game {
    * players, non-playing observers and non-connected players.
    */
   sendCONNECTIONS() {
-    // TODO: move this to backend
     Promise.all(
       this.players
       .map(player => player.serialisable(this)
@@ -1440,10 +1483,15 @@ class Game {
       player._isConnected = true;
     } else if (player) {
       // This player is just connecting
-      this._debug(`\t${player.name} connected to ${this.key}`);
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\t", player.name, "connected to", this.key);
       player._isConnected = true;
-    } else
-      this._debug("\tconnected non-player");
+    } else {
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug("\tconnected non-player");
+    }
 
     // Player is connected. Decorate the channel. It may seem
     // rather cavalier writing over what might be a socket this
@@ -1463,9 +1511,14 @@ class Game {
     channel.on("disconnect", () => {
       if (channel.player) {
         channel.player._isConnected = false;
-        this._debug(channel.player.name, "disconnected");
-      } else
-        this._debug("non-player disconnected");
+        /* istanbul ignore if */
+        if (this._debug)
+          this._debug(channel.player.name, "disconnected");
+      } else {
+        /* istanbul ignore if */
+        if (this._debug)
+          this._debug("non-player disconnected");
+      }
       this._channels.splice(this._channels.indexOf(channel), 1);
       this.sendCONNECTIONS();
     });
@@ -1497,7 +1550,8 @@ class Game {
       return Decoder.decode(cbor, CBOR_tagHandler, debug);
     } catch (e) {
       // Maybe Fridge? Old format.
-      if (debug) debug(`CBOR error decoding:\n${e.message}`);
+      if (debug)
+        debug("CBOR error decoding:\n", e.message);
 
       // Compatibility; try using Fridge, versions of FileDatabase
       // prior to 3.1.0 used it.

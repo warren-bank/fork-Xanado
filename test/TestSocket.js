@@ -41,11 +41,16 @@ class TestSocket extends Channel {
 
   // @override
   emit(event, data, nomore) {
-    if (this.finished)
-      throw Error(`'${this.id}' is done(), but received ${this.seqNo} ${event} ${stringify(data)}`);
-    if (this.connection && !nomore) // connection to another socket?
+    if (this.finished) {
+      if (event === "connections")
+        return;
+      throw Error(`'${this.id}' is done(), but received #${this.seqNo} ${event} ${stringify(data)}`);
+    }
+    if (this.connection && !nomore) { // connection to another socket?
+      //console.log(this.id,"passing",event,data,"to",this.connection.id);
       this.connection.emit(event, data, true);
-    else {
+    } else {
+      //console.log(this.id,"handling", event, this.seqNo, data);
       try {
         if (this.handlers[event] && this.handlers[event].length > 0)
           this.handlers[event].forEach(l => l(data, event, this.seqNo));
@@ -92,8 +97,11 @@ class TestSocket extends Channel {
       return;
     //console.log(`Socket ${this.id} is done`);
     this.finished = true;
-    if (this.connection)
-      this.connection.done();
+    this.id = `finished ${this.id}`;
+    if (this.connection) {
+      this.connection.connection = undefined;
+      this.connection = undefined;
+    }
     if (this.sawError) {
       if (this.reject)
         this.reject(this.sawError);

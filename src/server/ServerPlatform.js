@@ -8,7 +8,7 @@ global.assert = assert;
 
 import { promises as Fs } from "fs";
 import path from "path";
-import { Platform } from "../common/Platform.js";
+//import { Platform } from "../common/Platform.js";
 import { I18N } from "./I18N.js";
 import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -17,7 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * Implementation of {@linkcode common/Platform} for use in node.js.
  * @implements Platform
  */
-class ServerPlatform extends Platform {
+class ServerPlatform /* extends Platform */ {
   static i18n = I18N;
 
   /**
@@ -38,8 +38,8 @@ class ServerPlatform extends Platform {
    */
   static async findBestPlay() {
     return (ServerPlatform.USE_WORKERS
-     ? import(/* webpackMode: "eager" */"../backend/findBestPlayController.js")
-     : import(/* webpackMode: "eager" */"../game/findBestPlay.js"))
+     ? import("../backend/findBestPlayController.js")
+     : import("../game/findBestPlay.js"))
     .then(mod => mod.findBestPlay.apply(null, arguments));
   }
 

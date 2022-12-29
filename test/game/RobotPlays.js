@@ -29,7 +29,7 @@ describe("game/RobotPlays", () => {
       edition: "Test",
       dictionary: "Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
 
     const robot = new Player({name:"Machine", key:"robot",
@@ -61,7 +61,7 @@ describe("game/RobotPlays", () => {
       edition: "Test",
       dictionary: "Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
 
     const robot = new Player(
@@ -106,7 +106,7 @@ describe("game/RobotPlays", () => {
   it("robot can play first", () => {
     const game = new Game({
       //_debug: console.debug,
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       edition:"English_Scrabble",
       dictionary:"Oxford_5000"
     });
@@ -171,7 +171,7 @@ describe("game/RobotPlays", () => {
       edition:"English_Scrabble",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     let human = new Player({
       name: "Human 1", key:"human", isRobot: false}, Game.CLASSES);
@@ -253,7 +253,7 @@ describe("game/RobotPlays", () => {
       //_debug: console.debug,
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     const human = new Player({
       name: "Human 1", key: "human", isRobot: false}, Game.CLASSES);
@@ -280,9 +280,10 @@ describe("game/RobotPlays", () => {
         assert.equal(event, Game.Notify.TURN);
         assert.equal(turn.type, Game.Turns.GAME_ENDED);
         assert.equal(turn.endState, Game.State.GAME_OVER);
-        exp = {};
-        exp[human.key] = { tiles: 4 };
-        exp[robot.key] = { tiles: -4, tilesRemaining: "Q" };
+        exp = [
+          { key: human.key, tiles: 4 },
+          { key: robot.key, tiles: -4, tilesRemaining: "Q" }
+        ];
         assert.deepEqual(turn.score, exp);
         assert.equal(turn.playerKey, robot.key);
         assert(!turn.nextToGoKey);
@@ -327,7 +328,7 @@ describe("game/RobotPlays", () => {
       //_debug: console.debug,
       edition: "Test",
       dictionary: "Oxford_5000",
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
 
     const human = new Player(

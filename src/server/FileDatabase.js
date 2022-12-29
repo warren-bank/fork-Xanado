@@ -2,7 +2,7 @@
   License MIT. See README.md at the root of this distribution for full copyright
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 
-import { Database } from "../common/Database.js";
+//import { Database } from "../common/Database.js";
 import { promises as Fs } from "fs";
 import path from "path";
 import lock from "proper-lockfile";
@@ -13,7 +13,7 @@ import lock from "proper-lockfile";
  * the key.
  * @implements Database
  */
-class FileDatabase extends Database {
+class FileDatabase /* extends Database */ {
 
   /**
    * @param {object} options implementation-specific options
@@ -23,7 +23,6 @@ class FileDatabase extends Database {
    * (without the leading .)
    */
   constructor(options) {
-    super();
     this.directory = options.dir;
     this.ext = options.ext || ".db";
     this.re = new RegExp(`\\.${this.ext}$`);

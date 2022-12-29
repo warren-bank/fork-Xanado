@@ -7,7 +7,7 @@
 
 import "../../node_modules/jquery/dist/jquery.js";
 import "../../node_modules/@rwap/jquery-ui-touch-punch/jquery.ui.touch-punch.js";
-import { Platform } from "../common/Platform.js";
+//import { Platform } from "../common/Platform.js";
 
 window.assert = (cond, mess) => {
   if (!cond) {
@@ -62,7 +62,7 @@ $.ajaxTransport("+binary", function (options, originalOptions, jqXHR) {
  * Browser implementation of {@linkcode Platform}.
  * @implements Platform
  */
-class BrowserPlatform extends Platform {
+class BrowserPlatform /*extends Platform*/ {
 
   /**
    * @implements Platform
@@ -110,7 +110,10 @@ class BrowserPlatform extends Platform {
   static findBestPlay() {
     // game/findBestPlay.js to block
     // backend/findBestPlayController.js to use a worker thread (untested)
-    return import(/* webpackMode: "eager" */"../game/findBestPlay.js")
+    return import(
+      /* webpackMode: "lazy" */
+      /* webpackChunkName: "findBestPlay" */
+      "../game/findBestPlay.js")
     .then(mod => mod.findBestPlay.apply(null, arguments));
   }
 

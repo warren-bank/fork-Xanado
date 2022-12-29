@@ -3,10 +3,12 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env amd */
 
-import { Dictionaries } from "./Dictionaries.js";
+import { loadDictionary } from "./loadDictionary.js";
 import { Edition } from "./Edition.js";
 import { Tile } from "./Tile.js";
 import { Move } from "./Move.js";
+
+/** @module */
 
 /**
  * Return a list of the letters that are in both arrays. Does
@@ -22,11 +24,13 @@ function intersection(a, b) {
 
 /**
  * Dictionary being used to find words
+ * @private
  */
 let dictionary;
 
 /**
  * Edition being played.
+ * @private
  */
 let edition;
 
@@ -36,11 +40,13 @@ let edition;
  * [0] lists give the letters that are valid for forming a
  * vertical cross word, and the [1] lists give the letters valid
  * for creating a horizontal cross word.
+ * @private
  */
 let crossChecks;
 
 /**
  * Shortcut to the board in the game
+ * @private
  */
 let board;
 
@@ -48,11 +54,13 @@ let board;
  * The listener function. This takes either a play, or a string
  * describing progress. This allows the finder to run in a thread
  * and still report back via the main event loop.
+ * @private
  */
 let report;
 
 /**
-* best score found so far when searching for a move.
+ * Best score found so far when searching for a move.
+ * @private
 */
 let bestScore = 0;
 
@@ -451,6 +459,7 @@ function bestOpeningPlay(rackTiles) {
  * Find the best play for the given rack. The results are reported
  * using the listener.
  * @param {Tile[]} rack rack of tiles to pick from
+ * @private
  */
 function find(rack) {
   // sort and reverse the rack to make sure high value letters come
@@ -527,7 +536,6 @@ function find(rack) {
 
 /**
  * Given a user's letter rack, compute the best possible move.
- * @function backend/findBestPlay
  * @param {BackendGame} game the Game
  * @param {Tile[]} rack rack in the form of a simple list of Tile
  * @param {function} listener Function that is called with a Move each time
@@ -537,13 +545,12 @@ function find(rack) {
  * defaults to game dictionary
  * @return {Promise} Promise that resolves when all best moves have been
  * identified
- * @alias module:backend/findBestPlay
  */
 function findBestPlay(game, rack, listener, dict) {
   report = listener;
   board = game.board;
   return Promise.all([
-    Dictionaries.load(dict)
+    loadDictionary(dict)
     .then(dic => dictionary = dic),
 
     Edition.load(game.edition)

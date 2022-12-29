@@ -16,6 +16,7 @@ import { ClientUIMixin } from "./ClientUIMixin.js";
 
 /**
  * Management interface for a database of games.
+ * @extends UI
  * @mixes client/ClientUIMixin
  * @mixes browser/GamesUIMixin
  */
@@ -31,7 +32,10 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
 
     $("#create-game")
     .on("click", () =>
-        import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
+        import(
+          /* webpackMode: "lazy" */
+          /* webpackChunkName: "GameSetupDialog" */
+          "../browser/GameSetupDialog.js")
         .then(mod => new mod[Object.keys(mod)[0]]({
           title: $.i18n("Create game"),
           ui: this,
@@ -50,7 +54,10 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
 
     $("#chpw_button")
     .on("click", () =>
-        import(/* webpackMode: "eager" */"../client/ChangePasswordDialog.js")
+        import(
+          /* webpackMode: "lazy" */
+          /* webpackChunkName: "ChangePasswordDialog" */
+          "../client/ChangePasswordDialog.js")
         .then(mod => new mod[Object.keys(mod)[0]]({
           postAction: "/change-password",
           postResult: () => this.refresh(),
@@ -107,7 +114,10 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
    * @implements browser/GamesUIMixin#gameOptions
    */
   gameOptions(game) {
-    import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
+    import(
+      /* webpackMode: "lazy" */
+      /* webpackChunkName: "GameSetupDialog" */
+      "../browser/GameSetupDialog.js")
     .then(mod => new mod[Object.keys(mod)[0]]({
       // use the generic html
       title: $.i18n("Game setup"),
@@ -146,7 +156,10 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
    * @inheritdoc
    */
   addRobot(game) {
-    import(/* webpackMode: "eager" */"../client/AddRobotDialog.js")
+    import(
+      /* webpackMode: "lazy" */
+      /* webpackChunkName: "AddRobotDialog" */
+      "../client/AddRobotDialog.js")
     .then(mod => new mod[Object.keys(mod)[0]]({
       ui: this,
       postAction: `/addRobot/${game.key}`,
@@ -159,7 +172,10 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
    * @implements browser/GamesUIMixin#invitePlayers
    */
   invitePlayers(game) {
-    import(/* webpackMode: "eager" */"../client/InvitePlayersDialog.js")
+    import(
+      /* webpackMode: "lazy" */
+      /* webpackChunkName: "InvitePlayersDialog" */
+      "../client/InvitePlayersDialog.js")
     .then(mod => new mod[Object.keys(mod)[0]]({
       postAction: `/invitePlayers/${game.key}`,
       postResult: names => this.alert(

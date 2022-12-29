@@ -51,7 +51,9 @@ class BackendGame extends Undo(Replay(Commands(Game))) {
     if (ageInDays <= 14)
       return Promise.resolve(this); // still active
 
-    this._debug("Game", this.key, "timed out");
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("Game", this.key, "timed out");
 
     this.state = Game.TIMED_OUT;
     return this.save();

@@ -398,7 +398,7 @@ describe("server/UserManager", () => {
 
   it("/change-password", () => {
     let cookie;
-    //config.debug_server = true;
+    //config.debug = "users";
     const server = new Server(config);
     return register(server, {
       register_username: "test_user",

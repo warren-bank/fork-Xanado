@@ -239,11 +239,11 @@ describe("server/Server.js", () => {
     const clientSock = new TestSocket("client");
     server.attachSocketHandlers(serverSock);
 
-    serverSock.connect(clientSock);
-
-    serverSock.on("disconnect", () => {
-      serverSock.done();
+    serverSock
+    .on("*", (params, event) => {
+      console.log("SERVER SHOULD NEVER SEE", event, params);
     });
+
     let sawTurn = false;
     clientSock.on(Game.Notify.MESSAGE, (data, event, seqNo) => {
       //assert(sawTurn); not if human ends up first player
@@ -262,24 +262,24 @@ describe("server/Server.js", () => {
         case "_hint_":
           assert(data.args.length === 4);
           clientSock.done();
+          serverSock.done();
           return;
         }
       }
       assert.fail(data);
-    });
-
-    clientSock.on(Game.Notify.TURN, (turn, event, seqNo) => {
+    })
+    .on(Game.Notify.TURN, (turn, event, seqNo) => {
       //console.log("INCOMING turn");
       assert.equal(turn.playerKey, UserManager.ROBOT_KEY);
       assert.equal(turn.gameKey, gamekey);
       sawTurn = true;
-    });
-    
-    clientSock.on(Game.Notify.CONNECTIONS, (params, event) => {});
-
-    clientSock.on("*", (params, event) => {
+    })
+    .on(Game.Notify.CONNECTIONS, (params, event) => {})
+    .on("*", (params, event) => {
       console.log("CLIENT GOT", event, params);
     });
+
+    serverSock.connect(clientSock);
 
     return register(server, {
       register_username: "test_user",

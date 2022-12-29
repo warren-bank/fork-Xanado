@@ -68,7 +68,8 @@ class LoginDialog extends PasswordMixin(Dialog) {
         // Note: this MUST be done using from an href and
         // not an AJAX request, or CORS will foul up.
         const $a = $(document.createElement("a"));
-        $a.attr("href", `/oauth2/login/${provider.name}?origin=${encodeURI(window.location)}`);
+        $a.attr("href",
+                `/oauth2/login/${provider.name}?origin=${encodeURI(window.location)}`);
         $a.append($logo);
         $td.append($a);
         $td.tooltip();

@@ -130,14 +130,11 @@ class Player {
        */
       this.delayBeforePlay = spec.delayBeforePlay;
 
-    if (typeof spec._debug === "function")
-      /**
-       * Debug function
-       * @member {function}
-       */
-      this._debug = spec._debug;
-    else
-      this._debug = () => {};
+    /**
+     * Debug function
+     * @member {function?}
+     */
+    this._debug = spec._debug;
   }
 
   /**
@@ -222,9 +219,13 @@ class Player {
    */
   tick() {
     this.clock--;
-    this._debug("Tick", this.name, this.clock);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug("Tick", this.name, this.clock);
     if (this.clock <= 0 && typeof this._onTimeout === "function") {
-      this._debug(this.name, "has timed out at", new Date());
+      /* istanbul ignore if */
+      if (this._debug)
+        this._debug(this.name, "has timed out at", new Date());
       this._onTimeout();
       // Timeout only happens once!
       delete this._onTimeout;
@@ -241,7 +242,9 @@ class Player {
    * timer expires, ignored if time undefined
    */
   setTimeout(time, onTimeout) {
-    this._debug(this.name, `turn timeout in ${time}s`);
+    /* istanbul ignore if */
+    if (this._debug)
+      this._debug(this.name, `turn timeout in ${time}s`);
     this.clock = time;
     this._onTimeout = onTimeout;
   }

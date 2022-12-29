@@ -8,6 +8,7 @@ import sparseEqual from "../sparseEqual.js";
 
 import { ServerPlatform } from "../../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
+ServerPlatform.USE_WORKERS = true;
 import { BackendGame } from "../../src/backend/BackendGame.js";
 import { FileDatabase } from "../../src/server/FileDatabase.js";
 const Player = BackendGame.CLASSES.Player;
@@ -27,7 +28,7 @@ describe("backend/BackendGame", () => {
 			//_debug: console.debug,
 			edition:"Test",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true
+			_noPlayerShuffle: true
 		});
 		const human1 = new Player({
 			name:"Human 1", key:"human1", isRobot: false}, BackendGame.CLASSES);
@@ -78,7 +79,7 @@ describe("backend/BackendGame", () => {
 			game.letterBag.getRandomTiles(
 				game.letterBag.remainingTileCount());
 			game.whosTurnKey = human1.key;
-			game.noPlayerShuffle = true;
+			game._noPlayerShuffle = true;
 		})
 		.then(() => game.connect(socket, human1.key))
 		.then(() => assert.equal(game.state, BackendGame.State.PLAYING))
@@ -97,7 +98,7 @@ describe("backend/BackendGame", () => {
 			//_debug: console.debug,
 			edition:"Test",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true
+			_noPlayerShuffle: true
 		});
 		const human1 = new Player({
 			name: "Human 1", key: "human1", isRobot: false}, BackendGame.CLASSES);
@@ -141,7 +142,7 @@ describe("backend/BackendGame", () => {
 			//_debug: console.debug,
 			edition:"Test",
 			dictionary:"Oxford_5000",
-			noPlayerShuffle: true,
+			_noPlayerShuffle: true,
 			wordCheck: BackendGame.WordCheck.REJECT
 		});
 		const human1 = new Player({
@@ -195,7 +196,7 @@ describe("backend/BackendGame", () => {
 
 	it("load from database", () => {
 		const db = new FileDatabase({
-      dir: "test/data", ext: "game", typeMap: BackendGame
+      dir: "test/data", ext: "game"
     });
 		return db.get("unfinished_game")
     .then(d => BackendGame.fromCBOR(d, BackendGame.CLASSES))
@@ -268,7 +269,7 @@ describe("backend/BackendGame", () => {
     .then(g => reload = g)
 		.then(() => reload.onLoad(db))
     .then(() => {
-      game._debug("Reloaded", reload.key);
+      //game._debug("Reloaded", reload.key);
       assert.equal(game.nextGameKey, reload.key);
       assert(reload.players.length === game.players.length);
       assert(!reload.nextGameKey);
@@ -314,7 +315,7 @@ describe("backend/BackendGame", () => {
 		})
     .on("*", () => {});
 		const db = new FileDatabase({
-      dir: "test/data", ext: "game", typeMap: BackendGame
+      dir: "test/data", ext: "game"
     });
 		return db.get("unfinished_game")
     .then(d => BackendGame.fromCBOR(d, BackendGame.CLASSES))
@@ -339,7 +340,7 @@ describe("backend/BackendGame", () => {
 	it("advise", () => {
 		let game;
 		const db = new FileDatabase({
-      dir: "test/data", ext: "game", typeMap: BackendGame
+      dir: "test/data", ext: "game"
     });
 		return db.get("unfinished_game")
     .then(d => BackendGame.fromCBOR(d, BackendGame.CLASSES))
@@ -355,8 +356,7 @@ describe("backend/BackendGame", () => {
     const players = [];
     for (let i = 0; i < 8; i++)
       players.push(new Player( {key: i}, BackendGame.CLASSES));
-		const db = new FileDatabase({dir: "test/data", ext: "game",
-                                 typeMap: BackendGame});
+		const db = new FileDatabase({dir: "test/data", ext: "game" });
 		return db.get("unfinished_game")
     .then(d => BackendGame.fromCBOR(d, BackendGame.CLASSES))
 		.then(g => game = g)

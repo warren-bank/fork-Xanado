@@ -19,8 +19,7 @@ import { UIEvents } from "./UIEvents.js";
 // /*i18n*/"long-t" /*i18n*/"short-t"
 
 /**
- * Browser-side mixin for {@linkcode Square}
- * @mixin browser/SquareMixin
+ * Browser-side {@linkcode Square}
  */
 class BrowserSquare extends Square {
 
@@ -140,7 +139,9 @@ class BrowserSquare extends Square {
     });
   }
 
-  // @override
+  /**
+   * @override
+   */
   unplaceTile() {
     const unplaced = super.unplaceTile();
     if (unplaced)
@@ -150,9 +151,6 @@ class BrowserSquare extends Square {
 
   /**
    * Set the underlay
-   * @function
-   * @instance
-   * @memberof browser/SquareMixin
    * @param {boolean} sel
    */
   setUnderlay(ch) {

@@ -34,7 +34,7 @@ describe("game/Commands.js", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     const human1 = new Player({
       name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
@@ -135,7 +135,7 @@ describe("game/Commands.js", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     const socket = new TestSocket();
     socket.on(Game.Notify.NEXT_GAME, (data, event) => {
@@ -185,7 +185,7 @@ describe("game/Commands.js", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     const socket = new TestSocket();
     const handle = (turn, event, seqNo) => {
@@ -248,7 +248,7 @@ describe("game/Commands.js", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     const socket1 = new TestSocket("play 1");
     socket1.on(Game.Notify.TURN, (turn, event, seqNo) => {
@@ -385,7 +385,7 @@ describe("game/Commands.js", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     const socket1 = new TestSocket("player 1");
     socket1.on(Game.Notify.TURN, (turn, event, seqNo) => {
@@ -490,7 +490,7 @@ describe("game/Commands.js", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     const socket = new TestSocket();
     socket.on(Game.Notify.TURN, (turn, event) => {
@@ -532,7 +532,7 @@ describe("game/Commands.js", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     let remains = 0;
     const human1 = new Player({
@@ -545,10 +545,10 @@ describe("game/Commands.js", () => {
       assert.equal(turn.type, Game.Turns.GAME_ENDED);
       assert.deepEqual(
         turn.score,
-        {
-          human1: { tiles: -remains, tilesRemaining: "X,Y,Z" },
-          human2: { tiles: remains }
-        });
+        [
+          { key: "human1", tiles: -remains, tilesRemaining: "X,Y,Z" },
+          { key: "human2", tiles: remains }
+        ]);
       assert.equal(turn.playerKey, human1.key);
       assert(!turn.nextToGoKey);
       socket.done();
@@ -586,7 +586,7 @@ describe("game/Commands.js", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     const human1 = new Player({
       name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
@@ -678,7 +678,7 @@ describe("game/Commands.js", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     const human1 = new Player({
       name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);
@@ -716,7 +716,7 @@ describe("game/Commands.js", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true
+      _noPlayerShuffle: true
     });
     const human1 = new Player({
       name: "Human 1", key: "human1", isRobot: false}, Game.CLASSES);

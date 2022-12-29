@@ -208,14 +208,10 @@ describe("game/Replay", () => {
   {
     type: "game-over",
     playerKey: "2v5oyt5qpi",
-    score: {
-      "2v5oyt5qpi": {
-        tiles: -6
-      },
-      "49dabe7iua": {
-        tiles: -8
-      }
-    },
+    score: [
+    { key: "2v5oyt5qpi", tiles: -6 },
+    { key: "49dabe7iua", tiles: -8 }
+    ],
     endState: Game.State.TWO_PASSES
   }
 ]

@@ -26,9 +26,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 2
-           },
            "col": 0,
            "id": "Rack_32dv07ptvr_0",
            "letterScoreMultiplier": 1,
@@ -42,9 +39,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 2
-           },
            "col": 1,
            "id": "Rack_32dv07ptvr_1",
            "letterScoreMultiplier": 1,
@@ -58,9 +52,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 2
-           },
            "col": 2,
            "id": "Rack_32dv07ptvr_2",
            "letterScoreMultiplier": 1,
@@ -74,9 +65,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 2
-           },
            "col": 3,
            "id": "Rack_32dv07ptvr_3",
            "letterScoreMultiplier": 1,
@@ -90,9 +78,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 2
-           },
            "col": 4,
            "id": "Rack_32dv07ptvr_4",
            "letterScoreMultiplier": 1,
@@ -106,9 +91,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 2
-           },
            "col": 5,
            "id": "Rack_32dv07ptvr_5",
            "letterScoreMultiplier": 1,
@@ -122,9 +104,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 2
-           },
            "col": 6,
            "id": "Rack_32dv07ptvr_6",
            "letterScoreMultiplier": 1,
@@ -138,9 +117,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 2
-           },
            "col": 7,
            "id": "Rack_32dv07ptvr_7",
            "letterScoreMultiplier": 1,
@@ -176,9 +152,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 12
-           },
            "col": 0,
            "id": "Rack_36ztocgyjd_0",
            "letterScoreMultiplier": 1,
@@ -192,9 +165,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 12
-           },
            "col": 1,
            "id": "Rack_36ztocgyjd_1",
            "letterScoreMultiplier": 1,
@@ -208,9 +178,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 12
-           },
            "col": 2,
            "id": "Rack_36ztocgyjd_2",
            "letterScoreMultiplier": 1,
@@ -233,9 +200,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 12
-           },
            "col": 3,
            "id": "Rack_36ztocgyjd_3",
            "letterScoreMultiplier": 1,
@@ -249,9 +213,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 12
-           },
            "col": 4,
            "id": "Rack_36ztocgyjd_4",
            "letterScoreMultiplier": 1,
@@ -265,9 +226,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 12
-           },
            "col": 5,
            "id": "Rack_36ztocgyjd_5",
            "letterScoreMultiplier": 1,
@@ -281,9 +239,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 12
-           },
            "col": 6,
            "id": "Rack_36ztocgyjd_6",
            "letterScoreMultiplier": 1,
@@ -306,9 +261,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 12
-           },
            "col": 7,
            "id": "Rack_36ztocgyjd_7",
            "letterScoreMultiplier": 1,
@@ -344,9 +296,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 24
-           },
            "col": 0,
            "id": "Rack_3e1bw3w58k_0",
            "letterScoreMultiplier": 1,
@@ -360,9 +309,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 24
-           },
            "col": 1,
            "id": "Rack_3e1bw3w58k_1",
            "letterScoreMultiplier": 1,
@@ -376,9 +322,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 24
-           },
            "col": 2,
            "id": "Rack_3e1bw3w58k_2",
            "letterScoreMultiplier": 1,
@@ -401,9 +344,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 24
-           },
            "col": 3,
            "id": "Rack_3e1bw3w58k_3",
            "letterScoreMultiplier": 1,
@@ -426,9 +366,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 24
-           },
            "col": 4,
            "id": "Rack_3e1bw3w58k_4",
            "letterScoreMultiplier": 1,
@@ -442,9 +379,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 24
-           },
            "col": 5,
            "id": "Rack_3e1bw3w58k_5",
            "letterScoreMultiplier": 1,
@@ -467,9 +401,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 24
-           },
            "col": 6,
            "id": "Rack_3e1bw3w58k_6",
            "letterScoreMultiplier": 1,
@@ -483,9 +414,6 @@
           "_Ć": "Square",
           "_Ð": {
            "type": "_",
-           "owner": {
-            "_Ŕ": 24
-           },
            "col": 7,
            "id": "Rack_3e1bw3w58k_7",
            "letterScoreMultiplier": 1,
@@ -3564,7 +3492,6 @@
      "playerKey": "32dv07ptvr",
      "nextToGoKey": "36ztocgyjd",
      "replacements": [],
-     "emptyPlayerKey": "32dv07ptvr",
      "timestamp": 1656479134911
     }
    },
@@ -3578,7 +3505,6 @@
      "playerKey": "32dv07ptvr",
      "nextToGoKey": "36ztocgyjd",
      "challengerKey": "36ztocgyjd",
-     "emptyPlayerKey": "32dv07ptvr",
      "timestamp": 1656479144387
     }
    },
@@ -3586,33 +3512,32 @@
     "_Í": 343,
     "_Ć": "Turn",
     "_Ð": {
-     "score": {
-      "_Í": 344,
-      "_Ð": {
-       "32dv07ptvr": {
+     "score": [
+       {
         "_Í": 345,
         "_Ð": {
-         "tiles": 16
+"key":"32dv07ptvr",
+"tiles": 16
         }
        },
-       "36ztocgyjd": {
+       {
         "_Í": 346,
         "_Ð": {
-         "tiles": -11
+"key":"36ztocgyjd",
+"tiles": -11
         }
        },
-       "3e1bw3w58k": {
+       {
         "_Í": 347,
         "_Ð": {
-         "tiles": -5
+"key":"3e1bw3w58k",
+"tiles": -5
         }
        }
-      }
-     },
+     ],
      "type": "game-over",
      "gameKey": "e23dad22ee4234b8",
      "playerKey": "36ztocgyjd",
-     "emptyPlayerKey": "32dv07ptvr",
      "timestamp": 1656479179654
     }
    }
@@ -3632,9 +3557,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "T",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x0",
         "row": 0,
@@ -3658,9 +3580,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x1",
         "row": 1,
@@ -3673,9 +3592,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x2",
         "row": 2,
@@ -3688,9 +3604,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x3",
         "row": 3,
@@ -3703,9 +3616,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x4",
         "row": 4,
@@ -3718,9 +3628,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x5",
         "row": 5,
@@ -3733,9 +3640,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x6",
         "row": 6,
@@ -3748,9 +3652,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "T",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x7",
         "row": 7,
@@ -3763,9 +3664,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x8",
         "row": 8,
@@ -3778,9 +3676,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x9",
         "row": 9,
@@ -3793,9 +3688,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x10",
         "row": 10,
@@ -3808,9 +3700,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x11",
         "row": 11,
@@ -3823,9 +3712,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x12",
         "row": 12,
@@ -3838,9 +3724,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x13",
         "row": 13,
@@ -3853,9 +3736,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "T",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 0,
         "id": "Board_0x14",
         "row": 14,
@@ -3870,9 +3750,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x0",
         "row": 0,
@@ -3896,9 +3773,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x1",
         "row": 1,
@@ -3922,9 +3796,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x2",
         "row": 2,
@@ -3937,9 +3808,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x3",
         "row": 3,
@@ -3952,9 +3820,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x4",
         "row": 4,
@@ -3967,9 +3832,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x5",
         "row": 5,
@@ -3982,9 +3844,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x6",
         "row": 6,
@@ -3997,9 +3856,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x7",
         "row": 7,
@@ -4012,9 +3868,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x8",
         "row": 8,
@@ -4027,9 +3880,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x9",
         "row": 9,
@@ -4042,9 +3892,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x10",
         "row": 10,
@@ -4057,9 +3904,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x11",
         "row": 11,
@@ -4072,9 +3916,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x12",
         "row": 12,
@@ -4098,9 +3939,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x13",
         "row": 13,
@@ -4113,9 +3951,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 1,
         "id": "Board_1x14",
         "row": 14,
@@ -4130,9 +3965,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x0",
         "row": 0,
@@ -4145,9 +3977,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x1",
         "row": 1,
@@ -4171,9 +4000,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x2",
         "row": 2,
@@ -4197,9 +4023,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x3",
         "row": 3,
@@ -4223,9 +4046,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x4",
         "row": 4,
@@ -4238,9 +4058,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x5",
         "row": 5,
@@ -4253,9 +4070,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x6",
         "row": 6,
@@ -4268,9 +4082,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x7",
         "row": 7,
@@ -4283,9 +4094,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x8",
         "row": 8,
@@ -4298,9 +4106,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x9",
         "row": 9,
@@ -4313,9 +4118,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x10",
         "row": 10,
@@ -4328,9 +4130,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x11",
         "row": 11,
@@ -4354,9 +4153,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x12",
         "row": 12,
@@ -4380,9 +4176,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x13",
         "row": 13,
@@ -4395,9 +4188,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 2,
         "id": "Board_2x14",
         "row": 14,
@@ -4412,9 +4202,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x0",
         "row": 0,
@@ -4427,9 +4214,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x1",
         "row": 1,
@@ -4453,9 +4237,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x2",
         "row": 2,
@@ -4479,9 +4260,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x3",
         "row": 3,
@@ -4505,9 +4283,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x4",
         "row": 4,
@@ -4520,9 +4295,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x5",
         "row": 5,
@@ -4535,9 +4307,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x6",
         "row": 6,
@@ -4550,9 +4319,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x7",
         "row": 7,
@@ -4565,9 +4331,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x8",
         "row": 8,
@@ -4580,9 +4343,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x9",
         "row": 9,
@@ -4595,9 +4355,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x10",
         "row": 10,
@@ -4621,9 +4378,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x11",
         "row": 11,
@@ -4647,9 +4401,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x12",
         "row": 12,
@@ -4673,9 +4424,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x13",
         "row": 13,
@@ -4688,9 +4436,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 3,
         "id": "Board_3x14",
         "row": 14,
@@ -4705,9 +4450,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x0",
         "row": 0,
@@ -4731,9 +4473,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x1",
         "row": 1,
@@ -4757,9 +4496,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x2",
         "row": 2,
@@ -4772,9 +4508,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x3",
         "row": 3,
@@ -4798,9 +4531,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x4",
         "row": 4,
@@ -4824,9 +4554,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x5",
         "row": 5,
@@ -4850,9 +4577,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x6",
         "row": 6,
@@ -4876,9 +4600,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x7",
         "row": 7,
@@ -4891,9 +4612,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x8",
         "row": 8,
@@ -4906,9 +4624,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x9",
         "row": 9,
@@ -4932,9 +4647,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x10",
         "row": 10,
@@ -4958,9 +4670,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x11",
         "row": 11,
@@ -4985,9 +4694,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x12",
         "row": 12,
@@ -5000,9 +4706,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x13",
         "row": 13,
@@ -5015,9 +4718,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 4,
         "id": "Board_4x14",
         "row": 14,
@@ -5043,9 +4743,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x0",
         "row": 0,
@@ -5069,9 +4766,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x1",
         "row": 1,
@@ -5095,9 +4789,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x2",
         "row": 2,
@@ -5110,9 +4801,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x3",
         "row": 3,
@@ -5136,9 +4824,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x4",
         "row": 4,
@@ -5151,9 +4836,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x5",
         "row": 5,
@@ -5177,9 +4859,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x6",
         "row": 6,
@@ -5203,9 +4882,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x7",
         "row": 7,
@@ -5229,9 +4905,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x8",
         "row": 8,
@@ -5244,9 +4917,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x9",
         "row": 9,
@@ -5270,9 +4940,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x10",
         "row": 10,
@@ -5285,9 +4952,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x11",
         "row": 11,
@@ -5300,9 +4964,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x12",
         "row": 12,
@@ -5315,9 +4976,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x13",
         "row": 13,
@@ -5341,9 +4999,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 5,
         "id": "Board_5x14",
         "row": 14,
@@ -5369,9 +5024,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x0",
         "row": 0,
@@ -5384,9 +5036,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x1",
         "row": 1,
@@ -5399,9 +5048,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x2",
         "row": 2,
@@ -5425,9 +5071,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x3",
         "row": 3,
@@ -5451,9 +5094,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x4",
         "row": 4,
@@ -5466,9 +5106,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x5",
         "row": 5,
@@ -5492,9 +5129,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x6",
         "row": 6,
@@ -5507,9 +5141,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x7",
         "row": 7,
@@ -5533,9 +5164,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x8",
         "row": 8,
@@ -5548,9 +5176,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x9",
         "row": 9,
@@ -5574,9 +5199,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x10",
         "row": 10,
@@ -5589,9 +5211,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x11",
         "row": 11,
@@ -5615,9 +5234,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x12",
         "row": 12,
@@ -5630,9 +5246,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x13",
         "row": 13,
@@ -5656,9 +5269,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 6,
         "id": "Board_6x14",
         "row": 14,
@@ -5673,9 +5283,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "T",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x0",
         "row": 0,
@@ -5699,9 +5306,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x1",
         "row": 1,
@@ -5725,9 +5329,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x2",
         "row": 2,
@@ -5751,9 +5352,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x3",
         "row": 3,
@@ -5777,9 +5375,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x4",
         "row": 4,
@@ -5792,9 +5387,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x5",
         "row": 5,
@@ -5807,9 +5399,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x6",
         "row": 6,
@@ -5833,9 +5422,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "M",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x7",
         "row": 7,
@@ -5859,9 +5445,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x8",
         "row": 8,
@@ -5885,9 +5468,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x9",
         "row": 9,
@@ -5911,9 +5491,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x10",
         "row": 10,
@@ -5926,9 +5503,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x11",
         "row": 11,
@@ -5952,9 +5526,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x12",
         "row": 12,
@@ -5978,9 +5549,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x13",
         "row": 13,
@@ -6004,9 +5572,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "T",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 7,
         "id": "Board_7x14",
         "row": 14,
@@ -6032,9 +5597,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x0",
         "row": 0,
@@ -6058,9 +5620,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x1",
         "row": 1,
@@ -6073,9 +5632,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x2",
         "row": 2,
@@ -6088,9 +5644,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x3",
         "row": 3,
@@ -6103,9 +5656,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x4",
         "row": 4,
@@ -6129,9 +5679,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x5",
         "row": 5,
@@ -6155,9 +5702,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x6",
         "row": 6,
@@ -6181,9 +5725,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x7",
         "row": 7,
@@ -6207,9 +5748,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x8",
         "row": 8,
@@ -6233,9 +5771,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x9",
         "row": 9,
@@ -6248,9 +5783,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x10",
         "row": 10,
@@ -6274,9 +5806,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x11",
         "row": 11,
@@ -6300,9 +5829,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x12",
         "row": 12,
@@ -6315,9 +5841,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x13",
         "row": 13,
@@ -6330,9 +5853,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 8,
         "id": "Board_8x14",
         "row": 14,
@@ -6347,9 +5867,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x0",
         "row": 0,
@@ -6373,9 +5890,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x1",
         "row": 1,
@@ -6399,9 +5913,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x2",
         "row": 2,
@@ -6425,9 +5936,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x3",
         "row": 3,
@@ -6440,9 +5948,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x4",
         "row": 4,
@@ -6455,9 +5960,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x5",
         "row": 5,
@@ -6481,9 +5983,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x6",
         "row": 6,
@@ -6507,9 +6006,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x7",
         "row": 7,
@@ -6522,9 +6018,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x8",
         "row": 8,
@@ -6548,9 +6041,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x9",
         "row": 9,
@@ -6574,9 +6064,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x10",
         "row": 10,
@@ -6600,9 +6087,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x11",
         "row": 11,
@@ -6615,9 +6099,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x12",
         "row": 12,
@@ -6630,9 +6111,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x13",
         "row": 13,
@@ -6645,9 +6123,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 9,
         "id": "Board_9x14",
         "row": 14,
@@ -6662,9 +6137,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x0",
         "row": 0,
@@ -6677,9 +6149,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x1",
         "row": 1,
@@ -6703,9 +6172,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x2",
         "row": 2,
@@ -6729,9 +6195,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x3",
         "row": 3,
@@ -6744,9 +6207,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x4",
         "row": 4,
@@ -6770,9 +6230,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x5",
         "row": 5,
@@ -6796,9 +6253,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x6",
         "row": 6,
@@ -6822,9 +6276,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x7",
         "row": 7,
@@ -6837,9 +6288,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x8",
         "row": 8,
@@ -6863,9 +6311,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x9",
         "row": 9,
@@ -6889,9 +6334,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x10",
         "row": 10,
@@ -6915,9 +6357,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x11",
         "row": 11,
@@ -6930,9 +6369,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x12",
         "row": 12,
@@ -6945,9 +6381,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x13",
         "row": 13,
@@ -6960,9 +6393,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 10,
         "id": "Board_10x14",
         "row": 14,
@@ -6977,9 +6407,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x0",
         "row": 0,
@@ -6992,9 +6419,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x1",
         "row": 1,
@@ -7007,9 +6431,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x2",
         "row": 2,
@@ -7033,9 +6454,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x3",
         "row": 3,
@@ -7059,9 +6477,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x4",
         "row": 4,
@@ -7085,9 +6500,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x5",
         "row": 5,
@@ -7111,9 +6523,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x6",
         "row": 6,
@@ -7126,9 +6535,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x7",
         "row": 7,
@@ -7141,9 +6547,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x8",
         "row": 8,
@@ -7156,9 +6559,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x9",
         "row": 9,
@@ -7182,9 +6582,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x10",
         "row": 10,
@@ -7197,9 +6594,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x11",
         "row": 11,
@@ -7212,9 +6606,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x12",
         "row": 12,
@@ -7227,9 +6618,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x13",
         "row": 13,
@@ -7242,9 +6630,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 11,
         "id": "Board_11x14",
         "row": 14,
@@ -7259,9 +6644,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x0",
         "row": 0,
@@ -7274,9 +6656,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x1",
         "row": 1,
@@ -7300,9 +6679,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x2",
         "row": 2,
@@ -7326,9 +6702,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x3",
         "row": 3,
@@ -7352,9 +6725,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x4",
         "row": 4,
@@ -7378,9 +6748,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x5",
         "row": 5,
@@ -7393,9 +6760,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x6",
         "row": 6,
@@ -7408,9 +6772,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x7",
         "row": 7,
@@ -7423,9 +6784,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x8",
         "row": 8,
@@ -7438,9 +6796,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x9",
         "row": 9,
@@ -7465,9 +6820,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x10",
         "row": 10,
@@ -7491,9 +6843,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x11",
         "row": 11,
@@ -7517,9 +6866,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x12",
         "row": 12,
@@ -7543,9 +6889,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x13",
         "row": 13,
@@ -7558,9 +6901,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 12,
         "id": "Board_12x14",
         "row": 14,
@@ -7575,9 +6915,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x0",
         "row": 0,
@@ -7601,9 +6938,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x1",
         "row": 1,
@@ -7627,9 +6961,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x2",
         "row": 2,
@@ -7642,9 +6973,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x3",
         "row": 3,
@@ -7657,9 +6985,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x4",
         "row": 4,
@@ -7672,9 +6997,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x5",
         "row": 5,
@@ -7687,9 +7009,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x6",
         "row": 6,
@@ -7702,9 +7021,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x7",
         "row": 7,
@@ -7717,9 +7033,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x8",
         "row": 8,
@@ -7732,9 +7045,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "t",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x9",
         "row": 9,
@@ -7747,9 +7057,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x10",
         "row": 10,
@@ -7762,9 +7069,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x11",
         "row": 11,
@@ -7777,9 +7081,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x12",
         "row": 12,
@@ -7792,9 +7093,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "D",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x13",
         "row": 13,
@@ -7807,9 +7105,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 13,
         "id": "Board_13x14",
         "row": 14,
@@ -7824,9 +7119,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "T",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x0",
         "row": 0,
@@ -7850,9 +7142,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x1",
         "row": 1,
@@ -7876,9 +7165,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x2",
         "row": 2,
@@ -7902,9 +7188,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x3",
         "row": 3,
@@ -7917,9 +7200,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x4",
         "row": 4,
@@ -7932,9 +7212,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x5",
         "row": 5,
@@ -7947,9 +7224,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x6",
         "row": 6,
@@ -7962,9 +7236,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "T",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x7",
         "row": 7,
@@ -7977,9 +7248,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x8",
         "row": 8,
@@ -7992,9 +7260,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x9",
         "row": 9,
@@ -8007,9 +7272,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x10",
         "row": 10,
@@ -8022,9 +7284,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "d",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x11",
         "row": 11,
@@ -8037,9 +7296,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x12",
         "row": 12,
@@ -8052,9 +7308,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "_",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x13",
         "row": 13,
@@ -8067,9 +7320,6 @@
        "_Ć": "Square",
        "_Ð": {
         "type": "T",
-        "owner": {
-         "_Ŕ": 348
-        },
         "col": 14,
         "id": "Board_14x14",
         "row": 14,
@@ -8128,7 +7378,7 @@
   },
   "dictionary": "CSW2019_English",
   "timerType": "Turn timer",
-  "timeLimit": 780,
+  "timeAllowed": 13,
   "minPlayers": 3,
   "maxPlayers": 3,
   "predictScore": true,

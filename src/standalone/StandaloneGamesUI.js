@@ -19,9 +19,9 @@ import { StandaloneUIMixin } from "./StandaloneUIMixin.js";
 
 /**
  * Management interface for a database of games stored in localStorage.
- * @mixes standalone/StandaloneUIMixin
- * @mixes browser/GamesUIMixin
  * @extends UI
+ * @mixes browser/GamesUIMixin
+ * @mixes standalone/StandaloneUIMixin
  */
 class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
 
@@ -35,7 +35,10 @@ class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
 
     $("#create-game")
     .on("click", () =>
-        import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
+        import(
+          /* webpackMode: "lazy" */
+          /* webpackChunkName: "GameSetupDialog" */
+          "../browser/GameSetupDialog.js")
         .then(mod => new mod[Object.keys(mod)[0]]({
           html: "standalone_GameSetupDialog",
           title: $.i18n("Create game"),
@@ -56,7 +59,10 @@ class StandaloneGamesUI extends StandaloneUIMixin(GamesUIMixin(UI)) {
    * @override
    */
   gameOptions(game) {
-    import(/* webpackMode: "eager" */"../browser/GameSetupDialog.js")
+    import(
+      /* webpackMode: "lazy" */
+      /* webpackChunkName: "GameSetupDialog" */
+      "../browser/GameSetupDialog.js")
     .then(mod => new mod[Object.keys(mod)[0]]({
       html: "standalone_GameSetupDialog",
       title: $.i18n("Game setup"),

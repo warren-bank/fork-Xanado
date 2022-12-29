@@ -29,7 +29,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
@@ -106,7 +106,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.PER_TURN,
       penaltyPoints: 5
@@ -184,7 +184,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.PER_WORD,
       penaltyPoints: 100
@@ -257,7 +257,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
@@ -324,7 +324,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
@@ -393,7 +393,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.PER_WORD,
       penaltyPoints: 6
@@ -473,7 +473,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
@@ -526,7 +526,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
@@ -588,7 +588,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
@@ -670,7 +670,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
@@ -702,8 +702,8 @@ describe("game/Challenges", () => {
         //console.debug("bad challenge of final play", turn);
         assert.equal(turn.type, Game.Turns.GAME_ENDED);
         assert.equal(turn.endState, Game.State.FAILED_CHALLENGE);
-        assert.deepEqual(turn.score, {
-          human1: {tiles: 4 }, human2: {tiles: -4, tilesRemaining: "Q"}});
+        assert.deepEqual(turn.score, [
+          { key: "human1", tiles: 4 }, { key: "human2", tiles: -4, tilesRemaining: "Q"}]);
         assert.equal(turn.playerKey, human2.key);
         assert.equal(turn.nextToGoKey, undefined);
         // Game should be over
@@ -743,7 +743,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
@@ -824,7 +824,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });
@@ -914,7 +914,7 @@ describe("game/Challenges", () => {
     const game = new Game({
       edition:"Test",
       dictionary:"Oxford_5000",
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       //_debug: console.debug,
       challengePenalty: Game.Penalty.MISS
     });

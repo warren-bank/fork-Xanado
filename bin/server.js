@@ -65,13 +65,16 @@ const DESCRIPTION = [
   "\nDESCRIPTION",
   "\tRun a XANADO server\n",
   "\nOPTIONS",
-  "\t-c, --config=ARG - Path to config file",
-  "\t-s, --debug_server - output server debug messages",
-  "\t-g, --debug_game - output game logic messages"
+  "\t-c, --config <file> - Path to config file",
+  "\t-d, --debug <options> - set debug options",
+  "\t\tgame - game logic",
+  "\t\tserver - server activity",
+  "\t\tusers - user management",
+  "\t\tall - all the above"
 ].join("\n");
 
 const go_parser = new getopt.BasicParser(
-  "h(help)s(debug_server)g(debug_game)c:(config)",
+  "h(help)d:(debug)c:(config)",
   process.argv);
 
 const options = {};
@@ -79,8 +82,7 @@ let option;
 while ((option = go_parser.getopt())) {
   switch (option.option) {
   default: console.debug(DESCRIPTION); process.exit();
-  case 's': options.debug_server = true; break;
-  case 'g': options.debug_game = true; break;
+  case 'd': options.debug = option.optarg; break;
   case 'c': options.config = option.optarg ; break;
   }
 }
@@ -105,11 +107,8 @@ p.then(json => addDefaults(JSON.parse(json), DEFAULT_CONFIG))
 
 .then(config => {
 
-  if (options.debug_server)
-    config.debug_server = true;
-  if (options.debug_game)
-    config.debug_game = true;
-  if (config.debug_server)
+  config.debug = options.debug || "";
+  if (/^(server|all)$/i.test(options.debug))
     console.debug(config);
   if (config.mail) {
     let transport;
@@ -118,7 +117,7 @@ p.then(json => addDefaults(JSON.parse(json), DEFAULT_CONFIG))
         console.error("mailgun configuration requested, but MAILGUN_SMTP_SERVER not defined");
       else {
         if (!config.mail.sender)
-          config.mail.sender = `wordgame@${process.env.MAILGUN_DOMAIN}`;
+          config.mail.sender = `xanado@${process.env.MAILGUN_DOMAIN}`;
         transport = {
           host: process.env.MAILGUN_SMTP_SERVER,
           port: process.env.MAILGUN_SMTP_PORT,

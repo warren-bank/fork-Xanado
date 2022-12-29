@@ -75,7 +75,7 @@ describe("game/Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       allowUndo: true
     });
     const human1 = new Player({
@@ -131,7 +131,7 @@ describe("game/Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       allowUndo: true
     });
     const socket = new TestSocket("front end");
@@ -196,7 +196,7 @@ describe("game/Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       allowUndo: true
     });
     const socket = new TestSocket("unplay");
@@ -243,7 +243,7 @@ describe("game/Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       allowUndo: true
     });
     const human1 = new Player({
@@ -309,9 +309,7 @@ describe("game/Undo", () => {
 
   // Unplay an entire game (including a challenge)
   it("undo", () => {
-    const db = new FileDatabase({
-      dir: `${__dirname}/../data`, ext: "game", typeMap: Game
-    });
+    const db = new FileDatabase({ dir: `${__dirname}/../data`, ext: "game" });
     let game;
     return db.get("finished_game")
     .then(d => Game.fromCBOR(d, Game.CLASSES))
@@ -334,7 +332,7 @@ describe("game/Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       allowUndo: true
     });
     const human1 = new Player({
@@ -374,7 +372,7 @@ describe("game/Undo", () => {
       edition:"Test",
       dictionary:"Oxford_5000",
       //_debug: console.debug,
-      noPlayerShuffle: true,
+      _noPlayerShuffle: true,
       allowUndo: true
     });
     const socket = new TestSocket();

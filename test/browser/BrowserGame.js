@@ -52,7 +52,7 @@ describe("browser/BrowserGame", () => {
 			timeAllowed: 999 / 60,
 			predictScore: false,
 			allowTakeBack: false,
-			noPlayerShuffle: true
+			_noPlayerShuffle: true
 		};
 
 		const robot1 = new Player(
@@ -105,7 +105,7 @@ describe("browser/BrowserGame", () => {
 			timeAllowed: 999 / 60,
 			predictScore: false,
 			allowTakeBack: false,
-			noPlayerShuffle: true
+			_noPlayerShuffle: true
 		};
 
 		const robot1 = new Player(
@@ -179,7 +179,7 @@ describe("browser/BrowserGame", () => {
 		  timeAllowed: 999 / 60,
 		  predictScore: false,
 		  allowTakeBack: false,
-		  noPlayerShuffle: true,
+		  _noPlayerShuffle: true,
       challengePenalty: BrowserGame.Penalty.PER_WORD
 	  };
 
@@ -449,11 +449,12 @@ describe("browser/BrowserGame", () => {
       p.YOU.score = 99;
       // rack on the client side (should be ignored)
       p.THEM.rack.addTile(new Tile({letter: "A", score: 1}));
-      const endScore = {};
-      // You gained 10 points
-      endScore[p.YOU.key] = { tiles: 10 };
-      // They lost 10 points
-      endScore[p.THEM.key] = {tiles: -10, tilesRemaining: "Q", time: 0};
+      const endScore = [
+        // You gained 10 points
+        { key: p.YOU.key, tiles: 10 },
+        // They lost 10 points
+        { key: p.THEM.key, tiles: -10, tilesRemaining: "Q", time: 0}
+      ];
       const turn = new Turn({
         gameKey: p.game.key,
         type: BrowserGame.Turns.GAME_ENDED,
@@ -484,9 +485,10 @@ describe("browser/BrowserGame", () => {
       p.THEM.score = 99;
       // rack on the client side
       p.YOU.rack.addTile(new Tile({letter: "A", score: 1}));
-      const endScore = {};
-      endScore[p.YOU.key] = {tiles: -10, tilesRemaining: "Z", time: -1};
-      endScore[p.THEM.key] = {tiles: 10, time: 0};
+      const endScore = [
+        { key: p.YOU.key, tiles: -10, tilesRemaining: "Z", time: -1},
+        { key: p.THEM.key, tiles: 10, time: 0}
+      ];
       const turn = new Turn({
         gameKey: p.game.key,
         type: BrowserGame.Turns.GAME_ENDED,
@@ -523,9 +525,10 @@ describe("browser/BrowserGame", () => {
       p.YOU.rack.addTile(new Tile({letter: "S", score: 1}));
       p.YOU.rack.addTile(new Tile({letter: "T", score: 1}));
       p.THEM.rack.addTile(new Tile({letter: "A", score: 1}));
-      const endScore = {};
-      endScore[p.YOU.key] = {tiles: -3, tilesRemaining: "A,E,I", time: 0};
-      endScore[p.THEM.key] = {tiles: -7, tilesRemaining: "Q", time: -10};
+      const endScore = [
+        { key: p.YOU.key, tiles: -3, tilesRemaining: "A,E,I", time: 0},
+        { key: p.THEM.key, tiles: -7, tilesRemaining: "Q", time: -10}
+      ];
       const turn = new Turn({
         gameKey: p.game.key,
         type: BrowserGame.Turns.GAME_ENDED,

@@ -20,11 +20,12 @@ function makeConfig(html, js) {
     entry: {
       app: `${__dirname}/../src/${js}`
     },
-    mode: "production",
+    //mode: "production",
+    mode: "development",
     output: {
       filename: js,
       path: `${__dirname}/../dist`,
-      globalObject: "this"
+      globalObject: "window"
     },
     resolve: {
       extensions: [ '.js' ]
