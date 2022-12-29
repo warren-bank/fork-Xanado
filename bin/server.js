@@ -133,8 +133,7 @@ p.then(json => addDefaults(JSON.parse(json), DEFAULT_CONFIG))
       transport = config.mail.transport;
     
     if (transport)
-      config.mail.transport = nodemailer.createTransport(
-        transport);
+      config.mail.transport = nodemailer.createTransport(transport);
   }
 
   const promises = [];
