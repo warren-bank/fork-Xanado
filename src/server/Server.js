@@ -191,7 +191,9 @@ class Server {
     cmdRouter.get(
       "/",
       (req, res) => res.sendFile(
-        path.join(staticRoot, "html", "client_games.html")));
+        path.join(staticRoot,
+                  this.debug ? "html" : "dist",
+                  "client_games.html")));
 
     cmdRouter.get(
       "/games/:send",
@@ -327,7 +329,7 @@ class Server {
       this.games[key] = game;
       /* istanbul ignore if */
       if (/^(game|all)$/i.test(this.config.debug))
-        game.debug = console.debug;
+        game._debug = console.debug;
 
       return game.playIfReady();
     });
@@ -717,7 +719,9 @@ class Server {
    */
   GET_css(req, res) {
     return Fs.readdir(path.join(staticRoot, "css"))
-    .then(list => reply(res, list.filter(f => /\.css$/.test(f))));
+    .then(list => reply(res,
+                        list.filter(f => /\.css$/.test(f))
+                        .map(f => f.replace(/\.css$/, ""))));
   }
 
   /**
@@ -736,7 +740,7 @@ class Server {
     .then(game => {
       /* istanbul ignore if */
       if (/^(game|all)$/i.test(this.config.debug))
-        game.debug = console.debug;
+        game._debug = console.debug;
       /* istanbul ignore if */
       if (this.debug)
         this.debug("Created game", game.stringify());
