@@ -55,7 +55,7 @@
 		"proper-lockfile": "latest",
 		"session-file-store": "latest",
 		"socket.io": "latest",
-		"web-worker": "^1.2.0"
+		"web-worker": "latest"
 	},
 	"importmap": "./build/importmap.json",
 	"devDependencies": {
