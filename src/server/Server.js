@@ -5,14 +5,15 @@
 
 /* global Platform */
 
+import URL from 'url';
+
 import { promises as Fs } from "fs";
-import path from "path";
-import { fileURLToPath } from 'url';
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const staticRoot = path.join(__dirname, "..", "..");
+import Path from "path";
+const __dirname = Path.dirname(URL.fileURLToPath(import.meta.url));
+const staticRoot = Path.normalize(Path.join(__dirname, "..", ".."));
 
 import Events from "events";
-import cors  from "cors";
+import Cors from "cors";
 import Express from "express";
 
 import { Edition } from "../game/Edition.js";
@@ -65,6 +66,7 @@ function reply(res, data) {
  * * {@linkcode Server#GET_game|GET /game/:gameKey}
  * * {@linkcode Server#GET_games|GET /games/:send}
  * * {@linkcode Server#GET_history|GET /history}
+ * * {@linkcode Server#GET_POST_join|GET /join/:gameKey}
  * * {@linkcode Server#GET_locales|GET /locales}
  * * {@linkcode Server#GET_theme|GET /theme/:css
  * * {@linkcode Server#GET_themes|GET /themes}
@@ -73,7 +75,7 @@ function reply(res, data) {
  * * {@linkcode Server#POST_createGame|POST /createGame}
  * * {@linkcode Server#POST_deleteGame|POST /deleteGame/:gameKey}
  * * {@linkcode Server#POST_invitePlayers|POST /invitePlayers/:gameKey}
- * * {@linkcode Server#POST_join|POST /join/:gameKey}
+ * * {@linkcode Server#GET_POST_join|POST /join/:gameKey}
  * * {@linkcode Server#POST_leave|POST /leave/:gameKey}
  * * {@linkcode Server#POST_removeRobot|POST /removeRobot/:gameKey}
  * * {@linkcode Server#POST_sendReminder|POST /sendReminder/:gameKey}
@@ -153,7 +155,7 @@ class Server {
     this.express = new Express();
 
     // Headers not added by passport?
-    this.express.use(cors());
+    this.express.use(Cors());
 
     // Parse incoming requests with url-encoded payloads
     this.express.use(Express.urlencoded({ extended: true }));
@@ -191,7 +193,7 @@ class Server {
     cmdRouter.get(
       "/",
       (req, res) => res.sendFile(
-        path.join(staticRoot,
+        Path.join(staticRoot,
                   this.debug ? "html" : "dist",
                   "client_games.html")));
 
@@ -231,6 +233,10 @@ class Server {
       "/game/:gameKey",
       (req, res) => this.GET_game(req, res));
 
+    cmdRouter.get(
+      "/join/:gameKey",
+      (req, res) => this.GET_POST_join(req, res));
+
     cmdRouter.post(
       "/createGame",
       (req, res, next) =>
@@ -265,7 +271,7 @@ class Server {
       "/join/:gameKey",
       (req, res, next) =>
       this.userManager.checkLoggedIn(req, res, next),
-      (req, res) => this.POST_join(req, res));
+      (req, res) => this.GET_POST_join(req, res));
 
     cmdRouter.post(
       "/leave/:gameKey",
@@ -520,7 +526,7 @@ class Server {
       {key: req.session.passport.user.key})
     .then(sender => `${sender.name}<${sender.email}>`)
     .catch(
-      // should never happen so long as only logged-in
+      // should never happen so long as only signed-in
       // users can send mail
       /* istanbul ignore next */
       () => this.config.mail.sender)
@@ -659,7 +665,7 @@ class Server {
    * when the response has been sent.
    */
   GET_locales(req, res) {
-    return Fs.readdir(path.join(staticRoot, "i18n"))
+    return Fs.readdir(Path.join(staticRoot, "i18n"))
     .then(list => reply(
       res, list.filter(f => f !== "index.json" && /^.*\.json$/.test(f))
       .map(fn => fn.replace(/\.json$/, ""))));
@@ -674,7 +680,7 @@ class Server {
    * when the response has been sent.
    */
   GET_editions(req, res) {
-    return Fs.readdir(path.join(staticRoot, "editions"))
+    return Fs.readdir(Path.join(staticRoot, "editions"))
     .then(list => reply(
       res, list.filter(f => f !== "index.json" && /^.*\.json$/.test(f))
       .map(fn => fn.replace(/\.json$/, ""))));
@@ -703,7 +709,7 @@ class Server {
    * when the response has been sent.
    */
   GET_dictionaries(req, res) {
-    return Fs.readdir(path.join(staticRoot, "dictionaries"))
+    return Fs.readdir(Path.join(staticRoot, "dictionaries"))
     .then(list => reply(res,
                         list.filter(f => /\.dict$/.test(f))
                         .map(fn => fn.replace(/\.dict$/, ""))));
@@ -718,7 +724,7 @@ class Server {
    * when the response has been sent.
    */
   GET_css(req, res) {
-    return Fs.readdir(path.join(staticRoot, "css"))
+    return Fs.readdir(Path.join(staticRoot, "css"))
     .then(list => reply(res,
                         list.filter(f => /\.css$/.test(f))
                         .map(f => f.replace(/\.css$/, ""))));
@@ -845,37 +851,57 @@ class Server {
    * @param {Request} req the request object
    * @param {string} req.params.gameKey the game key
    * @param {Response} res the response object. The response body
-   * will be the player key.
+   * will be the URL of the game.
    * @return {Promise} promise that resolves to undefined
    * when the response has been sent.
    */
-  POST_join(req, res) {
+  GET_POST_join(req, res) {
     const gameKey = req.params.gameKey;
+    let prom, pram;
     return this.loadGameFromDB(gameKey)
     .catch(e => replyAndThrow(res, 400, `Game ${gameKey} load failed`, e))
     .then(game => {
-      // Player is either joining or connecting
-      const playerKey = req.user.key;
-      let player = game.getPlayerWithKey(playerKey);
-      let prom;
-      if (player) {
-        /* istanbul ignore if */
-        if (this.debug)
-          this.debug("Player", playerKey, "opening", gameKey);
-        prom = game.playIfReady();
+      if (req.user) { // signed-in user
+        const playerKey = req.user.key;
+        let player = game.getPlayerWithKey(playerKey);
+        if (player) {
+          // Known player is connecting
+          /* istanbul ignore if */
+          if (this.debug)
+            this.debug("Player", playerKey, "opening", gameKey);
+          prom = game.playIfReady();
+        } else {
+          // New player is joining
+          /* istanbul ignore if */
+          if (this.debug)
+            this.debug("Player", playerKey, "joining", gameKey);
+          player = new Player(
+            { name: req.user.name, key: playerKey }, BackendGame.CLASSES);
+          game.addPlayer(player, true);
+          prom = game.save()
+          .then(game => game.playIfReady());
+        }
+        pram = `player=${playerKey}`;
+      } else if (req.query && typeof req.query.observer !== "undefined") {
+        // Observer is joining
+        pram = `observer=${encodeURI(req.query.observer)}`;
+        prom = Promise.resolve();
       } else {
-        /* istanbul ignore if */
-        if (this.debug)
-          this.debug("Player", playerKey, "joining", gameKey);
-        player = new Player(
-          { name: req.user.name, key: playerKey }, BackendGame.CLASSES);
-        game.addPlayer(player, true);
-        prom = game.save()
-        .then(game => game.playIfReady());
+        replyAndThrow(res, 400, "Not signed in and no ?observer");
       }
-      // The game may now be ready to start
+
+      // Work out the URL for the game interface
+      const dir = this.debug ? 'html' : 'dist';
+      const url = URL.format({
+        protocol: req.protocol,
+        host: req.get('Host'),
+        pathname: req.originalUrl
+        .replace(/\/.*?$/, `/${dir}/client_game.html`),
+        search: `?game=${game.key}&${pram}`
+      });
+
       return prom
-      .then(() => reply(res, player.key));
+      .then(() => reply(res, url));
       // Don't need to send connections, that will be done
       // in the connect event handler
     });
