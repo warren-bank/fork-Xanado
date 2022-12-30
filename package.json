@@ -65,7 +65,7 @@
 		"css": "latest",
 		"docdash": "latest",
 		"eslint": "latest",
-		"eslint-plugin-import": "^2.26.0",
+		"eslint-plugin-import": "^2.24.1",
 		"esprima": "latest",
 		"html-loader": "latest",
 		"jsdoc": "latest",
