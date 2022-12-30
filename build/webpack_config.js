@@ -12,7 +12,7 @@ function makeConfig(html, js) {
   .then(content => {
     content = content.toString().replace(
       /(<script type="module" src=").*?"/,
-      `$1${js}"`);
+      `$1../dist/${js}"`);
     return fs.writeFile(`${__dirname}/../dist/${html}`, content);
   });
 
