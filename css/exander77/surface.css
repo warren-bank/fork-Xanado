@@ -40,12 +40,12 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  font-size: 18pt;
 }
 
 /* The text is taken from an attribute on the underlay */
 .Surface .underlay:before {
   content: attr(data-short);
-  font-size: 18pt;
 }
 
 /* Font size for full text in underlay is computed in JS */
