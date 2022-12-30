@@ -3,8 +3,17 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
+// The documented method for importing socket.io in ESM is:
+// import { io } from "../../node_modules/socket.io/client-dist/socket.io.esm.min.js";
+// This works fine in the unpacked version, but fails when webpacked.
+//
+// The following clumsy hack is the only way I could get it to work in both
+// the unpacked and th packed versions. If someone can do better, please do!
 /* global io */
-import "../../node_modules/socket.io/client-dist/socket.io.js";
+import * as SI from "../../node_modules/socket.io/client-dist/socket.io.js";
+if (typeof io === "undefined")
+  window.io = SI.io;
+
 import "../../node_modules/jquery/dist/jquery.js";
 import "../../node_modules/jquery-ui/dist/jquery-ui.js";
 
@@ -142,6 +151,7 @@ const ClientUIMixin = superclass => class extends superclass {
    * @memberof client/ClientUIMixin
    */
   create() {
+    console.debug("Creating ClientUIMixin");
     // Set up translations and connect to channels
     let args;
     return this.getGameDefaults()
@@ -151,15 +161,16 @@ const ClientUIMixin = superclass => class extends superclass {
         this.debug = console.debug;
     })
     .then(() => this.getSession())
+    .catch(e => this.observer = (args.observer || "Anonymous"))
     .then(() => this.initTheme())
-    .then(() => this.initLocale()) // need the session to do this
+    .then(() => this.initLocale())
     .then(() => this.processArguments(args))
     .then(() => this.channel = io().connect())
     .then(() => this.attachChannelHandlers())
     .then(() => this.attachUIEventHandlers())
     .then(() => {
 
-      $("#login-button")
+      $("#signin-button")
       .on("click", () =>
           import(
             /* webpackMode: "lazy" */
@@ -171,9 +182,9 @@ const ClientUIMixin = superclass => class extends superclass {
             error: e => this.alert(e, $.i18n("failed", $.i18n("Sign in")))
           })));
 
-      $("#logout-button")
+      $("#signout-button")
       .on("click", () => {
-        $.post("/logout")
+        $.post("/signout")
         .then(() => console.debug("Logged out"))
         .catch(e => this.alert(e, $.i18n("failed", $.i18n("Sign out"))))
         .then(() => {
@@ -269,22 +280,22 @@ const ClientUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * Identify the logged-in user.
+   * Identify the signed-in user.
    * @instance
    * @implements browser/UI
    * @memberof client/ClientUIMixin
    * @override
    * @return {Promise} a promise that resolves to the (redacted)
-   * session object if someone is logged in, or undefined otherwise.
+   * session object if someone is signed in, or undefined otherwise.
    * @throws Error if there is no active session
    */
   getSession() {
-    $(".logged-in,.not-logged-in").hide();
+    $(".signed-in,.not-signed-in").hide();
     return $.get("/session")
     .then(session => {
       console.debug(`Signed in as '${session.name}'`);
-      $(".not-logged-in").hide();
-      $(".logged-in")
+      $(".not-signed-in").hide();
+      $(".signed-in")
       .show()
       .find("span")
       .first()
@@ -293,12 +304,12 @@ const ClientUIMixin = superclass => class extends superclass {
       return session;
     })
     .catch(() => {
-      $(".logged-in").hide();
-      $(".not-logged-in").show();
+      $(".signed-in").hide();
+      $(".not-signed-in").show();
       if (typeof this.observer === "string")
         $(".observer").show().text($.i18n(
           "observer", this.observer));
-      throw Error("Not logged in");
+      throw Error($.i18n("Not signed in"));
     });
   }
 
@@ -327,15 +338,15 @@ const ClientUIMixin = superclass => class extends superclass {
     const key = this.game.nextGameKey;
     $.post(`/join/${key}`)
     .then(() => {
-      location.replace(
-        `/html/client_game.html?game=${key}&player=${this.player.key}`);
+      const s = location;
+      location.replace(s.replace(/game=[^;&]*/, `game=${key}`));
     })
     .catch(console.error);
   }
 
   /**
    * @implements browser/GameUIMixin
-   * If a user is logged in, the value will be taken from their
+   * If a user is signed in, the value will be taken from their
    * session (and will default if it is not defined).
    * @instance
    * @memberof client/ClientUIMixin

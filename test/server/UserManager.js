@@ -16,7 +16,7 @@ import { Server } from "../../src/server/Server.js";
 import { UserManager } from "../../src/server/UserManager.js";
 
 /**
- * Basic unit tests for UserManager class. Only tests Xanado logins.
+ * Basic unit tests for UserManager class. Only tests Xanado signins.
  */
 describe("server/UserManager", () => {
 
@@ -44,7 +44,7 @@ describe("server/UserManager", () => {
       .then(() => Platform.i18n().load("en-GB"));
     });
 
-  it("/session when not logged in", () => {
+  it("/session when not signed in", () => {
     const s = new Server(config);
     return chai.request(s.express)
     .get("/session")
@@ -116,10 +116,10 @@ describe("server/UserManager", () => {
     });
   }
   
-  // Promise to login user. Resolve to cookie.
-  function login(server, user) {
+  // Promise to signin user. Resolve to cookie.
+  function signin(server, user) {
     return chai.request(server.express)
-    .post("/login")
+    .post("/signin")
     .send(user)
     .then(res => {
       assert.equal(res.status, 200);
@@ -143,7 +143,7 @@ describe("server/UserManager", () => {
     });
   });
 
-  it("login / logout", () => {
+  it("signin / signout", () => {
     let cookie;
     const server = new Server(config);
     return register(server, {
@@ -154,31 +154,30 @@ describe("server/UserManager", () => {
 
     // Wrong password
     .then(() => chai.request(server.express)
-          .post("/login?origin=greatapes")
+          .post("/signin?origin=greatapes")
           .send({
-            login_username: "test_user",
-            login_password: "wrong_pass"
+            signin_username: "test_user",
+            signin_password: "wrong_pass"
           }))
     .then(res => {
       assert.equal(res.status, 401);
       // NO! assert.deepEqual(res.body, ["Not signed in"]);
     })
     // Right password
-    .then(() => login(server, {
-      login_username: "test_user", login_password: "test_pass"
+    .then(() => signin(server, {
+      signin_username: "test_user", signin_password: "test_pass"
     }))
     .then(c => {
       cookie = c;
 
-      // Logout
       return chai.request(server.express)
-      .post("/logout")
+      .post("/signout")
       .set('Cookie', cookie);
     })
     .then(res => {
       assert.equal(res.status, 200);
       return chai.request(server.express)
-      .post("/logout")
+      .post("/signout")
       .set('Cookie', cookie);
     })
     .then(res => {
@@ -192,19 +191,19 @@ describe("server/UserManager", () => {
       });
     })
     .then(() => chai.request(server.express)
-          .post("/login")
+          .post("/signin")
           .send({
-            login_username: "test2_user",
-            login_password: "wrong_pass"
+            signin_username: "test2_user",
+            signin_password: "wrong_pass"
           }))
     .then(res => {
       assert.equal(res.status, 401);
       // NO! assert.deepEqual(res.body, ["Not signed in"]);
-      return login(server, { login_username: "test2_user" });
+      return signin(server, { signin_username: "test2_user" });
     });
   });
 
-  it("logged in /session-settings and /session", () => {
+  it("signed in /session-settings and /session", () => {
     let  cookie;
     const server = new Server(config);
     return register(server, {
@@ -213,8 +212,8 @@ describe("server/UserManager", () => {
       register_email: "test@email.com"
     })
     
-    .then(() => login(server, {
-      login_username: "test_user", login_password: "test_pass"
+    .then(() => signin(server, {
+      signin_username: "test_user", signin_password: "test_pass"
     }))
     
     .then(c => {
@@ -254,7 +253,7 @@ describe("server/UserManager", () => {
     });
   });
   
-  it("logged in /users", () => {
+  it("signed in /users", () => {
     let cookie;
     const server = new Server(config);
     return register(server, {
@@ -269,8 +268,8 @@ describe("server/UserManager", () => {
       assert.equal(res.status, 401);
       sparseEqual(res.body, [ 'Not signed in']);
 
-      return login(server, {
-        login_username: "test_user", login_password: "test_pass"
+      return signin(server, {
+        signin_username: "test_user", signin_password: "test_pass"
       });
     })
     .then(c => {
@@ -367,9 +366,9 @@ describe("server/UserManager", () => {
       assert.equal(res.status, 401);
       sparseEqual(res.body, ["Not signed in"]);
 
-      return login(server, {
-        login_username: "test_user",
-        login_password: "test_pass"
+      return signin(server, {
+        signin_username: "test_user",
+        signin_password: "test_pass"
       });
     })
     .then(c => {
@@ -388,7 +387,7 @@ describe("server/UserManager", () => {
       ]);
 
       return chai.request(server.express)
-      .post("/logout")
+      .post("/signout")
       .set('Cookie', cookie);
     })
     .then(res => {
@@ -401,10 +400,10 @@ describe("server/UserManager", () => {
       assert.equal(res.status, 404);
 
       return chai.request(server.express)
-      .post("/login")
+      .post("/signin")
       .send({
-        login_username: "test_user",
-        login_password: "test_pass"
+        signin_username: "test_user",
+        signin_password: "test_pass"
       });
     })
     .then(res => {

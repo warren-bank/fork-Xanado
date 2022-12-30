@@ -23,11 +23,11 @@ import { ClientUIMixin } from "./ClientUIMixin.js";
 class ClientGameUI extends ClientUIMixin(GameUIMixin(UI)) {
 
   /**
-   * Identify the logged-in user, and make sure they are playing
+   * Identify the signed-in user, and make sure they are playing
    * in this game.
    * @param {BrowserGame} game the game
    * @return {Promise} a promise that resolves to the player key
-   * or undefined if the player is not logged in or is not in the game
+   * or undefined if the player is not signed in or is not in the game
    * @private
    */
   identifyPlayer(game) {
@@ -43,14 +43,13 @@ class ClientGameUI extends ClientUIMixin(GameUIMixin(UI)) {
       .show()
       .find("button")
       .on("click", () => {
-        $.post("/logout")
+        $.post("/signout")
         .then(() => window.location.reload());
       });
       throw Error("Not a player");
     })
     .catch(() => {
       // May arise if there is no session, or the session is for a non-player
-      this.observer = this.session.name;
       $(".notPlaying").show();
       return undefined;
     });

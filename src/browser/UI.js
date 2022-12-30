@@ -170,7 +170,7 @@ class UI {
         // Not allowed to access cross-origin stylesheets
       }
     }
-    return this;
+    return undefined;
   }
 
   /**
@@ -271,10 +271,10 @@ class UI {
   }
 
   /**
-   * Identify the logged-in user. Override in subclasses.
+   * Identify the signed-in user. Override in subclasses.
    * @return {Promise} a promise that resolves to an simple
-   * session object if someone is logged in, or throws otherwise.
-   * The object is expected to define `key`, the logged-in player, and
+   * session object if someone is signed in, or throws otherwise.
+   * The object is expected to define `key`, the signed-in player, and
    * may set `provider`.
    * @throws Error if there is no session active
    */

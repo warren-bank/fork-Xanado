@@ -145,6 +145,8 @@ class BrowserGame extends Undo(Commands(Game)) {
     // Could be static
     let sum = 0;
     const $span = $('<span class="turn-score"></span>');
+    if (!move.words)
+      return $span;
     for (let word of move.words) {
       $span
       .append($('<span class="word"></span>')

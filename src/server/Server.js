@@ -181,7 +181,7 @@ class Server {
     });
 
     /**
-     * User manager, handles logins etc.
+     * User manager, handles signins etc.
      * @member {UserManager}
      * @private
      */

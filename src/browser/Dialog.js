@@ -271,7 +271,7 @@ class Dialog {
     })
     .catch(jqXHR => {
       // Note that the console sees an XML parsing error on a 401
-      // response to /login, due to the response body containing a
+      // response to /signin, due to the response body containing a
       // non-XML string ("Unauthorized"). It would be nice to catch
       // this gracefully and suppress the console print, but I can't
       // find any way to do that.

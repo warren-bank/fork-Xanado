@@ -16,7 +16,6 @@ const GamesUIMixin = superclass => class extends superclass {
 
   /**
    * Format of rows in the games table.
-   * See {@linkcode browser/BrowserGame#headline}
    */
   static GAME_TABLE_ROW = '<tr class="game" id="%k">'
   + '<td class="h-key">%k</td>'
@@ -149,7 +148,7 @@ const GamesUIMixin = superclass => class extends superclass {
     $box.addClass("button-box");
     $tr.append($box);
 
-    if (player.key === this.session.key) {
+    if (this.session && player.key === this.session.key) {
       // Currently signed in player
       $box.append(
         $(document.createElement("button"))
@@ -260,7 +259,7 @@ const GamesUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * Refresh the UI state to reflect login state. Refreshes the
+   * Refresh the UI state to reflect signin state. Refreshes the
    * history and the games list.
    * @instance
    * @memberof browser/GamesUIMixin

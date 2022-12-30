@@ -233,7 +233,7 @@ body.games-ui {
   font-size: 1.2em;
 }
 
-/* Third party login logos */
+/* Third party signin logos */
 .provider-logo {
   text-align: center;
 }
@@ -244,17 +244,17 @@ body.games-ui {
 }
 
 /* Wrap around signing options */
-#loginState {
+#signinState {
   float: right;
   margin-top: 1em;
 }
 
-#login-button {
-  margin-bottom: 0.5em;
+#signin-button {
+  margin: 0.5em;
 }
 
 /* wrap around the sign out button */
-.logged-in {
+.signed-in {
 }
 
 #gamesCumulative {
@@ -325,7 +325,7 @@ body.games-ui {
     margin: 10px;
   }
 
-  #loginState {
+  #signinState {
     text-align: center;
     margin-bottom: 10px;
   }
@@ -646,8 +646,8 @@ body.games-ui {
 /*------------ PORTRAIT SCREEN ------------*/
 
 @media screen and (max-aspect-ratio: 1/1) {
-  /* Position the login block above the board */
-  #loginBlock {
+  /* Position the signin block above the board */
+  #signinBlock {
     position: absolute;
     top: 0;
     left: 0;

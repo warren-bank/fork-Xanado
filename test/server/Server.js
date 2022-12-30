@@ -69,10 +69,10 @@ describe("server/Server.js", () => {
     });
   }
   
-  // Promise to login user. Resolve to session_cookie.
-  function login(server, user) {
+  // Promise to signin user. Resolve to session_cookie.
+  function signin(server, user) {
     return chai.request(server.express)
-    .post("/login")
+    .post("/signin")
     .send(user)
     .then(res => {
       assert.equal(res.status, 200);
@@ -137,9 +137,9 @@ describe("server/Server.js", () => {
     })
     .then(pk => {
       playerkey = pk;
-      return login(server, {
-        login_username: "test_user",
-        login_password: "test_pass"
+      return signin(server, {
+        signin_username: "test_user",
+        signin_password: "test_pass"
       });
     })
     .then(c => {
@@ -222,9 +222,9 @@ describe("server/Server.js", () => {
       register_password: "test_pass",
       register_email: "test@email.com"
     })
-    .then(() => login(server, {
-      login_username: "test_user",
-      login_password: "test_pass"
+    .then(() => signin(server, {
+      signin_username: "test_user",
+      signin_password: "test_pass"
     }))
     .then(c => {
       cookie = c;
@@ -240,7 +240,7 @@ describe("server/Server.js", () => {
       assert.equal(res.status, 200);
       gamekey = res.text;
       return chai.request(server.express)
-      .post("/logout")
+      .post("/signout")
       .set('Cookie', cookie);
     })
     .then(res => {
@@ -315,9 +315,9 @@ describe("server/Server.js", () => {
     .then(pk => {
       assert(pk);
       playerkey = pk;
-      return login(server, {
-        login_username: "test_user",
-        login_password: "test_pass"
+      return signin(server, {
+        signin_username: "test_user",
+        signin_password: "test_pass"
       });
     })
     .then(c => {
@@ -420,9 +420,9 @@ describe("server/Server.js", () => {
     })
     .then(pk => {
       playerkey = pk;
-      return login(server, {
-        login_username: "test_user",
-        login_password: "test_pass"
+      return signin(server, {
+        signin_username: "test_user",
+        signin_password: "test_pass"
       });
     })
     .then(c => {
@@ -473,9 +473,9 @@ describe("server/Server.js", () => {
       register_password: "test_pass",
       register_email: "test@email.com"
     })
-    .then(() => login(server, {
-      login_username: "test_user",
-      login_password: "test_pass"
+    .then(() => signin(server, {
+      signin_username: "test_user",
+      signin_password: "test_pass"
     }))
     .then(c => {
       cookie = c;
@@ -557,9 +557,9 @@ describe("server/Server.js", () => {
       register_password: "test_pass",
       register_email: "test@email.com"
     }))
-    .then(() => login(server, {
-      login_username: "test_user",
-      login_password: "test_pass"
+    .then(() => signin(server, {
+      signin_username: "test_user",
+      signin_password: "test_pass"
     }))
     .then(c => {
       cookie = c;
@@ -628,9 +628,9 @@ describe("server/Server.js", () => {
       register_password: "test_pass",
       register_email: "test@email.com"
     })
-    .then(() => login(server, {
-      login_username: "test_user",
-      login_password: "test_pass"
+    .then(() => signin(server, {
+      signin_username: "test_user",
+      signin_password: "test_pass"
     }))
     .then(c => cookie = c)
     .then(() => chai.request(server.express)

@@ -97,7 +97,7 @@ const GameUIMixin = superclass => class extends superclass {
   }
 
   /**
-   * Get the current value for a setting. If a user is logged in, the
+   * Get the current value for a setting. If a user is signed in, the
    * value will be taken from their session (and will default if it
    * is not defined).
    * Must be implemented by a sub-mixin or final class.

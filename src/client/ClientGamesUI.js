@@ -139,8 +139,7 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
    */
   joinGame(game) {
     $.post(`/join/${game.key}`)
-    .then(() => {
-      const url = `/html/client_game.html?game=${game.key}&player=${this.session.key}`;
+    .then(url => {
       if (this.getSetting("one_window"))
         location.replace(url);
       else {
@@ -222,12 +221,17 @@ class ClientGamesUI extends ClientUIMixin(GamesUIMixin(UI)) {
       close: function() {
         const name = encodeURIComponent(
           $(this).find("#observerName").val());
-        console.debug("Observe game", game.key,
-                      "as", name);
-        window.open(
-          `/html/client_game.html?game=${game.key};observer=${name}`,
-          "_blank");
-        ui.refreshGame(game.key);
+        console.debug("Observe game", game.key, "as", name);
+        $.get(`/join/${game.key}?observer=${encodeURI(name)}`)
+        .then(url => {
+          if (ui.getSetting("one_window"))
+            location.replace(url);
+          else {
+            window.open(url, "_blank");
+            ui.refreshGame(game.key);
+          }
+        })
+        .catch(e => ui.alert(e, $.i18n("failed", $.i18n("Open game"))));
       }
     });
   }

@@ -15,11 +15,11 @@ class ChangePasswordDialog extends PasswordMixin(Dialog) {
   }
 
   createDialog() {
-    const $las = this.$dlg.find(".logged-in-as");
+    const $las = this.$dlg.find(".signed-in-as");
     if ($las.length > 0) {
       $.get("/session")
       .then(user => $las.text(
-        $.i18n("logged-in-as", user.name)));
+        $.i18n("signed-in-as", user.name)));
     }
     return super.createDialog();
   }

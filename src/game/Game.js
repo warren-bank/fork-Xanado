@@ -1533,6 +1533,26 @@ class Game {
    * sig as console.debug.
    */
   static toCBOR(data, debug) {
+    // Debug function to find where a missing key is coming from
+    /*function sniffOut(data, what, path) {
+      if (typeof data === "object") {
+        if (Array.isArray(data)) {
+          for (const e of data)
+            sniffOut(e, what, `${path}[]`);
+        } else {
+          if (!data._sniffed) {
+            data._sniffed = true;
+            if (typeof data[what] !== "undefined") {
+              console.log("SNIFFED OUT", data);
+              throw Error(path);
+            }
+            for (const k in data)
+              sniffOut(data[k], what, `${path}.${k}`);
+          }
+        }
+      }
+    }
+    sniffOut(data, "babefacebabeface", "");*/
     CBOR_tagHandler.typeMap = Game.CLASSES;
     return Encoder.encode(data, CBOR_tagHandler, debug);
   }

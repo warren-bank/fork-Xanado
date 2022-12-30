@@ -135,7 +135,7 @@ class GameSetupDialog extends Dialog {
       const game = this.options.game;
       if (game) {
         // Some game options are only tweakable if there are no turns
-        // logged in the game. This is controlled by a "noturns" class on
+        // signed in the game. This is controlled by a "noturns" class on
         // the dialog-row
         if (game.turns.length > 0)
           this.$dlg.find(".noturns").hide();

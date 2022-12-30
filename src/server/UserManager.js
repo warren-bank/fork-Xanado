@@ -37,7 +37,7 @@ function pw_compare(pw, hash) {
 
 /**
  * This a Passport strategy, radically cut-down from passport-local.
- * It is required because `passport-local` logins fail on null password,
+ * It is required because `passport-local` signins fail on null password,
  * and we specifically want to support this.
  * @extends Passport.Strategy
  */
@@ -55,13 +55,13 @@ class XanadoPass extends Strategy {
   }
 
   /*
-   * @param {Request} req incoming login request
+   * @param {Request} req incoming signin request
    */
   authenticate(req) {
     let promise;
-    if (req.body.login_username)
+    if (req.body.signin_username)
       promise = this._checkUserPass(
-        req.body.login_username, req.body.login_password);
+        req.body.signin_username, req.body.signin_password);
     else
       promise = this._checkToken(req.params.token);
     return promise.then(uo => this.success(uo))
@@ -73,30 +73,30 @@ class XanadoPass extends Strategy {
 }
 
 /**
- * Manage user login, registration, password reset using Express
+ * Manage user signin, registration, password reset using Express
  * and Passport. User object will be kept in req, and contains
  * `{ name:, email:, key:, pass: }`
  *
  * This makes no pretence of being secure, it is simply a means to
- * manage simple player login to a game. The following HTTP status
+ * manage simple player signin to a game. The following HTTP status
  * codes are used in responses: 200, 401, 403, 500
  *
  * Routes specific to XANADO users are:
  * * {@linkcode UserManager#POST_register|POST /register}
- * * {@linkcode UserManager#POST_login|POST /login}
+ * * {@linkcode UserManager#POST_signin|POST /signin}
  * * {@linkcode UserManager#POST_change_password|POST /change-password}
  * * {@linkcode UserManager#POST_reset_password|GET /password-reset/:token}
  * * {@linkcode UserManager#GET_users|GET /users}
  *
- * Routes relevant to all login sessions are:
- * * {@linkcode UserManager#POST_logout|POST /logout}
+ * Routes relevant to all signin sessions are:
+ * * {@linkcode UserManager#POST_signout|POST /signout}
  * * {@linkcode UserManager#GET_session|GET /session}
  * * {@linkcode UserManager#POST_session_settings|POST /session-settings}
  *
  * Routes relevant to OAuth2 providers are:
  * * {@linkcode UserManager#GET_oauth2_providers|GET /oauth2-providers}
- * * {@linkcode UserManager#GET_oauth2_login|GET /oauth2/login/:provider}
- * * {@linkcode UserManager#GET_oauth2_callback|GET /oauth2/login/:provider}
+ * * {@linkcode UserManager#GET_oauth2_signin|GET /oauth2/signin/:provider}
+ * * {@linkcode UserManager#GET_oauth2_callback|GET /oauth2/signin/:provider}
  */
 class UserManager {
 
@@ -222,12 +222,12 @@ class UserManager {
 
     // Log in a user
     app.post(
-      "/login",
+      "/signin",
       Passport.authenticate("xanado", {
         // Assign this property in req
         assignProperty: "userObject"
       }),
-      (req, res) => this.POST_login(req, res));
+      (req, res) => this.POST_signin(req, res));
 
     /* istanbul ignore next */
     app.get(
@@ -236,8 +236,8 @@ class UserManager {
 
     // Log out the current signed-in user
     app.post(
-      "/logout",
-      (req, res) => this.POST_logout(req, res));
+      "/signout",
+      (req, res) => this.POST_signout(req, res));
 
     // Send a password reset email to the user with the given email
     app.post(
@@ -253,7 +253,7 @@ class UserManager {
       (req, res) => {
         // error in passport will -> 401
         req.userObject.provider = "xanado";
-        // Have to call .login or the cookie doesn't get set
+        // Have to call .signin or the cookie doesn't get set
         return this.passportLogin(req, res, req.userObject)
         .then(() => res.redirect("/"));
       });
@@ -267,8 +267,8 @@ class UserManager {
     // Note: this route MUST be a GET and MUST come from an href and
     // not an AJAX request, or CORS will foul up.
     app.get(
-      "/oauth2/login/:provider",
-      (req, res) => this.GET_oauth2_login(req, res));
+      "/oauth2/signin/:provider",
+      (req, res) => this.GET_oauth2_signin(req, res));
 
     // oauth2 redirect target
     app.get(
@@ -282,11 +282,11 @@ class UserManager {
   }
 
   /**
-   * Promisify req.login to complete the login process
+   * Promisify req.signin to complete the signin process
    * @param {Request} req
    * @param {Response} req
    * @param {object} uo user object
-   * @return {Promise} promise that resolves when the login completes
+   * @return {Promise} promise that resolves when the signin completes
    * @private
    */
   passportLogin(req, res, uo) {
@@ -294,12 +294,12 @@ class UserManager {
     if (this.debug)
       this.debug("UserManager: passportLogin ", uo.name, uo.key);
     return new Promise(resolve => {
-      req.login(uo, e => {
+      req.signin(uo, e => {
         /* istanbul ignore if */
         if (e) throw e;
         /* istanbul ignore if */
         if (this.debug)
-          this.debug("UserManager:", uo.name, uo.key, "logged in");
+          this.debug("UserManager:", uo.name, uo.key, "signed in");
         resolve(uo);
       });
     });
@@ -489,10 +489,10 @@ class UserManager {
    * @param {Response} res
    * @private
    */
-  GET_oauth2_login(req, res) {
+  GET_oauth2_signin(req, res) {
     /* istanbul ignore if */
     if (this.debug)
-      this.debug("UserManager: oauth2 login", req.params.provider);
+      this.debug("UserManager: oauth2 signin", req.params.provider);
     return Passport.authenticate(req.params.provider)(req, res);
   }
 
@@ -510,7 +510,7 @@ class UserManager {
     if (this.debug)
       this.debug("UserManager: oauth2 user is", stringify(req.userObject));
     const origin = req.session.origin;
-    return req.login(req.userObject, () => {
+    return req.signin(req.userObject, () => {
       // Back to where we came from
       /* istanbul ignore if */
       if (this.debug)
@@ -607,19 +607,19 @@ class UserManager {
   }
 
   /**
-   * Simply forgets the currently logged-in user, doesn't log OAuth2
+   * Simply forgets the currently signed-in user, doesn't log OAuth2
    * users out from the provider.
    * @param {Request} req
    * @param {Response} res
    * @private
    */
-  POST_logout(req, res) {
+  POST_signout(req, res) {
     if (req.isAuthenticated()) {
       const departed = req.session.passport.user.name;
       /* istanbul ignore if */
       if (this.debug)
         this.debug("UserManager: logging out", departed);
-      return new Promise(resolve => req.logout(resolve))
+      return new Promise(resolve => req.signout(resolve))
       .then(() => this.sendResult(res, 200, [
         /*i18n*/"signed-out", departed ]));
     }
@@ -648,17 +648,17 @@ class UserManager {
   }
 
   /**
-   * Handle XANADO login.
+   * Handle XANADO signin.
    * @param {Request} req The body of the request
-   * must contain `login_username` and `login_password`
+   * must contain `signin_username` and `signin_password`
    * fields. BasicAuth is NOT supported.
    * @param {Response} res response
    * @private
    */
-  POST_login(req, res) {
+  POST_signin(req, res) {
     // error in passport will -> 401
     req.userObject.provider = "xanado";
-    // Have to call .login or the cookie doesn't get set
+    // Have to call .signin or the cookie doesn't get set
     return this.passportLogin(req, res, req.userObject)
     .then(() => this.sendResult(res, 200, []));
   }
@@ -742,14 +742,14 @@ class UserManager {
   }
 
   /**
-   * Report who is logged in. This will return a redacted user
+   * Report who is signed in. This will return a redacted user
    * object, with just the user name and uniqe key.
    * @param {Request} req
    * @param {Response} res Response body will contain a redacted user
    * object, with
    * * name: the player name
    * * key: the player unique key
-   * * provider: the login provider
+   * * provider: the signin provider
    * * settings: the cached user settings for the user
    * @private
    */
@@ -793,7 +793,7 @@ class UserManager {
    * @param {Request} req
    * @param {Response} res
    * @param {function} next skip to next route
-   * any route where a logged-in user is required.
+   * any route where a signed-in user is required.
    */
   checkLoggedIn(req, res, next) {
     if (req.isAuthenticated())

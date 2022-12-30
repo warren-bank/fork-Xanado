@@ -101,7 +101,7 @@ class GameDialog extends Dialog {
 
     this.$dlg.find("div[name=headline]")
     .empty()
-    .append(`${game.edition} ${game.key}`);
+    .append(`${game.edition} ${game.dictionary || ""}`);
 
     const $table = this.$dlg.find(".player-table")
           .empty()
@@ -139,7 +139,7 @@ class GameDialog extends Dialog {
           $another.show();
       }
     } else
-      // Nobody logged in, offer to observe
+      // Nobody signed in, offer to observe
       $observe.show();
   }
 
