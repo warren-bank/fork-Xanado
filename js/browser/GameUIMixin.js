@@ -698,6 +698,11 @@ define([
         this.rotateTypingCursor();
         return;
 
+      case ";": // Chat
+        $('#chatInput').focus();
+        event.preventDefault();
+        return;
+
       default:
         this.manuallyPlaceLetter(event.key.toUpperCase());
       }
