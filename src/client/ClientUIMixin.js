@@ -161,7 +161,7 @@ const ClientUIMixin = superclass => class extends superclass {
         this.debug = console.debug;
     })
     .then(() => this.getSession())
-    .catch(e => this.observer = (args.observer || "Anonymous"))
+    .catch(() => this.observer = (args.observer || "Anonymous"))
     .then(() => this.initTheme())
     .then(() => this.initLocale())
     .then(() => this.processArguments(args))
