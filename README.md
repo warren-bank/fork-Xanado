@@ -29,23 +29,24 @@ number of changes I intended required a fork, rather than bothering
 them with hundreds of pull requests.
 
 This fork has some major differences:
-* It has been entirely rewritten to use modern Javascript and the latest dependencies.
+* It has been entirely rewritten to use modern Javascript.
+* The UI has been massaged to make it more mobile device friendly, and translated to several languages.
 * It supports different board layouts and tile sets, and makes it easy to define your own.
 * It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui). Dictionaries have been moved server-side and made optional, and integrated into game play. New dictionaries are easy to generate from word lists.
 * It supports logins, which helps you to set up tournaments and record long-term player performance.
 * It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players.
 * You can optionally play against the clock.
-* Can optionally let players explore alternative moves.
+* Players can use the dictionary to explore alternative moves (i.e. cheat).
 * Adds a single-player version which runs entirely in the browser.
-* The UI has been massaged to make it more mobile device friendly, and translated to several languages.
-* Tile sets for many different languages.
+* It includes Scrabble tile sets for many different languages.
 
 # Installation
 
 ## Single-player (runs in the browser)
 If you want to play the single-player version against the computer, then all
-you have to do is to open the code from a server where it has been installed.
-Nothing is saved back to the server.
+you have to do is to visit a server where it has been installed.
+Nothing is saved back to the server. Games are saved the the `localStorage`
+area in your browser which has a limited size, so don't get too carried away.
 
 You can try it [here](https://cdot.github.io/Xanado/dist/standalone_games.html).
 
@@ -54,34 +55,34 @@ You can try it [here](https://cdot.github.io/Xanado/dist/standalone_games.html).
 ### Using Docker
 The simplest way to install the game on a server is to use the latest Docker
 image, which you can find on [github](https://github.com/cdot/Xanado/pkgs/container/xanado).
-The Docker image takes care of all dependencies etc. for you. Download the image and:
+The Docker image takes care of all dependencies for you. Download the image and:
 ```
 $ docker run -p 9093:9093 xanado
 ```
 to run the server on port 9093 of the host machine.
 
 ### npm
+If you are familar with npm you can install the production version of
+Xanado directly:
 ```
 $ npm install @cdot/xanado
+$ cd node_modules/@cdot/xanado && npm install
+$ node bin/server.js
 ```
 
-### For developers only
+### Developers
 First use `git clone` to clone the repository to your local machine. Then in
-the root directory of the distribution
+the root directory
 ```
 $ npm install
 ```
-to install dependencies.
+to install the dependencies. There is developer documentation [here](DEVELOPING.md).
 
+### Configuring the server
 The default configuration is described [here](CONFIGURATION.md).
-You can override any of the configuration defaults by creating a file named `config.json`
-and placing it in the root directory, or by passing your own file using `--config`.
+You can override any of the configuration defaults using `--config`.
 
-Once you are happy wih the configuration, run the server using:
-```
-$ node bin/server.js
-```
-or
+Once you are happy with the configuration, run the server using:
 ```
 $ npm run server
 ```
@@ -169,13 +170,14 @@ There are also a number of other keyboard shortcuts:
 * `!` will take back your last move, or challenge the last player's move, depending on what the log says.
 * `;` will let you type into the chat window
 
-## Learning
+## Learning (and Cheating)
 
-To assist learners, there are some special 'chat' messages that can be entered.
-- `hint` tells you the highest scoring play the computer can find for you, before your play. Everyone in the game is told when you send this message (to prevent cheating.)
-- `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played. Everyone in the game is told when you enable analysis (to prevent cheating.)
-- `allow <word>` adds `<word>` to the dictionary. The new word will not be written back to the dictionary database, so will be lost when the server is restarted. If you want to keep the word forever, see [Whitelists](#Whitelists). Everyone in the game is told when someone allows a new word.
-Note that these only work in games for which a dictionary has been selected.
+To abet the aspiring logodaedalus, there are some special 'chat' messages that can be entered.
+- `hint` tells you the highest scoring play the computer can find for you, before your play.
+- `advise` will turn on/off post-play analysis. This will suggest an alternative, higher-scoring play, if one exists, that you could have played.
+- `allow <word>` adds `<word>` to the dictionary. The new word will not be written back to the dictionary database, so will be lost when the server is restarted. If you want to keep the word forever, see [Whitelists](#Whitelists).
+
+Note that these only work in games for which a dictionary has been selected. To discourage cheating, everyone in the game is told when you use one of these special messages.
 
 # Editions
 
@@ -202,11 +204,10 @@ dictionaries. Included with the installation are a number of pre-built dictionar
 - `ODS8_French` - 411k word French SCRABBLE® competition dictionary.
 - `Oxford_5000` - 29K English words derived from the [Oxford Learner's Dictionary](https://www.oxfordlearnersdictionaries.com/wordlists/oxford3000-5000)
 - `DISC_Catalan` - 580k word Catalan.
-Other dictionaries may be added over time.
 
 ## Whitelists
-Regenerating a docitionary can be time consuming, so dictionaries can be
-extended "on the fly" using a simple list of words in a file alongside the dictionary file, with the same name but the extension `.white`. For example, `Oxford_5000.white`. The file will be read each time the server is restarted.
+Regenerating a dictionary can be time consuming, so dictionaries can be
+extended "on the fly" using a simple list of words in a file alongside the dictionary file, with the same name but the extension `.white`. For example, `Oxford_5000.white`. The file will be read each time the server is restarted. `allow` builds a whitelist, but it doesn't write it to a file - that's up to you.
 
 # Server Security
 The assumption is that you will be running the multi-player game server
@@ -238,7 +239,7 @@ and Canada by Hasbro Inc., and throughout the rest of the world by
 J.W. Spear & Sons Limited of Maidenhead, Berkshire, U.K., a
 subsidiary of Mattel Inc. If you don't already own a SCRABBLE board,
 buy one today!
-- There is an offical computer version of [SCRABBLE® published by Ubisoft](https://www.ubisoft.com/en-gb/game/scrabble).
+- There is an official computer version of [SCRABBLE® published by Ubisoft](https://www.ubisoft.com/en-gb/game/scrabble).
 - ["Words With Friends"](https://www.zynga.com/games/words-with-friends-2/)
 is the name of an online game produced by Zynga Inc. To
 the best of our knowledge this is not a registered trademark.
