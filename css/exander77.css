@@ -714,7 +714,6 @@ body.games-ui {
 /* The text is taken from an attribute on the underlay */
 .Surface .underlay:before {
   content: attr(data-short);
-  font-size: 18pt;
 }
 
 /* Font size for full text in underlay is computed in JS */

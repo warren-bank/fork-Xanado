@@ -716,6 +716,11 @@ const GameUIMixin = superclass => class extends superclass {
       this.rotateTypingCursor();
       return;
 
+    case ";": // Chat
+      $('#chatInput').focus();
+      event.preventDefault();
+      return;
+
     default:
       this.manuallyPlaceLetter(event.key.toUpperCase());
     }
@@ -1015,12 +1020,14 @@ const GameUIMixin = superclass => class extends superclass {
     });
 
     // A tile has a 3px border-width
-    const tileSize = tdSize - 6;
+    const tileBorderWidth = Math.min(tdSize / 11, 3);
+    const tileSize = tdSize - tileBorderWidth * 2;
     this.editCSSRule(".Tile", {
       width: tileSize,
       height: tileSize,
       // and the base font size is 55% of that
-      "font-size": tileSize * 0.55
+      "font-size": tileSize * 0.55,
+      "border-width": tileBorderWidth
     });
   }
 
