@@ -12,6 +12,7 @@ The repository has subdirectories as follows:
     * `css/default` contains the default theme. Other subdirectories
       contain files that can override all or some of the default css.
 * `dictionaries` contains all the dictionaries
+* `dist` is where distributions are built
 * `editions` contains the edition specifications
 * `games` contains the database of games (initially empty)
 * `html` has the html for the user interfaces, `games_ui.html` for
@@ -93,14 +94,14 @@ The client UI supports a mechanical turk for UI testing. This can be enabled by 
 
 ## Publishing
 ### Docker
-`Dockerfile` can be used for building local docker images (assuming you have
+`build/Dockerfile` is used for building local docker images (assuming you have
 a docker server running).
 ```
 npm run docker
 ```
-will build an image using `Dockerfile`
+will build a local docker image
 ```
-$ docker run -p9093:9093 xword
+$ docker run -p9093:9093 xanado
 ```
 will run the image, mapping `localhost` port 9093 to port 9093 on the docker image. The docker image is automatically built when a new version is checked in
 to github.
@@ -108,8 +109,8 @@ to github.
 ## npm
 Use `npm publish --dry-run` to test the configuration and make sure all
 required files are published. Publishing happens automatically when the
-code is pushed to github (it's published to the github npm repository, and
-can be installed using `npm install github:cdot.xanado`)
+code is pushed to github (it's published to the npm repository, and
+can be installed using `npm install @cdot/xanado`)
 
 ## Internationalisation
 Xanado uses the
@@ -132,7 +133,7 @@ Support for theming the UI exists at two levels.
   to the `css/` directory. An example is given in `css/exander77`.
 
 ## Build system
-The build system uses [webpack](https://webpack.js.org/)` to generate indexes and minimal browser scripts in the `dist` subdirectory. Run it using `npm run build`. The `dist` code is checked in to git so that it can be served using github pages.
+The build system uses [webpack](https://webpack.js.org/) to generate indexes and minimal browser scripts in the `dist` subdirectory. Run it using `npm run build`. The `dist` code is checked in to git so that it can be served using github pages.
 
 ## Documentation
 The code is documented using `jsdoc`. The documentation is automatically
