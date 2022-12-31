@@ -6,6 +6,7 @@
 /* global assert */
 
 import "../../node_modules/jquery/dist/jquery.js";
+import "../../node_modules/jquery-ui/dist/jquery-ui.js";
 import "../../node_modules/@rwap/jquery-ui-touch-punch/jquery.ui.touch-punch.js";
 //import { Platform } from "../common/Platform.js";
 
