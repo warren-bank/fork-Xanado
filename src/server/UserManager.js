@@ -11,6 +11,7 @@ import AsyncLock from "async-lock";
 import { hash, compare } from "bcrypt";
 import Session from "express-session";
 import SessionFileStore from "session-file-store";
+import Cookie from "cookie";
 import Passport from "passport";
 import { Strategy } from "passport-strategy";
 import Path from "path";
@@ -34,6 +35,8 @@ function pw_compare(pw, hash) {
   else
     return compare(pw, hash);
 }
+
+const SESSION_COOKIE = "XANADO.sid";
 
 /**
  * This a Passport strategy, radically cut-down from passport-local.
@@ -134,17 +137,19 @@ class UserManager {
 
     // Passport requires express Session to be configured
     const FileStore = SessionFileStore(Session);
+    this.sessionStore = new FileStore({
+      logFn: this.debug ? console.debug : () => {},
+      path: UserManager.SESSIONS_DIR,
+      ttl: 24 * 60 * 60 // keep sessions around for 24h
+    });
     app.use(Session({
-      name: "XANADO.sid",
+      name: SESSION_COOKIE,
       secret: (config.auth ? config.auth.session_secret : undefined)
       || genKey(),
-      store: new FileStore({
-        logFn: this.debug ? console.debug : () => {},
-        path: UserManager.SESSIONS_DIR,
-        ttl: 24 * 60 * 60 // keep sessions around for 24h
-      }),
+      store: this.sessionStore,
       resave: false,
-      saveUninitialized: false
+      saveUninitialized: true,
+      rolling: true
     }));
 
     app.use(Passport.initialize());
@@ -197,18 +202,6 @@ class UserManager {
     app.post(
       "/session-settings",
       (req, res) => this.POST_session_settings(req, res));
-
-    // Remember where we came from. URLs used for logging in to oauth2
-    // providers have an origin, which is saved in the session so it
-    // can be recovered in the callback.
-    app.use((req, res, next) => {
-      if (/(^|[?&;])origin=/.test(req.url)) {
-        req.session.origin = decodeURI(
-          req.url.replace(/^.*[?&;]origin=([^&;]*).*$/,"$1"));
-        //this.debug("UserManager: session.origin=", req.session.origin);
-      }
-      next();
-    });
 
     // Register a new user
     app.post(
@@ -273,16 +266,21 @@ class UserManager {
     // oauth2 redirect target
     app.get(
       "/oauth2/callback/:provider",
+
+      // Use the strategy to decode the response and normalise it into
+      // userObject for GET_oauth2_callback
       (req, res, next) => {
-        const mw = Passport.authenticate(
-          req.params.provider, { assignProperty: "userObject" });
-        return mw(req, res, next);
+        //console.debug(req.sessionID, "UserManager: authenticate");
+        return Passport.authenticate(
+          req.params.provider, { assignProperty: "userObject" }
+        )(req, res, next);
       },
+
       (req, res) => this.GET_oauth2_callback(req, res));
   }
 
   /**
-   * Promisify req.signin to complete the signin process
+   * Promisify req.login to complete the signin process
    * @param {Request} req
    * @param {Response} req
    * @param {object} uo user object
@@ -294,7 +292,7 @@ class UserManager {
     if (this.debug)
       this.debug("UserManager: passportLogin ", uo.name, uo.key);
     return new Promise(resolve => {
-      req.signin(uo, e => {
+      req.login(uo, e => {
         /* istanbul ignore if */
         if (e) throw e;
         /* istanbul ignore if */
@@ -429,10 +427,11 @@ class UserManager {
            `Misconfiguration ${cfg}`);
     Passport.use(new strategy(
       cfg,
+
+      // verify callback
+      // see https://www.passportjs.org/packages/passport-google-oauth2/
       (accessToken, refreshToken, profile, done) => {
         /* istanbul ignore if */
-        if (this.debug)
-          this.debug("UserManager: Logging in", profile.displayName);
         if (profile.emails && profile.emails.length > 0)
           profile.email = profile.emails[0].value;
         assert(profile.id && profile.displayName,
@@ -458,7 +457,8 @@ class UserManager {
           return this.writeDB();
         })
         .then(uo => done(null, uo));
-        // uo will end up in userObject
+        // uo will end up in userObject when passport.authenticate
+        // is called in the oauth2 callback
       }));
   }
 
@@ -483,17 +483,34 @@ class UserManager {
 
   /* istanbul ignore next */
   /**
-   * Log in to an oauth2 provider.
+   * Log in to an oauth2 provider. Requires an origin= parameter.
    * @param {Request} req
    * @param {string} req.provider the provider name
    * @param {Response} res
    * @private
    */
   GET_oauth2_signin(req, res) {
+    //console.debug(req.sessionID,"GET_oauth2_signin");
+
+    // The oauth signin flow starts with a request from the browser
+    // that carries an origin parameter. This request should also carry
+    // a cookie. We have to cache the origin so we know where to redirect
+    // to, and the (raw) cookie so we can pass it on to the redirect in
+    // the callback.
+    assert(req.query.origin);
+    req.session.originURL = req.query.origin;
+    const cookies = Cookie.parse(req.headers.cookie);
+    //console.debug("SIGNIN cookies", cookies);
+    req.session.originCookie = cookies[SESSION_COOKIE];
     /* istanbul ignore if */
     if (this.debug)
-      this.debug("UserManager: oauth2 signin", req.params.provider);
-    return Passport.authenticate(req.params.provider)(req, res);
+      this.debug("UserManager: oauth2 signin",
+                 req.params.provider, "session=", req.session);
+
+    // Send request to oauth2 provider, using state to pass the
+    // session ID
+    return Passport.authenticate(
+      req.params.provider, { state: req.sessionID })(req, res);
   }
 
   /* istanbul ignore next */
@@ -505,17 +522,52 @@ class UserManager {
    * @private
    */
   GET_oauth2_callback(req, res) {
-    // error will -> 401
-    /* istanbul ignore if */
+    //console.debug(req.sessionID, "GET_oauth2_callback");
+
+    // When the callback is invoked, it is with a new session.
+
+    // When making a browser request to the server, the session is
+    // identified by a cookie (XANADO.sid) sent with the request.
+    // However passport.oauth2 doesn't forward the cookie with the
+    // request to the signin provider (and even if it was sent there's
+    // no certainty it would come back with the callback) so we need
+    // another mechanism to maintain state. OAuth2 provides for a `state`
+    // parameter, which is a string, so we can pass the originating
+    // sessionID in that and so recover the session. The session used
+    // in the callback can be discarded.
+
     if (this.debug)
       this.debug("UserManager: oauth2 user is", stringify(req.userObject));
-    const origin = req.session.origin;
-    return req.signin(req.userObject, () => {
-      // Back to where we came from
-      /* istanbul ignore if */
-      if (this.debug)
-        this.debug("\tUserManager: redirect to", origin);
-      res.redirect(origin);
+
+    /* istanbul ignore if */
+    //console.debug("USER OBJECT", req.userObject);
+    //console.debug("CALLBACK SESSION", req.session);
+    const originalSessionID = req.query.state;
+    //console.debug("ORIGINAL SESSION FROM state", originalSessionID);
+    
+    this.passportLogin(req, res, req.userObject)
+    //.then(() => console.debug("PASSPORT LOGGED IN", req.sessionID, req.session))
+    .then(() => new Promise(
+      (resolve, reject) => this.sessionStore.get(
+        originalSessionID, (e, session) => {
+          if (e) reject(e); else resolve(session);
+        })))
+    .then(originalSession => {
+      //console.debug("LOADED ORIGINAL SESSION", originalSession);
+      const origin = originalSession.originURL;
+      const cookie = originalSession.originCookie;
+      originalSession.passport = req.session.passport;
+      //console.debug("IMPOSED PASSPORT", originalSession);
+      this.sessionStore.set(
+        originalSessionID, originalSession,
+        () => {
+          // Back to the origin in the initial signin request. This redirect
+          // has to have the original session id passed in a cookie.
+          // Not sure it's that simple; the SID appears to be encoded in the
+          // cookie value
+          res.cookie(SESSION_COOKIE, cookie);
+          res.redirect(origin);
+        });
     });
   }
 
@@ -619,7 +671,7 @@ class UserManager {
       /* istanbul ignore if */
       if (this.debug)
         this.debug("UserManager: logging out", departed);
-      return new Promise(resolve => req.signout(resolve))
+      return new Promise(resolve => req.logout(resolve))
       .then(() => this.sendResult(res, 200, [
         /*i18n*/"signed-out", departed ]));
     }
@@ -754,6 +806,7 @@ class UserManager {
    * @private
    */
   GET_session(req, res) {
+    //console.debug(req.sessionID,"GET_session");
     if (req.user)
       // Return redacted user object
       return this.sendResult(res, 200, {
