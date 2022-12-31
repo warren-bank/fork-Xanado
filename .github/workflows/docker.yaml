@@ -1,4 +1,4 @@
-name: Crossword Game
+name: Docker build of master
 
 # Configure the "docker" workflow to run every time a change
 # is pushed to "main"
