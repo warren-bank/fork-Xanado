@@ -45,47 +45,47 @@ the following fields:
 Example configuration file, overriding selected fields and giving oauth2, https, and mail configurations.
 ```
 {
-  "port": 8192,
-  "defaults": {
-    "edition": "French_Scrabble",
-	"dictionary": "ODS8_French",
-    "jqTheme": "Le Frog",
-	"notification": true,
-    "theme": "exander77",
-    "tile_click": false,
-    "cheers": false
-  },
-  "auth": {
-    "session_secret": "my cookie secret",
-	"db_file" : "/var/www/xanado/passwd.json",
-	"oauth2": {
-	  "google": {
-		"logo": "https://lh3.googleusercontent.com/COxit...vW6cUA",
-		"module": "passport-google-oauth20",
-		"clientID":"989235985454-b3finaffwontworkg9kbutyoucantry4.apps.googleusercontent.com",
-		"clientSecret":"GOSECR-etSoNottell1-d-ngyou45421hjd",
-		"scope": [ "profile", "email" ],
-		"callbackURL": "https://xanado.net:8192/oauth2/callback/google"
-	  },
-	  "facebook": {
-		"logo": "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg",
-		"clientID":"982404577829836",
-		"clientSecret": "7aca8323498cc80f88a642f09075750a",
-		"profileFields": ["id", "displayName", "email"],
-		"callbackURL": "https://xanado.net:8192/oauth2/callback/facebook"
-	  }
-	}
-  },
-  "mail": {
-    "sender": "Xanado <xanado@xanado.net>",
-	"transport": {
-	  "host": "isp.net"
-	  "user": "xanado"
-	}
-  },
-  "https": {
-    "cert": "https.crt",
-    "key": "https.key"
+ "port": 8192,
+ "defaults": {
+  "edition": "French_Scrabble",
+  "dictionary": "ODS8_French",
+  "jqTheme": "Le Frog",
+  "notification": true,
+  "theme": "exander77",
+  "tile_click": false,
+  "cheers": false
+ },
+ "auth": {
+  "session_secret": "my cookie secret",
+  "db_file" : "/var/www/xanado/passwd.json",
+  "oauth2": {
+   "google": {
+    "logo": "https://lh3.googleusercontent.com/COxit...vW6cUA",
+    "module": "passport-google-oauth20",
+    "clientID":"989235985454-b3finaffwontworkg9kbutyoucantry4.apps.googleusercontent.com",
+    "clientSecret":"GOSECR-etSoNottell1-d-ngyou45421hjd",
+    "scope": [ "profile", "email" ],
+    "callbackURL": "https://xanado.net:8192/oauth2/callback/google"
+   },
+   "facebook": {
+    "logo": "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg",
+    "clientID":"982404577829836",
+    "clientSecret": "7aca8323498cc80f88a642f09075750a",
+    "profileFields": ["id", "displayName", "email"],
+    "callbackURL": "https://xanado.net:8192/oauth2/callback/facebook"
+   }
   }
+ },
+ "mail": {
+  "sender": "Xanado <xanado@xanado.net>",
+  "transport": {
+   "host": "isp.net"
+   "user": "xanado"
+  }
+ },
+ "https": {
+  "cert": "https.crt",
+  "key": "https.key"
+ }
 }
 ```
