@@ -40,17 +40,17 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  font-size: 18pt;
 }
 
 /* The text is taken from an attribute on the underlay */
 .Surface .underlay:before {
   content: attr(data-short);
-  font-size: 18pt;
 }
 
 /* Font size for full text in underlay is computed in JS */
 .Surface td.score-multiplier .underlay {
-  padding-top: 5%;
+  padding-top: 0%;
 }
 
 @media screen and (max-width: 800px) {
@@ -95,8 +95,8 @@
 .Surface td.square-D,
 .Surface td.square-M {
   background-color: #05cd85;
-  border-color: #00ee00;
-  color: #ffffff;
+  border-color: #0e0;
+  color: #fff;
 }
 
 /* The centre double-word square */
@@ -107,32 +107,35 @@
 /* triple-word squares */
 .Surface td.square-T {
   background-color: #f75e59;
-  border-color: #ee0000;
+  border-color: #e22;
+  color: #fff;
 }
 
 /* quad-word squares */
 .Surface td.square-Q {
   background-color: #a21505;
   border-color: #a21505;
+  color: #fff;
 }
 
 /* double-letter squares */
 .Surface td.square-d {
   background-color: #6da3ed;
-  border-color: #0000ee;
-  color: #ffffff;
+  border-color: #44e;
+  color: #fff;
 }
 
 /* triple-letter squares */
 .Surface td.square-t {
   background-color: #e99e65;
-  border-color: #ffcc33;
+  border-color: #fa0;
+  color: #fff;
 }
 
 /* quad-letter squares */
 .Surface td.square-q {
   background-color: #0e6993;
-  border-color: #0e6900;
+  border-color: #0e6993;
 }
 
 /* Applied when a square is active as a potential drop target */
@@ -160,12 +163,12 @@
   /* Code in client_game.js calculates a suitable tile size */
   aspect-ratio: 1/1;
 
-  background-color: #ffcf5a !important;
-  border-color: #DCDCC6;
+  background-color: #ffcf5a;
+  border-color: #000;
   border-style: solid;
   border-width: 3px;
 
-  color: #333333;
+  color: #000;
 
 /*  -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
@@ -188,6 +191,10 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+}
+
+.Tile.blank-letter {
+  background-color: #eee;
 }
 
 /* div within a tile that groups the letters for centering */

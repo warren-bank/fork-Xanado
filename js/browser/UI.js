@@ -62,6 +62,7 @@ define([
       let message;
       if (typeof(args) === "string") // simple string
         message = $.i18n(args);
+        if (typeof(message) !== "string")  message = args;
       else if (args instanceof Error) // Error object
         message = Utils.stringify(args);
       else if (args instanceof Array) { // First element i18n code
