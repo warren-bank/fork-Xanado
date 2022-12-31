@@ -148,7 +148,7 @@ class UserManager {
       || genKey(),
       store: this.sessionStore,
       resave: false,
-      saveUninitialized: true,
+      saveUninitialized: false,
       rolling: true
     }));
 
@@ -192,6 +192,12 @@ class UserManager {
       }
     }
     Promise.all(strategies);
+
+    // debug
+    //app.use((req, res, next) => {
+    //  console.debug("SESSION", req.sessionID);
+    //  next();
+    //});
 
     // See if there is a current session
     app.get(
@@ -485,30 +491,57 @@ class UserManager {
   /**
    * Log in to an oauth2 provider. Requires an origin= parameter.
    * @param {Request} req
-   * @param {string} req.provider the provider name
+   * @param {string} req.params.provider the provider name
+   * @param {string?} req.query.origin the URL to redirect back to
    * @param {Response} res
    * @private
    */
   GET_oauth2_signin(req, res) {
     //console.debug(req.sessionID,"GET_oauth2_signin");
 
-    // The oauth signin flow starts with a request from the browser
-    // that carries an origin parameter. This request should also carry
-    // a cookie. We have to cache the origin so we know where to redirect
-    // to, and the (raw) cookie so we can pass it on to the redirect in
-    // the callback.
-    assert(req.query.origin);
-    req.session.originURL = req.query.origin;
-    const cookies = Cookie.parse(req.headers.cookie);
-    //console.debug("SIGNIN cookies", cookies);
-    req.session.originCookie = cookies[SESSION_COOKIE];
+    // We also pass an optional `origin` parameter that lets us
+    // redirect back to a specific page, different to the page
+    // redirected to by the oauth2 callback. We need to save this
+    // parameter for use in the callback.
+    //
+    // When making a browser request to the server, the session is
+    // identified by a cookie (XANADO.sid) sent with the request.
+    // However passport-oauth2 doesn't forward the cookie to the oauth
+    // signin provider, and the oauth callback is initiated in a newly
+    // generated session. When Passport logs in the user identified by
+    // oauth, it records the login in the callback session.
+    // `express-session` sets the cookie on the redirect but for some
+    // reason when the redirect loads, it does so with the original
+    // session, not the session in the callback, and the login and
+    // original URL are lost (this is conceivably due to a race
+    // condition, but I lost interest in investigating further).
+    //
+    // So we need another mechanism to maintain and recover the
+    // original URL, and make sure that the redirect (which uses the
+    // original cookie) works.
+    //
+    // OAuth2 provides for a `state` parameter, which is a string, so
+    // we cache the information we need in the originating session and
+    // pass that sessionID in `state`.
+
+    // signin requests should pass an origin (defaults to /)
+    // cache it in the session
+    req.session.originURL = req.query.origin || "/";
+
+    // Cache the *raw* cookie, because we don't have access to the
+    // Session class to decode/encode, even if we needed to.
+    if (req.headers.cookie) {
+      const cookies = Cookie.parse(req.headers.cookie);
+      req.session.originCookie = cookies[SESSION_COOKIE];
+    }
+    // The session will be saved at the end of the request chain.
+
     /* istanbul ignore if */
     if (this.debug)
-      this.debug("UserManager: oauth2 signin",
+      this.debug("UserManager: GET_oauth2_signin",
                  req.params.provider, "session=", req.session);
 
-    // Send request to oauth2 provider, using state to pass the
-    // session ID
+    // Send request to oauth2 provider
     return Passport.authenticate(
       req.params.provider, { state: req.sessionID })(req, res);
   }
@@ -524,48 +557,47 @@ class UserManager {
   GET_oauth2_callback(req, res) {
     //console.debug(req.sessionID, "GET_oauth2_callback");
 
-    // When the callback is invoked, it is with a new session.
-
-    // When making a browser request to the server, the session is
-    // identified by a cookie (XANADO.sid) sent with the request.
-    // However passport.oauth2 doesn't forward the cookie with the
-    // request to the signin provider (and even if it was sent there's
-    // no certainty it would come back with the callback) so we need
-    // another mechanism to maintain state. OAuth2 provides for a `state`
-    // parameter, which is a string, so we can pass the originating
-    // sessionID in that and so recover the session. The session used
-    // in the callback can be discarded.
-
+    // Passport.authenticate middleware has already analysed the
+    // callback and normalize the userObject.
     if (this.debug)
       this.debug("UserManager: oauth2 user is", stringify(req.userObject));
 
-    /* istanbul ignore if */
-    //console.debug("USER OBJECT", req.userObject);
-    //console.debug("CALLBACK SESSION", req.session);
+    // Recover the original sessionID that was cached in the
+    // authentication request
     const originalSessionID = req.query.state;
-    //console.debug("ORIGINAL SESSION FROM state", originalSessionID);
-    
+
+    // Log in using the session for the callback. This is
+    // populates the `passport` field in the req.session.
     this.passportLogin(req, res, req.userObject)
-    //.then(() => console.debug("PASSPORT LOGGED IN", req.sessionID, req.session))
+
+    // Load the original session from the session store
     .then(() => new Promise(
       (resolve, reject) => this.sessionStore.get(
         originalSessionID, (e, session) => {
           if (e) reject(e); else resolve(session);
         })))
     .then(originalSession => {
-      //console.debug("LOADED ORIGINAL SESSION", originalSession);
+      // Recover the cached information
       const origin = originalSession.originURL;
+      delete originalSession.originURL;
       const cookie = originalSession.originCookie;
+      delete originalSession.originCookie;
+
+      // Copy the passport from the callback session
       originalSession.passport = req.session.passport;
-      //console.debug("IMPOSED PASSPORT", originalSession);
+
+      // Save the original session again.
       this.sessionStore.set(
         originalSessionID, originalSession,
         () => {
-          // Back to the origin in the initial signin request. This redirect
-          // has to have the original session id passed in a cookie.
-          // Not sure it's that simple; the SID appears to be encoded in the
-          // cookie value
-          res.cookie(SESSION_COOKIE, cookie);
+          // Set the cookie used to retrieve the original session.
+          // This will be the session in the redirect; cookies set on
+          // the redirect by `express-session` don't stick for some
+          // reason (we always end up redirecting with the original
+          // session), but even if they did, the callback session has
+          // the passport too, so nothing is lost.
+          if (cookie)
+            res.cookie(SESSION_COOKIE, cookie);
           res.redirect(origin);
         });
     });
