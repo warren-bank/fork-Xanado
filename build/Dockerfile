@@ -4,7 +4,7 @@ FROM node:19-alpine
 ENV NODE_ENV=production
 WORKDIR /app
 RUN apk update && apk add git
-COPY package*.json .
+COPY package*.json ./
 RUN npm install || cat /root/.npm/_logs/*.log
 COPY CONFIGURATION.md .
 COPY DEVELOPING.md .
