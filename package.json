@@ -48,6 +48,7 @@
 		"jquery.cookie": "latest",
 		"nodemailer": "latest",
 		"normalize.css": "latest",
+		"npm": "^9.2.0",
 		"passport": "latest",
 		"passport-facebook": "latest",
 		"passport-google-oauth20": "latest",
@@ -93,13 +94,13 @@
 	"eslintConfig": {
 		"extends": "eslint:recommended",
 		"parserOptions": {
-		  "sourceType": "module",
-          "ecmaVersion": 2022
+			"sourceType": "module",
+			"ecmaVersion": 2022
 		},
 		"env": {
 			"shared-node-browser": true,
-		  "jquery": true,
-          "es2021": true
+			"jquery": true,
+			"es2021": true
 		},
 		"globals": {
 			"assert": "writable"
