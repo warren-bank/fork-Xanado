@@ -7,42 +7,35 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta charset="utf-8" />
     <!-- base href=".." This breaks $.tabs(), hard, so don't do it /-->
-    <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
     <title>Create/Join Game</title>
 
     <link href="../node_modules/normalize.css/normalize.css" rel="stylesheet" type="text/css">
-    <link href="../node_modules/jquery-ui-dist/jquery-ui.min.css" rel="stylesheet" type="text/css">
 
-    <!-- meta name="theme" elements will expand to <link> elements
-         in browser/UI.js to reflect the selected user theme -->
-    <meta name="theme" content="common.css">
-    <meta name="theme" content="playerTable.css">
-    <meta name="theme" content="icons.css">
-    <meta name="theme" content="surface.css">
-    <meta name="theme" content="games.css">
+    <!-- Rewritten to reflect the preferences -->
+    <link id="jQueryTheme" href="../node_modules/jquery-ui/dist/themes/pepper-grinder/jquery-ui.min.css" rel="stylesheet" type="text/css">
 
-    <script id="rjs_main">
-      const rjs_main = "client/ClientGamesUI";
-    </script>
-    <script data-main="../js/rjs_config.js" src="../node_modules/requirejs/require.js"></script>
+    <!-- Rewritten in browser/UI.js to reflect the preferences -->
+    <link id="xanadoCSS" href="../css/default.css" rel="stylesheet" type="text/css">
 
+    <script type="module" src="../src/client/ClientGamesUI.js"></script>
   </head>
-  <body>
+  <body class="games-ui">
     <div class="loading">
       <img src="../images/loading.gif" />
     </div>
-    <div class="waiting user-interface" style="display:none">
-      <img src="../images/logo.svg" class="logo" />
-      <div id="loginState">
-        <span class="not-logged-in">
+    <div class="waiting ui-widget" style="display:none">
+      <img src="../images/logo.svg" class="xanado-logo" />
+      <div id="signinState">
+        <span class="not-signed-in">
           <div data-i18n="text-sign-in"></div>
-          <button id="login-button" data-i18n="Sign in"></button>
+          <button id="signin-button" data-i18n="Sign in"></button>
         </span>
-        <span class="logged-in">
+        <span class="signed-in">
           <span id="id"></span>
-          <button id="logout-button" data-i18n="Sign out"></button>
+          <button id="signout-button" data-i18n="Sign out"></button>
           <button id="chpw_button" data-i18n="Change password"></button>
           <span id="personaliseButton" data-i18n-tooltip="tt-personalise">&#9881;</span>
         </span>
@@ -74,7 +67,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
 
       <div class="dialog-row">
         <button id="create-game" class="hidden" data-i18n="label-create-game"></button>
-        <button id="reminder-button" class="hidden" data-i18n="Send turn reminders" data-i18n-tooltip="tt-send-rems"></button>
+        <button id="reminders-button" class="hidden" data-i18n="Send turn reminders" data-i18n-tooltip="tt-send-rems"></button>
       </div>
 
       <div id="alertDialog" class="dialog">

@@ -1,7 +1,10 @@
 ## Multiplayer word grid game Server and Web Interface
 
-Host your own web server to play crossword games according to most of the rules of SCRABBLE®, Super SCRABBLE®, Words with Friends, or Lexulous. Or invent your own!
-Has tile sets for many languages, with dictionaries in English, French, German, and Catalan, and it's easy to add more.
+Play a variety of SCRABBLE®-like games against the computer, or host
+your own web server to play games against friends and family.
+
+Includes tile sets for many languages, and dictionaries in English,
+French, German, and Catalan, and it's easy to add more.
 <p style="text-align:center;">
 	<img src="/images/splash.png" width="265" height="300" alt="Board" />
 </p>
@@ -9,8 +12,7 @@ Has tile sets for many languages, with dictionaries in English, French, German, 
 ## History
 
 While there are a number of freely accessible servers out there
-offering clones of the classic SCRABBLE® game, 
-I wanted a game I
+offering clones of the classic SCRABBLE® game, I wanted a game I
 could host on my own server, and experiment with different
 dictionaries, board layouts, tile sets, and rule combinations. And I
 wanted it to be completely free. The public servers I found didn't
@@ -27,17 +29,16 @@ number of changes I intended required a fork, rather than bothering
 them with hundreds of pull requests.
 
 This fork has some major differences:
-* It has been rewritten to use Javascript ES6 and the latest dependencies.
+* It has been entirely rewritten to use modern Javascript and the latest dependencies.
 * It supports different board layouts and tile sets, and makes it easy to define your own.
 * It reinstates some of [Daniel Weck's dictionary support](https://github.com/danielweck/scrabble-html-ui). Dictionaries have been moved server-side and made optional, and integrated into game play. New dictionaries are easy to generate from word lists.
 * It supports logins, which helps you to set up tournaments and record long-term player performance.
 * It adds a computer player, inspired by the work of [Elijah Sawyers](https://raw.githubusercontent.com/elijahsawyers/WordsWithFriendsHelper) (which is in turn based on the [work of Andrew W. Appel and Guy J. Jacobson](https://www.cs.cmu.edu/afs/cs/academic/class/15451-s06/www/lectures/scrabble.pdf)). The player is stupid, simply selecting the highest scoring play it can in the time allowed for its move. However this is more than enough to beat most human players.
 * You can optionally play against the clock.
 * Can optionally let players explore alternative moves.
+* Adds a single-player version which runs entirely in the browser.
 * The UI has been massaged to make it more mobile device friendly, and translated to several languages.
-* Lots of bug fixes and small improvements.
 * Tile sets for many different languages.
-* Single-player version runs entirely in the browser.
 
 # Installation
 
@@ -51,7 +52,7 @@ You can run it [here](https://cdot.github.io/Xanado/dist/html/standalone_games.h
 ## Multi-player (client-server)
 
 ### Using Docker
-The simplest way to install the game is to use the latest Docker
+The simplest way to install the game on a server is to use the latest Docker
 image, which you can find on [github](https://github.com/cdot/Xanado/pkgs/container/xanado).
 The Docker image takes care of all dependencies etc. for you. Download the image and:
 ```
@@ -103,11 +104,11 @@ Players start on the games page. This shows a leader board and a list
 of games. You can select "Show finished games" to view games that have
 ended.
 
-When you click on a game, a dialog opens up showing a list of players in the game
-with their scores and
-whether they are currently connected or not.
-If you are signed in, you can join the game (or open a game you have
-previously joined), leave the game, add a robot, or delete it.
+When you click on a game, a dialog opens up showing a list of players
+in the game with their scores and whether they are currently connected
+or not.  If you are signed in, you can join the game (or open a game
+you have previously joined), leave the game, add a robot, or delete
+it.
  
 If you are signed in you can also create a new game.  Normally one
 player will create a game, then other players sign in and join
@@ -137,7 +138,7 @@ Single-player games always have a robot.
 The installation comes with a number of 'editions' that emulate some
 commercially available games - SCRABBLE®, Super SCRABBLE®, Lexulous,
 and Words With Friends - all of which have very similar
-gameplay. Guidance for creating your own custom game is given below.
+gameplay. And it's not too hard to create your own custom game, too.
 
 ## Game play
 
@@ -155,12 +156,13 @@ You can also use the keyboard for rapid word entry.
 * When the typing cursor is displayed, you can also use the arrow keys to move it around the board.
 * You can still use the mouse while the typing cursor is visible.
 
-There are also a number of other keyboard shortcuts for the various buttons:
+There are also a number of other keyboard shortcuts:
 * The `End` or `Enter` keys will make the current move.
 * The `Home` key will take back placed tiles.
 * `#` will shuffle the rack.
 * `?` will pass the current turn.
 * `!` will take back your last move, or challenge the last player's move, depending on what the log says.
+* `;` will let you type into the chat window
 
 ## Learning
 
@@ -181,9 +183,9 @@ games that can be played. Each specification is made up from:
 
 The following editions are included:
 * Scrabble, with tile sets for many languages
-* SuperScrabble (21x21 board)
-* Words with Friends
-* Lexulous
+* English SuperScrabble (21x21 board)
+* English Words with Friends
+* English Lexulous
 
 # Dictionaries
 The `/dictionaries` directory contains all the
@@ -241,6 +243,10 @@ registered trademark.
 
 This not-for-profit project is not associated with any of the owners
 of the aforementioned brands.
+
+## Privacy
+
+Xanado is hosted on your own server and doesn't store any information about you anywhere else. The standalone version hosted on github doesn't store any information either. If you suspect otherwise, please get in touch because that would be a bug!
 
 ## CODE COPYRIGHT AND LICENSE
 

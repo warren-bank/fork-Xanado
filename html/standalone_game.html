@@ -13,30 +13,21 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
     <title>Xanado</title>
 
     <link href="../node_modules/normalize.css/normalize.css" rel="stylesheet" type="text/css">
-    <link href="../node_modules/jquery-ui-dist/jquery-ui.min.css" rel="stylesheet" type="text/css">
 
-    <!-- meta name="theme" elements will expand to <link> elements
-         in browser/UI.js to reflect the selected user theme -->
-    <meta name="theme" content="common.css">
-    <meta name="theme" content="playerTable.css">
-    <meta name="theme" content="icons.css">
-    <meta name="theme" content="surface.css">
-    <meta name="theme" content="game.css">
-    <meta name="theme" content="standalone.css">
+    <!-- Rewritten to reflect the preferences -->
+    <link id="jQueryTheme" href="../node_modules/jquery-ui/dist/themes/pepper-grinder/jquery-ui.min.css" rel="stylesheet" type="text/css">
 
-    <script id="rjs_main">
-      // globals
-      const rjs_main = "standalone/StandaloneGameUI";
-    </script>
-    <script data-main="../js/rjs_config.js" src="../node_modules/requirejs/require.js"></script>
+    <!-- Rewritten in browser/UI.js to reflect the preferences -->
+    <link id="xanadoCSS" href="../css/default.css" rel="stylesheet" type="text/css">
 
+    <script type="module" src="../src/standalone/StandaloneGameUI.js"></script>
   </head>
   <body id="body" tabindex="0">
     <div class="loading">
       <img src="../images/loading.gif" />
     </div>
     <div class="waiting">
-      <div class="user-interface">
+      <div class="game-interface">
         <div id="typingCursor"></div>
         <div id="baize">
           <table id="board" class="Surface surround-shade">
@@ -53,7 +44,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
             </div>
           </div>
         </div>
-        <div id="blocks">
+        <div id="blocks" class="ui-widget">
           <div id="topBlock" class="block">
             <div id="gameSetupButton" data-i18n-tooltip="tt-game-setup">&#127183;</div>
             <div id="libraryButton" data-i18n-tooltip="tt-library">&#127199;</div>
@@ -67,7 +58,7 @@ and license information. Author Crawford Currie http://c-dot.co.uk-->
             <div class="observerCount hidden"></div>
             <div class="letterbag"></div>
           </div>
-          <div id="playBlock" class="block logged-in">
+          <div id="playBlock" class="block signed-in">
             <div class="block-title" data-i18n="Play"></div>
             <div class="your-move"></div>
             <table id="swapRack" class="Surface rack bottom-shade">

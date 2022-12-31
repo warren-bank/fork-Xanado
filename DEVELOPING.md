@@ -1,95 +1,81 @@
 ## File structure
 
-The installation has subdirectories as follows:
+Two versions are built, a client-server version supporting multiple
+players, and a standalone version offering solo games against the
+computer. As much as possible of the code is shared between the two versions.
+
+The repository has subdirectories as follows:
 * `audio` contains audio samples
+* `bin` has top level scripts
+* `build` has webpack configuration files used for building
 * `css` contains style sheets
     * `css/default` contains the default theme. Other subdirectories
       contain files that can override all or some of the default css.
 * `dictionaries` contains all the dictionaries
 * `editions` contains the edition specifications
 * `games` contains the database of games (initially empty)
-* `html` has the html for the user interfaces, `games_ui.html` for the control panel, and `game_ui.html` for the game itself.
-* `i18n` contains the master English `en.json`, qqq documentation, and any other contributed translations of the interface.
+* `html` has the html for the user interfaces, `games_ui.html` for
+  the control panel, and `game_ui.html` for the game itself.
+* `i18n` contains the master English `en.json`, `qqq` documentation, and
+  any other contributed translations of the interface.
 * `images` contains images used by the game
-* `js` has all the source code
-    * `js/common` has generic code
-	* `js/dawg` is generation and management of DAWGs
-	* `js/design` is the Valett program
-	* `js/game` has basic game code shared between frontend and backend
-    * `js/backend` has game code specific to the backend
-	* `js/i18n` has the translations checker
-	* `js/browser` has browser-specific code
-    * `js/client` has the client code
-	* `js/server` has the server code
-    * `js/standalone` has the code that runs entirely in the browser
-    * `js/build` has build system components
+* `src` has all the source code
+    * `src/backend` has game code specific to the backend
+	* `src/browser` has shared browser-specific code
+    * `src/client` has the client user interface code for the
+      client-server version
+    * `src/common` has generic code and interface specifications
+	* `src/design` is the Valett program
+	* `src/game` has basic game code shared between frontend and backend
+	* `src/i18n` has the translations
+	* `src/server` has the server code for the client-server version
+    * `src/standalone` has the solo layer interface that runs entirely
+      in the browser
 * `test` has all the unit tests and fixtures
-* `bin` has top level scripts
-
-## Creating your own dictionary
-
-Dictionaries are stored in the `dictionaries` directory in the form of
-a DAWG (Directed Acyclic Word Graph), which is generated from a
-lexicon (list of words) using a processor based on [Daniel Weck's
-DAWG_Compressor program](https://github.com/danielweck/scrabble-html-ui). To build a new dictionary, follow the
-instructions given when you run:
-```
-$ node bin/dictionary_compressor.js
-```
-`bin/explore.js` can be used to explore the generated DAWG(s) e.g.
-```
-$ node bin/explore.js SOWPODS_English --anagrams scrabble
-```
-Run it with no parameters for help.
-
-If you are extending an existing dictionary with new words, you don't
-need to run the compressor. If there is a file in the `dictionaries`
-folder with the same name as the dictionary and the extension `.white`
-it will be read and the words in it loaded into the dictionary when
-the server starts. It will affect the performance of the dictionary,
-so you are recommended to run the compressor every so often to
-incorporate those words.
-
-If you create a new dictionary, you will have to add it to
-`dictionaries/index.json` for the standalone game to pick it up.
 
 ## Flow of Control
 
-Players access `/` on the server. This will load the `games_ui`
+Players access `/` on the server. This will load the games
 interface, which is used to view available games and create new games.
+The following describes the client-server version of the game.
 
-A game is joined by opening a URL which identifies the game
+A game is joined by opening a server URL which identifies the game
 and player (`GET /join/gameKey/playerKey`). The server adds the
-player to the game and responds with the gameKey and playerKey. The 
-`games` interface then opens a new window on `html/game_ui.html`, which
-loads the UI.
+player to the game and responds with the gameKey and playerKey, and
+establishes web sockets for further communication. The games interface
+supports exploration of existing and past games, and creation of new
+games. Players join a game from this interface, which redirects to
+a game URL.
 
-Construction of the UI object asks the server for the state of the
+The game interface asks the server for the state of the
 game using a `GET /game/gameKey` URI. The server recognises this as a
-request for JSON, and serves up the game, as serialised by
-`js/game/Freeze.js`.  The UI thaws this data and loads the game, then
-manually connects the `WebSocket`, attaching handlers for managing the
-socket.
+request for JSON, and serves up the game, as serialised to
+(CBOR)[http://github.com/cdot/CBOR). The UI thaws this data and loads the
+game, then manually connects the socket, attaching handlers.
  
 Once construction is complete, the UI will listen for events coming
 over the socket from the server and modify the client local copy of
-the game accordingly. It will also listen for events coming from the
-user, and will POST messages using the `/command` route to reflect
-user actions: `makeMove`, `challenge`, `swap`, `takeBack`, `pass`,
-`confirmGameOver`, `pause` and `unpause`.
+the game accordingly. It will also listen for user interface events
+coming from the user, and will POST messages using the `/command` route
+to reflect user actions: `makeMove`, `challenge`, `swap`, `takeBack`,
+`pass`, `confirmGameOver`, `pause` and `unpause`.
 
 Information about a play is passed to the server in a `Move` object,
-and results are broadcast asynchronously as `turn` events
+and results are broadcast asynchronously over the sockets as events
 parameterised by `Turn` objects. A single play will usually result in
-a single `Turn` object being broadcast, but there is no theoretical
+a single `Turn` being broadcast, but there is no theoretical
 limit on the number of `Turn` objects that might be broadcast for a
 single interactive play. For example, a robot play following a human
-play will result in a sequence of turns. `Turn` objects are recorded
+play will likely result in a sequence of turns. `Turn` objects are recorded
 in the game history, allowing a full replay of game events at a later
-date (e.g. when refreshing the Ui.)
+date (e.g. when refreshing the UI.)
 
 A complete list of the routes handled by the server can be found in
 the code documentation for the `Server` class.
+
+The standalone game works in essentially the same way, except that sockets
+are not required and the game code that normally runs in the server, runs
+directly in the browser instead.
 
 ## Testing
 The `test` subdirectory contains unit tests for the server
@@ -105,31 +91,8 @@ There's a `npm run debug` script to run the server with debug options enabled (v
 
 The client UI supports a mechanical turk for UI testing. This can be enabled by passing `autoplay` in the URL parameters to an open game. Once a first manual play has been played, all subsequent plays in that UI will be decided automatically.
 
-## Internationalisation
-Xanado uses the [Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n) to support translations. Currently translation files are provided for English, (une très mauvaise traduction en) French, and (eine schlechte Übersetzung ins) German. To generate your own translation, copy `/i18n/en.json` to a file using your language code (e.g. `it` for Italian) and edit the new file to provide the translation. You can use `npm run tx` to check the completeness of your translations.
-
-If you create a new translation, you will have to add it to
-`i18n/index.json` for the standalone game to pick it up.
-
-## Theming the UI
-Support for theming the UI exists at two levels.
-- To theme the look of the jQuery components of the UI, you can add a (jQuery UI theme)[https://api.jqueryui.com/category/theming/] to `html/game_ui.html`.
-- To theme the more Xanado specific classes, you can override the css files in `css/default` by providing your own versions of the files. An example is given in `css/exander77`. All files must be provided.
-
-## Build system
-
-The build system is used to generate minimal browser scripts and CSS in the `dist` subdirectory. Run it using `npm run dist`. The `dist` code can be used to run a single player game using scripts hosted a standard HTTP server that does not have server-side scripting. The `dist` code is checked in to git so that it can be served using github pages.
-
-## Documentation
-The code is documented using `jsdoc`. The documentation is automatically
-built when a new version is pushed to github, and can be found on <a href="https://cdot.github.io/Xanado/">github pages</a>.
-
-For development, `npm run doc` will generate the documentation in the `doc`
-directory.
-You can read the doc in a browser by opening `file:///..../doc/index.html`
-or, if the game server is running, by loading `http://localhost:9093/doc/index.html` (adjust URL to suit your install)
-
-## Docker
+## Publishing
+### Docker
 `Dockerfile` can be used for building local docker images (assuming you have
 a docker server running).
 ```
@@ -142,6 +105,44 @@ $ docker run -p9093:9093 xword
 will run the image, mapping `localhost` port 9093 to port 9093 on the docker image. The docker image is automatically built when a new version is checked in
 to github.
 
+## npm
+Use `npm publish --dry-run` to test the configuration and make sure all
+required files are published. Publishing happens automatically when the
+code is pushed to github (it's published to the github npm repository, and
+can be installed using `npm install github:cdot.xanado`)
+
+## Internationalisation
+Xanado uses the
+[Wikimedia jQuery.i18n framework](https://github.com/wikimedia/jquery.i18n)
+to support translations. To generate your own translation, copy
+`i18n/en.json` to a file using your language code (e.g. `uk.json` for
+Ukranian) and edit the new file to provide the translation. `qqq.json`
+contains descriptions of all the strings requiring translation. You
+can use `npm run tx` to check the completeness of your translations.
+
+If you create a new translation, you will have to add it to
+`i18n/index.json` for the standalone game to pick it up (or run
+`npm run build`, which will do that for you).
+
+## Theming the UI
+Support for theming the UI exists at two levels.
+- To theme the look of the jQuery components of the UI, you can select
+  a jQuery theme in the user preferences dialog.
+- To theme the Xanado specific classes, you can add your own CSS file
+  to the `css/` directory. An example is given in `css/exander77`.
+
+## Build system
+The build system uses [webpack](https://webpack.js.org/)` to generate indexes and minimal browser scripts in the `dist` subdirectory. Run it using `npm run build`. The `dist` code is checked in to git so that it can be served using github pages.
+
+## Documentation
+The code is documented using `jsdoc`. The documentation is automatically
+built when a new version is pushed to github, and can be found on <a href="https://cdot.github.io/Xanado/">github pages</a>.
+
+For development, `npm run doc` will generate the documentation in the `doc`
+directory.
+You can read the doc in a browser by opening `file:///..../doc/index.html`
+or, if the game server is running, by loading `http://localhost:9093/doc/index.html` (adjust URL to suit your install)
+
 ## Ideas
 
 The github repository has a list of issues that need to be addressed, including
@@ -149,17 +150,27 @@ a number of enhancements. Here are some other enhancements that you might like
 to explore.
 
 ### Designing your own game
-Game definitions can be found in the `editions` directory. Each
-definition describes the layout of the lower-right quadrant of the
-board (it is assumed to be mirrored), the contents of the bag, the
-number of tiles on the rack, the number of tiles that can be swapped
-in a play, and the bonuses for playing certain numbers of tiles in one
-play.
+Game definitions can be found in `.json` files in the `editions` directory. 
+
+To create your own word game, it's easiest if you start from
+one of the existing editions.
+* `layout` - layout of the bottom right quadrant of the board (boards must
+be bilaterally symmetrical). `M` is the middle/start square, `d` and `D` double
+letter and double word squares, `t` and `T` triple, and `q` and `Q` quad.
+`_` is an empty square.
+* `swapCount` and `rackCount` are the sizes of the swap and main racks.
+* `bonuses` maps from a number of tiles placed to a bonus score.
+* `bag` is an array of tiles, each with:
+ * `letter` a unicode string representing the letter. If not given
+   then the tile is a blank.
+ * `score` score for playing that tile
+ * `count` number of that tile in the bag
 
 If you create a new edition, you will have to add it to
-`editions/index.json` for the standalone game to pick it up.
+`editions/index.json` for the standalone game to pick it up (or
+`npx run build`, which will do that for you).
 
-### Valett
+#### Valett
 Choosing point values for tiles, and the number of tiles of each letter,
 can be difficult to get right. Included is a version of
 [Joshua Lewis' Valett program](https://github.com/jmlewis/valett)
@@ -168,8 +179,28 @@ letter combinations encountered in the corpus based on probability (the corpus
 can be any big list of words, or it can simply be a lexicon). Run the program
 `node bin/valett.js` for help.
 
-### DAWG
-The DAWG support is designed to be reusable in other games. It might be fun to implement Wordle, for example, or the word search game often found in newspapers where you try to make as many words as possible from a 9 letter anagram. The `js/dawg/explore.js` program is a basic command-line tool for exploring a DAWG.
+### Dictionary
+Dictionaries are stored in the `dictionaries` directory and are generated
+from a lexicon (list of words in a big text file). To build a new dictionary,
+follow the instructions given when you run:
+```
+$ node node_modules/@cdot/dictionary/bin/compress.js
+```
+Run it with no parameters for help.
+
+If you are extending an existing dictionary with new words, you don't
+need to run the compressor. If there is a file in the `dictionaries`
+folder with the same name as the dictionary and the extension `.white`
+it will be read and the words in it loaded into the dictionary when
+the server starts. It will affect the performance of the dictionary,
+so you are recommended to run the compressor every so often to
+incorporate those words.
+
+If you create a new dictionary, you will have to add it to
+`dictionaries/index.json` for the standalone game to pick it up. This
+is done automatically when you `npm run build`.
+
+The dictionary support is designed to be reusable in other games. It might be fun to implement Wordle, for example, or the word search game often found in newspapers where you try to make as many words as possible from a 9 letter anagram. See [github](https://github.com/cdot/dictionary) for more.
 
 ### Public Server
 It would be nice to see a truly public server that anyone could sign in to and play against other random people. However this would have to be done with great care.
