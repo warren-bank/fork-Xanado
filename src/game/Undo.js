@@ -55,7 +55,7 @@ const Undo = superclass => class extends superclass {
    * @param {Turn} turn the Turn to unplay
    */
   unconfirmGameOver(turn) {
-    // Re-adjustscores from the delta
+    // Re-adjust scores from the deltas
     for (const delta of turn.score) {
       const player = this.getPlayerWithKey(delta.key);
       assert(player, delta.key);

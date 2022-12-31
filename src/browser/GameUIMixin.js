@@ -341,9 +341,8 @@ const GameUIMixin = superclass => class extends superclass {
         player.$refreshScore();
         break;
       case "object":
-        for (const k in turn.score) {
-          const delta = turn.score[k];
-          const p = this.game.getPlayerWithKey(k);
+        for (const delta of turn.score) {
+          const p = this.game.getPlayerWithKey(delta.key);
           p.score += (delta.tiles || 0) + (delta.time || 0);
           p.$refreshScore();
         }
