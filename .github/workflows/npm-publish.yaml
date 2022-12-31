@@ -3,10 +3,7 @@
 
 name: Publish to npm
 
-on:
-  push:
-    branches:
-      - "main"
+on: release
 
 jobs:
   publish-npm:
