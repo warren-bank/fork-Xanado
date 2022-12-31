@@ -2,7 +2,6 @@
 client_secret*
 config.json
 coverage
-dist
 doc
 games/*.game
 https.*
