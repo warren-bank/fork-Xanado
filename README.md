@@ -213,7 +213,7 @@ extended "on the fly" using a simple list of words in a file alongside the dicti
 The assumption is that you will be running the multi-player game server
 on a private server with a limited, trustworthy audience.
 
-The server can be configured to use HTTPS, see the example config.json
+The server can be configured to use HTTPS, see [configuration](CONFIGURATION.md)
 for how. HTTPS is required for social media logins and notifications
 to work, and is highly recommended when using default logins. To use
 HTTPS you require an SSL
