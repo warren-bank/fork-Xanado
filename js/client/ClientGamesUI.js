@@ -306,7 +306,7 @@ requirejs([
         if (games.reduce((em, game) => {
           // game is Game.simple, not a Game object
           // Can't remind a game that hasn't started or has ended.
-          if (game.hasEnded() || game.state === Game.State.WAITING)
+          if (game.hasEnded() || game.state === Game.State.WAITING || !game.whosTurnKey)
             return em;
           return em || game.getPlayerWithKey(game.whosTurnKey)
           .email;
