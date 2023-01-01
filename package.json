@@ -32,7 +32,7 @@
 		"src/*/*.js",
 		"package.json",
 		"package-lock.json",
-		"README.md.md"
+		"README.md"
 	],
 	"license": "MIT",
 	"dependencies": {
