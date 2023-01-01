@@ -65,9 +65,11 @@ to run the server on port 9093 of the host machine.
 If you are familar with npm you can install the production version of
 Xanado directly:
 ```
-$ npm install @cdot/xanado
-$ cd node_modules/@cdot/xanado && npm install
-$ node bin/server.js
+$ npm install --global @warren-bank/scrabble
+```
+Once installed, run the server on the default port (9093):
+```
+$ scrabble
 ```
 
 ### Developers
