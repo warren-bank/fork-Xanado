@@ -54,8 +54,12 @@
 	},
 	"importmap": "./build/importmap.json",
 	"devDependencies": {
+		"@babel/core": "latest",
+		"@babel/plugin-proposal-class-properties": "latest",
+		"@babel/preset-env": "latest",
 		"@rwap/jquery-ui-touch-punch": "latest",
 		"@wikimedia/jquery.i18n": "latest",
+		"babel-loader": "latest",
 		"c8": "latest",
 		"chai": "latest",
 		"chai-http": "latest",

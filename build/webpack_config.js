@@ -62,8 +62,8 @@ function makeConfig(html, js) {
     entry: {
       app: `${__dirname}/../src/${js}`
     },
-    //mode: "production",
-    mode: "development",
+    mode: 'production',
+    target: ['web', 'es5'],
     output: {
       filename: js,
       path: `${__dirname}/../dist`,
@@ -72,18 +72,41 @@ function makeConfig(html, js) {
     resolve: {
       extensions: [ '.js' ]
     },
+    module: {
+      rules: [
+        {
+          test: /\.m?js$/,
+          exclude: /node_modules/,
+          use: {
+            loader: 'babel-loader',
+            options: {
+              presets: [
+                ['@babel/preset-env', { modules: false }],
+              ],
+              // plugin is needed to respect: webpackChunkName
+              // see: https://github.com/babel/babel-loader/issues/592
+              plugins: ['@babel/plugin-proposal-class-properties']
+            }
+          }
+        }
+      ]
+    },
     optimization: {
       minimizer: [
         new TerserPlugin({
           terserOptions: {
-            // We have to keep class names because CBOR TypeMapHandler
-            // uses them
+            // We have to keep class names because CBOR TypeMapHandler uses them
             keep_classnames: true
           },
         }),
       ]
     },
     plugins: [
+      new webpack.DefinePlugin({
+        "process.env": {
+          NODE_ENV: JSON.stringify('production')
+        }
+      }),
       new webpack.ProvidePlugin({
         $: 'jquery',
         jQuery: 'jquery'
