@@ -41,7 +41,7 @@ function makeConfig(html, js) {
       /(<script type="module" src=").*?([^/]+\/[^/]+.js")/,
       "$1../dist/$2");
 
-    // Pull nrcessary CSS files out of node_modules; they may not be
+    // Pull necessary CSS files out of node_modules; they may not be
     // installed on the target platform
     copyFile("../node_modules/normalize.css/normalize.css",
              "../dist/css/normalize.css");

@@ -22,9 +22,6 @@ import nodemailer from "nodemailer";
 import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-import jQuery from "jquery";
-global.$ = global.jQuery = jQuery;
-
 import { ServerPlatform } from "../src/server/ServerPlatform.js";
 global.Platform = ServerPlatform;
                     
