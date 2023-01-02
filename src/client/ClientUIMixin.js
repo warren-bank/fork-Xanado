@@ -3,14 +3,26 @@
   and license information. Author Crawford Currie http://c-dot.co.uk*/
 /* eslint-env browser, jquery */
 
-// The documented method for importing socket.io in ESM is:
-// import { io } from "../../node_modules/socket.io/client-dist/socket.io.esm.min.js";
+// -----------------------------------------------------------------------------
+// The documented method for importing the ESM socket.io client library is:
+//   import { io } from "../../node_modules/socket.io/client-dist/socket.io.esm.min.js";
 // This works fine in the unpacked version, but fails when webpacked.
 //
+// Similarly, the ESM socket.io client library should be accessible by:
+//   import { io } from "socket.io/client-dist/socket.io.esm.min.js";
+// and/or:
+//   import { io } from "socket.io-client/dist/socket.io.esm.min.js";
+// However:
+//   https://github.com/socketio/socket.io/issues/4576
+//
 // The following clumsy hack is the only way I could get it to work in both
-// the unpacked and th packed versions. If someone can do better, please do!
+// the unpacked and the packed versions:
+//   import * as SI from "../../node_modules/socket.io/client-dist/socket.io.js";
+// If someone can do better, please do!
+// -----------------------------------------------------------------------------
+
 /* global io */
-import * as SI from "../../node_modules/socket.io/client-dist/socket.io.js";
+import * as SI from "socket.io-client/dist/socket.io.js";
 if (typeof io === "undefined")
   window.io = SI.io;
 
