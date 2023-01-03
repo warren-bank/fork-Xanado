@@ -79,7 +79,7 @@ function makeConfig(html, js, mode = 'development') {
       rules: [
         {
           test: /\.m?js$/,
-          exclude: /node_modules/,
+          exclude: /\/node_modules\/(?!@cdot\/)/,
           use: {
             loader: 'babel-loader',
             options: {
