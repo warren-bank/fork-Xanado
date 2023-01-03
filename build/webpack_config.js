@@ -103,7 +103,7 @@ function makeConfig(html, js, mode = 'development') {
         new TerserPlugin({
           terserOptions: {
             compress: true,
-            mangle: true,
+            mangle: false,
             module: true,
 
             // We have to keep class names because CBOR TypeMapHandler uses them
