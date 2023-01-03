@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import TerserPlugin from "terser-webpack-plugin";
+import { shouldPrintComment } from "babel-plugin-smart-webpack-import";
 import webpack from "webpack";
 import { promises as fs } from "fs";
 
@@ -29,7 +30,7 @@ function relink(from, to, content) {
     (m, preamble) => `${preamble}${to}`);
 }
 
-function makeConfig(html, js) {
+function makeConfig(html, js, mode = 'development') {
 
   fs.readFile(`${__dirname}/../html/${html}`)
   .then(content => {
@@ -62,8 +63,10 @@ function makeConfig(html, js) {
     entry: {
       app: `${__dirname}/../src/${js}`
     },
-    mode: 'production',
+    mode: mode,
     target: ['web', 'es5'],
+    devtool: 'source-map',
+    cache: false,
     output: {
       filename: js,
       path: `${__dirname}/../dist`,
@@ -81,20 +84,28 @@ function makeConfig(html, js) {
             loader: 'babel-loader',
             options: {
               presets: [
-                ['@babel/preset-env', { modules: false }],
+                ['@babel/preset-env']
               ],
-              // plugin is needed to respect: webpackChunkName
-              // see: https://github.com/babel/babel-loader/issues/592
-              plugins: ['@babel/plugin-proposal-class-properties']
+              plugins: [
+                ['babel-plugin-smart-webpack-import', { hashes: false } ],
+                ['@babel/plugin-proposal-class-properties']
+              ],
+              shouldPrintComment,
+              moduleIds: false
             }
           }
         }
       ]
     },
     optimization: {
+      minimize: true,
       minimizer: [
         new TerserPlugin({
           terserOptions: {
+            compress: true,
+            mangle: true,
+            module: true,
+
             // We have to keep class names because CBOR TypeMapHandler uses them
             keep_classnames: true
           },
@@ -104,7 +115,7 @@ function makeConfig(html, js) {
     plugins: [
       new webpack.DefinePlugin({
         "process.env": {
-          NODE_ENV: JSON.stringify('production')
+          NODE_ENV: JSON.stringify(mode)
         }
       }),
       new webpack.ProvidePlugin({
