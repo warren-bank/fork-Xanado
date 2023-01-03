@@ -172,34 +172,7 @@
  */
 
 /*!
- * jQuery UI Effects Blind 1.13.2
- * http://jqueryui.com
- *
- * Copyright jQuery Foundation and other contributors
- * Released under the MIT license.
- * http://jquery.org/license
- */
-
-/*!
  * jQuery UI Focusable 1.13.2
- * http://jqueryui.com
- *
- * Copyright jQuery Foundation and other contributors
- * Released under the MIT license.
- * http://jquery.org/license
- */
-
-/*!
- * jQuery UI Keycode 1.13.2
- * http://jqueryui.com
- *
- * Copyright jQuery Foundation and other contributors
- * Released under the MIT license.
- * http://jquery.org/license
- */
-
-/*!
- * jQuery UI Labels 1.13.2
  * http://jqueryui.com
  *
  * Copyright jQuery Foundation and other contributors
@@ -216,15 +189,6 @@
  * http://jquery.org/license
  *
  * http://api.jqueryui.com/position/
- */
-
-/*!
- * jQuery UI Progressbar 1.13.2
- * http://jqueryui.com
- *
- * Copyright jQuery Foundation and other contributors
- * Released under the MIT license.
- * http://jquery.org/license
  */
 
 /*!
@@ -299,13 +263,323 @@
  * http://jquery.org/license
  */
 
+/*! ../backend/BackendGame.js */
+
+/*! ../browser/BrowserDatabase.js */
+
+/*! ../browser/BrowserGame.js */
+
+/*! ../browser/BrowserPlatform.js */
+
+/*! ../browser/GameSetupDialog.js */
+
+/*! ../browser/GameUIMixin.js */
+
+/*! ../browser/SettingsDialog.js */
+
+/*! ../browser/UI.js */
+
+/*! ../common/Channel.js */
+
+/*! ../common/Fridge.js */
+
+/*! ../common/Utils.js */
+
+/*! ../game/Board.js */
+
+/*! ../game/Commands.js */
+
+/*! ../game/Edition.js */
+
+/*! ../game/Game.js */
+
+/*! ../game/Move.js */
+
+/*! ../game/Player.js */
+
+/*! ../game/Rack.js */
+
+/*! ../game/Replay.js */
+
+/*! ../game/Square.js */
+
+/*! ../game/Tile.js */
+
+/*! ../game/Undo.js */
+
+/*! ../game/findBestPlay.js */
+
+/*! ../game/loadDictionary.js */
+
+/*! ./Board.js */
+
+/*! ./BrowserBoard.js */
+
+/*! ./BrowserPlayer.js */
+
+/*! ./BrowserRack.js */
+
+/*! ./BrowserSquare.js */
+
+/*! ./BrowserTile.js */
+
+/*! ./Edition.js */
+
+/*! ./Game.js */
+
+/*! ./LetterBag.js */
+
+/*! ./Move.js */
+
+/*! ./Player.js */
+
+/*! ./Rack.js */
+
+/*! ./Square.js */
+
+/*! ./StandaloneUIMixin.js */
+
+/*! ./Surface.js */
+
+/*! ./SurfaceMixin.js */
+
+/*! ./Tile.js */
+
+/*! ./Turn.js */
+
+/*! ./UI.js */
+
+/*! ./UIEvents.js */
+
+/*! ./icon_button.js */
+
+/*! ./loadDictionary.js */
+
+/*! ./version */
+
+/*! @cdot/cbor */
+
+/*! @cdot/dictionary */
+
+/*! @rwap/jquery-ui-touch-punch/jquery.ui.touch-punch.js */
+
+/*! @wikimedia/jquery.i18n/src/jquery.i18n.emitter.js */
+
+/*! @wikimedia/jquery.i18n/src/jquery.i18n.fallbacks.js */
+
+/*! @wikimedia/jquery.i18n/src/jquery.i18n.js */
+
+/*! @wikimedia/jquery.i18n/src/jquery.i18n.language.js */
+
+/*! @wikimedia/jquery.i18n/src/jquery.i18n.messagestore.js */
+
+/*! @wikimedia/jquery.i18n/src/jquery.i18n.parser.js */
+
 /*! For license information please see index.js.LICENSE.txt */
+
+/*! import() | GameSetupDialog */
+
+/*! import() | SettingsDialog */
+
+/*! import() | findBestPlay */
 
 /*! jQuery UI - v1.13.2 - 2022-07-14
 * http://jqueryui.com
 * Includes: widget.js, position.js, data.js, disable-selection.js, effect.js, effects/effect-blind.js, effects/effect-bounce.js, effects/effect-clip.js, effects/effect-drop.js, effects/effect-explode.js, effects/effect-fade.js, effects/effect-fold.js, effects/effect-highlight.js, effects/effect-puff.js, effects/effect-pulsate.js, effects/effect-scale.js, effects/effect-shake.js, effects/effect-size.js, effects/effect-slide.js, effects/effect-transfer.js, focusable.js, form-reset-mixin.js, jquery-patch.js, keycode.js, labels.js, scroll-parent.js, tabbable.js, unique-id.js, widgets/accordion.js, widgets/autocomplete.js, widgets/button.js, widgets/checkboxradio.js, widgets/controlgroup.js, widgets/datepicker.js, widgets/dialog.js, widgets/draggable.js, widgets/droppable.js, widgets/menu.js, widgets/mouse.js, widgets/progressbar.js, widgets/resizable.js, widgets/selectable.js, widgets/selectmenu.js, widgets/slider.js, widgets/sortable.js, widgets/spinner.js, widgets/tabs.js, widgets/tooltip.js
 * Copyright jQuery Foundation and other contributors; Licensed MIT */
 
-/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
+/*! jquery */
 
-/*@preserve Copyright (C) 2017-2019 Crawford Currie http://c-dot.co.uk license MIT*/
+/*! jquery-ui */
+
+/*! jquery-ui/dist/jquery-ui.js */
+
+/*! jquery/dist/jquery.js */
+
+/*!**************************!*\
+  !*** ./src/game/Game.js ***!
+  \**************************/
+
+/*!**************************!*\
+  !*** ./src/game/Move.js ***!
+  \**************************/
+
+/*!**************************!*\
+  !*** ./src/game/Rack.js ***!
+  \**************************/
+
+/*!**************************!*\
+  !*** ./src/game/Tile.js ***!
+  \**************************/
+
+/*!**************************!*\
+  !*** ./src/game/Turn.js ***!
+  \**************************/
+
+/*!**************************!*\
+  !*** ./src/game/Undo.js ***!
+  \**************************/
+
+/*!***************************!*\
+  !*** ./src/browser/UI.js ***!
+  \***************************/
+
+/*!***************************!*\
+  !*** ./src/game/Board.js ***!
+  \***************************/
+
+/*!****************************!*\
+  !*** ./src/game/Player.js ***!
+  \****************************/
+
+/*!****************************!*\
+  !*** ./src/game/Replay.js ***!
+  \****************************/
+
+/*!****************************!*\
+  !*** ./src/game/Square.js ***!
+  \****************************/
+
+/*!*****************************!*\
+  !*** ./src/common/Utils.js ***!
+  \*****************************/
+
+/*!*****************************!*\
+  !*** ./src/game/Edition.js ***!
+  \*****************************/
+
+/*!*****************************!*\
+  !*** ./src/game/Surface.js ***!
+  \*****************************/
+
+/*!******************************!*\
+  !*** ./src/common/Fridge.js ***!
+  \******************************/
+
+/*!******************************!*\
+  !*** ./src/game/Commands.js ***!
+  \******************************/
+
+/*!*******************************!*\
+  !*** ./src/common/Channel.js ***!
+  \*******************************/
+
+/*!*******************************!*\
+  !*** ./src/game/LetterBag.js ***!
+  \*******************************/
+
+/*!*********************************!*\
+  !*** ./src/browser/UIEvents.js ***!
+  \*********************************/
+
+/*!************************************!*\
+  !*** ./src/backend/BackendGame.js ***!
+  \************************************/
+
+/*!************************************!*\
+  !*** ./src/browser/BrowserGame.js ***!
+  \************************************/
+
+/*!************************************!*\
+  !*** ./src/browser/BrowserRack.js ***!
+  \************************************/
+
+/*!************************************!*\
+  !*** ./src/browser/BrowserTile.js ***!
+  \************************************/
+
+/*!************************************!*\
+  !*** ./src/browser/GameUIMixin.js ***!
+  \************************************/
+
+/*!************************************!*\
+  !*** ./src/browser/icon_button.js ***!
+  \************************************/
+
+/*!************************************!*\
+  !*** ./src/game/loadDictionary.js ***!
+  \************************************/
+
+/*!*************************************!*\
+  !*** ./src/browser/BrowserBoard.js ***!
+  \*************************************/
+
+/*!*************************************!*\
+  !*** ./src/browser/SurfaceMixin.js ***!
+  \*************************************/
+
+/*!**************************************!*\
+  !*** ./src/browser/BrowserPlayer.js ***!
+  \**************************************/
+
+/*!**************************************!*\
+  !*** ./src/browser/BrowserSquare.js ***!
+  \**************************************/
+
+/*!****************************************!*\
+  !*** ./src/browser/BrowserDatabase.js ***!
+  \****************************************/
+
+/*!****************************************!*\
+  !*** ./src/browser/BrowserPlatform.js ***!
+  \****************************************/
+
+/*!********************************************!*\
+  !*** ./node_modules/jquery/dist/jquery.js ***!
+  \********************************************/
+
+/*!********************************************!*\
+  !*** ./src/standalone/StandaloneGameUI.js ***!
+  \********************************************/
+
+/*!*********************************************!*\
+  !*** ./node_modules/jquery-ui/ui/widget.js ***!
+  \*********************************************/
+
+/*!*********************************************!*\
+  !*** ./src/standalone/StandaloneUIMixin.js ***!
+  \*********************************************/
+
+/*!**********************************************!*\
+  !*** ./node_modules/jquery-ui/ui/version.js ***!
+  \**********************************************/
+
+/*!**************************************************!*\
+  !*** ./node_modules/jquery-ui/dist/jquery-ui.js ***!
+  \**************************************************/
+
+/*!***************************************************!*\
+  !*** ./node_modules/@cdot/cbor/dist/mjs/index.js ***!
+  \***************************************************/
+
+/*!*********************************************************!*\
+  !*** ./node_modules/@cdot/dictionary/dist/mjs/index.js ***!
+  \*********************************************************/
+
+/*!****************************************************************!*\
+  !*** ./node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.js ***!
+  \****************************************************************/
+
+/*!***********************************************************************!*\
+  !*** ./node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.parser.js ***!
+  \***********************************************************************/
+
+/*!************************************************************************!*\
+  !*** ./node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.emitter.js ***!
+  \************************************************************************/
+
+/*!*************************************************************************!*\
+  !*** ./node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.language.js ***!
+  \*************************************************************************/
+
+/*!**************************************************************************!*\
+  !*** ./node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.fallbacks.js ***!
+  \**************************************************************************/
+
+/*!***************************************************************************!*\
+  !*** ./node_modules/@rwap/jquery-ui-touch-punch/jquery.ui.touch-punch.js ***!
+  \***************************************************************************/
+
+/*!*****************************************************************************!*\
+  !*** ./node_modules/@wikimedia/jquery.i18n/src/jquery.i18n.messagestore.js ***!
+  \*****************************************************************************/
