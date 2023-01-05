@@ -1,7 +1,7 @@
 {
 	"name": "@warren-bank/scrabble",
 	"description": "Multi user crossword game",
-	"version": "3.1.6",
+	"version": "3.1.7",
 	"type": "module",
 	"author": {
 		"name": "Crawford Currie",

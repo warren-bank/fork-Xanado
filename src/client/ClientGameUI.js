@@ -119,7 +119,7 @@ class ClientGameUI extends ClientUIMixin(GameUIMixin(UI)) {
 
     super.attachUIEventHandlers();
 
-    $(".pauseButton")
+    $("#pauseButton")
     .show()
     .on("click", () => this.sendCommand(BrowserGame.Command.PAUSE));
   }

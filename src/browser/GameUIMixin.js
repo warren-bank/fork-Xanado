@@ -843,7 +843,7 @@ const GameUIMixin = superclass => class extends superclass {
         this.setAction("action_anotherGame", $.i18n("Another game?"));
     }
 
-    $(".pauseButton")
+    $("#pauseButton")
     .toggle(typeof game.timerType !== "undefined");
 
     $(".distributionButton")
@@ -1062,7 +1062,7 @@ const GameUIMixin = superclass => class extends superclass {
       $("body").focus();
     });
 
-    $(".pauseButton")
+    $("#pauseButton")
     .hide()
     .on("click", () => this.sendCommand(Game.Command.PAUSE));
 
