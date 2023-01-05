@@ -36,6 +36,11 @@ function makeConfig(html, js, mode = 'development') {
   .then(content => {
     content = content.toString();
 
+    // Remove import maps.
+    content = content.replace(
+      /<script src="\.\/js\/importmap\.js"><\/script>/,
+      "");
+
     // Reroute the <script call to the main module.
     // There can be only one!
     content = content.replace(

@@ -55,7 +55,6 @@
 		"socket.io": "latest",
 		"web-worker": "latest"
 	},
-	"importmap": "./build/importmap.json",
 	"devDependencies": {
 		"@babel/core": "latest",
 		"@babel/plugin-proposal-class-properties": "latest",
